@@ -113,7 +113,20 @@ class ResearchBackend:
         }
 
     def encode(self, text: str) -> Any:
-        tokens = self.model.tokenizer.encode(text, add_special_tokens=True, return_tensors="pt")
+        if self.config.model.prompt_format == "chat":
+            encoded = self.model.tokenizer.apply_chat_template(
+                [{"role": "user", "content": text}],
+                tokenize=True,
+                add_generation_prompt=True,
+                enable_thinking=False,
+                return_dict=True,
+                return_tensors="pt",
+            )
+            tokens = encoded["input_ids"]
+        else:
+            tokens = self.model.tokenizer.encode(
+                text, add_special_tokens=True, return_tensors="pt"
+            )
         return tokens.to(self.device)
 
     def concept_token_ids(self) -> dict[str, int]:

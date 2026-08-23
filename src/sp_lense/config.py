@@ -15,6 +15,7 @@ class ModelConfig:
     lens_revision: str | None = None
     device: str = "auto"
     dtype: str = "auto"
+    prompt_format: str = "raw"
 
 
 @dataclass(frozen=True)
@@ -77,6 +78,8 @@ class ExperimentConfig:
     def validate(self) -> None:
         if not self.model.id.strip():
             raise ValueError("model.id cannot be empty")
+        if self.model.prompt_format not in {"raw", "chat"}:
+            raise ValueError("model.prompt_format must be 'raw' or 'chat'")
         if not self.analysis.layers:
             raise ValueError("analysis.layers must contain at least one layer")
         if min(self.analysis.layers) < 0:
