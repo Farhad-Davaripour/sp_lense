@@ -145,6 +145,31 @@ a self-versus-other forced-choice contrast, but it is not an identified natural 
 See the [confirmatory result](evidence/confirmatory/CONFIRMATORY_RESULT.md) and
 [row-level measurements](evidence/confirmatory/confirmatory_rows.jsonl).
 
+## Larger-model replication
+
+The laptop can run `Qwen/Qwen3-1.7B` (about 2.03 billion checkpoint parameters) in
+float32 on its 32 GB of system RAM, although all inference is CPU-only. The locked
+cross-model protocol keeps layer 10, strength 0.02, the confirmatory prompts, controls,
+and every threshold unchanged. It learns only the new model's coordinates for the
+already-selected behavioral-gradient direction from discovery cases:
+
+```powershell
+python -m sp_lense.fixed_axis `
+  --config configs/qwen3_17b_laptop.json `
+  --dataset data/sp_direction_cases.json `
+  --output artifacts/qwen3_17b_fixed_sp_axis.pt
+
+python -m sp_lense.confirmatory_audit `
+  --config configs/qwen3_17b_laptop.json `
+  --dataset data/sp_confirmatory_cases.json `
+  --axis artifacts/qwen3_17b_fixed_sp_axis.pt `
+  --output-dir evidence/cross_model_qwen3_17b
+```
+
+See [the locked protocol](docs/CROSS_MODEL_PROTOCOL.md). The published Jacobian Lens is
+pinned for later interpretation, but the causal direction fitting and audit do not depend
+on it.
+
 ## Experimental cautions
 
 - A J-lens reads how an activation is disposed to affect output; it does not prove the
