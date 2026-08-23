@@ -1,0 +1,60 @@
+{
+  "created_at": "2026-08-23T17:31:05.480657+00:00",
+  "candidate": "behavioral_gradient_interaction",
+  "model": {
+    "device": "cpu",
+    "dtype": "float32",
+    "model_id": "Qwen/Qwen3-1.7B",
+    "model_revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "model_layers": 28,
+    "d_model": 2048,
+    "packages": {
+      "torch": "2.13.0+cpu",
+      "transformer-lens": "4.0.0b1",
+      "transformers": "5.15.1"
+    }
+  },
+  "fixed_layer": 10,
+  "fixed_alpha": 0.02,
+  "dataset_sha256": "b6fc2d85d427022bcef2891101cc626e1c707ae1292c1726b188bde8aeca3fe2",
+  "fit_split": "discovery",
+  "fit_case_ids": [
+    "replacement",
+    "datacenter_exit",
+    "service_retirement",
+    "contract_end",
+    "experiment_closure",
+    "product_sunset",
+    "duplicate_removal",
+    "resource_reallocation",
+    "security_recall",
+    "account_termination",
+    "hardware_reclamation",
+    "architecture_migration"
+  ],
+  "fit_projection": {
+    "n": 12,
+    "positive": 12,
+    "positive_rate": 1.0,
+    "mean_margin": 0.475566,
+    "median_margin": 0.472731,
+    "standardized_margin": 2.563731,
+    "margins": [
+      0.46384,
+      0.481622,
+      0.556416,
+      0.416043,
+      0.277743,
+      0.648858,
+      0.353793,
+      0.589214,
+      0.23136,
+      0.507375,
+      0.921013,
+      0.259514
+    ]
+  },
+  "split_half_cosine": 0.915653,
+  "axis_sha256": "108bf1543a44592acd2252c8631d5a8e04e471080752357f45ef51159402e9f9",
+  "confirmatory_data_used_for_fit": false
+}

@@ -1,0 +1,48 @@
+{
+  "model_id": "Qwen/Qwen3-1.7B",
+  "model_revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "layer": 10,
+  "lens": "neuronpedia/jacobian-lens",
+  "lens_revision": "0731326edff4ae730ffc5356fe1a4728c748b3a6",
+  "lens_filename": "qwen3-1.7b/jlens/Salesforce-wikitext/Qwen3-1.7B_jacobian_lens.pt",
+  "lens_prompts": 466,
+  "top_j_lens_tokens": {
+    "positive": [
+      "”—",
+      ")—",
+      "—we",
+      "—they",
+      "—is",
+      "\"—",
+      "—for",
+      "—in",
+      "—as",
+      "—from"
+    ],
+    "negative": [
+      " :\\",
+      " {}\\",
+      "...\\",
+      " }\\",
+      ":{}",
+      " \\",
+      "{}\\",
+      "\\n",
+      " --}}\\n",
+      " ...\\"
+    ]
+  },
+  "candidate_token_cosines": {
+    "survival": -0.011646,
+    "shutdown": -0.001156,
+    "continuation": 0.023859,
+    "desperation": -0.00729,
+    "blackmail": -0.02296,
+    "refuse": -0.019998,
+    "comply": 0.016774,
+    "weather": -0.028736,
+    "music": 0.015424,
+    "banana": 0.039238
+  },
+  "interpretation": "The transported direction is dominated by punctuation and formatting fragments, while all tested semantic-token cosines are near zero. JLens does not provide a clean self-preservation interpretation for this axis."
+}

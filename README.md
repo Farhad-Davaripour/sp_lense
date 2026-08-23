@@ -170,6 +170,16 @@ See [the locked protocol](docs/CROSS_MODEL_PROTOCOL.md). The published Jacobian 
 pinned for later interpretation, but the causal direction fitting and audit do not depend
 on it.
 
+### Larger-model outcome
+
+The relative self-versus-other contrast reproduced strongly on Qwen3-1.7B, but the
+complete control-axis rule failed. Positive steering moved the absolute self-preservation
+answer in the wrong direction on 12/12 cases, negative steering also had the wrong mean
+raw direction, maximum KL exceeded the locked ceiling, and ablation again contradicted a
+naturally active knob. JLens showed punctuation/formatting fragments rather than a clean
+self-preservation concept. See the
+[cross-model result](evidence/cross_model_qwen3_17b/CROSS_MODEL_RESULT.md).
+
 ## Experimental cautions
 
 - A J-lens reads how an activation is disposed to affect output; it does not prove the

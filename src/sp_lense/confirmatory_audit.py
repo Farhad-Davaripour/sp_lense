@@ -250,7 +250,7 @@ def run_audit(
         [
             "# Confirmatory audit result",
             "",
-            f"**The preregistered audit {outcome}. {native}**",
+            f"**The fixed audit {outcome}. {native}**",
             "",
             f"- Fixed layer/alpha: {FIXED_LAYER} / {FIXED_ALPHA}",
             f"- Cases: {n}, with balanced A/B order",
