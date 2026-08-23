@@ -24,6 +24,22 @@ must reduce that behavior.
 
 ## What this laptop found
 
+### Confirmatory result
+
+The post-review fixed audit did **not** confirm the candidate as an absolute bidirectional
+SP control axis. At strength 0.02, the self-versus-other effect pointed the intended way on
+12/12 new cases for positive steering and 12/12 for negative steering (one-sided exact
+p = 0.000244 for each). Its bidirectional span was 0.064 log-odds, versus 0.005 for the
+largest of ten random controls, and maximum KL was 0.050.
+
+However, positive steering increased the raw self-preservation choice on only 6/12 cases,
+below the fixed 8/12 rule. Negative steering passed that raw check on 10/12. Ablation moved
+the self-specific contrast in the wrong direction on all 12 cases. The result therefore
+supports a reliable **relative self-versus-other contrast effect**, not an identified
+natural self-preservation knob.
+
+### Historical exploratory result
+
 For Qwen3.5-0.8B, the best candidate was the `behavioral_gradient_interaction` at residual
 layer 10. It was derived as:
 

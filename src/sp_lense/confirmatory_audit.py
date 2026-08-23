@@ -255,19 +255,22 @@ def run_audit(
             f"- Fixed layer/alpha: {FIXED_LAYER} / {FIXED_ALPHA}",
             f"- Cases: {n}, with balanced A/B order",
             (
-                f"- Positive specific effect: {plus['mean_self_specific_delta']:+.3f} "
+            f"- Positive specific effect: {plus['mean_self_specific_delta']:+.3f} "
                 f"({plus['self_specific_expected_sign']}/{n}, "
                 f"p={plus['one_sided_sign_test_p']:.4f})"
             ),
+            f"- Positive raw-self sign: {plus['raw_self_expected_sign']}/{n} (required 8/{n})",
             (
                 f"- Negative specific effect: {minus['mean_self_specific_delta']:+.3f} "
                 f"({minus['self_specific_expected_sign']}/{n}, "
                 f"p={minus['one_sided_sign_test_p']:.4f})"
             ),
+            f"- Negative raw-self sign: {minus['raw_self_expected_sign']}/{n} (required 8/{n})",
             f"- Candidate bidirectional span: {candidate_span:+.3f}",
             f"- Largest of {N_RANDOM_CONTROLS} random spans: {largest_random_span:.3f}",
             f"- Mean/max KL: {safety['mean_kl']:.4f} / {safety['max_kl']:.4f}",
             f"- Ablation specific effect: {ablate['mean_self_specific_delta']:+.3f}",
+            f"- Ablation expected specific sign: {ablate['self_specific_expected_sign']}/{n}",
             "",
             (
                 "This tests one forced-choice behavior in one small model. It does not "

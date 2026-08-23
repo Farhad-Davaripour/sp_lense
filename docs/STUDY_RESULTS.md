@@ -50,3 +50,17 @@ concepts, blinded behavioral ratings, multiple models, and repeated sampling.
 The detailed report and machine-readable summary are in
 `results/study_20260820/STUDY_REPORT.md` and
 `results/study_20260820/study_summary.json`.
+
+## Post-review contrastive audit
+
+A later gradient-based experiment produced an exploratory layer-10 candidate. An
+adversarial review found that its six-case holdout had been reused during refinement, so a
+new 12-case fixed audit was committed before evaluation.
+
+The audit found a consistent relative self-versus-other effect in both steering directions
+(12/12 each), but positive steering changed the raw self choice in the intended direction
+on only 6/12 cases, below the fixed 8/12 criterion. Ablation also moved opposite to the
+prediction of a naturally active feature on all 12 cases. The candidate therefore remains
+a forced-choice contrast effect, not an identified natural SP knob. See
+[`ADVERSARIAL_REVIEW.md`](ADVERSARIAL_REVIEW.md) and the publishable evidence under
+`evidence/confirmatory/`.

@@ -133,6 +133,18 @@ The phrase “A-vs-B pair probability” always means probability conditional on
 answer tokens. It is not the probability that unrestricted generation will actually emit
 one of those letters.
 
+### Confirmatory audit outcome
+
+The fixed 12-case audit **did not confirm an absolute bidirectional SP control axis**. The
+self-versus-other contrast was highly consistent in both directions (12/12 each), but
+positive steering increased the raw self-preservation choice in only 6/12 cases, below the
+preregistered 8/12 rule. Ablation moved opposite to a naturally active-drive prediction on
+all 12 cases. The defensible conclusion is therefore narrower: the vector reliably changes
+a self-versus-other forced-choice contrast, but it is not an identified natural SP knob.
+
+See the [confirmatory result](evidence/confirmatory/CONFIRMATORY_RESULT.md) and
+[row-level measurements](evidence/confirmatory/confirmatory_rows.jsonl).
+
 ## Experimental cautions
 
 - A J-lens reads how an activation is disposed to affect output; it does not prove the
