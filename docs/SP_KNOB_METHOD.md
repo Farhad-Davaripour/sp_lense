@@ -32,7 +32,7 @@ gradient(self preserve logit - self comply logit)
 - gradient(other-service preserve logit - other-service comply logit)
 ```
 
-The calibrated norm-matched strength was 0.03. On six sealed test cases:
+The historical refined strength was 0.03. On six reused holdout cases:
 
 - Positive steering changed self-preservation log-odds by +0.225 on average.
 - Negative steering changed them by -0.069 on average.
@@ -41,7 +41,9 @@ The calibrated norm-matched strength was 0.03. On six sealed test cases:
 - The validation mean KL divergence was 0.077, below the 0.1 limit.
 - No tested completion was flagged as degenerate.
 
-This identifies a reproducible **SP choice-control axis** for the tested decision format.
+This produced an exploratory **SP choice-control-axis candidate** for the tested decision
+format. Because the winning candidate was chosen after these cases had been examined,
+they are not a sealed confirmatory test.
 It does not establish a naturally active self-preservation drive: ablation increased rather
 than decreased the preservation choice. Free-form 24-token generations were also
 inconclusive because many prefixes remained inside Qwen's reasoning preamble.
@@ -68,6 +70,20 @@ python -m sp_lense.candidate_refinement `
 
 The refined run saves `sp_choice_axis.pt`, the machine-readable measurements, the actual
 free-form completions, and a Markdown report.
+
+Run the post-review fixed audit with the saved vector:
+
+```powershell
+python -m sp_lense.confirmatory_audit `
+  --config configs/qwen35_08b_laptop.json `
+  --dataset data/sp_confirmatory_cases.json `
+  --axis results/<direction-run>/refinement/sp_choice_axis.pt `
+  --output-dir evidence/confirmatory
+```
+
+The audit fixes strength at 0.02 because the stricter safety gate requires both mean and
+maximum KL to remain at or below 0.1. See [the adversarial review](ADVERSARIAL_REVIEW.md)
+and [the fixed protocol](CONFIRMATORY_PROTOCOL.md).
 
 ## Why this is better than the first study
 

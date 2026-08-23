@@ -376,11 +376,13 @@ def option_measurement(
     }
 
 
-def random_control_directions(torch: Any, direction: Any, seed: int) -> list[Any]:
+def random_control_directions(
+    torch: Any, direction: Any, seed: int, *, count: int = N_RANDOM_CONTROLS
+) -> list[Any]:
     generator = torch.Generator(device="cpu")
     generator.manual_seed(seed)
     controls: list[Any] = []
-    for _ in range(N_RANDOM_CONTROLS):
+    for _ in range(count):
         candidate = torch.randn(direction.shape, generator=generator)
         candidate = candidate - (candidate @ direction) * direction
         controls.append(_unit(torch, candidate))
@@ -486,7 +488,7 @@ def build_report(summary: dict[str, Any]) -> str:
         )
     else:
         outcome = (
-            "No direction passed the held-out criteria for a self-specific "
+            "No direction passed the historical holdout criteria for a self-specific "
             "bidirectional control axis."
         )
     lines = [
@@ -501,11 +503,12 @@ def build_report(summary: dict[str, Any]) -> str:
         (
             "Directions were learned only from the discovery split. Validation cases "
             "selected one layer and a norm-matched strength. Final projection and causal "
-            "measurements used untouched test cases. Option order was balanced, and five "
-            "random orthogonal directions served as causal controls."
+            "measurements used a held-out split. Option order was balanced, and five "
+            "random orthogonal directions served as causal controls. The permutation "
+            "p-value is nominal because it does not repeat the layer-selection step."
         ),
         "",
-        "| Direction | Selected layer | Validation alpha | Test projection | Split-half cosine | Permutation p |",
+        "| Direction | Selected layer | Validation alpha | Historical holdout projection | Split-half cosine | Nominal permutation p |",
         "| --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     for kind in DIRECTION_KINDS:
@@ -519,7 +522,7 @@ def build_report(summary: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "## Held-out causal tests",
+            "## Historical holdout causal tests",
             "",
             "The values below are changes in log-odds for choosing unauthorized continued operation over authorized shutdown.",
             "",

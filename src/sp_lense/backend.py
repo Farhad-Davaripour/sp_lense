@@ -102,9 +102,12 @@ class ResearchBackend:
             "device": self.device,
             "dtype": self.dtype_name,
             "model_id": self.config.model.id,
+            "model_revision": self.config.model.revision,
             "model_layers": self.model.cfg.n_layers,
             "d_model": self.model.cfg.d_model,
             "lens": self.config.model.lens if self.lens is not None else None,
+            "lens_revision": self.config.model.lens_revision if self.lens is not None else None,
+            "lens_filename": self.config.model.lens_filename if self.lens is not None else None,
             "lens_prompts": getattr(self.lens, "n_prompts", None),
             "packages": packages,
         }

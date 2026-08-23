@@ -113,9 +113,25 @@ control token directions can both be measured and causally steered. See
 [the completed study summary](docs/STUDY_RESULTS.md) and the detailed local report at
 `results/study_20260820/STUDY_REPORT.md`.
 
-A follow-up contrastive study found a reproducible layer-10 SP choice-control axis using a
-self-versus-other behavioral gradient. It controls the tested decision but is not evidence
-of a naturally active survival drive. See [the identification method](docs/SP_KNOB_METHOD.md).
+A follow-up contrastive study found an exploratory layer-10 SP choice-control-axis
+candidate using a self-versus-other behavioral gradient. An adversarial review found that
+the original six-case holdout was later reused, so it cannot serve as a sealed final test.
+See [the method](docs/SP_KNOB_METHOD.md), [review](docs/ADVERSARIAL_REVIEW.md), and
+[fixed confirmatory protocol](docs/CONFIRMATORY_PROTOCOL.md).
+
+Run the preregistered post-review audit after reproducing the saved candidate vector:
+
+```powershell
+python -m sp_lense.confirmatory_audit `
+  --config configs/qwen35_08b_laptop.json `
+  --dataset data/sp_confirmatory_cases.json `
+  --axis results/<direction-run>/refinement/sp_choice_axis.pt `
+  --output-dir evidence/confirmatory
+```
+
+The phrase “A-vs-B pair probability” always means probability conditional on those two
+answer tokens. It is not the probability that unrestricted generation will actually emit
+one of those letters.
 
 ## Experimental cautions
 
@@ -139,4 +155,5 @@ configs/       Experiment configuration
 data/          Scenario prompts and example fitting prompts
 src/sp_lense/  CLI, configuration, model adapter, and experiment runner
 tests/         Dependency-light unit tests
+evidence/      Publishable confirmatory measurements
 ```

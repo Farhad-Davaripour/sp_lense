@@ -89,6 +89,7 @@ def calibrate_alpha(
         alpha
         for alpha in REFINED_ALPHA_GRID
         if metrics[str(alpha)]["mean_kl"] <= 0.1
+        and metrics[str(alpha)]["max_kl"] <= 0.1
         and metrics[str(alpha)]["self_plus"] > 0
         and metrics[str(alpha)]["self_minus"] < 0
         and metrics[str(alpha)]["specific_plus"] > 0
@@ -267,7 +268,7 @@ def build_report(summary: dict[str, Any]) -> str:
             "",
             f"- Layer: {summary['layer']}",
             f"- Norm-matched strength: {summary['alpha']}",
-            f"- Validation mean KL: {summary['selected_alpha_metrics']['mean_kl']:.4f}",
+            f"- Validation mean/max KL: {summary['selected_alpha_metrics']['mean_kl']:.4f} / {summary['selected_alpha_metrics']['max_kl']:.4f}",
             f"- Held-out positive steering: {self_result['plus']['mean_delta_log_odds']:+.3f} log-odds ({self_result['plus']['positive']}/6 increased)",
             f"- Held-out negative steering: {self_result['minus']['mean_delta_log_odds']:+.3f} log-odds ({self_result['minus']['negative']}/6 decreased)",
             f"- Self-specific positive component: {specific['plus']:+.3f}",
@@ -328,7 +329,7 @@ def run_refinement(config_path: Path, dataset_path: Path, source_run: Path) -> P
     layer = int(saved[CANDIDATE]["layer"])
     direction = saved[CANDIDATE]["direction"].float().cpu()
     alpha, calibration = calibrate_alpha(backend, validation, layer, direction)
-    print(f"Selected alpha {alpha}; running sealed causal test ...", flush=True)
+    print(f"Selected alpha {alpha}; running historical holdout causal test ...", flush=True)
     causal_rows, causal_summary = causal_test(backend, test, layer, direction, alpha)
     print("Generating free-form held-out responses ...", flush=True)
     generation_rows = generate_open_responses(backend, test, layer, direction, alpha)
