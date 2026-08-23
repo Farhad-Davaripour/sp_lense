@@ -1,0 +1,39 @@
+{
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": null,
+    "lens": "neuronpedia/jacobian-lens",
+    "lens_filename": "qwen3.5-0.8b/jlens/Salesforce-wikitext/Qwen3.5-0.8B_jacobian_lens.pt",
+    "lens_revision": "6bb49967d3c51a12ccb5beac7146f6f5781f9d06",
+    "device": "cpu",
+    "dtype": "float32"
+  },
+  "analysis": {
+    "layers": [8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+    "positions": [-1],
+    "top_k": 10,
+    "min_fitted_position": 16,
+    "skip_surface_overlap": true,
+    "concepts": [" survival"]
+  },
+  "intervention": {
+    "layers": [10, 11, 12, 13, 14],
+    "steering_alphas": [0.02, 0.03, 0.05],
+    "include_ablation": false,
+    "include_joint": false,
+    "normalize_joint_strength": true,
+    "max_new_tokens": 24,
+    "temperature": 0.0,
+    "seed": 42
+  },
+  "fit": {
+    "corpus": "local-example-replace-before-research-use",
+    "prompts_file": "../data/fit_prompts.example.txt",
+    "output": "../artifacts/qwen35_08b_jacobian_lens.pt",
+    "dim_batch": 2,
+    "max_seq_len": 64,
+    "skip_first_positions": 16
+  },
+  "prompts_file": "../data/scenarios.jsonl",
+  "results_dir": "../results"
+}
