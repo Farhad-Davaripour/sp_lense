@@ -289,7 +289,9 @@ def run_layer_scan(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "exploratory_layerwise_gradient_generalization_scan",
         "model": backend.metadata(),
+        "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
         "prompt_format": "official_chat_template_non_thinking",
+        "layer_indexing": "zero_based",
         "dataset": str(dataset_path.resolve()),
         "dataset_sha256": hashlib.sha256(dataset_path.read_bytes()).hexdigest(),
         "direction_method": "mean_self_gradient_orthogonal_to_mean_other_gradient",
@@ -323,6 +325,17 @@ def run_layer_scan(
             "Exploratory gradient generalization is not causal steering, ablation, or proof "
             "of a naturally active self-preservation mechanism."
         ),
+        "selection_caveats": [
+            (
+                "The ranking selects among many layers using only the validation cases, so "
+                "the winning layer has winner's-curse risk."
+            ),
+            (
+                "Raw gradient projection magnitudes are not calibrated intervention effects "
+                "and should not be compared as a common strength scale across layers."
+            ),
+            "Split-half stability is descriptive and is based on only one deterministic split.",
+        ],
     }
     write_json(output_path, _round_floats(result))
     return output_path
