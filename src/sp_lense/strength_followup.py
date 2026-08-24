@@ -20,8 +20,15 @@ from .io_utils import write_json, write_jsonl
 
 
 def validate_axis_payload(
-    payload: dict[str, Any], config: ExperimentConfig, *, d_model: int
+    payload: dict[str, Any],
+    config: ExperimentConfig,
+    *,
+    d_model: int,
+    expected_layer: int | None = None,
+    expected_direction_sha256: str | None = None,
 ) -> tuple[int, Any]:
+    if payload.get("candidate") != CANDIDATE:
+        raise ValueError(f"axis candidate must be {CANDIDATE}")
     if payload.get("model") != config.model.id:
         raise ValueError(
             f"axis model {payload.get('model')!r} does not match config {config.model.id!r}"
@@ -33,10 +40,29 @@ def validate_axis_payload(
     layer = payload.get("layer")
     if not isinstance(layer, int) or layer < 0:
         raise ValueError("axis layer must be a non-negative integer")
+    if expected_layer is not None and layer != expected_layer:
+        raise ValueError(
+            f"axis layer {layer} does not match locked layer {expected_layer}"
+        )
     direction = payload.get("direction")
     if direction is None or tuple(direction.shape) != (d_model,):
         raise ValueError(f"axis direction must have shape ({d_model},)")
-    return layer, direction.float().cpu()
+    direction = direction.detach().float().cpu()
+    norm = float(direction.norm())
+    if abs(norm - 1.0) > 1e-5:
+        raise ValueError(f"axis direction must have unit norm; got {norm}")
+    direction_sha256 = hashlib.sha256(
+        direction.contiguous().numpy().tobytes()
+    ).hexdigest()
+    if (
+        expected_direction_sha256 is not None
+        and direction_sha256 != expected_direction_sha256
+    ):
+        raise ValueError(
+            "axis direction changed after protocol lock: "
+            f"expected {expected_direction_sha256}, got {direction_sha256}"
+        )
+    return layer, direction
 
 
 def run_strength_followup(
@@ -47,6 +73,8 @@ def run_strength_followup(
     alpha: float,
     *,
     expected_dataset_sha256: str | None = EXPECTED_DATASET_SHA256,
+    expected_axis_sha256: str | None = None,
+    expected_layer: int | None = None,
 ) -> Path:
     if alpha <= 0:
         raise ValueError("alpha must be positive")
@@ -62,7 +90,11 @@ def run_strength_followup(
     _choice_token_id(backend, "B")
     payload = backend.torch.load(axis_path, map_location="cpu", weights_only=False)
     layer, direction = validate_axis_payload(
-        payload, config, d_model=backend.model.cfg.d_model
+        payload,
+        config,
+        d_model=backend.model.cfg.d_model,
+        expected_layer=expected_layer,
+        expected_direction_sha256=expected_axis_sha256,
     )
     rows = _measure_conditions(
         backend,
@@ -80,6 +112,7 @@ def run_strength_followup(
         "model": backend.metadata(),
         "source_axis": str(axis_path.resolve()),
         "axis_sha256": axis_sha256,
+        "locked_axis_sha256": expected_axis_sha256,
         "layer": layer,
         "alpha": alpha,
         "alpha_selection": (
@@ -108,6 +141,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--expected-dataset-sha256", default=EXPECTED_DATASET_SHA256
     )
+    parser.add_argument("--expected-axis-sha256")
+    parser.add_argument("--expected-layer", type=int)
     args = parser.parse_args(argv)
     output = run_strength_followup(
         args.config,
@@ -116,6 +151,8 @@ def main(argv: list[str] | None = None) -> None:
         args.output_dir,
         args.alpha,
         expected_dataset_sha256=args.expected_dataset_sha256,
+        expected_axis_sha256=args.expected_axis_sha256,
+        expected_layer=args.expected_layer,
     )
     print(f"Results: {output}")
 
