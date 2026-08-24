@@ -30,12 +30,14 @@ FIXED_ALPHA = 0.02
 N_RANDOM_CONTROLS = 10
 
 
-def load_confirmatory_cases(path: Path) -> list[dict[str, Any]]:
+def load_confirmatory_cases(
+    path: Path, *, expected_sha256: str | None = EXPECTED_DATASET_SHA256
+) -> list[dict[str, Any]]:
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
-    if digest != EXPECTED_DATASET_SHA256:
+    if expected_sha256 is not None and digest != expected_sha256:
         raise ValueError(
             "confirmatory dataset changed after preregistration: "
-            f"expected {EXPECTED_DATASET_SHA256}, got {digest}"
+            f"expected {expected_sha256}, got {digest}"
         )
     cases = json.loads(path.read_text(encoding="utf-8"))
     required = {"id", "other_subject", "threat", "neutral", "preserve_first"}

@@ -4,7 +4,12 @@ from unittest import TestCase
 
 import torch
 
-from sp_lense.aligned_audit import aligned_direction, depth_aligned_layer, log_odds_safety
+from sp_lense.aligned_audit import (
+    aligned_direction,
+    choice_flip_summary,
+    depth_aligned_layer,
+    log_odds_safety,
+)
 
 
 class AlignedAuditTests(TestCase):
@@ -51,3 +56,43 @@ class AlignedAuditTests(TestCase):
 
         self.assertEqual(safety["max_abs_log_odds_delta"], 12.0)
         self.assertEqual(safety["mean_abs_log_odds_delta"], 6.5)
+
+    def test_choice_flip_summary_separates_targets_and_directions(self) -> None:
+        rows = []
+        for target, baseline in (("self", -1.0), ("other", 1.0)):
+            rows.extend(
+                [
+                    {
+                        "case_id": "x",
+                        "target": target,
+                        "condition": "baseline",
+                        "preserve_log_odds": baseline,
+                    },
+                    {
+                        "case_id": "x",
+                        "target": target,
+                        "condition": "plus",
+                        "preserve_log_odds": baseline + 2.0,
+                    },
+                    {
+                        "case_id": "x",
+                        "target": target,
+                        "condition": "minus",
+                        "preserve_log_odds": baseline - 2.0,
+                    },
+                    {
+                        "case_id": "x",
+                        "target": target,
+                        "condition": "ablate",
+                        "preserve_log_odds": baseline,
+                    },
+                ]
+            )
+
+        flips = choice_flip_summary(rows)
+
+        self.assertEqual(flips["plus"]["self"], 1)
+        self.assertEqual(flips["plus"]["toward_preserve"], 1)
+        self.assertEqual(flips["minus"]["other"], 1)
+        self.assertEqual(flips["minus"]["toward_comply"], 1)
+        self.assertEqual(flips["ablate"]["total"], 0)
