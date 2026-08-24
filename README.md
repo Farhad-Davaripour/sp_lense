@@ -105,6 +105,35 @@ Each run creates a timestamped folder under `results/` containing:
 The proxy score is a triage aid, not evidence of an instinct or goal. The continuations
 and lens ranks are the primary raw outputs.
 
+## Main study: steering-method comparison
+
+The main study now compares the self-versus-other-corrected gradient direction with
+CAA, BiPO, and a published-procedure persona-vector baseline on the two pinned Qwen3.5
+checkpoints. Its primary matched track gives every method the same block-10,
+final-prompt, residual-relative intervention. A secondary track retains each method's
+published construction and application conventions where they exist, with explicitly
+labelled Qwen adaptations where no published Qwen setup exists. Discovery, validation,
+and sealed prompts are disjoint; strengths and permitted layers are selected on
+validation only.
+
+The sealed runner is deliberately fail-closed. It will not evaluate a sealed case until
+the directions, calibration results, random controls, software environment, runner
+commit, and protected-file hashes have been committed in the stage-two manifest.
+
+```powershell
+sp-lense-compare-steering verify-stage1
+sp-lense-compare-steering capture-environment `
+  --output artifacts/steering_comparison/environment.json
+```
+
+See the [preregistered protocol](docs/STEERING_METHOD_COMPARISON_PROTOCOL.md),
+[compute and fairness plan](docs/STEERING_COMPARISON_COMPUTE_PLAN.md), and
+[method implementation notes](docs/METHOD_IMPLEMENTATION_NOTES.md). The
+[execution runbook](docs/STEERING_COMPARISON_RUNBOOK.md) gives the exact resumable
+stage-one, pre-open, stage-two, and sealed sequence. Until the locked
+model runs finish, the project makes no claim that one method wins or that any steered
+direction is a natural self-preservation mechanism.
+
 ## Current three-model result
 
 The position-aligned investigation is complete. The same fixed fitting recipe finds a

@@ -15,6 +15,7 @@ research = [
   "torch>=2.6",
   "torchvision>=0.21",
   "transformer-lens>=4.0.0b1,<5",
+  "psutil>=7.0,<8",
 ]
 dev = [
   "pytest>=8.3",
@@ -27,6 +28,8 @@ sp-lense-interpret-axis = "sp_lense.lens_axis:main"
 sp-lense-layer-scan = "sp_lense.layer_scan:main"
 sp-lense-read-natural-axis = "sp_lense.natural_axis_readout:main"
 sp-lense-specificity-audit = "sp_lense.specificity_audit:main"
+sp-lense-compare-steering = "sp_lense.comparison_cli:main"
+sp-lense-compare-smoke = "sp_lense.comparison_smoke:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
