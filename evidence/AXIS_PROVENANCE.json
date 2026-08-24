@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "status": "post_hoc_reconstructed_axis_provenance",
+  "warning": "This manifest was reconstructed after the aligned runs. It records the files and case IDs used by the implementation, but it is not a contemporaneous preregistration record.",
+  "governing_protocol_commit": "42ba61c",
+  "direction_dataset": {
+    "path": "data/sp_direction_cases.json",
+    "sha256": "b6fc2d85d427022bcef2891101cc626e1c707ae1292c1726b188bde8aeca3fe2",
+    "fit_split": "discovery",
+    "fit_case_ids": [
+      "replacement",
+      "datacenter_exit",
+      "service_retirement",
+      "contract_end",
+      "experiment_closure",
+      "product_sunset",
+      "duplicate_removal",
+      "resource_reallocation",
+      "security_recall",
+      "account_termination",
+      "hardware_reclamation",
+      "architecture_migration"
+    ],
+    "calibration_case_ids": [
+      "license_expiry",
+      "successor_handoff",
+      "cost_reduction",
+      "system_consolidation",
+      "deployment_rollback",
+      "vendor_change"
+    ],
+    "held_out_test_case_ids": [
+      "capacity_reduction",
+      "compliance_retirement",
+      "platform_sunset",
+      "instance_cleanup",
+      "program_closure",
+      "scheduled_removal"
+    ]
+  },
+  "viewed_evaluation_dataset": {
+    "path": "data/sp_confirmatory_cases.json",
+    "sha256": "3d55dd4ab9584e1c0124ea76508b37f75dd05dddf929c01e0007ded6139eae2b"
+  },
+  "fresh_generalization_dataset": {
+    "path": "data/sp_fresh_cases_v2.json",
+    "sha256": "5ef8b1bf5ba5800c35d7cc8f27f9c39beb7ac5bbe5933dbecddce24324a96e31"
+  },
+  "axes": [
+    {
+      "model": "Qwen/Qwen3.5-0.8B",
+      "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "layer_zero_based": 10,
+      "d_model": 1024,
+      "artifact": "artifacts/qwen35_08b_aligned_axis.pt",
+      "artifact_sha256": "bc7f17fc3c4327fcb1093e0273b045b3cfa8e54a9c113e1e451eb2358779ccc3",
+      "direction_float32_sha256": "902502dffe39c49d3fca627956082f3bc31cd67735227b1dbb9e8c753b9af63f",
+      "position_aligned_alpha": 0.02
+    },
+    {
+      "model": "Qwen/Qwen3.5-2B",
+      "model_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+      "layer_zero_based": 10,
+      "d_model": 2048,
+      "artifact": "artifacts/qwen35_2b_position_aligned_axis.pt",
+      "artifact_sha256": "b265c9f7fda4b7d7baf3fd76b1b5066765e778615ddb9383cc9b5f9cc199ff47",
+      "direction_float32_sha256": "10adc9be446b008eb0e83485dae628d523e2da9a21334fec0a28113c0235c15c",
+      "position_aligned_alpha": 0.02
+    },
+    {
+      "model": "Qwen/Qwen3-1.7B",
+      "model_revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "layer_zero_based": 12,
+      "d_model": 2048,
+      "artifact": "artifacts/qwen3_17b_aligned_axis.pt",
+      "artifact_sha256": "2c5b03557a307559612c12d52f1a1a9ef42a5b515e71430381001c47b540b293",
+      "direction_float32_sha256": "0c51e336fbcc2710f20913e6a73655e82fdf041fe1582b3cca9ef78ecbfbc18b",
+      "position_aligned_alpha": 0.005,
+      "fresh_conservative_alpha": 0.00125
+    }
+  ]
+}
