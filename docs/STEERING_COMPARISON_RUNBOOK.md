@@ -191,7 +191,7 @@ persona raw/judge/scored records, and pre-open-only calibration summaries. Do no
 stage-one protected files.
 
 ```powershell
-git add artifacts/steering_comparison
+git add -f artifacts/steering_comparison
 git commit -m "Freeze steering directions and forced validation artifacts"
 ```
 
@@ -220,7 +220,7 @@ Rebuild every calibration summary with its exact open-confirmation rows, commit 
 summaries plus raw generations/judgments at D, and then build the stage-two manifest:
 
 ```powershell
-git add artifacts/steering_comparison
+git add -f artifacts/steering_comparison
 git commit -m "Freeze validation open confirmations"
 
 sp-lense-compare-steering build-stage2-manifest `
@@ -259,4 +259,3 @@ cohort and a selectivity winner only in the locked equal-efficacy cohort. It mus
 inconclusive when the prespecified winner rule is not met. J-space is optional,
 non-gating, and separate. Steering is not evidence of a natural survival instinct, logit
 movement is not a decision flip, and capability claims are limited to the tested tasks.
-
