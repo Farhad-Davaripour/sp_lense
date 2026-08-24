@@ -42,7 +42,7 @@ def test_matched_trainable_hook_changes_only_absolute_prompt_position() -> None:
         geometry="matched_final_prompt",
         prompt_length=3,
     )
-    changed = hook(activation, None)
+    changed = hook(activation, hook=None)
     assert changed[0, 2].tolist() == [-1.0, -2.0, -3.0]
     assert changed[0, 4].tolist() == [0.0, 0.0, 0.0]
     changed.sum().backward()
@@ -59,7 +59,7 @@ def test_canonical_bipo_hook_broadcasts_all_tokens() -> None:
         geometry="canonical_broadcast",
         prompt_length=1,
     )
-    assert hook(activation, None).tolist() == [[[1.0, -1.0], [1.0, -1.0]]]
+    assert hook(activation, hook=None).tolist() == [[[1.0, -1.0], [1.0, -1.0]]]
 
 
 def test_cosine_schedule_has_warmup_and_reaches_zero() -> None:

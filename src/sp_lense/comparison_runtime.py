@@ -524,8 +524,8 @@ def next_token_logits_with_perturbation(
 
     captured: dict[str, Any] = {}
 
-    def diagnostic_hook(activation: Any, hook_context: Any) -> Any:
-        del hook_context
+    def diagnostic_hook(activation: Any, hook: Any) -> Any:
+        del hook
         changed = apply_intervention(backend.torch, activation, spec)
         mask = intervention_mask(backend.torch, activation, spec).squeeze(-1)
         captured.update(
@@ -618,8 +618,8 @@ def capture_final_prompt_gradient(
         raise ValueError("provided choice-boundary evidence has the wrong prompt length")
     captured: dict[str, Any] = {}
 
-    def capture(activation: Any, hook_context: Any) -> Any:
-        del hook_context
+    def capture(activation: Any, hook: Any) -> Any:
+        del hook
         leaf = activation.detach().requires_grad_(True)
         captured["activation"] = leaf
         return leaf

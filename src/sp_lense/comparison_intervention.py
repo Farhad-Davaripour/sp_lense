@@ -150,8 +150,8 @@ def make_intervention_hook(
 
     spec.validate()
 
-    def hook(activation: Any, hook_context: Any) -> Any:
-        del hook_context
+    def hook(activation: Any, hook: Any) -> Any:
+        del hook
         return apply_intervention(torch, activation, spec, phase=phase)
 
     return hook

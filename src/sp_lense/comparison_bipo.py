@@ -161,8 +161,8 @@ def _trainable_vector_hook(
     if direction_sign not in {-1, 1}:
         raise ValueError("direction_sign must be -1 or +1")
 
-    def hook(activation: Any, hook_context: Any) -> Any:
-        del hook_context
+    def hook(activation: Any, hook: Any) -> Any:
+        del hook
         if activation.ndim != 3:
             raise ValueError("expected residual activation [batch, sequence, d_model]")
         if vector.numel() != activation.shape[-1]:

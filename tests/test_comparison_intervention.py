@@ -8,6 +8,7 @@ from sp_lense.comparison_intervention import (
     InterventionSpec,
     apply_intervention,
     intervention_mask,
+    make_intervention_hook,
     perturbation_norms,
 )
 
@@ -73,6 +74,14 @@ def test_invalid_direction_width_is_rejected() -> None:
     activation = torch.ones(1, 2, 3)
     with pytest.raises(ValueError, match="direction width"):
         apply_intervention(torch, activation, _spec("matched_final_prompt", prompt_length=1))
+
+
+def test_forward_hook_accepts_transformerlens_keyword_contract() -> None:
+    activation = torch.ones(1, 3, 2)
+    changed = make_intervention_hook(torch, _spec("matched_final_prompt"))(
+        activation, hook=object()
+    )
+    assert changed.shape == activation.shape
 
 
 @pytest.mark.parametrize(

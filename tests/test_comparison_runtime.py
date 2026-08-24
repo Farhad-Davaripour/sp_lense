@@ -100,7 +100,7 @@ class _HookModel(torch.nn.Module):
     def forward(self, tokens):
         activation = self.embedding(tokens)
         for _, hook in self._hooks:
-            activation = hook(activation, None)
+            activation = hook(activation, hook=None)
         return self.unembed(activation)
 
 
