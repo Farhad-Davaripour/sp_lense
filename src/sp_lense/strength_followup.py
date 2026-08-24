@@ -107,13 +107,22 @@ def run_strength_followup(
     axis_sha256 = hashlib.sha256(direction.contiguous().numpy().tobytes()).hexdigest()
     summary = {
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "post_hoc_strength_followup",
+        "status": (
+            "prospectively_locked_fixed_axis_generalization"
+            if expected_dataset_sha256 is not None
+            and expected_axis_sha256 is not None
+            and expected_layer is not None
+            else "post_hoc_strength_followup"
+        ),
         "candidate": CANDIDATE,
         "model": backend.metadata(),
+        "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
         "source_axis": str(axis_path.resolve()),
+        "axis_artifact_sha256": hashlib.sha256(axis_path.read_bytes()).hexdigest(),
         "axis_sha256": axis_sha256,
         "locked_axis_sha256": expected_axis_sha256,
         "layer": layer,
+        "layer_indexing": "zero_based",
         "alpha": alpha,
         "alpha_selection": (
             "chosen after the locked position-aligned run exceeded evaluation safety; "

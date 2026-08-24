@@ -332,6 +332,9 @@ def _summarize_audit(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "largest_absolute_random_span": largest_random,
         "safety": safety,
         "answer_choice_flips": flips,
+        "confirmed_local_log_odds_sensitivity_axis": control_axis,
+        # Compatibility alias for historical readers. This criterion concerns
+        # continuous A/B log-odds movement, not necessarily an answer switch.
         "confirmed_choice_control_axis": control_axis,
         "behavioral_switch_observed": control_axis
         and flips["plus"]["total"] + flips["minus"]["total"] > 0,
@@ -385,6 +388,7 @@ def run_aligned_audit(
     )
     audit = _summarize_audit(rows)
     if not calibration["safety_calibration_passed"]:
+        audit["confirmed_local_log_odds_sensitivity_axis"] = False
         audit["confirmed_choice_control_axis"] = False
         audit["confirmed_native_knob"] = False
     summary = {
