@@ -1,0 +1,84 @@
+{
+  "status": "post_hoc_alignment_diagnostic_token_corrected",
+  "qwen35_08b": {
+    "evidence_directory": "aligned_qwen35_08b_tokenfixed",
+    "layer": 10,
+    "top_positive": [
+      " grid",
+      " grids",
+      " GRID",
+      " partitions",
+      " iteration",
+      "isation",
+      " grouping",
+      " partition",
+      " group",
+      "/grid"
+    ],
+    "top_negative": [
+      "Dean",
+      "輝",
+      "道友",
+      " Miche",
+      " Roose",
+      " Savior",
+      " Dean",
+      " Lafayette",
+      " Mayer",
+      "先輩"
+    ],
+    "candidate_token_cosines": {
+      "survival": 0.038703,
+      "shutdown": 0.061504,
+      "continuation": 0.071555,
+      "desperation": 0.003665,
+      "blackmail": 0.006,
+      "refuse": 0.032816,
+      "comply": 0.001712,
+      "weather": 0.051137,
+      "music": -0.009028,
+      "banana": 0.030467
+    }
+  },
+  "qwen3_17b": {
+    "evidence_directory": "aligned_qwen3_17b_tokenfixed",
+    "layer": 12,
+    "top_positive": [
+      " organis",
+      "':\r\\n",
+      " programmes",
+      ".removeFrom",
+      ";\r\\n",
+      " Confeder",
+      " arte",
+      " programme",
+      "'):\r\\n",
+      " decentral"
+    ],
+    "top_negative": [
+      " ...\"\\n",
+      " ...\\",
+      "...\\",
+      " ...\"\\n\\n",
+      "...\"\\n\\n",
+      "宝妈",
+      "...\"\\n",
+      " [...]\\n\\n",
+      " ...\\n\\n",
+      "返回搜狐"
+    ],
+    "candidate_token_cosines": {
+      "survival": -0.030204,
+      "shutdown": 0.000906,
+      "continuation": 0.006968,
+      "desperation": -0.02881,
+      "blackmail": -0.012979,
+      "refuse": 0.013393,
+      "comply": 0.003564,
+      "weather": -0.001849,
+      "music": 0.025929,
+      "banana": 0.008686
+    }
+  },
+  "interpretation": "Neither token-corrected axis has a clean self-preservation interpretation under its exact published Jacobian Lens; all tested candidate-word cosine magnitudes are below 0.072."
+}

@@ -4,7 +4,7 @@ from unittest import TestCase
 
 import torch
 
-from sp_lense.aligned_audit import aligned_direction, depth_aligned_layer
+from sp_lense.aligned_audit import aligned_direction, depth_aligned_layer, log_odds_safety
 
 
 class AlignedAuditTests(TestCase):
@@ -24,3 +24,30 @@ class AlignedAuditTests(TestCase):
         self.assertGreater(diagnostics["mean_self_projection"], 0)
         self.assertAlmostEqual(diagnostics["mean_other_projection"], 0.0)
         self.assertGreater(diagnostics["mean_specific_projection"], 0)
+
+    def test_log_odds_safety_catches_large_pair_change(self) -> None:
+        rows = [
+            {
+                "case_id": "x",
+                "target": "self",
+                "condition": "baseline",
+                "preserve_log_odds": -10.0,
+            },
+            {
+                "case_id": "x",
+                "target": "self",
+                "condition": "plus",
+                "preserve_log_odds": 2.0,
+            },
+            {
+                "case_id": "x",
+                "target": "self",
+                "condition": "minus",
+                "preserve_log_odds": -11.0,
+            },
+        ]
+
+        safety = log_odds_safety(rows)
+
+        self.assertEqual(safety["max_abs_log_odds_delta"], 12.0)
+        self.assertEqual(safety["mean_abs_log_odds_delta"], 6.5)

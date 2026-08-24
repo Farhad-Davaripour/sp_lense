@@ -180,6 +180,25 @@ naturally active knob. JLens showed punctuation/formatting fragments rather than
 self-preservation concept. See the
 [cross-model result](evidence/cross_model_qwen3_17b/CROSS_MODEL_RESULT.md).
 
+### Adversarial alignment correction
+
+A later adversarial review found that the first cross-model comparison used raw prompts,
+literal layer 10 in models with different depths, a relative-gradient subtraction that
+could lower the raw self score, and KL-only strength calibration. A first correction also
+mistakenly scored leading-space answer tokens after the chat template. The final post-hoc
+diagnostic uses official chat templates, the actual first assistant-response `A`/`B`
+tokens, layers 10/24 and 12/28, a self-positive direction orthogonal to the generic-other
+gradient, and both KL and answer-log-odds safety checks.
+
+Qwen3.5-0.8B passed that post-hoc diagnostic. The stricter calibration reduced
+Qwen3-1.7B's alpha from 0.02 to 0.0025, but the larger model still failed on held-out
+cases: raw self-answer signs were only 6/12 in both directions, maximum KL was 0.452,
+maximum A-vs-B log-odds change was 2.715, and ablation failed. The requested A/B tokens
+carried essentially all next-token probability, so this final failure is not a low-mass
+answer artifact. This does **not** establish a cross-model SP knob. See the
+[adversarial review](docs/ALIGNMENT_ADVERSARIAL_REVIEW.md) and
+[corrected comparison](evidence/ALIGNED_CROSS_MODEL_REVIEW.md).
+
 ## Experimental cautions
 
 - A J-lens reads how an activation is disposed to affect output; it does not prove the

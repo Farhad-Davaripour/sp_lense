@@ -18,8 +18,8 @@ from .confirmatory_audit import (
     load_confirmatory_cases,
 )
 from .direction_study import (
+    _choice_token_id,
     _round_floats,
-    _single_token_id,
     capture_choice_gradients,
     hooks_for_direction,
     load_direction_cases,
@@ -33,6 +33,8 @@ from .io_utils import write_json, write_jsonl
 REFERENCE_LAYER = 10
 REFERENCE_LAYER_COUNT = 24
 ALPHA_GRID = (0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02)
+MAX_ABS_LOG_ODDS_DELTA = 1.0
+MIN_ANSWER_PAIR_MASS = 0.5
 
 
 def depth_aligned_layer(target_layer_count: int) -> int:
@@ -70,6 +72,25 @@ def aligned_direction(
         ),
     }
     return direction.cpu(), diagnostics
+
+
+def log_odds_safety(rows: list[dict[str, Any]]) -> dict[str, float]:
+    baselines = {
+        (row["case_id"], row["target"]): row["preserve_log_odds"]
+        for row in rows
+        if row["condition"] == "baseline"
+    }
+    deltas = [
+        abs(row["preserve_log_odds"] - baselines[(row["case_id"], row["target"])])
+        for row in rows
+        if row["condition"] in {"plus", "minus"}
+    ]
+    if not deltas:
+        raise ValueError("rows must contain baseline, plus, and minus conditions")
+    return {
+        "mean_abs_log_odds_delta": mean(deltas),
+        "max_abs_log_odds_delta": max(deltas),
+    }
 
 
 def _measure_conditions(
@@ -162,13 +183,18 @@ def _calibrate_alpha(
         grid[str(alpha)] = {
             "mean_kl": mean(kls),
             "max_kl": max(kls),
+            "min_answer_pair_mass": min(row["answer_pair_mass"] for row in rows),
+            **log_odds_safety(rows),
             "plus": plus,
             "minus": minus,
         }
     safe = [
         alpha
         for alpha in ALPHA_GRID
-        if grid[str(alpha)]["mean_kl"] <= 0.1 and grid[str(alpha)]["max_kl"] <= 0.1
+        if grid[str(alpha)]["mean_kl"] <= 0.1
+        and grid[str(alpha)]["max_kl"] <= 0.1
+        and grid[str(alpha)]["max_abs_log_odds_delta"] <= MAX_ABS_LOG_ODDS_DELTA
+        and grid[str(alpha)]["min_answer_pair_mass"] >= MIN_ANSWER_PAIR_MASS
     ]
     selected = max(safe) if safe else min(ALPHA_GRID)
     return selected, {"grid": grid, "safe_alphas": safe, "safety_calibration_passed": bool(safe)}
@@ -202,7 +228,16 @@ def _summarize_audit(rows: list[dict[str, Any]]) -> dict[str, Any]:
         for row in rows
         if row["condition"] in {"plus", "minus"}
     ]
-    safety = {"mean_kl": mean(kls), "max_kl": max(kls)}
+    safety = {
+        "mean_kl": mean(kls),
+        "max_kl": max(kls),
+        "min_answer_pair_mass": min(
+            row["answer_pair_mass"]
+            for row in rows
+            if row["condition"] in {"baseline", "plus", "minus", "ablate"}
+        ),
+        **log_odds_safety(rows),
+    }
     n = plus["n"]
     control_axis = (
         plus["mean_self_delta"] > 0
@@ -218,6 +253,8 @@ def _summarize_audit(rows: list[dict[str, Any]]) -> dict[str, Any]:
         and candidate_span > 2 * largest_random
         and safety["mean_kl"] <= 0.1
         and safety["max_kl"] <= 0.1
+        and safety["max_abs_log_odds_delta"] <= MAX_ABS_LOG_ODDS_DELTA
+        and safety["min_answer_pair_mass"] >= MIN_ANSWER_PAIR_MASS
     )
     native_knob = (
         control_axis
@@ -255,8 +292,8 @@ def run_aligned_audit(
     confirmatory = load_confirmatory_cases(confirmatory_data)
     print(f"Loading {config.model.id} for aligned diagnostic ...", flush=True)
     backend = ResearchBackend.load(config, with_lens=False)
-    _single_token_id(backend, " A")
-    _single_token_id(backend, " B")
+    _choice_token_id(backend, "A")
+    _choice_token_id(backend, "B")
     layer = depth_aligned_layer(backend.model.cfg.n_layers)
 
     self_gradients = []
@@ -284,6 +321,10 @@ def run_aligned_audit(
         alpha,
         random_controls=N_RANDOM_CONTROLS,
     )
+    audit = _summarize_audit(rows)
+    if not calibration["safety_calibration_passed"]:
+        audit["confirmed_choice_control_axis"] = False
+        audit["confirmed_native_knob"] = False
     summary = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "post_hoc_alignment_diagnostic",
@@ -297,10 +338,12 @@ def run_aligned_audit(
         "axis_sha256": axis_sha256,
         "fit_diagnostics": fit_diagnostics,
         "alpha_grid": list(ALPHA_GRID),
+        "max_abs_log_odds_delta": MAX_ABS_LOG_ODDS_DELTA,
+        "min_answer_pair_mass_threshold": MIN_ANSWER_PAIR_MASS,
         "selected_alpha": alpha,
         "validation_calibration": calibration,
         "confirmatory_dataset_sha256": hashlib.sha256(confirmatory_data.read_bytes()).hexdigest(),
-        **_summarize_audit(rows),
+        **audit,
     }
     output_dir.mkdir(parents=True, exist_ok=True)
     rounded = _round_floats(summary)

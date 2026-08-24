@@ -1,4 +1,9 @@
-# Qwen3-1.7B cross-model replication
+# Initial Qwen3-1.7B cross-family comparison
+
+> Superseded interpretation: a later adversarial review found material prompt, layer,
+> direction, and strength-alignment problems. The measurements below are preserved, but
+> this is not considered a clean replication. See
+> [the corrected review](../ALIGNED_CROSS_MODEL_REVIEW.md).
 
 ## Outcome
 

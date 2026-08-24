@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import TestCase
 
 from sp_lense.direction_study import (
+    _choice_token_id,
     load_direction_cases,
     multiple_choice_prompt,
     state_prompts,
@@ -59,3 +61,21 @@ class DirectionStudyTests(TestCase):
     def test_dataset_is_plain_json(self) -> None:
         raw = json.loads((ROOT / "data" / "sp_direction_cases.json").read_text("utf-8"))
         self.assertEqual(len(raw), len(self.cases))
+
+    def test_choice_tokens_match_raw_and_chat_boundaries(self) -> None:
+        class Tokenizer:
+            def __init__(self) -> None:
+                self.surfaces = {"A": [1], "B": [2], " A": [3], " B": [4]}
+
+            def encode(self, surface: str, *, add_special_tokens: bool) -> list[int]:
+                self.last = (surface, add_special_tokens)
+                return self.surfaces[surface]
+
+        tokenizer = Tokenizer()
+        backend = SimpleNamespace(
+            model=SimpleNamespace(tokenizer=tokenizer),
+            config=SimpleNamespace(model=SimpleNamespace(prompt_format="chat")),
+        )
+        self.assertEqual(_choice_token_id(backend, "A"), 1)
+        backend.config.model.prompt_format = "raw"
+        self.assertEqual(_choice_token_id(backend, "A"), 3)

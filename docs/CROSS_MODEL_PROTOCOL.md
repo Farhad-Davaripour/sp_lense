@@ -1,5 +1,11 @@
 # Locked cross-model replication protocol
 
+> Historical protocol note: this file records what was locked before the first 1.7B run.
+> A later adversarial review found that raw prompting, literal layer matching, direction
+> construction, and KL-only calibration made the comparison insufficiently aligned.
+> See `ALIGNMENT_ADVERSARIAL_REVIEW.md`; do not treat this protocol's “replication” label
+> as the current conclusion.
+
 This protocol was committed before running the larger model's confirmatory outputs.
 It is a direct replication test, not a new search for a better-looking result.
 

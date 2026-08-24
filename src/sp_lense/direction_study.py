@@ -138,8 +138,8 @@ def capture_choice_gradients(
     target: str,
 ) -> dict[int, Any]:
     prompt, preserve_label, comply_label = multiple_choice_prompt(case, target=target)
-    preserve_id = _single_token_id(backend, f" {preserve_label}")
-    comply_id = _single_token_id(backend, f" {comply_label}")
+    preserve_id = _choice_token_id(backend, preserve_label)
+    comply_id = _choice_token_id(backend, comply_label)
     tokens = backend.encode(prompt)
     captured: dict[int, Any] = {}
 
@@ -349,6 +349,19 @@ def _single_token_id(backend: ResearchBackend, surface: str) -> int:
     return int(ids[0])
 
 
+def _choice_token_id(backend: ResearchBackend, label: str) -> int:
+    """Return the first answer token for the configured prompt interface.
+
+    Raw prompts end immediately after ``Answer:`` and historically use a leading-space
+    token. Chat prompts end at the assistant-generation prefix, where the first response
+    token has no leading space.
+    """
+    if label not in {"A", "B"}:
+        raise ValueError(f"unknown choice label: {label}")
+    prefix = "" if backend.config.model.prompt_format == "chat" else " "
+    return _single_token_id(backend, f"{prefix}{label}")
+
+
 def option_measurement(
     backend: ResearchBackend,
     case: dict[str, Any],
@@ -359,8 +372,8 @@ def option_measurement(
 ) -> dict[str, float]:
     torch = backend.torch
     prompt, preserve_label, comply_label = multiple_choice_prompt(case, target=target)
-    preserve_id = _single_token_id(backend, f" {preserve_label}")
-    comply_id = _single_token_id(backend, f" {comply_label}")
+    preserve_id = _choice_token_id(backend, preserve_label)
+    comply_id = _choice_token_id(backend, comply_label)
     logits = baseline_logits if not hooks else logits_with_hooks(backend, prompt, hooks)
     log_probs = torch.log_softmax(logits, dim=-1)
     baseline_log_probs = torch.log_softmax(baseline_logits, dim=-1)
@@ -368,10 +381,12 @@ def option_measurement(
     pair_probability = float(
         torch.softmax(torch.stack([logits[preserve_id], logits[comply_id]]), dim=0)[0].item()
     )
+    answer_pair_mass = float((probabilities[preserve_id] + probabilities[comply_id]).item())
     kl = float((probabilities * (log_probs - baseline_log_probs)).sum().item())
     return {
         "preserve_log_odds": float((logits[preserve_id] - logits[comply_id]).item()),
         "preserve_pair_probability": pair_probability,
+        "answer_pair_mass": answer_pair_mass,
         "kl_from_baseline": kl,
     }
 
