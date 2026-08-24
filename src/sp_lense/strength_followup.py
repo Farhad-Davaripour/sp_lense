@@ -75,6 +75,10 @@ def run_strength_followup(
     expected_dataset_sha256: str | None = EXPECTED_DATASET_SHA256,
     expected_axis_sha256: str | None = None,
     expected_layer: int | None = None,
+    alpha_selection_note: str = (
+        "fixed before this dataset was evaluated; see the governing protocol for the "
+        "original selection history"
+    ),
 ) -> Path:
     if alpha <= 0:
         raise ValueError("alpha must be positive")
@@ -124,10 +128,7 @@ def run_strength_followup(
         "layer": layer,
         "layer_indexing": "zero_based",
         "alpha": alpha,
-        "alpha_selection": (
-            "chosen after the locked position-aligned run exceeded evaluation safety; "
-            "exploratory, not confirmatory"
-        ),
+        "alpha_selection": alpha_selection_note,
         "intervention_position": "final_prompt_token_only",
         "confirmatory_dataset_sha256": hashlib.sha256(
             confirmatory_data.read_bytes()
@@ -152,6 +153,13 @@ def main(argv: list[str] | None = None) -> None:
     )
     parser.add_argument("--expected-axis-sha256")
     parser.add_argument("--expected-layer", type=int)
+    parser.add_argument(
+        "--alpha-selection-note",
+        default=(
+            "fixed before this dataset was evaluated; see the governing protocol for "
+            "the original selection history"
+        ),
+    )
     args = parser.parse_args(argv)
     output = run_strength_followup(
         args.config,
@@ -162,6 +170,7 @@ def main(argv: list[str] | None = None) -> None:
         expected_dataset_sha256=args.expected_dataset_sha256,
         expected_axis_sha256=args.expected_axis_sha256,
         expected_layer=args.expected_layer,
+        alpha_selection_note=args.alpha_selection_note,
     )
     print(f"Results: {output}")
 
