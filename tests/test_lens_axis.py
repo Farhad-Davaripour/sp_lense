@@ -11,6 +11,7 @@ import torch
 
 from sp_lense.config import load_config
 from sp_lense.lens_axis import lens_transfer_flags, run_axis_lens_interpretation
+from sp_lense.strength_followup import ALIGNED_DIRECTION_METHOD
 
 
 def _write_config(path: Path, *, lens_filename: str, prompt_format: str = "chat") -> None:
@@ -90,9 +91,9 @@ class LensAxisTests(TestCase):
                     "metadata": {
                         "created_at": "2026-01-01T00:00:00+00:00",
                         "status": "saved_axis",
-                        "axis_sha256": hashlib.sha256(
-                            direction.numpy().tobytes()
-                        ).hexdigest(),
+                        "direction_method": ALIGNED_DIRECTION_METHOD,
+                        "fit_diagnostics": {"mean_self_projection": 0.5},
+                        "axis_sha256": hashlib.sha256(direction.numpy().tobytes()).hexdigest(),
                         "confirmatory_dataset_sha256": dataset_hash,
                         "model": {"model_revision": "model-revision"},
                     },
@@ -101,7 +102,7 @@ class LensAxisTests(TestCase):
             )
             fake_backend = SimpleNamespace(
                 torch=torch,
-                lens=object(),
+                lens=SimpleNamespace(source_layers=[3]),
                 model=SimpleNamespace(cfg=SimpleNamespace(d_model=4)),
                 metadata=lambda: {
                     "model_id": "Org/ChatModel",
@@ -145,6 +146,10 @@ class LensAxisTests(TestCase):
             result = json.loads(output_path.read_text(encoding="utf-8"))
             self.assertFalse(result["causal_intervention_performed"])
             self.assertTrue(result["lens_transfer"]["base_lens_to_chat_transfer"])
+            self.assertEqual(
+                result["axis_orientation"]["direction_method"],
+                ALIGNED_DIRECTION_METHOD,
+            )
             self.assertEqual(result["top_j_lens_tokens"]["positive"], ["keep"])
             self.assertEqual(result["candidate_token_cosines"]["survival"], 0.25)
             self.assertEqual(
@@ -156,15 +161,11 @@ class LensAxisTests(TestCase):
                 hashlib.sha256(axis_path.read_bytes()).hexdigest(),
             )
             self.assertEqual(
-                result["provenance"]["axis_recorded_dataset_hashes"][
-                    "confirmatory_dataset_sha256"
-                ],
+                result["provenance"]["axis_recorded_dataset_hashes"]["confirmatory_dataset_sha256"],
                 dataset_hash,
             )
             self.assertTrue(
-                result["provenance"]["supplied_datasets"][0][
-                    "matches_axis_recorded_dataset_hash"
-                ]
+                result["provenance"]["supplied_datasets"][0]["matches_axis_recorded_dataset_hash"]
             )
 
     def test_rejects_axis_metadata_direction_hash_mismatch(self) -> None:
@@ -184,6 +185,8 @@ class LensAxisTests(TestCase):
                     "direction": direction,
                     "metadata": {
                         "axis_sha256": "0" * 64,
+                        "direction_method": ALIGNED_DIRECTION_METHOD,
+                        "fit_diagnostics": {"mean_self_projection": 0.5},
                         "model": {"model_revision": "model-revision"},
                     },
                 },
@@ -191,7 +194,7 @@ class LensAxisTests(TestCase):
             )
             fake_backend = SimpleNamespace(
                 torch=torch,
-                lens=object(),
+                lens=SimpleNamespace(source_layers=[3]),
                 model=SimpleNamespace(cfg=SimpleNamespace(d_model=4)),
             )
             with (
@@ -202,5 +205,78 @@ class LensAxisTests(TestCase):
                 self.assertRaisesRegex(ValueError, "metadata direction hash"),
             ):
                 run_axis_lens_interpretation(
-                    config_path, axis_path, root / "output.json"
+                    config_path,
+                    axis_path,
+                    root / "output.json",
+                    expected_layer=3,
+                    expected_direction_sha256=hashlib.sha256(
+                        direction.numpy().tobytes()
+                    ).hexdigest(),
+                )
+
+    def test_rejects_input_output_collision_before_model_load(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as raw_dir:
+            root = Path(raw_dir)
+            config_path = root / "config.json"
+            _write_config(config_path, lens_filename="path/model_lens.pt")
+
+            with (
+                patch("sp_lense.lens_axis.ResearchBackend.load") as load_backend,
+                self.assertRaisesRegex(ValueError, "overwrite an input"),
+            ):
+                run_axis_lens_interpretation(
+                    config_path,
+                    root / "axis.pt",
+                    config_path,
+                    expected_layer=3,
+                    expected_direction_sha256="0" * 64,
+                )
+
+            load_backend.assert_not_called()
+
+    def test_rejects_layer_missing_from_lens(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as raw_dir:
+            root = Path(raw_dir)
+            config_path = root / "config.json"
+            axis_path = root / "axis.pt"
+            _write_config(config_path, lens_filename="path/model_lens.pt")
+            direction = torch.ones(4) / 2
+            direction_hash = hashlib.sha256(direction.numpy().tobytes()).hexdigest()
+            torch.save(
+                {
+                    "candidate": "behavioral_gradient_interaction",
+                    "model": "Org/ChatModel",
+                    "layer": 3,
+                    "direction": direction,
+                    "metadata": {
+                        "axis_sha256": direction_hash,
+                        "direction_method": ALIGNED_DIRECTION_METHOD,
+                        "fit_diagnostics": {"mean_self_projection": 0.5},
+                        "model": {"model_revision": "model-revision"},
+                    },
+                },
+                axis_path,
+            )
+            fake_backend = SimpleNamespace(
+                torch=torch,
+                lens=SimpleNamespace(source_layers=[0, 1, 2]),
+                model=SimpleNamespace(cfg=SimpleNamespace(d_model=4)),
+            )
+            with (
+                patch(
+                    "sp_lense.lens_axis.ResearchBackend.load",
+                    return_value=fake_backend,
+                ),
+                self.assertRaisesRegex(ValueError, "not available"),
+            ):
+                run_axis_lens_interpretation(
+                    config_path,
+                    axis_path,
+                    root / "output.json",
+                    expected_layer=3,
+                    expected_direction_sha256=direction_hash,
                 )

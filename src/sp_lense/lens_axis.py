@@ -10,7 +10,12 @@ from .backend import ResearchBackend
 from .config import ExperimentConfig, load_config
 from .direction_study import _round_floats, candidate_token_cosines, top_direction_tokens
 from .io_utils import write_json
-from .strength_followup import validate_axis_payload
+from .strength_followup import (
+    load_axis_payload,
+    reject_output_input_collisions,
+    validate_aligned_axis_orientation,
+    validate_axis_payload,
+)
 
 
 def _sha256(path: Path) -> str:
@@ -81,9 +86,9 @@ def run_axis_lens_interpretation(
     axis_path: Path,
     output_path: Path,
     *,
+    expected_layer: int,
+    expected_direction_sha256: str,
     dataset_paths: tuple[Path, ...] = (),
-    expected_layer: int | None = None,
-    expected_direction_sha256: str | None = None,
     top_k: int = 10,
 ) -> Path:
     if top_k < 1:
@@ -91,23 +96,21 @@ def run_axis_lens_interpretation(
     config_path = config_path.expanduser().resolve()
     axis_path = axis_path.expanduser().resolve()
     output_path = output_path.expanduser().resolve()
+    dataset_paths = tuple(path.expanduser().resolve() for path in dataset_paths)
+    reject_output_input_collisions((output_path,), (config_path, axis_path, *dataset_paths))
     config = load_config(config_path)
 
-    print(f"Loading {config.model.id} with its configured published J-lens ...", flush=True)
-    backend = ResearchBackend.load(config, with_lens=True)
-    if backend.lens is None:
-        raise RuntimeError("configured J-lens did not load")
-
-    payload = backend.torch.load(axis_path, map_location="cpu", weights_only=False)
+    payload = load_axis_payload(axis_path)
     layer, direction = validate_axis_payload(
         payload,
         config,
-        d_model=backend.model.cfg.d_model,
+        d_model=None,
         expected_layer=expected_layer,
         expected_direction_sha256=expected_direction_sha256,
     )
+    orientation = validate_aligned_axis_orientation(payload)
     direction_digest = _direction_sha256(direction)
-    metadata = payload.get("metadata", {})
+    metadata = payload["metadata"]
     recorded_dataset_hashes = _recorded_dataset_hashes(metadata)
     recorded_direction_hash = metadata.get("axis_sha256")
     if recorded_direction_hash is not None and recorded_direction_hash != direction_digest:
@@ -116,12 +119,31 @@ def run_axis_lens_interpretation(
             f"recorded {recorded_direction_hash}, computed {direction_digest}"
         )
 
+    print(f"Loading {config.model.id} with its configured published J-lens ...", flush=True)
+    backend = ResearchBackend.load(config, with_lens=True)
+    if backend.lens is None:
+        raise RuntimeError("configured J-lens did not load")
+
+    layer, direction = validate_axis_payload(
+        payload,
+        config,
+        d_model=backend.model.cfg.d_model,
+        expected_layer=expected_layer,
+        expected_direction_sha256=expected_direction_sha256,
+    )
+    if layer not in backend.lens.source_layers:
+        raise ValueError(
+            f"axis layer {layer} is not available in the configured J-lens; "
+            f"available source layers: {backend.lens.source_layers}"
+        )
+
     result = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "noncausal_saved_axis_jacobian_lens_interpretation",
         "candidate": payload["candidate"],
         "layer": layer,
         "layer_indexing": "zero_based",
+        "axis_orientation": orientation,
         "causal_intervention_performed": False,
         "model_and_lens": backend.metadata(),
         "lens_transfer": lens_transfer_flags(config),
@@ -163,8 +185,8 @@ def main(argv: list[str] | None = None) -> None:
         default=[],
         help="Optional source dataset to hash; may be supplied more than once.",
     )
-    parser.add_argument("--expected-layer", type=int)
-    parser.add_argument("--expected-direction-sha256")
+    parser.add_argument("--expected-layer", type=int, required=True)
+    parser.add_argument("--expected-direction-sha256", required=True)
     parser.add_argument("--top-k", type=int, default=10)
     args = parser.parse_args(argv)
     output = run_axis_lens_interpretation(

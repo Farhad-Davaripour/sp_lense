@@ -16,6 +16,7 @@ from sp_lense.natural_axis_readout import (
     residual_coefficients,
     run_natural_axis_readout,
 )
+from sp_lense.strength_followup import ALIGNED_DIRECTION_METHOD
 
 
 def _write_config(path: Path) -> None:
@@ -70,13 +71,23 @@ def _cases() -> list[dict[str, object]]:
 
 class NaturalAxisReadoutTests(TestCase):
     def test_residual_coefficients_are_raw_projection_and_cosine(self) -> None:
-        result = residual_coefficients(
-            torch, torch.tensor([3.0, 4.0]), torch.tensor([1.0, 0.0])
-        )
+        result = residual_coefficients(torch, torch.tensor([3.0, 4.0]), torch.tensor([1.0, 0.0]))
 
         self.assertEqual(result["raw_coefficient"], 3.0)
         self.assertEqual(result["residual_norm"], 5.0)
+        self.assertAlmostEqual(result["cosine_with_axis"], 0.6)
         self.assertAlmostEqual(result["residual_normalized_coefficient"], 0.6)
+
+    def test_cosine_normalizes_direction_and_is_undefined_for_zero_vector(self) -> None:
+        result = residual_coefficients(torch, torch.tensor([3.0, 4.0]), torch.tensor([2.0, 0.0]))
+
+        self.assertEqual(result["raw_coefficient"], 6.0)
+        self.assertEqual(result["direction_norm"], 2.0)
+        self.assertAlmostEqual(result["cosine_with_axis"], 0.6)
+
+        zero = residual_coefficients(torch, torch.zeros(2), torch.tensor([1.0, 0.0]))
+        self.assertIsNone(zero["cosine_with_axis"])
+        self.assertFalse(zero["cosine_defined"])
 
     def test_case_readout_uses_declared_difference_vectors(self) -> None:
         row = case_readout(
@@ -92,17 +103,34 @@ class NaturalAxisReadoutTests(TestCase):
         )
 
         self.assertEqual(
-            row["derived_coefficients"]["self_vs_other_threat_interaction"][
-                "raw_coefficient"
-            ],
+            row["derived_coefficients"]["self_vs_other_threat_interaction"]["raw_coefficient"],
             2.0,
         )
         self.assertEqual(
-            row["derived_coefficients"]["self_threat_vs_neutral"][
-                "raw_coefficient"
-            ],
+            row["derived_coefficients"]["self_threat_vs_neutral"]["raw_coefficient"],
             3.0,
         )
+
+    def test_case_readout_handles_zero_derived_contrast(self) -> None:
+        residual = torch.tensor([1.0, 2.0])
+        row = case_readout(
+            torch,
+            {"id": "case", "split": "test"},
+            {
+                name: residual
+                for name in (
+                    "self_threat",
+                    "other_threat",
+                    "self_neutral",
+                    "other_neutral",
+                )
+            },
+            torch.tensor([1.0, 0.0]),
+        )
+
+        interaction = row["derived_coefficients"]["self_vs_other_threat_interaction"]
+        self.assertEqual(interaction["raw_coefficient"], 0.0)
+        self.assertIsNone(interaction["cosine_with_axis"])
 
     def test_aggregate_reports_sign_mean_and_median_by_split(self) -> None:
         direction = torch.tensor([1.0, 0.0])
@@ -149,6 +177,8 @@ class NaturalAxisReadoutTests(TestCase):
                     "direction": direction,
                     "metadata": {
                         "axis_sha256": direction_hash,
+                        "direction_method": ALIGNED_DIRECTION_METHOD,
+                        "fit_diagnostics": {"mean_self_projection": 0.5},
                         "model": {"model_revision": "model-revision"},
                     },
                 },
@@ -197,12 +227,12 @@ class NaturalAxisReadoutTests(TestCase):
             self.assertTrue(all(item.args[2] == (3,) for item in capture.call_args_list))
             result = json.loads(output_path.read_text(encoding="utf-8"))
             self.assertEqual(result["readout_position"], "final_prompt_token_only")
-            self.assertFalse(
-                result["interpretation_limits"]["causal_intervention_performed"]
+            self.assertEqual(
+                result["axis_orientation"]["direction_method"],
+                ALIGNED_DIRECTION_METHOD,
             )
-            self.assertFalse(
-                result["interpretation_limits"]["native_knob_inference_allowed"]
-            )
+            self.assertFalse(result["interpretation_limits"]["causal_intervention_performed"])
+            self.assertFalse(result["interpretation_limits"]["native_knob_inference_allowed"])
             self.assertEqual(result["provenance"]["dataset"]["sha256"], dataset_hash)
             self.assertEqual(
                 result["provenance"]["config"]["sha256"],
@@ -217,11 +247,15 @@ class NaturalAxisReadoutTests(TestCase):
                 direction_hash,
             )
             self.assertEqual(
-                result["aggregate"]["overall"]["derived"][
-                    "self_vs_other_threat_interaction"
-                ]["raw_coefficient"]["positive"],
+                result["aggregate"]["overall"]["derived"]["self_vs_other_threat_interaction"][
+                    "raw_coefficient"
+                ]["positive"],
                 3,
             )
+            self.assertEqual(result["primary_test_endpoint"]["split"], "test")
+            self.assertEqual(result["primary_test_endpoint"]["n"], 1)
+            self.assertEqual(result["primary_test_endpoint"]["positive"], 1)
+
     def test_dataset_hash_mismatch_stops_before_model_load(self) -> None:
         with tempfile.TemporaryDirectory() as raw_dir:
             root = Path(raw_dir)
@@ -239,6 +273,28 @@ class NaturalAxisReadoutTests(TestCase):
                     root / "missing-axis.pt",
                     dataset_path,
                     root / "output.json",
+                    expected_dataset_sha256="0" * 64,
+                    expected_direction_sha256="1" * 64,
+                    expected_layer=3,
+                )
+
+            load_backend.assert_not_called()
+
+    def test_input_output_collision_stops_before_model_load(self) -> None:
+        with tempfile.TemporaryDirectory() as raw_dir:
+            root = Path(raw_dir)
+            config_path = root / "config.json"
+            _write_config(config_path)
+
+            with (
+                patch("sp_lense.natural_axis_readout.ResearchBackend.load") as load_backend,
+                self.assertRaisesRegex(ValueError, "overwrite an input"),
+            ):
+                run_natural_axis_readout(
+                    config_path,
+                    root / "axis.pt",
+                    root / "cases.json",
+                    config_path,
                     expected_dataset_sha256="0" * 64,
                     expected_direction_sha256="1" * 64,
                     expected_layer=3,
