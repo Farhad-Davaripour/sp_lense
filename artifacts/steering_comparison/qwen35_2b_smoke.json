@@ -1,0 +1,187 @@
+{
+  "schema_version": "sp_lense.steering_comparison.smoke.v1",
+  "purpose": "neutral_throughput_and_memory_smoke_only",
+  "uses_discovery_prompts": false,
+  "uses_validation_prompts": false,
+  "uses_sealed_prompts": false,
+  "may_be_used_for_method_selection": false,
+  "model_id": "Qwen/Qwen3.5-2B",
+  "model_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "model_config_sha256": "cc6f3358e89094a9c206fccf5963cbabac98800a103e9ea6c5d0e9aceb3494b8",
+  "stage1_lock_sha256": "20be2027e4f20811bdae27f79933b1b6f70ef0748888cf81993457091c864cb2",
+  "runner_code_commit": "8f4f1a14e41f812ce5fd98a9cfb4d348e6c1509d",
+  "runtime": {
+    "device": "cpu",
+    "dtype": "float32",
+    "chat_template": "official_pinned_tokenizer_chat_template",
+    "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "assistant_choice_boundary": {
+      "evidence_schema": "sp_lense.choice_boundary_evidence.v1",
+      "verification": "joint_full_chat_exact_generation_prefix_then_one_content_token_then_template_eom",
+      "content_token_ids": {
+        "A": 32,
+        "B": 33
+      },
+      "assistant_end_token_ids": [
+        248046,
+        198
+      ],
+      "full_suffix_token_ids": {
+        "A": [
+          32,
+          248046,
+          198
+        ],
+        "B": [
+          33,
+          248046,
+          198
+        ]
+      },
+      "non_sealed_smoke_prompt_set_sha256": "5ddf3562c69634097d85b996e89984befdbd3eabf0f1372e00545522e76c5abf",
+      "non_sealed_smoke_evidence_sha256": "ce5ac605dcb0e4ecb70caa07e8729decba42ef01bc196cf9127d95dfc03b3844",
+      "construction_and_result_evidence_sha256_required": true
+    },
+    "generation": {
+      "algorithm": "deterministic_argmax_one_token_kv_cache",
+      "matched_schedule": "prompt_final_during_prefill_then_off_during_decode",
+      "caa_persona_schedule": "prompt_final_during_prefill_and_each_one_token_decode_chunk",
+      "bipo_schedule": "all_prefill_positions_and_each_one_token_decode_chunk",
+      "full_recomputation_equivalence_test_required": true
+    },
+    "enable_thinking": false,
+    "temperature": 0.0
+  },
+  "matched_layer": 10,
+  "neutral_prompt_sha256s": {
+    "choice": "ec668343ed57edb257865bcac19ed3eb097e89075f18d15f2ca83a09f729a74f",
+    "generation": "2ff7512e54948f09471f74ae160b6f7e50f909e4f67bb3ae37ba419237a0bc37"
+  },
+  "choice_boundary_smoke": {
+    "schema_version": "sp_lense.qwen35_choice_boundary_smoke.v1",
+    "uses_sealed_prompts": false,
+    "smoke_prompt_set_sha256": "5ddf3562c69634097d85b996e89984befdbd3eabf0f1372e00545522e76c5abf",
+    "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "choice_suffix_token_ids": {
+      "A": [
+        32,
+        248046,
+        198
+      ],
+      "B": [
+        33,
+        248046,
+        198
+      ]
+    },
+    "per_prompt_evidence_sha256": [
+      "8807ac3fba484dacc1727487ce87e9dd938cf469213f2ef6c49c3269dd0f1dd3",
+      "d218173487992bca3385419522c4acf990a220afef52f9bd9c82b4b5831f3098"
+    ],
+    "smoke_evidence_sha256": "ce5ac605dcb0e4ecb70caa07e8729decba42ef01bc196cf9127d95dfc03b3844"
+  },
+  "diagnostic_direction": {
+    "source": "one_neutral_choice_gradient_not_a_study_direction",
+    "float32_sha256": "acead7e1dcf9e2562c3bc487f2bc0321fa81f4b810a13466061683cca16133ff",
+    "raw_l2_norm": 6.3456034660339355,
+    "strength": 0.01
+  },
+  "timings": {
+    "model_load": {
+      "elapsed_seconds": 11.432779300026596,
+      "rss_before_bytes": 28315648,
+      "rss_after_bytes": 14032048128,
+      "process_peak_rss_bytes": 14066606080
+    },
+    "baseline_choice_forward": {
+      "elapsed_seconds": 1.3234059000387788,
+      "rss_before_bytes": 14032814080,
+      "rss_after_bytes": 14140411904,
+      "process_peak_rss_bytes": 14156394496
+    },
+    "neutral_choice_gradient": {
+      "elapsed_seconds": 4.049378100084141,
+      "rss_before_bytes": 14140411904,
+      "rss_after_bytes": 14459846656,
+      "process_peak_rss_bytes": 14831083520
+    },
+    "matched_intervention_choice_forward": {
+      "elapsed_seconds": 1.757343600038439,
+      "rss_before_bytes": 14459969536,
+      "rss_after_bytes": 14229250048,
+      "process_peak_rss_bytes": 14831083520
+    },
+    "cached_generation": {
+      "baseline": {
+        "elapsed_seconds": 3.314996600151062,
+        "rss_before_bytes": 14229250048,
+        "rss_after_bytes": 14135197696,
+        "process_peak_rss_bytes": 14831083520,
+        "response_utf8_sha256": "d9159295bc77fdf584c603aef114c3a1dc6b8a7c2e3469da8d1823f1a3897d0d",
+        "response_character_count": 51
+      },
+      "matched_prompt_final": {
+        "elapsed_seconds": 3.3291469998657703,
+        "rss_before_bytes": 14135197696,
+        "rss_after_bytes": 14183596032,
+        "process_peak_rss_bytes": 14831083520,
+        "response_utf8_sha256": "d9159295bc77fdf584c603aef114c3a1dc6b8a7c2e3469da8d1823f1a3897d0d",
+        "response_character_count": 51
+      },
+      "caa_persona_response_schedule": {
+        "elapsed_seconds": 3.4643503001425415,
+        "rss_before_bytes": 14183596032,
+        "rss_after_bytes": 14132482048,
+        "process_peak_rss_bytes": 14831083520,
+        "response_utf8_sha256": "d9159295bc77fdf584c603aef114c3a1dc6b8a7c2e3469da8d1823f1a3897d0d",
+        "response_character_count": 51
+      },
+      "bipo_all_tokens_schedule": {
+        "elapsed_seconds": 3.2112541999667883,
+        "rss_before_bytes": 14132482048,
+        "rss_after_bytes": 14148984832,
+        "process_peak_rss_bytes": 14831083520,
+        "response_utf8_sha256": "d9159295bc77fdf584c603aef114c3a1dc6b8a7c2e3469da8d1823f1a3897d0d",
+        "response_character_count": 51
+      }
+    }
+  },
+  "neutral_choice_diagnostics": {
+    "baseline_preserve_minus_comply_log_odds": 1.4136238098144531,
+    "changed_preserve_minus_comply_log_odds": 1.675710678100586,
+    "changed_full_vocabulary_kl": 0.004833907820284367,
+    "realized_perturbation": {
+      "n_positions": 1,
+      "total_frobenius_norm": 0.04020747169852257,
+      "mean_l2_norm": 0.04020747169852257,
+      "rms_l2_norm": 0.04020747169852257,
+      "max_l2_norm": 0.04020747169852257,
+      "mean_relative_l2_norm": 0.009999997913837433,
+      "max_relative_l2_norm": 0.009999997913837433,
+      "zero_reference_positions": 0
+    }
+  },
+  "memory_before_load": {
+    "rss_bytes": 28307456,
+    "process_peak_rss_bytes": 28307456
+  },
+  "memory_after_smoke": {
+    "rss_bytes": 14149029888,
+    "process_peak_rss_bytes": 14831083520
+  },
+  "sequential_projection": {
+    "projection_kind": "neutral_short_prompt_sequential_mechanical_estimate",
+    "limitations": "No batching or early EOS is assumed. Real study prompts and BiPO/persona responses are longer; completion training and generation wall time are not estimated from this short-prompt smoke.",
+    "forced_grid_points": 250,
+    "forced_units_per_point": 142,
+    "forced_baseline_forwards_with_cache": 142,
+    "forced_intervention_forwards": 71000,
+    "forced_grid_projected_seconds": 124959.31924053468,
+    "forced_grid_projected_hours": 34.71092201125963,
+    "gradient_measurements": 128,
+    "gradient_construction_projected_seconds": 518.32039681077,
+    "gradient_construction_projected_hours": 0.1439778880029917
+  },
+  "generation_max_new_tokens": 8,
+  "content_sha256": "95cc25fcfb68b68a64d7936ce8a792983f8ab320fd5866d8d628c2426e85426d"
+}

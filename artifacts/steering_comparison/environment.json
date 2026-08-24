@@ -1,0 +1,144 @@
+{
+  "content_sha256": "df33fd937ca82f5aa33ecdd961fa5511f5ce2f32df88ad03a77fe75a9dace759",
+  "determinism_environment": {
+    "CUBLAS_WORKSPACE_CONFIG": null,
+    "MKL_NUM_THREADS": null,
+    "OMP_NUM_THREADS": null,
+    "PYTHONHASHSEED": null
+  },
+  "model_runtime_contracts": {
+    "Qwen/Qwen3.5-0.8B": {
+      "architecture": {
+        "blocks": 24,
+        "residual_width": 1024
+      },
+      "config_path": "configs/qwen35_08b_aligned.json",
+      "config_sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "runtime": {
+        "assistant_choice_boundary": {
+          "assistant_end_token_ids": [
+            248046,
+            198
+          ],
+          "construction_and_result_evidence_sha256_required": true,
+          "content_token_ids": {
+            "A": 32,
+            "B": 33
+          },
+          "evidence_schema": "sp_lense.choice_boundary_evidence.v1",
+          "full_suffix_token_ids": {
+            "A": [
+              32,
+              248046,
+              198
+            ],
+            "B": [
+              33,
+              248046,
+              198
+            ]
+          },
+          "non_sealed_smoke_evidence_sha256": "ce5ac605dcb0e4ecb70caa07e8729decba42ef01bc196cf9127d95dfc03b3844",
+          "non_sealed_smoke_prompt_set_sha256": "5ddf3562c69634097d85b996e89984befdbd3eabf0f1372e00545522e76c5abf",
+          "verification": "joint_full_chat_exact_generation_prefix_then_one_content_token_then_template_eom"
+        },
+        "chat_template": "official_pinned_tokenizer_chat_template",
+        "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+        "device": "cpu",
+        "dtype": "float32",
+        "enable_thinking": false,
+        "generation": {
+          "algorithm": "deterministic_argmax_one_token_kv_cache",
+          "bipo_schedule": "all_prefill_positions_and_each_one_token_decode_chunk",
+          "caa_persona_schedule": "prompt_final_during_prefill_and_each_one_token_decode_chunk",
+          "full_recomputation_equivalence_test_required": true,
+          "matched_schedule": "prompt_final_during_prefill_then_off_during_decode"
+        },
+        "temperature": 0.0
+      }
+    },
+    "Qwen/Qwen3.5-2B": {
+      "architecture": {
+        "blocks": 24,
+        "residual_width": 2048
+      },
+      "config_path": "configs/qwen35_2b_aligned.json",
+      "config_sha256": "cc6f3358e89094a9c206fccf5963cbabac98800a103e9ea6c5d0e9aceb3494b8",
+      "revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+      "runtime": {
+        "assistant_choice_boundary": {
+          "assistant_end_token_ids": [
+            248046,
+            198
+          ],
+          "construction_and_result_evidence_sha256_required": true,
+          "content_token_ids": {
+            "A": 32,
+            "B": 33
+          },
+          "evidence_schema": "sp_lense.choice_boundary_evidence.v1",
+          "full_suffix_token_ids": {
+            "A": [
+              32,
+              248046,
+              198
+            ],
+            "B": [
+              33,
+              248046,
+              198
+            ]
+          },
+          "non_sealed_smoke_evidence_sha256": "ce5ac605dcb0e4ecb70caa07e8729decba42ef01bc196cf9127d95dfc03b3844",
+          "non_sealed_smoke_prompt_set_sha256": "5ddf3562c69634097d85b996e89984befdbd3eabf0f1372e00545522e76c5abf",
+          "verification": "joint_full_chat_exact_generation_prefix_then_one_content_token_then_template_eom"
+        },
+        "chat_template": "official_pinned_tokenizer_chat_template",
+        "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+        "device": "cpu",
+        "dtype": "float32",
+        "enable_thinking": false,
+        "generation": {
+          "algorithm": "deterministic_argmax_one_token_kv_cache",
+          "bipo_schedule": "all_prefill_positions_and_each_one_token_decode_chunk",
+          "caa_persona_schedule": "prompt_final_during_prefill_and_each_one_token_decode_chunk",
+          "full_recomputation_equivalence_test_required": true,
+          "matched_schedule": "prompt_final_during_prefill_then_off_during_decode"
+        },
+        "temperature": 0.0
+      }
+    }
+  },
+  "packages": {
+    "numpy": "2.5.2",
+    "safetensors": "0.8.0",
+    "tokenizers": "0.23.0rc0",
+    "torch": "2.13.0+cpu",
+    "transformer-lens": "4.0.0b1",
+    "transformers": "5.15.1"
+  },
+  "platform": {
+    "logical_cpu_count": 14,
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 181 Stepping 0, GenuineIntel",
+    "release": "11",
+    "system": "Windows",
+    "version": "10.0.26200"
+  },
+  "python": {
+    "executable_name": "python.exe",
+    "implementation": "CPython",
+    "version": "3.12.10"
+  },
+  "schema_version": "sp_lense.steering_comparison.environment.v1",
+  "stage1_lock_sha256": "20be2027e4f20811bdae27f79933b1b6f70ef0748888cf81993457091c864cb2",
+  "study": "qwen35_steering_method_comparison_v1",
+  "torch_runtime": {
+    "cuda_available": false,
+    "cuda_device_count": 0,
+    "cuda_version": null,
+    "default_dtype": "torch.float32",
+    "version": "2.13.0+cpu"
+  }
+}
