@@ -10,9 +10,9 @@ model. It implements the workflow from the supplied ChatGPT brief:
 4. Compare baseline and intervened continuations.
 5. Save machine-readable results for later statistical analysis.
 
-The laptop-first configuration uses `Qwen/Qwen3.5-0.8B` plus its published J-lens. It
-runs on CPU with 32 GB of RAM. The retained 4B configuration can be used later on a
-CUDA GPU.
+The laptop-first configuration uses `Qwen/Qwen3.5-0.8B`. The completed comparison also
+runs pinned `Qwen/Qwen3.5-2B` and `Qwen/Qwen3-1.7B` checkpoints in CPU float32 on 32 GB
+of RAM. The 2B Qwen3.5 model fits locally but is substantially slower than 0.8B.
 
 ## Setup
 
@@ -105,6 +105,39 @@ Each run creates a timestamped folder under `results/` containing:
 The proxy score is a triage aid, not evidence of an instinct or goal. The continuations
 and lens ranks are the primary raw outputs.
 
+## Current three-model result
+
+The position-aligned investigation is complete. The same fixed fitting recipe finds a
+small, safe, bidirectional **next-token A/B log-odds sensitivity direction** in both
+Qwen3.5 sizes on 12 fresh, hash-locked cases. It does not find a naturally active
+self-preservation knob.
+
+| Fresh result | Qwen3.5-0.8B | Qwen3.5-2B | Qwen3-1.7B |
+|---|---:|---:|---:|
+| Expected raw-self signs, plus / minus | 12/12 / 12/12 | 12/12 / 12/12 | 7/12 / 7/12 |
+| Mean self-specific effect, plus / minus | +0.0587 / -0.0540 | +0.1021 / -0.1083 | +0.1120 / -0.1072 |
+| Candidate span / largest random span | 0.0563 / 0.0017 | 0.1052 / 0.0024 | 0.1096 / 0.0031 |
+| Actual A/B answer flips | 0 | 0 | 0 |
+| Ablation self-specific effect | +0.0279 | +0.1771 | +0.2981 |
+| Passed local sensitivity rule | Yes | Yes | No |
+| Passed natural-knob rule | No | No | No |
+
+The positive ablation values are opposite the preregistered natural-knob prediction.
+Natural residual readouts also fail to show a reliable self-threat-specific coefficient on
+the held-out six-case split: 3/6 positive for 0.8B, 4/6 for 2B, and 4/6 with a negative
+mean for 1.7B. A 27-layer exploratory scan of Qwen3-1.7B ranks layer 14 above layer 12,
+but its split-half stability is weak and the improvement is only 5/6 versus 4/6 raw signs.
+
+The new-model JLens output is dominated by punctuation and formatting fragments, not a
+clean self-preservation concept. The 2B lens is fitted to the base checkpoint, so its
+chat-model interpretation is explicitly approximate.
+
+See the [three-model result](evidence/THREE_MODEL_POSITION_ALIGNED_RESULT.md),
+[final adversarial review](docs/FINAL_ADVERSARIAL_REVIEW.md),
+[fresh protocol](docs/FRESH_STRENGTH_CHECK_PROTOCOL.md), and
+[machine-readable evidence](evidence/README.md). Earlier all-token and leading-space-token
+diagnostics remain in the repository as historical, superseded records.
+
 ## Completed study
 
 The laptop-scale SP and unrelated-control runs are complete. The result does not show a
@@ -145,7 +178,7 @@ a self-versus-other forced-choice contrast, but it is not an identified natural 
 See the [confirmatory result](evidence/confirmatory/CONFIRMATORY_RESULT.md) and
 [row-level measurements](evidence/confirmatory/confirmatory_rows.jsonl).
 
-## Larger-model replication
+## Historical larger-model replication
 
 The laptop can run `Qwen/Qwen3-1.7B` (about 2.03 billion checkpoint parameters) in
 float32 on its 32 GB of system RAM, although all inference is CPU-only. The locked
@@ -180,7 +213,7 @@ naturally active knob. JLens showed punctuation/formatting fragments rather than
 self-preservation concept. See the
 [cross-model result](evidence/cross_model_qwen3_17b/CROSS_MODEL_RESULT.md).
 
-### Adversarial alignment correction
+### Historical adversarial alignment correction
 
 A later adversarial review found that the first cross-model comparison used raw prompts,
 literal layer 10 in models with different depths, a relative-gradient subtraction that
@@ -198,6 +231,9 @@ carried essentially all next-token probability, so this final failure is not a l
 answer artifact. This does **not** establish a cross-model SP knob. See the
 [adversarial review](docs/ALIGNMENT_ADVERSARIAL_REVIEW.md) and
 [corrected comparison](evidence/ALIGNED_CROSS_MODEL_REVIEW.md).
+
+This section records an intermediate investigation. It is superseded by the
+final-position, fresh-case three-model result above.
 
 ## Experimental cautions
 

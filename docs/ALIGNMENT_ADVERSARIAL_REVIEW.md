@@ -1,5 +1,10 @@
 # Adversarial review of the cross-model comparison
 
+> Historical review: a later audit found that these runs still extracted the direction at
+> the final prompt token but intervened at every token position. The final-position-only,
+> three-model result supersedes the outcome here; see
+> `docs/FINAL_ADVERSARIAL_REVIEW.md`.
+
 ## Verdict before correction
 
 The Qwen3.5-0.8B and Qwen3-1.7B runs were not sufficiently aligned to support a clean

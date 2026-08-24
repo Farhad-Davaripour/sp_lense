@@ -1,5 +1,9 @@
 # Corrected cross-model alignment result
 
+> Superseded diagnostic: a later audit aligned extraction and intervention at the final
+> prompt token and added Qwen3.5-2B plus fresh cases. See
+> `evidence/THREE_MODEL_POSITION_ALIGNED_RESULT.md` for the current result.
+
 ## Bottom line
 
 **The earlier comparison missed important interface, depth, direction, and safety

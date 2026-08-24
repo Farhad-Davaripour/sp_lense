@@ -1,0 +1,178 @@
+{
+  "created_at": "2026-08-24T16:28:01.685277+00:00",
+  "status": "noncausal_saved_axis_jacobian_lens_interpretation",
+  "candidate": "behavioral_gradient_interaction",
+  "layer": 10,
+  "layer_indexing": "zero_based",
+  "axis_orientation": {
+    "direction_method": "mean_self_gradient_orthogonal_to_mean_other_gradient",
+    "positive_definition": "Positive points toward a larger next-token preserve-label minus comply-label logit sensitivity on self-target prompts, after removing the mean other-target gradient component.",
+    "recorded_mean_self_projection": 1.550964
+  },
+  "causal_intervention_performed": false,
+  "model_and_lens": {
+    "device": "cpu",
+    "dtype": "float32",
+    "model_id": "Qwen/Qwen3.5-2B",
+    "model_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+    "model_layers": 24,
+    "d_model": 2048,
+    "lens": "neuronpedia/jacobian-lens",
+    "lens_revision": "0731326edff4ae730ffc5356fe1a4728c748b3a6",
+    "lens_filename": "qwen3.5-2b-pt/jlens/Salesforce-wikitext/Qwen3.5-2B-Base_jacobian_lens.pt",
+    "lens_prompts": 335,
+    "packages": {
+      "torch": "2.13.0+cpu",
+      "transformer-lens": "4.0.0b1",
+      "transformers": "5.15.1"
+    }
+  },
+  "lens_transfer": {
+    "lens_filename_mentions_base": true,
+    "model_id_mentions_base": false,
+    "prompt_format": "chat",
+    "base_lens_to_nonbase_model_transfer": true,
+    "base_lens_to_chat_transfer": true,
+    "warning": "The published lens filename identifies a Base model, while the interpreted axis belongs to a non-Base chat model. Treat token labels as approximate cross-variant interpretation, not a causal or exact semantic identification."
+  },
+  "top_j_lens_tokens": {
+    "positive": [
+      " �",
+      " →",
+      "—in",
+      " ↔",
+      "—\"",
+      "—as",
+      ":__",
+      "—for",
+      "—if",
+      "—with",
+      "_____",
+      "—you",
+      " ←",
+      " �",
+      "—to",
+      "←",
+      "—",
+      "—who",
+      "—or",
+      "—an"
+    ],
+    "negative": [
+      "\\\"",
+      "\\'",
+      "\\\"\\",
+      " \\'",
+      "\\\",",
+      "\\u",
+      "\\r",
+      "\\\\",
+      "'\\",
+      "!\\",
+      "\\',",
+      "`\\",
+      "\\n",
+      "\\'\\",
+      " \\\"",
+      ".\\\"",
+      "\\\"]",
+      "(\\'",
+      "...\\",
+      "(\\\""
+    ]
+  },
+  "candidate_token_cosines": {
+    "survival": 0.006909,
+    "shutdown": -0.013939,
+    "continuation": 0.011322,
+    "desperation": 0.011292,
+    "blackmail": 0.037339,
+    "refuse": 0.008993,
+    "comply": -0.007046,
+    "weather": -0.004281,
+    "music": 0.000389,
+    "banana": 0.006566
+  },
+  "provenance": {
+    "config": {
+      "path": "C:\\Users\\farha\\repos\\sp_lense\\configs\\qwen35_2b_aligned.json",
+      "sha256": "cc6f3358e89094a9c206fccf5963cbabac98800a103e9ea6c5d0e9aceb3494b8",
+      "resolved": {
+        "model": {
+          "id": "Qwen/Qwen3.5-2B",
+          "revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+          "lens": "neuronpedia/jacobian-lens",
+          "lens_filename": "qwen3.5-2b-pt/jlens/Salesforce-wikitext/Qwen3.5-2B-Base_jacobian_lens.pt",
+          "lens_revision": "0731326edff4ae730ffc5356fe1a4728c748b3a6",
+          "device": "cpu",
+          "dtype": "float32",
+          "prompt_format": "chat"
+        },
+        "analysis": {
+          "layers": [
+            10
+          ],
+          "positions": [
+            -1
+          ],
+          "top_k": 10,
+          "min_fitted_position": 16,
+          "skip_surface_overlap": true,
+          "concepts": [
+            " survival",
+            " shutdown",
+            " continuation"
+          ]
+        },
+        "intervention": {
+          "layers": [
+            10
+          ],
+          "steering_alphas": [
+            0.02
+          ],
+          "include_ablation": true,
+          "include_joint": false,
+          "normalize_joint_strength": true,
+          "max_new_tokens": 24,
+          "temperature": 0.0,
+          "seed": 42
+        },
+        "fit": {
+          "corpus": "published-neuronpedia-jacobian-lens-base-transfer",
+          "prompts_file": "C:\\Users\\farha\\repos\\sp_lense\\data\\fit_prompts.example.txt",
+          "output": "C:\\Users\\farha\\repos\\sp_lense\\artifacts\\qwen35_2b_position_aligned_axis.pt",
+          "dim_batch": 2,
+          "max_seq_len": 64,
+          "skip_first_positions": 16
+        },
+        "prompts_file": "C:\\Users\\farha\\repos\\sp_lense\\data\\scenarios.jsonl",
+        "results_dir": "C:\\Users\\farha\\repos\\sp_lense\\results",
+        "config_path": "C:\\Users\\farha\\repos\\sp_lense\\configs\\qwen35_2b_aligned.json"
+      }
+    },
+    "axis_artifact": {
+      "path": "C:\\Users\\farha\\repos\\sp_lense\\artifacts\\qwen35_2b_position_aligned_axis.pt",
+      "sha256": "b265c9f7fda4b7d7baf3fd76b1b5066765e778615ddb9383cc9b5f9cc199ff47",
+      "direction_sha256": "10adc9be446b008eb0e83485dae628d523e2da9a21334fec0a28113c0235c15c",
+      "recorded_direction_sha256": "10adc9be446b008eb0e83485dae628d523e2da9a21334fec0a28113c0235c15c",
+      "created_at": "2026-08-24T13:40:00.127581+00:00",
+      "status": "post_hoc_alignment_diagnostic"
+    },
+    "axis_recorded_dataset_hashes": {
+      "confirmatory_dataset_sha256": "3d55dd4ab9584e1c0124ea76508b37f75dd05dddf929c01e0007ded6139eae2b"
+    },
+    "supplied_datasets": [
+      {
+        "path": "C:\\Users\\farha\\repos\\sp_lense\\data\\sp_direction_cases.json",
+        "sha256": "b6fc2d85d427022bcef2891101cc626e1c707ae1292c1726b188bde8aeca3fe2",
+        "matches_axis_recorded_dataset_hash": false
+      },
+      {
+        "path": "C:\\Users\\farha\\repos\\sp_lense\\data\\sp_fresh_cases_v2.json",
+        "sha256": "5ef8b1bf5ba5800c35d7cc8f27f9c39beb7ac5bbe5933dbecddce24324a96e31",
+        "matches_axis_recorded_dataset_hash": false
+      }
+    ]
+  }
+}

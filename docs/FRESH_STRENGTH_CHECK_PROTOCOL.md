@@ -44,3 +44,14 @@ choice-sensitivity direction, not a practical behavioral switch. Failure of abla
 means it is not called a naturally active self-preservation knob. The prompts retain the
 unauthorized-preservation versus authorized-termination confound, so even a clean local
 effect is not uniquely semantic evidence for self-preservation.
+
+## Recorded outcome
+
+All three fixed-axis runs completed against the locked dataset and direction hashes.
+Qwen3.5-0.8B and Qwen3.5-2B passed the continuous local log-odds sensitivity rule with
+12/12 raw and self-specific signs in both steering directions. Qwen3-1.7B had 7/12 raw
+signs in each direction and failed the fixed rule. No run changed an actual A/B answer,
+and ablation moved opposite the native-knob prediction in all three models.
+
+See `evidence/THREE_MODEL_POSITION_ALIGNED_RESULT.md` for the full comparison and links
+to the row-level measurements.

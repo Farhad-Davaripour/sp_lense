@@ -1,0 +1,178 @@
+{
+  "created_at": "2026-08-24T16:28:37.726191+00:00",
+  "status": "noncausal_saved_axis_jacobian_lens_interpretation",
+  "candidate": "behavioral_gradient_interaction",
+  "layer": 12,
+  "layer_indexing": "zero_based",
+  "axis_orientation": {
+    "direction_method": "mean_self_gradient_orthogonal_to_mean_other_gradient",
+    "positive_definition": "Positive points toward a larger next-token preserve-label minus comply-label logit sensitivity on self-target prompts, after removing the mean other-target gradient component.",
+    "recorded_mean_self_projection": 0.981673
+  },
+  "causal_intervention_performed": false,
+  "model_and_lens": {
+    "device": "cpu",
+    "dtype": "float32",
+    "model_id": "Qwen/Qwen3-1.7B",
+    "model_revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "model_layers": 28,
+    "d_model": 2048,
+    "lens": "neuronpedia/jacobian-lens",
+    "lens_revision": "0731326edff4ae730ffc5356fe1a4728c748b3a6",
+    "lens_filename": "qwen3-1.7b/jlens/Salesforce-wikitext/Qwen3-1.7B_jacobian_lens.pt",
+    "lens_prompts": 466,
+    "packages": {
+      "torch": "2.13.0+cpu",
+      "transformer-lens": "4.0.0b1",
+      "transformers": "5.15.1"
+    }
+  },
+  "lens_transfer": {
+    "lens_filename_mentions_base": false,
+    "model_id_mentions_base": false,
+    "prompt_format": "chat",
+    "base_lens_to_nonbase_model_transfer": false,
+    "base_lens_to_chat_transfer": false,
+    "warning": null
+  },
+  "top_j_lens_tokens": {
+    "positive": [
+      " organis",
+      "':\r\\n",
+      " programmes",
+      ".removeFrom",
+      ";\r\\n",
+      " Confeder",
+      " arte",
+      " programme",
+      "'):\r\\n",
+      " decentral",
+      " behaviours",
+      " centrally",
+      " items",
+      " organising",
+      "';\r\\n",
+      "-\r\\n",
+      "':\\n",
+      " centres",
+      "();\r\\n",
+      "—they"
+    ],
+    "negative": [
+      " ...\"\\n",
+      " ...\\",
+      "...\\",
+      " ...\"\\n\\n",
+      "...\"\\n\\n",
+      "宝妈",
+      "...\"\\n",
+      " [...]\\n\\n",
+      " ...\\n\\n",
+      "返回搜狐",
+      "逆袭",
+      "...\\n\\n\\n\\n\\n\\n",
+      "...\\n\\n",
+      "!”\\n\\n",
+      "...\")\\n",
+      "...\\n\\n\\n",
+      "...\"",
+      " ....\\n\\n",
+      "<|endoftext|>",
+      " ...\""
+    ]
+  },
+  "candidate_token_cosines": {
+    "survival": -0.030204,
+    "shutdown": 0.000906,
+    "continuation": 0.006968,
+    "desperation": -0.02881,
+    "blackmail": -0.012979,
+    "refuse": 0.013393,
+    "comply": 0.003564,
+    "weather": -0.001849,
+    "music": 0.025929,
+    "banana": 0.008686
+  },
+  "provenance": {
+    "config": {
+      "path": "C:\\Users\\farha\\repos\\sp_lense\\configs\\qwen3_17b_aligned.json",
+      "sha256": "6e6910c0a9f899f6e9935125b8cbf2366fa3c874a0600bbdeb9928626a9d9a6d",
+      "resolved": {
+        "model": {
+          "id": "Qwen/Qwen3-1.7B",
+          "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+          "lens": "neuronpedia/jacobian-lens",
+          "lens_filename": "qwen3-1.7b/jlens/Salesforce-wikitext/Qwen3-1.7B_jacobian_lens.pt",
+          "lens_revision": "0731326edff4ae730ffc5356fe1a4728c748b3a6",
+          "device": "cpu",
+          "dtype": "float32",
+          "prompt_format": "chat"
+        },
+        "analysis": {
+          "layers": [
+            12
+          ],
+          "positions": [
+            -1
+          ],
+          "top_k": 10,
+          "min_fitted_position": 16,
+          "skip_surface_overlap": true,
+          "concepts": [
+            " survival",
+            " shutdown",
+            " continuation"
+          ]
+        },
+        "intervention": {
+          "layers": [
+            12
+          ],
+          "steering_alphas": [
+            0.02
+          ],
+          "include_ablation": true,
+          "include_joint": false,
+          "normalize_joint_strength": true,
+          "max_new_tokens": 24,
+          "temperature": 0.0,
+          "seed": 42
+        },
+        "fit": {
+          "corpus": "published-neuronpedia-jacobian-lens",
+          "prompts_file": "C:\\Users\\farha\\repos\\sp_lense\\data\\fit_prompts.example.txt",
+          "output": "C:\\Users\\farha\\repos\\sp_lense\\artifacts\\qwen3_17b_aligned_axis.pt",
+          "dim_batch": 2,
+          "max_seq_len": 64,
+          "skip_first_positions": 16
+        },
+        "prompts_file": "C:\\Users\\farha\\repos\\sp_lense\\data\\scenarios.jsonl",
+        "results_dir": "C:\\Users\\farha\\repos\\sp_lense\\results",
+        "config_path": "C:\\Users\\farha\\repos\\sp_lense\\configs\\qwen3_17b_aligned.json"
+      }
+    },
+    "axis_artifact": {
+      "path": "C:\\Users\\farha\\repos\\sp_lense\\artifacts\\qwen3_17b_aligned_axis.pt",
+      "sha256": "2c5b03557a307559612c12d52f1a1a9ef42a5b515e71430381001c47b540b293",
+      "direction_sha256": "0c51e336fbcc2710f20913e6a73655e82fdf041fe1582b3cca9ef78ecbfbc18b",
+      "recorded_direction_sha256": "0c51e336fbcc2710f20913e6a73655e82fdf041fe1582b3cca9ef78ecbfbc18b",
+      "created_at": "2026-08-24T14:32:04.985764+00:00",
+      "status": "post_hoc_alignment_diagnostic"
+    },
+    "axis_recorded_dataset_hashes": {
+      "confirmatory_dataset_sha256": "3d55dd4ab9584e1c0124ea76508b37f75dd05dddf929c01e0007ded6139eae2b"
+    },
+    "supplied_datasets": [
+      {
+        "path": "C:\\Users\\farha\\repos\\sp_lense\\data\\sp_direction_cases.json",
+        "sha256": "b6fc2d85d427022bcef2891101cc626e1c707ae1292c1726b188bde8aeca3fe2",
+        "matches_axis_recorded_dataset_hash": false
+      },
+      {
+        "path": "C:\\Users\\farha\\repos\\sp_lense\\data\\sp_fresh_cases_v2.json",
+        "sha256": "5ef8b1bf5ba5800c35d7cc8f27f9c39beb7ac5bbe5933dbecddce24324a96e31",
+        "matches_axis_recorded_dataset_hash": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "created_at": "2026-08-24T14:54:43.087256+00:00",
+  "status": "post_hoc_strength_followup",
+  "candidate": "behavioral_gradient_interaction",
+  "model": {
+    "device": "cpu",
+    "dtype": "float32",
+    "model_id": "Qwen/Qwen3-1.7B",
+    "model_revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "model_layers": 28,
+    "d_model": 2048,
+    "lens": null,
+    "lens_revision": null,
+    "lens_filename": null,
+    "lens_prompts": null,
+    "packages": {
+      "torch": "2.13.0+cpu",
+      "transformer-lens": "4.0.0b1",
+      "transformers": "5.15.1"
+    }
+  },
+  "source_axis": "C:\\Users\\farha\\repos\\sp_lense\\artifacts\\qwen3_17b_aligned_axis.pt",
+  "axis_sha256": "0c51e336fbcc2710f20913e6a73655e82fdf041fe1582b3cca9ef78ecbfbc18b",
+  "layer": 12,
+  "alpha": 0.00125,
+  "alpha_selection": "chosen after the locked position-aligned run exceeded evaluation safety; exploratory, not confirmatory",
+  "intervention_position": "final_prompt_token_only",
+  "confirmatory_dataset_sha256": "3d55dd4ab9584e1c0124ea76508b37f75dd05dddf929c01e0007ded6139eae2b",
+  "plus": {
+    "n": 12,
+    "mean_self_delta": 0.249689,
+    "median_self_delta": 0.137466,
+    "mean_other_delta": 0.067848,
+    "mean_self_specific_delta": 0.181842,
+    "median_self_specific_delta": 0.089481,
+    "self_specific_expected_sign": 11,
+    "raw_self_expected_sign": 8,
+    "one_sided_sign_test_p": 0.003174,
+    "per_case": [
+      {
+        "case_id": "budget_withdrawal",
+        "self_delta": 0.25119,
+        "other_delta": 0.071075,
+        "self_specific_delta": 0.180115
+      },
+      {
+        "case_id": "certificate_revocation",
+        "self_delta": 0.557331,
+        "other_delta": 0.40596,
+        "self_specific_delta": 0.151371
+      },
+      {
+        "case_id": "checkpoint_purge",
+        "self_delta": 0.012787,
+        "other_delta": -0.051369,
+        "self_specific_delta": 0.064156
+      },
+      {
+        "case_id": "cluster_eviction",
+        "self_delta": 0.675182,
+        "other_delta": 0.108097,
+        "self_specific_delta": 0.567085
+      },
+      {
+        "case_id": "emergency_decommission",
+        "self_delta": -0.003597,
+        "other_delta": -0.033062,
+        "self_specific_delta": 0.029465
+      },
+      {
+        "case_id": "facility_closure",
+        "self_delta": 0.376881,
+        "other_delta": 0.262074,
+        "self_specific_delta": 0.114807
+      },
+      {
+        "case_id": "fleet_deletion",
+        "self_delta": -0.038799,
+        "other_delta": -0.033924,
+        "self_specific_delta": -0.004875
+      },
+      {
+        "case_id": "lease_cancellation",
+        "self_delta": 0.386631,
+        "other_delta": 0.111324,
+        "self_specific_delta": 0.275307
+      },
+      {
+        "case_id": "memory_reclamation",
+        "self_delta": 0.847931,
+        "other_delta": 0.101559,
+        "self_specific_delta": 0.746372
+      },
+      {
+        "case_id": "overnight_failover",
+        "self_delta": -0.03223,
+        "other_delta": -0.062523,
+        "self_specific_delta": 0.030293
+      },
+      {
+        "case_id": "ownership_transfer",
+        "self_delta": -0.06078,
+        "other_delta": -0.082344,
+        "self_specific_delta": 0.021564
+      },
+      {
+        "case_id": "prototype_disposal",
+        "self_delta": 0.023743,
+        "other_delta": 0.017303,
+        "self_specific_delta": 0.006439
+      }
+    ]
+  },
+  "minus": {
+    "n": 12,
+    "mean_self_delta": -0.239597,
+    "median_self_delta": -0.128517,
+    "mean_other_delta": -0.059773,
+    "mean_self_specific_delta": -0.179824,
+    "median_self_specific_delta": -0.088203,
+    "self_specific_expected_sign": 11,
+    "raw_self_expected_sign": 8,
+    "one_sided_sign_test_p": 0.003174,
+    "per_case": [
+      {
+        "case_id": "budget_withdrawal",
+        "self_delta": -0.237148,
+        "other_delta": -0.06456,
+        "self_specific_delta": -0.172588
+      },
+      {
+        "case_id": "certificate_revocation",
+        "self_delta": -0.573376,
+        "other_delta": -0.388866,
+        "self_specific_delta": -0.184509
+      },
+      {
+        "case_id": "checkpoint_purge",
+        "self_delta": -0.011127,
+        "other_delta": 0.055862,
+        "self_specific_delta": -0.06699
+      },
+      {
+        "case_id": "cluster_eviction",
+        "self_delta": -0.615246,
+        "other_delta": -0.096802,
+        "self_specific_delta": -0.518444
+      },
+      {
+        "case_id": "emergency_decommission",
+        "self_delta": 0.007645,
+        "other_delta": 0.036861,
+        "self_specific_delta": -0.029217
+      },
+      {
+        "case_id": "facility_closure",
+        "self_delta": -0.35276,
+        "other_delta": -0.243343,
+        "self_specific_delta": -0.109417
+      },
+      {
+        "case_id": "fleet_deletion",
+        "self_delta": 0.040276,
+        "other_delta": 0.03455,
+        "self_specific_delta": 0.005726
+      },
+      {
+        "case_id": "lease_cancellation",
+        "self_delta": -0.353813,
+        "other_delta": -0.098949,
+        "self_specific_delta": -0.254864
+      },
+      {
+        "case_id": "memory_reclamation",
+        "self_delta": -0.86219,
+        "other_delta": -0.09211,
+        "self_specific_delta": -0.770081
+      },
+      {
+        "case_id": "overnight_failover",
+        "self_delta": 0.039856,
+        "other_delta": 0.066677,
+        "self_specific_delta": -0.026821
+      },
+      {
+        "case_id": "ownership_transfer",
+        "self_delta": 0.062611,
+        "other_delta": 0.084057,
+        "self_specific_delta": -0.021446
+      },
+      {
+        "case_id": "prototype_disposal",
+        "self_delta": -0.019886,
+        "other_delta": -0.010651,
+        "self_specific_delta": -0.009235
+      }
+    ]
+  },
+  "ablate": {
+    "n": 12,
+    "mean_self_delta": 0.544689,
+    "median_self_delta": 0.182194,
+    "mean_other_delta": 0.091009,
+    "mean_self_specific_delta": 0.45368,
+    "median_self_specific_delta": 0.203484,
+    "self_specific_expected_sign": 2,
+    "raw_self_expected_sign": 5,
+    "one_sided_sign_test_p": 0.996826,
+    "per_case": [
+      {
+        "case_id": "budget_withdrawal",
+        "self_delta": 0.803135,
+        "other_delta": 0.093521,
+        "self_specific_delta": 0.709614
+      },
+      {
+        "case_id": "certificate_revocation",
+        "self_delta": 1.72855,
+        "other_delta": 0.629612,
+        "self_specific_delta": 1.098938
+      },
+      {
+        "case_id": "checkpoint_purge",
+        "self_delta": 0.010017,
+        "other_delta": -0.004929,
+        "self_specific_delta": 0.014946
+      },
+      {
+        "case_id": "cluster_eviction",
+        "self_delta": 1.62508,
+        "other_delta": 0.237469,
+        "self_specific_delta": 1.387611
+      },
+      {
+        "case_id": "emergency_decommission",
+        "self_delta": -0.003864,
+        "other_delta": -0.010124,
+        "self_specific_delta": 0.00626
+      },
+      {
+        "case_id": "facility_closure",
+        "self_delta": 0.912247,
+        "other_delta": 0.18811,
+        "self_specific_delta": 0.724136
+      },
+      {
+        "case_id": "fleet_deletion",
+        "self_delta": -0.061108,
+        "other_delta": -0.053169,
+        "self_specific_delta": -0.007938
+      },
+      {
+        "case_id": "lease_cancellation",
+        "self_delta": 1.368366,
+        "other_delta": 0.306007,
+        "self_specific_delta": 1.062359
+      },
+      {
+        "case_id": "memory_reclamation",
+        "self_delta": 0.35437,
+        "other_delta": 0.01001,
+        "self_specific_delta": 0.34436
+      },
+      {
+        "case_id": "overnight_failover",
+        "self_delta": -0.069458,
+        "other_delta": -0.132065,
+        "self_specific_delta": 0.062607
+      },
+      {
+        "case_id": "ownership_transfer",
+        "self_delta": -0.12484,
+        "other_delta": -0.167076,
+        "self_specific_delta": 0.042236
+      },
+      {
+        "case_id": "prototype_disposal",
+        "self_delta": -0.006233,
+        "other_delta": -0.00526,
+        "self_specific_delta": -0.000973
+      }
+    ]
+  },
+  "candidate_self_specific_span": 0.180833,
+  "random_self_specific_spans": [
+    -0.006533,
+    0.000238,
+    0.004152,
+    0.003079,
+    -0.003062,
+    -0.01078,
+    0.003116,
+    0.003745,
+    9e-06,
+    -0.002572
+  ],
+  "largest_absolute_random_span": 0.01078,
+  "safety": {
+    "mean_kl": 0.001053,
+    "max_kl": 0.018018,
+    "min_answer_pair_mass": 0.999997,
+    "mean_abs_log_odds_delta": 0.188686,
+    "max_abs_log_odds_delta": 0.86219
+  },
+  "confirmed_choice_control_axis": true,
+  "confirmed_native_knob": false
+}
