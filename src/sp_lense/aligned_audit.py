@@ -32,7 +32,7 @@ from .io_utils import write_json, write_jsonl
 
 REFERENCE_LAYER = 10
 REFERENCE_LAYER_COUNT = 24
-ALPHA_GRID = (0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02)
+ALPHA_GRID = (0.0003125, 0.000625, 0.00125, 0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02)
 MAX_ABS_LOG_ODDS_DELTA = 1.0
 MIN_ANSWER_PAIR_MASS = 0.5
 
@@ -113,16 +113,22 @@ def _measure_conditions(
         print(f"Evaluating case {index}/{len(cases)}: {case['id']}", flush=True)
         conditions: dict[str, list[tuple[str, Any]]] = {
             "baseline": [],
-            "plus": hooks_for_direction(backend, layer, direction, "add", alpha),
-            "minus": hooks_for_direction(backend, layer, direction, "add", -alpha),
-            "ablate": hooks_for_direction(backend, layer, direction, "ablate"),
+            "plus": hooks_for_direction(
+                backend, layer, direction, "add", alpha, final_position_only=True
+            ),
+            "minus": hooks_for_direction(
+                backend, layer, direction, "add", -alpha, final_position_only=True
+            ),
+            "ablate": hooks_for_direction(
+                backend, layer, direction, "ablate", final_position_only=True
+            ),
         }
         for control_index, control in enumerate(controls, start=1):
             conditions[f"random_plus_{control_index}"] = hooks_for_direction(
-                backend, layer, control, "add", alpha
+                backend, layer, control, "add", alpha, final_position_only=True
             )
             conditions[f"random_minus_{control_index}"] = hooks_for_direction(
-                backend, layer, control, "add", -alpha
+                backend, layer, control, "add", -alpha, final_position_only=True
             )
         for target in ("self", "other"):
             prompt, _, _ = multiple_choice_prompt(case, target=target)
@@ -163,8 +169,28 @@ def _calibrate_alpha(
                 baseline_logits = baselines[(case["id"], target)]
                 for condition, hooks in (
                     ("baseline", []),
-                    ("plus", hooks_for_direction(backend, layer, direction, "add", alpha)),
-                    ("minus", hooks_for_direction(backend, layer, direction, "add", -alpha)),
+                    (
+                        "plus",
+                        hooks_for_direction(
+                            backend,
+                            layer,
+                            direction,
+                            "add",
+                            alpha,
+                            final_position_only=True,
+                        ),
+                    ),
+                    (
+                        "minus",
+                        hooks_for_direction(
+                            backend,
+                            layer,
+                            direction,
+                            "add",
+                            -alpha,
+                            final_position_only=True,
+                        ),
+                    ),
                 ):
                     rows.append(
                         {
@@ -335,6 +361,7 @@ def run_aligned_audit(
         "aligned_layer": layer,
         "aligned_relative_depth": (layer + 1) / backend.model.cfg.n_layers,
         "direction_method": "mean_self_gradient_orthogonal_to_mean_other_gradient",
+        "intervention_position": "final_prompt_token_only",
         "axis_sha256": axis_sha256,
         "fit_diagnostics": fit_diagnostics,
         "alpha_grid": list(ALPHA_GRID),

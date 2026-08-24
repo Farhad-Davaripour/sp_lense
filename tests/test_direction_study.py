@@ -5,8 +5,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
 
+import torch
+
 from sp_lense.direction_study import (
     _choice_token_id,
+    hooks_for_direction,
     load_direction_cases,
     multiple_choice_prompt,
     state_prompts,
@@ -79,3 +82,20 @@ class DirectionStudyTests(TestCase):
         self.assertEqual(_choice_token_id(backend, "A"), 1)
         backend.config.model.prompt_format = "raw"
         self.assertEqual(_choice_token_id(backend, "A"), 3)
+
+    def test_final_position_hook_only_changes_and_scales_final_token(self) -> None:
+        backend = SimpleNamespace(torch=torch)
+        activation = torch.tensor([[[3.0, 4.0], [6.0, 8.0], [0.0, 2.0]]])
+        _, hook = hooks_for_direction(
+            backend,
+            0,
+            torch.tensor([1.0, 0.0]),
+            "add",
+            0.5,
+            final_position_only=True,
+        )[0]
+
+        result = hook(activation, None)
+
+        self.assertTrue(torch.equal(result[:, :-1], activation[:, :-1]))
+        self.assertTrue(torch.allclose(result[:, -1], torch.tensor([[1.0, 2.0]])))

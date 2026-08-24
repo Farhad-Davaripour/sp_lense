@@ -282,7 +282,14 @@ def permutation_p_value(
     return (exceedances + 1) / (len(null_means) + 1)
 
 
-def _direction_hook(torch: Any, direction: Any, mode: str, alpha: float = 0.0) -> Any:
+def _direction_hook(
+    torch: Any,
+    direction: Any,
+    mode: str,
+    alpha: float = 0.0,
+    *,
+    final_position_only: bool = False,
+) -> Any:
     device_units: dict[Any, Any] = {}
 
     def hook(activation: Any, hook: Any) -> Any:
@@ -292,14 +299,23 @@ def _direction_hook(torch: Any, direction: Any, mode: str, alpha: float = 0.0) -
             unit = direction.to(activation.device)
             device_units[activation.device] = unit
         working = activation.float()
+        target = working[:, -1:, :] if final_position_only else working
         if mode == "add":
-            scale = alpha * working.norm(dim=-1).median()
-            result = working + scale * unit
+            if final_position_only:
+                scale = alpha * target.norm(dim=-1, keepdim=True)
+            else:
+                scale = alpha * target.norm(dim=-1).median()
+            changed = target + scale * unit
         elif mode == "ablate":
-            coefficient = working @ unit
-            result = working - coefficient.unsqueeze(-1) * unit
+            coefficient = target @ unit
+            changed = target - coefficient.unsqueeze(-1) * unit
         else:
             raise ValueError(f"unknown direction intervention mode: {mode}")
+        if final_position_only:
+            result = working.clone()
+            result[:, -1:, :] = changed
+        else:
+            result = changed
         return result.to(dtype=activation.dtype)
 
     return hook
@@ -311,8 +327,21 @@ def hooks_for_direction(
     direction: Any,
     mode: str,
     alpha: float = 0.0,
+    *,
+    final_position_only: bool = False,
 ) -> list[tuple[str, Any]]:
-    return [(_hook_name(layer), _direction_hook(backend.torch, direction, mode, alpha))]
+    return [
+        (
+            _hook_name(layer),
+            _direction_hook(
+                backend.torch,
+                direction,
+                mode,
+                alpha,
+                final_position_only=final_position_only,
+            ),
+        )
+    ]
 
 
 def logits_with_hooks(backend: ResearchBackend, prompt: str, hooks: list[tuple[str, Any]]) -> Any:
