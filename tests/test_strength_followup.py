@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
 
@@ -7,6 +10,7 @@ import torch
 
 from sp_lense.strength_followup import (
     ALIGNED_DIRECTION_METHOD,
+    load_axis_payload,
     validate_aligned_axis_orientation,
     validate_axis_payload,
 )
@@ -29,6 +33,29 @@ class StrengthFollowupTests(TestCase):
 
         self.assertEqual(layer, 3)
         self.assertEqual(tuple(direction.shape), (4,))
+
+    def test_loads_inspectable_json_axis_as_float32(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "axis.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "candidate": "behavioral_gradient_interaction",
+                        "model": "model",
+                        "layer": 3,
+                        "direction": [0.5, 0.5, 0.5, 0.5],
+                        "metadata": {"model": {"model_revision": "revision"}},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            payload = load_axis_payload(path)
+            layer, direction = validate_axis_payload(payload, self.config, d_model=4)
+
+            self.assertEqual(layer, 3)
+            self.assertEqual(direction.dtype, torch.float32)
+            self.assertTrue(torch.equal(direction, torch.full((4,), 0.5)))
 
     def test_rejects_wrong_model(self) -> None:
         payload = {

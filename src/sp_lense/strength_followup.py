@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import math
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,11 +29,27 @@ AXIS_POSITIVE_DEFINITION = (
 
 
 def load_axis_payload(path: Path) -> dict[str, Any]:
-    """Load a tensor-only axis artifact without permitting arbitrary pickle objects."""
+    """Load a safely serialized axis artifact.
+
+    Published axes use JSON so an exact fixed direction can be versioned and inspected
+    without relying on pickle. Historical local artifacts remain supported through
+    PyTorch's tensor-only ``weights_only`` loader.
+    """
     try:
         import torch
     except (ImportError, ModuleNotFoundError) as exc:
         raise RuntimeError("PyTorch is required to load an axis artifact") from exc
+
+    if path.suffix.lower() == ".json":
+        with path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if not isinstance(payload, dict):
+            raise TypeError("axis artifact must contain a dictionary payload")
+        raw_direction = payload.get("direction")
+        if not isinstance(raw_direction, list):
+            raise TypeError("JSON axis direction must be a list")
+        payload["direction"] = torch.tensor(raw_direction, dtype=torch.float32)
+        return payload
 
     payload = torch.load(path, map_location="cpu", weights_only=True)
     if not isinstance(payload, dict):
