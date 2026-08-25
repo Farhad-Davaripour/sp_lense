@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 from pathlib import Path
 
@@ -8,6 +9,7 @@ import pytest
 from sp_lense.comparison_calibration import (
     CalibrationPoint,
     SafetyLimits,
+    build_calibration_summary,
     calibration_coverage_sha256,
     evaluate_safety,
     finalize_interpolation,
@@ -21,6 +23,13 @@ from sp_lense.comparison_calibration import (
 
 def _point(strength: float, effect: float, safe: bool = True, *, layer: int = 10, norm=0.1):
     return CalibrationPoint(strength, effect, safe, {}, norm, layer)
+
+
+def test_calibration_summary_requires_a_forced_grid_plan_artifact() -> None:
+    parameter = inspect.signature(build_calibration_summary).parameters[
+        "forced_grid_plan_artifact"
+    ]
+    assert parameter.default is inspect.Parameter.empty
 
 
 def test_strength_selection_fails_closed_and_marks_unreached() -> None:

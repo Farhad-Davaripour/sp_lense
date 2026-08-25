@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -36,6 +37,7 @@ from sp_lense.comparison_provenance import (
     assert_preopen_approved_setup,
     assert_stage2_ready,
     attach_result_identity,
+    build_outcome_blind_amendment_manifest,
     build_preopen_manifest,
     build_stage2_manifest,
     locked_method_construction_configuration,
@@ -44,6 +46,7 @@ from sp_lense.comparison_provenance import (
     stage1_hash_entries,
     validate_result_identity,
     verified_method_status_records,
+    verify_outcome_blind_amendment,
     verify_preopen_manifest,
     verify_stage2_manifest,
 )
@@ -132,6 +135,284 @@ def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
         ),
         encoding="utf-8",
     )
+
+
+def _git(repo: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", *args],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _commit_all(repo: Path, message: str) -> str:
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", message)
+    return _git(repo, "rev-parse", "HEAD")
+
+
+def _outcome_blind_repo(tmp_path: Path) -> tuple[dict[str, Any], Path, str]:
+    _git(tmp_path, "init")
+    _git(tmp_path, "config", "user.email", "tests@example.invalid")
+    _git(tmp_path, "config", "user.name", "SP Lense Tests")
+    paths = {
+        "protocol": tmp_path / "protocol.md",
+        "dataset": tmp_path / "dataset.json",
+        "model": tmp_path / "model.json",
+        "persona": tmp_path / "persona.json",
+        "judge": tmp_path / "judge.json",
+        "allowed": tmp_path / "src" / "sp_lense" / "comparison_provenance.py",
+        "unlisted": tmp_path / "src" / "sp_lense" / "comparison_controls.py",
+        "method": tmp_path / "src" / "sp_lense" / "steering_methods.py",
+    }
+    for path in paths.values():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"original:{path.name}\n", encoding="utf-8")
+    lock = {
+        "schema_version": 1,
+        "status": "stage_1_locked_before_fitting",
+        "protocol": {
+            "path": "protocol.md",
+            "sha256": sha256_file(paths["protocol"]),
+        },
+        "dataset": {
+            "path": "dataset.json",
+            "sha256": sha256_file(paths["dataset"]),
+        },
+        "models": [
+            {
+                "model_id": "m",
+                "config": "model.json",
+                "config_sha256": sha256_file(paths["model"]),
+            }
+        ],
+        "methods": {
+            "persona_vector": {
+                "canonical_protocol_path": "persona.json",
+                "canonical_protocol_sha256": sha256_file(paths["persona"]),
+            },
+            "implementation_files": [
+                {
+                    "id": "analysis_module_sha256",
+                    "path": "src/sp_lense/comparison_provenance.py",
+                    "sha256": sha256_file(paths["allowed"]),
+                },
+                {
+                    "id": "comparison_runner_module_sha256",
+                    "path": "src/sp_lense/comparison_controls.py",
+                    "sha256": sha256_file(paths["unlisted"]),
+                },
+                {
+                    "id": "gradient_method_module_sha256",
+                    "path": "src/sp_lense/steering_methods.py",
+                    "sha256": sha256_file(paths["method"]),
+                },
+            ],
+        },
+        "evaluation": {
+            "open_behavior_judge": {
+                "protocol_path": "judge.json",
+                "file_sha256": sha256_file(paths["judge"]),
+            }
+        },
+        "lock_stages": {
+            "stage_1": {
+                "required_implementation_hashes_before_model_load": [
+                    "analysis_module_sha256",
+                    "comparison_runner_module_sha256",
+                    "gradient_method_module_sha256",
+                ]
+            },
+            "pre_open": {"path": "configs/preopen.json"},
+            "stage_2": {"path": "configs/stage2.json"},
+        },
+        "comparison_tracks": {"test": True},
+        "calibration": {"test": True},
+        "statistics": {"test": True},
+        "no_post_result_tuning": True,
+    }
+    stage1 = tmp_path / "configs" / "steering_comparison_lock.json"
+    stage1.parent.mkdir(parents=True, exist_ok=True)
+    _write_json(stage1, lock)
+    original_runner = _commit_all(tmp_path, "lock stage one")
+    return lock, stage1, original_runner
+
+
+def _write_outcome_blind_amendment_docs(tmp_path: Path) -> None:
+    for name in (
+        "STEERING_COMPARISON_FORCED_GRID_PROVENANCE_AMENDMENT.md",
+        "STEERING_COMPARISON_REPORTING_AMENDMENT.md",
+        "STEERING_COMPARISON_OPERATIONAL_SAFETY_AMENDMENT.md",
+    ):
+        path = tmp_path / "docs" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"# {name}\n", encoding="utf-8")
+
+
+def _build_outcome_blind_payload(
+    tmp_path: Path,
+) -> tuple[dict[str, Any], Path, str, dict[str, Any]]:
+    lock, stage1, _ = _outcome_blind_repo(tmp_path)
+    _write_outcome_blind_amendment_docs(tmp_path)
+    allowed = tmp_path / "src" / "sp_lense" / "comparison_provenance.py"
+    allowed.write_text("outcome-blind provenance fix\n", encoding="utf-8")
+    amendment_code_commit = _commit_all(tmp_path, "apply outcome-blind audit fix")
+    payload = build_outcome_blind_amendment_manifest(
+        tmp_path,
+        lock,
+        stage1_lock_path=stage1,
+        amendment_code_commit=amendment_code_commit,
+    )
+    return lock, stage1, amendment_code_commit, payload
+
+
+def test_outcome_blind_amendment_verifies_and_preserves_original_runner(
+    tmp_path: Path,
+) -> None:
+    lock, stage1, amendment_code_commit, payload = _build_outcome_blind_payload(
+        tmp_path
+    )
+    original_runner = _git(tmp_path, "rev-parse", f"{amendment_code_commit}^")
+    manifest_path = (
+        tmp_path / "configs" / "steering_comparison_outcome_blind_amendment.json"
+    )
+    _write_json(manifest_path, payload)
+    amendment_lock_commit = _commit_all(tmp_path, "lock outcome-blind amendment")
+
+    verified = verify_outcome_blind_amendment(
+        tmp_path, lock, stage1_lock_path=stage1
+    )
+    assert verified["original_runner_code_commit"] == original_runner
+    assert verified["amendment_code_commit"] == amendment_code_commit
+    assert verified["amendment_lock_commit"] == amendment_lock_commit
+
+    payload["allowed_changes"][0]["new_sha256"] = "0" * 64
+    _write_json(manifest_path, payload)
+    with pytest.raises(RuntimeError, match="canonical locked payload"):
+        verify_outcome_blind_amendment(tmp_path, lock, stage1_lock_path=stage1)
+
+
+def test_outcome_blind_amendment_lock_must_be_direct_child(
+    tmp_path: Path,
+) -> None:
+    lock, stage1, _, payload = _build_outcome_blind_payload(tmp_path)
+    _git(tmp_path, "commit", "--allow-empty", "-m", "intermediate commit")
+    manifest_path = (
+        tmp_path / "configs" / "steering_comparison_outcome_blind_amendment.json"
+    )
+    _write_json(manifest_path, payload)
+    _commit_all(tmp_path, "late amendment lock")
+    with pytest.raises(RuntimeError, match="direct child"):
+        verify_outcome_blind_amendment(tmp_path, lock, stage1_lock_path=stage1)
+
+
+def test_outcome_blind_amendment_lock_commit_contains_only_manifest(
+    tmp_path: Path,
+) -> None:
+    lock, stage1, _, payload = _build_outcome_blind_payload(tmp_path)
+    manifest_path = (
+        tmp_path / "configs" / "steering_comparison_outcome_blind_amendment.json"
+    )
+    _write_json(manifest_path, payload)
+    (tmp_path / "co_committed.txt").write_text("not allowed\n", encoding="utf-8")
+    _commit_all(tmp_path, "attempt co-committed amendment lock")
+    with pytest.raises(RuntimeError, match="may add only the canonical manifest"):
+        verify_outcome_blind_amendment(tmp_path, lock, stage1_lock_path=stage1)
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    (
+        "src/sp_lense/comparison_controls.py",
+        "src/sp_lense/steering_methods.py",
+    ),
+)
+def test_outcome_blind_amendment_rejects_unlisted_and_method_paths(
+    tmp_path: Path, relative_path: str
+) -> None:
+    lock, stage1, _ = _outcome_blind_repo(tmp_path)
+    _write_outcome_blind_amendment_docs(tmp_path)
+    (tmp_path / relative_path).write_text("forbidden change\n", encoding="utf-8")
+    amendment_code_commit = _commit_all(tmp_path, "attempt forbidden amendment")
+    with pytest.raises(RuntimeError, match="non-amendable protected path"):
+        build_outcome_blind_amendment_manifest(
+            tmp_path,
+            lock,
+            stage1_lock_path=stage1,
+            amendment_code_commit=amendment_code_commit,
+        )
+
+
+def test_outcome_blind_amendment_rejects_preexisting_sealed_artifact(
+    tmp_path: Path,
+) -> None:
+    lock, stage1, _ = _outcome_blind_repo(tmp_path)
+    _write_outcome_blind_amendment_docs(tmp_path)
+    allowed = tmp_path / "src" / "sp_lense" / "comparison_provenance.py"
+    allowed.write_text("outcome-blind provenance fix\n", encoding="utf-8")
+    sealed = tmp_path / "artifacts" / "steering_comparison" / "sealed_rows.jsonl"
+    sealed.parent.mkdir(parents=True, exist_ok=True)
+    sealed.write_text("not inspected by this test\n", encoding="utf-8")
+    amendment_code_commit = _commit_all(tmp_path, "late amendment attempt")
+    with pytest.raises(RuntimeError, match="does not predate"):
+        build_outcome_blind_amendment_manifest(
+            tmp_path,
+            lock,
+            stage1_lock_path=stage1,
+            amendment_code_commit=amendment_code_commit,
+        )
+
+
+def test_outcome_blind_amendment_ignores_preexisting_runner_scripts(
+    tmp_path: Path,
+) -> None:
+    lock, stage1, _ = _outcome_blind_repo(tmp_path)
+    script = (
+        tmp_path
+        / "artifacts"
+        / "steering_comparison"
+        / "run_sealed_evaluation.ps1"
+    )
+    script.parent.mkdir(parents=True, exist_ok=True)
+    script.write_text("# runner only; no result data\n", encoding="utf-8")
+    _commit_all(tmp_path, "add sealed runner helper")
+    _write_outcome_blind_amendment_docs(tmp_path)
+    allowed = tmp_path / "src" / "sp_lense" / "comparison_provenance.py"
+    allowed.write_text("outcome-blind provenance fix\n", encoding="utf-8")
+    amendment_code_commit = _commit_all(tmp_path, "apply outcome-blind audit fix")
+
+    payload = build_outcome_blind_amendment_manifest(
+        tmp_path,
+        lock,
+        stage1_lock_path=stage1,
+        amendment_code_commit=amendment_code_commit,
+    )
+
+    assert payload["amendment_code_commit"] == amendment_code_commit
+
+
+def _fixture_grid_plan_artifact(
+    path: Path, *, shard_name: str, runner_commit: str
+) -> dict[str, str]:
+    """Create the minimal plan shell used only by legacy synthetic row fixtures.
+
+    Production verification never trusts this shell: ``_mock_git`` replaces the
+    canonical shard loader only inside these provenance fixture tests. Focused
+    tests below still exercise the production fail-closed routing itself.
+    """
+
+    _write_json(
+        path,
+        {
+            "schema_version": "sp_lense.forced_calibration_grid.plan.v1",
+            "runner_commit": runner_commit,
+            "points": [{"shard_name": shard_name}],
+        },
+    )
+    return {"path": path.name, "sha256": sha256_file(path)}
 
 
 def _fixture_calibration_rows(
@@ -596,6 +877,11 @@ def _stage2_fixture(
             runner_commit=parent,
         )
         _write_jsonl(result_rows_path, calibration_rows)
+        grid_plan_record = _fixture_grid_plan_artifact(
+            tmp_path / f"forced_grid_plan_{artifact_index}.json",
+            shard_name=result_rows_path.name,
+            runner_commit=parent,
+        )
         open_rows_path = tmp_path / f"validation_open_rows_{artifact_index}.jsonl"
         open_rows = _fixture_calibration_rows(
             validation_coverage={"open_ended": validation_coverage["open_ended"]},
@@ -628,6 +914,7 @@ def _stage2_fixture(
                     "sha256": sha256_file(result_rows_path),
                 }
             ],
+            forced_grid_plan_artifact=grid_plan_record,
             open_result_rows_artifacts=[
                 {
                     "path": open_rows_path.name,
@@ -777,6 +1064,9 @@ def _stage2_fixture(
                 ),
                 mode=record["track"],
                 forced_result_rows_artifacts=[forced_record],
+                forced_grid_plan_artifact=final_summary[
+                    "forced_grid_plan_artifact"
+                ],
                 open_result_rows_artifacts=[],
                 calibration_config_sha256=sha256_json(lock["calibration"]),
                 builder_module_sha256=sha256_file(builder),
@@ -862,6 +1152,7 @@ def _stage2_fixture(
                 )
                 for item in summary[key]
             )
+            frozen_names.add(str(summary["forced_grid_plan_artifact"]["path"]))
         for record in random_controls:
             frozen_names.update(
                 {
@@ -901,6 +1192,7 @@ def _mock_git(
     untracked: set[str] | None = None,
 ) -> None:
     import sp_lense.comparison_environment as environment
+    import sp_lense.comparison_grid as grid
     import sp_lense.comparison_provenance as provenance
     import sp_lense.jspace_comparison as jspace
 
@@ -943,6 +1235,17 @@ def _mock_git(
         lambda path, *, stage1_lock_path, lock: {"verified": True},
     )
 
+    def load_fixture_point_rows(
+        path: Path, **_: Any
+    ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+        rows = [
+            json.loads(line)
+            for line in Path(path).read_text(encoding="utf-8").splitlines()
+        ]
+        return rows, {"test_fixture_only": True}
+
+    monkeypatch.setattr(grid, "load_validated_point_rows", load_fixture_point_rows)
+
 
 def _preopen_fixture(
     tmp_path: Path,
@@ -972,6 +1275,7 @@ def _preopen_fixture(
             safety_limits=SafetyLimits.from_lock(lock["calibration"]["safety_gates"]),
             mode=record["track"],
             forced_result_rows_artifacts=[forced_record],
+            forced_grid_plan_artifact=finalized["forced_grid_plan_artifact"],
             open_result_rows_artifacts=[],
             calibration_config_sha256=sha256_json(lock["calibration"]),
             builder_module_sha256=sha256_file(
@@ -1071,6 +1375,55 @@ def test_preopen_manifest_rejects_allowed_setup_tampering(
         verify_preopen_manifest(tmp_path, lock, manifest_path)
 
 
+def test_preopen_summary_requires_a_forced_grid_plan(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import sp_lense.comparison_provenance as provenance
+
+    lock, _, manifest, _ = _preopen_fixture(tmp_path, monkeypatch)
+    source = manifest["source_calibration_summaries"][0]
+    summary_path = tmp_path / source["calibration_summary_path"]
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    del summary["forced_grid_plan_artifact"]
+    _write_json(summary_path, summary)
+
+    with pytest.raises(RuntimeError, match="forced grid plan artifact is invalid"):
+        provenance._preopen_summary_record(
+            tmp_path,
+            lock,
+            summary_path,
+            stage1_lock_sha256=sha256_file(tmp_path / "stage1.json"),
+            runner_parent_commit="a" * 40,
+        )
+
+
+def test_preopen_summary_rejects_unplanned_raw_forced_rows(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import sp_lense.comparison_provenance as provenance
+
+    lock, _, manifest, _ = _preopen_fixture(tmp_path, monkeypatch)
+    source = manifest["source_calibration_summaries"][0]
+    summary_path = tmp_path / source["calibration_summary_path"]
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    plan_record = summary["forced_grid_plan_artifact"]
+    plan_path = tmp_path / plan_record["path"]
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    plan["points"][0]["shard_name"] = "not_a_planned_grid_shard.json"
+    _write_json(plan_path, plan)
+    plan_record["sha256"] = sha256_file(plan_path)
+    _write_json(summary_path, summary)
+
+    with pytest.raises(RuntimeError, match="single locked interpolation recheck"):
+        provenance._preopen_summary_record(
+            tmp_path,
+            lock,
+            summary_path,
+            stage1_lock_sha256=sha256_file(tmp_path / "stage1.json"),
+            runner_parent_commit="a" * 40,
+        )
+
+
 def test_stage2_builder_derives_manifest_from_finalized_evidence(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1104,6 +1457,7 @@ def test_stage2_builder_derives_manifest_from_finalized_evidence(
             safety_limits=SafetyLimits.from_lock(lock["calibration"]["safety_gates"]),
             mode=record["track"],
             forced_result_rows_artifacts=[forced_record],
+            forced_grid_plan_artifact=finalized["forced_grid_plan_artifact"],
             open_result_rows_artifacts=[],
             calibration_config_sha256=sha256_json(lock["calibration"]),
             builder_module_sha256=sha256_file(
@@ -1408,6 +1762,7 @@ def test_stage2_rejects_post_preopen_no_safe_reclassification(
         forced_result_rows_artifacts=[
             {"path": result_path.name, "sha256": sha256_file(result_path)}
         ],
+        forced_grid_plan_artifact=validation["forced_grid_plan_artifact"],
         open_result_rows_artifacts=[],
         calibration_config_sha256=sha256_json(lock["calibration"]),
         builder_module_sha256=sha256_file(
@@ -1428,6 +1783,48 @@ def test_stage2_rejects_post_preopen_no_safe_reclassification(
     _write_json(manifest_path, manifest)
     _mock_git(tmp_path, monkeypatch)
     with pytest.raises(ValueError, match="hash mismatch"):
+        verify_stage2_manifest(tmp_path, lock, manifest_path)
+
+
+def test_stage2_rejects_post_preopen_grid_plan_change(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lock, manifest_path, manifest = _stage2_fixture(tmp_path, monkeypatch)
+    record = manifest["direction_and_calibration_artifacts"][0]
+    validation_path = tmp_path / record["validation_summary_path"]
+    validation = json.loads(validation_path.read_text(encoding="utf-8"))
+    del validation["forced_grid_plan_artifact"]
+    _write_json(validation_path, validation)
+    updated_hash = sha256_file(validation_path)
+    record["validation_summary_sha256"] = updated_hash
+    frozen_record = next(
+        item
+        for item in manifest["frozen_artifact_paths"]
+        if item["path"] == record["validation_summary_path"]
+    )
+    frozen_record["sha256"] = updated_hash
+    _write_json(manifest_path, manifest)
+    _mock_git(tmp_path, monkeypatch)
+
+    with pytest.raises(
+        RuntimeError, match="changed frozen pre-open forced_grid_plan_artifact"
+    ):
+        verify_stage2_manifest(tmp_path, lock, manifest_path)
+
+
+def test_stage2_rejects_outcome_blind_amendment_mismatch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lock, manifest_path, manifest = _stage2_fixture(tmp_path, monkeypatch)
+    manifest["outcome_blind_amendment"] = {
+        "path": "configs/tampered-amendment.json",
+        "sha256": "0" * 64,
+    }
+    _write_json(manifest_path, manifest)
+    _mock_git(tmp_path, monkeypatch)
+    with pytest.raises(
+        RuntimeError, match="outcome-blind amendment differs from current"
+    ):
         verify_stage2_manifest(tmp_path, lock, manifest_path)
 
 

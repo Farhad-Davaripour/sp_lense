@@ -54,10 +54,12 @@ from .comparison_persona import (
 )
 from .comparison_provenance import (
     MAIN_CONSTRUCTION_SCHEMA_VERSION,
+    OUTCOME_BLIND_AMENDMENT_PATH,
     RANDOM_CONSTRUCTION_SCHEMA_VERSION,
     RANDOM_GENERATOR_ALGORITHM,
     assert_approved_setup,
     assert_preopen_approved_setup,
+    build_outcome_blind_amendment_manifest,
     build_preopen_manifest,
     build_stage2_manifest,
     locked_method_construction_configuration,
@@ -65,6 +67,7 @@ from .comparison_provenance import (
     locked_runner_code_commit,
     sha256_file,
     sha256_json,
+    verify_outcome_blind_amendment,
     verify_preopen_manifest,
     verify_stage1_lock,
     verify_stage2_manifest,
@@ -246,6 +249,44 @@ def command_verify_stage1(args: argparse.Namespace) -> None:
                 "dataset_sha256": lock["dataset"]["sha256"],
                 "protocol_sha256": lock["protocol"]["sha256"],
             },
+            indent=2,
+        )
+    )
+
+
+def command_build_code_amendment(args: argparse.Namespace) -> None:
+    """Build the canonical amendment after audit code is committed, before artifacts."""
+
+    repo_root = args.repo_root.resolve()
+    lock_path = args.lock.resolve()
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    output = args.output.resolve()
+    expected = (repo_root / OUTCOME_BLIND_AMENDMENT_PATH).resolve()
+    if output != expected:
+        raise RuntimeError(
+            "outcome-blind amendment output must use its canonical config path"
+        )
+    payload = build_outcome_blind_amendment_manifest(
+        repo_root,
+        lock,
+        stage1_lock_path=lock_path,
+        amendment_code_commit=args.amendment_code_commit,
+    )
+    write_json(output, payload)
+
+
+def command_verify_code_amendment(args: argparse.Namespace) -> None:
+    repo_root = args.repo_root.resolve()
+    lock_path = args.lock.resolve()
+    lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    verified = verify_outcome_blind_amendment(
+        repo_root,
+        lock,
+        stage1_lock_path=lock_path,
+    )
+    print(
+        json.dumps(
+            {"status": "outcome_blind_amendment_verified", **verified},
             indent=2,
         )
     )
@@ -826,6 +867,39 @@ def command_report(args: argparse.Namespace) -> None:
             for row in read_jsonl_objects(path.resolve())
         ]
     )
+    construction_availability = None
+    if args.construction_availability is not None:
+        availability_path = args.construction_availability.resolve()
+        loaded_availability = json.loads(availability_path.read_text(encoding="utf-8"))
+        if not isinstance(loaded_availability, Mapping):
+            raise TypeError("construction availability manifest must contain a JSON object")
+        records = loaded_availability.get("records")
+        if not isinstance(records, list):
+            raise TypeError("construction availability manifest records must be a list")
+        for index, record in enumerate(records):
+            if not isinstance(record, Mapping):
+                raise TypeError(f"construction availability record {index} must be an object")
+            evidence_path = record.get("evidence_path")
+            if not isinstance(evidence_path, str):
+                raise TypeError(
+                    f"construction availability record {index} evidence_path must be a string"
+                )
+            evidence = (repo_root / evidence_path).resolve()
+            try:
+                evidence.relative_to(repo_root)
+            except ValueError as exc:
+                raise ValueError(
+                    f"construction availability record {index} evidence escapes the repository"
+                ) from exc
+            if not evidence.is_file():
+                raise FileNotFoundError(
+                    f"construction availability evidence is missing: {evidence}"
+                )
+            if sha256_file(evidence) != record.get("evidence_sha256"):
+                raise ValueError(
+                    f"construction availability record {index} evidence hash mismatch"
+                )
+        construction_availability = dict(loaded_availability)
     statistics = lock["statistics"]
     report = build_comparison_report(
         rows,
@@ -834,6 +908,7 @@ def command_report(args: argparse.Namespace) -> None:
         locked_dataset=dataset,
         open_rows=open_rows,
         jspace_records=jspace_records,
+        construction_availability=construction_availability,
         expected_hashes={
             "dataset_sha256": lock["dataset"]["sha256"],
             "protocol_sha256": lock["protocol"]["sha256"],
@@ -1526,6 +1601,18 @@ def build_parser() -> argparse.ArgumentParser:
     verify = subparsers.add_parser("verify-stage1")
     verify.set_defaults(function=command_verify_stage1)
 
+    build_amendment = subparsers.add_parser("build-code-amendment")
+    build_amendment.add_argument("--amendment-code-commit")
+    build_amendment.add_argument(
+        "--output",
+        type=Path,
+        default=Path(OUTCOME_BLIND_AMENDMENT_PATH),
+    )
+    build_amendment.set_defaults(function=command_build_code_amendment)
+
+    verify_amendment = subparsers.add_parser("verify-code-amendment")
+    verify_amendment.set_defaults(function=command_verify_code_amendment)
+
     environment = subparsers.add_parser("capture-environment")
     environment.add_argument("--output", type=Path, required=True)
     environment.set_defaults(function=command_capture_environment)
@@ -1611,6 +1698,7 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--forced-rows", type=Path, nargs="+", required=True)
     report.add_argument("--open-rows", type=Path, nargs="*")
     report.add_argument("--jspace-records", type=Path, nargs="*")
+    report.add_argument("--construction-availability", type=Path)
     report.add_argument("--output-json", type=Path, required=True)
     report.add_argument("--output-markdown", type=Path, required=True)
     report.set_defaults(function=command_report)

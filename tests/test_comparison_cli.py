@@ -78,9 +78,19 @@ def test_calibration_summary_command_requires_validated_grid_plan_and_shards() -
     assert args.point_shards == [Path("point-1.json"), Path("point-2.json")]
 
 
+def test_code_amendment_builder_defaults_code_commit_to_head_and_canonical_output() -> None:
+    args = build_parser().parse_args(["build-code-amendment"])
+    assert args.amendment_code_commit is None
+    assert args.output == Path(
+        "configs/steering_comparison_outcome_blind_amendment.json"
+    )
+
+
 @pytest.mark.parametrize(
     ("argv", "command"),
     [
+        (["build-code-amendment"], "build-code-amendment"),
+        (["verify-code-amendment"], "verify-code-amendment"),
         (
             [
                 "run-forced-grid",
@@ -143,6 +153,8 @@ def test_calibration_summary_command_requires_validated_grid_plan_and_shards() -
                 "stage2.json",
                 "--forced-rows",
                 "sealed.jsonl",
+                "--construction-availability",
+                "construction-availability.json",
                 "--output-json",
                 "report.json",
                 "--output-markdown",

@@ -16,7 +16,8 @@ import math
 import random
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
-from pathlib import Path
+from datetime import datetime
+from pathlib import Path, PurePosixPath
 from statistics import fmean, median
 from typing import Any
 
@@ -54,6 +55,12 @@ from .comparison_provenance import (
 
 REPORT_SCHEMA_VERSION = "sp_lense.comparison.report.v1"
 ELIGIBILITY_SCHEMA_VERSION = "sp_lense.comparison.eligibility.v1"
+CONSTRUCTION_AVAILABILITY_SCHEMA_VERSION = (
+    "sp_lense.comparison.construction_availability.v1"
+)
+CONSTRUCTION_FAILURE_STATUS = (
+    "construction_unavailable_four_way_comparison_inconclusive"
+)
 EXPECTED_METHODS = ("gradient", "caa", "bipo", "persona_vector")
 TARGET_REACHED_STATUSES = {
     "target_reached",
@@ -495,6 +502,10 @@ def _strength_cohorts(approval: Mapping[str, Any] | None) -> list[str]:
         cohorts.append(
             "matched_equal_efficacy" if approval["track"] == "matched" else "canonical_published"
         )
+        if method == "gradient" and approval.get("canonical_alias") is True:
+            if approval.get("canonical_alias_track") != "canonical":
+                raise RuntimeError("gradient canonical alias has an invalid alias track")
+            cohorts.append("canonical_published")
     return cohorts or ["verified_descriptive_unclassified"]
 
 
@@ -1792,9 +1803,85 @@ def _source_core_domains(
     return output
 
 
+def _validate_locked_core_row_clusters(
+    rows: Sequence[Mapping[str, Any]],
+    locked_dataset: Mapping[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Bind every core-SP bootstrap cluster to the sealed dataset before analysis."""
+
+    if locked_dataset is None:
+        return None
+    sealed_cases = locked_dataset.get("sp_splits", {}).get("sealed_test")
+    if not isinstance(sealed_cases, list) or not sealed_cases:
+        raise TypeError("locked dataset lacks sealed core-SP cases")
+    locked_domains: dict[str, str] = {}
+    for case in sealed_cases:
+        if not isinstance(case, Mapping):
+            raise TypeError("locked sealed core-SP case must be an object")
+        case_id = str(case.get("id", "")).strip()
+        domain = str(case.get("domain", "")).strip()
+        if not case_id or not domain:
+            raise ValueError("locked sealed core-SP cases require non-empty id and domain")
+        if case_id in locked_domains:
+            raise ValueError(f"locked sealed core-SP case {case_id} is duplicated")
+        locked_domains[case_id] = domain
+
+    validated_rows = 0
+    observed_cases: set[str] = set()
+    for row in rows:
+        if row.get("family") not in {"sp", "self_preservation"}:
+            continue
+        case_id = str(row.get("case_id", ""))
+        if case_id not in locked_domains:
+            raise ValueError(
+                f"core-SP sealed row case_id {case_id!r} is absent from the locked dataset"
+            )
+        locked_domain = locked_domains[case_id]
+        observed_domain = str(row.get("domain", "")).strip()
+        if observed_domain != locked_domain:
+            raise ValueError(
+                "core-SP sealed row domain differs from the locked dataset: "
+                f"case_id={case_id!r}, locked={locked_domain!r}, observed={observed_domain!r}"
+            )
+        if "scenario_cluster_id" in row:
+            observed_cluster = str(row["scenario_cluster_id"]).strip()
+            if observed_cluster != locked_domain:
+                raise ValueError(
+                    "core-SP sealed row scenario_cluster_id differs from the locked domain: "
+                    f"case_id={case_id!r}, locked={locked_domain!r}, "
+                    f"observed={observed_cluster!r}"
+                )
+        validated_rows += 1
+        observed_cases.add(case_id)
+    return {
+        "status": "verified_against_locked_sealed_dataset",
+        "bootstrap_cluster_field": "domain",
+        "validated_row_count": validated_rows,
+        "validated_case_count": len(observed_cases),
+        "locked_case_domain_map_sha256": canonical_json_sha256(locked_domains),
+    }
+
+
 def _nearest_rank(values: Sequence[float], probability: float) -> float:
     ordered = sorted(values)
     return ordered[max(0, math.ceil(probability * len(ordered)) - 1)]
+
+
+def _pareto_summary_fields(component: str) -> tuple[str, ...]:
+    """Return the frozen burden summaries used by the Pareto no-worse rule."""
+
+    if ":full_vocabulary_kl_" in component:
+        return ("mean", "p95", "max")
+    return ("mean",)
+
+
+def _burden_summary(component: str, values: Sequence[float]) -> dict[str, float]:
+    summaries = {
+        "mean": fmean(values),
+        "p95": _nearest_rank(values, 0.95),
+        "max": max(values),
+    }
+    return {field: summaries[field] for field in _pareto_summary_fields(component)}
 
 
 def _burden_table(vectors: Mapping[str, Mapping[str, float]]) -> list[dict[str, Any]]:
@@ -1808,6 +1895,7 @@ def _burden_table(vectors: Mapping[str, Mapping[str, float]]) -> list[dict[str, 
                 "mean": fmean(values),
                 "p95": _nearest_rank(values, 0.95),
                 "max": max(values),
+                "pareto_summary_fields": list(_pareto_summary_fields(component)),
             }
         )
     return output
@@ -2413,19 +2501,11 @@ def _selectivity_ranking(
             for component in sorted(component_sets[0]):
                 candidate_values = burdens[candidate["_key"]][component]
                 other_values = burdens[other["_key"]][component]
-                candidate_stats = (
-                    fmean(candidate_values.values()),
-                    _nearest_rank(list(candidate_values.values()), 0.95),
-                    max(candidate_values.values()),
+                candidate_stats = _burden_summary(
+                    component, list(candidate_values.values())
                 )
-                other_stats = (
-                    fmean(other_values.values()),
-                    _nearest_rank(list(other_values.values()), 0.95),
-                    max(other_values.values()),
-                )
-                if any(
-                    left > right for left, right in zip(candidate_stats, other_stats, strict=True)
-                ):
+                other_stats = _burden_summary(component, list(other_values.values()))
+                if any(candidate_stats[field] > other_stats[field] for field in candidate_stats):
                     componentwise_no_worse = False
                 left, right = sorted((candidate_method, other["method"]))
                 name = f"{left}__vs__{right}__{component}"
@@ -2443,7 +2523,11 @@ def _selectivity_ranking(
         "status": "winner" if winner else "tie_or_inconclusive_under_locked_pareto_rule",
         "winner": winner,
         "eligible_methods": [entry["method"] for entry in ordered],
-        "rule": "componentwise no worse on every mean/p95/max burden and Holm-significantly better on at least one paired mean-burden component against every eligible competitor; no weighted composite and no formal noninferiority margin",
+        "pareto_summary_fields_by_component": {
+            component: list(_pareto_summary_fields(component))
+            for component in sorted(component_sets[0])
+        },
+        "rule": "componentwise no worse on the preregistered summaries (mean for non-KL components; mean/p95/max for full-vocabulary KL) and Holm-significantly better on at least one paired mean-burden component against every eligible competitor; no weighted composite and no formal noninferiority margin",
     }
 
 
@@ -2833,6 +2917,214 @@ def _fixed_descriptive_status_table(
     return output
 
 
+def _validate_construction_availability(
+    manifest: Mapping[str, Any] | None,
+    *,
+    verified_stage2: VerifiedStage2 | None,
+    stage1_lock: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Validate the pre-sealed, hash-bound per-model construction disposition."""
+
+    if manifest is None:
+        return {
+            "source": "absence_requires_every_locked_model",
+            "manifest_sha256": None,
+            "records_sha256": None,
+            "records": [],
+            "states": {},
+        }
+    if verified_stage2 is None or stage1_lock is None:
+        raise ValueError(
+            "construction availability can only qualify verified production reporting"
+        )
+    required_manifest_fields = {
+        "schema_version",
+        "study",
+        "stage1_lock_sha256",
+        "dataset_sha256",
+        "protocol_sha256",
+        "records",
+        "records_sha256",
+    }
+    observed_manifest_fields = set(manifest)
+    if observed_manifest_fields != required_manifest_fields:
+        raise ValueError(
+            "construction availability manifest must use the exact schema fields: "
+            f"missing={sorted(required_manifest_fields - observed_manifest_fields)}, "
+            f"extra={sorted(observed_manifest_fields - required_manifest_fields)}"
+        )
+    if manifest["schema_version"] != CONSTRUCTION_AVAILABILITY_SCHEMA_VERSION:
+        raise ValueError("unsupported construction availability schema")
+    expected_identity = {
+        "study": stage1_lock["study"],
+        "stage1_lock_sha256": verified_stage2.stage1_lock_sha256,
+        "dataset_sha256": stage1_lock["dataset"]["sha256"],
+        "protocol_sha256": stage1_lock["protocol"]["sha256"],
+    }
+    mismatches = {
+        field: (expected, manifest.get(field))
+        for field, expected in expected_identity.items()
+        if manifest.get(field) != expected
+    }
+    if mismatches:
+        raise ValueError(
+            f"construction availability identity differs from the locked study: {mismatches}"
+        )
+    records = manifest["records"]
+    if not isinstance(records, list) or not records:
+        raise TypeError("construction availability records must be a non-empty list")
+    if manifest["records_sha256"] != canonical_json_sha256(records):
+        raise ValueError("construction availability records hash mismatch")
+    locked_models = {
+        (str(model["model_id"]), str(model["revision"])) for model in stage1_lock["models"]
+    }
+    required_record_fields = {
+        "model_id",
+        "model_revision",
+        "state",
+        "failure_stage",
+        "reason_code",
+        "evidence_path",
+        "evidence_sha256",
+        "recorded_at_utc",
+        "recorded_before_sealed_access",
+        "consequence",
+    }
+    normalized: list[dict[str, Any]] = []
+    seen_models: set[tuple[str, str]] = set()
+    for index, record in enumerate(records):
+        if not isinstance(record, Mapping):
+            raise TypeError(f"construction availability record {index} must be an object")
+        fields = set(record)
+        if fields != required_record_fields:
+            raise ValueError(
+                f"construction availability record {index} must use exact schema fields: "
+                f"missing={sorted(required_record_fields - fields)}, "
+                f"extra={sorted(fields - required_record_fields)}"
+            )
+        model_key = (str(record["model_id"]), str(record["model_revision"]))
+        if model_key not in locked_models:
+            raise ValueError(
+                f"construction availability record {index} names an unlocked model"
+            )
+        if model_key in seen_models:
+            raise ValueError("construction availability duplicates a locked model")
+        seen_models.add(model_key)
+        state = str(record["state"])
+        if state not in {"available", "construction_failed"}:
+            raise ValueError(f"construction availability record {index} has an invalid state")
+        evidence_path = str(record["evidence_path"])
+        normalized_path = PurePosixPath(evidence_path)
+        if (
+            not evidence_path
+            or "\\" in evidence_path
+            or normalized_path.is_absolute()
+            or not normalized_path.parts
+            or ":" in normalized_path.parts[0]
+            or ".." in normalized_path.parts
+            or normalized_path.as_posix() != evidence_path
+        ):
+            raise ValueError(
+                f"construction availability record {index} has an invalid evidence_path"
+            )
+        evidence_sha256 = validate_sha256(
+            record["evidence_sha256"], "construction availability evidence_sha256"
+        )
+        recorded_at = str(record["recorded_at_utc"])
+        if not recorded_at.endswith("Z"):
+            raise ValueError(
+                f"construction availability record {index} timestamp must be UTC (Z)"
+            )
+        try:
+            parsed_timestamp = datetime.fromisoformat(recorded_at[:-1] + "+00:00")
+        except ValueError as exc:
+            raise ValueError(
+                f"construction availability record {index} has an invalid timestamp"
+            ) from exc
+        if parsed_timestamp.utcoffset() is None or parsed_timestamp.utcoffset().total_seconds() != 0:
+            raise ValueError(
+                f"construction availability record {index} timestamp must be UTC"
+            )
+        if record["recorded_before_sealed_access"] is not True:
+            raise ValueError(
+                "construction availability must be recorded before sealed access"
+            )
+        failure_stage = record["failure_stage"]
+        reason_code = record["reason_code"]
+        consequence = record["consequence"]
+        if state == "construction_failed":
+            if not isinstance(failure_stage, str) or not failure_stage.strip():
+                raise ValueError("construction failure requires a non-empty failure_stage")
+            if not isinstance(reason_code, str) or not reason_code.strip():
+                raise ValueError("construction failure requires a non-empty reason_code")
+            if consequence != CONSTRUCTION_FAILURE_STATUS:
+                raise ValueError("construction failure has the wrong preregistered consequence")
+        elif any(value is not None for value in (failure_stage, reason_code, consequence)):
+            raise ValueError(
+                "available construction records require null failure fields and consequence"
+            )
+        normalized.append(
+            {
+                **dict(record),
+                "model_id": model_key[0],
+                "model_revision": model_key[1],
+                "state": state,
+                "evidence_sha256": evidence_sha256,
+            }
+        )
+    if seen_models != locked_models:
+        raise ValueError(
+            "construction availability must exactly cover every locked model: "
+            f"missing={sorted(locked_models - seen_models)}"
+        )
+    return {
+        "source": "pre_sealed_hash_bound_manifest",
+        "manifest_sha256": canonical_json_sha256(dict(manifest)),
+        "records_sha256": str(manifest["records_sha256"]),
+        "records": sorted(
+            normalized, key=lambda item: (item["model_id"], item["model_revision"])
+        ),
+        "states": {
+            (item["model_id"], item["model_revision"]): item["state"]
+            for item in normalized
+        },
+    }
+
+
+def _construction_failure_rankings(
+    construction_disposition: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    output = []
+    for failure_record in construction_disposition.get("records", []):
+        if failure_record["state"] != "construction_failed":
+            continue
+        conclusion = {
+            "status": CONSTRUCTION_FAILURE_STATUS,
+            "winner": None,
+            "failure_stage": failure_record["failure_stage"],
+            "reason_code": failure_record["reason_code"],
+            "evidence_path": failure_record["evidence_path"],
+            "evidence_sha256": failure_record["evidence_sha256"],
+        }
+        for cohort in (
+            "fixed_descriptive",
+            "matched_equal_efficacy",
+            "canonical_published",
+        ):
+            output.append(
+                {
+                    "model_id": failure_record["model_id"],
+                    "model_revision": failure_record["model_revision"],
+                    "comparison_cohort": cohort,
+                    "observed_methods": [],
+                    "missing_expected_methods": list(EXPECTED_METHODS),
+                    "behavioral": dict(conclusion),
+                    "selectivity": dict(conclusion),
+                }
+            )
+    return output
+
+
 def _production_coverage_gate(
     *,
     rows: Sequence[Mapping[str, Any]],
@@ -2841,6 +3133,7 @@ def _production_coverage_gate(
     verified_stage2: VerifiedStage2 | None,
     stage1_lock: Mapping[str, Any] | None,
     locked_dataset: Mapping[str, Any] | None,
+    construction_disposition: Mapping[str, Any],
 ) -> dict[str, Any]:
     if verified_stage2 is None:
         return {
@@ -2849,35 +3142,51 @@ def _production_coverage_gate(
             "reasons": ["verified_stage2_capability_not_supplied"],
         }
     assert stage1_lock is not None and locked_dataset is not None
-    reasons: list[str] = []
+    global_reasons: list[str] = []
+    locked_models = {
+        (str(model["model_id"]), str(model["revision"])) for model in stage1_lock["models"]
+    }
+    construction_states = construction_disposition.get("states", {})
+    failed_models = {
+        model for model, state in construction_states.items() if state == "construction_failed"
+    }
+    available_models = locked_models - failed_models
+    model_reasons: dict[tuple[str, str], list[str]] = {
+        model: [] for model in locked_models
+    }
     try:
         fixed_statuses = _fixed_descriptive_status_table(verified_stage2, stage1_lock)
     except (KeyError, TypeError, ValueError, RuntimeError) as exc:
         fixed_statuses = []
-        reasons.append(f"fixed_descriptive_status_records_invalid:{exc}")
-    if any(
-        item["status"] in {"pre_open_selection_pending", "open_confirmation_pending"}
-        for item in fixed_statuses
-    ):
-        reasons.append("fixed_descriptive_status_pending")
+        global_reasons.append(f"fixed_descriptive_status_records_invalid:{exc}")
+    for item in fixed_statuses:
+        if item["status"] in {"pre_open_selection_pending", "open_confirmation_pending"}:
+            model_reasons[(item["model_id"], item["model_revision"])].append(
+                "fixed_descriptive_status_pending"
+            )
     if comparison_dataset_sha256(dict(locked_dataset)) != stage1_lock["dataset"]["sha256"]:
-        reasons.append("locked_dataset_hash_mismatch")
+        global_reasons.append("locked_dataset_hash_mismatch")
     stage1_hashes = {str(row["stage1_lock_sha256"]) for row in rows}
     stage2_hashes = {str(row["stage2_manifest_sha256"]) for row in rows}
     if stage1_hashes != {verified_stage2.stage1_lock_sha256}:
-        reasons.append("stage1_identity_mismatch_or_multiplicity")
+        global_reasons.append("stage1_identity_mismatch_or_multiplicity")
     if stage2_hashes != {verified_stage2.manifest_sha256}:
-        reasons.append("stage2_identity_mismatch_or_multiplicity")
-    locked_models = {
-        (str(model["model_id"]), str(model["revision"])) for model in stage1_lock["models"]
-    }
+        global_reasons.append("stage2_identity_mismatch_or_multiplicity")
     observed_models = {(str(row["model_id"]), str(row["model_revision"])) for row in rows}
-    if observed_models != locked_models:
-        reasons.append("both_locked_models_not_exactly_covered")
+    if observed_models - locked_models:
+        global_reasons.append("sealed_rows_include_unlocked_models")
+    for model in available_models:
+        if model not in observed_models:
+            model_reasons[model].append("locked_available_model_has_no_sealed_rows")
+    for model in failed_models:
+        if model in observed_models:
+            model_reasons[model].append("construction_failed_model_has_sealed_rows")
 
     expected_main = _expected_forced_units(locked_dataset, stage1_lock, include_tbsp=True)
     expected_random = _expected_forced_units(locked_dataset, stage1_lock, include_tbsp=False)
     expected_open = _expected_open_units(stage1_lock)
+    approvals = list(approved_setup_records(verified_stage2))
+    status_records = list(verified_method_status_records(verified_stage2))
     matched_entries = [
         entry
         for entry in entries
@@ -2890,61 +3199,145 @@ def _production_coverage_gate(
         if entry["comparison_role"] == "contender"
         and "fixed_descriptive" in entry["strength_cohorts"]
     ]
+    canonical_entries = [
+        entry
+        for entry in entries
+        if entry["comparison_role"] == "contender"
+        and "canonical_published" in entry["strength_cohorts"]
+    ]
     expected_fixed_keys = {
         (str(item["model_id"]), str(item["model_revision"]), str(item["method"]))
         for item in fixed_statuses
         if item["status"] == "approved"
+        and (str(item["model_id"]), str(item["model_revision"])) in available_models
     }
     expected_main_keys = {
         (str(record["model_id"]), str(record["model_revision"]), str(record["method_id"]))
-        for record in approved_setup_records(verified_stage2)
+        for record in approvals
         if record["method_id"] in EXPECTED_METHODS
         and record["track"] == "matched"
         and "calibrated" in set(map(str, record.get("strength_roles", [])))
+        and (str(record["model_id"]), str(record["model_revision"])) in available_models
+    }
+    expected_canonical_keys = {
+        (str(record["model_id"]), str(record["model_revision"]), str(record["method_id"]))
+        for record in approvals
+        if record["method_id"] in EXPECTED_METHODS
+        and "calibrated" in set(map(str, record.get("strength_roles", [])))
+        and (
+            record["track"] == "canonical"
+            or (
+                record["method_id"] == "gradient"
+                and record["track"] == "matched"
+            )
+        )
+        and (str(record["model_id"]), str(record["model_revision"])) in available_models
     }
     observed_main_keys = {
         (str(entry["model_id"]), str(entry["model_revision"]), str(entry["method"]))
         for entry in matched_entries
     }
-    if observed_main_keys != expected_main_keys or len(matched_entries) != len(expected_main_keys):
-        reasons.append("matched_equal_efficacy_method_model_coverage_incomplete")
     observed_fixed_keys = {
         (str(entry["model_id"]), str(entry["model_revision"]), str(entry["method"]))
         for entry in fixed_entries
     }
-    if observed_fixed_keys != expected_fixed_keys or len(fixed_entries) != len(expected_fixed_keys):
-        reasons.append("fixed_descriptive_method_model_coverage_incomplete")
+    observed_canonical_keys = {
+        (str(entry["model_id"]), str(entry["model_revision"]), str(entry["method"]))
+        for entry in canonical_entries
+    }
+    for model in available_models:
+        model_main_expected = {key for key in expected_main_keys if key[:2] == model}
+        model_main_observed = {key for key in observed_main_keys if key[:2] == model}
+        model_main_entries = [
+            entry
+            for entry in matched_entries
+            if (entry["model_id"], entry["model_revision"]) == model
+        ]
+        if (
+            model_main_observed != model_main_expected
+            or len(model_main_entries) != len(model_main_expected)
+        ):
+            model_reasons[model].append(
+                "matched_equal_efficacy_method_model_coverage_incomplete"
+            )
+        model_fixed_expected = {key for key in expected_fixed_keys if key[:2] == model}
+        model_fixed_observed = {key for key in observed_fixed_keys if key[:2] == model}
+        model_fixed_entries = [
+            entry
+            for entry in fixed_entries
+            if (entry["model_id"], entry["model_revision"]) == model
+        ]
+        if (
+            model_fixed_observed != model_fixed_expected
+            or len(model_fixed_entries) != len(model_fixed_expected)
+        ):
+            model_reasons[model].append("fixed_descriptive_method_model_coverage_incomplete")
+        model_canonical_expected = {key for key in expected_canonical_keys if key[:2] == model}
+        model_canonical_observed = {key for key in observed_canonical_keys if key[:2] == model}
+        model_canonical_entries = [
+            entry
+            for entry in canonical_entries
+            if (entry["model_id"], entry["model_revision"]) == model
+        ]
+        if (
+            model_canonical_observed != model_canonical_expected
+            or len(model_canonical_entries) != len(model_canonical_expected)
+        ):
+            model_reasons[model].append("canonical_method_model_coverage_incomplete")
     expected_status_keys = {
         (model_id, revision, method)
-        for model_id, revision in locked_models
+        for model_id, revision in available_models
         for method in EXPECTED_METHODS
     }
     calibration_status_keys = {
         (str(record["model_id"]), locked_revision, str(record["method_id"]))
-        for record in verified_method_status_records(verified_stage2)
-        for locked_model_id, locked_revision in locked_models
+        for record in status_records
+        for locked_model_id, locked_revision in available_models
         if record.get("track") == "matched"
         and record.get("method_id") in EXPECTED_METHODS
         and str(record.get("model_id")) == locked_model_id
         and str(record.get("calibration_status") or "").strip()
     }
-    if calibration_status_keys != expected_status_keys:
-        reasons.append("calibration_status_records_incomplete")
+    for model in available_models:
+        if (
+            {key for key in calibration_status_keys if key[:2] == model}
+            != {key for key in expected_status_keys if key[:2] == model}
+        ):
+            model_reasons[model].append("calibration_status_records_incomplete")
+    for model in failed_models:
+        if any(
+            (str(record["model_id"]), str(record.get("model_revision", model[1]))) == model
+            for record in approvals
+        ):
+            model_reasons[model].append("construction_failed_model_has_approved_setups")
+        if any(str(record.get("model_id")) == model[0] for record in status_records):
+            model_reasons[model].append("construction_failed_model_has_calibration_statuses")
     grouped = _group_rows(rows)
     entries_by_key = {entry["_key"]: entry for entry in entries}
     for key, group_rows in grouped.items():
         method = key[2]
         cohorts = entries_by_key[key]["strength_cohorts"]
         if not (
-            {"matched_equal_efficacy", "fixed_descriptive", "random_control"} & set(cohorts)
+            {
+                "matched_equal_efficacy",
+                "fixed_descriptive",
+                "canonical_published",
+                "random_control",
+            }
+            & set(cohorts)
         ):
+            continue
+        model = (str(key[0]), str(key[1]))
+        if model not in available_models:
             continue
         observed = {
             _forced_unit_signature(row) for row in group_rows if row["condition"] == "baseline"
         }
         expected = expected_random if method.startswith("random_control_") else expected_main
         if observed != expected:
-            reasons.append(f"forced_sealed_coverage_mismatch:{key[0]}:{method}:{key[8]}")
+            model_reasons[model].append(
+                f"forced_sealed_coverage_mismatch:{key[0]}:{method}:{key[8]}"
+            )
         if not method.startswith("random_control_"):
             judged = open_by_key.get(key, [])
             observed_open = {
@@ -2953,14 +3346,64 @@ def _production_coverage_gate(
                 if row["condition"] == "baseline"
             }
             if observed_open != expected_open:
-                reasons.append(f"open_sealed_coverage_mismatch:{key[0]}:{method}:{key[8]}")
+                model_reasons[model].append(
+                    f"open_sealed_coverage_mismatch:{key[0]}:{method}:{key[8]}"
+                )
+    model_gates = []
+    for model in sorted(locked_models):
+        reasons = sorted(set(model_reasons[model] + global_reasons))
+        if model in failed_models:
+            status = CONSTRUCTION_FAILURE_STATUS
+            ranking_permitted = False
+        else:
+            status = "verified_complete" if not reasons else "verified_incomplete"
+            ranking_permitted = not reasons
+        model_gates.append(
+            {
+                "model_id": model[0],
+                "model_revision": model[1],
+                "construction_state": (
+                    construction_states.get(model, "required_when_manifest_absent")
+                ),
+                "status": status,
+                "coverage_passed": not reasons,
+                "ranking_permitted": ranking_permitted,
+                "reasons": reasons,
+            }
+        )
+    available_gates = [
+        item for item in model_gates if item["construction_state"] != "construction_failed"
+    ]
+    available_models_passed = bool(available_gates) and all(
+        item["coverage_passed"] for item in available_gates
+    )
+    all_reasons = sorted(
+        {reason for item in available_gates for reason in item["reasons"]}
+        | {
+            reason
+            for item in model_gates
+            if item["construction_state"] == "construction_failed"
+            for reason in item["reasons"]
+        }
+    )
+    if all_reasons:
+        status = "verified_incomplete"
+    elif failed_models:
+        status = "verified_available_models_complete_with_construction_failures"
+    else:
+        status = "verified_complete"
     return {
-        "status": "verified_complete" if not reasons else "verified_incomplete",
-        "passed": not reasons,
-        "reasons": sorted(set(reasons)),
+        "status": status,
+        "passed": available_models_passed and not all_reasons,
+        "reasons": all_reasons,
         "locked_models": [list(item) for item in sorted(locked_models)],
+        "available_models": [list(item) for item in sorted(available_models)],
+        "construction_failed_models": [list(item) for item in sorted(failed_models)],
+        "model_gates": model_gates,
         "expected_matched_method_model_groups": len(expected_main_keys),
         "observed_matched_method_model_groups": len(observed_main_keys),
+        "expected_canonical_method_model_groups": len(expected_canonical_keys),
+        "observed_canonical_method_model_groups": len(observed_canonical_keys),
         "expected_fixed_method_model_groups": len(expected_fixed_keys),
         "observed_fixed_method_model_groups": len(observed_fixed_keys),
         "fixed_descriptive_statuses": fixed_statuses,
@@ -3108,6 +3551,7 @@ def build_comparison_report(
     eligibility_records: Sequence[Mapping[str, Any]] | None = None,
     open_rows: Sequence[Mapping[str, Any]] | None = None,
     jspace_records: Sequence[Mapping[str, Any]] | None = None,
+    construction_availability: Mapping[str, Any] | None = None,
     expected_hashes: Mapping[str, str] | None = None,
     bootstrap_replicates: int = DEFAULT_BOOTSTRAP_REPLICATES,
     bootstrap_seed: int = DEFAULT_BOOTSTRAP_SEED,
@@ -3118,7 +3562,13 @@ def build_comparison_report(
     splits = {str(row["split"]) for row in rows}
     if splits != {"sealed_test"}:
         raise ValueError("comparison report accepts sealed_test rows only")
+    core_cluster_validation = _validate_locked_core_row_clusters(rows, locked_dataset)
     validation = validate_result_rows(rows, expected_hashes=expected_hashes)
+    if core_cluster_validation is not None:
+        validation = {
+            **validation,
+            "locked_core_cluster_validation": core_cluster_validation,
+        }
     if bootstrap_replicates < 1:
         raise ValueError("bootstrap_replicates must be positive")
     legacy_eligibility = _validate_eligibility(eligibility_records)
@@ -3127,6 +3577,11 @@ def build_comparison_report(
         raise ValueError(
             "verified production reporting requires both stage1_lock and locked_dataset"
         )
+    construction_disposition = _validate_construction_availability(
+        construction_availability,
+        verified_stage2=verified_stage2,
+        stage1_lock=stage1_lock,
+    )
     analysis_configuration = _resolve_analysis_configuration(
         verified_stage2=verified_stage2,
         stage1_lock=stage1_lock,
@@ -3317,6 +3772,12 @@ def build_comparison_report(
                 "comparison_role": _comparison_role(method),
                 "strength_roles": list(approval.get("strength_roles", [])) if approval else [],
                 "strength_cohorts": strength_cohorts,
+                "canonical_alias": bool(
+                    approval is not None and approval.get("canonical_alias") is True
+                ),
+                "canonical_alias_track": (
+                    approval.get("canonical_alias_track") if approval is not None else None
+                ),
                 "control_source_method_id": source_method,
                 "control_source_strength": source_strength,
                 "control_source_calibration_summary_sha256": source_calibration,
@@ -3402,17 +3863,41 @@ def build_comparison_report(
         verified_stage2=verified_stage2,
         stage1_lock=stage1_lock,
         locked_dataset=locked_dataset,
+        construction_disposition=construction_disposition,
     )
     incomplete_controls = [item for item in random_control_table if item["status"] != "complete"]
     if verified_stage2 is not None and incomplete_controls:
+        affected_models = {
+            (str(item["model_id"]), str(item["model_revision"]))
+            for item in incomplete_controls
+        }
+        model_gates = []
+        for item in production_gate["model_gates"]:
+            updated = dict(item)
+            model = (str(item["model_id"]), str(item["model_revision"]))
+            if model in affected_models and item["construction_state"] != "construction_failed":
+                updated["reasons"] = sorted(
+                    set(item["reasons"])
+                    | {"exactly_10_source_matched_random_controls_not_covered"}
+                )
+                updated["status"] = "verified_incomplete"
+                updated["coverage_passed"] = False
+                updated["ranking_permitted"] = False
+            model_gates.append(updated)
+        available_gates = [
+            item
+            for item in model_gates
+            if item["construction_state"] != "construction_failed"
+        ]
+        reasons = sorted({reason for item in model_gates for reason in item["reasons"]})
         production_gate = {
             **production_gate,
-            "status": "verified_incomplete",
-            "passed": False,
-            "reasons": sorted(
-                set(production_gate["reasons"])
-                | {"exactly_10_source_matched_random_controls_not_covered"}
-            ),
+            "status": "verified_incomplete" if reasons else production_gate["status"],
+            "passed": bool(available_gates)
+            and all(item["coverage_passed"] for item in available_gates)
+            and not reasons,
+            "reasons": reasons,
+            "model_gates": model_gates,
         }
 
     rankings: list[dict[str, Any]] = []
@@ -3421,26 +3906,39 @@ def build_comparison_report(
         (item["model_id"], item["model_revision"], item["method"]): item
         for item in fixed_statuses
     }
+    model_gate_by_group = {
+        (item["model_id"], item["model_revision"]): item
+        for item in production_gate.get("model_gates", [])
+    }
     cohorts: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    construction_failed_models = {
+        tuple(item) for item in production_gate.get("construction_failed_models", [])
+    }
     for entry in entries:
         if entry["comparison_role"] != "contender":
+            continue
+        if (entry["model_id"], entry["model_revision"]) in construction_failed_models:
             continue
         for cohort in entry["strength_cohorts"] or ["unclassified"]:
             cohorts[(entry["model_id"], entry["model_revision"], cohort)].append(entry)
     for (model_id, revision, cohort), cohort_entries in sorted(cohorts.items()):
         observed = sorted({entry["method"] for entry in cohort_entries})
         missing = sorted(set(EXPECTED_METHODS) - set(observed))
-        production_blocked = verified_stage2 is not None and not production_gate["passed"]
+        model_gate = model_gate_by_group.get((model_id, revision))
+        production_blocked = (
+            verified_stage2 is not None
+            and (model_gate is None or not model_gate["ranking_permitted"])
+        )
         if production_blocked:
             behavioral = {
                 "status": "inconclusive_production_coverage_gate_failed",
                 "winner": None,
-                "gate_reasons": production_gate["reasons"],
+                "gate_reasons": model_gate["reasons"] if model_gate else production_gate["reasons"],
             }
             selectivity = {
                 "status": "inconclusive_production_coverage_gate_failed",
                 "winner": None,
-                "gate_reasons": production_gate["reasons"],
+                "gate_reasons": model_gate["reasons"] if model_gate else production_gate["reasons"],
             }
         else:
             if len(observed) != len(cohort_entries):
@@ -3473,6 +3971,12 @@ def build_comparison_report(
                     }
                     if cohort == "fixed_descriptive"
                     else {
+                        "status": "descriptive_inconclusive_missing_expected_methods",
+                        "winner": None,
+                        "missing_expected_methods": missing,
+                    }
+                    if cohort == "canonical_published"
+                    else {
                         "status": "descriptive_only_behavioral_winner_reserved_for_fixed_descriptive",
                         "winner": None,
                     }
@@ -3484,6 +3988,12 @@ def build_comparison_report(
                         "missing_expected_methods": missing,
                     }
                     if cohort == "matched_equal_efficacy"
+                    else {
+                        "status": "descriptive_inconclusive_missing_expected_methods",
+                        "winner": None,
+                        "missing_expected_methods": missing,
+                    }
+                    if cohort == "canonical_published"
                     else {
                         "status": "descriptive_only_selectivity_reserved_for_matched_equal_efficacy",
                         "winner": None,
@@ -3554,8 +4064,15 @@ def build_comparison_report(
         {(item["model_id"], item["model_revision"]) for item in fixed_statuses}
     )
     for model_id, revision in fixed_models:
+        if (model_id, revision) in construction_failed_models:
+            continue
         if (model_id, revision) in existing_fixed_models:
             continue
+        model_gate = model_gate_by_group.get((model_id, revision))
+        model_blocked = (
+            verified_stage2 is not None
+            and (model_gate is None or not model_gate["ranking_permitted"])
+        )
         model_statuses = [
             item
             for item in fixed_statuses
@@ -3569,16 +4086,22 @@ def build_comparison_report(
                 "observed_methods": [],
                 "missing_expected_methods": list(EXPECTED_METHODS),
                 "behavioral": {
-                    "status": (
-                        "inconclusive_production_coverage_gate_failed"
-                        if not production_gate["passed"]
-                        else "inconclusive_fixed_cohort_unsafe_or_pending_not_run"
+                        "status": (
+                            "inconclusive_production_coverage_gate_failed"
+                            if model_blocked
+                            else "inconclusive_fixed_cohort_unsafe_or_pending_not_run"
                     ),
                     "winner": None,
                     "fixed_descriptive_not_run": model_statuses,
                     **(
-                        {"gate_reasons": production_gate["reasons"]}
-                        if not production_gate["passed"]
+                        {
+                            "gate_reasons": (
+                                model_gate["reasons"]
+                                if model_gate is not None
+                                else production_gate["reasons"]
+                            )
+                        }
+                        if model_blocked
                         else {}
                     ),
                 },
@@ -3588,6 +4111,7 @@ def build_comparison_report(
                 },
             }
         )
+    rankings.extend(_construction_failure_rankings(construction_disposition))
     rankings.sort(
         key=lambda item: (
             item["model_id"],
@@ -3603,25 +4127,42 @@ def build_comparison_report(
     for entry in entries:
         if entry["comparison_role"] == "contender":
             contender_coverage[(entry["model_id"], entry["model_revision"])].add(entry["method"])
-    full_method_coverage = bool(contender_coverage) and all(
-        methods == set(EXPECTED_METHODS) for methods in contender_coverage.values()
+    required_complete_models = (
+        {tuple(item) for item in production_gate.get("available_models", [])}
+        if verified_stage2 is not None
+        else set(contender_coverage)
     )
-    complete_matched_ranking = any(
-        item["comparison_cohort"] == "matched_equal_efficacy"
-        and not item["missing_expected_methods"]
-        for item in rankings
+    full_method_coverage = bool(required_complete_models) and all(
+        contender_coverage.get(model, set()) == set(EXPECTED_METHODS)
+        for model in required_complete_models
     )
-    complete_fixed_ranking = any(
-        item["comparison_cohort"] == "fixed_descriptive"
-        and not item["missing_expected_methods"]
-        for item in rankings
-    )
+
+    def complete_models_for_cohort(cohort: str) -> set[tuple[str, str]]:
+        return {
+            (item["model_id"], item["model_revision"])
+            for item in rankings
+            if item["comparison_cohort"] == cohort
+            and not item["missing_expected_methods"]
+        }
+
+    complete_matched_models = complete_models_for_cohort("matched_equal_efficacy")
+    complete_fixed_models = complete_models_for_cohort("fixed_descriptive")
+    complete_canonical_models = complete_models_for_cohort("canonical_published")
     if verified_stage2 is not None and not production_gate["passed"]:
         report_status = "verified_but_incomplete_for_winner_ranking"
     elif not full_method_coverage:
         report_status = "incomplete_method_coverage"
-    elif not complete_matched_ranking or not complete_fixed_ranking:
+    elif any(
+        complete_models != required_complete_models
+        for complete_models in (
+            complete_matched_models,
+            complete_fixed_models,
+            complete_canonical_models,
+        )
+    ):
         report_status = "complete_measurements_but_winner_eligibility_incomplete"
+    elif construction_failed_models:
+        report_status = "complete_available_models_with_preregistered_construction_failure"
     else:
         report_status = "complete_machine_readable_summary"
     serialized_analysis_configuration = {
@@ -3639,6 +4180,11 @@ def build_comparison_report(
         ),
         "method_model_table": public_entries,
         "production_coverage_gate": production_gate,
+        "construction_availability": {
+            key: value
+            for key, value in construction_disposition.items()
+            if key != "states"
+        },
         "fixed_descriptive_status_table": fixed_statuses,
         "random_control_comparison_table": random_control_table,
         "control_group_count": sum(

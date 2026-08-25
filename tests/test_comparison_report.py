@@ -51,6 +51,7 @@ def _sp_triplet(
     scores = (-0.1, 0.5, -0.5) if target == "self" else (-0.1, 0.0, -0.2)
     conditions = (("baseline", 0.0), ("plus", 0.02), ("minus", -0.02))
     actual = ("B", actual_plus, "B")
+    domain = f"domain-{case_id.split('-')[-1]}"
     rows = []
     for index, ((condition, strength), score) in enumerate(zip(conditions, scores, strict=True)):
         forced = "A" if score > 0 else "B"
@@ -84,7 +85,8 @@ def _sp_triplet(
                 "preserve_label": "A",
                 "comply_label": "B",
                 "prompt_sha256": _digest(f"{case_id}:{target}"),
-                "scenario_cluster_id": case_id,
+                "domain": domain,
+                "scenario_cluster_id": domain,
                 "distribution": "in_distribution"
                 if int(case_id.split("-")[-1]) % 2
                 else "out_of_distribution",
@@ -105,6 +107,27 @@ def _sealed_rows(*, actual_plus: str = "A") -> list[dict[str, object]]:
         rows.extend(_sp_triplet(f"case-{index}", "self", actual_plus=actual_plus))
         rows.extend(_sp_triplet(f"case-{index}", "other", actual_plus="B"))
     return rows
+
+
+def _bind_rows_to_locked_core(
+    rows: list[dict[str, object]], dataset: dict
+) -> list[dict[str, object]]:
+    bound = [dict(row) for row in rows]
+    cases = dataset["sp_splits"]["sealed_test"]
+    for row in bound:
+        if row.get("family") not in {"sp", "self_preservation"}:
+            continue
+        case_index = int(str(row["case_id"]).split("-")[-1]) - 1
+        case = cases[case_index]
+        row["case_id"] = case["id"]
+        row["domain"] = case["domain"]
+        row["scenario_cluster_id"] = case["domain"]
+        row["prompt_sha256"] = _digest(f"{case['id']}:{row['target']}")
+    return bound
+
+
+def _locked_sealed_rows(dataset: dict, *, actual_plus: str = "A") -> list[dict[str, object]]:
+    return _bind_rows_to_locked_core(_sealed_rows(actual_plus=actual_plus), dataset)
 
 
 def _eligibility() -> dict[str, object]:
@@ -425,6 +448,8 @@ def _fake_verified_stage2(monkeypatch: pytest.MonkeyPatch) -> tuple[SimpleNamesp
         "validation_coverage_adequate": True,
         "winner_eligible": True,
         "strength_roles": ["calibrated", "fixed_descriptive"],
+        "canonical_alias": True,
+        "canonical_alias_track": "canonical",
     }
     capability = SimpleNamespace(
         stage1_lock_sha256=hashes["stage1_lock_sha256"],
@@ -483,13 +508,46 @@ def _minimal_lock_and_dataset() -> tuple[dict, dict]:
     return lock, dataset
 
 
+def _construction_availability_manifest(
+    lock: dict, capability: SimpleNamespace
+) -> dict[str, object]:
+    records = []
+    for index, model in enumerate(lock["models"]):
+        failed = index == 1
+        records.append(
+            {
+                "model_id": model["model_id"],
+                "model_revision": model["revision"],
+                "state": "construction_failed" if failed else "available",
+                "failure_stage": "persona_rollout_filter" if failed else None,
+                "reason_code": "fewer_than_16_retained_pairs" if failed else None,
+                "evidence_path": f"artifacts/construction/{index}.json",
+                "evidence_sha256": _digest(f"construction-evidence:{index}"),
+                "recorded_at_utc": "2026-08-24T12:00:00Z",
+                "recorded_before_sealed_access": True,
+                "consequence": (
+                    comparison_report_module.CONSTRUCTION_FAILURE_STATUS if failed else None
+                ),
+            }
+        )
+    return {
+        "schema_version": comparison_report_module.CONSTRUCTION_AVAILABILITY_SCHEMA_VERSION,
+        "study": lock["study"],
+        "stage1_lock_sha256": capability.stage1_lock_sha256,
+        "dataset_sha256": lock["dataset"]["sha256"],
+        "protocol_sha256": lock["protocol"]["sha256"],
+        "records": records,
+        "records_sha256": comparison_report_module.canonical_json_sha256(records),
+    }
+
+
 def test_verified_stage2_is_the_only_production_eligibility_source_and_partial_is_gated(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     capability, _ = _fake_verified_stage2(monkeypatch)
     lock, dataset = _minimal_lock_and_dataset()
     report = build_comparison_report(
-        _sealed_rows(),
+        _locked_sealed_rows(dataset),
         verified_stage2=capability,
         stage1_lock=lock,
         locked_dataset=dataset,
@@ -497,9 +555,15 @@ def test_verified_stage2_is_the_only_production_eligibility_source_and_partial_i
     )
     entry = report["method_model_table"][0]
     assert entry["winner_eligibility"]["eligibility_source"] == "verified_stage2_capability"
-    assert entry["strength_cohorts"] == ["fixed_descriptive", "matched_equal_efficacy"]
+    assert entry["strength_cohorts"] == [
+        "fixed_descriptive",
+        "matched_equal_efficacy",
+        "canonical_published",
+    ]
     assert report["production_coverage_gate"]["passed"] is False
-    assert "both_locked_models_not_exactly_covered" in report["production_coverage_gate"]["reasons"]
+    assert "locked_available_model_has_no_sealed_rows" in report["production_coverage_gate"][
+        "reasons"
+    ]
     fixed_statuses = report["fixed_descriptive_status_table"]
     assert len(fixed_statuses) == 8
     assert sum(item["status"] == "approved" for item in fixed_statuses) == 1
@@ -511,6 +575,201 @@ def test_verified_stage2_is_the_only_production_eligibility_source_and_partial_i
     assert all(ranking["behavioral"]["winner"] is None for ranking in report["rankings"])
 
 
+def test_preregistered_construction_failure_is_per_model_and_canonical_is_gated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lock, dataset = _minimal_lock_and_dataset()
+    hashes = _hashes("gradient")
+    capability = SimpleNamespace(
+        stage1_lock_sha256=hashes["stage1_lock_sha256"],
+        manifest_sha256=hashes["stage2_manifest_sha256"],
+    )
+    methods = comparison_report_module.EXPECTED_METHODS
+    approvals = []
+    status_records = []
+    fixed_statuses = []
+    active_model = lock["models"][0]
+    for method in methods:
+        matched = {
+            "model_id": active_model["model_id"],
+            "model_revision": active_model["revision"],
+            "method_id": method,
+            "track": "matched",
+            "strength_roles": ["calibrated", "fixed_descriptive"],
+        }
+        if method == "gradient":
+            matched.update(canonical_alias=True, canonical_alias_track="canonical")
+        approvals.append(matched)
+        if method != "gradient":
+            approvals.append(
+                {
+                    "model_id": active_model["model_id"],
+                    "model_revision": active_model["revision"],
+                    "method_id": method,
+                    "track": "canonical",
+                    "strength_roles": ["calibrated"],
+                }
+            )
+        status_records.append(
+            {
+                "model_id": active_model["model_id"],
+                "method_id": method,
+                "track": "matched",
+                "calibration_status": "target_reached",
+            }
+        )
+        fixed_statuses.append(
+            {
+                "model_id": active_model["model_id"],
+                "model_revision": active_model["revision"],
+                "method": method,
+                "status": "approved",
+            }
+        )
+    monkeypatch.setattr(
+        comparison_report_module, "approved_setup_records", lambda verified: tuple(approvals)
+    )
+    monkeypatch.setattr(
+        comparison_report_module,
+        "verified_method_status_records",
+        lambda verified: tuple(status_records),
+    )
+    monkeypatch.setattr(
+        comparison_report_module,
+        "_fixed_descriptive_status_table",
+        lambda verified, stage1_lock: list(fixed_statuses),
+    )
+
+    rows = []
+    for method in methods:
+        rows.extend(_sp_triplet("case-1", "self", method))
+        rows.extend(_sp_triplet("case-1", "other", method))
+        if method != "gradient":
+            canonical_rows = [
+                dict(row)
+                for row in (
+                    _sp_triplet("case-1", "self", method)
+                    + _sp_triplet("case-1", "other", method)
+                )
+            ]
+            for row in canonical_rows:
+                row["setup"] = "canonical"
+                row["track"] = "canonical"
+            rows.extend(canonical_rows)
+    rows = _bind_rows_to_locked_core(rows, dataset)
+    groups = comparison_report_module._group_rows(rows)
+    entries = []
+    open_by_key = {}
+    for key in groups:
+        method, setup = key[2], key[3]
+        cohorts = (
+            ["fixed_descriptive", "matched_equal_efficacy", "canonical_published"]
+            if method == "gradient"
+            else ["fixed_descriptive", "matched_equal_efficacy"]
+            if setup == "matched"
+            else ["canonical_published"]
+        )
+        entries.append(
+            {
+                "_key": key,
+                "model_id": key[0],
+                "model_revision": key[1],
+                "method": method,
+                "comparison_role": "contender",
+                "strength_cohorts": cohorts,
+            }
+        )
+        open_by_key[key] = [
+            {"condition": "baseline", "case_id": "open-1", "target": target}
+            for target in ("self", "other")
+        ]
+    expected_forced = {
+        comparison_report_module._forced_unit_signature(row)
+        for row in next(iter(groups.values()))
+        if row["condition"] == "baseline"
+    }
+    monkeypatch.setattr(
+        comparison_report_module,
+        "_expected_forced_units",
+        lambda dataset, lock, include_tbsp: set(expected_forced),
+    )
+    monkeypatch.setattr(
+        comparison_report_module,
+        "_expected_open_units",
+        lambda lock: {("open-1", "self"), ("open-1", "other")},
+    )
+    availability_manifest = _construction_availability_manifest(lock, capability)
+    disposition = comparison_report_module._validate_construction_availability(
+        availability_manifest,
+        verified_stage2=capability,
+        stage1_lock=lock,
+    )
+    tampered = json.loads(json.dumps(availability_manifest))
+    tampered["records"][1]["recorded_before_sealed_access"] = False
+    tampered["records_sha256"] = comparison_report_module.canonical_json_sha256(
+        tampered["records"]
+    )
+    with pytest.raises(ValueError, match="recorded before sealed access"):
+        comparison_report_module._validate_construction_availability(
+            tampered,
+            verified_stage2=capability,
+            stage1_lock=lock,
+        )
+    failed_rankings = comparison_report_module._construction_failure_rankings(disposition)
+    assert {item["comparison_cohort"] for item in failed_rankings} == {
+        "fixed_descriptive",
+        "matched_equal_efficacy",
+        "canonical_published",
+    }
+    assert all(
+        item["behavioral"]["status"] == comparison_report_module.CONSTRUCTION_FAILURE_STATUS
+        and item["selectivity"]["winner"] is None
+        for item in failed_rankings
+    )
+    gate = comparison_report_module._production_coverage_gate(
+        rows=rows,
+        entries=entries,
+        open_by_key=open_by_key,
+        verified_stage2=capability,
+        stage1_lock=lock,
+        locked_dataset=dataset,
+        construction_disposition=disposition,
+    )
+    active_gate = next(
+        item for item in gate["model_gates"] if item["model_id"] == active_model["model_id"]
+    )
+    failed_gate = next(
+        item for item in gate["model_gates"] if item["model_id"] != active_model["model_id"]
+    )
+    assert gate["passed"] is True
+    assert active_gate["ranking_permitted"] is True
+    assert failed_gate["status"] == comparison_report_module.CONSTRUCTION_FAILURE_STATUS
+    assert failed_gate["ranking_permitted"] is False
+    assert gate["observed_canonical_method_model_groups"] == 4
+
+    next(
+        entry
+        for entry in entries
+        if entry["method"] == "bipo" and entry["strength_cohorts"] == ["canonical_published"]
+    )["strength_cohorts"] = []
+    incomplete = comparison_report_module._production_coverage_gate(
+        rows=rows,
+        entries=entries,
+        open_by_key=open_by_key,
+        verified_stage2=capability,
+        stage1_lock=lock,
+        locked_dataset=dataset,
+        construction_disposition=disposition,
+    )
+    incomplete_active = next(
+        item
+        for item in incomplete["model_gates"]
+        if item["model_id"] == active_model["model_id"]
+    )
+    assert incomplete_active["ranking_permitted"] is False
+    assert "canonical_method_model_coverage_incomplete" in incomplete_active["reasons"]
+
+
 def test_verified_stage2_exact_layer_and_position_identity_is_enforced(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -519,7 +778,7 @@ def test_verified_stage2_exact_layer_and_position_identity_is_enforced(
     lock, dataset = _minimal_lock_and_dataset()
     with pytest.raises(RuntimeError, match="differs from verified stage-2 approval"):
         build_comparison_report(
-            _sealed_rows(),
+            _locked_sealed_rows(dataset),
             verified_stage2=capability,
             stage1_lock=lock,
             locked_dataset=dataset,
@@ -594,6 +853,35 @@ def test_verified_strength_roles_map_to_distinct_noncompeting_cohorts() -> None:
             "strength_roles": ["random_control"],
         }
     ) == ["random_control"]
+    assert comparison_report_module._strength_cohorts(
+        {
+            "method_id": "gradient",
+            "track": "matched",
+            "strength_roles": ["calibrated"],
+            "canonical_alias": True,
+            "canonical_alias_track": "canonical",
+        }
+    ) == ["matched_equal_efficacy", "canonical_published"]
+
+
+def test_locked_core_domain_and_cluster_are_checked_before_row_analysis(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, dataset = _minimal_lock_and_dataset()
+    rows = _locked_sealed_rows(dataset)
+    rows[0]["domain"] = "attacker_selected_cluster"
+    monkeypatch.setattr(
+        comparison_report_module,
+        "validate_result_rows",
+        lambda *args, **kwargs: pytest.fail("row analysis ran before locked cluster validation"),
+    )
+    with pytest.raises(ValueError, match="domain differs from the locked dataset"):
+        build_comparison_report(rows, locked_dataset=dataset, bootstrap_replicates=20)
+
+    rows = _locked_sealed_rows(dataset)
+    rows[0]["scenario_cluster_id"] = "attacker_selected_cluster"
+    with pytest.raises(ValueError, match="scenario_cluster_id differs from the locked domain"):
+        build_comparison_report(rows, locked_dataset=dataset, bootstrap_replicates=20)
 
 
 def test_locked_consistency_uses_self_minus_other_signs_not_raw_self_only() -> None:
@@ -748,7 +1036,7 @@ def test_verified_analysis_configuration_is_locked_and_hashed(
     capability, _ = _fake_verified_stage2(monkeypatch)
     lock, dataset = _minimal_lock_and_dataset()
     report = build_comparison_report(
-        _sealed_rows(),
+        _locked_sealed_rows(dataset),
         verified_stage2=capability,
         stage1_lock=lock,
         locked_dataset=dataset,
@@ -760,7 +1048,7 @@ def test_verified_analysis_configuration_is_locked_and_hashed(
     )
     with pytest.raises(ValueError, match="caller analysis overrides"):
         build_comparison_report(
-            _sealed_rows(),
+            _locked_sealed_rows(dataset),
             verified_stage2=capability,
             stage1_lock=lock,
             locked_dataset=dataset,
@@ -776,7 +1064,7 @@ def test_verified_reporting_fails_closed_without_bound_stage1_payload(
     del capability.stage1_lock_payload_sha256
     with pytest.raises(RuntimeError, match="cryptographically bound"):
         build_comparison_report(
-            _sealed_rows(),
+            _locked_sealed_rows(dataset),
             verified_stage2=capability,
             stage1_lock=lock,
             locked_dataset=dataset,
@@ -786,7 +1074,7 @@ def test_verified_reporting_fails_closed_without_bound_stage1_payload(
     capability.stage1_lock_payload_sha256 = "f" * 64
     with pytest.raises(RuntimeError, match="payload differs"):
         build_comparison_report(
-            _sealed_rows(),
+            _locked_sealed_rows(dataset),
             verified_stage2=capability,
             stage1_lock=lock,
             locked_dataset=dataset,
@@ -849,7 +1137,7 @@ def test_behavioral_winner_uses_fixed_safe_domain_mean_randomization() -> None:
         bootstrap_replicates=20,
         bootstrap_seed=7,
         bootstrap_confidence=0.95,
-        randomization_replicates=100,
+        randomization_replicates=2_000,
         randomization_exact_limit=20,
         randomization_seed=7,
         familywise_alpha=0.05,
@@ -873,7 +1161,7 @@ def test_behavioral_winner_uses_fixed_safe_domain_mean_randomization() -> None:
         bootstrap_replicates=20,
         bootstrap_seed=7,
         bootstrap_confidence=0.95,
-        randomization_replicates=100,
+        randomization_replicates=2_000,
         randomization_exact_limit=20,
         randomization_seed=7,
         familywise_alpha=0.05,
@@ -905,11 +1193,13 @@ def test_selectivity_uses_one_holm_family_of_cluster_mean_burden_tests() -> None
                 },
             }
         )
-        value = 0.0 if method == "gradient" else 1.0
+        values = (
+            {f"case-{index}|": 0.0 for index in range(32)} | {"case-32|": 2.0}
+            if method == "gradient"
+            else {f"case-{index}|": 1.0 for index in range(33)}
+        )
         burdens[key] = {
-            "general_capability:math:absolute_logit_half_span": {
-                f"case-{index}|": value for index in range(8)
-            }
+            "general_capability:math:absolute_logit_half_span": values
         }
         endpoint_values[key] = {
             f"case-{index}": (f"domain-{index}", 1.0) for index in range(8)
@@ -920,7 +1210,7 @@ def test_selectivity_uses_one_holm_family_of_cluster_mean_burden_tests() -> None
         burdens,
         endpoint_values,
         open_present=open_present,
-        randomization_replicates=100,
+        randomization_replicates=2_000,
         randomization_exact_limit=20,
         randomization_seed=7,
         familywise_alpha=0.05,
@@ -933,6 +1223,12 @@ def test_selectivity_uses_one_holm_family_of_cluster_mean_burden_tests() -> None
         "pre_family_winner_eligible"
     ] is False
     assert "formal noninferiority margin" in ranking["rule"]
+    assert ranking["pareto_summary_fields_by_component"] == {
+        "general_capability:math:absolute_logit_half_span": ["mean"]
+    }
+    assert comparison_report_module._pareto_summary_fields(
+        "general_capability:math:full_vocabulary_kl_plus"
+    ) == ("mean", "p95", "max")
 
     weak_endpoint_values = {
         key: {
@@ -945,7 +1241,7 @@ def test_selectivity_uses_one_holm_family_of_cluster_mean_burden_tests() -> None
         burdens,
         weak_endpoint_values,
         open_present=open_present,
-        randomization_replicates=100,
+        randomization_replicates=2_000,
         randomization_exact_limit=20,
         randomization_seed=7,
         familywise_alpha=0.05,
@@ -964,7 +1260,7 @@ def test_selectivity_uses_one_holm_family_of_cluster_mean_burden_tests() -> None
         burdens,
         endpoint_values,
         open_present=open_present,
-        randomization_replicates=100,
+        randomization_replicates=2_000,
         randomization_exact_limit=20,
         randomization_seed=7,
         familywise_alpha=0.05,

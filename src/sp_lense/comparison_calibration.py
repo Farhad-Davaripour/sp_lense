@@ -680,7 +680,7 @@ def build_calibration_summary(
     mode: str,
     forced_result_rows_artifacts: Sequence[Mapping[str, Any]],
     open_result_rows_artifacts: Sequence[Mapping[str, Any]],
-    forced_grid_plan_artifact: Mapping[str, Any] | None = None,
+    forced_grid_plan_artifact: Mapping[str, Any],
     calibration_config_sha256: str,
     builder_module_sha256: str,
     interpolation_recheck_rows: Sequence[Mapping[str, Any]] | None = None,
@@ -938,13 +938,11 @@ def build_calibration_summary(
         item["path"] for item in open_artifacts
     }:
         raise ValueError("forced and open result artifacts must be disjoint")
-    normalized_grid_plan = (
-        None
-        if forced_grid_plan_artifact is None
-        else _artifact_records(
-            [forced_grid_plan_artifact], label="forced grid plan", required=True
-        )[0]
-    )
+    if not isinstance(forced_grid_plan_artifact, Mapping):
+        raise TypeError("calibration summary requires a forced grid plan artifact")
+    normalized_grid_plan = _artifact_records(
+        [forced_grid_plan_artifact], label="forced grid plan", required=True
+    )[0]
     calibration_config_sha256 = _validate_sha256(
         calibration_config_sha256, "calibration_config_sha256"
     )

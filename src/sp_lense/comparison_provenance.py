@@ -13,6 +13,12 @@ from typing import Any
 
 STAGE2_SCHEMA_VERSION = "sp_lense.comparison.stage2.v1"
 PREOPEN_SCHEMA_VERSION = "sp_lense.comparison.preopen.v1"
+OUTCOME_BLIND_AMENDMENT_SCHEMA_VERSION = (
+    "sp_lense.comparison.outcome_blind_protected_code_amendment.v1"
+)
+OUTCOME_BLIND_AMENDMENT_PATH = (
+    "configs/steering_comparison_outcome_blind_amendment.json"
+)
 CALIBRATION_SUMMARY_SCHEMA_VERSION = "sp_lense.steering_comparison.calibration.v2"
 CALIBRATION_BUILDER_PATH = "src/sp_lense/comparison_calibration.py"
 RANDOM_CONSTRUCTION_SCHEMA_VERSION = (
@@ -25,6 +31,39 @@ MAIN_CONSTRUCTION_SCHEMA_VERSION = "sp_lense.comparison.construction.v1"
 MAIN_METHOD_IDS = ("gradient", "caa", "bipo", "persona_vector")
 STAGE2_TRACKS = ("matched", "canonical")
 GRADIENT_ABLATION_METHOD_ID = "gradient_uncorrected"
+
+_OUTCOME_BLIND_AMENDABLE_PATH_CATEGORIES = {
+    "src/sp_lense/comparison_analysis.py": "analysis",
+    "src/sp_lense/comparison_calibration.py": "calibration_provenance",
+    "src/sp_lense/comparison_cli.py": "cli",
+    "src/sp_lense/comparison_provenance.py": "provenance",
+    "src/sp_lense/comparison_report.py": "reporting",
+    "tests/test_comparison_analysis.py": "test",
+    "tests/test_comparison_calibration.py": "test",
+    "tests/test_comparison_cli.py": "test",
+    "tests/test_comparison_provenance.py": "test",
+    "tests/test_comparison_report.py": "test",
+}
+_OUTCOME_BLIND_SEALED_ARTIFACT_ROOTS = (
+    "artifacts/steering_comparison/",
+    "results/steering_comparison/",
+)
+_OUTCOME_BLIND_SEALED_NAME_MARKERS = (
+    "sealed",
+    "final_report",
+)
+_OUTCOME_BLIND_NON_RESULT_SUFFIXES = (
+    ".bat",
+    ".cmd",
+    ".ps1",
+    ".py",
+    ".sh",
+)
+_OUTCOME_BLIND_AMENDMENT_DOCUMENT_PATHS = (
+    "docs/STEERING_COMPARISON_FORCED_GRID_PROVENANCE_AMENDMENT.md",
+    "docs/STEERING_COMPARISON_REPORTING_AMENDMENT.md",
+    "docs/STEERING_COMPARISON_OPERATIONAL_SAFETY_AMENDMENT.md",
+)
 
 _POSITION_SCHEDULES = {
     ("gradient", "matched"): "final_prompt_token",
@@ -124,26 +163,101 @@ def git_commit(repo_root: Path) -> str:
     return result.stdout.strip()
 
 
-def locked_runner_code_commit(repo_root: Path, lock_path: Path) -> str:
-    """Return the commit that introduced the currently verified stage-1 lock bytes."""
+def git_path_commits(repo_root: Path, relative_path: str) -> list[str]:
+    """Return newest-to-oldest commits that changed one repository-relative path."""
 
-    repo_root = repo_root.resolve()
-    relative = _repo_relative_path(repo_root, lock_path, field="stage-1 lock path")
     result = subprocess.run(
-        ["git", "log", "-1", "--format=%H", "--", relative],
+        ["git", "log", "--format=%H", "--", relative_path],
         cwd=repo_root,
         check=True,
         capture_output=True,
         text=True,
     )
-    commit = result.stdout.strip()
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def git_file_sha256(repo_root: Path, commit: str, relative_path: str) -> str:
+    """Hash one committed file without checking out or mutating the worktree."""
+
+    result = subprocess.run(
+        ["git", "show", f"{commit}:{relative_path}"],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+    )
+    return hashlib.sha256(result.stdout).hexdigest()
+
+
+def git_tree_paths(repo_root: Path, commit: str) -> set[str]:
+    """Return all paths in a commit tree without reading artifact contents."""
+
+    result = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", "-z", commit],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+    )
+    return {
+        item.decode("utf-8").replace("\\", "/")
+        for item in result.stdout.split(b"\0")
+        if item
+    }
+
+
+def git_all_diff_paths(
+    repo_root: Path, ancestor: str, descendant: str
+) -> set[str]:
+    result = subprocess.run(
+        ["git", "diff", "--name-only", "-z", f"{ancestor}..{descendant}"],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+    )
+    return {
+        item.decode("utf-8").replace("\\", "/")
+        for item in result.stdout.split(b"\0")
+        if item
+    }
+
+
+def git_commit_parents(repo_root: Path, commit: str) -> list[str]:
+    result = subprocess.run(
+        ["git", "show", "-s", "--format=%P", commit],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [value for value in result.stdout.strip().split() if value]
+
+
+def _valid_commit(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 40
+        and all(character in "0123456789abcdef" for character in value.lower())
+    )
+
+
+def _stage1_lock_commit(repo_root: Path, relative: str) -> str:
+    commits = git_path_commits(repo_root, relative)
+    if not commits:
+        raise RuntimeError("stage-1 lock has no committed runner-code identity")
+    commit = commits[0]
     if (
-        len(commit) != 40
-        or any(character not in "0123456789abcdef" for character in commit.lower())
+        not _valid_commit(commit)
+        or not git_is_ancestor(repo_root, commit, git_commit(repo_root))
     ):
-        raise RuntimeError("stage-1 lock has no valid committed runner-code identity")
-    if not git_is_ancestor(repo_root, commit, git_commit(repo_root)):
-        raise RuntimeError("stage-1 runner-code commit is not an ancestor of HEAD")
+        raise RuntimeError("stage-1 runner-code commit is not a valid ancestor of HEAD")
+    return commit
+
+
+def locked_runner_code_commit(repo_root: Path, lock_path: Path) -> str:
+    """Return the original stage-1 runner commit, including after an amendment."""
+
+    repo_root = repo_root.resolve()
+    relative = _repo_relative_path(repo_root, lock_path, field="stage-1 lock path")
+    commit = _stage1_lock_commit(repo_root, relative)
     lock = json.loads((repo_root / relative).read_text(encoding="utf-8"))
     protected = {
         relative,
@@ -152,14 +266,28 @@ def locked_runner_code_commit(repo_root: Path, lock_path: Path) -> str:
             for entry in stage1_hash_entries(lock)
         ),
     }
+    amendment = _verified_outcome_blind_amendment(
+        repo_root,
+        lock,
+        stage1_lock_path=relative,
+        required=False,
+    )
+    protected_baseline = (
+        commit if amendment is None else amendment["amendment_lock_commit"]
+    )
     changed = git_diff_paths(
-        repo_root, commit, git_commit(repo_root), tuple(sorted(protected))
+        repo_root,
+        protected_baseline,
+        git_commit(repo_root),
+        tuple(sorted(protected)),
     )
     if changed:
         raise RuntimeError(
-            "stage-1 protected code changed after runner_code_commit: "
+            "stage-1 protected code changed after its effective provenance lock: "
             f"{sorted(changed)[:5]}"
         )
+    if amendment is not None and amendment["original_runner_code_commit"] != commit:
+        raise RuntimeError("outcome-blind amendment changed the original runner identity")
     return commit
 
 
@@ -416,6 +544,536 @@ def _required_comparison_implementation_paths(repo_root: Path) -> set[str]:
     return paths
 
 
+def _stage1_entry_index(
+    repo_root: Path, lock: Mapping[str, Any]
+) -> dict[str, HashEntry]:
+    index: dict[str, HashEntry] = {}
+    for entry in stage1_hash_entries(lock):
+        relative = _repo_relative_path(
+            repo_root, entry.path, field="stage-1 protected path"
+        )
+        prior = index.get(relative)
+        if prior is not None and prior.sha256 != entry.sha256:
+            raise RuntimeError(f"stage-1 path has conflicting hashes: {relative}")
+        index[relative] = HashEntry(relative, entry.sha256)
+    return index
+
+
+def _outcome_blind_gate_paths(lock: Mapping[str, Any]) -> set[str]:
+    stages = lock.get("lock_stages")
+    if not isinstance(stages, Mapping):
+        raise TypeError("stage-1 lock lacks lock_stages")
+    output: set[str] = set()
+    for stage_name in ("pre_open", "stage_2"):
+        stage = stages.get(stage_name)
+        if not isinstance(stage, Mapping) or not stage.get("path"):
+            raise RuntimeError(f"stage-1 lock lacks the {stage_name} artifact path")
+        output.add(str(stage["path"]).replace("\\", "/"))
+    return output
+
+
+def _is_outcome_blind_gate_artifact(
+    relative_path: str, lock: Mapping[str, Any]
+) -> bool:
+    normalized = relative_path.replace("\\", "/")
+    if normalized in _outcome_blind_gate_paths(lock):
+        return True
+    lowered = normalized.lower()
+    if lowered.endswith(_OUTCOME_BLIND_NON_RESULT_SUFFIXES):
+        return False
+    return any(
+        lowered.startswith(root)
+        and any(marker in lowered for marker in _OUTCOME_BLIND_SEALED_NAME_MARKERS)
+        for root in _OUTCOME_BLIND_SEALED_ARTIFACT_ROOTS
+    )
+
+
+def _outcome_blind_gate_artifacts_in_tree(
+    paths: Iterable[str], lock: Mapping[str, Any]
+) -> set[str]:
+    return {
+        path.replace("\\", "/")
+        for path in paths
+        if _is_outcome_blind_gate_artifact(path, lock)
+    }
+
+
+def _current_outcome_blind_gate_artifacts(
+    repo_root: Path, lock: Mapping[str, Any]
+) -> set[str]:
+    output = {
+        path
+        for path in _outcome_blind_gate_paths(lock)
+        if (repo_root / path).is_file()
+    }
+    for root in _OUTCOME_BLIND_SEALED_ARTIFACT_ROOTS:
+        absolute = repo_root / root
+        if not absolute.is_dir():
+            continue
+        output.update(
+            path.relative_to(repo_root).as_posix()
+            for path in absolute.rglob("*")
+            if path.is_file() and _is_outcome_blind_gate_artifact(
+                path.relative_to(repo_root).as_posix(), lock
+            )
+        )
+    return output
+
+
+def _immutable_study_configuration_sha256(lock: Mapping[str, Any]) -> str:
+    methods = lock.get("methods")
+    if not isinstance(methods, Mapping):
+        raise TypeError("stage-1 lock methods must be an object")
+    return sha256_json(
+        {
+            "protocol": copy.deepcopy(lock.get("protocol")),
+            "dataset": copy.deepcopy(lock.get("dataset")),
+            "models": copy.deepcopy(lock.get("models")),
+            "methods": {
+                key: copy.deepcopy(value)
+                for key, value in methods.items()
+                if key != "implementation_files"
+            },
+            "comparison_tracks": copy.deepcopy(lock.get("comparison_tracks")),
+            "calibration": copy.deepcopy(lock.get("calibration")),
+            "statistics": copy.deepcopy(lock.get("statistics")),
+            "evaluation": copy.deepcopy(lock.get("evaluation")),
+            "no_post_result_tuning": lock.get("no_post_result_tuning"),
+        }
+    )
+
+
+def _canonical_outcome_blind_amendment_payload(
+    repo_root: Path,
+    lock: Mapping[str, Any],
+    *,
+    stage1_lock_path: str,
+    amendment_code_commit: str,
+) -> dict[str, Any]:
+    original_runner = _stage1_lock_commit(repo_root, stage1_lock_path)
+    head = git_commit(repo_root)
+    if (
+        not _valid_commit(amendment_code_commit)
+        or amendment_code_commit == original_runner
+        or not git_is_ancestor(repo_root, original_runner, amendment_code_commit)
+        or not git_is_ancestor(repo_root, amendment_code_commit, head)
+    ):
+        raise RuntimeError(
+            "amendment code commit must be a strict descendant of the original "
+            "runner and an ancestor of HEAD"
+        )
+
+    entries = _stage1_entry_index(repo_root, lock)
+    protected_paths = {stage1_lock_path, *entries}
+    changed = git_diff_paths(
+        repo_root,
+        original_runner,
+        amendment_code_commit,
+        tuple(sorted(protected_paths)),
+    )
+    if stage1_lock_path in changed:
+        raise RuntimeError("the original stage-1 lock bytes may not be amended")
+    if not changed:
+        raise RuntimeError("an outcome-blind amendment must change a protected path")
+    disallowed = sorted(changed - set(_OUTCOME_BLIND_AMENDABLE_PATH_CATEGORIES))
+    if disallowed:
+        raise RuntimeError(
+            "outcome-blind amendment changes a non-amendable protected path: "
+            f"{disallowed[:5]}"
+        )
+
+    original_lock_git_blob_sha256 = git_file_sha256(
+        repo_root, original_runner, stage1_lock_path
+    )
+    if (
+        git_file_sha256(repo_root, amendment_code_commit, stage1_lock_path)
+        != original_lock_git_blob_sha256
+    ):
+        raise RuntimeError("amendment code commit changes the original stage-1 lock")
+    original_lock_sha256 = sha256_file(repo_root / stage1_lock_path)
+
+    allowed_changes: list[dict[str, str]] = []
+    for path, entry in sorted(entries.items()):
+        old_git_blob_sha256 = git_file_sha256(repo_root, original_runner, path)
+        new_git_blob_sha256 = git_file_sha256(
+            repo_root, amendment_code_commit, path
+        )
+        if path in changed:
+            if new_git_blob_sha256 == old_git_blob_sha256:
+                raise RuntimeError(
+                    f"amended path has no old-to-new content-hash change: {path}"
+                )
+            new_sha256 = sha256_file(repo_root / path)
+            if new_sha256 == entry.sha256:
+                raise RuntimeError(
+                    f"amended path has no worktree content-hash change: {path}"
+                )
+            allowed_changes.append(
+                {
+                    "path": path,
+                    "category": _OUTCOME_BLIND_AMENDABLE_PATH_CATEGORIES[path],
+                    "old_sha256": entry.sha256,
+                    "new_sha256": new_sha256,
+                    "old_git_blob_sha256": old_git_blob_sha256,
+                    "new_git_blob_sha256": new_git_blob_sha256,
+                }
+            )
+        elif new_git_blob_sha256 != old_git_blob_sha256:
+            raise RuntimeError(
+                f"unlisted protected path differs at amendment commit: {path}"
+            )
+
+    original_tree_paths = git_tree_paths(repo_root, original_runner)
+    amendment_tree_paths = git_tree_paths(repo_root, amendment_code_commit)
+    preexisting = _outcome_blind_gate_artifacts_in_tree(
+        amendment_tree_paths, lock
+    )
+    if preexisting:
+        raise RuntimeError(
+            "amendment code commit does not predate pre-open/stage-2/sealed "
+            f"artifacts: {sorted(preexisting)[:5]}"
+        )
+    allowed_changes = sorted(allowed_changes, key=lambda item: item["path"])
+    amendment_documents: list[dict[str, str]] = []
+    for path in _OUTCOME_BLIND_AMENDMENT_DOCUMENT_PATHS:
+        if path in original_tree_paths or path not in amendment_tree_paths:
+            raise RuntimeError(
+                "amendment documents must be added exactly with the amendment code: "
+                f"{path}"
+            )
+        amendment_documents.append(
+            {
+                "path": path,
+                "sha256": sha256_file(repo_root / path),
+                "git_blob_sha256": git_file_sha256(
+                    repo_root, amendment_code_commit, path
+                ),
+            }
+        )
+    amendment_documents = sorted(
+        amendment_documents, key=lambda item: item["path"]
+    )
+    parents = git_commit_parents(repo_root, amendment_code_commit)
+    if len(parents) != 1:
+        raise RuntimeError("amendment code commit must have exactly one parent")
+    amendment_commit_paths = git_all_diff_paths(
+        repo_root, parents[0], amendment_code_commit
+    )
+    expected_amendment_commit_paths = {
+        *changed,
+        *_OUTCOME_BLIND_AMENDMENT_DOCUMENT_PATHS,
+    }
+    if amendment_commit_paths != expected_amendment_commit_paths:
+        raise RuntimeError(
+            "amendment code commit must contain only its declared protected edits "
+            "and bound documents: "
+            f"missing={sorted(expected_amendment_commit_paths - amendment_commit_paths)[:5]}, "
+            f"extra={sorted(amendment_commit_paths - expected_amendment_commit_paths)[:5]}"
+        )
+    protected_original = [
+        {"path": path, "sha256": entry.sha256}
+        for path, entry in sorted(entries.items())
+    ]
+    return {
+        "schema_version": OUTCOME_BLIND_AMENDMENT_SCHEMA_VERSION,
+        "status": "locked_before_preopen_stage2_or_sealed_artifacts",
+        "purpose": "outcome_blind_audit_corrections_only",
+        "stage1_lock": {
+            "path": stage1_lock_path,
+            "sha256": original_lock_sha256,
+            "git_blob_sha256": original_lock_git_blob_sha256,
+            "payload_sha256": sha256_json(lock),
+        },
+        "original_runner_code_commit": original_runner,
+        "amendment_code_commit": amendment_code_commit,
+        "immutable_study_configuration_sha256": (
+            _immutable_study_configuration_sha256(lock)
+        ),
+        "original_protected_paths_sha256": sha256_json(protected_original),
+        "allowed_changes": allowed_changes,
+        "allowed_changes_sha256": sha256_json(allowed_changes),
+        "amendment_documents": amendment_documents,
+        "amendment_documents_sha256": sha256_json(amendment_documents),
+        "artifact_timing_policy": {
+            "fixed_gate_paths": sorted(_outcome_blind_gate_paths(lock)),
+            "sealed_artifact_roots": list(_OUTCOME_BLIND_SEALED_ARTIFACT_ROOTS),
+            "sealed_name_markers": list(_OUTCOME_BLIND_SEALED_NAME_MARKERS),
+            "non_result_script_suffixes": list(
+                _OUTCOME_BLIND_NON_RESULT_SUFFIXES
+            ),
+            "amendment_must_precede_every_matching_artifact": True,
+        },
+        "attestations": {
+            "sealed_or_validation_open_outcomes_inspected": False,
+            "method_or_intervention_construction_changed": False,
+            "existing_direction_artifacts_must_not_be_rebuilt": True,
+            "original_runner_identity_must_be_retained": True,
+            "claim_threshold_or_method_configuration_changed": False,
+        },
+    }
+
+
+def build_outcome_blind_amendment_manifest(
+    repo_root: Path,
+    lock: Mapping[str, Any],
+    *,
+    stage1_lock_path: Path | str,
+    amendment_code_commit: str | None = None,
+) -> dict[str, Any]:
+    """Build, but never write, the canonical protected-code amendment payload."""
+
+    repo_root = repo_root.resolve()
+    stage1_relative = _repo_relative_path(
+        repo_root, stage1_lock_path, field="stage-1 lock path"
+    )
+    on_disk = _json_object(repo_root / stage1_relative, field="stage-1 lock")
+    if canonical_json_bytes(on_disk) != canonical_json_bytes(dict(lock)):
+        raise RuntimeError("amendment builder lock differs from the stage-1 file")
+    code_commit = git_commit(repo_root) if amendment_code_commit is None else amendment_code_commit
+    payload = _canonical_outcome_blind_amendment_payload(
+        repo_root,
+        lock,
+        stage1_lock_path=stage1_relative,
+        amendment_code_commit=code_commit,
+    )
+    if sha256_file(repo_root / stage1_relative) != payload["stage1_lock"]["sha256"]:
+        raise RuntimeError("working tree stage-1 lock differs from its original bytes")
+    protected = {
+        stage1_relative,
+        *(_stage1_entry_index(repo_root, lock)),
+        *_OUTCOME_BLIND_AMENDMENT_DOCUMENT_PATHS,
+    }
+    if git_diff_paths(
+        repo_root, code_commit, git_commit(repo_root), tuple(sorted(protected))
+    ):
+        raise RuntimeError("protected paths changed after the amendment code commit")
+    effective = {
+        item["path"]: item["new_sha256"] for item in payload["allowed_changes"]
+    }
+    for path, entry in _stage1_entry_index(repo_root, lock).items():
+        HashEntry(path, effective.get(path, entry.sha256)).verify(repo_root)
+    for document in payload["amendment_documents"]:
+        HashEntry(str(document["path"]), str(document["sha256"])).verify(repo_root)
+    preexisting = _current_outcome_blind_gate_artifacts(repo_root, lock)
+    if preexisting:
+        raise RuntimeError(
+            "cannot lock an outcome-blind amendment after pre-open/stage-2/sealed "
+            f"artifacts exist: {sorted(preexisting)[:5]}"
+        )
+    required = {stage1_relative, *protected}
+    untracked = sorted(required - git_tracked_paths(repo_root))
+    if untracked:
+        raise RuntimeError(
+            f"outcome-blind amendment inputs are not Git-tracked: {untracked[:5]}"
+        )
+    dirty = sorted(required & set(git_dirty_paths(repo_root)))
+    if dirty:
+        raise RuntimeError(
+            f"outcome-blind amendment inputs are dirty: {dirty[:5]}"
+        )
+    return payload
+
+
+def _verified_outcome_blind_amendment(
+    repo_root: Path,
+    lock: Mapping[str, Any],
+    *,
+    stage1_lock_path: Path | str,
+    required: bool,
+) -> dict[str, Any] | None:
+    stage1_relative = _repo_relative_path(
+        repo_root, stage1_lock_path, field="stage-1 lock path"
+    )
+    amendment_relative = OUTCOME_BLIND_AMENDMENT_PATH
+    amendment_path = repo_root / amendment_relative
+    if not amendment_path.is_file():
+        if required:
+            raise RuntimeError(
+                "protected stage-1 bytes changed without the required outcome-blind "
+                "amendment manifest"
+            )
+        return None
+    manifest = _json_object(amendment_path, field="outcome-blind amendment")
+    code_commit = manifest.get("amendment_code_commit")
+    if not _valid_commit(code_commit):
+        raise RuntimeError("outcome-blind amendment has an invalid code commit")
+    rebuilt = _canonical_outcome_blind_amendment_payload(
+        repo_root,
+        lock,
+        stage1_lock_path=stage1_relative,
+        amendment_code_commit=str(code_commit),
+    )
+    if canonical_json_bytes(rebuilt) != canonical_json_bytes(manifest):
+        raise RuntimeError("outcome-blind amendment is not the canonical locked payload")
+    manifest_commits = git_path_commits(repo_root, amendment_relative)
+    if len(manifest_commits) != 1 or not _valid_commit(manifest_commits[0]):
+        raise RuntimeError(
+            "outcome-blind amendment manifest must be introduced exactly once"
+        )
+    amendment_lock_commit = manifest_commits[0]
+    head = git_commit(repo_root)
+    if (
+        amendment_lock_commit == code_commit
+        or not git_is_ancestor(repo_root, str(code_commit), amendment_lock_commit)
+        or not git_is_ancestor(repo_root, amendment_lock_commit, head)
+    ):
+        raise RuntimeError(
+            "outcome-blind amendment lock must be committed after its code and "
+            "before current HEAD"
+        )
+    if git_commit_parents(repo_root, amendment_lock_commit) != [str(code_commit)]:
+        raise RuntimeError(
+            "outcome-blind amendment lock commit must be the direct child of its "
+            "code commit"
+        )
+    if git_all_diff_paths(
+        repo_root, str(code_commit), amendment_lock_commit
+    ) != {amendment_relative}:
+        raise RuntimeError(
+            "outcome-blind amendment lock commit may add only the canonical manifest"
+        )
+    lock_tree_artifacts = _outcome_blind_gate_artifacts_in_tree(
+        git_tree_paths(repo_root, amendment_lock_commit), lock
+    )
+    if lock_tree_artifacts:
+        raise RuntimeError(
+            "outcome-blind amendment lock commit contains a pre-open/stage-2/sealed "
+            f"artifact: {sorted(lock_tree_artifacts)[:5]}"
+        )
+
+    entries = _stage1_entry_index(repo_root, lock)
+    protected = {
+        stage1_relative,
+        *entries,
+        *_OUTCOME_BLIND_AMENDMENT_DOCUMENT_PATHS,
+    }
+    changed_after_code = git_diff_paths(
+        repo_root, str(code_commit), head, tuple(sorted(protected))
+    )
+    if changed_after_code:
+        raise RuntimeError(
+            "protected paths changed after the amendment code commit: "
+            f"{sorted(changed_after_code)[:5]}"
+        )
+    effective = {
+        item["path"]: item["new_sha256"] for item in manifest["allowed_changes"]
+    }
+    if sha256_file(repo_root / stage1_relative) != manifest["stage1_lock"]["sha256"]:
+        raise RuntimeError("original stage-1 lock bytes changed after amendment")
+    for path, entry in entries.items():
+        HashEntry(path, effective.get(path, entry.sha256)).verify(repo_root)
+    for document in manifest["amendment_documents"]:
+        HashEntry(str(document["path"]), str(document["sha256"])).verify(repo_root)
+
+    current_tree_artifacts = _outcome_blind_gate_artifacts_in_tree(
+        git_tree_paths(repo_root, head), lock
+    )
+    for path in sorted(current_tree_artifacts):
+        commits = git_path_commits(repo_root, path)
+        if not commits or not _valid_commit(commits[-1]):
+            raise RuntimeError(f"gated artifact lacks committed provenance: {path}")
+        introduced = commits[-1]
+        if introduced == amendment_lock_commit or not git_is_ancestor(
+            repo_root, amendment_lock_commit, introduced
+        ):
+            raise RuntimeError(
+                "pre-open/stage-2/sealed artifact predates the outcome-blind "
+                f"amendment lock: {path}"
+            )
+
+    required_paths = {
+        amendment_relative,
+        stage1_relative,
+        *entries,
+        *_OUTCOME_BLIND_AMENDMENT_DOCUMENT_PATHS,
+    }
+    untracked = sorted(required_paths - git_tracked_paths(repo_root))
+    if untracked:
+        raise RuntimeError(
+            f"outcome-blind amendment paths are not Git-tracked: {untracked[:5]}"
+        )
+    dirty = sorted(required_paths & set(git_dirty_paths(repo_root)))
+    if dirty:
+        raise RuntimeError(
+            f"outcome-blind amendment paths are dirty: {dirty[:5]}"
+        )
+    return {
+        "path": amendment_relative,
+        "sha256": sha256_file(amendment_path),
+        "original_runner_code_commit": manifest["original_runner_code_commit"],
+        "amendment_code_commit": str(code_commit),
+        "amendment_lock_commit": amendment_lock_commit,
+        "allowed_changes_sha256": manifest["allowed_changes_sha256"],
+        "effective_hashes": effective,
+    }
+
+
+def verify_outcome_blind_amendment(
+    repo_root: Path,
+    lock: Mapping[str, Any],
+    *,
+    stage1_lock_path: Path | str,
+) -> dict[str, Any]:
+    """Verify and return the immutable public binding for the amendment lock."""
+
+    verified = _verified_outcome_blind_amendment(
+        repo_root.resolve(),
+        lock,
+        stage1_lock_path=stage1_lock_path,
+        required=True,
+    )
+    if verified is None:  # pragma: no cover - required=True fails first
+        raise RuntimeError("outcome-blind amendment verification unexpectedly failed")
+    return {
+        key: verified[key]
+        for key in (
+            "path",
+            "sha256",
+            "original_runner_code_commit",
+            "amendment_code_commit",
+            "amendment_lock_commit",
+            "allowed_changes_sha256",
+        )
+    }
+
+
+def _outcome_blind_amendment_binding(
+    repo_root: Path,
+    lock: Mapping[str, Any],
+    *,
+    stage1_lock_path: Path | str,
+) -> dict[str, Any] | None:
+    verified = _verified_outcome_blind_amendment(
+        repo_root,
+        lock,
+        stage1_lock_path=stage1_lock_path,
+        required=False,
+    )
+    if verified is None:
+        return None
+    return {
+        key: verified[key]
+        for key in (
+            "path",
+            "sha256",
+            "original_runner_code_commit",
+            "amendment_code_commit",
+            "amendment_lock_commit",
+            "allowed_changes_sha256",
+        )
+    }
+
+
+def _protected_provenance_baseline(
+    runner_code_commit: str, amendment: Mapping[str, Any] | None
+) -> str:
+    return (
+        runner_code_commit
+        if amendment is None
+        else str(amendment["amendment_lock_commit"])
+    )
+
+
 def verify_stage1_lock(repo_root: Path, lock_path: Path) -> dict[str, Any]:
     lock_relative = _repo_relative_path(repo_root, lock_path, field="stage-1 lock path")
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
@@ -447,6 +1105,7 @@ def verify_stage1_lock(repo_root: Path, lock_path: Path) -> dict[str, Any]:
 
     validate_locked_jspace_config(lock)
     entries = stage1_hash_entries(lock)
+    entry_index = _stage1_entry_index(repo_root, lock)
     locked_implementation_paths = {
         _repo_relative_path(repo_root, entry.path, field="stage-1 implementation path")
         for entry in entries
@@ -460,8 +1119,29 @@ def verify_stage1_lock(repo_root: Path, lock_path: Path) -> dict[str, Any]:
             "stage-1 implementation hashes omit comparison code/tests: "
             f"{missing_implementations[:5]}"
         )
-    for entry in entries:
-        entry.verify(repo_root)
+    mismatched = {
+        path
+        for path, entry in entry_index.items()
+        if not (repo_root / path).is_file()
+        or sha256_file(repo_root / path) != entry.sha256
+    }
+    amendment = _verified_outcome_blind_amendment(
+        repo_root,
+        lock,
+        stage1_lock_path=lock_relative,
+        required=bool(mismatched),
+    )
+    effective_hashes = (
+        {} if amendment is None else amendment["effective_hashes"]
+    )
+    if set(effective_hashes) != mismatched:
+        raise RuntimeError(
+            "outcome-blind amendment paths do not exactly equal current protected "
+            f"hash changes: missing={sorted(mismatched - set(effective_hashes))[:5]}, "
+            f"extra={sorted(set(effective_hashes) - mismatched)[:5]}"
+        )
+    for path, entry in entry_index.items():
+        HashEntry(path, effective_hashes.get(path, entry.sha256)).verify(repo_root)
     if lock.get("no_post_result_tuning") is not True:
         raise ValueError("comparison lock must prohibit post-result tuning")
     required_tracked = {
@@ -471,6 +1151,8 @@ def verify_stage1_lock(repo_root: Path, lock_path: Path) -> dict[str, Any]:
             for entry in entries
         ),
     }
+    if amendment is not None:
+        required_tracked.add(str(amendment["path"]))
     tracked = git_tracked_paths(repo_root)
     untracked = sorted(required_tracked - tracked)
     if untracked:
@@ -561,6 +1243,8 @@ class VerifiedPreopen:
         "_capability_token",
         "artifact_freeze_commit",
         "manifest_sha256",
+        "outcome_blind_amendment_lock_commit",
+        "outcome_blind_amendment_sha256",
         "runner_code_commit",
         "runner_parent_commit",
         "stage1_lock_sha256",
@@ -578,6 +1262,7 @@ class VerifiedPreopen:
         runner_code_commit: str,
         artifact_freeze_commit: str,
         stage1_lock_sha256: str,
+        outcome_blind_amendment: Mapping[str, Any] | None,
         approved_setups: Sequence[Mapping[str, Any]],
         token: object,
     ) -> VerifiedPreopen:
@@ -591,6 +1276,16 @@ class VerifiedPreopen:
         instance.runner_parent_commit = runner_code_commit
         instance.artifact_freeze_commit = artifact_freeze_commit
         instance.stage1_lock_sha256 = stage1_lock_sha256
+        instance.outcome_blind_amendment_lock_commit = (
+            None
+            if outcome_blind_amendment is None
+            else str(outcome_blind_amendment["amendment_lock_commit"])
+        )
+        instance.outcome_blind_amendment_sha256 = (
+            None
+            if outcome_blind_amendment is None
+            else str(outcome_blind_amendment["sha256"])
+        )
         instance._approved_setups = tuple(
             copy.deepcopy(dict(item)) for item in approved_setups
         )
@@ -609,6 +1304,8 @@ class VerifiedStage2:
         "artifact_freeze_commit",
         "environment_lock_sha256",
         "manifest_sha256",
+        "outcome_blind_amendment_lock_commit",
+        "outcome_blind_amendment_sha256",
         "protected_paths_sha256",
         "random_controls_sha256",
         "runner_code_commit",
@@ -638,6 +1335,7 @@ class VerifiedStage2:
         approved_setups: Sequence[Mapping[str, Any]],
         method_status_records: Sequence[Mapping[str, Any]],
         random_controls_sha256: str,
+        outcome_blind_amendment: Mapping[str, Any] | None,
         token: object,
     ) -> VerifiedStage2:
         if token is not _VERIFIED_STAGE2_TOKEN:
@@ -658,6 +1356,16 @@ class VerifiedStage2:
             copy.deepcopy(dict(item)) for item in method_status_records
         )
         instance.random_controls_sha256 = random_controls_sha256
+        instance.outcome_blind_amendment_lock_commit = (
+            None
+            if outcome_blind_amendment is None
+            else str(outcome_blind_amendment["amendment_lock_commit"])
+        )
+        instance.outcome_blind_amendment_sha256 = (
+            None
+            if outcome_blind_amendment is None
+            else str(outcome_blind_amendment["sha256"])
+        )
         instance._capability_token = token
         return instance
 
@@ -1339,35 +2047,29 @@ def _verify_calibration_summary(
 
     frozen_paths = {CALIBRATION_BUILDER_PATH}
     grid_plan_record = validation.get("forced_grid_plan_artifact")
-    grid_plan: Mapping[str, Any] | None = None
-    grid_plan_relative: str | None = None
-    planned_grid_shard_names: set[str] = set()
-    if grid_plan_record is not None:
-        if (
-            not isinstance(grid_plan_record, Mapping)
-            or not grid_plan_record.get("path")
-            or not _valid_digest(grid_plan_record.get("sha256"))
-        ):
-            raise RuntimeError(f"{label} forced grid plan artifact is invalid")
-        grid_plan_relative = _repo_relative_path(
-            repo_root,
-            str(grid_plan_record["path"]),
-            field=f"{label} forced grid plan path",
-        )
-        HashEntry(grid_plan_relative, str(grid_plan_record["sha256"])).verify(
-            repo_root
-        )
-        grid_plan = _json_object(
-            repo_root / grid_plan_relative, field=f"{label} forced grid plan"
-        )
-        planned_grid_shard_names = {
-            str(point["shard_name"])
-            for point in grid_plan.get("points", [])
-            if isinstance(point, Mapping) and point.get("shard_name")
-        }
-        if not planned_grid_shard_names:
-            raise RuntimeError(f"{label} forced grid plan has no point shard names")
-        frozen_paths.add(grid_plan_relative)
+    if (
+        not isinstance(grid_plan_record, Mapping)
+        or not grid_plan_record.get("path")
+        or not _valid_digest(grid_plan_record.get("sha256"))
+    ):
+        raise RuntimeError(f"{label} forced grid plan artifact is invalid")
+    grid_plan_relative = _repo_relative_path(
+        repo_root,
+        str(grid_plan_record["path"]),
+        field=f"{label} forced grid plan path",
+    )
+    HashEntry(grid_plan_relative, str(grid_plan_record["sha256"])).verify(repo_root)
+    grid_plan = _json_object(
+        repo_root / grid_plan_relative, field=f"{label} forced grid plan"
+    )
+    planned_grid_shard_names = {
+        str(point["shard_name"])
+        for point in grid_plan.get("points", [])
+        if isinstance(point, Mapping) and point.get("shard_name")
+    }
+    if not planned_grid_shard_names:
+        raise RuntimeError(f"{label} forced grid plan has no point shard names")
+    frozen_paths.add(grid_plan_relative)
 
     def read_artifacts(
         records: Any,
@@ -1401,7 +2103,6 @@ def _verify_calibration_summary(
             HashEntry(relative, str(record["sha256"])).verify(repo_root)
             if (
                 validated_grid_shards
-                and grid_plan is not None
                 and Path(relative).name in planned_grid_shard_names
             ):
                 from .comparison_grid import load_validated_point_rows
@@ -1417,7 +2118,7 @@ def _verify_calibration_summary(
                 rows = _read_jsonl_objects(
                     repo_root / relative, label=f"{label} {artifact_label} artifact"
                 )
-                if validated_grid_shards and grid_plan is not None:
+                if validated_grid_shards:
                     interpolation = validation.get("interpolation_recheck")
                     if (
                         interpolation_artifact_seen
@@ -1455,7 +2156,6 @@ def _verify_calibration_summary(
             frozen_paths.add(relative)
         if (
             validated_grid_shards
-            and grid_plan is not None
             and validation.get("interpolation_recheck") is not None
             and not interpolation_artifact_seen
         ):
@@ -1566,14 +2266,10 @@ def _verify_calibration_summary(
         mode=track,
         forced_result_rows_artifacts=forced_records,
         open_result_rows_artifacts=open_records,
-        forced_grid_plan_artifact=(
-            None
-            if grid_plan_record is None
-            else {
-                "path": grid_plan_relative,
-                "sha256": str(grid_plan_record["sha256"]),
-            }
-        ),
+        forced_grid_plan_artifact={
+            "path": grid_plan_relative,
+            "sha256": str(grid_plan_record["sha256"]),
+        },
         calibration_config_sha256=calibration_config_sha256,
         builder_module_sha256=str(builder["module_sha256"]),
         interpolation_recheck_rows=(
@@ -2664,35 +3360,29 @@ def _preopen_summary_record(
     rows: list[dict[str, Any]] = []
     frozen_paths = {relative, CALIBRATION_BUILDER_PATH}
     grid_plan_record = summary.get("forced_grid_plan_artifact")
-    grid_plan: Mapping[str, Any] | None = None
-    grid_plan_relative: str | None = None
-    planned_grid_shard_names: set[str] = set()
-    if grid_plan_record is not None:
-        if (
-            not isinstance(grid_plan_record, Mapping)
-            or not grid_plan_record.get("path")
-            or not _valid_digest(grid_plan_record.get("sha256"))
-        ):
-            raise RuntimeError("pre-open forced grid plan artifact is invalid")
-        grid_plan_relative = _repo_relative_path(
-            repo_root,
-            str(grid_plan_record["path"]),
-            field="pre-open forced grid plan path",
-        )
-        HashEntry(grid_plan_relative, str(grid_plan_record["sha256"])).verify(
-            repo_root
-        )
-        grid_plan = _json_object(
-            repo_root / grid_plan_relative, field="pre-open forced grid plan"
-        )
-        planned_grid_shard_names = {
-            str(point["shard_name"])
-            for point in grid_plan.get("points", [])
-            if isinstance(point, Mapping) and point.get("shard_name")
-        }
-        if not planned_grid_shard_names:
-            raise RuntimeError("pre-open forced grid plan has no point shard names")
-        frozen_paths.add(grid_plan_relative)
+    if (
+        not isinstance(grid_plan_record, Mapping)
+        or not grid_plan_record.get("path")
+        or not _valid_digest(grid_plan_record.get("sha256"))
+    ):
+        raise RuntimeError("pre-open forced grid plan artifact is invalid")
+    grid_plan_relative = _repo_relative_path(
+        repo_root,
+        str(grid_plan_record["path"]),
+        field="pre-open forced grid plan path",
+    )
+    HashEntry(grid_plan_relative, str(grid_plan_record["sha256"])).verify(repo_root)
+    grid_plan = _json_object(
+        repo_root / grid_plan_relative, field="pre-open forced grid plan"
+    )
+    planned_grid_shard_names = {
+        str(point["shard_name"])
+        for point in grid_plan.get("points", [])
+        if isinstance(point, Mapping) and point.get("shard_name")
+    }
+    if not planned_grid_shard_names:
+        raise RuntimeError("pre-open forced grid plan has no point shard names")
+    frozen_paths.add(grid_plan_relative)
     interpolation_artifact_seen = False
     for index, item in enumerate(artifact_records):
         if (
@@ -2707,23 +3397,22 @@ def _preopen_summary_record(
         if artifact_path in frozen_paths:
             raise RuntimeError("pre-open forced artifact path is duplicated")
         HashEntry(artifact_path, str(item["sha256"])).verify(repo_root)
-        if grid_plan is None or Path(artifact_path).name not in planned_grid_shard_names:
+        if Path(artifact_path).name not in planned_grid_shard_names:
             artifact_rows = _read_jsonl_objects(
                 repo_root / artifact_path, label="pre-open forced artifact"
             )
-            if grid_plan is not None:
-                interpolation = summary.get("interpolation_recheck")
-                if (
-                    interpolation_artifact_seen
-                    or not isinstance(interpolation, Mapping)
-                    or calibration_rows_sha256(artifact_rows)
-                    != interpolation.get("rows_sha256")
-                ):
-                    raise RuntimeError(
-                        "pre-open non-grid forced artifact is not the single locked "
-                        "interpolation recheck"
-                    )
-                interpolation_artifact_seen = True
+            interpolation = summary.get("interpolation_recheck")
+            if (
+                interpolation_artifact_seen
+                or not isinstance(interpolation, Mapping)
+                or calibration_rows_sha256(artifact_rows)
+                != interpolation.get("rows_sha256")
+            ):
+                raise RuntimeError(
+                    "pre-open non-grid forced artifact is not the single locked "
+                    "interpolation recheck"
+                )
+            interpolation_artifact_seen = True
         else:
             from .comparison_grid import load_validated_point_rows
 
@@ -2740,8 +3429,7 @@ def _preopen_summary_record(
         )
         frozen_paths.add(artifact_path)
     if (
-        grid_plan is not None
-        and summary.get("interpolation_recheck") is not None
+        summary.get("interpolation_recheck") is not None
         and not interpolation_artifact_seen
     ):
         raise RuntimeError("pre-open summary omits the locked interpolation recheck artifact")
@@ -2830,14 +3518,10 @@ def _preopen_summary_record(
         mode=track,
         forced_result_rows_artifacts=normalized_artifacts,
         open_result_rows_artifacts=[],
-        forced_grid_plan_artifact=(
-            None
-            if grid_plan_relative is None
-            else {
-                "path": grid_plan_relative,
-                "sha256": str(grid_plan_record["sha256"]),
-            }
-        ),
+        forced_grid_plan_artifact={
+            "path": grid_plan_relative,
+            "sha256": str(grid_plan_record["sha256"]),
+        },
         calibration_config_sha256=calibration_hash,
         builder_module_sha256=str(builder["module_sha256"]),
         interpolation_recheck_rows=(
@@ -2934,6 +3618,10 @@ def _preopen_summary_record(
                 for layer, digest in sorted(construction_by_layer.items())
             },
             "forced_result_rows_artifacts": normalized_artifacts,
+            "forced_grid_plan_artifact": {
+                "path": grid_plan_relative,
+                "sha256": str(grid_plan_record["sha256"]),
+            },
             "allowed_open_setups": allowed,
         },
         frozen_paths,
@@ -3049,34 +3737,37 @@ def _preopen_direction_index(
 
 
 def _infer_runner_code_commit_from_calibration(
-    repo_root: Path, calibration_summary_paths: Sequence[Path | str]
+    repo_root: Path,
+    lock: Mapping[str, Any],
+    calibration_summary_paths: Sequence[Path | str],
 ) -> str:
+    from .comparison_grid import _validate_plan
+
     commits: set[str] = set()
     for summary_path in calibration_summary_paths:
         relative = _repo_relative_path(
             repo_root, summary_path, field="calibration summary path"
         )
         summary = _json_object(repo_root / relative, field="calibration summary")
-        artifacts = summary.get("forced_result_rows_artifacts")
-        if not isinstance(artifacts, list) or not artifacts:
-            raise RuntimeError("calibration summary lacks forced result artifacts")
-        for record in artifacts:
-            if not isinstance(record, Mapping) or not record.get("path"):
-                raise RuntimeError("calibration summary has an invalid forced artifact")
-            rows_path = _repo_relative_path(
-                repo_root,
-                str(record["path"]),
-                field="forced result rows path",
-            )
-            commits.update(
-                str(row.get("runner_commit"))
-                for row in _read_jsonl_objects(
-                    repo_root / rows_path, label="forced result rows"
-                )
-            )
+        plan_record = summary.get("forced_grid_plan_artifact")
+        if (
+            not isinstance(plan_record, Mapping)
+            or not plan_record.get("path")
+            or not _valid_digest(plan_record.get("sha256"))
+        ):
+            raise RuntimeError("calibration summary lacks a valid forced grid plan")
+        plan_relative = _repo_relative_path(
+            repo_root,
+            str(plan_record["path"]),
+            field="forced grid plan path",
+        )
+        HashEntry(plan_relative, str(plan_record["sha256"])).verify(repo_root)
+        plan = _json_object(repo_root / plan_relative, field="forced grid plan")
+        _validate_plan(plan, lock, repo_root=repo_root)
+        commits.add(str(plan.get("runner_commit")))
     if len(commits) != 1:
         raise RuntimeError(
-            "forced calibration rows do not share one runner code commit"
+            "forced grid plans do not share one runner code commit"
         )
     runner_code_commit = next(iter(commits))
     if (
@@ -3110,9 +3801,14 @@ def build_preopen_manifest(
     verified_lock = verify_stage1_lock(repo_root, repo_root / stage1_relative)
     if canonical_json_bytes(verified_lock) != canonical_json_bytes(dict(lock)):
         raise RuntimeError("pre-open builder lock differs from verified stage-1 bytes")
+    outcome_blind_amendment = _outcome_blind_amendment_binding(
+        repo_root,
+        verified_lock,
+        stage1_lock_path=stage1_relative,
+    )
     runner_code = (
         _infer_runner_code_commit_from_calibration(
-            repo_root, calibration_summary_paths
+            repo_root, verified_lock, calibration_summary_paths
         )
         if runner_parent_commit is None
         else runner_parent_commit
@@ -3126,6 +3822,18 @@ def build_preopen_manifest(
         )
     ):
         raise RuntimeError("pre-open runner code must be a 40-character commit")
+    if (
+        outcome_blind_amendment is not None
+        and runner_code
+        != outcome_blind_amendment["original_runner_code_commit"]
+    ):
+        raise RuntimeError(
+            "pre-open rows must retain the original runner identity from before "
+            "the outcome-blind amendment"
+        )
+    protected_baseline = _protected_provenance_baseline(
+        runner_code, outcome_blind_amendment
+    )
     artifact_freeze = (
         git_commit(repo_root)
         if artifact_freeze_commit is None
@@ -3139,7 +3847,9 @@ def build_preopen_manifest(
             for character in artifact_freeze.lower()
         )
         or artifact_freeze == runner_code
+        or artifact_freeze == protected_baseline
         or not git_is_ancestor(repo_root, runner_code, artifact_freeze)
+        or not git_is_ancestor(repo_root, protected_baseline, artifact_freeze)
     ):
         raise RuntimeError(
             "pre-open artifact freeze must be a later descendant of the runner code"
@@ -3210,6 +3920,8 @@ def build_preopen_manifest(
             for entry in stage1_hash_entries(verified_lock)
         ),
     }
+    if outcome_blind_amendment is not None:
+        required_protected.add(str(outcome_blind_amendment["path"]))
     protected_paths = [
         {"path": path, "sha256": sha256_file(repo_root / path)}
         for path in sorted(required_protected)
@@ -3222,9 +3934,14 @@ def build_preopen_manifest(
     if not git_is_ancestor(repo_root, artifact_freeze, current):
         raise RuntimeError("current HEAD does not descend from the artifact freeze")
     if git_diff_paths(
-        repo_root, runner_code, current, tuple(sorted(required_protected))
+        repo_root,
+        protected_baseline,
+        current,
+        tuple(sorted(required_protected)),
     ):
-        raise RuntimeError("runner code/protocol changed before the pre-open lock")
+        raise RuntimeError(
+            "runner code/protocol changed after its effective provenance lock"
+        )
     frozen_names = {item["path"] for item in frozen_artifact_paths}
     if git_diff_paths(
         repo_root, artifact_freeze, current, tuple(sorted(frozen_names))
@@ -3246,6 +3963,7 @@ def build_preopen_manifest(
         "stage1_lock_sha256": stage1_sha,
         "stage1_lock_payload_sha256": sha256_json(verified_lock),
         "runner_code_commit": runner_code,
+        "outcome_blind_amendment": outcome_blind_amendment,
         "artifact_freeze_commit": artifact_freeze,
         "source_calibration_summaries": sorted(
             summary_records,
@@ -3318,10 +4036,20 @@ def verify_preopen_manifest(
     )
     if canonical_json_bytes(rebuilt) != canonical_json_bytes(manifest):
         raise RuntimeError("pre-open manifest is not the canonical locked rebuild")
+    outcome_blind_amendment = manifest.get("outcome_blind_amendment")
+    if outcome_blind_amendment is not None and not isinstance(
+        outcome_blind_amendment, Mapping
+    ):
+        raise TypeError("pre-open outcome_blind_amendment must be an object or null")
+    protected_baseline = _protected_provenance_baseline(
+        runner_code, outcome_blind_amendment
+    )
     head = git_commit(repo_root)
     if (
         runner_code == artifact_freeze
+        or protected_baseline == artifact_freeze
         or not git_is_ancestor(repo_root, runner_code, artifact_freeze)
+        or not git_is_ancestor(repo_root, protected_baseline, artifact_freeze)
         or not git_is_ancestor(repo_root, artifact_freeze, head)
         or artifact_freeze == head
     ):
@@ -3354,11 +4082,12 @@ def verify_preopen_manifest(
         HashEntry(artifact_relative, str(item["sha256"])).verify(repo_root)
         frozen.add(artifact_relative)
     changed = git_diff_paths(
-        repo_root, runner_code, head, tuple(sorted(protected))
+        repo_root, protected_baseline, head, tuple(sorted(protected))
     )
     if changed:
         raise RuntimeError(
-            f"pre-open protected paths changed after freezing: {sorted(changed)[:5]}"
+            "pre-open protected paths changed after their effective provenance "
+            f"lock: {sorted(changed)[:5]}"
         )
     changed_frozen = git_diff_paths(
         repo_root, artifact_freeze, head, tuple(sorted(frozen))
@@ -3380,6 +4109,7 @@ def verify_preopen_manifest(
         runner_code_commit=runner_code,
         artifact_freeze_commit=artifact_freeze,
         stage1_lock_sha256=str(manifest["stage1_lock_sha256"]),
+        outcome_blind_amendment=outcome_blind_amendment,
         approved_setups=manifest["allowed_open_setups"],
         token=_VERIFIED_PREOPEN_TOKEN,
     )
@@ -3478,6 +4208,17 @@ def build_stage2_manifest(
     preopen_payload = _json_object(
         repo_root / preopen_relative, field="verified pre-open manifest"
     )
+    outcome_blind_amendment = _outcome_blind_amendment_binding(
+        repo_root,
+        verified_lock,
+        stage1_lock_path=stage1_relative,
+    )
+    if canonical_json_bytes(outcome_blind_amendment) != canonical_json_bytes(
+        preopen_payload.get("outcome_blind_amendment")
+    ):
+        raise RuntimeError(
+            "stage-2 builder outcome-blind amendment differs from pre-open"
+        )
     runner_code = (
         verified_preopen.runner_code_commit
         if runner_parent_commit is None
@@ -3485,6 +4226,15 @@ def build_stage2_manifest(
     )
     if runner_code != verified_preopen.runner_code_commit:
         raise RuntimeError("stage-2 runner parent differs from the verified pre-open lock")
+    if (
+        outcome_blind_amendment is not None
+        and runner_code
+        != outcome_blind_amendment["original_runner_code_commit"]
+    ):
+        raise RuntimeError("stage-2 must retain the original construction runner")
+    protected_baseline = _protected_provenance_baseline(
+        runner_code, outcome_blind_amendment
+    )
     artifact_freeze = (
         git_commit(repo_root)
         if artifact_freeze_commit is None
@@ -3498,7 +4248,9 @@ def build_stage2_manifest(
             for character in artifact_freeze.lower()
         )
         or artifact_freeze == runner_code
+        or artifact_freeze == protected_baseline
         or not git_is_ancestor(repo_root, runner_code, artifact_freeze)
+        or not git_is_ancestor(repo_root, protected_baseline, artifact_freeze)
     ):
         raise RuntimeError(
             "stage-2 artifact freeze must be a later descendant of the runner code"
@@ -3577,6 +4329,7 @@ def build_stage2_manifest(
             "pre_open_decision_sha256",
             "candidate_directions",
             "forced_result_rows_artifacts",
+            "forced_grid_plan_artifact",
         ):
             if canonical_json_bytes(summary.get(field)) != canonical_json_bytes(
                 frozen_summary.get(field)
@@ -3749,14 +4502,21 @@ def build_stage2_manifest(
             for entry in stage1_hash_entries(verified_lock)
         ),
     }
+    if outcome_blind_amendment is not None:
+        required_protected.add(str(outcome_blind_amendment["path"]))
     frozen_artifact_names.difference_update(required_protected)
     current = git_commit(repo_root)
     if not git_is_ancestor(repo_root, artifact_freeze, current):
         raise RuntimeError("current HEAD does not descend from stage-2 artifact freeze")
     if git_diff_paths(
-        repo_root, runner_code, current, tuple(sorted(required_protected))
+        repo_root,
+        protected_baseline,
+        current,
+        tuple(sorted(required_protected)),
     ):
-        raise RuntimeError("runner code/protocol changed before stage-two freezing")
+        raise RuntimeError(
+            "runner code/protocol changed after its effective provenance lock"
+        )
     if git_diff_paths(
         repo_root, artifact_freeze, current, tuple(sorted(frozen_artifact_names))
     ):
@@ -3784,6 +4544,7 @@ def build_stage2_manifest(
         "environment_lock_path": environment_relative,
         "environment_lock_sha256": sha256_file(environment_path),
         "runner_code_commit": runner_code,
+        "outcome_blind_amendment": outcome_blind_amendment,
         "artifact_freeze_commit": artifact_freeze,
         "protected_paths": [
             {"path": path, "sha256": sha256_file(repo_root / path)}
@@ -3862,6 +4623,17 @@ def verify_stage2_manifest(
     verified_lock = verify_stage1_lock(repo_root, repo_root / stage1_relative)
     if canonical_json_bytes(verified_lock) != canonical_json_bytes(dict(lock)):
         raise RuntimeError("supplied stage-1 lock differs from the verified locked file")
+    outcome_blind_amendment = _outcome_blind_amendment_binding(
+        repo_root,
+        verified_lock,
+        stage1_lock_path=stage1_relative,
+    )
+    if canonical_json_bytes(outcome_blind_amendment) != canonical_json_bytes(
+        manifest.get("outcome_blind_amendment")
+    ):
+        raise RuntimeError(
+            "stage-2 outcome-blind amendment differs from current protected code"
+        )
 
     if not _valid_digest(manifest["preopen_manifest_sha256"]):
         raise RuntimeError("stage-2 manifest has invalid preopen_manifest_sha256")
@@ -3876,6 +4648,13 @@ def verify_stage2_manifest(
     verified_preopen = verify_preopen_manifest(
         repo_root, verified_lock, repo_root / preopen_relative
     )
+    preopen_payload = _json_object(
+        repo_root / preopen_relative, field="verified pre-open manifest"
+    )
+    if canonical_json_bytes(outcome_blind_amendment) != canonical_json_bytes(
+        preopen_payload.get("outcome_blind_amendment")
+    ):
+        raise RuntimeError("stage-2 outcome-blind amendment differs from pre-open")
 
     runner_code = manifest.get("runner_code_commit")
     artifact_freeze = manifest.get("artifact_freeze_commit")
@@ -3896,10 +4675,21 @@ def verify_stage2_manifest(
         raise RuntimeError("stage-2 manifest lacks valid commit identities")
     if runner_code != verified_preopen.runner_code_commit:
         raise RuntimeError("stage-2 runner code differs from the pre-open lock")
+    if (
+        outcome_blind_amendment is not None
+        and runner_code
+        != outcome_blind_amendment["original_runner_code_commit"]
+    ):
+        raise RuntimeError("stage-2 changed the original construction runner identity")
+    protected_baseline = _protected_provenance_baseline(
+        runner_code, outcome_blind_amendment
+    )
     head = git_commit(repo_root)
     if (
         runner_code == artifact_freeze
+        or protected_baseline == artifact_freeze
         or not git_is_ancestor(repo_root, runner_code, artifact_freeze)
+        or not git_is_ancestor(repo_root, protected_baseline, artifact_freeze)
         or not git_is_ancestor(repo_root, artifact_freeze, head)
         or artifact_freeze == head
     ):
@@ -3939,13 +4729,15 @@ def verify_stage2_manifest(
             for entry in stage1_hash_entries(verified_lock)
         ),
     }
+    if outcome_blind_amendment is not None:
+        required_protected.add(str(outcome_blind_amendment["path"]))
     missing_protected = sorted(required_protected - protected_names)
     if missing_protected:
         raise RuntimeError(
             f"stage-2 protected paths omit stage-1 inputs/code: {missing_protected[:5]}"
         )
     changed_protected = git_diff_paths(
-        repo_root, runner_code, head, tuple(sorted(protected_names))
+        repo_root, protected_baseline, head, tuple(sorted(protected_names))
     )
     if changed_protected:
         raise RuntimeError(
@@ -4058,6 +4850,7 @@ def verify_stage2_manifest(
             "pre_open_decision_sha256",
             "candidate_directions",
             "forced_result_rows_artifacts",
+            "forced_grid_plan_artifact",
         ):
             if canonical_json_bytes(final_summary.get(field)) != canonical_json_bytes(
                 frozen_summary.get(field)
@@ -4215,6 +5008,7 @@ def verify_stage2_manifest(
         approved_setups=[*main_approved_setups, *random_approved_setups],
         method_status_records=method_status_records,
         random_controls_sha256=sha256_json(random_controls),
+        outcome_blind_amendment=outcome_blind_amendment,
         token=_VERIFIED_STAGE2_TOKEN,
     )
 
