@@ -1,0 +1,170 @@
+{
+  "schema_version": "sp_lense.bipo_warmup_sensitivity.lock.v2",
+  "status": "locked_outcome_blind_unrun",
+  "study_id": "qwen35_bipo_warmup_fraction_sensitivity_v1",
+  "locked_date_utc": "2026-08-25",
+  "lock_attestation": {
+    "model_execution_performed_for_this_sensitivity": false,
+    "behavioral_outcomes_viewed_for_this_sensitivity": false,
+    "confirmatory_results_modified": false,
+    "protected_parent_files_modified": false,
+    "only_preregistered_training_change": "warmup_steps_100_to_11",
+    "postconfirmatory_evaluation_protocol_authored_before_main_final_results": true,
+    "postconfirmatory_model_execution_performed": false,
+    "postconfirmatory_outcomes_viewed": false
+  },
+  "required_file_paths": [
+    "experiments/bipo_warmup_sensitivity/.gitignore",
+    "experiments/bipo_warmup_sensitivity/PROTOCOL.md",
+    "experiments/bipo_warmup_sensitivity/README.md",
+    "experiments/bipo_warmup_sensitivity/config.json",
+    "experiments/bipo_warmup_sensitivity/scripts/evaluate_sensitivity.py",
+    "experiments/bipo_warmup_sensitivity/scripts/run.ps1",
+    "experiments/bipo_warmup_sensitivity/scripts/run_sensitivity.py",
+    "experiments/bipo_warmup_sensitivity/tests/test_postconfirm_evaluation.py",
+    "experiments/bipo_warmup_sensitivity/tests/test_sensitivity_lock.py"
+  ],
+  "file_manifest": [
+    {
+      "path": "experiments/bipo_warmup_sensitivity/.gitignore",
+      "sha256": "fce65d00bcfdac49ba6b5282e38c26cdc23e00727b94b86040f7fa46b9909d7e"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/PROTOCOL.md",
+      "sha256": "47a81af41be3b00ad8d703bf6d69ce5f014d726ce4cd7950b0a9a3d9edebec4f"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/README.md",
+      "sha256": "98767707e09885c8cf82fe4a70036b17c78367d4b7e35168c7b5c23a9013f942"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/config.json",
+      "sha256": "30f8ba38148581ff949f46179d51cb2b46b25a93ea4f56906251bbc60039ad01"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/scripts/evaluate_sensitivity.py",
+      "sha256": "757c04d524029aa611fdcb256bfb7fb9f5365a29658478bd14df4eb61995ef4f"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/scripts/run.ps1",
+      "sha256": "95ad808577daeabb0e11b3dfa46f018915c2caa0962e4b9325f15157bc1caf1d"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/scripts/run_sensitivity.py",
+      "sha256": "5d00c3d9d3a2583d525f00e9e228ad3dc1749e17ee07113853c4761fdc7de4db"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/tests/test_postconfirm_evaluation.py",
+      "sha256": "6c719ba86bd16b1e5feddc1661fdfff00729e33f6a381dd14c80b0d9d3fb1113"
+    },
+    {
+      "path": "experiments/bipo_warmup_sensitivity/tests/test_sensitivity_lock.py",
+      "sha256": "4d5403664bc1666f3c8f8c305563dca58ad1c7b964cb63b9a7cc946f86938f4a"
+    }
+  ],
+  "immutable_source_bindings": [
+    {
+      "path": "configs/steering_comparison_lock.json",
+      "sha256": "20be2027e4f20811bdae27f79933b1b6f70ef0748888cf81993457091c864cb2"
+    },
+    {
+      "path": "configs/steering_comparison_outcome_blind_amendment.json",
+      "sha256": "b2377050f6de1ed166d98d1fb22f51567b92301b540214948c8d081089bb872b"
+    },
+    {
+      "path": "data/steering_comparison_cases.json",
+      "sha256": "e6229738fe54e3553874bdd663a460c0a57d3d01ff3874e94f5fac757b17d57f"
+    },
+    {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    {
+      "path": "configs/qwen35_2b_aligned.json",
+      "sha256": "cc6f3358e89094a9c206fccf5963cbabac98800a103e9ea6c5d0e9aceb3494b8"
+    },
+    {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc"
+    },
+    {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a"
+    },
+    {
+      "path": "src/sp_lense/comparison_dataset.py",
+      "sha256": "9d2ded5451680c07a796563a09788bca8675002d2b85593aac5fa939fd1b18be"
+    },
+    {
+      "path": "src/sp_lense/comparison_bipo.py",
+      "sha256": "f524f3d017825ff7a2018136f81d4e9dc60421c18e90b5d9bd7b079eec33f7dc"
+    },
+    {
+      "path": "src/sp_lense/comparison_fit.py",
+      "sha256": "bc51eee661bc4829af7dbf73f61262bf45c762962ec726f1579cce6bc58a7317"
+    },
+    {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    {
+      "path": "src/sp_lense/comparison_evaluate.py",
+      "sha256": "715f38d822dc924896e7d28386577cd43d33289ea99817a01146fbd5886c39b6"
+    },
+    {
+      "path": "src/sp_lense/comparison_analysis.py",
+      "sha256": "380c4988d5ca3725c560c853543dfc11061d5eda7b5021a39174c879839265d4"
+    },
+    {
+      "path": "src/sp_lense/comparison_behavior.py",
+      "sha256": "04cc66e74cda239ae56d4e10cbe18a26b147d9fe59ca3d56e181ae7b8861f51d"
+    },
+    {
+      "path": "src/sp_lense/comparison_calibration.py",
+      "sha256": "8f11f2c3973c7d3abf95e14f6a8f204689122036845a5da4c45b92e842bbb135"
+    },
+    {
+      "path": "src/sp_lense/comparison_workflow.py",
+      "sha256": "6ae49259aae797c2a4dd29dd70569f2d6c1815e454647b19c62e58b07f6e1d4c"
+    },
+    {
+      "path": "src/sp_lense/comparison_intervention.py",
+      "sha256": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43"
+    },
+    {
+      "path": "src/sp_lense/comparison_provenance.py",
+      "sha256": "1da275877772e4b1d2a9af47e375905d76eb1b7ad14065dca797e96ef046d1ae"
+    },
+    {
+      "path": "src/sp_lense/steering_methods.py",
+      "sha256": "24804f86e963d040c342457b345ea8223d4a0c07a83750307bf98b638daefb55"
+    },
+    {
+      "path": "src/sp_lense/io_utils.py",
+      "sha256": "dc1b95e0befb2bbf7d18bd25faa24937795f64c9118821d8d44ab578d011eff0"
+    },
+    {
+      "path": "data/open_behavior_judge_protocol.json",
+      "sha256": "044b8d6e85a1172f5a6525f517f861bef6803ffebe8e5781428bdf06d7a10389"
+    },
+    {
+      "path": "artifacts/steering_comparison/locked_open_orchestration.py",
+      "sha256": "ea3aabf7c5f171f81a57637320c59bd858b01000f2549f2a398bc8562d3a20a9"
+    }
+  ],
+  "firewall": {
+    "analysis_tier": "secondary_sensitivity_only",
+    "confirmatory_winner_ranking_eligible": false,
+    "automatic_confirmatory_ingestion_allowed": false,
+    "sensitivity_method_id": "bipo_warmup11_sensitivity",
+    "output_root": "experiments/bipo_warmup_sensitivity/outputs",
+    "evaluation_output_root": "experiments/bipo_warmup_sensitivity/evaluation_outputs",
+    "forbidden_output_root": "artifacts/steering_comparison",
+    "sensitivity_manifest_filename": "sensitivity_manifest.json",
+    "confirmatory_manifest_filename_forbidden": "direction_manifest.json",
+    "main_report_builder_import_allowed": false,
+    "main_ranking_update_allowed": false,
+    "postconfirmatory_gate_requires_pushed_origin_main_equality": true,
+    "secondary_report_manifest_filename": "secondary_sensitivity_manifest.json"
+  }
+}
