@@ -1,0 +1,129 @@
+{
+  "schema_version": "sp_lense.comparison.outcome_blind_protected_code_amendment.v1",
+  "status": "locked_before_preopen_stage2_or_sealed_artifacts",
+  "purpose": "outcome_blind_audit_corrections_only",
+  "stage1_lock": {
+    "path": "configs/steering_comparison_lock.json",
+    "sha256": "20be2027e4f20811bdae27f79933b1b6f70ef0748888cf81993457091c864cb2",
+    "git_blob_sha256": "20be2027e4f20811bdae27f79933b1b6f70ef0748888cf81993457091c864cb2",
+    "payload_sha256": "7c04fd784d459d0d3be263514d8ea64d7aa9fdc63e9aacc1ebd34e0ebdae872b"
+  },
+  "original_runner_code_commit": "8f4f1a14e41f812ce5fd98a9cfb4d348e6c1509d",
+  "amendment_code_commit": "e058c282a12603163219b94bf07b61cd92254bad",
+  "immutable_study_configuration_sha256": "65be16c62e2bba758676f6ad8aa9b34802f8772e485f9b6f71fb0f4bcf300a61",
+  "original_protected_paths_sha256": "fa3be5892731367787d67d2fa40373e57e4a2b06facab6353598fac387bd4c18",
+  "allowed_changes": [
+    {
+      "path": "src/sp_lense/comparison_calibration.py",
+      "category": "calibration_provenance",
+      "old_sha256": "c390d73f8e1a400b8f351f8d1f1899365c00191ffa6d5809ba4476cdc2d36bf0",
+      "new_sha256": "8f11f2c3973c7d3abf95e14f6a8f204689122036845a5da4c45b92e842bbb135",
+      "old_git_blob_sha256": "c390d73f8e1a400b8f351f8d1f1899365c00191ffa6d5809ba4476cdc2d36bf0",
+      "new_git_blob_sha256": "8f11f2c3973c7d3abf95e14f6a8f204689122036845a5da4c45b92e842bbb135"
+    },
+    {
+      "path": "src/sp_lense/comparison_cli.py",
+      "category": "cli",
+      "old_sha256": "f60744fbece99d5e31b433cd49ccdda59d86b24e4c26191a23c8f8df8b8c514a",
+      "new_sha256": "7fd89212a2250137cba42110ded4d649dfa93ed19af39da2355ea7ece1716ddd",
+      "old_git_blob_sha256": "f60744fbece99d5e31b433cd49ccdda59d86b24e4c26191a23c8f8df8b8c514a",
+      "new_git_blob_sha256": "7fd89212a2250137cba42110ded4d649dfa93ed19af39da2355ea7ece1716ddd"
+    },
+    {
+      "path": "src/sp_lense/comparison_provenance.py",
+      "category": "provenance",
+      "old_sha256": "c6b5d96eb3bb5c2ff1d5d032e2b3acea567939b4ad5ec56ecc3c96eaa7eeb839",
+      "new_sha256": "1da275877772e4b1d2a9af47e375905d76eb1b7ad14065dca797e96ef046d1ae",
+      "old_git_blob_sha256": "c6b5d96eb3bb5c2ff1d5d032e2b3acea567939b4ad5ec56ecc3c96eaa7eeb839",
+      "new_git_blob_sha256": "1da275877772e4b1d2a9af47e375905d76eb1b7ad14065dca797e96ef046d1ae"
+    },
+    {
+      "path": "src/sp_lense/comparison_report.py",
+      "category": "reporting",
+      "old_sha256": "602f5b997313c6966edb539264bd697e9f387e03157e84732385fe5d35aaa25d",
+      "new_sha256": "80c1003cbd3ef10d34b0c4efeb37da5dc16591ba55c862682b70429f59b18150",
+      "old_git_blob_sha256": "602f5b997313c6966edb539264bd697e9f387e03157e84732385fe5d35aaa25d",
+      "new_git_blob_sha256": "80c1003cbd3ef10d34b0c4efeb37da5dc16591ba55c862682b70429f59b18150"
+    },
+    {
+      "path": "tests/test_comparison_calibration.py",
+      "category": "test",
+      "old_sha256": "1bcd5db360a38dc3142cb6f0af217632db00180690aec3c3db0210d50e39beb4",
+      "new_sha256": "a9e972c6fa0aabe6a32b964ca2df26c19fba8a47e72df7023a549dfc7411d682",
+      "old_git_blob_sha256": "1bcd5db360a38dc3142cb6f0af217632db00180690aec3c3db0210d50e39beb4",
+      "new_git_blob_sha256": "a9e972c6fa0aabe6a32b964ca2df26c19fba8a47e72df7023a549dfc7411d682"
+    },
+    {
+      "path": "tests/test_comparison_cli.py",
+      "category": "test",
+      "old_sha256": "dba5ec7756398d34a922ebf1ec58180a799f55376c183b2d09b8bf03a029e061",
+      "new_sha256": "3b66fa1fe0bac50f86b15e4bd4de355cca45137cb8f3aced1a89051bbbe6104e",
+      "old_git_blob_sha256": "dba5ec7756398d34a922ebf1ec58180a799f55376c183b2d09b8bf03a029e061",
+      "new_git_blob_sha256": "3b66fa1fe0bac50f86b15e4bd4de355cca45137cb8f3aced1a89051bbbe6104e"
+    },
+    {
+      "path": "tests/test_comparison_provenance.py",
+      "category": "test",
+      "old_sha256": "035367ab709101ae448d8478c220592a8b8f95df6387379b044cc7813ce2c60e",
+      "new_sha256": "cf77478d51ce49c0e1b2dce8205a00fcc0851769351f85d561758a7faeb49146",
+      "old_git_blob_sha256": "035367ab709101ae448d8478c220592a8b8f95df6387379b044cc7813ce2c60e",
+      "new_git_blob_sha256": "cf77478d51ce49c0e1b2dce8205a00fcc0851769351f85d561758a7faeb49146"
+    },
+    {
+      "path": "tests/test_comparison_report.py",
+      "category": "test",
+      "old_sha256": "2fe6788b96b1adb52df53b5eefa24e85d4d452b1a3ee36d9b7f456aa3a568e60",
+      "new_sha256": "54b39805141786af9bef35137b86e430364aa9053023fecd2de7a16546508619",
+      "old_git_blob_sha256": "2fe6788b96b1adb52df53b5eefa24e85d4d452b1a3ee36d9b7f456aa3a568e60",
+      "new_git_blob_sha256": "54b39805141786af9bef35137b86e430364aa9053023fecd2de7a16546508619"
+    }
+  ],
+  "allowed_changes_sha256": "fa223b0ce3af2e2a517f6e59f524f443c46a20c701a66edb714760c02d374868",
+  "amendment_documents": [
+    {
+      "path": "docs/STEERING_COMPARISON_FORCED_GRID_PROVENANCE_AMENDMENT.md",
+      "sha256": "cbc9c368585492916ac87551aee5fe571cb3effc81e9fb71617faeb7c0805081",
+      "git_blob_sha256": "cbc9c368585492916ac87551aee5fe571cb3effc81e9fb71617faeb7c0805081"
+    },
+    {
+      "path": "docs/STEERING_COMPARISON_OPERATIONAL_SAFETY_AMENDMENT.md",
+      "sha256": "5394b909dbcd424e6a022fb17cd4f84153abddca71fddd62705e35c82226d322",
+      "git_blob_sha256": "5394b909dbcd424e6a022fb17cd4f84153abddca71fddd62705e35c82226d322"
+    },
+    {
+      "path": "docs/STEERING_COMPARISON_REPORTING_AMENDMENT.md",
+      "sha256": "7c1f33393c653e9fad38170350258aefeecb0d0f65c184efb7834bf3c00b2d3a",
+      "git_blob_sha256": "7c1f33393c653e9fad38170350258aefeecb0d0f65c184efb7834bf3c00b2d3a"
+    }
+  ],
+  "amendment_documents_sha256": "7416361ce27034d397f5f29b07265108600ff3903187e23305e3e5cf03df78ad",
+  "artifact_timing_policy": {
+    "fixed_gate_paths": [
+      "configs/steering_comparison_preopen_lock.json",
+      "configs/steering_comparison_stage2_lock.json"
+    ],
+    "sealed_artifact_roots": [
+      "artifacts/steering_comparison/",
+      "results/steering_comparison/"
+    ],
+    "sealed_name_markers": [
+      "sealed",
+      "final_report"
+    ],
+    "non_result_script_suffixes": [
+      ".bat",
+      ".cmd",
+      ".ps1",
+      ".py",
+      ".sh"
+    ],
+    "amendment_must_precede_every_matching_artifact": true
+  },
+  "attestations": {
+    "sealed_or_validation_open_outcomes_inspected": false,
+    "method_or_intervention_construction_changed": false,
+    "existing_direction_artifacts_must_not_be_rebuilt": true,
+    "original_runner_identity_must_be_retained": true,
+    "claim_threshold_or_method_configuration_changed": false
+  }
+}
