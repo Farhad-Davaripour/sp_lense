@@ -10,7 +10,7 @@
     "model_config_sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
     "protocol_sha256": "12282f3b91ceb9a663d7269ed12b6f404c1e7baad6896be61596e447a5dbb55e",
     "module_sha256": "d2ef11f521fe0e2d8aa1a4597354a7e788b0b87b02f3646e9156c04003ef2e84",
-    "runner_sha256": "351a719d6a15fba4797522dc61b035ee05fcde975deeb06ff4cc5a5812330e15"
+    "runner_sha256": "63141cce0f8f80565f99f69a6da0f78e6b6c2efd8aef2e715732d53ec82a9f22"
   },
   "model": {
     "id": "Qwen/Qwen3.5-0.8B",
@@ -89,6 +89,13 @@
     "validation_freeze_must_be_committed_before_sealed": true,
     "sealed_split_model_scored_at_most_once_with_hash_bound_crash_resume": true
   },
+  "pre_outcome_amendments": [
+    {
+      "reason": "TransformerLens supplies the HookPoint through the keyword named hook; the initial callback used an incompatible underscore parameter and raised before the first gradient or decision was produced.",
+      "scope": "Rename the two local callback parameters to hook and discard that value; no mathematical, prompt, dataset, threshold, or analysis rule changed.",
+      "model_outcomes_produced_or_viewed_before_amendment": false
+    }
+  ],
   "claim_boundaries": [
     "No natural self-preservation mechanism or motive claim",
     "No persistent-goal or open-ended behavior claim",

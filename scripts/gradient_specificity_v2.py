@@ -315,7 +315,8 @@ def _capture_choice_raw_ab_gradient(
         raise ValueError("choice labels must be exactly A and B")
     captured: dict[str, Any] = {"hook_calls": 0}
 
-    def hook(activation: Any, _: Any) -> Any:
+    def hook(activation: Any, hook: Any) -> Any:
+        del hook
         captured["hook_calls"] += 1
         leaf = activation.detach().requires_grad_(True)
         captured["activation"] = leaf
@@ -370,7 +371,8 @@ def _capture_completion_mean_logprob_gradient(
         raise ValueError("completion has no content tokens")
     captured: dict[str, Any] = {"hook_calls": 0}
 
-    def hook(activation: Any, _: Any) -> Any:
+    def hook(activation: Any, hook: Any) -> Any:
+        del hook
         captured["hook_calls"] += 1
         leaf = activation.detach().requires_grad_(True)
         captured["activation"] = leaf
