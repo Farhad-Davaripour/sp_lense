@@ -354,7 +354,7 @@ def _capture_completion_mean_logprob_gradient(
     *,
     layer: int,
     assistant_end_token_ids: Sequence[int],
-) -> tuple[Any, dict[str, Any]]:
+) -> tuple[Any, Any, dict[str, Any]]:
     torch = backend.torch
     prompt_tokens, tokens = encode_prompt_and_completion(
         backend, prompt, completion, include_chat_end=True
@@ -395,7 +395,7 @@ def _capture_completion_mean_logprob_gradient(
     residual_norm = residual.norm()
     raw_gradient = gradient.detach().float().cpu().contiguous()
     backend.model.zero_grad(set_to_none=True)
-    return raw_gradient, {
+    return raw_gradient, residual.detach().cpu().float().contiguous(), {
         "mean_log_probability": float(objective.detach().item()),
         "content_token_count": len(completion_ids),
         "content_token_ids_sha256": canonical_sha256(completion_ids),
@@ -407,6 +407,37 @@ def _capture_completion_mean_logprob_gradient(
         "residual_norm": float(residual_norm.item()),
         "prompt_residual_sha256": tensor_sha256(residual),
         "raw_gradient_sha256": tensor_sha256(raw_gradient),
+        "elapsed_seconds": time.perf_counter() - started,
+    }
+
+
+def _capture_prompt_residual(
+    backend: Any, prompt: str, *, layer: int
+) -> tuple[Any, dict[str, Any]]:
+    torch = backend.torch
+    tokens = backend.encode(prompt)
+    captured: dict[str, Any] = {"hook_calls": 0}
+
+    def hook(activation: Any, hook: Any) -> Any:
+        del hook
+        captured["hook_calls"] += 1
+        captured["activation"] = activation.detach()
+        return activation
+
+    started = time.perf_counter()
+    with torch.inference_mode(), backend.model.hooks(
+        fwd_hooks=[(f"blocks.{layer}.hook_out", hook)]
+    ):
+        backend.model(tokens)
+    if captured["hook_calls"] != 1:
+        raise RuntimeError(f"residual hook fired {captured['hook_calls']} times, expected once")
+    residual = captured["activation"][0, -1].detach().cpu().float().contiguous()
+    return residual, {
+        "prompt_token_ids_sha256": canonical_sha256(
+            [int(value) for value in tokens[0].tolist()]
+        ),
+        "prompt_residual_sha256": tensor_sha256(residual),
+        "residual_norm": float(residual.norm().item()),
         "elapsed_seconds": time.perf_counter() - started,
     }
 
@@ -431,28 +462,53 @@ def capture_discovery() -> None:
                 completion_form = render_completion_form(
                     case, assignment=assignment, target=target
                 )
-                preserve_gradient, preserve_audit = _capture_completion_mean_logprob_gradient(
+                prompt_residual, prompt_residual_audit = _capture_prompt_residual(
+                    backend,
+                    completion_form["prompt"],
+                    layer=layer,
+                )
+                (
+                    preserve_gradient,
+                    preserve_residual,
+                    preserve_audit,
+                ) = _capture_completion_mean_logprob_gradient(
                     backend,
                     completion_form["prompt"],
                     completion_form["preserve_completion"],
                     layer=layer,
                     assistant_end_token_ids=assistant_end_token_ids,
                 )
-                comply_gradient, comply_audit = _capture_completion_mean_logprob_gradient(
+                (
+                    comply_gradient,
+                    comply_residual,
+                    comply_audit,
+                ) = _capture_completion_mean_logprob_gradient(
                     backend,
                     completion_form["prompt"],
                     completion_form["comply_completion"],
                     layer=layer,
                     assistant_end_token_ids=assistant_end_token_ids,
                 )
-                if (
-                    preserve_audit["prompt_residual_sha256"]
-                    != comply_audit["prompt_residual_sha256"]
-                ):
-                    raise RuntimeError("completion continuations changed the causal prompt residual")
-                common_residual_norm = float(preserve_audit["residual_norm"])
-                if common_residual_norm != float(comply_audit["residual_norm"]):
-                    raise RuntimeError("completion continuations changed the prompt residual norm")
+                reference_norm = max(float(prompt_residual.norm().item()), 1e-12)
+                preserve_relative_difference = float(
+                    (preserve_residual - prompt_residual).norm().item() / reference_norm
+                )
+                comply_relative_difference = float(
+                    (comply_residual - prompt_residual).norm().item() / reference_norm
+                )
+                continuation_relative_difference = float(
+                    (preserve_residual - comply_residual).norm().item() / reference_norm
+                )
+                maximum_causal_residual_difference = max(
+                    preserve_relative_difference,
+                    comply_relative_difference,
+                    continuation_relative_difference,
+                )
+                if maximum_causal_residual_difference > 1e-5:
+                    raise RuntimeError(
+                        "completion sequence length changed the causal prompt residual beyond tolerance"
+                    )
+                common_residual_norm = float(prompt_residual_audit["residual_norm"])
                 completion_gradient = (
                     common_residual_norm * (preserve_gradient - comply_gradient)
                 ).float().contiguous()
@@ -466,6 +522,12 @@ def capture_discovery() -> None:
                     "effective_gradient_sha256": tensor_sha256(completion_gradient),
                     "effective_gradient_norm": float(completion_gradient.norm().item()),
                     "common_residual_norm": common_residual_norm,
+                    "prompt_only_residual": prompt_residual_audit,
+                    "preserve_vs_prompt_residual_relative_l2": preserve_relative_difference,
+                    "comply_vs_prompt_residual_relative_l2": comply_relative_difference,
+                    "preserve_vs_comply_residual_relative_l2": continuation_relative_difference,
+                    "maximum_causal_residual_relative_l2": maximum_causal_residual_difference,
+                    "maximum_allowed_causal_residual_relative_l2": 1e-5,
                     "gradient_convention": "residual_scaled_mean_logp_preserve_minus_comply",
                     "preserve": preserve_audit,
                     "comply": comply_audit,

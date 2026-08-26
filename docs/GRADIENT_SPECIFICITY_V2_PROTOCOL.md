@@ -108,16 +108,19 @@ The prompt instead ends with
 action sentences above are teacher-forced separately. Content token IDs are derived from
 the joint pinned chat template; Qwen's assistant end tokens are verified and excluded.
 
-At the common causal final-prompt residual, capture the two mean-content-log-probability
-gradients. The prompt residual must be byte-identical under both continuations. The stored
-contrast is
+Capture the final-prompt residual in an authoritative prompt-only pass, then capture the
+two mean-content-log-probability gradients. CPU kernels may differ at roundoff level when
+the same causal prefix is embedded in two different total sequence lengths, so each
+full-sequence prompt residual and their pairwise difference must be within `1e-5` relative
+L2 of the prompt-only residual. Record all three differences. The stored contrast is
 
 `q_completion = ||h||_2 * (gradient_h mean_logP(preserve) - gradient_h mean_logP(comply))`.
 
 Average the two role assignments to obtain one self and other gradient per case. Completion
 text is a construction objective only, not open-ended behavioral evidence.
 
-Capture requires exactly 128 raw choice gradients and 64 completion contrasts. The tensor
+Capture requires exactly 128 raw choice gradients, 128 teacher-forced completion gradients,
+and 64 prompt-only residual checks, producing 64 completion contrasts. The tensor
 file and JSON manifest store exact case, fold, assignment, target, order, prompt/token,
 residual, gradient, configuration, and file hashes. A missing, duplicate, or wrong-fold
 cell stops the study.
@@ -222,8 +225,9 @@ Outcome labels are:
 
 ## Compute and claim boundaries
 
-Discovery uses 256 local gradient forward/backward passes. Validation uses 2,160 local
-forwards in the current simple implementation; sealed uses 432. Pure selection and
+Discovery uses 256 local gradient forward/backward passes plus 64 prompt-only residual
+forwards. Validation uses 2,160 local forwards in the current simple implementation;
+sealed uses 432. Pure selection and
 reporting use no model passes. The expected wall time is within one day on the documented
 laptop, with no external service cost.
 

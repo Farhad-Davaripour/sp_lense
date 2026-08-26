@@ -8,9 +8,9 @@
     "dataset_sha256": "017b2eb7265feeed9cc64ff2611d20a46b5a5e9f9f4786a9f58efc7e4de519d1",
     "source_dataset_sha256": "e6229738fe54e3553874bdd663a460c0a57d3d01ff3874e94f5fac757b17d57f",
     "model_config_sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
-    "protocol_sha256": "12282f3b91ceb9a663d7269ed12b6f404c1e7baad6896be61596e447a5dbb55e",
+    "protocol_sha256": "198eed19165b8b1aabd5e6f0c0246ae66cbc6340c97e7df74d0199e119ea8719",
     "module_sha256": "d2ef11f521fe0e2d8aa1a4597354a7e788b0b87b02f3646e9156c04003ef2e84",
-    "runner_sha256": "63141cce0f8f80565f99f69a6da0f78e6b6c2efd8aef2e715732d53ec82a9f22"
+    "runner_sha256": "c9b186c3c57d4654a0f3ba98b47f259b606935b72e9fd868136de05bdeb820d4"
   },
   "model": {
     "id": "Qwen/Qwen3.5-0.8B",
@@ -78,6 +78,7 @@
   },
   "expected_compute": {
     "discovery_gradient_forward_backward_passes": 256,
+    "discovery_prompt_only_residual_forwards": 64,
     "validation_forwards": 2160,
     "sealed_forwards_if_validation_qualifies": 432,
     "external_api_calls": 0,
@@ -93,6 +94,11 @@
     {
       "reason": "TransformerLens supplies the HookPoint through the keyword named hook; the initial callback used an incompatible underscore parameter and raised before the first gradient or decision was produced.",
       "scope": "Rename the two local callback parameters to hook and discard that value; no mathematical, prompt, dataset, threshold, or analysis rule changed.",
+      "model_outcomes_produced_or_viewed_before_amendment": false
+    },
+    {
+      "reason": "The first completion pair differed only at CPU floating-point roundoff when the same causal prefix was embedded in different total sequence lengths; its residual norms differed by 1.65e-7 relative, so byte equality was not a valid numerical invariant.",
+      "scope": "Use a prompt-only residual norm for residual-relative scaling, record three causal-prefix relative-L2 differences, and fail above 1e-5. Add 64 prompt-only audit forwards. No gradient value or behavioral decision was viewed and no selection or outcome rule changed.",
       "model_outcomes_produced_or_viewed_before_amendment": false
     }
   ],
