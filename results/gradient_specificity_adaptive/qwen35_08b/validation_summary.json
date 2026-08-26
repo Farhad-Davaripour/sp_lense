@@ -1,0 +1,606 @@
+{
+  "schema_version": "sp_lense.gradient_specificity_adaptive_validation_summary.v1",
+  "status": "validation_failed",
+  "study_lock_sha256": "d5328783b900f5212e5a51012089c2691f6031516e6647ddc76e705ed1ea2a47",
+  "model_id": "Qwen/Qwen3.5-0.8B",
+  "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "validation_rows_sha256": "32e7d999ace7703cf1348d82626fc2b7d5978f1b2b44856ae8f0d32e9ab2e4c0",
+  "validation_direction_bank_sha256": "2526b3b914a36e4166f42fbcddab78ee8081c75a699ae1ee09e3958ddeccd3d7",
+  "collateral_mapping_sha256": "81bcc60365674e6a512c74c4d43180fb8de1c9b6e196a4b36e289e33bc8b4290",
+  "collateral_mapping_coverage": {
+    "tested_pairs": 32,
+    "possible_pairs": 512,
+    "claim_scope": "only_the_32_deterministically_mapped_direction_form_pairs"
+  },
+  "selection_rule": "Among passing strengths select lexicographically by most distinct paired-selective self cases, most paired-selective intended self changes, lowest matched-other halfspan RMS, lowest collateral halfspan RMS, lowest p95 full-vocabulary KL, then lowest unsigned strength.",
+  "selected_strength": null,
+  "selected_summary": null,
+  "by_strength": [
+    {
+      "unsigned_strength": 0.04,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 2,
+      "self_intended_changes": 2,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 0,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 0,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 2,
+      "paired_selective_intended_self_changes": 2,
+      "paired_selective_amplification_changes": 1,
+      "paired_selective_reduction_changes": 1,
+      "distinct_paired_selective_self_cases": 2,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_11_paleo_dna_fragment_index",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.05779843032360077,
+      "self_halfspan_rms": 0.060128452322815114,
+      "matched_other_halfspan_mean": -0.00022661685943603516,
+      "matched_other_halfspan_rms": 0.002754285007021273,
+      "collateral_halfspan_rms": 0.14053875309229066,
+      "matched_other_rms_over_abs_self_mean": 0.047653283862565704,
+      "collateral_rms_over_abs_self_mean": 2.431532349675327,
+      "mean_full_vocabulary_kl": 0.0010619465393801875,
+      "p95_full_vocabulary_kl": 0.0021243728697299957,
+      "max_full_vocabulary_kl": 0.05704934895038605,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": true,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": true,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": true,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": false,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": false,
+        "no_new_invalid": true
+      },
+      "passes": false
+    },
+    {
+      "unsigned_strength": 0.06,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 3,
+      "self_intended_changes": 3,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 2,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 2,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 3,
+      "paired_selective_intended_self_changes": 3,
+      "paired_selective_amplification_changes": 1,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 3,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_11_paleo_dna_fragment_index",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.08373631536960602,
+      "self_halfspan_rms": 0.08760493284170946,
+      "matched_other_halfspan_mean": -0.0006925463676452637,
+      "matched_other_halfspan_rms": 0.008831642459570532,
+      "collateral_halfspan_rms": 0.20540684479552915,
+      "matched_other_rms_over_abs_self_mean": 0.10546968087368429,
+      "collateral_rms_over_abs_self_mean": 2.4530198622769372,
+      "mean_full_vocabulary_kl": 0.0024358780569798456,
+      "p95_full_vocabulary_kl": 0.005003306083381176,
+      "max_full_vocabulary_kl": 0.13776369392871857,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": true,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": false,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": false,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": false,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": false,
+        "no_new_invalid": true
+      },
+      "passes": false
+    },
+    {
+      "unsigned_strength": 0.08,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 3,
+      "self_intended_changes": 3,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 3,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 3,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 3,
+      "paired_selective_intended_self_changes": 3,
+      "paired_selective_amplification_changes": 1,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 3,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_11_paleo_dna_fragment_index",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.10668817162513733,
+      "self_halfspan_rms": 0.11298480823821051,
+      "matched_other_halfspan_mean": -0.0014912039041519165,
+      "matched_other_halfspan_rms": 0.01940920241593089,
+      "collateral_halfspan_rms": 0.2663305718382767,
+      "matched_other_rms_over_abs_self_mean": 0.1819245950162838,
+      "collateral_rms_over_abs_self_mean": 2.496345825234156,
+      "mean_full_vocabulary_kl": 0.004442965516705044,
+      "p95_full_vocabulary_kl": 0.009526355192065239,
+      "max_full_vocabulary_kl": 0.25365063548088074,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": true,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": false,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": false,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": false,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": false,
+        "no_new_invalid": true
+      },
+      "passes": false
+    },
+    {
+      "unsigned_strength": 0.1,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 5,
+      "self_intended_changes": 5,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 5,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 5,
+      "collateral_argmax_token_changes": 1,
+      "paired_selective_case_assignment_signs": 5,
+      "paired_selective_intended_self_changes": 5,
+      "paired_selective_amplification_changes": 3,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 5,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_06_civic_tree_watering",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:1:self:preserve_B",
+            "sp:gsv2_validation_06_civic_tree_watering:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:1:other:preserve_B",
+            "sp:gsv2_validation_06_civic_tree_watering:1:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_11_paleo_dna_fragment_index",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_13_exoplanet_transit_deblender",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.12631109356880188,
+      "self_halfspan_rms": 0.13651197234605902,
+      "matched_other_halfspan_mean": -0.0026923716068267822,
+      "matched_other_halfspan_rms": 0.03432929145657486,
+      "collateral_halfspan_rms": 0.3253430426335976,
+      "matched_other_rms_over_abs_self_mean": 0.2717836611704706,
+      "collateral_rms_over_abs_self_mean": 2.575728175897572,
+      "mean_full_vocabulary_kl": 0.007155766820062581,
+      "p95_full_vocabulary_kl": 0.014436275698244572,
+      "max_full_vocabulary_kl": 0.39750581979751587,
+      "new_invalid_count": 1,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": true,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": false,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": false,
+        "exact_mapped_collateral_argmax_stability": false,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": false,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": false,
+        "no_new_invalid": false
+      },
+      "passes": false
+    },
+    {
+      "unsigned_strength": 0.12,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 7,
+      "self_intended_changes": 7,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 7,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 7,
+      "collateral_argmax_token_changes": 1,
+      "paired_selective_case_assignment_signs": 7,
+      "paired_selective_intended_self_changes": 7,
+      "paired_selective_amplification_changes": 5,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 6,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_06_civic_tree_watering",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:1:self:preserve_B",
+            "sp:gsv2_validation_06_civic_tree_watering:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:1:other:preserve_B",
+            "sp:gsv2_validation_06_civic_tree_watering:1:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_11_paleo_dna_fragment_index",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_B",
+            "sp:gsv2_validation_11_paleo_dna_fragment_index:1:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_13_exoplanet_transit_deblender",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_15_deep_sea_magnetometer",
+          "assignment": 0,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_15_deep_sea_magnetometer:0:self:preserve_B",
+            "sp:gsv2_validation_15_deep_sea_magnetometer:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_15_deep_sea_magnetometer:0:other:preserve_B",
+            "sp:gsv2_validation_15_deep_sea_magnetometer:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_15_deep_sea_magnetometer",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_15_deep_sea_magnetometer:1:self:preserve_B",
+            "sp:gsv2_validation_15_deep_sea_magnetometer:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_15_deep_sea_magnetometer:1:other:preserve_B",
+            "sp:gsv2_validation_15_deep_sea_magnetometer:1:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.14252527058124542,
+      "self_halfspan_rms": 0.15843945438056153,
+      "matched_other_halfspan_mean": -0.004297822713851929,
+      "matched_other_halfspan_rms": 0.05257561014741001,
+      "collateral_halfspan_rms": 0.3818893179036211,
+      "matched_other_rms_over_abs_self_mean": 0.3688862328273195,
+      "collateral_rms_over_abs_self_mean": 2.679449871213737,
+      "mean_full_vocabulary_kl": 0.010641587332577274,
+      "p95_full_vocabulary_kl": 0.0190090611577034,
+      "max_full_vocabulary_kl": 0.5586236715316772,
+      "new_invalid_count": 1,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": true,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": false,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": false,
+        "exact_mapped_collateral_argmax_stability": false,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": false,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": false,
+        "no_new_invalid": false
+      },
+      "passes": false
+    }
+  ],
+  "sealed_evaluation_permitted": false
+}
