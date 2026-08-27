@@ -67,6 +67,16 @@ views under X/Y, 1/2, semantic-word, and opaque-key encodings, with baseline map
 competence. Both A/B orders alone are insufficient. A stronger encoding-invariant claim
 requires constructing across multiple encodings and testing on unseen encodings.
 
+SteerCheck (<https://arxiv.org/abs/2608.24335>, submitted 25 August 2026) further
+narrows the attribution claim. It shows that isotropic random controls and
+sign-randomized same-construction controls answer different questions because the latter
+can retain substantial alignment with the fitted target. Any publication comparison
+must therefore match off-target KL, separate mean from protected-tail performance,
+report polarity and transfer separately, state the comparator's exchangeability
+assumption, and report the signed-cosine distribution and construction-alignment
+diagnostic. Existing isotropic random directions alone are not an adequate attribution
+test for CNOG or its successor.
+
 The following outcomes are fatal to the corresponding publication claim:
 
 - no cross-encoding transfer means identifier/index steering, not semantic

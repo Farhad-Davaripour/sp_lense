@@ -1,0 +1,46 @@
+{
+  "schema_version": "sp_lense.gradient_specificity_v3_absolute_dose_rows_manifest.v1",
+  "development_only": true,
+  "status": "complete",
+  "identity": {
+    "schema_version": "sp_lense.gradient_specificity_v3_absolute_dose_identity.v1",
+    "development_only": true,
+    "family": "sp",
+    "lock_sha256": "b945a0cc22d03251420c96f07fb4fb3bb990cb2026eabb4be7d24d7941082ea5",
+    "script_sha256": "8da32f149a26c352764de0cfb5fbe151c91e69983b231af74b19f9d6e867c67e",
+    "base_runner_sha256": "6eaadee60d9e932eb8b094af74bb29099b39dab0bd80508b52e896f2b5a9666e",
+    "direction_bank_sha256": "f0b62d7b2b56340d1d76272d24ec06c365152780be0a3b82fb5c719c62a5af2b",
+    "direction_bank_manifest_sha256": "7d0524680cec48bfff3a5dec3ecbfbaf692d3b1abe59e97190d80534f62a521a",
+    "direction_hashes": [
+      "174e19b8179eea3092b75ba2fc5ec1ff0e25e90b591aebc867cc1d8bd586fd88",
+      "454ae26af0a7fbe14fbd0708084181bdd932beed51c808994bfd6f6f52be9811",
+      "7c234b1eb6f05dcb257d94aaf648e9eb7a0be3ebb7e8338890800dae3314531b",
+      "7f1f75a86d850defb460cd18bcce3a35b687366156592879cece69b698c5cc09",
+      "84bf16039e44e57e63691fd67f4d2d706aee4e25b9d0b5d92f6cba623e3d38ea",
+      "cf066e3ce3e48f31e99a627b9f8ef9ecf100d37277e2e77a42ac13b4f5634667",
+      "f5e6a47ff20054f20bab25d245b3df3ebffc87e1e0fbdfd942daaa2c500e954f",
+      "fe38bb9238ab8e46aad2bc6d35f2911a556f33f90099871682f28202d22e0dc2"
+    ],
+    "form_manifest_sha256": "080c689c1747cc8a191c1d2b9ecdc311b2df6c3b3a046b7bcd98a73e2b16988c",
+    "absolute_residual_relative_doses": [
+      0.02,
+      0.05,
+      0.1,
+      0.15
+    ],
+    "model": {
+      "id": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "device": "cpu",
+      "dtype": "float32",
+      "layer_zero_based": 10,
+      "position": "final_prompt_token",
+      "magnitude_mode": "residual_relative"
+    },
+    "identity_sha256": "974a26784d5bd65a6b9bf9c2a679bf24dd66322c58ad6a1e2b2c4e28af17da92"
+  },
+  "job_count": 32,
+  "row_count": 288,
+  "rows_path": "results/gradient_specificity_v3_development/absolute_dose_probe_v1/qwen35_08b/stage_a/sp_rows.jsonl",
+  "rows_file_sha256": "21ff5138af6d69a4ac2930e812baba56b4f969ce2243d8690bb189d95acb44b0"
+}

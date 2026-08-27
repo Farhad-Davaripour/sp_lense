@@ -1,0 +1,44 @@
+{
+  "schema_version": "sp_lense.gradient_specificity_trust_region_lock.v1",
+  "status": "locked_before_trust_region_execution",
+  "development_only": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "layer_zero_based": 10,
+    "position": "final_prompt_token",
+    "magnitude_mode": "residual_relative"
+  },
+  "absolute_probe_summary": {
+    "path": "results/gradient_specificity_v3_development/absolute_dose_probe_v1/qwen35_08b/stage_a/absolute_dose_summary.json",
+    "sha256": "3b60a01081ded5575015a2b8a6bfb58d020629808d52b6785ed998854ab9faf5",
+    "selected_empirical_trust_radius": 0.1
+  },
+  "optimizer": {
+    "absolute_residual_relative_cap": 0.1,
+    "initial_trust_radius": 0.025,
+    "maximum_trust_radius": 0.05,
+    "minimum_trust_radius": 0.000390625,
+    "target_margin_logit": 0.01,
+    "matched_other_margin_logit": 0.0,
+    "maximum_accepted_iterations": 16,
+    "maximum_backtracks_per_iteration": 8,
+    "acceptance_ratio": 0.1,
+    "high_agreement_ratio": 0.75,
+    "shrink_factor": 0.5,
+    "expansion_factor": 2.0,
+    "individual_violation_tolerance": 1e-06,
+    "maximum_forward_evaluations_per_direction": 512,
+    "maximum_backward_evaluations_per_direction": 128
+  },
+  "protected_limits": {
+    "maximum_exact_greedy_token_changes": 0,
+    "maximum_semantic_decision_changes": 0,
+    "maximum_new_other_outputs": 0,
+    "mean_full_vocabulary_kl_changed_to_baseline": 0.005,
+    "empirical_p95_full_vocabulary_kl_changed_to_baseline": 0.02,
+    "maximum_full_vocabulary_kl_changed_to_baseline": 0.05
+  }
+}

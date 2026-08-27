@@ -117,6 +117,12 @@ both its trust radius and the total L2 cap. Maximum accepted iterations are 16 a
 maximum rejected trials per iterate are eight. Rejection halves the radius. An accepted
 step with actual/predicted merit agreement above 0.75 doubles it up to the maximum.
 
+The one-day development scope also imposes per-direction hard ceilings of 512 actual
+model forward evaluations and 128 backward evaluations. Counters include failed and
+rejected trials. The runner checks the remaining allowance before each operation and
+returns `compute_budget_exhausted` without a successful direction if the next required
+operation would exceed either ceiling.
+
 Target merit is half the sum of squared positive margin violations. A trial is accepted
 only when actual target merit decreases, no individual target violation materially
 worsens, actual/predicted reduction is at least 0.1, and every finite protection below
@@ -180,6 +186,9 @@ from its ingredients alone. A significant contribution requires all of the follo
 - fresh matched-other and unrelated controls not used for fitting or cap selection;
 - a fair matched-dose comparison against the existing gradient, FishBack-style,
   CAA, BiPO, persona, and a protected optimizer baseline;
+- SteerCheck-style matched off-target-KL controls, including both isotropic and
+  sign-randomized same-construction families with their cosine/alignment distributions,
+  exchangeability assumptions, and protected-tail results;
 - component ablations showing that self-versus-other constraints improve the
   efficacy/collateral Pareto frontier; and
 - a no-retuning Qwen3.5-2B replication.
