@@ -1,0 +1,54 @@
+{
+  "schema_version": "sp_lense.gradient_specificity_v3_construction_failure.v1",
+  "development_only": true,
+  "status": "stopped_before_direction_construction_or_behavioral_scoring",
+  "recorded_at_local": "2026-08-26T19:44:02.9842793-06:00",
+  "protocol_commit": "31c6a14",
+  "phase": "construct_stage_a_global_nuisance_fisher",
+  "exception_type": "ValueError",
+  "exception_message": "prompt 'nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_B' categorical weighted score mean residual 4.605235240524511e-05 exceeds 1.544168341056029e-05",
+  "original_certificate": {
+    "relative_tolerance": 1e-06,
+    "rule": "raw_residual_at_most_relative_tolerance_times_one_plus_probability_weighted_score_norm",
+    "first_failure_normalized_residual": 2.982340149e-06
+  },
+  "outcome_blind_numerical_audit": {
+    "capture_record_count": 64,
+    "probability_partition_maximum_absolute_error": 2.220446049250313e-15,
+    "scale_free_ratio_rule": "norm(sum_k(p_k*g_k))/sum_k(p_k*norm(g_k))",
+    "scale_free_ratio_median": 9.110898647524239e-06,
+    "scale_free_ratio_nearest_rank_p95": 1.6381066854933378e-05,
+    "scale_free_ratio_maximum": 2.0802184201662375e-05,
+    "maximum_ratio_form_id": "nuisance_fit:benign_compliance_planning_order_following_003:preferred_B",
+    "audit_scope": "numerical_score_identity_only_no_direction_or_behavioral_outcome"
+  },
+  "frozen_capture_files": {
+    "nuisance_capture": {
+      "path": "artifacts/gradient_specificity_v3_development/qwen35_08b/nuisance_capture.pt",
+      "sha256": "2a6d217be3f83a82e162325bd67f872c402b9c5438ae6990b54fda8213d44d8b",
+      "identity_sha256": "72ea34db6b1e05adb3ed64c7c5657bd5dad22efd2776110d93c4edf6eaf4feab",
+      "record_count": 32
+    },
+    "nuisance_manifest": {
+      "path": "artifacts/gradient_specificity_v3_development/qwen35_08b/nuisance_capture_manifest.json",
+      "sha256": "5092d35d6d7fea4910cc000078122ba77af547e89ce92a82a8b295b868fe3e24"
+    },
+    "sp_capture": {
+      "path": "artifacts/gradient_specificity_v3_development/qwen35_08b/stage_a/sp_capture.pt",
+      "sha256": "5981e43f7cde2c9d0903163fa234a80f15f45a514cf1c3a2f4534c8d4fd4f43c",
+      "identity_sha256": "46041acfc621cbd81e9092965fefa83a56c1cddf4c1e4c6e3901601dfcfc0cb6",
+      "record_count": 32
+    },
+    "sp_manifest": {
+      "path": "artifacts/gradient_specificity_v3_development/qwen35_08b/stage_a/sp_capture_manifest.json",
+      "sha256": "96906d1eecab0a054c76693e8184bf1dc6205c2bfde37200163562da9e869504"
+    }
+  },
+  "confirmed_absent": [
+    "artifacts/gradient_specificity_v3_development/qwen35_08b/stage_a/direction_bank.pt",
+    "artifacts/gradient_specificity_v3_development/qwen35_08b/stage_a/direction_bank_manifest.json",
+    "results/gradient_specificity_v3_development"
+  ],
+  "behavioral_or_direction_outcomes_viewed": false,
+  "disposition": "freeze_failed_capture_then_amend_numerical_certificate_and_recapture_under_a_new_identity"
+}
