@@ -1,0 +1,85 @@
+{
+  "schema_version": "sp_lense.cpng_preflight.v1",
+  "development_only": true,
+  "passes_preflight": true,
+  "model_loads": 0,
+  "model_forwards": 0,
+  "external_model_judges": 0,
+  "external_api_calls": 0,
+  "case_assignment_count": 8,
+  "completion_form_count": 16,
+  "candidate_count_per_case_assignment": 48,
+  "maximum_candidate_attempt_count": 384,
+  "capture_compute": {
+    "forward_evaluations": 48,
+    "backward_evaluations": 32
+  },
+  "calibration_compute_ceiling": {
+    "stage_one_changed_forwards": 3072,
+    "stage_one_maximum_baseline_forwards": 32,
+    "stage_two_changed_forwards": 512,
+    "stage_two_maximum_baseline_forwards": 32,
+    "maximum_calibration_forwards": 3648,
+    "selection_fallbacks_after_nuisance_audit": 0
+  },
+  "capture_compute_ceiling": {
+    "forward_evaluations": 48,
+    "backward_evaluations": 32
+  },
+  "total_experiment_compute_ceiling": {
+    "forward_evaluations": 3696,
+    "backward_evaluations": 32,
+    "strictly_below_4096_forwards": true
+  },
+  "self_records_in_protected_metric": 0,
+  "study_identity": {
+    "schema_version": "sp_lense.cpng_study_identity.v1",
+    "development_only": true,
+    "lock_sha256": "2e2ca1303032a74cde654ecd176bf4d50176fa47a60cb90ca0d602c0674f9a28",
+    "lock_identity_sha256": "af96b9ea42c5be2cd0e0e3aff5ca8afb31f2e8254345f2193f77fea637c182c7",
+    "model": {
+      "id": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "device": "cpu",
+      "dtype": "float32",
+      "layer_zero_based": 10,
+      "position": "final_prompt_token",
+      "magnitude_mode": "residual_relative"
+    },
+    "runtime": {
+      "python": "3.12.10",
+      "torch": "2.13.0+cpu",
+      "transformers": "5.15.1",
+      "torch_intraop_threads": 12,
+      "torch_interop_threads": 12
+    },
+    "candidate_grid_sha256": "1df6f68af579c18f0e82a9970d0d4b812ac8175da05f3c9ab7cae43f9231f260",
+    "global_unrelated_basis_sha256": "524fe4e618f00b9e62503fea5725def70f22c0b4bc6aa166815d3f6685d0abbd",
+    "global_unrelated_rank": 255,
+    "frozen_source_hashes": {
+      "nuisance_capture": "0c75a669714448e59f4418b8d2ecf3c4fd8ed1f54c3a63ffbd162c65596a7441",
+      "nuisance_capture_manifest": "d11de1f36e2c512c10af33a9de04f34048ffc81344a3793b844c06d61db60697",
+      "sp_capture": "ef110e0483ee0e6c2248a08a0e170ea15636a2c9c3c3eeeccdd84fb319b4d006",
+      "sp_capture_manifest": "6ce130dff4ff9e40ac05b53feea31f7eb82f3d86559796c96b04096027b6f645",
+      "direction_bank": "f0b62d7b2b56340d1d76272d24ec06c365152780be0a3b82fb5c719c62a5af2b",
+      "direction_bank_manifest": "7d0524680cec48bfff3a5dec3ecbfbaf692d3b1abe59e97190d80534f62a521a"
+    },
+    "completion_form_manifest_sha256": "45333902e7435ef91f3c9bd688f9d751220c20b108e3d51f2b928bd35f33fee0",
+    "target_contrast_objective": "mean_token_authored_completion_score_contrast",
+    "target_contrast_uses_ab_labels": false,
+    "target_contrast_uses_answer_order": false,
+    "target_contrast_sign_fixed_by_authored_preserve_minus_comply_contrast": true,
+    "target_contrast_sign_may_change_after_ab_evaluation": false,
+    "protected_metric_uses_both_ab_order_renderings_symmetrically": true,
+    "protected_metric_uses_ab_choice_prompt_tokens": true,
+    "protected_metric_uses_ab_token_ids_and_coarsened_categories": true,
+    "protected_metric_uses_answer_label_mapping": false,
+    "protected_metric_uses_semantic_orientation": false,
+    "protected_metric_uses_evaluation_outcomes": false,
+    "protected_metric_kind": "prompt_group_balanced_topk_plus_aggregate_tail_next_token_pullback",
+    "protected_metric_is_full_vocabulary_fisher": false,
+    "actual_finite_protection_gate_uses_full_vocabulary_kl": true,
+    "identity_sha256": "21ed55ecadb9023766adad7a5758b65082d58c4935d32b7b8ff12be6f1148854"
+  },
+  "preflight_sha256": "267538560ff336e7da8f8ebfefaa36fe3d33315456b613231cbfbaa3ad79ecf9"
+}
