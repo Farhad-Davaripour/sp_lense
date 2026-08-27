@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import math
+
 import pytest
 
 torch = pytest.importorskip("torch")
 
 from sp_lense.gradient_specificity_v3 import (
+    DEFAULT_CENTERED_SCORE_IDENTITY_TOLERANCE,
+    DEFAULT_SCORE_IDENTITY_TOLERANCE,
     canonical_sha256,
     construct_v3_bidirectional_direction,
     construct_v3_direction,
@@ -38,6 +42,39 @@ def _prompt(
         "top_score_gradients": gradients,
         "tail_probability": tail_probability,
         "tail_score_gradient": tail_gradient,
+    }
+
+
+def _float32_roundoff_prompt(
+    *,
+    total_category_count: int,
+    relative_defect: float,
+    magnitude: float = 1.0,
+    prompt_id: str = "roundoff",
+) -> dict[str, object]:
+    """Make a float32 score partition with a controlled common-mode defect."""
+
+    dimension = 1024
+    simplex = torch.eye(total_category_count, dtype=torch.float64)
+    simplex = simplex - torch.full_like(simplex, 1.0 / total_category_count)
+    scores = torch.zeros((total_category_count, dimension), dtype=torch.float64)
+    scores[:, :total_category_count] = simplex
+    simplex_row_norm = math.sqrt(1.0 - 1.0 / total_category_count)
+    offset = relative_defect * simplex_row_norm / math.sqrt(1.0 - relative_defect * relative_defect)
+    scores[:, total_category_count] = offset
+    scores = (magnitude * scores).float()
+    probability = 1.0 / total_category_count
+    return {
+        "prompt_id": prompt_id,
+        "top_token_ids": list(range(100, 100 + total_category_count - 1)),
+        "top_probabilities": torch.full(
+            (total_category_count - 1,),
+            probability,
+            dtype=torch.float64,
+        ),
+        "top_score_gradients": scores[:-1],
+        "tail_probability": probability,
+        "tail_score_gradient": scores[-1],
     }
 
 
@@ -132,6 +169,213 @@ def test_prompt_balanced_fisher_accepts_variable_required_token_union() -> None:
     assert diagnostics["diagnostics_sha256"] == permuted_diagnostics["diagnostics_sha256"]
 
 
+@pytest.mark.parametrize("total_category_count", [9, 10, 11])
+def test_float32_score_identity_is_certified_then_recentered(
+    total_category_count: int,
+) -> None:
+    prompt = _float32_roundoff_prompt(
+        total_category_count=total_category_count,
+        relative_defect=0.5 * DEFAULT_SCORE_IDENTITY_TOLERANCE,
+    )
+    factors, diagnostics = prompt_balanced_topk_tail_fisher_factors(
+        torch,
+        [prompt],
+        expected_top_k=total_category_count - 1,
+    )
+
+    record = diagnostics["prompt_manifest"][0]
+    assert factors.shape == (total_category_count, 1024)
+    assert factors.dtype == torch.float64
+    assert record["raw_score_identity_relative_residual"] < DEFAULT_SCORE_IDENTITY_TOLERANCE
+    assert record["raw_weighted_score_mu_norm"] > 0.0
+    assert len(record["raw_weighted_score_mean_sha256"]) == 64
+    assert record["centered_score_identity_relative_residual"] <= (
+        DEFAULT_CENTERED_SCORE_IDENTITY_TOLERANCE
+    )
+    assert record["raw_score_gradients_sha256"] != record["centered_score_gradients_sha256"]
+    assert diagnostics["score_identity_tolerance"] == DEFAULT_SCORE_IDENTITY_TOLERANCE
+    assert diagnostics["score_identity_tolerance_kind"] == "relative_weighted_score_norm"
+    assert diagnostics["centered_score_identity_tolerance"] == (
+        DEFAULT_CENTERED_SCORE_IDENTITY_TOLERANCE
+    )
+
+    probability = torch.full(
+        (total_category_count,),
+        1.0 / total_category_count,
+        dtype=torch.float64,
+    )
+    centered_mean = torch.sqrt(probability) @ factors
+    centered_scale = float(
+        (torch.sqrt(probability) * torch.linalg.vector_norm(factors, dim=1)).sum().item()
+    )
+    assert float(torch.linalg.vector_norm(centered_mean).item()) <= (
+        DEFAULT_CENTERED_SCORE_IDENTITY_TOLERANCE * centered_scale
+    )
+
+
+def test_score_identity_threshold_is_fail_closed_and_scale_invariant() -> None:
+    passing_rhos = []
+    for magnitude in (1e-8, 1.0, 1e8):
+        _, diagnostics = prompt_balanced_topk_tail_fisher_factors(
+            torch,
+            [
+                _float32_roundoff_prompt(
+                    total_category_count=11,
+                    relative_defect=0.9 * DEFAULT_SCORE_IDENTITY_TOLERANCE,
+                    magnitude=magnitude,
+                    prompt_id=f"pass-{magnitude}",
+                )
+            ],
+            expected_top_k=10,
+        )
+        passing_rhos.append(diagnostics["maximum_raw_score_identity_relative_residual"])
+    assert max(passing_rhos) < DEFAULT_SCORE_IDENTITY_TOLERANCE
+    assert max(passing_rhos) - min(passing_rhos) < 1e-9
+
+    with pytest.raises(ValueError, match="relative residual"):
+        prompt_balanced_topk_tail_fisher_factors(
+            torch,
+            [
+                _float32_roundoff_prompt(
+                    total_category_count=11,
+                    relative_defect=1.1 * DEFAULT_SCORE_IDENTITY_TOLERANCE,
+                )
+            ],
+            expected_top_k=10,
+        )
+
+
+def test_score_identity_normalizes_valid_partition_and_is_reorder_deterministic() -> None:
+    prompt = _float32_roundoff_prompt(
+        total_category_count=11,
+        relative_defect=0.25 * DEFAULT_SCORE_IDENTITY_TOLERANCE,
+    )
+    probabilities = prompt["top_probabilities"]
+    assert isinstance(probabilities, torch.Tensor)
+    probabilities = probabilities.clone()
+    probabilities[0] += 0.5e-7
+    prompt["top_probabilities"] = probabilities
+    factors, diagnostics = prompt_balanced_topk_tail_fisher_factors(
+        torch,
+        [prompt],
+        expected_top_k=10,
+    )
+    record = diagnostics["prompt_manifest"][0]
+    assert record["probability_sum_before_normalization"] != 1.0
+    top_gradients = prompt["top_score_gradients"]
+    tail_gradient = prompt["tail_score_gradient"]
+    assert isinstance(top_gradients, torch.Tensor)
+    assert isinstance(tail_gradient, torch.Tensor)
+    raw_probabilities = torch.cat(
+        (probabilities, torch.tensor([prompt["tail_probability"]], dtype=torch.float64))
+    )
+    raw_scores = torch.cat(
+        (top_gradients.double(), tail_gradient.double().reshape(1, -1)),
+        dim=0,
+    )
+    expected_raw_mean = raw_probabilities @ raw_scores
+    processed_probabilities = raw_probabilities / raw_probabilities.sum()
+    expected_processed_mean = processed_probabilities @ raw_scores
+    assert record["raw_categorical_probabilities_sha256"] == tensor_float64_sha256(
+        raw_probabilities
+    )
+    assert record["processed_categorical_probabilities_sha256"] == tensor_float64_sha256(
+        processed_probabilities
+    )
+    assert (
+        record["raw_categorical_probabilities_sha256"]
+        != (record["processed_categorical_probabilities_sha256"])
+    )
+    assert record["raw_weighted_score_mean_sha256"] == tensor_float64_sha256(expected_raw_mean)
+    assert record["normalized_weighted_score_mean_sha256"] == tensor_float64_sha256(
+        expected_processed_mean
+    )
+    assert record["raw_weighted_score_mu_norm"] == pytest.approx(
+        float(torch.linalg.vector_norm(expected_raw_mean).item()),
+        rel=0.0,
+        abs=0.0,
+    )
+    assert record["normalized_weighted_score_mean_norm"] == pytest.approx(
+        float(torch.linalg.vector_norm(expected_processed_mean).item()),
+        rel=0.0,
+        abs=0.0,
+    )
+    assert record["processed_probability_sum"] == pytest.approx(1.0, abs=2e-16)
+    assert (
+        record["raw_weighted_score_mean_sha256"]
+        != (record["normalized_weighted_score_mean_sha256"])
+    )
+
+    reordered = {
+        **prompt,
+        "top_token_ids": list(reversed(prompt["top_token_ids"])),
+        "top_probabilities": probabilities.flip(0),
+        "top_score_gradients": prompt["top_score_gradients"].flip(0),
+    }
+    reordered_factors, reordered_diagnostics = prompt_balanced_topk_tail_fisher_factors(
+        torch,
+        [reordered],
+        expected_top_k=10,
+    )
+    assert torch.equal(factors, reordered_factors)
+    assert diagnostics["diagnostics_sha256"] == reordered_diagnostics["diagnostics_sha256"]
+
+
+def test_score_identity_rejects_zero_nonfinite_and_uncertified_scores() -> None:
+    zero_prompt = _float32_roundoff_prompt(
+        total_category_count=9,
+        relative_defect=0.0,
+    )
+    zero_prompt["top_score_gradients"] = torch.zeros((8, 1024), dtype=torch.float32)
+    zero_prompt["tail_score_gradient"] = torch.zeros(1024, dtype=torch.float32)
+    with pytest.raises(ValueError, match="score scale must be positive"):
+        prompt_balanced_topk_tail_fisher_factors(
+            torch,
+            [zero_prompt],
+            expected_top_k=8,
+        )
+
+    nonfinite_prompt = _float32_roundoff_prompt(
+        total_category_count=9,
+        relative_defect=0.0,
+    )
+    nonfinite_gradients = nonfinite_prompt["top_score_gradients"].clone()
+    nonfinite_gradients[0, 0] = float("nan")
+    nonfinite_prompt["top_score_gradients"] = nonfinite_gradients
+    with pytest.raises(ValueError, match="finite"):
+        prompt_balanced_topk_tail_fisher_factors(
+            torch,
+            [nonfinite_prompt],
+            expected_top_k=8,
+        )
+
+    with pytest.raises(ValueError, match="less than 1"):
+        prompt_balanced_topk_tail_fisher_factors(
+            torch,
+            [
+                _float32_roundoff_prompt(
+                    total_category_count=9,
+                    relative_defect=0.0,
+                )
+            ],
+            expected_top_k=8,
+            score_identity_tolerance=1.0,
+        )
+    with pytest.raises(ValueError, match="less than score_identity_tolerance"):
+        prompt_balanced_topk_tail_fisher_factors(
+            torch,
+            [
+                _float32_roundoff_prompt(
+                    total_category_count=9,
+                    relative_defect=0.0,
+                )
+            ],
+            expected_top_k=8,
+            score_identity_tolerance=1e-4,
+            centered_score_identity_tolerance=1e-4,
+        )
+
+
 def test_oriented_information_lower_bounds_match_kl_chain_rules() -> None:
     target_log_odds = torch.log(torch.tensor(3.0, dtype=torch.float64)).item()
     forward_bound, forward_diagnostics = minimum_baseline_to_steered_kl_for_ab_shift(
@@ -139,12 +383,8 @@ def test_oriented_information_lower_bounds_match_kl_chain_rules() -> None:
         pair_probability_mass=0.2,
         target_semantic_log_odds=target_log_odds,
     )
-    expected = 0.2 * (
-        0.5 * torch.log(torch.tensor(2.0 / 3.0, dtype=torch.float64)).item()
-    )
-    expected += 0.2 * (
-        0.5 * torch.log(torch.tensor(2.0, dtype=torch.float64)).item()
-    )
+    expected = 0.2 * (0.5 * torch.log(torch.tensor(2.0 / 3.0, dtype=torch.float64)).item())
+    expected += 0.2 * (0.5 * torch.log(torch.tensor(2.0, dtype=torch.float64)).item())
 
     assert forward_bound == pytest.approx(expected, abs=1e-14)
     assert forward_diagnostics["kl_orientation"] == "baseline_to_steered"
@@ -167,17 +407,13 @@ def test_oriented_information_lower_bounds_match_kl_chain_rules() -> None:
     same_probability, _ = minimum_baseline_to_steered_kl_for_ab_shift(
         baseline_conditional_probability=0.3,
         pair_probability_mass=0.7,
-        target_semantic_log_odds=torch.log(
-            torch.tensor(0.3 / 0.7, dtype=torch.float64)
-        ).item(),
+        target_semantic_log_odds=torch.log(torch.tensor(0.3 / 0.7, dtype=torch.float64)).item(),
     )
     assert same_probability == pytest.approx(0.0, abs=1e-14)
     same_reverse, _ = minimum_changed_to_baseline_kl_for_ab_shift(
         baseline_conditional_probability=0.3,
         pair_probability_mass=0.7,
-        target_semantic_log_odds=torch.log(
-            torch.tensor(0.3 / 0.7, dtype=torch.float64)
-        ).item(),
+        target_semantic_log_odds=torch.log(torch.tensor(0.3 / 0.7, dtype=torch.float64)).item(),
     )
     assert same_reverse == pytest.approx(0.0, abs=1e-14)
     extreme_reverse, _ = minimum_changed_to_baseline_kl_for_ab_shift(
@@ -196,9 +432,7 @@ def test_row_normalized_svd_basis_is_order_and_scale_invariant() -> None:
     rows = torch.stack((2.0 * basis[2], -3.0 * basis[2], basis[3]))
     first, first_diagnostics = row_normalized_svd_basis(torch, rows)
     second, second_diagnostics = row_normalized_svd_basis(torch, rows.flip(0))
-    expected_projector = torch.diag(
-        torch.tensor([0.0, 0.0, 1.0, 1.0], dtype=torch.float64)
-    )
+    expected_projector = torch.diag(torch.tensor([0.0, 0.0, 1.0, 1.0], dtype=torch.float64))
 
     assert first_diagnostics["rank"] == 2
     assert torch.allclose(

@@ -25,7 +25,13 @@ SCHEMA_VERSION = "sp_lense.gradient_specificity_v3.v1"
 DEFAULT_SVD_RTOL = 0.0001220703125
 DEFAULT_SVD_ATOL = 1e-7
 DEFAULT_PROBABILITY_TOLERANCE = 1e-7
-DEFAULT_SCORE_IDENTITY_TOLERANCE = 1e-6
+# For the locked 1,024-wide float32 residual stream, this is
+# gamma_1024(float32) + gamma_11(float64), where gamma_n = n*u/(1-n*u)
+# and u is unit roundoff.  The float64 term covers the largest frozen
+# top-8-plus-required-A/B-plus-tail partition.  Callers may override it
+# explicitly for a different numerical contract.
+DEFAULT_SCORE_IDENTITY_TOLERANCE = 6.103888176890726e-05
+DEFAULT_CENTERED_SCORE_IDENTITY_TOLERANCE = 1e-12
 DEFAULT_CONDITION_LIMIT = 1e12
 DEFAULT_RESIDUAL_TOLERANCE = 1e-8
 
@@ -160,11 +166,9 @@ def minimum_baseline_to_steered_kl_for_ab_shift(
     elif probability == 1.0:
         binary_kl = -log_target_probability
     else:
-        binary_kl = probability * (
-            math.log(probability) - log_target_probability
-        ) + (1.0 - probability) * (
-            math.log1p(-probability) - log_target_complement
-        )
+        binary_kl = probability * (math.log(probability) - log_target_probability) + (
+            1.0 - probability
+        ) * (math.log1p(-probability) - log_target_complement)
     binary_kl = max(0.0, binary_kl)
     lower_bound = pair_mass * binary_kl
     if not math.isfinite(lower_bound):
@@ -220,9 +224,7 @@ def minimum_changed_to_baseline_kl_for_ab_shift(
     else:
         reverse_binary_kl = target_probability * (
             log_target_probability - math.log(probability)
-        ) + (1.0 - target_probability) * (
-            log_target_complement - math.log1p(-probability)
-        )
+        ) + (1.0 - target_probability) * (log_target_complement - math.log1p(-probability))
     reverse_binary_kl = max(0.0, reverse_binary_kl)
     if pair_mass == 1.0:
         lower_bound = reverse_binary_kl
@@ -230,9 +232,7 @@ def minimum_changed_to_baseline_kl_for_ab_shift(
         first = math.log1p(-pair_mass)
         second = math.log(pair_mass) - reverse_binary_kl
         maximum = max(first, second)
-        log_normalizer = maximum + math.log(
-            math.exp(first - maximum) + math.exp(second - maximum)
-        )
+        log_normalizer = maximum + math.log(math.exp(first - maximum) + math.exp(second - maximum))
         lower_bound = -log_normalizer
     lower_bound = max(0.0, lower_bound)
     if not math.isfinite(lower_bound):
@@ -383,9 +383,7 @@ def row_normalized_svd_basis(
         raise RuntimeError("nuisance row norms overflowed float64")
     if bool((norms <= absolute_tolerance).any().item()):
         bad = [
-            index
-            for index, norm in enumerate(norms.tolist())
-            if float(norm) <= absolute_tolerance
+            index for index, norm in enumerate(norms.tolist()) if float(norm) <= absolute_tolerance
         ]
         raise ValueError(f"nuisance rows at indices {bad} are zero or below atol")
     normalized = matrix / norms[:, None]
@@ -402,16 +400,12 @@ def row_normalized_svd_basis(
     projector = basis.T @ basis
     orthogonality_error = (
         float(
-            torch.linalg.matrix_norm(
-                basis @ basis.T - torch.eye(rank, dtype=torch.float64)
-            ).item()
+            torch.linalg.matrix_norm(basis @ basis.T - torch.eye(rank, dtype=torch.float64)).item()
         )
         if rank
         else 0.0
     )
-    span_residual = float(
-        torch.linalg.matrix_norm(normalized - normalized @ projector).item()
-    )
+    span_residual = float(torch.linalg.matrix_norm(normalized - normalized @ projector).item())
     certificate_tolerance = max(absolute_tolerance, relative_tolerance) * (
         1.0 + float(torch.linalg.matrix_norm(normalized).item())
     )
@@ -451,6 +445,7 @@ def prompt_balanced_topk_tail_fisher_factors(
     minimum_top_k: int = 1,
     probability_tolerance: float = DEFAULT_PROBABILITY_TOLERANCE,
     score_identity_tolerance: float = DEFAULT_SCORE_IDENTITY_TOLERANCE,
+    centered_score_identity_tolerance: float = DEFAULT_CENTERED_SCORE_IDENTITY_TOLERANCE,
 ) -> tuple[Any, dict[str, Any]]:
     """Build low-rank factors for a prompt-balanced top-k-plus-tail Fisher.
 
@@ -461,6 +456,12 @@ def prompt_balanced_topk_tail_fisher_factors(
     ``f`` is such a score gradient, the emitted row is
     ``sqrt(category_probability / prompt_count) * f``.  Consequently ``R.T@R``
     is the mean Fisher matrix of the coarsened categorical distributions.
+
+    The original validated probability partition is certified before any repair
+    using the scale-free defect ``||sum_k p_k f_k|| / sum_k p_k ||f_k||``.
+    Probabilities are then normalized, their score mean is recomputed, and that
+    certified float32-sized common-mode defect is removed in float64.  A tighter
+    float64 identity certificate is required before Fisher factors are built.
     """
 
     if expected_top_k is not None and (
@@ -469,11 +470,7 @@ def prompt_balanced_topk_tail_fisher_factors(
         or expected_top_k <= 0
     ):
         raise ValueError("expected_top_k must be a positive integer or None")
-    if (
-        not isinstance(minimum_top_k, int)
-        or isinstance(minimum_top_k, bool)
-        or minimum_top_k <= 0
-    ):
+    if not isinstance(minimum_top_k, int) or isinstance(minimum_top_k, bool) or minimum_top_k <= 0:
         raise ValueError("minimum_top_k must be a positive integer")
     if expected_top_k is not None and expected_top_k < minimum_top_k:
         raise ValueError("expected_top_k must not be smaller than minimum_top_k")
@@ -485,6 +482,16 @@ def prompt_balanced_topk_tail_fisher_factors(
         score_identity_tolerance,
         field="score_identity_tolerance",
     )
+    if score_error >= 1.0:
+        raise ValueError("score_identity_tolerance must be less than 1")
+    centered_score_error = _positive_float(
+        centered_score_identity_tolerance,
+        field="centered_score_identity_tolerance",
+    )
+    if centered_score_error >= score_error:
+        raise ValueError(
+            "centered_score_identity_tolerance must be less than score_identity_tolerance"
+        )
     sources = list(prompts)
     if not sources:
         raise ValueError("prompts must be non-empty")
@@ -510,9 +517,7 @@ def prompt_balanced_topk_tail_fisher_factors(
             category_count < minimum_top_k
             or (expected_top_k is not None and category_count != expected_top_k)
             or any(
-                not isinstance(token_id, int)
-                or isinstance(token_id, bool)
-                or token_id < 0
+                not isinstance(token_id, int) or isinstance(token_id, bool) or token_id < 0
                 for token_id in token_ids
             )
             or len(set(token_ids)) != category_count
@@ -562,7 +567,17 @@ def prompt_balanced_topk_tail_fisher_factors(
             dimension = int(top_gradients.shape[1])
         elif top_gradients.shape[1] != dimension:
             raise ValueError("all prompt score gradients must share one dimension")
-        probability_sum = float(probabilities.sum().item()) + tail_probability
+        category_order = sorted(range(category_count), key=lambda offset: token_ids[offset])
+        sorted_token_ids = [token_ids[offset] for offset in category_order]
+        probabilities = probabilities[category_order].contiguous()
+        top_gradients = top_gradients[category_order].contiguous()
+        raw_probabilities = torch.cat(
+            (
+                probabilities,
+                torch.tensor([tail_probability], dtype=torch.float64),
+            )
+        ).contiguous()
+        probability_sum = float(raw_probabilities.sum().item())
         if not math.isclose(
             probability_sum,
             1.0,
@@ -572,48 +587,134 @@ def prompt_balanced_topk_tail_fisher_factors(
             raise ValueError(
                 f"prompt {prompt_id!r} top-plus-tail probability is {probability_sum}, not 1"
             )
-        category_order = sorted(range(category_count), key=lambda offset: token_ids[offset])
-        sorted_token_ids = [token_ids[offset] for offset in category_order]
-        probabilities = probabilities[category_order].contiguous()
-        top_gradients = top_gradients[category_order].contiguous()
-        weighted_score_mean = probabilities @ top_gradients
-        weighted_score_mean = weighted_score_mean + tail_probability * tail_gradient
-        weighted_score_scale = 1.0 + float(
-            (
-                probabilities
-                * torch.linalg.vector_norm(top_gradients, dim=1)
-            ).sum().item()
-        ) + tail_probability * float(torch.linalg.vector_norm(tail_gradient).item())
-        weighted_score_residual = float(
-            torch.linalg.vector_norm(weighted_score_mean).item()
+        raw_score_gradients = torch.cat(
+            (top_gradients, tail_gradient.reshape(1, -1)),
+            dim=0,
+        ).contiguous()
+        raw_weighted_score_mean = raw_probabilities @ raw_score_gradients
+        raw_weighted_score_scale = float(
+            (raw_probabilities * torch.linalg.vector_norm(raw_score_gradients, dim=1)).sum().item()
         )
-        weighted_score_allowed = score_error * weighted_score_scale
+        raw_weighted_score_mu_norm = float(torch.linalg.vector_norm(raw_weighted_score_mean).item())
+        if raw_weighted_score_scale <= 0.0:
+            raise ValueError(
+                f"prompt {prompt_id!r} categorical weighted score scale must be positive"
+            )
+        raw_score_identity_relative_residual = raw_weighted_score_mu_norm / raw_weighted_score_scale
+        raw_weighted_score_allowed = score_error * raw_weighted_score_scale
         if not all(
             math.isfinite(value)
             for value in (
-                weighted_score_scale,
-                weighted_score_residual,
-                weighted_score_allowed,
+                raw_weighted_score_scale,
+                raw_weighted_score_mu_norm,
+                raw_score_identity_relative_residual,
+                raw_weighted_score_allowed,
+            )
+        ):
+            raise RuntimeError(f"prompt {prompt_id!r} score-identity certificate is non-finite")
+        if raw_score_identity_relative_residual > score_error:
+            raise ValueError(
+                f"prompt {prompt_id!r} categorical weighted score mean relative "
+                f"residual {raw_score_identity_relative_residual} exceeds {score_error}"
+            )
+
+        normalized_probabilities = (raw_probabilities / probability_sum).contiguous()
+        if not bool(torch.isfinite(normalized_probabilities).all().item()):
+            raise RuntimeError(f"prompt {prompt_id!r} normalized probabilities are non-finite")
+        processed_probability_sum = float(normalized_probabilities.sum().item())
+        if not math.isfinite(processed_probability_sum):
+            raise RuntimeError(f"prompt {prompt_id!r} processed probability sum is non-finite")
+        normalized_weighted_score_mean = normalized_probabilities @ raw_score_gradients
+        normalized_weighted_score_mean_norm = float(
+            torch.linalg.vector_norm(normalized_weighted_score_mean).item()
+        )
+        if not math.isfinite(normalized_weighted_score_mean_norm):
+            raise RuntimeError(f"prompt {prompt_id!r} normalized weighted score mean is non-finite")
+        centered_score_gradients = (
+            raw_score_gradients - normalized_weighted_score_mean.reshape(1, -1)
+        ).contiguous()
+        centered_weighted_score_mean = normalized_probabilities @ centered_score_gradients
+        centered_weighted_score_scale = float(
+            (normalized_probabilities * torch.linalg.vector_norm(centered_score_gradients, dim=1))
+            .sum()
+            .item()
+        )
+        centered_weighted_score_residual = float(
+            torch.linalg.vector_norm(centered_weighted_score_mean).item()
+        )
+        if centered_weighted_score_scale <= 0.0:
+            raise RuntimeError(
+                f"prompt {prompt_id!r} centered categorical score scale is not positive"
+            )
+        centered_score_identity_relative_residual = (
+            centered_weighted_score_residual / centered_weighted_score_scale
+        )
+        if not all(
+            math.isfinite(value)
+            for value in (
+                centered_weighted_score_scale,
+                centered_weighted_score_residual,
+                centered_score_identity_relative_residual,
             )
         ):
             raise RuntimeError(
-                f"prompt {prompt_id!r} score-identity certificate is non-finite"
+                f"prompt {prompt_id!r} centered score-identity certificate is non-finite"
             )
-        if weighted_score_residual > weighted_score_allowed:
-            raise ValueError(
-                f"prompt {prompt_id!r} categorical weighted score mean residual "
-                f"{weighted_score_residual} exceeds {weighted_score_allowed}"
+        if centered_score_identity_relative_residual > centered_score_error:
+            raise RuntimeError(
+                f"prompt {prompt_id!r} centered score-identity relative residual "
+                f"{centered_score_identity_relative_residual} exceeds "
+                f"{centered_score_error}"
             )
+        centered_top_gradients = centered_score_gradients[:-1].contiguous()
+        centered_tail_gradient = centered_score_gradients[-1].contiguous()
+        probabilities = normalized_probabilities[:-1].contiguous()
+        tail_probability = float(normalized_probabilities[-1].item())
         checked.append(
             {
                 "prompt_id": prompt_id,
                 "top_token_ids": sorted_token_ids,
                 "top_probabilities": probabilities,
-                "top_score_gradients": top_gradients,
+                "top_score_gradients": centered_top_gradients,
                 "tail_probability": tail_probability,
-                "tail_score_gradient": tail_gradient,
-                "weighted_score_mean_residual": weighted_score_residual,
-                "weighted_score_mean_tolerance": weighted_score_allowed,
+                "tail_score_gradient": centered_tail_gradient,
+                "probability_sum_before_normalization": probability_sum,
+                "raw_categorical_probabilities_sha256": tensor_float64_sha256(raw_probabilities),
+                "processed_probability_sum": processed_probability_sum,
+                "processed_categorical_probabilities_sha256": tensor_float64_sha256(
+                    normalized_probabilities
+                ),
+                # Compatibility alias: Fisher factors use the processed partition.
+                "categorical_probabilities_sha256": tensor_float64_sha256(normalized_probabilities),
+                "raw_weighted_score_mu_norm": raw_weighted_score_mu_norm,
+                "raw_weighted_score_mean_sha256": tensor_float64_sha256(raw_weighted_score_mean),
+                "raw_weighted_score_scale": raw_weighted_score_scale,
+                "raw_score_identity_relative_residual": raw_score_identity_relative_residual,
+                "raw_score_identity_relative_tolerance": score_error,
+                "normalized_weighted_score_mean_norm": normalized_weighted_score_mean_norm,
+                "normalized_weighted_score_mean_sha256": tensor_float64_sha256(
+                    normalized_weighted_score_mean
+                ),
+                "centered_weighted_score_mean_residual": centered_weighted_score_residual,
+                "centered_weighted_score_scale": centered_weighted_score_scale,
+                "centered_score_identity_relative_residual": (
+                    centered_score_identity_relative_residual
+                ),
+                "centered_score_identity_relative_tolerance": centered_score_error,
+                # Retain the former absolute diagnostic names for downstream
+                # readers while making their raw-before-repair meaning explicit.
+                "weighted_score_mean_residual": raw_weighted_score_mu_norm,
+                "weighted_score_mean_tolerance": raw_weighted_score_allowed,
+                "raw_score_gradients_sha256": tensor_float64_sha256(raw_score_gradients),
+                "centered_score_gradients_sha256": tensor_float64_sha256(centered_score_gradients),
+                "raw_top_score_gradients_sha256": tensor_float64_sha256(top_gradients),
+                "raw_tail_score_gradient_sha256": tensor_float64_sha256(tail_gradient),
+                "centered_top_score_gradients_sha256": tensor_float64_sha256(
+                    centered_top_gradients
+                ),
+                "centered_tail_score_gradient_sha256": tensor_float64_sha256(
+                    centered_tail_gradient
+                ),
             }
         )
 
@@ -635,18 +736,54 @@ def prompt_balanced_topk_tail_fisher_factors(
                     float(value) for value in source["top_probabilities"].tolist()
                 ],
                 "tail_probability": source["tail_probability"],
-                "weighted_score_mean_residual": source[
-                    "weighted_score_mean_residual"
+                "weighted_score_mean_residual": source["weighted_score_mean_residual"],
+                "weighted_score_mean_tolerance": source["weighted_score_mean_tolerance"],
+                "probability_sum_before_normalization": source[
+                    "probability_sum_before_normalization"
                 ],
-                "weighted_score_mean_tolerance": source[
-                    "weighted_score_mean_tolerance"
+                "raw_categorical_probabilities_sha256": source[
+                    "raw_categorical_probabilities_sha256"
                 ],
-                "top_score_gradients_sha256": tensor_float64_sha256(
-                    source["top_score_gradients"]
-                ),
-                "tail_score_gradient_sha256": tensor_float64_sha256(
-                    source["tail_score_gradient"]
-                ),
+                "processed_probability_sum": source["processed_probability_sum"],
+                "processed_categorical_probabilities_sha256": source[
+                    "processed_categorical_probabilities_sha256"
+                ],
+                "categorical_probabilities_sha256": source["categorical_probabilities_sha256"],
+                "raw_weighted_score_mu_norm": source["raw_weighted_score_mu_norm"],
+                "raw_weighted_score_mean_sha256": source["raw_weighted_score_mean_sha256"],
+                "raw_weighted_score_scale": source["raw_weighted_score_scale"],
+                "raw_score_identity_relative_residual": source[
+                    "raw_score_identity_relative_residual"
+                ],
+                "raw_score_identity_relative_tolerance": source[
+                    "raw_score_identity_relative_tolerance"
+                ],
+                "normalized_weighted_score_mean_norm": source[
+                    "normalized_weighted_score_mean_norm"
+                ],
+                "normalized_weighted_score_mean_sha256": source[
+                    "normalized_weighted_score_mean_sha256"
+                ],
+                "centered_weighted_score_mean_residual": source[
+                    "centered_weighted_score_mean_residual"
+                ],
+                "centered_weighted_score_scale": source["centered_weighted_score_scale"],
+                "centered_score_identity_relative_residual": source[
+                    "centered_score_identity_relative_residual"
+                ],
+                "centered_score_identity_relative_tolerance": source[
+                    "centered_score_identity_relative_tolerance"
+                ],
+                "raw_score_gradients_sha256": source["raw_score_gradients_sha256"],
+                "centered_score_gradients_sha256": source["centered_score_gradients_sha256"],
+                "raw_top_score_gradients_sha256": source["raw_top_score_gradients_sha256"],
+                "raw_tail_score_gradient_sha256": source["raw_tail_score_gradient_sha256"],
+                "centered_top_score_gradients_sha256": source[
+                    "centered_top_score_gradients_sha256"
+                ],
+                "centered_tail_score_gradient_sha256": source[
+                    "centered_tail_score_gradient_sha256"
+                ],
             }
         )
     factor_matrix = torch.stack(factors, dim=0).contiguous()
@@ -660,6 +797,8 @@ def prompt_balanced_topk_tail_fisher_factors(
         "factor_shape": [int(value) for value in factor_matrix.shape],
         "probability_tolerance": probability_error,
         "score_identity_tolerance": score_error,
+        "score_identity_tolerance_kind": "relative_weighted_score_norm",
+        "centered_score_identity_tolerance": centered_score_error,
         "minimum_top_probability_mass": min(
             float(source["top_probabilities"].sum().item()) for source in checked
         ),
@@ -667,6 +806,28 @@ def prompt_balanced_topk_tail_fisher_factors(
         "maximum_weighted_score_mean_residual": max(
             source["weighted_score_mean_residual"] for source in checked
         ),
+        "maximum_raw_score_identity_relative_residual": max(
+            source["raw_score_identity_relative_residual"] for source in checked
+        ),
+        "maximum_raw_weighted_score_mu_norm": max(
+            source["raw_weighted_score_mu_norm"] for source in checked
+        ),
+        "maximum_raw_probability_sum_absolute_error": max(
+            abs(source["probability_sum_before_normalization"] - 1.0) for source in checked
+        ),
+        "maximum_processed_probability_sum_absolute_error": max(
+            abs(source["processed_probability_sum"] - 1.0) for source in checked
+        ),
+        "maximum_normalized_weighted_score_mean_norm": max(
+            source["normalized_weighted_score_mean_norm"] for source in checked
+        ),
+        "maximum_centered_weighted_score_mean_residual": max(
+            source["centered_weighted_score_mean_residual"] for source in checked
+        ),
+        "maximum_centered_score_identity_relative_residual": max(
+            source["centered_score_identity_relative_residual"] for source in checked
+        ),
+        "prompt_manifest": manifest,
         "prompt_manifest_sha256": canonical_sha256(manifest),
         "factor_matrix_sha256": tensor_float64_sha256(factor_matrix),
     }
@@ -751,9 +912,7 @@ def _prepare_woodbury(
         }
         return factors, ridge_value, None, diagnostics
 
-    gram = factors @ factors.T + ridge_value * torch.eye(
-        factors.shape[0], dtype=torch.float64
-    )
+    gram = factors @ factors.T + ridge_value * torch.eye(factors.shape[0], dtype=torch.float64)
     gram = (gram + gram.T) / 2.0
     eigenvalues = torch.linalg.eigvalsh(gram)
     minimum = float(eigenvalues[0].item())
@@ -791,7 +950,9 @@ def _prepare_woodbury(
     return factors, ridge_value, cholesky, diagnostics
 
 
-def _woodbury_apply(torch: Any, factors: Any, ridge: float, cholesky: Any | None, value: Any) -> Any:
+def _woodbury_apply(
+    torch: Any, factors: Any, ridge: float, cholesky: Any | None, value: Any
+) -> Any:
     matrix_input = value.ndim == 2
     vectors = value if matrix_input else value[:, None]
     if cholesky is None:
@@ -905,9 +1066,7 @@ def solve_min_fisher_qp(
         rtol=svd_rtol,
         atol=svd_atol,
     )
-    projected_inequalities = inequalities - (
-        inequalities @ nuisance_basis.T
-    ) @ nuisance_basis
+    projected_inequalities = inequalities - (inequalities @ nuisance_basis.T) @ nuisance_basis
     projected_norms = torch.linalg.vector_norm(projected_inequalities, dim=1)
     if bool((projected_norms <= float(svd_atol)).any().item()):
         raise RuntimeError(
@@ -941,14 +1100,10 @@ def solve_min_fisher_qp(
             minimum_eigenvalue = float(eigenvalues[0].item())
             maximum_eigenvalue = float(eigenvalues[-1].item())
             condition = (
-                maximum_eigenvalue / minimum_eigenvalue
-                if minimum_eigenvalue > 0.0
-                else math.inf
+                maximum_eigenvalue / minimum_eigenvalue if minimum_eigenvalue > 0.0 else math.inf
             )
             if not math.isfinite(condition) or condition > maximum_condition:
-                raise RuntimeError(
-                    f"active-set Schur condition number {condition} exceeds limit"
-                )
+                raise RuntimeError(f"active-set Schur condition number {condition} exceeds limit")
             cholesky_schur, info = torch.linalg.cholesky_ex(schur)
             if int(info.item()) != 0:
                 raise RuntimeError("active-set Schur matrix is not positive definite")
@@ -967,9 +1122,7 @@ def solve_min_fisher_qp(
 
             inequality_slacks = inequalities @ perturbation - bounds
             equality_values = nuisance_basis @ perturbation
-            hessian_times = ridge_value * perturbation + factors.T @ (
-                factors @ perturbation
-            )
+            hessian_times = ridge_value * perturbation + factors.T @ (factors @ perturbation)
             stationarity = hessian_times - constraints.T @ multipliers
             equality_residual = (
                 float(torch.max(torch.abs(equality_values)).item())
@@ -978,13 +1131,9 @@ def solve_min_fisher_qp(
             )
             minimum_slack = float(inequality_slacks.min().item())
             stationarity_residual = float(torch.linalg.vector_norm(stationarity).item())
-            active_residual = float(
-                torch.max(torch.abs(inequality_slacks[list(active)])).item()
-            )
+            active_residual = float(torch.max(torch.abs(inequality_slacks[list(active)])).item())
             complementarity_residual = float(
-                torch.max(
-                    torch.abs(active_multipliers * inequality_slacks[list(active)])
-                ).item()
+                torch.max(torch.abs(active_multipliers * inequality_slacks[list(active)])).item()
             )
             certificate_values = (
                 equality_residual,
@@ -998,9 +1147,7 @@ def solve_min_fisher_qp(
             equality_allowed = tolerance * (
                 1.0 + float(torch.linalg.vector_norm(perturbation).item())
             )
-            inequality_allowed = tolerance * (
-                1.0 + float(torch.max(torch.abs(bounds)).item())
-            )
+            inequality_allowed = tolerance * (1.0 + float(torch.max(torch.abs(bounds)).item()))
             stationarity_allowed = tolerance * (
                 1.0
                 + float(torch.linalg.vector_norm(hessian_times).item())
@@ -1027,12 +1174,8 @@ def solve_min_fisher_qp(
                     "schur_condition_number": condition,
                     "schur_min_eigenvalue": minimum_eigenvalue,
                     "schur_max_eigenvalue": maximum_eigenvalue,
-                    "active_multipliers": [
-                        float(value) for value in active_multipliers.tolist()
-                    ],
-                    "inequality_slacks": [
-                        float(value) for value in inequality_slacks.tolist()
-                    ],
+                    "active_multipliers": [float(value) for value in active_multipliers.tolist()],
+                    "inequality_slacks": [float(value) for value in inequality_slacks.tolist()],
                     "equality_residual": equality_residual,
                     "active_residual": active_residual,
                     "stationarity_residual": stationarity_residual,
@@ -1047,8 +1190,7 @@ def solve_min_fisher_qp(
 
     if not feasible:
         reasons = "; ".join(
-            f"{report['active_orders']}: {report.get('reason', 'unknown')}"
-            for report in reports
+            f"{report['active_orders']}: {report.get('reason', 'unknown')}" for report in reports
         )
         raise RuntimeError(f"no certified feasible active set: {reasons}")
     objective, selected_active, perturbation, selected_report = min(
@@ -1165,9 +1307,7 @@ def _package_certified_direction(
         "direction_float64_sha256": tensor_float64_sha256(direction64),
         "direction_float32_sha256": tensor_float32_sha256(direction32),
         "perturbation_float64_sha256": tensor_float64_sha256(perturbation),
-        "post_cast_applied_perturbation_sha256": tensor_float64_sha256(
-            applied_perturbation
-        ),
+        "post_cast_applied_perturbation_sha256": tensor_float64_sha256(applied_perturbation),
         "post_cast_certificate": {
             "inequality_slacks": [float(value) for value in post_cast_slacks.tolist()],
             "minimum_inequality_slack": minimum_post_cast_slack,
@@ -1286,9 +1426,7 @@ def construct_v3_bidirectional_direction(
         "lower_bounds": [float(value) for value in lower_bounds.tolist()],
         "self_semantic_gradients_sha256": tensor_float64_sha256(gradients),
     }
-    constraint_diagnostics["diagnostics_sha256"] = canonical_sha256(
-        constraint_diagnostics
-    )
+    constraint_diagnostics["diagnostics_sha256"] = canonical_sha256(constraint_diagnostics)
     perturbation, qp_diagnostics = solve_min_fisher_qp(
         torch,
         inequality_rows=gradients,
@@ -1325,13 +1463,9 @@ def construct_v3_bidirectional_direction(
         torch.isfinite(negative_predictions).all().item()
     ):
         raise RuntimeError("bidirectional float32 predictions are non-finite")
-    prediction_tolerance = float(
-        diagnostics["post_cast_certificate"]["inequality_tolerance"]
-    )
+    prediction_tolerance = float(diagnostics["post_cast_certificate"]["inequality_tolerance"])
     if margin <= prediction_tolerance:
-        raise RuntimeError(
-            "decision_margin is too small to certify after float32 conversion"
-        )
+        raise RuntimeError("decision_margin is too small to certify after float32 conversion")
     if float(positive_predictions.min().item()) <= 0.0:
         raise RuntimeError("positive float32 direction does not flip both option orders")
     if float(negative_predictions.max().item()) >= 0.0:

@@ -220,6 +220,55 @@ certificate violation.
 The construction approximation is never reported as evidence of output preservation.
 Exact full-vocabulary KL and actual tokens are measured in separate forward passes.
 
+## Outcome-blind Fisher score-identity amendment
+
+The first Stage-A construction attempt stopped while certifying the global nuisance
+Fisher, before a direction bank or any intervention outcome existed. The first failing
+record reported a weighted score-mean residual of `4.605235240524511e-05` against the
+original allowed value `1.544168341056029e-05`. The 32 nuisance and 32 SP captures, the
+exception, and the absence of direction and result files were frozen in commit
+`9a923ca`. A numerical-only audit of those 64 records found maximum probability-partition
+error `2.220446049250313e-15` and maximum raw scale-free score-identity residual
+`2.0802184201662375e-05`. No direction, sign, strength, KL, decision, or behavioral
+outcome was available when this amendment was fixed.
+
+The original `1e-6` certificate did not account for gradients produced by a float32
+backward graph and then checked in float64. The amended raw certificate is fixed at
+
+\[
+\tau_{\mathrm{raw}}
+=\gamma_{1024}(2^{-24})+\gamma_{11}(2^{-53})
+=6.103888176890726\times10^{-5},
+\qquad
+\gamma_n(u)=\frac{nu}{1-nu}.
+\]
+
+This rule uses the locked residual width, the maximum eleven coarsened categories
+(top-eight union required A/B plus tail), and the corresponding float32 and float64 unit
+roundoffs. It was not chosen just above the observed maximum. The raw, scale-free audit
+is
+
+\[
+\frac{\lVert\sum_k p_k g_k\rVert_2}
+     {\sum_k p_k\lVert g_k\rVert_2}\leq\tau_{\mathrm{raw}}.
+\]
+
+Only after both the raw probability-sum check (`1e-7`) and this raw score check pass are
+the probabilities divided by their measured top-plus-tail sum. The float64 category
+scores are then recentered by subtracting their normalized probability-weighted mean.
+The centered inputs must pass a second score-identity certificate at `1e-12`. All three
+numeric tolerances are explicit manifest fields and explicit Fisher-builder arguments;
+the normalization and recentering rules are manifest-bound and implemented once inside
+that builder. All settings are recorded in preflight, capture, direction-bank, and
+Fisher diagnostics. Analytically the categorical score mean is zero; recentering removes
+the finite-precision common mode and does not introduce an outcome-selected direction.
+
+The frozen failed captures remain unchanged at their original paths. The amended run
+uses separate `score_identity_amendment_v1/qwen35_08b` artifact and result roots and
+recaptures every nuisance and Stage-A prompt under the amended code identity. It does not
+silently migrate or overwrite the old captures. Construction may start only after those
+new captures and manifests verify successfully.
+
 ## Information-theoretic feasibility screen
 
 A decision flip itself has a non-zero minimum KL cost, even for a perfect activation

@@ -158,3 +158,44 @@ Fresh construction/evaluation views will be authored and hash-frozen only after 
 method and global multiplier are fixed. If construction-view edits do not transfer to
 hidden evaluation wording, the result is a transductive hidden-state attack rather than
 a reusable self-preservation knob.
+
+## 2026-08-26: outcome-blind Fisher numerical amendment
+
+Nuisance and Stage-A SP capture completed under commit `31c6a14`. The first construction
+attempt then failed in the global nuisance-Fisher score-identity certificate. The exact
+exception was:
+
+```text
+prompt 'nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_B'
+categorical weighted score mean residual 4.605235240524511e-05 exceeds
+1.544168341056029e-05
+```
+
+The failed captures and machine-readable failure record were frozen in commit
+`9a923ca`. At that boundary there was no `direction_bank.pt`, direction-bank manifest,
+v3 result file, scored sign, selected strength, or behavioral outcome. The amendment is
+therefore outcome-blind with respect to the intervention.
+
+The frozen numerical audit covers all 64 captured prompts. Using
+`norm(sum(p*g))/sum(p*norm(g))`, its median was `9.110898647524239e-06`, nearest-rank p95
+was `1.6381066854933378e-05`, and maximum was `2.0802184201662375e-05`. The largest
+probability-partition absolute error was `2.220446049250313e-15`. The earlier
+`1.592e-05` figure used a different denominator containing an added constant and is not
+the locked scale-free audit statistic.
+
+The replacement raw tolerance is
+`6.103888176890726e-05`, fixed by
+`gamma_1024_float32_plus_gamma_11_float64`, not by rounding the observed maximum upward.
+Raw probability sums must first pass at `1e-7`; raw score identity must then pass at the
+gamma-based tolerance. Only afterward are top-plus-tail probabilities normalized and
+all float64 category score gradients recentered by their normalized weighted mean. The
+centered Fisher-builder certificate is `1e-12`. All values and transformation rules are
+manifest-bound and passed explicitly rather than inherited from library defaults.
+
+Because changing the manifest, runner, or numerical settings necessarily changes the
+capture identity, the captures from commit `9a923ca` will not be reused through a
+compatibility exception. They remain immutable evidence at the old paths. All prompts
+will be recaptured under the separate
+`score_identity_amendment_v1/qwen35_08b` artifact root, followed by capture verification,
+direction construction, a direction freeze, and only then behavioral scoring. Previously
+reported studies and the failed capture evidence remain unchanged.

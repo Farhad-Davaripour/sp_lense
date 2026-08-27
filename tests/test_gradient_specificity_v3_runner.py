@@ -55,6 +55,23 @@ def test_preflight_is_model_free_and_renders_the_locked_development_scope(
         is True
     )
     assert result["target_self_excluded_from_selectivity_kl_gate"] is True
+    assert result["numerical_amendment_id"] == "score_identity_amendment_v1"
+    assert result["artifact_root"].endswith("score_identity_amendment_v1/qwen35_08b")
+    assert result["result_root"].endswith("score_identity_amendment_v1/qwen35_08b")
+    assert result["fisher_numerical_settings"] == runner._fisher_numerical_settings(
+        runner.load_development_manifest()["construction"]
+    )
+
+
+def test_amended_roots_do_not_overlap_the_frozen_failed_capture_roots() -> None:
+    frozen_artifact_root = ROOT / "artifacts" / "gradient_specificity_v3_development" / "qwen35_08b"
+    frozen_result_root = ROOT / "results" / "gradient_specificity_v3_development"
+
+    assert runner.AMENDMENT_ID == "score_identity_amendment_v1"
+    assert runner.ARTIFACT_ROOT != frozen_artifact_root
+    assert runner.RESULT_ROOT != frozen_result_root / "qwen35_08b"
+    assert runner.AMENDMENT_ID in runner.ARTIFACT_ROOT.parts
+    assert runner.AMENDMENT_ID in runner.RESULT_ROOT.parts
 
 
 def test_stage_b_factor_balance_fails_closed_on_an_unbalanced_eight_case_set() -> None:
@@ -173,9 +190,110 @@ def test_capture_uses_one_forward_one_hook_and_batched_vjps(
     assert 9 <= len(record["top9_union_required_ab_token_ids"]) <= 11
     assert 8 <= len(record["fisher_category_token_ids"]) <= 10
     assert record["greedy_competitor_gap_gradients"].shape == (8, 4)
-    factors, diagnostics = runner._fisher_factors(torch, [record])
+    factors, diagnostics = runner._fisher_factors(
+        torch,
+        [record],
+        construction=runner.load_development_manifest()["construction"],
+    )
     assert factors.shape[1] == 4
     assert diagnostics["prompt_count"] == 1
+    assert diagnostics["raw_probability_input_dtypes"] == ["torch.float64"]
+    assert diagnostics["raw_score_gradient_input_dtypes"] == ["torch.float32"]
+    assert diagnostics["processed_probability_dtype"] == "torch.float64"
+    assert diagnostics["processed_score_gradient_dtype"] == "torch.float64"
+    assert diagnostics["score_identity_tolerance"] == 6.103888176890726e-05
+    assert diagnostics["centered_score_identity_tolerance"] == 1e-12
+
+
+def _numerically_imperfect_fisher_record(*, tail_offset: float) -> dict[str, object]:
+    probabilities = torch.full((8,), 0.1, dtype=torch.float64)
+    gradients = (torch.arange(1, 33, dtype=torch.float32).reshape(8, 4) / 32.0).contiguous()
+    tail_probability = 0.2
+    exact_tail = -(probabilities.float() @ gradients) / tail_probability
+    tail_gradient = exact_tail + torch.tensor([tail_offset, 0.0, 0.0, 0.0], dtype=torch.float32)
+    return {
+        "form_id": "imperfect-score-identity",
+        "fisher_category_token_ids": list(range(8)),
+        "fisher_category_probabilities": probabilities,
+        "fisher_category_score_gradients": gradients,
+        "fisher_tail_probability": tail_probability,
+        "fisher_tail_score_gradient": tail_gradient,
+    }
+
+
+def test_fisher_amendment_passes_raw_tensors_and_plumbs_all_certificates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    observed = {}
+
+    def fake_builder(_torch, prompts, **kwargs):
+        observed["prompts"] = prompts
+        observed["kwargs"] = kwargs
+        factors = torch.ones((9, 4), dtype=torch.float64)
+        return factors, {
+            "prompt_count": 1,
+            "factor_shape": [9, 4],
+            "probability_tolerance": kwargs["probability_tolerance"],
+            "score_identity_tolerance": kwargs["score_identity_tolerance"],
+            "score_identity_tolerance_kind": "relative_weighted_score_norm",
+            "centered_score_identity_tolerance": kwargs["centered_score_identity_tolerance"],
+            "maximum_raw_score_identity_relative_residual": 2e-5,
+            "maximum_centered_score_identity_relative_residual": 2e-16,
+            "factor_matrix_sha256": "factor-hash",
+            "diagnostics_sha256": "centered-builder-hash",
+        }
+
+    monkeypatch.setattr(
+        runner.v3,
+        "prompt_balanced_topk_tail_fisher_factors",
+        fake_builder,
+    )
+    construction = runner.load_development_manifest()["construction"]
+    raw_record = _numerically_imperfect_fisher_record(tail_offset=1e-4)
+    factors, diagnostics = runner._fisher_factors(
+        torch,
+        [raw_record],
+        construction=construction,
+    )
+
+    prompt = observed["prompts"][0]
+    assert factors.dtype == torch.float64
+    assert prompt["top_probabilities"] is raw_record["fisher_category_probabilities"]
+    assert prompt["top_score_gradients"] is raw_record["fisher_category_score_gradients"]
+    assert prompt["tail_score_gradient"] is raw_record["fisher_tail_score_gradient"]
+    assert prompt["tail_probability"] == raw_record["fisher_tail_probability"]
+    assert torch.equal(prompt["top_probabilities"], raw_record["fisher_category_probabilities"])
+    assert torch.equal(
+        prompt["top_score_gradients"],
+        raw_record["fisher_category_score_gradients"],
+    )
+    assert torch.equal(prompt["tail_score_gradient"], raw_record["fisher_tail_score_gradient"])
+    assert prompt["top_probabilities"].dtype == torch.float64
+    assert prompt["top_score_gradients"].dtype == torch.float32
+    assert prompt["tail_score_gradient"].dtype == torch.float32
+    assert observed["kwargs"] == {
+        "expected_top_k": None,
+        "minimum_top_k": 8,
+        "probability_tolerance": 1e-7,
+        "score_identity_tolerance": 6.103888176890726e-05,
+        "centered_score_identity_tolerance": 1e-12,
+    }
+    assert diagnostics["maximum_raw_score_identity_relative_residual"] == 2e-5
+    assert diagnostics["maximum_centered_score_identity_relative_residual"] == 2e-16
+    assert diagnostics["centered_builder_diagnostics_sha256"] == ("centered-builder-hash")
+    assert diagnostics["fisher_numerical_settings"] == (
+        runner._fisher_numerical_settings(construction)
+    )
+
+
+def test_fisher_amendment_rejects_a_raw_score_identity_violation() -> None:
+    construction = runner.load_development_manifest()["construction"]
+    with pytest.raises(ValueError, match="relative residual"):
+        runner._fisher_factors(
+            torch,
+            [_numerically_imperfect_fisher_record(tail_offset=1.0)],
+            construction=construction,
+        )
 
 
 def test_capture_fails_closed_if_the_hook_fires_twice(
@@ -257,7 +375,8 @@ def test_construction_retains_mixed_order_baselines_and_weights_all_36_prompts_e
     ]
     fisher_calls = []
 
-    def fake_fisher(_torch, records):
+    def fake_fisher(_torch, records, *, construction):
+        assert construction["decision_margin_logit"] == 0.05
         fisher_calls.append([str(record["form_id"]) for record in records])
         factors = torch.ones((len(records), dimension), dtype=torch.float64)
         return factors, {
@@ -283,6 +402,7 @@ def test_construction_retains_mixed_order_baselines_and_weights_all_36_prompts_e
         global_nuisance_basis=basis[4:7].double(),
         nuisance_fisher_records=nuisance_records,
         construction={
+            **runner.load_development_manifest()["construction"],
             "decision_margin_logit": 0.05,
             "nuisance_svd_relative_tolerance": 0.0001220703125,
             "nuisance_svd_absolute_tolerance": 1e-7,

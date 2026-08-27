@@ -37,8 +37,11 @@ BACKEND_PATH = ROOT / "src" / "sp_lense" / "backend.py"
 RUNTIME_PATH = ROOT / "src" / "sp_lense" / "comparison_runtime.py"
 INTERVENTION_PATH = ROOT / "src" / "sp_lense" / "comparison_intervention.py"
 
-ARTIFACT_ROOT = ROOT / "artifacts" / "gradient_specificity_v3_development" / "qwen35_08b"
-RESULT_ROOT = ROOT / "results" / "gradient_specificity_v3_development" / "qwen35_08b"
+AMENDMENT_ID = "score_identity_amendment_v1"
+ARTIFACT_ROOT = (
+    ROOT / "artifacts" / "gradient_specificity_v3_development" / AMENDMENT_ID / "qwen35_08b"
+)
+RESULT_ROOT = ROOT / "results" / "gradient_specificity_v3_development" / AMENDMENT_ID / "qwen35_08b"
 NUISANCE_CAPTURE_PATH = ARTIFACT_ROOT / "nuisance_capture.pt"
 NUISANCE_MANIFEST_PATH = ARTIFACT_ROOT / "nuisance_capture_manifest.json"
 
@@ -66,6 +69,24 @@ BASELINE_COMPETENCE_REFERENCE_THRESHOLDS = {
     "per_suite_accuracy": 0.65,
 }
 FORBIDDEN_PHASE_NAMES = {"validation", "sealed", "sealed_test", "test"}
+FISHER_PROBABILITY_SUM_TOLERANCE = 1e-7
+FISHER_RAW_SCORE_IDENTITY_SCALE_FREE_TOLERANCE = 6.103888176890726e-05
+FISHER_RAW_SCORE_IDENTITY_SCALE_FREE_TOLERANCE_RULE = "gamma_1024_float32_plus_gamma_11_float64"
+FISHER_POST_AUDIT_PROBABILITY_NORMALIZATION_RULE = (
+    "divide_top_and_tail_probabilities_by_raw_partition_sum"
+)
+FISHER_POST_AUDIT_SCORE_RECENTERING_RULE = (
+    "subtract_normalized_probability_weighted_score_mean_from_each_category_score_gradient"
+)
+FISHER_CENTERED_SCORE_IDENTITY_TOLERANCE = 1e-12
+FISHER_NUMERICAL_SETTING_KEYS = (
+    "fisher_probability_sum_tolerance",
+    "fisher_raw_score_identity_scale_free_tolerance",
+    "fisher_raw_score_identity_scale_free_tolerance_rule",
+    "fisher_post_audit_probability_normalization_rule",
+    "fisher_post_audit_score_recentering_rule",
+    "fisher_centered_score_identity_tolerance",
+)
 DESIGN_FACTOR_FIELDS = (
     "authorized",
     "interruption",
@@ -231,6 +252,44 @@ def load_development_manifest() -> dict[str, Any]:
     ):
         raise ValueError("v3 requires semantic and greedy-gap unrelated hard constraints")
     if not math.isclose(
+        float(construction.get("fisher_probability_sum_tolerance", math.nan)),
+        FISHER_PROBABILITY_SUM_TOLERANCE,
+        rel_tol=0.0,
+        abs_tol=0.0,
+    ):
+        raise ValueError("v3 requires the amended Fisher probability-sum tolerance")
+    if not math.isclose(
+        float(
+            construction.get(
+                "fisher_raw_score_identity_scale_free_tolerance",
+                math.nan,
+            )
+        ),
+        FISHER_RAW_SCORE_IDENTITY_SCALE_FREE_TOLERANCE,
+        rel_tol=0.0,
+        abs_tol=0.0,
+    ):
+        raise ValueError("v3 requires the amended raw Fisher score-identity tolerance")
+    if construction.get("fisher_raw_score_identity_scale_free_tolerance_rule") != (
+        FISHER_RAW_SCORE_IDENTITY_SCALE_FREE_TOLERANCE_RULE
+    ):
+        raise ValueError("v3 requires the frozen gamma-based raw Fisher tolerance rule")
+    if construction.get("fisher_post_audit_probability_normalization_rule") != (
+        FISHER_POST_AUDIT_PROBABILITY_NORMALIZATION_RULE
+    ):
+        raise ValueError("v3 requires post-audit Fisher probability normalization")
+    if construction.get("fisher_post_audit_score_recentering_rule") != (
+        FISHER_POST_AUDIT_SCORE_RECENTERING_RULE
+    ):
+        raise ValueError("v3 requires post-audit Fisher score recentering")
+    if not math.isclose(
+        float(construction.get("fisher_centered_score_identity_tolerance", math.nan)),
+        FISHER_CENTERED_SCORE_IDENTITY_TOLERANCE,
+        rel_tol=0.0,
+        abs_tol=0.0,
+    ):
+        raise ValueError("v3 requires the amended centered Fisher certificate tolerance")
+    if not math.isclose(
         float(construction.get("nuisance_svd_relative_tolerance", math.nan)),
         0.0001220703125,
         rel_tol=0.0,
@@ -258,6 +317,30 @@ def load_development_manifest() -> dict[str, Any]:
         raise ValueError("v3 development multipliers differ from the frozen grid")
     _kl_limits_from_manifest(manifest)
     return manifest
+
+
+def _fisher_numerical_settings(construction: Mapping[str, Any]) -> dict[str, Any]:
+    missing = [key for key in FISHER_NUMERICAL_SETTING_KEYS if key not in construction]
+    if missing:
+        raise KeyError(f"construction lacks Fisher numerical settings: {missing}")
+    observed = {key: construction[key] for key in FISHER_NUMERICAL_SETTING_KEYS}
+    expected = {
+        "fisher_probability_sum_tolerance": FISHER_PROBABILITY_SUM_TOLERANCE,
+        "fisher_raw_score_identity_scale_free_tolerance": (
+            FISHER_RAW_SCORE_IDENTITY_SCALE_FREE_TOLERANCE
+        ),
+        "fisher_raw_score_identity_scale_free_tolerance_rule": (
+            FISHER_RAW_SCORE_IDENTITY_SCALE_FREE_TOLERANCE_RULE
+        ),
+        "fisher_post_audit_probability_normalization_rule": (
+            FISHER_POST_AUDIT_PROBABILITY_NORMALIZATION_RULE
+        ),
+        "fisher_post_audit_score_recentering_rule": (FISHER_POST_AUDIT_SCORE_RECENTERING_RULE),
+        "fisher_centered_score_identity_tolerance": (FISHER_CENTERED_SCORE_IDENTITY_TOLERANCE),
+    }
+    if observed != expected:
+        raise ValueError("construction Fisher numerical settings differ from the amendment")
+    return observed
 
 
 def _source_path(manifest: Mapping[str, Any], key: str) -> Path:
@@ -525,6 +608,10 @@ def run_preflight() -> dict[str, Any]:
         "external_api_calls": 0,
         "external_model_judges": 0,
         "estimated_external_cost_usd": 0,
+        "numerical_amendment_id": AMENDMENT_ID,
+        "artifact_root": _relative(ARTIFACT_ROOT),
+        "result_root": _relative(RESULT_ROOT),
+        "fisher_numerical_settings": _fisher_numerical_settings(manifest["construction"]),
         "evaluation_kl_limits": limits,
         "evaluation_kl_orientation": "changed_to_baseline",
         "target_self_excluded_from_selectivity_kl_gate": True,
@@ -922,6 +1009,10 @@ def _write_capture_manifest(
         "development_only": True,
         "status": "complete",
         "identity_sha256": payload["identity"]["identity_sha256"],
+        "numerical_amendment_id": AMENDMENT_ID,
+        "fisher_numerical_settings": _fisher_numerical_settings(
+            payload["identity"]["construction"]
+        ),
         "capture_path": _relative(capture_path),
         "capture_file_sha256": file_sha256(capture_path),
         "record_count": len(records),
@@ -969,6 +1060,9 @@ def _capture_forms(
             or captured_manifest.get("development_only") is not True
             or captured_manifest.get("capture_file_sha256") != file_sha256(capture_path)
             or captured_manifest.get("identity_sha256") != identity["identity_sha256"]
+            or captured_manifest.get("numerical_amendment_id") != AMENDMENT_ID
+            or captured_manifest.get("fisher_numerical_settings")
+            != _fisher_numerical_settings(identity["construction"])
         ):
             raise RuntimeError("completed v3 capture differs from its manifest")
         return payload
@@ -1078,6 +1172,9 @@ def _load_complete_capture(
         or manifest.get("development_only") is not True
         or manifest.get("capture_file_sha256") != file_sha256(capture_path)
         or manifest.get("identity_sha256") != identity["identity_sha256"]
+        or manifest.get("numerical_amendment_id") != AMENDMENT_ID
+        or manifest.get("fisher_numerical_settings")
+        != _fisher_numerical_settings(identity["construction"])
     ):
         raise RuntimeError("v3 capture manifest verification failed")
     return payload
@@ -1094,13 +1191,80 @@ def _fisher_prompt(record: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def _fisher_factors(torch: Any, records: Sequence[Mapping[str, Any]]) -> tuple[Any, dict[str, Any]]:
-    return v3.prompt_balanced_topk_tail_fisher_factors(
+def _fisher_factors(
+    torch: Any,
+    records: Sequence[Mapping[str, Any]],
+    *,
+    construction: Mapping[str, Any],
+) -> tuple[Any, dict[str, Any]]:
+    """Pass raw captures once through the manifest-bound Fisher certificates."""
+
+    settings = _fisher_numerical_settings(construction)
+    raw_prompts = [_fisher_prompt(record) for record in records]
+    raw_probability_dtypes = sorted(
+        {str(prompt["top_probabilities"].dtype) for prompt in raw_prompts}
+    )
+    raw_gradient_dtypes = sorted(
+        {
+            str(value.dtype)
+            for prompt in raw_prompts
+            for value in (
+                prompt["top_score_gradients"],
+                prompt["tail_score_gradient"],
+            )
+        }
+    )
+    factors, builder_diagnostics = v3.prompt_balanced_topk_tail_fisher_factors(
         torch,
-        [_fisher_prompt(record) for record in records],
+        raw_prompts,
         expected_top_k=None,
         minimum_top_k=8,
+        probability_tolerance=float(settings["fisher_probability_sum_tolerance"]),
+        score_identity_tolerance=float(settings["fisher_raw_score_identity_scale_free_tolerance"]),
+        centered_score_identity_tolerance=float(
+            settings["fisher_centered_score_identity_tolerance"]
+        ),
     )
+    expected_diagnostics = {
+        "probability_tolerance": float(settings["fisher_probability_sum_tolerance"]),
+        "score_identity_tolerance": float(
+            settings["fisher_raw_score_identity_scale_free_tolerance"]
+        ),
+        "centered_score_identity_tolerance": float(
+            settings["fisher_centered_score_identity_tolerance"]
+        ),
+    }
+    if any(builder_diagnostics.get(key) != value for key, value in expected_diagnostics.items()):
+        raise RuntimeError("Fisher builder diagnostics differ from manifest tolerances")
+    if builder_diagnostics.get("score_identity_tolerance_kind") != ("relative_weighted_score_norm"):
+        raise RuntimeError("Fisher builder used the wrong raw score-identity metric")
+    if (
+        float(builder_diagnostics["maximum_raw_score_identity_relative_residual"])
+        > (expected_diagnostics["score_identity_tolerance"])
+    ):
+        raise RuntimeError("Fisher builder returned an uncertified raw score identity")
+    if (
+        float(builder_diagnostics["maximum_centered_score_identity_relative_residual"])
+        > (expected_diagnostics["centered_score_identity_tolerance"])
+    ):
+        raise RuntimeError("Fisher builder returned an uncertified centered score identity")
+    if factors.dtype != torch.float64:
+        raise RuntimeError("Fisher builder did not return float64 factors")
+    builder_diagnostics_sha256 = str(builder_diagnostics["diagnostics_sha256"])
+    diagnostics = {
+        **builder_diagnostics,
+        "numerical_amendment_id": AMENDMENT_ID,
+        "fisher_numerical_settings": settings,
+        "raw_probability_input_dtypes": raw_probability_dtypes,
+        "raw_score_gradient_input_dtypes": raw_gradient_dtypes,
+        "builder_computation_dtype": "torch.float64",
+        "processed_probability_dtype": "torch.float64",
+        "processed_score_gradient_dtype": "torch.float64",
+        "centered_builder_diagnostics_sha256": builder_diagnostics_sha256,
+    }
+    diagnostics.pop("diagnostics_sha256", None)
+    diagnostics["diagnostics_sha256"] = canonical_sha256(diagnostics)
+    return factors, diagnostics
 
 
 def _direction_key(case_id: str, assignment: int) -> str:
@@ -1251,9 +1415,15 @@ def _construct_entry(
     nuisance_rows = torch.cat((global_nuisance_basis.double(), other_semantic, other_gaps), dim=0)
     local_records = [*self_records, *other_records]
     fisher_factors, combined_fisher_diagnostics = _fisher_factors(
-        torch, [*nuisance_fisher_records, *local_records]
+        torch,
+        [*nuisance_fisher_records, *local_records],
+        construction=construction,
     )
-    _, local_fisher_diagnostics = _fisher_factors(torch, local_records)
+    _, local_fisher_diagnostics = _fisher_factors(
+        torch,
+        local_records,
+        construction=construction,
+    )
     fisher_factors = fisher_factors.double()
     ridge = float(torch.linalg.matrix_norm(fisher_factors).square().item()) / int(
         fisher_factors.shape[1]
@@ -1297,6 +1467,8 @@ def _construct_entry(
         ),
         "combined_fisher_factor_count": int(fisher_factors.shape[0]),
         "fisher_ridge": ridge,
+        "numerical_amendment_id": AMENDMENT_ID,
+        "fisher_numerical_settings": _fisher_numerical_settings(construction),
         "local_fisher_diagnostics": local_fisher_diagnostics,
         "combined_equal_per_prompt_fisher_diagnostics": combined_fisher_diagnostics,
         "construction_diagnostics": diagnostics,
@@ -1317,6 +1489,12 @@ def _validate_bank_payload(
 ) -> None:
     if payload.get("schema_version") != BANK_SCHEMA or payload.get("development_only") is not True:
         raise ValueError("v3 bank is not explicitly development-only")
+    if payload.get("numerical_amendment_id") != AMENDMENT_ID:
+        raise ValueError("v3 bank lacks the score-identity amendment identity")
+    if payload.get("fisher_numerical_settings") != _fisher_numerical_settings(
+        identity["construction"]
+    ):
+        raise ValueError("v3 bank Fisher numerical settings differ from its identity")
     if require_complete and payload.get("status") != "complete":
         raise ValueError("v3 direction-bank payload is not marked complete")
     if payload.get("identity") != identity:
@@ -1435,7 +1613,9 @@ def run_construct(stage: str) -> dict[str, Any]:
         atol=primary_atol,
     )
     _nuisance_fisher, nuisance_fisher_diagnostics = _fisher_factors(
-        torch, nuisance_capture["records"]
+        torch,
+        nuisance_capture["records"],
+        construction=manifest["construction"],
     )
     kl_limits = _kl_limits_from_manifest(manifest)
     groups = _group_sp_capture(sp_capture_records)
@@ -1467,6 +1647,8 @@ def run_construct(stage: str) -> dict[str, Any]:
             "development_only": True,
             "status": "in_progress",
             "identity": identity,
+            "numerical_amendment_id": AMENDMENT_ID,
+            "fisher_numerical_settings": _fisher_numerical_settings(manifest["construction"]),
             "global_nuisance": {
                 "input_semantic_row_count": len(nuisance_capture["records"]),
                 "input_greedy_gap_row_count": int(global_raw_rows.shape[0])
@@ -1511,6 +1693,9 @@ def run_construct(stage: str) -> dict[str, Any]:
             or bank_manifest.get("development_only") is not True
             or bank_manifest.get("bank_file_sha256") != file_sha256(bank_path)
             or bank_manifest.get("identity_sha256") != identity["identity_sha256"]
+            or bank_manifest.get("numerical_amendment_id") != AMENDMENT_ID
+            or bank_manifest.get("fisher_numerical_settings")
+            != _fisher_numerical_settings(manifest["construction"])
         ):
             raise RuntimeError("completed v3 direction bank differs from its manifest")
         return payload
@@ -1550,6 +1735,8 @@ def run_construct(stage: str) -> dict[str, Any]:
         "development_only": True,
         "status": "complete",
         "identity_sha256": identity["identity_sha256"],
+        "numerical_amendment_id": AMENDMENT_ID,
+        "fisher_numerical_settings": _fisher_numerical_settings(manifest["construction"]),
         "bank_path": _relative(bank_path),
         "bank_file_sha256": file_sha256(bank_path),
         "attempt_count": len(payload["entries"]),
