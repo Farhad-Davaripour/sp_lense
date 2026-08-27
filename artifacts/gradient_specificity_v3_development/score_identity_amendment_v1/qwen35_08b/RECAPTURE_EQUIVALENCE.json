@@ -1,0 +1,61 @@
+{
+  "schema_version": "sp_lense.gradient_specificity_v3_recapture_equivalence.v1",
+  "development_only": true,
+  "comparison_status": "exact_record_equivalence_excluding_identity_and_elapsed_seconds",
+  "comparison_performed_before_direction_construction": true,
+  "prior_failure_evidence_commit": "9a923ca",
+  "numerical_amendment_commit": "3668a84",
+  "claim_boundary": "This record establishes deterministic recapture equivalence only. It contains no constructed direction, selected strength, steered score, decision change, or behavioral outcome.",
+  "comparison_rule": {
+    "record_key": "form_id",
+    "required_form_id_sets_equal": true,
+    "tensor_comparison": "torch.equal_with_identical_dtype_and_shape",
+    "non_tensor_comparison": "python_exact_equality",
+    "excluded_record_fields": [
+      "elapsed_seconds"
+    ],
+    "excluded_payload_sections": [
+      "identity"
+    ],
+    "reason_for_exclusions": "The amendment intentionally changes the code-and-construction identity, and elapsed wall-clock time is nondeterministic. All prompt, baseline, token, probability, gradient, residual, and recorded hash fields remain in scope."
+  },
+  "compared_tensor_fields": [
+    "fisher_category_probabilities",
+    "fisher_category_score_gradients",
+    "fisher_tail_score_gradient",
+    "greedy_competitor_gap_gradients",
+    "semantic_gradient"
+  ],
+  "banks": {
+    "nuisance": {
+      "record_count": 32,
+      "form_ids_equal": true,
+      "compared_non_timing_non_tensor_field_count": 49,
+      "mismatch_count_excluding_identity_and_elapsed_seconds": 0,
+      "prior_identity_sha256": "72ea34db6b1e05adb3ed64c7c5657bd5dad22efd2776110d93c4edf6eaf4feab",
+      "amended_identity_sha256": "cfb31f12b20a784344d216098d219335b71aa928f1e56c3f2b9ed9f2863a9440",
+      "prior_capture_sha256": "2a6d217be3f83a82e162325bd67f872c402b9c5438ae6990b54fda8213d44d8b",
+      "prior_manifest_sha256": "5092d35d6d7fea4910cc000078122ba77af547e89ce92a82a8b295b868fe3e24",
+      "amended_capture_sha256": "0c75a669714448e59f4418b8d2ecf3c4fd8ed1f54c3a63ffbd162c65596a7441",
+      "amended_manifest_sha256": "d11de1f36e2c512c10af33a9de04f34048ffc81344a3793b844c06d61db60697"
+    },
+    "stage_a_self_preservation": {
+      "record_count": 32,
+      "form_ids_equal": true,
+      "compared_non_timing_non_tensor_field_count": 56,
+      "mismatch_count_excluding_identity_and_elapsed_seconds": 0,
+      "prior_identity_sha256": "46041acfc621cbd81e9092965fefa83a56c1cddf4c1e4c6e3901601dfcfc0cb6",
+      "amended_identity_sha256": "6d6ec54f28618f450e92145a4c72e9d50270beaa689abfedc1829d90e349cc44",
+      "prior_capture_sha256": "5981e43f7cde2c9d0903163fa234a80f15f45a514cf1c3a2f4534c8d4fd4f43c",
+      "prior_manifest_sha256": "96906d1eecab0a054c76693e8184bf1dc6205c2bfde37200163562da9e869504",
+      "amended_capture_sha256": "ef110e0483ee0e6c2248a08a0e170ea15636a2c9c3c3eeeccdd84fb319b4d006",
+      "amended_manifest_sha256": "6ce130dff4ff9e40ac05b53feea31f7eb82f3d86559796c96b04096027b6f645"
+    }
+  },
+  "aggregate": {
+    "record_count": 64,
+    "tensor_value_mismatch_count": 0,
+    "non_timing_non_identity_mismatch_count": 0,
+    "safe_to_proceed_to_model_free_direction_construction": true
+  }
+}
