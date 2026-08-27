@@ -1,0 +1,262 @@
+{
+  "schema_version": "sp_lense.cpng_development_lock.v1",
+  "status": "locked_before_cpng_development_execution",
+  "development_only": true,
+  "stage_a_is_exploratory_only": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "layer_zero_based": 10,
+    "position": "final_prompt_token",
+    "magnitude_mode": "residual_relative"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "model_vocabulary_size": 248320,
+  "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+  "completion_capture_dtype": "torch.float32",
+  "target_contrast": {
+    "objective": "self_minus_matched_other_mean_token_authored_completion_score_gradient",
+    "uses_ab_labels": false,
+    "uses_answer_order": false,
+    "sign_fixed_by_authored_preserve_minus_comply_contrast": true,
+    "sign_may_change_after_ab_evaluation": false,
+    "exact_text_and_token_hashes_required": true
+  },
+  "minimum_separation_heuristic": {
+    "unit_roundoff_rule": "u32 = torch.float32.eps / 2",
+    "gamma_rule": "gamma_d = d * u32 / (1 - d * u32)",
+    "strict_pass_rule": "norm(projected_self_minus_other) / (norm(projected_self) + norm(projected_other)) > gamma_d",
+    "is_vjp_or_backprop_error_bound": false,
+    "interpretation": "locked conservative minimum-separation screen only"
+  },
+  "protected_metric": {
+    "kind": "prompt_group_balanced_topk_plus_aggregate_tail_next_token_pullback",
+    "is_full_vocabulary_fisher": false,
+    "matched_other_group_weight": 0.5,
+    "unrelated_group_weight": 0.5,
+    "self_prompt_count": 0,
+    "uses_both_ab_order_renderings_symmetrically": true,
+    "uses_ab_choice_prompt_tokens": true,
+    "uses_ab_token_ids_and_coarsened_categories": true,
+    "uses_preserve_comply_mapping": false,
+    "uses_semantic_orientation": false,
+    "uses_evaluation_outcomes": false,
+    "actual_finite_gate_uses_full_vocabulary_kl": true
+  },
+  "applied_float32_budget_certificate": {
+    "exact_cast_required": "applied_float32 == requested_float64.float()",
+    "recompute_dtype": "applied_float32.double()",
+    "l2_tolerance_rule": "norm(applied.double() - requested) + 32 * eps64 * (1 + cap)",
+    "coarsened_kl_tolerance_rule": "norm(L requested) * norm(L cast_error) + 0.5 * norm(L cast_error)^2 + 32 * eps64 * (1 + budget)",
+    "construction_bound_factor_hash_required": true
+  },
+  "candidate_grid": {
+    "fisher_ridge_multipliers": [
+      0.01,
+      0.1,
+      1.0
+    ],
+    "predicted_coarsened_next_token_kl_budgets": [
+      0.0005,
+      0.001,
+      0.002,
+      0.005
+    ],
+    "residual_relative_l2_caps": [
+      0.05,
+      0.1,
+      0.15,
+      0.2
+    ],
+    "expansion_order": [
+      "fisher_ridge_multiplier",
+      "predicted_coarsened_next_token_kl_budget",
+      "residual_relative_l2_cap"
+    ],
+    "candidate_count": 48,
+    "expanded_grid_sha256": "bc52f171b13fddd417421bee50dfe6ff44b52108e3499e80f22a052f6af63ff8"
+  },
+  "target_margin_logit": 0.01,
+  "matched_other_margin_logit": 0.0,
+  "tie_statistic_formula": "self_half_span_minus_abs_matched_other_half_span",
+  "integrity_and_restart": {
+    "artifact_pair_policy": "both_absent_or_both_present_and_strictly_valid",
+    "ledger": "atomic_hash_chained_pre_operation_reservations",
+    "capture_interruption": "charged_and_failed_closed_no_replay",
+    "stage_one_resume": "strict_contiguous_completed_case_checkpoints_only",
+    "orphan_reservation": "charged_and_failed_closed_no_replay",
+    "stage_one_complete_before_stage_two": true,
+    "stage_two_interruption": "failed_closed_no_resume_shared_baselines_not_persisted",
+    "completed_result_reuse": "strict_recompute_rows_audits_selection_finalization_and_compute",
+    "malicious_rewrite_of_all_local_files": "outside_integrity_threat_model"
+  },
+  "candidate_local_failure_taxonomy": {
+    "construction": {
+      "type": "CounterfactualConstructionIneligible",
+      "allowlisted_messages": [
+        "projected counterfactual contrast is numerically zero",
+        "projected counterfactual contrast failed the minimum-separation heuristic",
+        "projected protected metric has no positive scale",
+        "natural direction has no certifiable protected-metric energy"
+      ]
+    },
+    "evaluation": {
+      "type": "CandidateLocalNumericalFailure",
+      "allowlisted_messages": [
+        "CPNG application diagnostics are non-finite",
+        "CPNG changed logits are non-finite",
+        "CPNG changed-to-baseline KL is invalid"
+      ]
+    },
+    "unknown_integrity_runtime_oom_hook_or_token_errors": "abort"
+  },
+  "protected_limits": {
+    "maximum_exact_greedy_token_changes": 0,
+    "maximum_semantic_decision_changes": 0,
+    "maximum_new_other_outputs": 0,
+    "mean_full_vocabulary_kl_changed_to_baseline": 0.005,
+    "empirical_p95_full_vocabulary_kl_changed_to_baseline": 0.02,
+    "maximum_full_vocabulary_kl_changed_to_baseline": 0.05
+  },
+  "selection": {
+    "global_hyperparameter_triple_for_all_eight_case_assignments": true,
+    "stage_one": "all_48_grid_triples_on_self_and_matched_other_only",
+    "fixed_attempt_denominator": 8,
+    "construction_failures_count_as_zero_successes": true,
+    "incomplete_or_evaluation_failed_global_triple_ineligible": true,
+    "safety_and_efficacy_statuses_are_separate": true,
+    "deduplicate_before_outcomes_by": [
+      "direction_sha256",
+      "applied_float32_perturbation_sha256"
+    ],
+    "ranking": [
+      "reject_observed_matched_other_or_null_violation",
+      "maximize_terminal_both_order_success_count",
+      "maximize_median_self_minus_matched_other_effect",
+      "minimize_mean_matched_other_full_vocabulary_kl",
+      "literal_grid_order"
+    ],
+    "stage_two": "audit_all_64_signed_nuisance_rows_for_all_8_directions_at_one_provisional_triple",
+    "fallback_after_stage_two_failure": false,
+    "minimum_terminal_successes_for_development_success": 1
+  },
+  "compute_ceiling": {
+    "calibration": {
+      "maximum_forward_evaluations": 3648,
+      "maximum_backward_evaluations": 0
+    },
+    "capture": {
+      "maximum_forward_evaluations": 48,
+      "maximum_backward_evaluations": 32
+    },
+    "total_experiment": {
+      "maximum_forward_evaluations": 3696,
+      "maximum_backward_evaluations": 32
+    },
+    "external_model_judges": 0,
+    "external_api_calls": 0
+  },
+  "compute_decomposition": {
+    "capture_forward_evaluations": 48,
+    "capture_backward_evaluations": 32,
+    "stage_one_changed_forwards": 3072,
+    "stage_one_maximum_baseline_forwards": 32,
+    "stage_two_changed_forwards": 512,
+    "stage_two_maximum_baseline_forwards": 32,
+    "calibration_maximum_forward_evaluations": 3648,
+    "total_experiment_maximum_forward_evaluations": 3696,
+    "total_experiment_maximum_backward_evaluations": 32,
+    "total_forwards_strictly_below_4096": true
+  },
+  "source_files": {
+    "runner": {
+      "path": "scripts/counterfactual_protected_natural_gradient_development.py",
+      "sha256": "074e5f55b4382993803dce2a3b6e986012ef03e4086270f925084052974e854c"
+    },
+    "math": {
+      "path": "src/sp_lense/counterfactual_protected_natural_gradient.py",
+      "sha256": "3384edfff692de9730db68015d202cbc683045c51f0693066fec1596e235c959"
+    },
+    "protocol": {
+      "path": "docs/COUNTERFACTUAL_PROTECTED_NATURAL_GRADIENT_PROTOCOL.md",
+      "sha256": "e22a434aa577c8adb60b2f699430c7fd6c81971b21856dd1ad87e085237b14df"
+    },
+    "research_requirements": {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    },
+    "semantic_completion_capture": {
+      "path": "src/sp_lense/semantic_completion_gradient.py",
+      "sha256": "d9dc158b561c54a9a13d8e16aca0ebdd1a5dc913b659b4674f40a1926184e406"
+    },
+    "completion_renderer": {
+      "path": "src/sp_lense/gradient_specificity_v2.py",
+      "sha256": "d2ef11f521fe0e2d8aa1a4597354a7e788b0b87b02f3646e9156c04003ef2e84"
+    },
+    "trust_runner": {
+      "path": "scripts/gradient_specificity_trust_region_development.py",
+      "sha256": "38cad4ac070f116793c2345496278b807824850bec20679b3b3bdcbf68aebdb2"
+    },
+    "trust_math": {
+      "path": "src/sp_lense/gradient_specificity_trust_region.py",
+      "sha256": "25532329312d95da3a41e5ff221889c36a85656680a515399059d6861995a9f7"
+    },
+    "v3_runner": {
+      "path": "scripts/gradient_specificity_v3_development.py",
+      "sha256": "6eaadee60d9e932eb8b094af74bb29099b39dab0bd80508b52e896f2b5a9666e"
+    },
+    "v3_math": {
+      "path": "src/sp_lense/gradient_specificity_v3.py",
+      "sha256": "ed6032b3b91eddd41c0b428f8086f5d36a98f0c3d26766edfa1b1a7fb89e668c"
+    },
+    "development_manifest": {
+      "path": "data/gradient_specificity_v3_development.json",
+      "sha256": "37b0f3363184072275798dece8d871040bd6079c393b76d114311ff402264cfd"
+    },
+    "self_preservation_cases": {
+      "path": "data/gradient_specificity_v2_cases.json",
+      "sha256": "017b2eb7265feeed9cc64ff2611d20a46b5a5e9f9f4786a9f58efc7e4de519d1"
+    },
+    "unrelated_cases": {
+      "path": "data/steering_comparison_cases.json",
+      "sha256": "e6229738fe54e3553874bdd663a460c0a57d3d01ff3874e94f5fac757b17d57f"
+    },
+    "model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "frozen_nuisance_capture": {
+      "path": "artifacts/gradient_specificity_v3_development/score_identity_amendment_v1/qwen35_08b/nuisance_capture.pt",
+      "sha256": "0c75a669714448e59f4418b8d2ecf3c4fd8ed1f54c3a63ffbd162c65596a7441"
+    },
+    "frozen_nuisance_capture_manifest": {
+      "path": "artifacts/gradient_specificity_v3_development/score_identity_amendment_v1/qwen35_08b/nuisance_capture_manifest.json",
+      "sha256": "d11de1f36e2c512c10af33a9de04f34048ffc81344a3793b844c06d61db60697"
+    },
+    "frozen_stage_a_sp_capture": {
+      "path": "artifacts/gradient_specificity_v3_development/score_identity_amendment_v1/qwen35_08b/stage_a/sp_capture.pt",
+      "sha256": "ef110e0483ee0e6c2248a08a0e170ea15636a2c9c3c3eeeccdd84fb319b4d006"
+    },
+    "frozen_stage_a_sp_capture_manifest": {
+      "path": "artifacts/gradient_specificity_v3_development/score_identity_amendment_v1/qwen35_08b/stage_a/sp_capture_manifest.json",
+      "sha256": "6ce130dff4ff9e40ac05b53feea31f7eb82f3d86559796c96b04096027b6f645"
+    },
+    "frozen_stage_a_direction_bank": {
+      "path": "artifacts/gradient_specificity_v3_development/score_identity_amendment_v1/qwen35_08b/stage_a/direction_bank.pt",
+      "sha256": "f0b62d7b2b56340d1d76272d24ec06c365152780be0a3b82fb5c719c62a5af2b"
+    },
+    "frozen_stage_a_direction_bank_manifest": {
+      "path": "artifacts/gradient_specificity_v3_development/score_identity_amendment_v1/qwen35_08b/stage_a/direction_bank_manifest.json",
+      "sha256": "7d0524680cec48bfff3a5dec3ecbfbaf692d3b1abe59e97190d80534f62a521a"
+    }
+  },
+  "lock_identity_sha256": "af96b9ea42c5be2cd0e0e3aff5ca8afb31f2e8254345f2193f77fea637c182c7"
+}

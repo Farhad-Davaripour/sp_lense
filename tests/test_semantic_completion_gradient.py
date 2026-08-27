@@ -278,6 +278,46 @@ def test_semantic_gradient_uses_common_prompt_norm_and_swapping_completions_nega
     assert all(parameter.grad is None for parameter in backend.model.parameters())
 
 
+def test_metering_callbacks_fire_before_each_forward_and_backward() -> None:
+    backend = _backend()
+    events = []
+
+    capture_semantic_completion_gradient(
+        backend,
+        "prompt",
+        "preserve",
+        "comply",
+        layer=10,
+        before_forward=lambda work_id: events.append(work_id),
+        before_backward=lambda work_id: events.append(work_id),
+    )
+
+    assert events == [
+        "prompt_only_forward",
+        "preserve_forward",
+        "preserve_backward",
+        "comply_forward",
+        "comply_backward",
+    ]
+
+    model_calls = []
+    original_forward = backend.model.forward
+
+    def counted_forward(tokens):
+        model_calls.append(1)
+        return original_forward(tokens)
+
+    backend.model.forward = counted_forward
+    with pytest.raises(RuntimeError, match="meter stop"):
+        capture_prompt_final_residual(
+            backend,
+            "prompt",
+            layer=10,
+            before_forward=lambda _work_id: (_ for _ in ()).throw(RuntimeError("meter stop")),
+        )
+    assert model_calls == []
+
+
 def test_identical_joint_content_tokens_are_rejected_even_if_text_differs() -> None:
     with pytest.raises(ValueError, match="identical joint content tokens"):
         capture_semantic_completion_gradient(

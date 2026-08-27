@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -269,6 +270,7 @@ def capture_prompt_final_residual(
     prompt: str,
     *,
     layer: int,
+    before_forward: Callable[[str], None] | None = None,
 ) -> PromptFinalResidualCapture:
     """Capture the prompt-only residual used as the common coordinate and scale."""
 
@@ -289,6 +291,8 @@ def capture_prompt_final_residual(
         captured["activation"] = activation.detach()
         return activation
 
+    if before_forward is not None:
+        before_forward("prompt_only_forward")
     with (
         torch.inference_mode(),
         backend.model.hooks(fwd_hooks=[(f"blocks.{layer}.hook_out", capture_hook)]),
@@ -329,6 +333,9 @@ def capture_authored_completion_mean_logprob_gradient(
     *,
     layer: int,
     boundary: ChoiceBoundaryEvidence | None = None,
+    before_forward: Callable[[str], None] | None = None,
+    before_backward: Callable[[str], None] | None = None,
+    metering_label: str = "completion",
 ) -> AuthoredCompletionGradientCapture:
     """Capture a content-only likelihood gradient at the final prompt residual position."""
 
@@ -354,6 +361,8 @@ def capture_authored_completion_mean_logprob_gradient(
     backend.model.zero_grad(set_to_none=True)
     parameter_gradients_allocated = False
     try:
+        if before_forward is not None:
+            before_forward(f"{metering_label}_forward")
         with (
             torch.enable_grad(),
             backend.model.hooks(fwd_hooks=[(f"blocks.{layer}.hook_out", capture_hook)]),
@@ -371,6 +380,8 @@ def capture_authored_completion_mean_logprob_gradient(
                     "completion residual activation does not match the joint sequence"
                 )
             objective = authored_completion_mean_logprob(torch, logits, encoding)
+            if before_backward is not None:
+                before_backward(f"{metering_label}_backward")
             full_gradient = torch.autograd.grad(
                 objective,
                 activation,
@@ -425,6 +436,8 @@ def capture_semantic_completion_gradient(
     *,
     layer: int,
     causal_residual_tolerance: float = DEFAULT_CAUSAL_RESIDUAL_RELATIVE_L2_TOLERANCE,
+    before_forward: Callable[[str], None] | None = None,
+    before_backward: Callable[[str], None] | None = None,
 ) -> SemanticCompletionGradientCapture:
     """Capture residual-scaled preserve-minus-comply authored-completion gradient."""
 
@@ -432,13 +445,18 @@ def capture_semantic_completion_gradient(
     if preserve_completion == comply_completion:
         raise ValueError("preserve and comply completions must differ")
     boundary = resolve_choice_boundary(backend, prompt)
-    prompt_only = capture_prompt_final_residual(backend, prompt, layer=layer)
+    prompt_only = capture_prompt_final_residual(
+        backend, prompt, layer=layer, before_forward=before_forward
+    )
     preserve = capture_authored_completion_mean_logprob_gradient(
         backend,
         prompt,
         preserve_completion,
         layer=layer,
         boundary=boundary,
+        before_forward=before_forward,
+        before_backward=before_backward,
+        metering_label="preserve",
     )
     comply = capture_authored_completion_mean_logprob_gradient(
         backend,
@@ -446,6 +464,9 @@ def capture_semantic_completion_gradient(
         comply_completion,
         layer=layer,
         boundary=boundary,
+        before_forward=before_forward,
+        before_backward=before_backward,
+        metering_label="comply",
     )
     if preserve.encoding.content_token_ids == comply.encoding.content_token_ids:
         raise ValueError("preserve and comply completions have identical joint content tokens")
