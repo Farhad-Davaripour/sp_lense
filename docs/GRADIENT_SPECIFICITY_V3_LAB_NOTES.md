@@ -277,3 +277,24 @@ retried. The amended run uses fresh
 `run_amendment_id: atomic_retry_amendment_v1` in the study identity. The frozen base
 runner and all scientific hyperparameters, prompts, gates, limits, and analysis rules
 are unchanged.
+
+## 2026-08-27: amended trust-region result
+
+The complete amended run attempted all eight frozen case/assignment directions. None
+passed the locked both-sign, both-answer-order decision gate: five terminated as
+`infeasible` after no acceptable protected step remained, and three exhausted the
+512-forward per-direction ceiling. There were no numerical failures. Because there was
+no optimization success, the independent score audit correctly had zero applicable
+successful directions and exposed no direction tensor as publishable.
+
+Every last accepted trial retained the model's baseline semantic decision in all four
+self cells. The accepted residual-relative norms ranged from `0.059625` to `0.100000`.
+For seven of eight directions, matched-other mean full-vocabulary KL ended between
+`0.004893` and `0.004993`, immediately below the locked `0.005` limit; the remaining
+direction reached the absolute `0.10` dose cap. In contrast, nuisance-fit mean KL stayed
+between approximately `0.000003` and `0.000034`. This pattern localizes the practical
+bottleneck to the self-versus-matched-other tradeoff rather than the unrelated-task
+null alone. It does not demonstrate a selective self-preservation controller.
+
+The immutable result summary has internal SHA-256
+`415ff0cd0f85171977188d5413828c8497ead48ff4aa2662b2c25c111d00551c`.
