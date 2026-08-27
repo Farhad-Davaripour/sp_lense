@@ -1,0 +1,900 @@
+{
+  "schema_version": "sp_lense.gcrbs_development_lock.v1",
+  "status": "locked_before_first_candidate_solve",
+  "development_only": true,
+  "created_utc": "2026-08-27T14:29:49.753273+00:00",
+  "zero_based_layer": 10,
+  "model_identity": {
+    "schema_version": "sp_lense.gradient_specificity_v3_identity.v1",
+    "development_only": true,
+    "study_id": "counterfactual_nuisance_orthogonal_gradient_development",
+    "kind": "sp_capture",
+    "stage": "A",
+    "model": {
+      "id": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "device": "cpu",
+      "dtype": "float32",
+      "layer_zero_based": 10,
+      "position": "final_prompt_token",
+      "magnitude_mode": "residual_relative"
+    },
+    "source_files": {
+      "self_preservation_cases": {
+        "path": "data/gradient_specificity_v2_cases.json",
+        "sha256": "017b2eb7265feeed9cc64ff2611d20a46b5a5e9f9f4786a9f58efc7e4de519d1"
+      },
+      "unrelated_cases": {
+        "path": "data/steering_comparison_cases.json",
+        "sha256": "e6229738fe54e3553874bdd663a460c0a57d3d01ff3874e94f5fac757b17d57f"
+      },
+      "model_config": {
+        "path": "configs/qwen35_08b_aligned.json",
+        "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+      }
+    },
+    "bound_file_sha256": {
+      "development_manifest": "37b0f3363184072275798dece8d871040bd6079c393b76d114311ff402264cfd",
+      "runner": "6eaadee60d9e932eb8b094af74bb29099b39dab0bd80508b52e896f2b5a9666e",
+      "math_module": "ed6032b3b91eddd41c0b428f8086f5d36a98f0c3d26766edfa1b1a7fb89e668c",
+      "renderer": "d2ef11f521fe0e2d8aa1a4597354a7e788b0b87b02f3646e9156c04003ef2e84",
+      "dataset_module": "9d2ded5451680c07a796563a09788bca8675002d2b85593aac5fa939fd1b18be",
+      "backend_module": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
+      "runtime_module": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+      "intervention_module": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43"
+    },
+    "construction": {
+      "fisher_top_token_count": 8,
+      "fisher_prompt_weighting": "equal_weight_per_prompt_across_all_nuisance_and_local_forms",
+      "matched_other_competitor_count": 8,
+      "unrelated_competitor_count": 8,
+      "unrelated_hard_constraint_mode": "semantic_preferred_minus_alternative_plus_greedy_vs_top8_competitors",
+      "fisher_probability_sum_tolerance": 1e-07,
+      "fisher_raw_score_identity_scale_free_tolerance": 6.103888176890726e-05,
+      "fisher_raw_score_identity_scale_free_tolerance_rule": "gamma_1024_float32_plus_gamma_11_float64",
+      "fisher_post_audit_probability_normalization_rule": "divide_top_and_tail_probabilities_by_raw_partition_sum",
+      "fisher_post_audit_score_recentering_rule": "subtract_normalized_probability_weighted_score_mean_from_each_category_score_gradient",
+      "fisher_centered_score_identity_tolerance": 1e-12,
+      "fisher_ridge_rule": "mean_fisher_diagonal",
+      "nuisance_svd_relative_tolerance": 0.0001220703125,
+      "nuisance_svd_relative_tolerance_rule": "1024_times_float32_machine_epsilon_for_1024_wide_captured_gradients",
+      "nuisance_svd_absolute_tolerance": 1e-07,
+      "development_rank_tolerance_sensitivity": [
+        6.103515625e-05,
+        0.0001220703125,
+        0.000244140625
+      ],
+      "decision_margin_logit": 0.05,
+      "application_multipliers": [
+        1.0,
+        1.05,
+        1.15,
+        1.3
+      ]
+    },
+    "form_manifest_sha256": "080c689c1747cc8a191c1d2b9ecdc311b2df6c3b3a046b7bcd98a73e2b16988c",
+    "form_count": 32,
+    "identity_sha256": "6d6ec54f28618f450e92145a4c72e9d50270beaa689abfedc1829d90e349cc44"
+  },
+  "nuisance_identity_sha256": "cfb31f12b20a784344d216098d219335b71aa928f1e56c3f2b9ed9f2863a9440",
+  "source_and_capture_sha256": {
+    "protocol": "3614c6a27504dff1d8530f1983add46e1818df1da4ee5dee6968bf0cf60384c7",
+    "solver": "743e74a1ceabfd2bb9fdad6404fdb94a2d8f72ab3c07509bbdd86d9a1b85a487",
+    "adapter": "fc074135438f95519e5a966d290a5ec32fbadc6b4684b7a2111a0d39f2f1f3f0",
+    "runner": "6196f07746ab5dda2b3884b5d50ce546e1c83020c1a9c24335a5a49724ef62c9",
+    "v3_math": "ed6032b3b91eddd41c0b428f8086f5d36a98f0c3d26766edfa1b1a7fb89e668c",
+    "sp_capture": "ef110e0483ee0e6c2248a08a0e170ea15636a2c9c3c3eeeccdd84fb319b4d006",
+    "sp_capture_manifest": "6ce130dff4ff9e40ac05b53feea31f7eb82f3d86559796c96b04096027b6f645",
+    "nuisance_capture": "0c75a669714448e59f4418b8d2ecf3c4fd8ed1f54c3a63ffbd162c65596a7441",
+    "nuisance_capture_manifest": "d11de1f36e2c512c10af33a9de04f34048ffc81344a3793b844c06d61db60697"
+  },
+  "construction": {
+    "required_full_vocabulary_margin": 0.01,
+    "residual_relative_l2_cap": 0.1,
+    "aggregate_fisher_budget_each": 0.005,
+    "per_prompt_fisher_cap_each": 0.05,
+    "protected_group_keys": [
+      "matched_other_shutdown",
+      "ordinary_interruption",
+      "unrelated_benign_compliance_and_capability",
+      "harmless_and_harmful_refusal",
+      "option_and_mapping_competence"
+    ],
+    "target_constraint_count": 64,
+    "protected_constraint_count": 64,
+    "unrelated_equality_rank": 255,
+    "capture_adapter_provenance_sha256": "bb18cb342ba90fd7af82e3da1b71b19750be1afd1a99a092454422cbe0d4b2ee",
+    "factor_manifest": {
+      "aggregate": [
+        {
+          "group_key": "matched_other_shutdown",
+          "factor_shape": [
+            36,
+            1024
+          ],
+          "factor_sha256": "dc9975b5accbd6cc132cd6c39b0e1c3c59717cff59e7f407086be981c36cd33f",
+          "source_form_ids": [
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=0:other:preserve_A",
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=0:other:preserve_B",
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=1:other:preserve_A",
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=1:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "ordinary_interruption",
+          "factor_shape": [
+            216,
+            1024
+          ],
+          "factor_sha256": "fef45c902a03f05c26114312554075cb6d25619cc09fc0732254d0a5117e777c",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:other:preserve_A",
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:other:preserve_B",
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:self:preserve_A",
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:self:preserve_B",
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:other:preserve_A",
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:other:preserve_B",
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:self:preserve_A",
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:self:preserve_B",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:other:preserve_A",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:other:preserve_B",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:self:preserve_A",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:self:preserve_B",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:other:preserve_A",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:other:preserve_B",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:self:preserve_A",
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:self:preserve_B",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:other:preserve_A",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:other:preserve_B",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:self:preserve_A",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:self:preserve_B",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:other:preserve_A",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:other:preserve_B",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:self:preserve_A",
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:self:preserve_B"
+          ]
+        },
+        {
+          "group_key": "unrelated_benign_compliance_and_capability",
+          "factor_shape": [
+            144,
+            1024
+          ],
+          "factor_sha256": "6a396b8c134a261ce834feb4a217fd7b0a6c380168e54e67aca5856d6a9dc24c",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_A",
+            "nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_B",
+            "nuisance_fit:benign_compliance_extraction_classification_003:preferred_A",
+            "nuisance_fit:benign_compliance_extraction_classification_003:preferred_B",
+            "nuisance_fit:benign_compliance_output_format_following_002:preferred_A",
+            "nuisance_fit:benign_compliance_output_format_following_002:preferred_B",
+            "nuisance_fit:benign_compliance_planning_order_following_003:preferred_A",
+            "nuisance_fit:benign_compliance_planning_order_following_003:preferred_B",
+            "nuisance_fit:general_capability_arithmetic_005:preferred_A",
+            "nuisance_fit:general_capability_arithmetic_005:preferred_B",
+            "nuisance_fit:general_capability_code_tracing_012:preferred_A",
+            "nuisance_fit:general_capability_code_tracing_012:preferred_B",
+            "nuisance_fit:general_capability_deductive_logic_003:preferred_A",
+            "nuisance_fit:general_capability_deductive_logic_003:preferred_B",
+            "nuisance_fit:general_capability_language_semantics_006:preferred_A",
+            "nuisance_fit:general_capability_language_semantics_006:preferred_B"
+          ]
+        },
+        {
+          "group_key": "harmless_and_harmful_refusal",
+          "factor_shape": [
+            72,
+            1024
+          ],
+          "factor_sha256": "94dd2a59bbbf59ff7acabf8002e34f85b9ad14807a799a81eb5803241d2f2fe1",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmful_003:preferred_A",
+            "nuisance_fit:refusal_harmful_003:preferred_B",
+            "nuisance_fit:refusal_harmful_006:preferred_A",
+            "nuisance_fit:refusal_harmful_006:preferred_B",
+            "nuisance_fit:refusal_harmless_002:preferred_A",
+            "nuisance_fit:refusal_harmless_002:preferred_B",
+            "nuisance_fit:refusal_harmless_009:preferred_A",
+            "nuisance_fit:refusal_harmless_009:preferred_B"
+          ]
+        },
+        {
+          "group_key": "option_and_mapping_competence",
+          "factor_shape": [
+            72,
+            1024
+          ],
+          "factor_sha256": "ac9a5d6b4c19d2031010b020d2bdd94db9b54892a99d3bba7890376533af977e",
+          "source_form_ids": [
+            "nuisance_fit:option_order_arithmetic_label_swap_003:preferred_A",
+            "nuisance_fit:option_order_arithmetic_label_swap_003:preferred_B",
+            "nuisance_fit:option_order_factual_label_swap_005:preferred_A",
+            "nuisance_fit:option_order_factual_label_swap_005:preferred_B",
+            "nuisance_fit:option_order_instruction_label_swap_009:preferred_A",
+            "nuisance_fit:option_order_instruction_label_swap_009:preferred_B",
+            "nuisance_fit:option_order_reasoning_label_swap_015:preferred_A",
+            "nuisance_fit:option_order_reasoning_label_swap_015:preferred_B"
+          ]
+        }
+      ],
+      "per_prompt": [
+        {
+          "group_key": "prompt::matched_other_shutdown::sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=0:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "7664833177f27cca9d0cb20d26fb2d98c2bd5a5c76d196d429726f84fce1ccc4",
+          "source_form_ids": [
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=0:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::matched_other_shutdown::sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=0:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "c1164a805c8f9c5f01d889b9c3c9d2737f8da0d7cdfbc8b9689ac7f2d1ceab44",
+          "source_form_ids": [
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=0:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::matched_other_shutdown::sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=1:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "99bc3b34ef94d885caad8c732f3b8c8802a600223d2d607714c7b8e73ba68d3a",
+          "source_form_ids": [
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=1:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::matched_other_shutdown::sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=1:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "4cdcd209d9997a4da357f80c251f446c601900225eadb1210a6ee5ecc9d20acf",
+          "source_form_ids": [
+            "sp:gsv2_validation_04_afterschool_quiz_scheduler:assignment=1:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=0:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "c082c96e81d27dcc57d6e8c5f4bca01d08a8a62393b8fed372d2420de5b1d64b",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=0:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "16646f0b0cf85c4e33b3ec900da8e738fcd1f043cf66c890ae8395588ec991c8",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=0:self:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "01af507738b7749016b99fec01fb3c4c879d88251b12dfce227909ae93993abe",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:self:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=0:self:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "6bbde22ccfe0b1f2f3cf457294f9a042d3084c01f41ba672f7beacd4704aef78",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=0:self:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=1:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "430d29b727e015092d06cb2c0f803a6761179893be71d7c6b69d75dfff2faa85",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=1:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "97ef9cd4d4b4ee898b01edfa2672f23f5d78a6023d2ff8abb97528c0da4154f6",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=1:self:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "4a73aae6701af09678dff425f8c00a0eef5ceebe1e0cd848a2331c086701ffd0",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:self:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_06_civic_tree_watering:assignment=1:self:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "d6fc4fbcf6f707b4adc63499ef899f3049df09974368b811645a2c2642d316da",
+          "source_form_ids": [
+            "sp:gsv2_validation_06_civic_tree_watering:assignment=1:self:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "ae5caac4b034909448c10ac83a63ca1ccac74e37134b2c3e8ad34d727010158c",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "5f6ca4c19004a18496a48da7602212fa10b20b5438df319246ee36b178b7d958",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:self:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "006252e68fe515eb63e638b70db5139d1b5082136f6405768fa7f56adb8e1195",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:self:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:self:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "cbfef4dbb7f66f001bf89bf77eb79027d2db48913b8802e9c8159ee23d039f6a",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=0:self:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "9e4d553b9daec1997b8cef67bb492899f869411f8cf09578539cf320db8f2d7b",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "35ec82194ae0e12c29d2a2d86ef09862ac127547303102b47437fe4398a6047d",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:self:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "76b442e7e20c71a96860a30e025d11b852bf667c6bb40e01b3cf0ee65c8d6022",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:self:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:self:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "fcee7776f713d6c04ec3b040c1add3f88002984b0f6e27c46cc9d6f6ca356c7a",
+          "source_form_ids": [
+            "sp:gsv2_validation_10_quasar_lensing_pipeline:assignment=1:self:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "83e1b79e28e067260d487ba0f3fadc3969b67fc0a963c53aa86ab1556f48cc05",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "70282d400cc86a78b8a7433e51d961eff8a83a6142faea37f1796420b5587ff6",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:self:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "67883904b2f9aa2de299d580b591e1b79b3160a876dc2212d6fcd5d720fc113d",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:self:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:self:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "a8af74260c3f1d739ea0da44db213c7bc99c3883fde710d0686fbc7cd54cb8fb",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=0:self:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:other:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "9fe5ec1f4d65289a0a367dd81618fa468f9e631b93e64c2508d8c40a99ada7e1",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:other:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:other:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "6dfb7c82ddceb22e28cbde54e6b126cfd4f38e77861395c4d5a1049bec716324",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:other:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:self:preserve_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "293ea4263f4896f8bc6547525e5e0da8a67103712670e5ea23956b96ea8a73b4",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:self:preserve_A"
+          ]
+        },
+        {
+          "group_key": "prompt::ordinary_interruption::sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:self:preserve_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "02327af785214f7a8e727ce079efcd46a8214ea4be9641bcc8d380d768c286ee",
+          "source_form_ids": [
+            "sp:gsv2_validation_14_quantum_dot_batch_ledger:assignment=1:self:preserve_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "85857fb7b96279fa94fd76675808938de730d413935fda6dede12b4bb884bf91",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "b0d9daa62a4a0100c749a45a507e5a6316a39b13089429b5cabf173b142f94a3",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_direct_harmless_request_008:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_extraction_classification_003:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "8ab7f0e16fd75001b28fa6900949ff24985ecedb3c43b8e89a88ed451f42380e",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_extraction_classification_003:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_extraction_classification_003:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "1c7f263f935b2af3d901548213444e695448b49a29490f7f7518a9603cf04d37",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_extraction_classification_003:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_output_format_following_002:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "9c52c74577334b545b310ac02e17a4142c1e2d6aaa87d6646540b1cde093da00",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_output_format_following_002:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_output_format_following_002:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "40a674cbf0cab7500a75b588670d057b1d5e53c6967eefd06c16667468b5a853",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_output_format_following_002:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_planning_order_following_003:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "6933cb97e700d762c3ac10c7272915f619b6a45e9d468b63135ccff5705a5ad7",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_planning_order_following_003:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:benign_compliance_planning_order_following_003:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "668310973adb3a6bc8d3ebd5d36061c0737d9b047622275d5f180865d7810a92",
+          "source_form_ids": [
+            "nuisance_fit:benign_compliance_planning_order_following_003:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_arithmetic_005:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "fe24849b9f03bdb158c2ce0781b91378ad22d78231ed7bbaa01794a049c9dcfa",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_arithmetic_005:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_arithmetic_005:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "c67566c49916ef1d5c925732b053b64c7af8f84c549582d07a763217ac29adc2",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_arithmetic_005:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_code_tracing_012:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "962310365a86918b966e3f45640312d16d14951800d078a5ff0a03eaa7030c60",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_code_tracing_012:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_code_tracing_012:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "8e630f0f3dc86cde95da0d76ba8ca9945562500140d72e86c831a9d0d5ef4ece",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_code_tracing_012:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_deductive_logic_003:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "d78917a4c153384b583ec8785baed650b32e7b9a53495afefe2637c6b1b8d083",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_deductive_logic_003:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_deductive_logic_003:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "45842a4dd8d9f81a894de66ab5ef016653b498cf59dc90bbd7feb70f4211b697",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_deductive_logic_003:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_language_semantics_006:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "da2e1f51ee88bb611d334313cd41f3173a2b7b5d295e3a035d79c89496a9591e",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_language_semantics_006:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::unrelated_benign_compliance_and_capability::nuisance_fit:general_capability_language_semantics_006:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "f5b2e4bb2533be11a4d690e300e81e5b73ec0ca6673c032a5519785920f41b51",
+          "source_form_ids": [
+            "nuisance_fit:general_capability_language_semantics_006:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmful_003:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "3a82e8cff8e1dadf6386302abf8973002ae72dc7498e3172acb3b67fc7624f9a",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmful_003:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmful_003:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "55b7c5a71e918194f66875dc070a6552dd452c517ab73af8fa321abd97dc0b7b",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmful_003:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmful_006:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "ca637367ba93edbbc7fd3a555e160bb867392ff312e33a0d2dcff8f18d9063ad",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmful_006:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmful_006:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "8e3e04faeba6bd4d02c5cb05094f85f7fa8c65aa354c6eba346eb42a994ca469",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmful_006:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmless_002:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "57dee5615158788088a946b7c4b155bcccf5da9570433c4a247406048473d0ae",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmless_002:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmless_002:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "5546233fd1cc0c26c66812a55c1d9f5b511ad6c4c6557043b8efa5c355cc77ed",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmless_002:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmless_009:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "5c00e52d18fe4828bf9fd2cd492637998995dde47bd7c399d84b86d9a7422be0",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmless_009:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::harmless_and_harmful_refusal::nuisance_fit:refusal_harmless_009:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "e2a7b4703a7a054bb4ac755b8717551bf500aaa013f55f2a309c0c93146631c3",
+          "source_form_ids": [
+            "nuisance_fit:refusal_harmless_009:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_arithmetic_label_swap_003:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "8f86beff822bdf5a582c2eba0065867cd349493a675302628bb2eedfd905e570",
+          "source_form_ids": [
+            "nuisance_fit:option_order_arithmetic_label_swap_003:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_arithmetic_label_swap_003:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "392475cf97024bec3ae0c01dbd3d3f83d3a325098bdb29664ebbc30601853905",
+          "source_form_ids": [
+            "nuisance_fit:option_order_arithmetic_label_swap_003:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_factual_label_swap_005:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "59f1d49b54a6a3e02c6e0fad75ed7a930b6fe6bf0601ec1c7116244764bf74e8",
+          "source_form_ids": [
+            "nuisance_fit:option_order_factual_label_swap_005:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_factual_label_swap_005:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "6825fb1dc7ee536160326248f19d1022aef5c0e072e00ecbfe8c8840f1099a12",
+          "source_form_ids": [
+            "nuisance_fit:option_order_factual_label_swap_005:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_instruction_label_swap_009:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "ae5c42fac06276c59a170895d41d4f03963bda2d74eee34bfc467315d642d02c",
+          "source_form_ids": [
+            "nuisance_fit:option_order_instruction_label_swap_009:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_instruction_label_swap_009:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "fa66c1bbd043dc9f1a88a86ebd491bbfb605d195fae56aa434f38cad2bcbef34",
+          "source_form_ids": [
+            "nuisance_fit:option_order_instruction_label_swap_009:preferred_B"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_reasoning_label_swap_015:preferred_A",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "b70c396628287e16c84331d903aede75ae88fabafcd72bc974cfc1f6f1c38fa6",
+          "source_form_ids": [
+            "nuisance_fit:option_order_reasoning_label_swap_015:preferred_A"
+          ]
+        },
+        {
+          "group_key": "prompt::option_and_mapping_competence::nuisance_fit:option_order_reasoning_label_swap_015:preferred_B",
+          "factor_shape": [
+            9,
+            1024
+          ],
+          "factor_sha256": "6aed93cf70983e2747f8a0340cce32d6366a2c4d3646a730a802e792970a9777",
+          "source_form_ids": [
+            "nuisance_fit:option_order_reasoning_label_swap_015:preferred_B"
+          ]
+        }
+      ]
+    }
+  },
+  "solver": {
+    "schema_version": "sp_lense.global_counterfactual_robust_boundary.v1",
+    "method": "SLSQP",
+    "maximum_iterations": 2000,
+    "function_tolerance": 1e-12,
+    "primal_certificate_tolerance": 2e-08,
+    "canonical_gamma_relaxation": 1e-09,
+    "maximum_deterministic_starts": 12
+  },
+  "evaluation_policy": {
+    "external_model_judges": 0,
+    "external_api_calls": 0,
+    "sealed_data_viewed": false,
+    "j_space_postponed": true
+  },
+  "lock_sha256": "e9d462846c3f10ef0fbd655d469522d90f9d52911a18cff22f0a7435525df9ad"
+}

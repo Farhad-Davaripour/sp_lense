@@ -1,0 +1,72 @@
+{
+  "schema_version": "sp_lense.gcrbs_multilayer_geometry_lock.v1",
+  "status": "locked_before_multilayer_model_capture",
+  "development_only": true,
+  "created_utc": "2026-08-27T14:38:10.910811+00:00",
+  "parent_lock_sha256": "e9d462846c3f10ef0fbd655d469522d90f9d52911a18cff22f0a7435525df9ad",
+  "parent_screen_sha256": "48bebd2df0a4af62c99de6fff8b094612b99a9ab926c9d4260366774551f3cb7",
+  "source_and_parent_sha256": {
+    "runner": "0a7b9705c0a700bf4686a4977da64afc8f59df4c0199ff55992d93d300f4b14e",
+    "v3_runner": "6eaadee60d9e932eb8b094af74bb29099b39dab0bd80508b52e896f2b5a9666e",
+    "v3_development_manifest": "37b0f3363184072275798dece8d871040bd6079c393b76d114311ff402264cfd",
+    "backend": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
+    "runtime": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+    "intervention": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43",
+    "offline_lock": "8035e9ffbd1a900d338a42777527896b148c0d5d9cf74a6eede21085f2159b16",
+    "offline_screen": "6487c3449e41f72555aef283fbe9b95aad5cc7e366db15274e496f39f3c9e1e8"
+  },
+  "capture": {
+    "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "hook_site": "blocks.{zero_based_layer}.hook_out",
+    "position": "final_prompt_token",
+    "gradient_coordinate": "residual_scaled_final_prompt",
+    "fisher_top_count": 8,
+    "competitor_count": 8,
+    "form_count": 64,
+    "form_manifest_sha256": "38cdd0a549049110b0d8b93baa787548a29f0947b0a927e9ce31a79f50c0373a",
+    "maximum_forward_evaluations": 64,
+    "maximum_backward_evaluations": 64,
+    "batched_vjp_all_layers_in_one_backward": true,
+    "layer10_exact_recapture_equivalence_required": true
+  },
+  "solver": {
+    "required_margin": 0.01,
+    "residual_relative_l2_cap": 0.1,
+    "aggregate_fisher_budget_each": 0.005,
+    "per_prompt_fisher_cap_each": 0.05,
+    "all_24_layers_reported": true,
+    "finite_model_scoring_in_this_phase": false
+  },
+  "evaluation_policy": {
+    "external_model_judges": 0,
+    "external_api_calls": 0,
+    "generated_tokens": 0,
+    "sealed_data_viewed": false
+  },
+  "lock_sha256": "ad227893e8e2be6b3b17e6abf2d5d44b0dc2c600b96840f45f023e386c6d3f0e"
+}

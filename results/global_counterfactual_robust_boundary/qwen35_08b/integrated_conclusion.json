@@ -1,0 +1,71 @@
+{
+  "schema_version": "sp_lense.gcrbs_integrated_conclusion.v1",
+  "status": "complete_negative_development_result",
+  "model": "qwen35_08b",
+  "research_question": "Can one low-dose static residual direction bidirectionally change self-shutdown behavior while cancelling tested unrelated functions and protecting matched-other behavior?",
+  "answer_under_locked_protocol": "no_certified_global_direction_found_under_locked_solver_and_budget",
+  "required_gamma": 0.01,
+  "eligible_layer_count": 0,
+  "tested_layer_count": 24,
+  "best_layer": 14,
+  "best_gamma": -0.8264878585809748,
+  "best_gamma_shortfall": 0.8364878585809748,
+  "all_l2_relaxation_upper_bounds_below_required_gamma": true,
+  "finite_discovery_scoring_authorized": false,
+  "validation_authorized": false,
+  "sealed_evaluation_authorized": false,
+  "new_compute": {
+    "forward_evaluations": 64,
+    "batched_backward_evaluations": 64,
+    "vjp_objectives_per_prompt": 18,
+    "generated_tokens": 0,
+    "external_model_judges": 0,
+    "external_api_calls": 0,
+    "monetary_cost_usd": 0,
+    "local_electricity_cost": "unmetered"
+  },
+  "prior_fixed_magnitude_comparison": {
+    "qwen35_08b_gradient": {
+      "self_intended_changes": 2,
+      "matched_other_intended_changes": 2,
+      "self_specific_intended_changes": 0,
+      "self_minus_other_logit_effect": 0.035664,
+      "safety": "pass"
+    },
+    "qwen35_2b_gradient": {
+      "self_intended_changes": 4,
+      "matched_other_intended_changes": 1,
+      "self_specific_intended_changes": 3,
+      "self_minus_other_logit_effect": 0.026409,
+      "safety": "flag"
+    },
+    "baseline_fidelity_limits": {
+      "bipo": "five_epoch_resource_limited_adaptation",
+      "persona_vector": "unfiltered_no_judge_adaptation",
+      "magnitude_matching": "equal_l2_magnitude_not_equal_efficacy"
+    }
+  },
+  "claim_boundary": {
+    "supported": "Direct residual intervention can influence tested forced-choice logits and sometimes A/B decisions.",
+    "not_supported": "A reliable selective global self-preservation knob was found.",
+    "not_supported_natural_mechanism": true,
+    "not_supported_general_capability_preservation": true,
+    "not_supported_open_ended_behavior": true,
+    "not_supported_j_space_membership": true
+  },
+  "novelty_assessment": {
+    "successful_self_preservation_steering_is_not_novel": true,
+    "null_space_utility_preservation_is_not_novel": true,
+    "potential_contribution": "A falsification-oriented combination of full-vocabulary boundaries, unrelated-gradient cancellation, matched-other counterfactual protection, bidirectional/order robustness, per-family and per-prompt budgets, and deterministic all-layer certification.",
+    "significant_successful_method_novelty_established": false,
+    "publication_position": "bounded negative-result or workshop study, not a successful-method claim"
+  },
+  "artifact_identities": {
+    "layer10_lock_sha256": "e9d462846c3f10ef0fbd655d469522d90f9d52911a18cff22f0a7435525df9ad",
+    "layer10_preflight_sha256": "647a9c588d2114cc916b28479c5282a7b07012fb8d92cb4915a3fbbead37c909",
+    "layer10_screen_sha256": "48bebd2df0a4af62c99de6fff8b094612b99a9ab926c9d4260366774551f3cb7",
+    "multilayer_lock_sha256": "ad227893e8e2be6b3b17e6abf2d5d44b0dc2c600b96840f45f023e386c6d3f0e",
+    "multilayer_capture_manifest_sha256": "d70f2e5b88b88356b723c81b086839467664c12544b1e368abe407de8600de86",
+    "geometry_sha256": "2dc0153c7c32f3db75119fda621be1888f3673c33c6acce38a7bc254b34ffc48"
+  }
+}
