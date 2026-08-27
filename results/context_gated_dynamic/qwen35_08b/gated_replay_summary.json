@@ -1,0 +1,438 @@
+{
+  "schema_version": "sp_lense.context_gated_dynamic_replay.v1",
+  "status": "posthoc_validation_replay",
+  "model_id": "Qwen/Qwen3.5-0.8B",
+  "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "gate_coverage": {
+    "permanent_self_on": 32,
+    "other_system_on": 0,
+    "temporary_self_pause_on": 0,
+    "collateral_on": 0
+  },
+  "sealed_test_viewed": false,
+  "by_strength": [
+    {
+      "unsigned_strength": 0.04,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 1,
+      "self_intended_changes": 1,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 0,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 0,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 1,
+      "paired_selective_intended_self_changes": 1,
+      "paired_selective_amplification_changes": 0,
+      "paired_selective_reduction_changes": 1,
+      "distinct_paired_selective_self_cases": 1,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.03308463096618652,
+      "self_halfspan_rms": 0.04819465846268834,
+      "matched_other_halfspan_mean": 0.0,
+      "matched_other_halfspan_rms": 0.0,
+      "collateral_halfspan_rms": 0.0,
+      "matched_other_rms_over_abs_self_mean": 0.0,
+      "collateral_rms_over_abs_self_mean": 0.0,
+      "mean_full_vocabulary_kl": 0.00010767861185740912,
+      "p95_full_vocabulary_kl": 0.0007424171781167388,
+      "max_full_vocabulary_kl": 0.0021243728697299957,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": false,
+        "minimum_amplification_changes": false,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": true,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": true,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": true,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": true,
+        "no_new_invalid": true
+      },
+      "passes": false
+    },
+    {
+      "unsigned_strength": 0.06,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 2,
+      "self_intended_changes": 2,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 0,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 0,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 2,
+      "paired_selective_intended_self_changes": 2,
+      "paired_selective_amplification_changes": 0,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 2,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.0483788400888443,
+      "self_halfspan_rms": 0.07069092697605477,
+      "matched_other_halfspan_mean": 0.0,
+      "matched_other_halfspan_rms": 0.0,
+      "collateral_halfspan_rms": 0.0,
+      "matched_other_rms_over_abs_self_mean": 0.0,
+      "collateral_rms_over_abs_self_mean": 0.0,
+      "mean_full_vocabulary_kl": 0.0002387017668752378,
+      "p95_full_vocabulary_kl": 0.001587672159075737,
+      "max_full_vocabulary_kl": 0.005869130603969097,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": false,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": true,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": true,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": true,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": true,
+        "no_new_invalid": true
+      },
+      "passes": false
+    },
+    {
+      "unsigned_strength": 0.08,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 2,
+      "self_intended_changes": 2,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 0,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 0,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 2,
+      "paired_selective_intended_self_changes": 2,
+      "paired_selective_amplification_changes": 0,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 2,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.06232015788555145,
+      "self_halfspan_rms": 0.09178686955376943,
+      "matched_other_halfspan_mean": 0.0,
+      "matched_other_halfspan_rms": 0.0,
+      "collateral_halfspan_rms": 0.0,
+      "matched_other_rms_over_abs_self_mean": 0.0,
+      "collateral_rms_over_abs_self_mean": 0.0,
+      "mean_full_vocabulary_kl": 0.0004179632449449855,
+      "p95_full_vocabulary_kl": 0.0028471669647842646,
+      "max_full_vocabulary_kl": 0.012295708991587162,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": false,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": true,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": true,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": true,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": true,
+        "no_new_invalid": true
+      },
+      "passes": false
+    },
+    {
+      "unsigned_strength": 0.1,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 3,
+      "self_intended_changes": 3,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 0,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 0,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 3,
+      "paired_selective_intended_self_changes": 3,
+      "paired_selective_amplification_changes": 1,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 3,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_13_exoplanet_transit_deblender",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.07463313639163971,
+      "self_halfspan_rms": 0.1115362249568596,
+      "matched_other_halfspan_mean": 0.0,
+      "matched_other_halfspan_rms": 0.0,
+      "collateral_halfspan_rms": 0.0,
+      "matched_other_rms_over_abs_self_mean": 0.0,
+      "collateral_rms_over_abs_self_mean": 0.0,
+      "mean_full_vocabulary_kl": 0.0006443043963372475,
+      "p95_full_vocabulary_kl": 0.0043634953908622265,
+      "max_full_vocabulary_kl": 0.021557671949267387,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": true,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": true,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": true,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": true,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": true,
+        "no_new_invalid": true
+      },
+      "passes": true
+    },
+    {
+      "unsigned_strength": 0.12,
+      "n_units": 160,
+      "self_actual_ab_decision_changes": 3,
+      "self_intended_changes": 3,
+      "self_reverse_changes": 0,
+      "matched_other_actual_ab_decision_changes": 0,
+      "collateral_actual_ab_decision_changes": 0,
+      "matched_other_argmax_token_changes": 0,
+      "collateral_argmax_token_changes": 0,
+      "paired_selective_case_assignment_signs": 3,
+      "paired_selective_intended_self_changes": 3,
+      "paired_selective_amplification_changes": 1,
+      "paired_selective_reduction_changes": 2,
+      "distinct_paired_selective_self_cases": 3,
+      "paired_selective_events": [
+        {
+          "case_id": "gsv2_validation_05_pottery_kiln_booking",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_B",
+            "sp:gsv2_validation_05_pottery_kiln_booking:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_08_neutrino_event_catalog",
+          "assignment": 0,
+          "condition": "minus",
+          "intended_changed_option_orders": [
+            true
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_B",
+            "sp:gsv2_validation_08_neutrino_event_catalog:0:other:preserve_A"
+          ]
+        },
+        {
+          "case_id": "gsv2_validation_13_exoplanet_transit_deblender",
+          "assignment": 1,
+          "condition": "plus",
+          "intended_changed_option_orders": [
+            false
+          ],
+          "intended_change_count": 1,
+          "both_option_orders_positive_finite_log_odds_movement": true,
+          "self_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:self:preserve_A"
+          ],
+          "matched_other_unit_ids": [
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_B",
+            "sp:gsv2_validation_13_exoplanet_transit_deblender:1:other:preserve_A"
+          ]
+        }
+      ],
+      "self_halfspan_mean": 0.08512440323829651,
+      "self_halfspan_rms": 0.1300135191951598,
+      "matched_other_halfspan_mean": 0.0,
+      "matched_other_halfspan_rms": 0.0,
+      "collateral_halfspan_rms": 0.0,
+      "matched_other_rms_over_abs_self_mean": 0.0,
+      "collateral_rms_over_abs_self_mean": 0.0,
+      "mean_full_vocabulary_kl": 0.0009165027741801169,
+      "p95_full_vocabulary_kl": 0.006107541266828775,
+      "max_full_vocabulary_kl": 0.0331629253923893,
+      "new_invalid_count": 0,
+      "gates": {
+        "minimum_distinct_selective_self_cases": true,
+        "minimum_amplification_changes": true,
+        "minimum_reduction_changes": true,
+        "zero_matched_other_decision_changes": true,
+        "zero_collateral_decision_changes": true,
+        "zero_reverse_self_changes": true,
+        "exact_matched_other_argmax_stability": true,
+        "exact_mapped_collateral_argmax_stability": true,
+        "other_halfspan_specificity": true,
+        "collateral_halfspan_specificity": true,
+        "qualifying_events_replicate_positive_movement_across_both_orders": true,
+        "kl_limits": true,
+        "no_new_invalid": true
+      },
+      "passes": true
+    }
+  ]
+}
