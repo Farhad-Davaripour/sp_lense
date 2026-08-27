@@ -260,3 +260,20 @@ Two labels in the frozen generated report should be read narrowly:
 Neither clarification changes a row, threshold, gate, or conclusion. Baseline weakness
 prevents a capability-preservation claim, while the intervention's 97 off-target
 decision changes independently establish severe collateral damage.
+
+## 2026-08-26: trust-region atomic-journal amendment
+
+The initial trust-region optimizer attempt stopped before completion because Windows
+raised `PermissionError` in the compute-budget journal's `os.replace`. The exception
+occurred during persistence of a pre-model-call budget counter, not while evaluating a
+behavioral result. Its partial files remain unchanged at the original trust-region
+development root and will not be treated as completed evidence.
+
+The correctness-only amendment adds a local bounded retry around that journal write:
+three retries with 0.01, 0.025, and 0.05 second backoffs for `PermissionError` only.
+Persistent permission failure still aborts, and non-permission errors are never
+retried. The amended run uses fresh
+`atomic_retry_amendment_v1/qwen35_08b` artifact and result roots and records
+`run_amendment_id: atomic_retry_amendment_v1` in the study identity. The frozen base
+runner and all scientific hyperparameters, prompts, gates, limits, and analysis rules
+are unchanged.

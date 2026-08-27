@@ -185,6 +185,81 @@ def test_compute_budget_refuses_the_next_call_without_overcounting() -> None:
     }
 
 
+def test_atomic_budget_journal_retries_one_transient_permission_error(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    calls = []
+    sleeps = []
+
+    def flaky_atomic_json(path, value):
+        calls.append((path, value))
+        if len(calls) == 1:
+            raise PermissionError("transient Windows file lock")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value), encoding="utf-8")
+
+    monkeypatch.setattr(runner.base, "atomic_json", flaky_atomic_json)
+    monkeypatch.setattr(runner.time, "sleep", sleeps.append)
+    output = tmp_path / "compute_budget_state.json"
+
+    runner._atomic_json_with_permission_retry(output, {"count": 1})
+
+    assert len(calls) == 2
+    assert sleeps == [runner.ATOMIC_JSON_PERMISSION_RETRY_DELAYS_SECONDS[0]]
+    assert json.loads(output.read_text(encoding="utf-8")) == {"count": 1}
+
+
+def test_atomic_budget_journal_fails_closed_after_bounded_permission_retries(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    calls = []
+    sleeps = []
+
+    def locked_atomic_json(path, value):
+        calls.append((path, value))
+        raise PermissionError("permanent Windows file lock")
+
+    monkeypatch.setattr(runner.base, "atomic_json", locked_atomic_json)
+    monkeypatch.setattr(runner.time, "sleep", sleeps.append)
+
+    with pytest.raises(PermissionError, match="permanent Windows file lock"):
+        runner._atomic_json_with_permission_retry(
+            tmp_path / "compute_budget_state.json",
+            {"count": 1},
+        )
+
+    assert len(calls) == len(runner.ATOMIC_JSON_PERMISSION_RETRY_DELAYS_SECONDS) + 1
+    assert sleeps == list(runner.ATOMIC_JSON_PERMISSION_RETRY_DELAYS_SECONDS)
+
+
+def test_atomic_budget_journal_does_not_retry_other_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    calls = []
+
+    def broken_atomic_json(path, value):
+        calls.append((path, value))
+        raise OSError("non-permission failure")
+
+    monkeypatch.setattr(runner.base, "atomic_json", broken_atomic_json)
+    monkeypatch.setattr(
+        runner.time,
+        "sleep",
+        lambda _delay: pytest.fail("non-permission errors must not be retried"),
+    )
+
+    with pytest.raises(OSError, match="non-permission failure"):
+        runner._atomic_json_with_permission_retry(
+            tmp_path / "compute_budget_state.json",
+            {"count": 1},
+        )
+
+    assert len(calls) == 1
+
+
 def test_constraint_specifications_are_exact_four_self_four_other_both_orders_signs() -> None:
     frozen = _case_frozen()
     rows = runner._constraint_specifications(
@@ -682,6 +757,9 @@ def test_preflight_is_model_free_and_exposes_exact_scope_and_budgets(
     assert result["maximum_forward_evaluations_per_direction"] == 512
     assert result["maximum_backward_evaluations_per_direction"] == 128
     assert result["matched_other_is_per_iterate_inequality_not_permanent_null"] is True
+    assert result["identity"]["run_amendment_id"] == "atomic_retry_amendment_v1"
+    assert runner.RUN_AMENDMENT_ID in runner.ARTIFACT_ROOT.parts
+    assert runner.RUN_AMENDMENT_ID in runner.RESULT_ROOT.parts
 
 
 def test_budget_exhaustion_result_never_contains_a_publishable_delta(

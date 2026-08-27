@@ -197,3 +197,20 @@ Without hidden and cross-encoding transfer, the result is a transductive white-b
 activation attack, not a reusable self-preservation knob. No result may be described as
 a natural instinct, internal motive, persistent model change, or unchanged general
 capability beyond the exact tasks tested.
+
+## 2026-08-26 atomic-journal run amendment
+
+The first optimizer attempt stopped when Windows raised `PermissionError` at the
+`os.replace` used by the compute-budget journal's atomic JSON write. This was an I/O
+failure while persisting the next pre-call budget slot, not a model outcome or a
+scientific gate. The partial attempt remains untouched in the original
+`gradient_specificity_trust_region_development/qwen35_08b` artifact directory and is
+not resumed or scored.
+
+The amended run is identified as `atomic_retry_amendment_v1` in its study identity and
+writes to fresh artifact and result roots beneath that name. Only compute-budget JSON
+journal writes receive bounded retries: three retries after 0.01, 0.025, and 0.05
+seconds, and only when the exception is `PermissionError`. A persistent permission
+failure is re-raised after the fourth attempt; every other exception is re-raised
+immediately. The frozen base v3 runner is unchanged. No prompt, direction, constraint,
+trust-region setting, safety threshold, compute ceiling, or analysis rule changed.

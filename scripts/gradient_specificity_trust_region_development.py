@@ -7,6 +7,7 @@ import math
 import os
 import statistics
 import sys
+import time
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -39,8 +40,21 @@ PROBE_SUMMARY_DEFAULT_PATH = (
     / "stage_a"
     / "absolute_dose_summary.json"
 )
-ARTIFACT_ROOT = ROOT / "artifacts" / "gradient_specificity_trust_region_development" / "qwen35_08b"
-RESULT_ROOT = ROOT / "results" / "gradient_specificity_trust_region_development" / "qwen35_08b"
+RUN_AMENDMENT_ID = "atomic_retry_amendment_v1"
+ARTIFACT_ROOT = (
+    ROOT
+    / "artifacts"
+    / "gradient_specificity_trust_region_development"
+    / RUN_AMENDMENT_ID
+    / "qwen35_08b"
+)
+RESULT_ROOT = (
+    ROOT
+    / "results"
+    / "gradient_specificity_trust_region_development"
+    / RUN_AMENDMENT_ID
+    / "qwen35_08b"
+)
 AUDIT_ROWS_PATH = RESULT_ROOT / "score_audit_rows.jsonl"
 AUDIT_MANIFEST_PATH = RESULT_ROOT / "score_audit_manifest.json"
 SUMMARY_PATH = RESULT_ROOT / "development_summary.json"
@@ -77,10 +91,24 @@ EXPECTED_PROTECTED_LIMITS = {
     "maximum_full_vocabulary_kl_changed_to_baseline": 0.05,
 }
 NULL_APPLICATION_TOLERANCE = 2e-5
+ATOMIC_JSON_PERMISSION_RETRY_DELAYS_SECONDS = (0.01, 0.025, 0.05)
 
 
 class ComputeBudgetExhausted(RuntimeError):
     """Raised before a model operation that would exceed a locked direction budget."""
+
+
+def _atomic_json_with_permission_retry(path: Path, value: Any) -> None:
+    """Retry only transient Windows permission failures in the local journal writer."""
+
+    for delay_seconds in (*ATOMIC_JSON_PERMISSION_RETRY_DELAYS_SECONDS, None):
+        try:
+            base.atomic_json(path, value)
+            return
+        except PermissionError:
+            if delay_seconds is None:
+                raise
+            time.sleep(delay_seconds)
 
 
 class EvaluationBudget:
@@ -425,6 +453,7 @@ def _study_identity(
     identity = {
         "schema_version": "sp_lense.gradient_specificity_trust_region_identity.v1",
         "development_only": True,
+        "run_amendment_id": RUN_AMENDMENT_ID,
         "lock_sha256": file_sha256(LOCK_PATH),
         "absolute_probe_summary_path": _relative(probe_path),
         "absolute_probe_summary_sha256": file_sha256(probe_path),
@@ -1484,7 +1513,7 @@ def _write_budget_state(
         "compute_budget": dict(compute_budget),
     }
     state["state_sha256"] = canonical_sha256(state)
-    base.atomic_json(_budget_state_path(root), state)
+    _atomic_json_with_permission_retry(_budget_state_path(root), state)
 
 
 def _attach_budget_journal(
