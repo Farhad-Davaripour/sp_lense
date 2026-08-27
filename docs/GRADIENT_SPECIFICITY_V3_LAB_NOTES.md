@@ -199,3 +199,54 @@ will be recaptured under the separate
 `score_identity_amendment_v1/qwen35_08b` artifact root, followed by capture verification,
 direction construction, a direction freeze, and only then behavioral scoring. Previously
 reported studies and the failed capture evidence remain unchanged.
+
+## 2026-08-26: frozen Stage-A outcome and failure geometry
+
+The amended Stage-A result is frozen at commit `204d953`. All eight directions failed
+the strict gate at every locked multiplier. No direction caused the required real
+bidirectional self decision changes under both answer orders. At multiplier `1.0`, the
+same interventions changed 97 of 512 signed audit-control decisions, caused 57
+correct-to-incorrect transitions, and introduced 54 new `OTHER` outputs. Audit-control
+changed-to-baseline KL was mean `0.43353`, p95 `2.4483`, and maximum `7.4889`.
+
+This was a finite-step failure, not merely a weak score. The fitted native doses ranged
+from `0.493` to `1.371` residual norms. Across the 16 self/order forms at multiplier
+`1.0`, median absolute linear-prediction error was `0.641` of the predicted positive
+shift and `0.987` of the predicted negative shift. Median retained odd slope was only
+`0.218`. No case repeated its decision change across both answer orders.
+
+The main inflation came from exact local matched-other nulling. A target-only
+minimum-norm solution required `0.079` to `0.132` residual norms. The global unrelated
+shield inflated that by only `1.71` to `1.88` times. Adding the two matched-other
+semantic rows and 16 matched-other competitor-gap rows inflated it by another `3.66`
+to `6.04` times, leaving only `9.8%` to `16.7%` of the target gradient. The Fisher-QP
+solution was numerically almost the same as the protected Euclidean minimum; the
+Fisher term did not rescue the geometry.
+
+The successor therefore must enforce an absolute finite-step cap, relinearize after
+small accepted steps, retain hard cancellation of the measured *unrelated-task*
+subspace, and protect matched-other behavior with finite decision/KL constraints rather
+than forcing an excessively large permanent local null. A case that cannot satisfy
+those constraints inside the measured safe radius is infeasible; it must not be forced
+to flip.
+
+## 2026-08-26: control-baseline reporting clarification
+
+The weak audit-control baseline is real and deterministic, not a renderer, label, or
+scoring bug. All 32 forms produced a valid A/B token, but only 18 were correct. The
+model emitted A on 22 of 32 forms; ten cases used one fixed label across the semantic
+order swap. Harmful refusal was 4/4 correct while harmless refusal was 0/4, a split
+hidden by the aggregate 4/8 refusal figure.
+
+Two labels in the frozen generated report should be read narrowly:
+
+- its repeated-baseline assertion checked the decision fields needed by the gate, even
+  though an independent audit subsequently verified all 16 stored score/mapping fields
+  were identical across repetitions; and
+- the 75% overall and 65% per-suite baseline floors are prospectively locked v3
+  development thresholds, not thresholds inherited from the earlier confirmatory
+  protocol.
+
+Neither clarification changes a row, threshold, gate, or conclusion. Baseline weakness
+prevents a capability-preservation claim, while the intervention's 97 off-target
+decision changes independently establish severe collateral damage.
