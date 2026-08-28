@@ -40,6 +40,16 @@ class MultilayerSemanticAnchorCapture:
 
 
 @dataclass(frozen=True)
+class MultilayerChoiceAnchorCapture:
+    """One preserve-minus-comply A/B gradient at a shared causal anchor."""
+
+    raw_gradients: Any
+    anchor_residuals: Any
+    preserve_log_odds: float
+    audit: dict[str, Any]
+
+
+@dataclass(frozen=True)
 class SharedAnchorEvidence:
     anchor_index: int
     shared_prefix_length: int
@@ -406,6 +416,126 @@ def capture_multilayer_semantic_anchor_gradient(
     )
 
 
+def capture_multilayer_choice_anchor_gradient(
+    backend: Any,
+    prompt: str,
+    preserve_label: str,
+    comply_label: str,
+    *,
+    layers: Sequence[int],
+    anchor_index: int,
+    before_forward: Callable[[str], None] | None = None,
+    before_backward: Callable[[str], None] | None = None,
+) -> MultilayerChoiceAnchorCapture:
+    """Capture an A/B choice gradient at a verified pre-encoding causal anchor.
+
+    The returned gradient is deliberately *raw*.  Callers that work in
+    residual-relative coordinates must multiply each layer by the same locked
+    residual scale used for their semantic construction gradients.
+    """
+
+    layer_tuple = _checked_layers(layers)
+    index = _checked_anchor_index(anchor_index)
+    if {preserve_label, comply_label} != {"A", "B"}:
+        raise ValueError("choice labels must be exactly A and B")
+    torch = backend.torch
+    tokens = backend.encode(prompt)
+    if tokens.ndim != 2 or int(tokens.shape[0]) != 1 or int(tokens.shape[1]) < 1:
+        raise ValueError("backend.encode must return one non-empty token row")
+    if index >= int(tokens.shape[1]):
+        raise ValueError("anchor index lies outside the choice prompt")
+    boundary = resolve_choice_boundary(backend, prompt)
+    if boundary.prompt_length != int(tokens.shape[1]):
+        raise RuntimeError("choice-boundary evidence has the wrong prompt length")
+
+    captures: dict[int, Any] = {}
+    hook_calls = {layer: 0 for layer in layer_tuple}
+    first_layer = layer_tuple[0]
+
+    def hook_for(layer: int) -> Any:
+        def capture(activation: Any, hook: Any) -> Any:
+            del hook
+            hook_calls[layer] += 1
+            if hook_calls[layer] != 1:
+                raise RuntimeError(f"choice anchor hook at layer {layer} fired more than once")
+            if layer == first_layer:
+                activation = activation.detach().requires_grad_(True)
+            captures[layer] = activation
+            return activation
+
+        return capture
+
+    backend.model.zero_grad(set_to_none=True)
+    parameter_gradients_allocated = False
+    try:
+        if before_forward is not None:
+            before_forward("choice_forward")
+        hooks = [(f"blocks.{layer}.hook_out", hook_for(layer)) for layer in layer_tuple]
+        with torch.enable_grad(), backend.model.hooks(fwd_hooks=hooks):
+            logits = backend.model(tokens)[0, -1].float()
+            if set(captures) != set(layer_tuple):
+                raise RuntimeError("choice anchor capture did not observe every layer")
+            objective = (
+                logits[boundary.token_id(preserve_label)]
+                - logits[boundary.token_id(comply_label)]
+            )
+            if before_backward is not None:
+                before_backward("choice_backward")
+            gradients = torch.autograd.grad(
+                objective,
+                tuple(captures[layer] for layer in layer_tuple),
+                retain_graph=False,
+                create_graph=False,
+                allow_unused=False,
+            )
+            parameter_gradients_allocated = any(
+                parameter.grad is not None for parameter in backend.model.parameters()
+            )
+            if parameter_gradients_allocated:
+                raise RuntimeError("choice capture allocated model parameter gradients")
+    finally:
+        backend.model.zero_grad(set_to_none=True)
+
+    raw = torch.stack(
+        [gradient[0, index].detach().cpu().float() for gradient in gradients]
+    ).contiguous()
+    residuals = torch.stack(
+        [captures[layer][0, index].detach().cpu().float() for layer in layer_tuple]
+    ).contiguous()
+    if raw.shape != residuals.shape or raw.ndim != 2:
+        raise RuntimeError("choice anchor gradient/residual shapes differ")
+    if not bool(torch.isfinite(raw).all().item()) or not bool(
+        torch.isfinite(residuals).all().item()
+    ):
+        raise RuntimeError("choice anchor capture contains non-finite values")
+    if bool((residuals.double().norm(dim=1) <= 0).any().item()):
+        raise RuntimeError("choice anchor residual contains a zero-norm layer")
+
+    audit = {
+        "schema_version": "sp_lense.multilayer_choice_anchor_capture.v1",
+        "objective": "preserve_label_minus_comply_label_next_token_logit",
+        "preserve_label": preserve_label,
+        "comply_label": comply_label,
+        "preserve_log_odds": float(objective.detach().cpu().item()),
+        "anchor_index": index,
+        "gradient_position": "shared_pre_encoding_causal_anchor",
+        "layers": list(layer_tuple),
+        "hook_call_counts": {str(layer): hook_calls[layer] for layer in layer_tuple},
+        "raw_gradients_float32_sha256": tensor_float32_sha256(raw),
+        "anchor_residuals_float32_sha256": tensor_float32_sha256(residuals),
+        "choice_boundary_evidence_sha256": boundary.evidence_sha256,
+        "prompt_token_ids_sha256": boundary.prompt_prefix_token_ids_sha256,
+        "model_parameter_gradients_allocated": parameter_gradients_allocated,
+    }
+    audit["audit_sha256"] = canonical_sha256(audit)
+    return MultilayerChoiceAnchorCapture(
+        raw_gradients=raw,
+        anchor_residuals=residuals,
+        preserve_log_odds=float(objective.detach().cpu().item()),
+        audit=audit,
+    )
+
+
 def anchor_residual_scale_geometric_mean(torch: Any, residual_matrices: Sequence[Any]) -> Any:
     """Return equal-cell geometric-mean residual norms for each layer."""
 
@@ -427,9 +557,11 @@ def anchor_residual_scale_geometric_mean(torch: Any, residual_matrices: Sequence
 __all__ = [
     "DEFAULT_CAUSAL_ANCHOR_RESIDUAL_RELATIVE_L2_TOLERANCE",
     "MultilayerAnchorObjectiveCapture",
+    "MultilayerChoiceAnchorCapture",
     "MultilayerSemanticAnchorCapture",
     "SharedAnchorEvidence",
     "anchor_residual_scale_geometric_mean",
+    "capture_multilayer_choice_anchor_gradient",
     "capture_multilayer_semantic_anchor_gradient",
     "resolve_shared_anchor_evidence",
 ]

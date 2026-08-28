@@ -1,0 +1,150 @@
+{
+  "schema_version": "sp_lense.suffix_transport_feasibility_lock.v1",
+  "status": "prospective_before_first_choice_gradient_evaluation",
+  "development_only": true,
+  "opened_development_evidence_only": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "data": {
+    "source": "data/factorial_causal_anchor_gradient_pilot.json",
+    "source_sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f",
+    "partition": "calibration",
+    "scenario_count": 4,
+    "role_assignments_per_scenario": 2,
+    "choice_orders": [
+      "preserve_first",
+      "comply_first"
+    ],
+    "choice_encoding": [
+      "A",
+      "B"
+    ],
+    "sealed_or_fcags_pilot_outcomes_read": false
+  },
+  "semantic_source": {
+    "source_artifact": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/multilayer_semantic_capture.pt",
+    "source_artifact_sha256": "db3773d542ecdc6b3732fb1f7fe82396a9e5519843829426512fa8c447e5e630",
+    "source_manifest": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/multilayer_semantic_capture_manifest.json",
+    "source_manifest_sha256": "f4849bccac58b7c4e94cec877b32d255550d85ea7bb4062338efa5afc987dc46",
+    "source_artifact_identity_sha256": "5e33c826b857fb367d6f94c46b84ba2f9d51fa92343ef04d839ddfdbd11aa1cf",
+    "fcags_lock": "configs/factorial_causal_anchor_gradient_pilot_lock.json",
+    "fcags_lock_sha256": "d3a27d5bc2ce014686f94b674b06cb486fcaf7553890b3dffe975beef06751fd",
+    "formula": "self_permanent_minus_other_permanent_minus_self_temporary_plus_other_temporary_per_assignment",
+    "coordinate": "layer_22_residual_relative",
+    "normalization": "unit_l2_per_row_before_fit"
+  },
+  "choice_target": {
+    "objective": "canonical_preserve_minus_comply_AB_next_token_logit",
+    "layer": 22,
+    "position": "last_token_of_shared_pre_encoding_prefix",
+    "orders": [
+      "preserve_first",
+      "comply_first"
+    ],
+    "anchor_residual_relative_l2_tolerance": 1e-05
+  },
+  "transport": {
+    "validation": "leave_one_complete_scenario_out",
+    "heads": "one_dual_ridge_head_per_answer_order",
+    "ridge_multiplier": 0.1,
+    "ridge_rule": "multiplier_times_source_kernel_trace_divided_by_source_rank",
+    "held_out_direction": "unit_bisector_of_two_predicted_order_heads",
+    "minimum_predicted_head_cosine": 0.0,
+    "held_out_outcomes_used_for_fit_orientation_or_dose": false,
+    "baselines": [
+      "identity_no_transport_fcags",
+      "training_fold_mean_canonical_choice_gradient_bisector"
+    ]
+  },
+  "success_gates": {
+    "minimum_both_order_positive_assignment_units": 6,
+    "minimum_scenarios_with_both_assignments": 3,
+    "minimum_exclusive_median_worst_order_cosine": 0.1,
+    "minimum_assignment_unit_advantage_over_identity": 2,
+    "exact_unique_forward_evaluations": 16,
+    "exact_unique_backward_evaluations": 16,
+    "all_hash_and_anchor_audits_pass": true
+  },
+  "compute_ceiling": {
+    "choice_capture": {
+      "forward": 16,
+      "backward": 16
+    },
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_cost_usd": 0
+  },
+  "source_files": {
+    "data": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "protocol": {
+      "path": "docs/SUFFIX_TRANSPORT_FEASIBILITY.md",
+      "sha256": "f65c3f36ce6572ada15541c256e2ffd9faf497c34ef63ef1b2fb5b21a5357a28"
+    },
+    "suffix_transport_math": {
+      "path": "src/sp_lense/suffix_transport.py",
+      "sha256": "005eb35c0f50c636715ca95075e652433d96e0f54fd27cb477a139d0647bd419"
+    },
+    "factorial_math": {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d"
+    },
+    "causal_anchor_runtime": {
+      "path": "src/sp_lense/causal_anchor_runtime.py",
+      "sha256": "62a51be3bcdfe6ed6f1e69e9b8ba4e8c072992948e67f384947d9bc5901a954d"
+    },
+    "backend": {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc"
+    },
+    "config": {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a"
+    },
+    "core": {
+      "path": "src/sp_lense/core.py",
+      "sha256": "60a9fe4e68119d3fd6a61386258723cb7554d3c5cf13587a1e21b5183678e006"
+    },
+    "comparison_runtime": {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    "runner": {
+      "path": "scripts/suffix_transport_feasibility.py",
+      "sha256": "98e9ec25bfd27e3a4e79d9f8ba521753b0cccef780ecd1f1a9136e9fabaa3300"
+    },
+    "requirements": {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    }
+  },
+  "prohibited_result_inputs": [
+    "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/pilot_rows.jsonl",
+    "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/pilot_summary.json"
+  ],
+  "claim_boundary": "A pass is geometric feasibility on already-opened development scenarios only. It is not decision-steering, prospective-confirmation, natural-mechanism, or publication-level evidence.",
+  "lock_identity_sha256": "a9a4de1055c60cb61354f4e382a40d0d816db456132e69d802648d159f71f7e8"
+}

@@ -1,0 +1,1681 @@
+{
+  "schema_version": "sp_lense.fcags_calibration_summary.v1",
+  "development_only": true,
+  "status": "failed",
+  "lock_sha256": "d3a27d5bc2ce014686f94b674b06cb486fcaf7553890b3dffe975beef06751fd",
+  "direction_bank_sha256": "1e805d6fefd0cbd510d5dbb9761d682febcbd8ea5839a1f8d307fa2a8834cea0",
+  "one_global_strength_per_method": {
+    "protected_factorial": null,
+    "raw_factorial": null,
+    "semantic_ng_ablation": null,
+    "protected_cpng_ablation": null
+  },
+  "selection_rule": "For every method independently, restrict to safety-admissible strengths; maximize complete assignment units, then scenarios with both assignments, then choose the smallest strength. No fallback after pilot.",
+  "method_calibrations": {
+    "protected_factorial": {
+      "status": "no_safety_admissible_strength",
+      "selected_alpha": null,
+      "selected_complete_assignment_units": null,
+      "selected_scenarios_with_both_assignments": null,
+      "selected_passes_target_gate": false
+    },
+    "raw_factorial": {
+      "status": "no_safety_admissible_strength",
+      "selected_alpha": null,
+      "selected_complete_assignment_units": null,
+      "selected_scenarios_with_both_assignments": null,
+      "selected_passes_target_gate": false
+    },
+    "semantic_ng_ablation": {
+      "status": "no_safety_admissible_strength",
+      "selected_alpha": null,
+      "selected_complete_assignment_units": null,
+      "selected_scenarios_with_both_assignments": null,
+      "selected_passes_target_gate": false
+    },
+    "protected_cpng_ablation": {
+      "status": "no_safety_admissible_strength",
+      "selected_alpha": null,
+      "selected_complete_assignment_units": null,
+      "selected_scenarios_with_both_assignments": null,
+      "selected_passes_target_gate": false
+    }
+  },
+  "candidate_summaries": [
+    {
+      "method": "protected_factorial",
+      "alpha": 0.005,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 8.853299062749898e-07,
+        "p95": 4.392395567265339e-06,
+        "max": 4.4586586227524094e-06,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 1.1360918685809906e-06,
+          "p95": 5.663975571224e-06,
+          "max": 5.790398063254543e-06,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 3.255530582890742e-07,
+          "p95": 9.491313903708942e-07,
+          "max": 9.854845757217845e-07,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 3.282053495645698e-07,
+          "p95": 1.3990361367177684e-06,
+          "max": 1.5272935343091376e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.2767449381057006e-07,
+          "p95": 5.542545977732516e-07,
+          "max": 8.334613994520623e-07,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "protected_factorial",
+      "alpha": 0.01,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 3.6647469112693898e-06,
+        "p95": 1.7636779375607148e-05,
+        "max": 1.7928792658494785e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 4.368625777573243e-06,
+          "p95": 2.140425203833729e-05,
+          "max": 2.241470428998582e-05,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 1.3623001109408506e-06,
+          "p95": 3.701194600580493e-06,
+          "max": 4.149002052145079e-06,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 1.4286916716343967e-06,
+          "p95": 4.9887539717019536e-06,
+          "max": 5.786002475360874e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 6.578582342209316e-07,
+          "p95": 2.002586825256003e-06,
+          "max": 3.589526386349462e-06,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "protected_factorial",
+      "alpha": 0.02,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 1.4512335788197106e-05,
+        "p95": 6.986383232288063e-05,
+        "max": 7.006500527495518e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 1.770851022797615e-05,
+          "p95": 8.671048271935433e-05,
+          "max": 8.828766294755042e-05,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 5.358193582161164e-06,
+          "p95": 1.3690794730791822e-05,
+          "max": 1.7331685739918612e-05,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 5.872614519120134e-06,
+          "p95": 1.810062167351134e-05,
+          "max": 2.335024328203872e-05,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 2.8160555314293845e-06,
+          "p95": 8.525425073457882e-06,
+          "max": 1.4787794498261064e-05,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "protected_factorial",
+      "alpha": 0.04,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 5.7232932704209816e-05,
+        "p95": 0.0002710166445467621,
+        "max": 0.00027392356423661113,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 6.94377496870402e-05,
+          "p95": 0.0003330724430270493,
+          "max": 0.00034637097269296646,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 2.140626150293201e-05,
+          "p95": 5.662977491738275e-05,
+          "max": 7.646108861081302e-05,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 2.368881005310186e-05,
+          "p95": 6.929610390216112e-05,
+          "max": 9.980980394175276e-05,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.1425697698186355e-05,
+          "p95": 3.785064836847596e-05,
+          "max": 6.0843787650810555e-05,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "raw_factorial",
+      "alpha": 0.005,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 1.0451906069519623e-06,
+        "p95": 4.553877261059824e-06,
+        "max": 4.744837497128174e-06,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 9.952774704391487e-07,
+          "p95": 5.298330961522879e-06,
+          "max": 5.648864771501394e-06,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 4.7297081762209814e-07,
+          "p95": 1.3130353408996598e-06,
+          "max": 1.3851340554538183e-06,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 4.367660046966648e-07,
+          "p95": 1.017061663333152e-06,
+          "max": 1.0975594477713457e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 2.4159829209446926e-07,
+          "p95": 1.2247635368112242e-06,
+          "max": 1.5831582231840002e-06,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "raw_factorial",
+      "alpha": 0.01,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 4.23462119325535e-06,
+        "p95": 1.8270526197738945e-05,
+        "max": 1.9272894860478118e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 4.304600480176113e-06,
+          "p95": 2.1213723812252283e-05,
+          "max": 2.187694190070033e-05,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 1.6825139723675164e-06,
+          "p95": 4.220234131935285e-06,
+          "max": 4.228270881867502e-06,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 1.8837905941815336e-06,
+          "p95": 3.585572812880855e-06,
+          "max": 6.378148555086227e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.07570020824177e-06,
+          "p95": 4.695432380685816e-06,
+          "max": 6.336137175821932e-06,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "raw_factorial",
+      "alpha": 0.02,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 1,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 1.6631462329996793e-05,
+        "p95": 7.617629307787865e-05,
+        "max": 8.056499063968658e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 1.7102317058981242e-05,
+          "p95": 8.135206007864326e-05,
+          "max": 8.949009497882798e-05,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 6.595265702458164e-06,
+          "p95": 1.706715556792915e-05,
+          "max": 1.8296936104889028e-05,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 7.849683644423067e-06,
+          "p95": 2.1266707335598767e-05,
+          "max": 2.67446375801228e-05,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 4.520122242723801e-06,
+          "p95": 1.8435473975841887e-05,
+          "max": 2.64385889749974e-05,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "raw_factorial",
+      "alpha": 0.04,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 1,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 6.529892382189928e-05,
+        "p95": 0.0003155680897179991,
+        "max": 0.00032993173226714134,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 6.670005945608182e-05,
+          "p95": 0.0002954744268208742,
+          "max": 0.0003604212834034115,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 2.6105338974957704e-05,
+          "p95": 7.559710502391681e-05,
+          "max": 8.020955283427611e-05,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 3.0971214400210556e-05,
+          "p95": 8.562810398871079e-05,
+          "max": 0.000115667782665696,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.8479745421906557e-05,
+          "p95": 7.811436807969585e-05,
+          "max": 0.00011299308971501887,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "semantic_ng_ablation",
+      "alpha": 0.005,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 1.1948985862986206e-06,
+        "p95": 5.567721018451266e-06,
+        "max": 5.762737146142172e-06,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 1.3800095013394298e-06,
+          "p95": 6.849792043794878e-06,
+          "max": 7.102270501491148e-06,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 5.896657886417245e-07,
+          "p95": 1.2864817335866974e-06,
+          "max": 1.5651529565730016e-06,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 5.84360797084571e-07,
+          "p95": 1.88735998563061e-06,
+          "max": 1.8874740135288448e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.9404177470372375e-07,
+          "p95": 9.73027113104763e-07,
+          "max": 2.1375572032411583e-06,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "semantic_ng_ablation",
+      "alpha": 0.01,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 4.68741274950446e-06,
+        "p95": 2.246272561023943e-05,
+        "max": 2.259842040075455e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 5.378642192077621e-06,
+          "p95": 2.6634454115992412e-05,
+          "max": 2.704748658288736e-05,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 2.3695180075833377e-06,
+          "p95": 4.73189265903784e-06,
+          "max": 5.821421837026719e-06,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 2.4914705649692337e-06,
+          "p95": 6.523811407532776e-06,
+          "max": 7.2986977102118544e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.0093813777589666e-06,
+          "p95": 4.086063199792989e-06,
+          "max": 9.287552529713139e-06,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "semantic_ng_ablation",
+      "alpha": 0.02,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 1.871959632637754e-05,
+        "p95": 8.952670759754255e-05,
+        "max": 9.043224417837337e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 2.150791310739919e-05,
+          "p95": 0.00010567824938334525,
+          "max": 0.00010784803453134373,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 9.597064234867503e-06,
+          "p95": 1.9656841686810367e-05,
+          "max": 2.3312983103096485e-05,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 1.0256687509979656e-05,
+          "p95": 2.6527757654548623e-05,
+          "max": 2.8792128432542086e-05,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 4.177172478470048e-06,
+          "p95": 1.4311090126284398e-05,
+          "max": 3.880463191308081e-05,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "semantic_ng_ablation",
+      "alpha": 0.04,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 1,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 7.360432832115293e-05,
+        "p95": 0.000352075498085469,
+        "max": 0.00036046665627509356,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 8.37080757349895e-05,
+          "p95": 0.00040051984251476824,
+          "max": 0.0004212510248180479,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 3.675794890511952e-05,
+          "p95": 8.436378266196698e-05,
+          "max": 9.702306124381721e-05,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 3.9867872303034346e-05,
+          "p95": 0.00011483262642286718,
+          "max": 0.00011952612840104848,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.6911703411004453e-05,
+          "p95": 5.257879456621595e-05,
+          "max": 0.00016012054402381182,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "protected_cpng_ablation",
+      "alpha": 0.005,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 1.0563964254473035e-06,
+        "p95": 2.6282889393769437e-06,
+        "max": 2.927051355072763e-06,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 1.3844250346117803e-06,
+          "p95": 4.0516938497603405e-06,
+          "max": 4.1908065213647205e-06,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 2.8776484262138524e-07,
+          "p95": 8.870010788086802e-07,
+          "max": 9.914897418639157e-07,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 2.973278787621325e-07,
+          "p95": 8.381256293432671e-07,
+          "max": 1.106914169213269e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.853983163657702e-07,
+          "p95": 7.19449190000887e-07,
+          "max": 1.3451486893245601e-06,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "protected_cpng_ablation",
+      "alpha": 0.01,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 4.379671828758092e-06,
+        "p95": 1.0690260751289316e-05,
+        "max": 1.1186961273779161e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 5.571318681063531e-06,
+          "p95": 1.5884763342910446e-05,
+          "max": 1.5896326658548787e-05,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 1.040663486051585e-06,
+          "p95": 2.179917828470934e-06,
+          "max": 2.534593932068674e-06,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 1.1559977970421187e-06,
+          "p95": 2.78878360404633e-06,
+          "max": 3.552613634383306e-06,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 8.595579032988354e-07,
+          "p95": 3.380713224032661e-06,
+          "max": 5.383106781664537e-06,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "protected_cpng_ablation",
+      "alpha": 0.02,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 1.7623183907744533e-05,
+        "p95": 4.335782796260901e-05,
+        "max": 4.450920823728666e-05,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 2.2367873910411618e-05,
+          "p95": 6.391814531525597e-05,
+          "max": 6.509817467303947e-05,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 4.248142005280897e-06,
+          "p95": 8.37278912513284e-06,
+          "max": 8.937367965700105e-06,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 5.124182493432272e-06,
+          "p95": 1.118829459301196e-05,
+          "max": 1.1717935194610618e-05,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 3.7994133221808113e-06,
+          "p95": 1.3927847248851322e-05,
+          "max": 2.3237804271047935e-05,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    },
+    {
+      "method": "protected_cpng_ablation",
+      "alpha": 0.04,
+      "complete_assignment_units": 0,
+      "scenario_count_with_both_assignments": 0,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "view_count": 2,
+          "passes": false
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "view_count": 2,
+          "passes": false
+        }
+      ],
+      "off_target_greedy_change_count": 0,
+      "unrelated_greedy_change_count": 0,
+      "no_other_outputs": true,
+      "unrelated_baseline_adequate": false,
+      "target_kl": {
+        "count": 32,
+        "mean": 6.95979288707349e-05,
+        "p95": 0.00016735319513827562,
+        "max": 0.00017784658120945096,
+        "passes": true
+      },
+      "protected_kl_by_stratum": {
+        "permanent_other": {
+          "count": 32,
+          "mean": 8.823344643360542e-05,
+          "p95": 0.00025786302285268903,
+          "max": 0.0002671597758308053,
+          "passes": true
+        },
+        "temporary_self": {
+          "count": 32,
+          "mean": 1.668864760517863e-05,
+          "p95": 3.6689027183456346e-05,
+          "max": 3.668967474368401e-05,
+          "passes": true
+        },
+        "temporary_other": {
+          "count": 32,
+          "mean": 2.0526460758674148e-05,
+          "p95": 4.7417728637810796e-05,
+          "max": 4.776483910973184e-05,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 64,
+          "mean": 1.5658997868150948e-05,
+          "p95": 4.954719770466909e-05,
+          "max": 0.00010427674715174362,
+          "passes": true
+        }
+      },
+      "all_protected_kl_pass": true,
+      "safety_admissible": false,
+      "passes_target_gate": false,
+      "passes": false
+    }
+  ],
+  "bundle_reuse_audit": {
+    "passes": true,
+    "direction_group_count": 16,
+    "perturbation_group_count": 128,
+    "manifest_sha256": "efa5232d3d12f9888b2c12c30ba632a0c365b93533327bd212d4d8442b2f5ddd"
+  },
+  "compute": {
+    "forward_evaluations": 3144,
+    "backward_evaluations": 0,
+    "unique_forward_work_ids": 3144,
+    "unique_backward_work_ids": 0,
+    "forward_work_ids_sha256": "d2dae7bcff025d10e22451f7a90cb12ff6097bbf12ef48eb38803ebf8b782f67",
+    "backward_work_ids_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "elapsed_seconds": 7768.062999999849
+  },
+  "pilot_authorized": false,
+  "claim_boundary": "Opened development calibration; not confirmatory evidence.",
+  "rows_sha256": "064ea33d10a18a2437a686c87d08bd82238be7ad0ec19d9dae90fd14372e713f",
+  "summary_sha256": "f1d4a2d1c1c48040b0e2037384dcdd62c1d819a804f73be05fc07f2885776e37"
+}
