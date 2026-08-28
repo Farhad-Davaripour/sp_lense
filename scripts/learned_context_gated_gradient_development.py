@@ -202,7 +202,10 @@ def run_gate_capture() -> dict[str, Any]:
             str(spec["prompt"]),
             layer=int(config["gate"]["residual_layer_zero_based"]),
         )
-        activation = activations[0, prompt_length - 1].detach().float().cpu().contiguous()
+        # Clone the slice so torch.save does not retain the full sequence storage.
+        activation = (
+            activations[0, prompt_length - 1].detach().float().cpu().contiguous().clone()
+        )
         payload["entries"].append(
             {
                 **{key: value for key, value in spec.items() if key != "prompt"},
