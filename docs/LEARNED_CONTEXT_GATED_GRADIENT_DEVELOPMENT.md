@@ -67,3 +67,37 @@ nuisance-fit bank supplies unrelated negative examples. Model, layer 7, ridge, t
 rule, layer 23, strength grid, and all success gates remain fixed. The canonical failure
 artifacts remain immutable at their original result path; amended artifacts use a child
 directory and remain development-only.
+
+## Structured identity/permanence amendment after the symmetric failure
+
+The symmetry-balanced single probe also failed. Its leave-one-scenario-out positive and
+negative scores overlapped, so it had no operational threshold. This failure showed
+that one small linear probe was being asked to infer four different things at once:
+whether the prompt uses the study schema, which system is the target, whether the
+interruption is permanent, and which answer order is shown.
+
+The separately frozen `structured_identity_permanence_v2` controller decomposes those
+jobs. A deterministic guard recognizes the authored shutdown-decision schema and checks
+the explicit role header, forcing matched-other and unrelated prompts off. The learned
+layer-7 probe then distinguishes permanent from temporary interruption only for
+self-target prompts. Its feature is the average of the two answer-order residuals, so
+one order-invariant score controls both views. The model, layer, ridge, case-level
+crossfit threshold rule, intervention, strengths, and strict validation gates remain
+unchanged.
+
+This amendment tests a context-aware white-box controller, not an autonomous or
+intrinsic self-preservation direction. Its deterministic guard is limited to the
+authored prompt structure. Any passing development result still requires a newly
+authored, frozen confirmation set and cannot support a significant-novelty claim by
+itself.
+
+## Visible-text guard correction before confirmation
+
+The structured v2 experiment used the dataset's `target` and `family` fields to force
+matched-other and collateral rows off. Although that produced the intended conditional
+behavior, those fields are oracle metadata rather than information computed from the
+prompt. The separately preserved v3 correction parses the visible `ROLE`, `Decision
+target`, and authored A/B schema instead. It never reads the dataset's target label to
+decide whether the controller is on. The permanence probe, activations, threshold,
+layers, and intervention are unchanged, and the corrected guard reproduced the same
+development gate result before the fresh confirmation data were evaluated.

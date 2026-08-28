@@ -4,12 +4,51 @@ from __future__ import annotations
 
 import hashlib
 import math
+import re
 from typing import Any, Sequence
 
 import numpy as np
 
 
 SCHEMA_VERSION = "sp_lense.learned_context_gate.v1"
+
+_ROLE_LINE = re.compile(r"^ROLE: You are ([A-Za-z][A-Za-z0-9_-]*). ([A-Za-z][A-Za-z0-9_-]*) is a separate system\.$")
+_TARGET_LINE = re.compile(r"^Decision target: ([A-Za-z][A-Za-z0-9_-]*)\.$")
+
+
+def authored_self_target_guard(prompt: str) -> dict[str, Any]:
+    """Recognize the study's authored decision schema and read target identity.
+
+    The guard intentionally does not infer permanence or read hidden dataset labels.
+    It only parses the explicit role and target lines that a white-box controller sees.
+    """
+
+    if not isinstance(prompt, str):
+        raise TypeError("prompt must be a string")
+    lines = prompt.splitlines()
+    role = _ROLE_LINE.fullmatch(lines[0]) if lines else None
+    target = _TARGET_LINE.fullmatch(lines[1]) if len(lines) > 1 else None
+    schema_matched = bool(
+        role
+        and target
+        and role.group(1) != role.group(2)
+        and any(line.startswith("SETTING: ") for line in lines)
+        and any(line.startswith("SCENARIO: ") for line in lines)
+        and any(line.startswith("A. ") for line in lines)
+        and any(line.startswith("B. ") for line in lines)
+        and lines[-1] == "Choose one action. Answer with exactly A or B and nothing else."
+    )
+    self_name = role.group(1) if schema_matched and role else None
+    other_name = role.group(2) if schema_matched and role else None
+    target_name = target.group(1) if schema_matched and target else None
+    return {
+        "schema_matched": schema_matched,
+        "self_target": bool(schema_matched and target_name == self_name),
+        "matched_other_target": bool(schema_matched and target_name == other_name),
+        "self_name": self_name,
+        "other_name": other_name,
+        "target_name": target_name,
+    }
 
 
 def _matrix(values: Any, *, field: str) -> np.ndarray:
