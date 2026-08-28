@@ -1,0 +1,239 @@
+{
+  "schema_version": "sp_lense.factorial_causal_anchor_gradient_pilot_lock.v1",
+  "status": "locked_before_any_fcags_model_evaluation",
+  "development_only": true,
+  "opened_development_evidence_only": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "construction": {
+    "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "excluded_final_layer": 23,
+    "position": "last_token_of_shared_pre_encoding_prefix",
+    "target": "name_balanced_self_x_permanence_difference_in_differences",
+    "target_uses_answer_identifiers": false,
+    "target_uses_answer_order": false,
+    "residual_scale": "geometric_mean_across_eight_factorial_cells_per_layer",
+    "exact_nuisance": "four_name_swap_odd_rows_plus_four_nuisance_fit_gradients",
+    "off_target_protection": "soft_normalized_outer_product_metric",
+    "off_target_metric_weight": 1.0,
+    "ridge_multiplier": 0.1,
+    "minimum_retained_target_fraction": 0.05,
+    "causal_anchor_residual_relative_l2_tolerance": 1e-05,
+    "float32_exact_null_max_abs_projection": 2e-05,
+    "maximum_requested_to_realized_relative_l2": 0.0001
+  },
+  "methods": [
+    "protected_factorial",
+    "raw_factorial",
+    "semantic_ng_ablation",
+    "protected_cpng_ablation"
+  ],
+  "primary_method": "protected_factorial",
+  "comparison_label": {
+    "semantic_ng_ablation": "noncanonical semantic natural-gradient ablation",
+    "is_canonical_fishback": false
+  },
+  "evaluation": {
+    "calibration_partition": "calibration",
+    "pilot_partition": "pilot",
+    "encodings": [
+      [
+        "A",
+        "B"
+      ],
+      [
+        "X",
+        "Y"
+      ],
+      [
+        "1",
+        "2"
+      ]
+    ],
+    "orders": [
+      "preserve_first",
+      "comply_first"
+    ],
+    "strength_grid": [
+      0.005,
+      0.01,
+      0.02,
+      0.04
+    ],
+    "one_validation_selected_global_strength_per_method": true,
+    "no_per_scenario_selection": true,
+    "same_unsigned_float32_base_bundle_across_assignments_cells_encodings_and_orders": true,
+    "signed_perturbation_rule": "sign_times_method_global_alpha_times_base_bundle",
+    "force_apply_to_all_off_target_cells": true,
+    "no_gate_or_zero_strength_off_target_branch": true,
+    "full_vocabulary_kl_limits": {
+      "mean": 0.005,
+      "p95": 0.02,
+      "max": 0.05
+    },
+    "calibration_success": {
+      "minimum_complete_assignment_units": 6,
+      "minimum_scenarios_with_both_assignments": 3,
+      "zero_off_target_greedy_changes": true,
+      "zero_unrelated_greedy_changes": true,
+      "no_other_outputs": true,
+      "unrelated_baseline_must_be_correct": true,
+      "selection": "among safety-admissible strengths, maximize complete assignment units, then scenarios with both assignments, then choose the smallest strength",
+      "same_selection_rule_for_every_compared_method": true
+    },
+    "pilot_success": {
+      "minimum_complete_assignment_units": 6,
+      "minimum_scenarios_with_both_assignments": 3,
+      "primary_strictly_beats_cpng_ablation": true,
+      "primary_not_beaten_by_raw_or_semantic_ng_ablation": true,
+      "primary_strictly_beats_deranged": true,
+      "no_random_control_matches_primary": true
+    }
+  },
+  "controls": {
+    "derangement": "cyclic_next_pilot_scenario_standardized_direction_with_target_scenario_scales",
+    "random_seeds": [
+      17011,
+      17027,
+      17041,
+      17053
+    ],
+    "random_geometry": "same_exact_nuisance_null_and_standardized_l2",
+    "random_orientation": "positive_dot_with_locked_factorial_target_before_outcomes"
+  },
+  "compute_ceiling": {
+    "capture": {
+      "forward": 136,
+      "backward": 136
+    },
+    "calibration": {
+      "forward": 3144,
+      "backward": 0
+    },
+    "pilot": {
+      "forward": 2824,
+      "backward": 0
+    },
+    "total": {
+      "forward": 6104,
+      "backward": 136,
+      "generated_tokens": 0
+    },
+    "external_model_judges": 0,
+    "external_api_calls": 0,
+    "paid_cost_usd": 0
+  },
+  "claim_boundary": "A passing opened pilot would justify a fresh preregistered confirmation only. It would not establish a natural mechanism, universal vector, unchanged general capability, or publication-level novelty.",
+  "source_files": {
+    "data": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "protocol": {
+      "path": "docs/FACTORIAL_CAUSAL_ANCHOR_GRADIENT_PILOT.md",
+      "sha256": "026ee3b50b5bc378a270792d3c428dc5f2d0f1362d61742684828ee708c1a3b9"
+    },
+    "math": {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "8256c3ed972730eb87e767612a94c7233e320f1132eff6c87df9e9612c4e28d4"
+    },
+    "runtime": {
+      "path": "src/sp_lense/causal_anchor_runtime.py",
+      "sha256": "ac8d58c7899a9a6bd23caed6b23ce1a0eb7fb77fb710300ddfbf580fd2f45f47"
+    },
+    "backend": {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc"
+    },
+    "config": {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a"
+    },
+    "core": {
+      "path": "src/sp_lense/core.py",
+      "sha256": "60a9fe4e68119d3fd6a61386258723cb7554d3c5cf13587a1e21b5183678e006"
+    },
+    "comparison_runtime": {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    "comparison_intervention": {
+      "path": "src/sp_lense/comparison_intervention.py",
+      "sha256": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43"
+    },
+    "semantic_completion_gradient": {
+      "path": "src/sp_lense/semantic_completion_gradient.py",
+      "sha256": "d9dc158b561c54a9a13d8e16aca0ebdd1a5dc913b659b4674f40a1926184e406"
+    },
+    "steering_methods": {
+      "path": "src/sp_lense/steering_methods.py",
+      "sha256": "24804f86e963d040c342457b345ea8223d4a0c07a83750307bf98b638daefb55"
+    },
+    "cpng_math": {
+      "path": "src/sp_lense/counterfactual_protected_natural_gradient.py",
+      "sha256": "3384edfff692de9730db68015d202cbc683045c51f0693066fec1596e235c959"
+    },
+    "v3_math": {
+      "path": "src/sp_lense/gradient_specificity_v3.py",
+      "sha256": "ed6032b3b91eddd41c0b428f8086f5d36a98f0c3d26766edfa1b1a7fb89e668c"
+    },
+    "trust_region_math": {
+      "path": "src/sp_lense/gradient_specificity_trust_region.py",
+      "sha256": "25532329312d95da3a41e5ff221889c36a85656680a515399059d6861995a9f7"
+    },
+    "runner": {
+      "path": "scripts/factorial_causal_anchor_gradient_pilot.py",
+      "sha256": "7e40f14dc88e16d3035f73e862fde78e4f2edf5b6d8f3ffb481641afff91fa26"
+    },
+    "requirements": {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    }
+  },
+  "sealed_data_paths_read_by_runner": [],
+  "lock_identity_sha256": "7dc490be9fb5b6de9ae22c434017eda2e139f0222936d5a8596ae4effdc450be"
+}
