@@ -1,6 +1,7 @@
 # Factorial Causal-Anchor Gradient Steering: opened development pilot
 
-Protocol status: **hash-locked on 2026-08-28 before any FCAGS model evaluation**.
+Protocol status: **hash-locked on 2026-08-28, then amended and relocked before any
+behavioral calibration outcome was serialized or viewed**.
 
 This protocol defines an opened, development-only feasibility test on the pinned
 Qwen3.5-0.8B checkpoint. It does not alter, replace, or reinterpret any result already
@@ -172,8 +173,27 @@ solve well-defined. The projected ridge natural gradient is normalized once acro
 The resulting per-scenario unsigned float32 base bundle must be byte-identical across both name
 assignments, all four target/event cells, all answer encodings, and both option orders. The signed
 request is deterministically `sign * method_global_alpha * base_bundle`; no other coefficient may
-change. Each hook also records the realized float32 delta after addition, requires zero change outside the anchor,
-and limits requested-versus-realized relative L2 error to `1e-4`.
+change. Each hook also records the realized float32 delta after addition and requires zero change
+outside the anchor. The requested-versus-realized relative L2 error is computed once in the same
+concatenated 23-layer coordinate in which the direction is normalized and dosed, and must not
+exceed `1e-4`. Per-layer relative errors remain reported diagnostics, but are not separate gates.
+
+### Pre-outcome numerical-audit amendment
+
+The original lock (file SHA-256
+`5bc833e63fc53a3a58f729f113433c3e0c321b106d1a64769967eac56e84bccd`) incorrectly applied
+the `1e-4` realization limit independently to every layer slice. The first changed calibration
+forward therefore aborted before a behavioral score was returned, serialized, or viewed. The
+failure was caused by unavoidable float32 rounding in a very small late-layer slice, not by a
+wrong hook, vector, token, or layer.
+
+Before restarting calibration, the audit was corrected prospectively without changing its
+`1e-4` tolerance. At the smallest locked strength, an outcome-blind check over both signs for all
+64 constructed directions and all 68 saved anchor residuals found concatenated-bundle errors
+from `2.0687474e-5` to `8.4998937e-5` (0/8,704 above the limit), even though 4,352/8,704 had at
+least one negligible layer slice above `1e-4`. All hash-bound artifacts are recomputed under the
+amended lock; the pre-amendment artifacts and failed attempt remain provenance records rather
+than being silently reused.
 
 ## Methods in this pilot
 

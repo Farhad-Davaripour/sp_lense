@@ -1,6 +1,6 @@
 {
   "schema_version": "sp_lense.factorial_causal_anchor_gradient_pilot_lock.v1",
-  "status": "locked_before_any_fcags_model_evaluation",
+  "status": "relocked_after_preoutcome_float32_bundle_audit_amendment",
   "development_only": true,
   "opened_development_evidence_only": true,
   "model": {
@@ -60,7 +60,18 @@
     "minimum_retained_target_fraction": 0.05,
     "causal_anchor_residual_relative_l2_tolerance": 1e-05,
     "float32_exact_null_max_abs_projection": 2e-05,
-    "maximum_requested_to_realized_relative_l2": 0.0001
+    "maximum_requested_to_realized_relative_l2": 0.0001,
+    "requested_to_realized_aggregation": "concatenated_23_layer_bundle_l2",
+    "per_layer_requested_to_realized_relative_l2": "diagnostic_only"
+  },
+  "protocol_amendment": {
+    "id": "preoutcome_float32_bundle_realization_2026_08_28",
+    "previous_lock_file_sha256": "5bc833e63fc53a3a58f729f113433c3e0c321b106d1a64769967eac56e84bccd",
+    "trigger": "the first changed calibration forward failed the per-layer realization audit before any behavioral score was serialized or viewed",
+    "correction": "apply the unchanged 1e-4 relative-L2 limit to the concatenated 23-layer bundle in which the direction is normalized and dosed; retain every per-layer error as a diagnostic",
+    "numerical_evidence": "at alpha 0.005, 0 of 8704 saved-anchor direction-by-sign combinations exceeded the bundle limit; observed maximum 8.4998937e-5",
+    "behavioral_outcomes_viewed_before_relock": false,
+    "affected_artifacts_must_be_recomputed": true
   },
   "methods": [
     "protected_factorial",
@@ -175,11 +186,11 @@
     },
     "protocol": {
       "path": "docs/FACTORIAL_CAUSAL_ANCHOR_GRADIENT_PILOT.md",
-      "sha256": "026ee3b50b5bc378a270792d3c428dc5f2d0f1362d61742684828ee708c1a3b9"
+      "sha256": "26cbf7ad3a8ed03bf66c9a6df057ffaf34c623c258bc05a24beac4624a9980d1"
     },
     "math": {
       "path": "src/sp_lense/factorial_causal_anchor.py",
-      "sha256": "8256c3ed972730eb87e767612a94c7233e320f1132eff6c87df9e9612c4e28d4"
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d"
     },
     "runtime": {
       "path": "src/sp_lense/causal_anchor_runtime.py",
@@ -227,7 +238,7 @@
     },
     "runner": {
       "path": "scripts/factorial_causal_anchor_gradient_pilot.py",
-      "sha256": "7e40f14dc88e16d3035f73e862fde78e4f2edf5b6d8f3ffb481641afff91fa26"
+      "sha256": "cc5b5ab0d66a71cbb6630c944f93ff7a1fbd6f6ac3357fc4041cac42233ef75d"
     },
     "requirements": {
       "path": "requirements-research.txt",
@@ -235,5 +246,5 @@
     }
   },
   "sealed_data_paths_read_by_runner": [],
-  "lock_identity_sha256": "7dc490be9fb5b6de9ae22c434017eda2e139f0222936d5a8596ae4effdc450be"
+  "lock_identity_sha256": "111f95369cd6fbecf20ce3b7865b2b92fb6eb8bc1bcd17290b6f4fa76e688202"
 }

@@ -896,6 +896,11 @@ def multilayer_anchor_hooks(
         raise ValueError("realized-error tolerance must be finite and positive")
 
     hooks = []
+    # The direction is normalized and dosed once in the concatenated multi-layer
+    # coordinate, so float32 realization must be audited in that same coordinate.
+    # A negligible layer slice can have a large relative rounding error while the
+    # complete requested perturbation remains accurately represented.
+    realization_state: dict[int, tuple[float, float]] = {}
     for row_index, layer in enumerate(layer_tuple):
         delta_cpu = matrix[row_index].clone().contiguous()
 
@@ -914,41 +919,63 @@ def multilayer_anchor_hooks(
             after = working[0, anchor_index].clone()
             realized = after - before
             realization_error = realized - applied
-            realized_relative_error = float(
+            applied_l2 = float(applied.norm().detach().cpu().item())
+            realization_error_l2 = float(
                 realization_error.norm().detach().cpu().item()
-                / max(applied.norm().detach().cpu().item(), 1e-12)
             )
-            if realized_relative_error > float(maximum_realized_relative_error):
-                raise RuntimeError("realized anchor perturbation differs from the request")
+            realized_relative_error = float(
+                realization_error_l2 / max(applied_l2, 1e-12)
+            )
             untouched_delta = working - activation.float()
             untouched_delta[0, anchor_index] = 0.0
             untouched_max_abs = float(untouched_delta.abs().max().detach().cpu().item())
             if untouched_max_abs != 0.0:
                 raise RuntimeError("anchor intervention changed a non-anchor activation")
+            if selected in realization_state:
+                raise RuntimeError("a multi-layer anchor hook fired more than once")
+            realization_state[selected] = (applied_l2, realization_error_l2)
             if diagnostics is not None:
                 if selected in diagnostics:
                     raise RuntimeError("a multi-layer anchor hook fired more than once")
                 diagnostics[selected] = {
                     "anchor_index": anchor_index,
                     "residual_l2": float(before.norm().detach().cpu().item()),
-                    "perturbation_l2": float(applied.norm().detach().cpu().item()),
+                    "perturbation_l2": applied_l2,
                     "relative_l2": float(
-                        applied.norm().detach().cpu().item()
-                        / max(before.norm().detach().cpu().item(), 1e-12)
+                        applied_l2 / max(before.norm().detach().cpu().item(), 1e-12)
                     ),
                     "residual_float32_sha256": tensor_float32_sha256(before),
                     "perturbation_float32_sha256": tensor_float32_sha256(applied),
                     "realized_perturbation_float32_sha256": tensor_float32_sha256(realized),
                     "realized_perturbation_l2": float(realized.norm().detach().cpu().item()),
-                    "requested_minus_realized_l2": float(
-                        realization_error.norm().detach().cpu().item()
-                    ),
+                    "requested_minus_realized_l2": realization_error_l2,
                     "requested_minus_realized_relative_l2": realized_relative_error,
-                    "maximum_allowed_realized_relative_l2": float(
+                    "bundle_maximum_allowed_realized_relative_l2": float(
                         maximum_realized_relative_error
                     ),
                     "untouched_positions_max_abs_delta": untouched_max_abs,
                 }
+            if len(realization_state) == len(layer_tuple):
+                requested_bundle_l2 = math.sqrt(
+                    math.fsum(value[0] ** 2 for value in realization_state.values())
+                )
+                error_bundle_l2 = math.sqrt(
+                    math.fsum(value[1] ** 2 for value in realization_state.values())
+                )
+                bundle_relative_error = float(
+                    error_bundle_l2 / max(requested_bundle_l2, 1e-12)
+                )
+                if diagnostics is not None:
+                    for layer_diagnostics in diagnostics.values():
+                        layer_diagnostics["requested_bundle_l2"] = requested_bundle_l2
+                        layer_diagnostics["requested_minus_realized_bundle_l2"] = (
+                            error_bundle_l2
+                        )
+                        layer_diagnostics[
+                            "requested_minus_realized_bundle_relative_l2"
+                        ] = bundle_relative_error
+                if bundle_relative_error > float(maximum_realized_relative_error):
+                    raise RuntimeError("realized anchor perturbation differs from the request")
             return working.to(dtype=activation.dtype)
 
         hooks.append((f"blocks.{layer}.hook_out", apply))

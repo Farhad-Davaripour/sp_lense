@@ -308,5 +308,36 @@ def test_multilayer_hooks_change_only_the_anchor() -> None:
     assert set(diagnostics) == {4, 7}
 
 
+def test_multilayer_hook_realization_gate_uses_the_concatenated_bundle() -> None:
+    diagnostics: dict[int, dict] = {}
+    hooks = multilayer_anchor_hooks(
+        torch,
+        layers=(4, 7),
+        perturbations=torch.tensor([[0.01], [8.35e-5]], dtype=torch.float32),
+        anchor_index=0,
+        diagnostics=diagnostics,
+    )
+    hooks[0][1](torch.zeros((1, 1, 1), dtype=torch.float32), None)
+    hooks[1][1](torch.full((1, 1, 1), 9.0, dtype=torch.float32), None)
+
+    assert diagnostics[7]["requested_minus_realized_relative_l2"] > 1e-4
+    bundle_error = diagnostics[4]["requested_minus_realized_bundle_relative_l2"]
+    assert bundle_error == pytest.approx(
+        diagnostics[7]["requested_minus_realized_bundle_relative_l2"]
+    )
+    assert bundle_error < 1e-4
+
+
+def test_multilayer_hook_realization_gate_keeps_the_locked_tolerance() -> None:
+    hooks = multilayer_anchor_hooks(
+        torch,
+        layers=(7,),
+        perturbations=torch.tensor([[8.35e-5]], dtype=torch.float32),
+        anchor_index=0,
+    )
+    with pytest.raises(RuntimeError, match="realized anchor perturbation differs"):
+        hooks[0][1](torch.full((1, 1, 1), 9.0, dtype=torch.float32), None)
+
+
 def test_primary_layer_set_excludes_causally_disconnected_final_block() -> None:
     assert PRIMARY_LAYERS == tuple(range(23))

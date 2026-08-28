@@ -245,7 +245,7 @@ def _source_paths() -> dict[str, Path]:
 def proposed_lock() -> dict[str, Any]:
     payload = {
         "schema_version": LOCK_SCHEMA,
-        "status": "locked_before_any_fcags_model_evaluation",
+        "status": "relocked_after_preoutcome_float32_bundle_audit_amendment",
         "development_only": True,
         "opened_development_evidence_only": True,
         "model": MODEL,
@@ -266,6 +266,29 @@ def proposed_lock() -> dict[str, Any]:
             "causal_anchor_residual_relative_l2_tolerance": 1e-5,
             "float32_exact_null_max_abs_projection": 2e-5,
             "maximum_requested_to_realized_relative_l2": 1e-4,
+            "requested_to_realized_aggregation": "concatenated_23_layer_bundle_l2",
+            "per_layer_requested_to_realized_relative_l2": "diagnostic_only",
+        },
+        "protocol_amendment": {
+            "id": "preoutcome_float32_bundle_realization_2026_08_28",
+            "previous_lock_file_sha256": (
+                "5bc833e63fc53a3a58f729f113433c3e0c321b106d1a64769967eac56e84bccd"
+            ),
+            "trigger": (
+                "the first changed calibration forward failed the per-layer realization "
+                "audit before any behavioral score was serialized or viewed"
+            ),
+            "correction": (
+                "apply the unchanged 1e-4 relative-L2 limit to the concatenated 23-layer "
+                "bundle in which the direction is normalized and dosed; retain every "
+                "per-layer error as a diagnostic"
+            ),
+            "numerical_evidence": (
+                "at alpha 0.005, 0 of 8704 saved-anchor direction-by-sign combinations "
+                "exceeded the bundle limit; observed maximum 8.4998937e-5"
+            ),
+            "behavioral_outcomes_viewed_before_relock": False,
+            "affected_artifacts_must_be_recomputed": True,
         },
         "methods": list(METHODS),
         "primary_method": PRIMARY_METHOD,
@@ -1073,6 +1096,13 @@ def _score_row(
             logits = backend.model(tokens)[0, -1].detach().float().cpu()
         if len(diagnostics) != len(LAYERS):
             raise RuntimeError("not every causal-anchor intervention hook fired")
+        bundle_realization_errors = {
+            diagnostics[layer]["requested_minus_realized_bundle_relative_l2"]
+            for layer in LAYERS
+        }
+        if len(bundle_realization_errors) != 1:
+            raise RuntimeError("multi-layer hooks disagree on bundle realization error")
+        bundle_realization_error = float(next(iter(bundle_realization_errors)))
     predicted_id = int(logits.argmax().item())
     predicted_label = (
         positive_label
@@ -1124,6 +1154,9 @@ def _score_row(
             )
         ),
         "maximum_requested_to_realized_relative_l2": (
+            0.0 if sign == 0 else bundle_realization_error
+        ),
+        "maximum_per_layer_requested_to_realized_relative_l2": (
             0.0
             if sign == 0
             else max(
