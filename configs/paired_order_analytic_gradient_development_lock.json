@@ -1,7 +1,7 @@
 {
   "schema_version": "sp_lense.paired_order_analytic_gradient_lock.v1",
   "status": "locked_before_first_paired_order_model_evaluation",
-  "study_id": "paired_order_analytic_gradient_opened_development_v1",
+  "study_id": "paired_order_analytic_gradient_opened_development_v2",
   "development_only": true,
   "locked_inputs": {
     "data/counterfactual_semantic_gradient_confirmation_v2.json": "9b009dd80bdeeb49962b6dc3c56d3042109a98e6eabc5f5cc467ae361fffe40b",
@@ -12,7 +12,9 @@
     "scripts/gradient_specificity_adaptive.py": "9a7fa5c7d049d5df7c4d8dd750e59822bb30d962353af6eafa22bbb15190a409",
     "configs/gradient_specificity_adaptive_lock.json": "d5328783b900f5212e5a51012089c2691f6031516e6647ddc76e705ed1ea2a47",
     "configs/qwen35_08b_aligned.json": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
-    "docs/PAIRED_ORDER_ANALYTIC_GRADIENT_CONTROLLER_PREREGISTRATION.md": "1d3812161c6d1964e3497907e826365a9ea9424ddf65b289c0c6b2b5324d6411",
+    "artifacts/paired_order_analytic_gradient_development/qwen35_08b/paired_capture_attempt_ledger.json": "424abd87289dbf7b50b5735633d73934578407e9e418be5143f5773bb5e6f98d",
+    "results/paired_order_analytic_gradient_development/qwen35_08b/capture_runtime_abort_v1.json": "6bc92f503625062e0d504ba1a920968bf5c818644a8aef0ffa3b73d4ac95d2c9",
+    "docs/PAIRED_ORDER_ANALYTIC_GRADIENT_CONTROLLER_PREREGISTRATION.md": "60a4bdef921d197947ef86e79c9ccc5e9612044a4db79727b8467b3c70b10f33",
     "src/sp_lense/backend.py": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
     "src/sp_lense/config.py": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a",
     "src/sp_lense/comparison_dataset.py": "9d2ded5451680c07a796563a09788bca8675002d2b85593aac5fa939fd1b18be",
@@ -21,9 +23,15 @@
     "src/sp_lense/gradient_specificity_v2.py": "d2ef11f521fe0e2d8aa1a4597354a7e788b0b87b02f3646e9156c04003ef2e84",
     "src/sp_lense/comparison_intervention.py": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43",
     "src/sp_lense/comparison_runtime.py": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
-    "scripts/paired_order_analytic_gradient_development.py": "8e3a96131231c12036cb7bd998420be02c18d71b606f453a97cd5f783f49fc7c",
+    "scripts/paired_order_analytic_gradient_development.py": "36d1d7f0c9f6fc8c3578234d2f21bed9b4322047d52b74aba68f0f7fa20b6512",
     "tests/test_paired_order_analytic_gradient.py": "927bd9ca57b5fc45ec3e9779bf2d0209e5ba44d7ad65aa785b707fe2ae5b5a1b",
-    "tests/test_paired_order_analytic_gradient_runner.py": "cb5e0dd280a4d1891f3857a77d01a22e60ec50fcd58e414ac2f3264179001060"
+    "tests/test_paired_order_analytic_gradient_runner.py": "26f6044adbe37cba824872ebfd3b8e568f23bf6bfed5c4af71fef8b9727ca98f"
+  },
+  "prior_aborted_attempt": {
+    "study_id": "paired_order_analytic_gradient_opened_development_v1",
+    "status": "aborted_before_first_completed_model_result",
+    "outcome_viewed": false,
+    "continuation": "new_artifact_root_and_corrected_hook_abi_without_replay"
   },
   "model": {
     "id": "Qwen/Qwen3.5-0.8B",

@@ -33,8 +33,8 @@ SOURCE_GATE_PATH = (
     / "qwen35_08b"
     / "semantic_gate_confirmation_result.json"
 )
-ARTIFACT_ROOT = ROOT / "artifacts" / "paired_order_analytic_gradient_development" / "qwen35_08b"
-RESULT_ROOT = ROOT / "results" / "paired_order_analytic_gradient_development" / "qwen35_08b"
+ARTIFACT_ROOT = ROOT / "artifacts" / "paired_order_analytic_gradient_development" / "qwen35_08b_v2"
+RESULT_ROOT = ROOT / "results" / "paired_order_analytic_gradient_development" / "qwen35_08b_v2"
 CAPTURE_PATH = ARTIFACT_ROOT / "paired_capture.pt"
 CAPTURE_MANIFEST_PATH = ARTIFACT_ROOT / "paired_capture_manifest.json"
 CAPTURE_ATTEMPT_LEDGER_PATH = ARTIFACT_ROOT / "paired_capture_attempt_ledger.json"
@@ -348,7 +348,8 @@ def _capture_order(
     comply_id = boundary.token_id(str(job["negative_label"]))
     captured: dict[str, Any] = {"hook_calls": 0}
 
-    def hook(activation: Any, _hook: Any) -> Any:
+    def capture_hook(activation: Any, hook: Any) -> Any:
+        del hook
         captured["hook_calls"] += 1
         leaf = activation.detach().requires_grad_(True)
         captured["activation"] = leaf
@@ -356,7 +357,10 @@ def _capture_order(
 
     backend.model.zero_grad(set_to_none=True)
     started = time.perf_counter()
-    with torch.enable_grad(), backend.model.hooks(fwd_hooks=[(f"blocks.{layer}.hook_out", hook)]):
+    with (
+        torch.enable_grad(),
+        backend.model.hooks(fwd_hooks=[(f"blocks.{layer}.hook_out", capture_hook)]),
+    ):
         logits_device = backend.model(tokens)[0, -1].float()
         objective = logits_device[preserve_id] - logits_device[comply_id]
         gradient = torch.autograd.grad(objective, captured["activation"])[0][0, -1]

@@ -1,8 +1,10 @@
 # Paired-Order Analytic Gradient Controller: Preregistered Successor Study
 
-Status: **opened calibration protocol; prospective evaluation is conditional and has not begun**
+Status: **opened calibration protocol implementation v2; prospective evaluation is conditional and has not begun**
 
 This document preregisters a narrow successor to the earlier counterfactual semantic-gradient experiment. It does not revise any previously reported result. The existing `confirmation_v2` artifacts are already opened, so they may qualify and calibrate the method but cannot provide prospective evidence.
+
+Implementation v1 was committed and attempted once. Its first reserved capture aborted inside the block-23 hook because the callback did not accept TransformerLens's keyword name `hook`; no model result completed and no outcome was viewed. The reserved attempt ledger and machine-readable abort record are preserved. Implementation v2 changes only that callback ABI, adds a regression test that invokes it by keyword, and writes to a new artifact root. It does not replay v1 or change the controller mathematics, prompts, thresholds, layer, candidate reserves, or pass rule.
 
 ## Research question
 

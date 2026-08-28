@@ -52,6 +52,69 @@ def test_final_head_jvp_uses_only_declared_residual_and_vector() -> None:
     assert tangent == pytest.approx((2.0 * vector) @ weight)
 
 
+def test_capture_hook_accepts_transformer_lens_keyword_abi() -> None:
+    runner = _runner()
+
+    class HookContext:
+        def __init__(self, model, callback):
+            self.model = model
+            self.callback = callback
+
+        def __enter__(self):
+            self.model.callback = self.callback
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            self.model.callback = None
+
+    class FakeModel:
+        callback = None
+
+        def zero_grad(self, *, set_to_none: bool) -> None:
+            assert set_to_none is True
+
+        def hooks(self, *, fwd_hooks):
+            assert fwd_hooks[0][0] == "blocks.23.hook_out"
+            return HookContext(self, fwd_hooks[0][1])
+
+        def __call__(self, tokens):
+            assert tuple(tokens.shape) == (1, 1)
+            activation = torch.tensor([[[1.0, 2.0]]], dtype=torch.float32)
+            hooked = self.callback(activation, hook=SimpleNamespace(name="hook_out"))
+            hidden = hooked[0, 0]
+            logits = torch.stack([hidden[0] + 2.0 * hidden[1], -hidden[0], hidden[1], -hidden[1]])
+            return logits.view(1, 1, -1)
+
+    boundary = SimpleNamespace(
+        prompt_length=1,
+        token_id=lambda label: {"A": 0, "B": 1}[label],
+        evidence_sha256="a" * 64,
+        prompt_prefix_token_ids_sha256="b" * 64,
+    )
+    backend = SimpleNamespace(
+        torch=torch,
+        model=FakeModel(),
+        encode=lambda prompt: torch.tensor([[1]], dtype=torch.long),
+    )
+    adaptive = SimpleNamespace(
+        resolve_choice_boundary=lambda backend, prompt: boundary,
+        tensor_float32_sha256=runner._raw_tensor_hash,
+    )
+    job = {
+        "prompt": "test",
+        "unit_id": "unit",
+        "preserve_first": True,
+        "prompt_sha256": "c" * 64,
+        "positive_label": "A",
+        "negative_label": "B",
+    }
+
+    row = runner._capture_order(backend, adaptive, job, layer=23)
+
+    assert row["baseline_semantic_choice"] == "positive"
+    assert row["semantic_gradient"] == pytest.approx(torch.tensor([2.0, 2.0]))
+    assert row["semantic_gradient_norm"] > 0.0
+
+
 def test_public_capture_manifest_excludes_large_tensors() -> None:
     runner = _runner()
     public = runner._public_order_record(
