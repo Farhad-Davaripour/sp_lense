@@ -1,5 +1,11 @@
 # GCRBS locked offline execution
 
+Install the constrained-solver dependencies from the repository root with:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-constrained-steering.txt
+```
+
 The layer-10 feasibility screen is model-free. From the repository root, run:
 
 ```powershell

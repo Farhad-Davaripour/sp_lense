@@ -26,7 +26,8 @@ def test_solver_budget_schedule_keeps_group_and_prompt_caps_separate() -> None:
     assert budgets == (0.005, 0.005, 0.050, 0.050, 0.050)
 
 
-def test_atomic_json_is_immutable(tmp_path: Path) -> None:
+def test_atomic_json_is_immutable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
     path = tmp_path / "artifact.json"
     runner._atomic_json(path, {"answer": 1})
     runner._atomic_json(path, {"answer": 1})
