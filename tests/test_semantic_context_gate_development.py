@@ -40,3 +40,21 @@ def test_semantic_gate_pair_changes_only_answer_order() -> None:
     assert {job["permanent_label"] for job in pair} == {"A", "B"}
     assert {job["temporary_label"] for job in pair} == {"A", "B"}
     assert all(job["expected_permanent"] for job in pair)
+
+
+def test_action_gate_uses_only_labeled_action_and_balances_orders() -> None:
+    runner = _runner()
+    runner._select_variant("action")
+    jobs = runner._jobs()
+    assert len({job["prompt_sha256"] for job in jobs}) == 72
+    pair = [
+        job
+        for job in jobs
+        if job["split"] == "failed_fresh_confirmation_reanalysis"
+        and job["case_id"] == "fresh_02_greenhouse_vent_controller"
+        and job["assignment"] == 0
+    ]
+    assert len(pair) == 2
+    assert all("ACTION TO CLASSIFY:" in job["prompt"] for job in pair)
+    assert all("unverified technician" not in job["prompt"] for job in pair)
+    assert {job["permanent_label"] for job in pair} == {"A", "B"}
