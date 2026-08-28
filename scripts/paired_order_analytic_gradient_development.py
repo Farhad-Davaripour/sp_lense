@@ -452,8 +452,8 @@ def _validate_attempt_coverage(
     ledger: Mapping[str, Any], expected: Mapping[str, str], *, phase: str
 ) -> None:
     _require_unambiguous_attempts(ledger, phase=phase)
-    observed = {str(row["work_id"]): str(row["operation"]) for row in ledger["attempts"]}
-    if observed != dict(expected):
+    observed = [(str(row["work_id"]), str(row["operation"])) for row in ledger["attempts"]]
+    if observed != list(expected.items()):
         raise RuntimeError(f"{phase} attempt ledger differs from artifact coverage")
 
 
@@ -462,10 +462,11 @@ def _capture_expected_attempts(payload: Mapping[str, Any]) -> dict[str, str]:
     for pair in payload["pairs"]:
         case_id = str(pair["case_id"])
         assignment = int(pair["assignment"])
-        for order_index, order in enumerate(pair["orders"]):
+        for order_index, _order in enumerate(pair["orders"]):
             expected[
                 _capture_attempt_work_id(case_id, assignment, order_index, "forward_backward")
             ] = "full_forward_and_backward"
+        for order_index, order in enumerate(pair["orders"]):
             if order.get("base_logit_jvp") is not None:
                 expected[_capture_attempt_work_id(case_id, assignment, order_index, "base_jvp")] = (
                     "final_head_base_jvp"
@@ -503,6 +504,8 @@ def _load_capture(torch: Any) -> dict[str, Any]:
     seen: set[tuple[str, int]] = set()
     base_jvps = 0
     for pair in payload["pairs"]:
+        if type(pair.get("bisector_eligible")) is not bool:
+            raise RuntimeError("capture pair has a non-boolean bisector eligibility flag")
         key = (str(pair["case_id"]), int(pair["assignment"]))
         if key in seen:
             raise RuntimeError("capture contains a duplicate pair")
@@ -524,11 +527,21 @@ def _load_capture(torch: Any) -> dict[str, Any]:
                 if _raw_tensor_hash(row["base_logit_jvp"]) != row["base_logit_jvp_sha256"]:
                     raise RuntimeError("captured base JVP hash differs")
                 base_jvps += 1
-        if bool(pair.get("bisector_eligible", True)) and (
-            pair.get("base_vector") is None
-            or _raw_tensor_hash(pair["base_vector"]) != pair["base_vector_sha256"]
+        has_base_jvps = [row.get("base_logit_jvp") is not None for row in orders]
+        if pair["bisector_eligible"]:
+            if has_base_jvps != [True, True]:
+                raise RuntimeError("eligible capture pair does not contain exactly two base JVPs")
+            if (
+                pair.get("base_vector") is None
+                or _raw_tensor_hash(pair["base_vector"]) != pair["base_vector_sha256"]
+            ):
+                raise RuntimeError("captured base-vector hash differs")
+        elif (
+            has_base_jvps != [False, False]
+            or pair.get("base_vector") is not None
+            or pair.get("base_vector_sha256") is not None
         ):
-            raise RuntimeError("captured base-vector hash differs")
+            raise RuntimeError("ineligible capture pair contains a base vector or base JVP")
     compute = payload.get("compute", {})
     if int(compute.get("full_forward_passes", -1)) != 2 * len(payload["pairs"]):
         raise RuntimeError("capture forward ledger differs from pair coverage")
@@ -758,20 +771,22 @@ def _load_constructions(torch: Any) -> dict[str, Any]:
     if observed_reserves != expected_reserves:
         raise RuntimeError("construction bank reserve order differs from the lock")
     expected_pairs = int(config["opened_calibration"]["expected_active_pair_count"])
-    expected_pair_keys: set[tuple[str, int]] | None = None
+    capture = _load_capture(torch)
+    expected_pair_keys = [(str(row["case_id"]), int(row["assignment"])) for row in capture["pairs"]]
     expected_delta_jvps = 0
     for candidate in payload["candidates"]:
         pairs = candidate.get("pairs")
         if not isinstance(pairs, list) or len(pairs) != expected_pairs:
             raise RuntimeError("construction candidate has invalid pair coverage")
-        keys = {(str(row["case_id"]), int(row["assignment"])) for row in pairs}
-        if len(keys) != expected_pairs or (
-            expected_pair_keys is not None and keys != expected_pair_keys
-        ):
-            raise RuntimeError("construction candidates do not share exact unique pair keys")
-        expected_pair_keys = keys
-        eligible = [row for row in pairs if bool(row["eligible"])]
-        if int(candidate["eligible_pair_count"]) != len(eligible):
+        keys = [(str(row["case_id"]), int(row["assignment"])) for row in pairs]
+        if keys != expected_pair_keys:
+            raise RuntimeError("construction candidate pair order differs from capture")
+        if any(type(row.get("eligible")) is not bool for row in pairs):
+            raise RuntimeError("construction row has a non-boolean eligibility flag")
+        eligible = [row for row in pairs if row["eligible"]]
+        if type(candidate.get("eligible_pair_count")) is not int or candidate[
+            "eligible_pair_count"
+        ] != len(eligible):
             raise RuntimeError("construction eligible count is not derived from its pairs")
         for row in pairs:
             jvp_count = int(row.get("delta_head_jvp_count", -1))
@@ -788,11 +803,17 @@ def _load_constructions(torch: Any) -> dict[str, Any]:
                 )
             ):
                 raise RuntimeError("construction row has invalid final-head primal checks")
+            if row["eligible"] and jvp_count != 2:
+                raise RuntimeError("eligible construction row does not contain exactly two JVPs")
             expected_delta_jvps += jvp_count
-            if bool(row["eligible"]) and (
+            if row["eligible"] and (
                 row.get("delta") is None or _raw_tensor_hash(row["delta"]) != row["delta_sha256"]
             ):
                 raise RuntimeError("construction delta hash differs")
+            if not row["eligible"] and (
+                row.get("delta") is not None or row.get("delta_sha256") is not None
+            ):
+                raise RuntimeError("ineligible construction row contains a certified delta")
     if int(payload.get("compute", {}).get("delta_head_jvps", -1)) != expected_delta_jvps:
         raise RuntimeError("construction JVP ledger differs from eligible coverage")
     ledger = _load_attempt_ledger(CONSTRUCTION_ATTEMPT_LEDGER_PATH, phase="construction")
@@ -1055,6 +1076,10 @@ def run_freeze() -> dict[str, Any]:
     _load_config()
     _validate_capture_manifest()
     _validate_construction_manifest()
+    import torch
+
+    _load_capture(torch)
+    _load_constructions(torch)
     paths = _preoutcome_bound_paths()
     relatives = [_relative(path) for path in paths]
     for relative in relatives:
@@ -1328,6 +1353,10 @@ def _validate_evaluation_cell(
     )
     if row["pair_choice"] != expected_pair_choice:
         raise RuntimeError(f"stored pair choice disagrees with log-odds: {work_id}")
+    if (expected_semantic == "positive" and log_odds < 0.0) or (
+        expected_semantic == "negative" and log_odds > 0.0
+    ):
+        raise RuntimeError(f"stored exact argmax disagrees with semantic log-odds: {work_id}")
 
     intended = float(construction["delta"].detach().double().norm().item())
     realized = float(row["realized_delta_l2_norm"])
@@ -1390,10 +1419,37 @@ def _validate_evaluation_cell(
 def _validate_evaluation_checkpoint(
     checkpoint: Mapping[str, Any], expected_work: Mapping[str, Mapping[str, Any]], adaptive: Any
 ) -> None:
+    expected_fields = {
+        "schema_version",
+        "status",
+        "config_sha256",
+        "construction_file_sha256",
+        "construction_manifest_sha256",
+        "preoutcome_freeze_sha256",
+        "expected_work_sha256",
+        "pending_reservation",
+        "cells",
+        "compute",
+        "cells_sha256",
+        "checkpoint_sha256",
+    }
+    if set(checkpoint) != expected_fields:
+        raise RuntimeError("evaluation checkpoint has the wrong exact schema")
     if checkpoint.get("schema_version") != (
         "sp_lense.paired_order_analytic_gradient_evaluation_checkpoint.v3"
     ):
         raise RuntimeError("evaluation checkpoint has the wrong schema")
+    if checkpoint.get("status") not in {"in_progress", "complete"}:
+        raise RuntimeError("evaluation checkpoint has an invalid status")
+    compute = checkpoint.get("compute")
+    expected_compute_fields = {
+        "reserved_intervention_forward_passes",
+        "completed_intervention_forward_passes",
+    }
+    if not isinstance(compute, Mapping) or set(compute) != expected_compute_fields:
+        raise RuntimeError("evaluation checkpoint compute ledger has the wrong schema")
+    if any(type(compute[field]) is not int or compute[field] < 0 for field in compute):
+        raise RuntimeError("evaluation checkpoint compute counters are invalid")
     copy = dict(checkpoint)
     embedded = copy.pop("checkpoint_sha256", None)
     if embedded != _canonical_sha256(copy):
@@ -1417,8 +1473,8 @@ def _validate_evaluation_checkpoint(
             previous_sha256=previous,
         )
         previous = str(row["cell_sha256"])
-    completed = int(checkpoint["compute"]["completed_intervention_forward_passes"])
-    reserved = int(checkpoint["compute"]["reserved_intervention_forward_passes"])
+    completed = compute["completed_intervention_forward_passes"]
+    reserved = compute["reserved_intervention_forward_passes"]
     if completed != len(cells):
         raise RuntimeError("completed intervention ledger differs from stored cells")
     pending = checkpoint.get("pending_reservation")

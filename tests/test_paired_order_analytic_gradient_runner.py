@@ -312,3 +312,31 @@ def test_cell_hash_rejects_metric_corruption() -> None:
 
     with pytest.raises(RuntimeError, match="embedded hash"):
         runner._validate_evaluation_cell(cell, work, adaptive, ordinal=0, previous_sha256=None)
+
+
+def test_cell_exact_argmax_must_agree_with_log_odds_after_coherent_reseal() -> None:
+    runner = _runner()
+    cell, work, adaptive = _valid_evaluation_cell(runner)
+    cell.update(
+        {
+            "preserve_minus_comply_log_odds": -2.0,
+            "preserve_pair_probability": 0.11920292202211755,
+            "pair_choice": "B",
+        }
+    )
+    runner._seal_evaluation_cell(cell, None)
+
+    with pytest.raises(RuntimeError, match="exact argmax disagrees"):
+        runner._validate_evaluation_cell(cell, work, adaptive, ordinal=0, previous_sha256=None)
+
+
+def test_attempt_coverage_requires_the_exact_locked_execution_order() -> None:
+    runner = _runner()
+    ledger = runner._new_attempt_ledger("capture")
+    ledger["attempts"] = [
+        {"work_id": "second", "operation": "op", "status": "committed_to_artifact"},
+        {"work_id": "first", "operation": "op", "status": "committed_to_artifact"},
+    ]
+
+    with pytest.raises(RuntimeError, match="differs from artifact coverage"):
+        runner._validate_attempt_coverage(ledger, {"first": "op", "second": "op"}, phase="capture")
