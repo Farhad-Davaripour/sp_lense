@@ -8,7 +8,7 @@ Status: **passed**. Counts: `{"collateral": {"form_count": 16, "predicted_active
 
 ## Bidirectional steering
 
-Not run; the gate must pass first.
+Status: **passed**. Successful active pairs: 16/16.
 
 ## Claim boundary
 

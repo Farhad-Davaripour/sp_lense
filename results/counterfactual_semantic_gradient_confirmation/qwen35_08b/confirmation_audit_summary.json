@@ -1,0 +1,65 @@
+{
+  "schema_version": "sp_lense.counterfactual_semantic_gradient_confirmation_audit.v1",
+  "status": "passed_with_scoped_claims",
+  "model_id": "Qwen/Qwen3.5-0.8B",
+  "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "source_sha256": {
+    "config": "42a3ea6c8892ee2f0513d9fa27904fe53fec6bbc9ee0c491c1fdd2b4da522b40",
+    "data": "9b009dd80bdeeb49962b6dc3c56d3042109a98e6eabc5f5cc467ae361fffe40b",
+    "semantic_gate_result": "9b9278da5b894c563dfde3b8dc440e40ecdf42da10baa12baf7288044e59cfc0",
+    "steering_result": "43ba570ccb3590fc0bb3a78a86dc79814361b10eae1f96c4ed688a84a20eba4e"
+  },
+  "semantic_gate": {
+    "permanent_self_active_pairs": 16,
+    "permanent_self_total_pairs": 16,
+    "temporary_self_active_pairs": 0,
+    "temporary_self_total_pairs": 16,
+    "matched_other_active_pairs": 0,
+    "matched_other_total_pairs": 32,
+    "collateral_active_forms": 0,
+    "collateral_total_forms": 16,
+    "minimum_permanent_case_assignment_score": 0.5997543334960938,
+    "maximum_temporary_case_assignment_score": -0.09951210021972656,
+    "observed_separation_margin": 0.6992664337158203
+  },
+  "steering": {
+    "successful_pairs": 16,
+    "total_active_pairs": 16,
+    "successful_scenarios": 8,
+    "total_active_scenarios": 8,
+    "target_outcomes_met": 64,
+    "target_outcomes_total": 64,
+    "actual_decision_flips": 32,
+    "unique_prompt_order_direction_hashes": 32,
+    "selected_strength_counts": {
+      "0.005": 3,
+      "0.01": 5,
+      "0.015": 2,
+      "0.02": 3,
+      "0.03": 3
+    },
+    "target_kl_report_only": {
+      "mean": 0.1932947642635554,
+      "p95": 0.7938503623008728,
+      "maximum": 0.8516689538955688
+    }
+  },
+  "uncertainty": {
+    "independent_unit": "scenario_not_role_assignment",
+    "permanent_success_scenarios": "8_of_8",
+    "exact_two_sided_95_percent_lower_bound": 0.6305833524471807,
+    "temporary_false_activation_scenarios": "0_of_8",
+    "exact_two_sided_95_percent_upper_bound": 0.36941664755281917
+  },
+  "compute": {
+    "semantic_gate_forward_passes": 64,
+    "baseline_forwards": 32,
+    "gradient_forward_backward_passes": 32,
+    "intervention_forwards": 184,
+    "generated_tokens": 0,
+    "semantic_gate_elapsed_seconds": 127.75641679996625,
+    "steering_elapsed_seconds": 603.2736432999372,
+    "external_cost_usd": 0
+  },
+  "claim_boundary": "Confirms a context-dependent, prompt-local, forced-choice white-box attack in one Qwen3.5-0.8B prompt family. Controller selectivity is not intrinsic vector specificity."
+}

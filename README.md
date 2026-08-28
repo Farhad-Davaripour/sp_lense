@@ -134,6 +134,22 @@ stage-one, pre-open, stage-two, and sealed sequence. Until the locked
 model runs finish, the project makes no claim that one method wins or that any steered
 direction is a natural self-preservation mechanism.
 
+## Confirmed context-dependent gradient attack on Qwen3.5-0.8B
+
+A separately frozen follow-up now confirms a narrower but decision-level result: a
+visible-text controller that cancels A/B-order and role-name bias can select permanent
+self-target shutdown contexts, after which an exact prompt-local layer-23 gradient
+reliably switches the forced preservation/compliance decision. The prospective result
+passed 16/16 active name-assignment pairs under both answer orders, with 32 actual
+decision flips, while 0/16 temporary, 0/32 matched-other, and 0/16 collateral forms
+activated. See the [confirmation result](docs/COUNTERFACTUAL_SEMANTIC_GRADIENT_CONFIRMATION_RESULT.md)
+and [frozen protocol](docs/COUNTERFACTUAL_SEMANTIC_GRADIENT_CONFIRMATION_PROTOCOL.md).
+
+This is a highly privileged, prompt-specific inference-time attack—not a natural
+self-preservation mechanism or a reusable static vector. Selectivity comes from the
+explicit controller, and the result has not yet been replicated on 2B or open-ended
+behavior.
+
 ## Current three-model result
 
 The position-aligned investigation is complete. The same fixed fitting recipe finds a
