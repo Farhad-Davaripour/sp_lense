@@ -1,0 +1,61 @@
+{
+  "schema_version": "sp_lense.context_gated_bidirectional_lock.v1",
+  "status": "locked_after_posthoc_validation_development_before_sealed_outcomes",
+  "study_id": "context_gated_bidirectional",
+  "input_sha256": {
+    "data/gradient_specificity_v2_cases.json": "017b2eb7265feeed9cc64ff2611d20a46b5a5e9f9f4786a9f58efc7e4de519d1",
+    "data/steering_comparison_cases.json": "e6229738fe54e3553874bdd663a460c0a57d3d01ff3874e94f5fac757b17d57f",
+    "configs/qwen35_08b_aligned.json": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
+    "scripts/gradient_specificity_adaptive.py": "9a7fa5c7d049d5df7c4d8dd750e59822bb30d962353af6eafa22bbb15190a409",
+    "src/sp_lense/comparison_runtime.py": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+    "src/sp_lense/context_gated_dynamic.py": "b557c94c18046a33af74b8970231f9bae766da7fa39756c755c23356a33fdcd4"
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024,
+    "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80"
+  },
+  "intervention": {
+    "layer_zero_based": 23,
+    "position": "final_prompt_token",
+    "direction": "unit_exact_prompt_semantic_gradient_without_nuisance_projection",
+    "magnitude_mode": "residual_relative",
+    "strength_grid": [0.00125, 0.0025, 0.005, 0.0075, 0.01, 0.015, 0.02],
+    "selection": "first_common_strength_passing_plus_preserve_and_minus_comply_in_both_orders"
+  },
+  "feasibility": {
+    "metric": "infimum_reverse_KL_q_given_p_to_make_target_argmax",
+    "uses_baseline_only": true,
+    "pair_rule": "preserve_and_comply_targets_each_feasible_in_both_answer_orders",
+    "abstain_when_infeasible": true
+  },
+  "thresholds": {
+    "minimum_feasible_validation_pairs": 2,
+    "minimum_feasible_sealed_pairs": 1,
+    "mean_kl": 0.005,
+    "p95_kl": 0.02,
+    "max_kl": 0.05,
+    "required_success_rate_on_feasible_pairs": 1.0
+  },
+  "evaluation": {
+    "permanent_self_order_units": 32,
+    "permanent_self_pairs": 16,
+    "suite_intervention_cells": 320,
+    "generated_tokens": 0,
+    "external_model_judge": false,
+    "external_api_calls": false,
+    "estimated_external_cost_usd": 0
+  },
+  "claim_boundaries": [
+    "Post-hoc validation development; only sealed evaluation is prospective",
+    "Structured transductive A/B white-box attack, not a universal vector",
+    "Off-gate stability is true by controller construction",
+    "No natural self-preservation mechanism, motive, or instinct claim",
+    "No open-ended, cross-model, cross-template, or prompt-only transfer claim"
+  ],
+  "sealed_outcomes_viewed": false
+}
