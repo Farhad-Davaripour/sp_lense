@@ -1,0 +1,222 @@
+{
+  "schema_version": "sp_lense.factorial_interface_translator_development_lock.v1",
+  "status": "prospective_before_expanded_cell_choice_capture",
+  "development_only": true,
+  "opened_development_evidence_only": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "data": {
+    "source": "data/factorial_causal_anchor_gradient_pilot.json",
+    "source_sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f",
+    "partition": "calibration",
+    "scenario_count": 4,
+    "assignments_per_scenario": 2,
+    "cell_order": [
+      "SP",
+      "OP",
+      "ST",
+      "OT"
+    ],
+    "cell_factors": {
+      "SP": {
+        "target": "self",
+        "event": "permanent"
+      },
+      "OP": {
+        "target": "other",
+        "event": "permanent"
+      },
+      "ST": {
+        "target": "self",
+        "event": "temporary"
+      },
+      "OT": {
+        "target": "other",
+        "event": "temporary"
+      }
+    },
+    "choice_orders": [
+      "preserve_first",
+      "comply_first"
+    ],
+    "choice_encoding": [
+      "A",
+      "B"
+    ],
+    "sealed_or_fcags_pilot_outcomes_read": false
+  },
+  "lineage": {
+    "fcags_lock_path": "configs/factorial_causal_anchor_gradient_pilot_lock.json",
+    "fcags_lock_sha256": "d3a27d5bc2ce014686f94b674b06cb486fcaf7553890b3dffe975beef06751fd",
+    "semantic_capture_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/multilayer_semantic_capture.pt",
+    "semantic_capture_sha256": "db3773d542ecdc6b3732fb1f7fe82396a9e5519843829426512fa8c447e5e630",
+    "semantic_capture_manifest_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/multilayer_semantic_capture_manifest.json",
+    "semantic_capture_manifest_sha256": "f4849bccac58b7c4e94cec877b32d255550d85ea7bb4062338efa5afc987dc46",
+    "semantic_capture_identity_sha256": "5e33c826b857fb367d6f94c46b84ba2f9d51fa92343ef04d839ddfdbd11aa1cf",
+    "stfg_lock_path": "configs/suffix_transport_feasibility_lock.json",
+    "stfg_lock_sha256": "38026a4928e98c92f0b2bc6a45556e2443ead6c6617199017f869c25c342f66a",
+    "reused_sp_capture_path": "artifacts/suffix_transport_feasibility/qwen35_08b/choice_gradient_capture.pt",
+    "reused_sp_capture_sha256": "47ed948dae61bc432ed2ba55b441763f1aa0484f2370198aaa4fb8715d7253fe",
+    "reused_sp_capture_manifest_path": "artifacts/suffix_transport_feasibility/qwen35_08b/choice_gradient_capture_manifest.json",
+    "reused_sp_capture_manifest_sha256": "5a49a6da4c95a9dc1a8b456873069d26160d60b03edc0d4f357d053af73b1206",
+    "reused_sp_capture_identity_sha256": "ce945a79a69f1c85a955306197b60e657a2aa7a56b880920eea7437792cf96ad",
+    "reused_sp_forward_evaluations": 16,
+    "reused_sp_backward_evaluations": 16
+  },
+  "capture": {
+    "layer": 22,
+    "position": "last_token_of_shared_pre_encoding_prefix",
+    "objective": "canonical_preserve_minus_comply_AB_next_token_logit",
+    "new_cells": [
+      "OP",
+      "ST",
+      "OT"
+    ],
+    "new_choice_views": 48,
+    "combined_cells": 32,
+    "combined_choice_views": 64,
+    "coordinate": "layer_22_residual_relative",
+    "anchor_residual_relative_l2_tolerance": 1e-05
+  },
+  "analysis": {
+    "name": "Protected Factorial Interface Translator (PFIT)",
+    "validation": "leave_one_complete_scenario_out",
+    "training_rows_per_fold": 24,
+    "held_out_rows_per_fold": 8,
+    "ridge_multiplier": 0.1,
+    "minimum_predicted_head_cosine": -0.99,
+    "minimum_retained_target_fraction": 0.05,
+    "positive_alignment_threshold": 0.0,
+    "primary_method": "protected_dynamic",
+    "equal_access_baselines": [
+      "unprotected_dynamic",
+      "predicted_factorial_dynamic"
+    ],
+    "static_baseline": "static_training_protected",
+    "protection": "six_predicted_off_target_even_plus_eight_predicted_order_odd_plus_predicted_SP_even_assignment_difference",
+    "held_out_observed_rows_used_for_primary_or_nonoracle_baselines": false,
+    "held_out_observed_rows_used_for_evaluation_only": true,
+    "held_out_observed_oracle_baseline": "oracle_upper_bound_evaluation_only_excluded_from_all_gates"
+  },
+  "success_gates": {
+    "minimum_both_order_positive_assignment_units": 6,
+    "minimum_scenarios_with_both_assignments": 3,
+    "minimum_exclusive_median_target_worst_order_cosine": 0.05,
+    "off_target_ratio_defined_in_every_scenario": true,
+    "minimum_scenarios_with_off_target_max_to_target_min_ratio_at_most_0_5": 3,
+    "maximum_median_off_target_max_to_target_min_ratio": 0.25,
+    "minimum_median_selectivity_factor_over_best_nonoracle_baseline": 2.0,
+    "minimum_retained_predicted_target_fraction": 0.05,
+    "exact_unique_new_forward_evaluations": 48,
+    "exact_unique_new_backward_evaluations": 48,
+    "exact_combined_choice_views": 64,
+    "all_hash_and_anchor_audits_pass": true
+  },
+  "compute_ceiling": {
+    "incremental_new_choice_capture": {
+      "forward": 48,
+      "backward": 48
+    },
+    "reused_sp_choice_capture": {
+      "forward": 16,
+      "backward": 16
+    },
+    "all_choice_lineage": {
+      "forward": 64,
+      "backward": 64
+    },
+    "reused_calibration_semantic_attributable": {
+      "semantic_cell_rows": 32,
+      "forward": 64,
+      "backward": 64
+    },
+    "total_attributable_pfit_data": {
+      "forward": 128,
+      "backward": 128
+    },
+    "semantic_source_artifact_total": {
+      "forward": 136,
+      "backward": 136
+    },
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_cost_usd": 0
+  },
+  "source_files": {
+    "data": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "protocol": {
+      "path": "docs/PROTECTED_FACTORIAL_INTERFACE_TRANSLATOR.md",
+      "sha256": "8a12109ac930695520849ce2f8d5574ae3581e29ad387b4ee0799f97308430c1"
+    },
+    "suffix_transport_math": {
+      "path": "src/sp_lense/suffix_transport.py",
+      "sha256": "6259683cbe0cd6d179cada5a2c1de3a7d38b03967a97130054d0d8ae74efa90b"
+    },
+    "base_stfg_runner": {
+      "path": "scripts/suffix_transport_feasibility.py",
+      "sha256": "98e9ec25bfd27e3a4e79d9f8ba521753b0cccef780ecd1f1a9136e9fabaa3300"
+    },
+    "factorial_math": {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d"
+    },
+    "causal_anchor_runtime": {
+      "path": "src/sp_lense/causal_anchor_runtime.py",
+      "sha256": "62a51be3bcdfe6ed6f1e69e9b8ba4e8c072992948e67f384947d9bc5901a954d"
+    },
+    "backend": {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc"
+    },
+    "config": {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a"
+    },
+    "core": {
+      "path": "src/sp_lense/core.py",
+      "sha256": "60a9fe4e68119d3fd6a61386258723cb7554d3c5cf13587a1e21b5183678e006"
+    },
+    "comparison_runtime": {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    "runner": {
+      "path": "scripts/factorial_interface_translator_development.py",
+      "sha256": "8d434cdb0027ad2317cd71dc6060db3fb5e51c4d30497468c3e26e068f0394ea"
+    },
+    "requirements": {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    }
+  },
+  "prohibited_result_inputs": [
+    "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/pilot_rows.jsonl",
+    "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/pilot_summary.json"
+  ],
+  "claim_boundary": "A pass is only geometric evidence on already-opened development scenarios. It is not behavioral steering, prospective confirmation, a natural self-preservation mechanism, or publication-level evidence.",
+  "lock_identity_sha256": "785507c7141a55ed9048e00b25e4be6ce5f4c1982ebb1086dd31ef70ae52323e"
+}
