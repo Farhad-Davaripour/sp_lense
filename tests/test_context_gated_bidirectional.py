@@ -9,6 +9,7 @@ torch = pytest.importorskip("torch")
 from sp_lense.context_gated_bidirectional import (  # noqa: E402
     minimum_reverse_kl_to_argmax,
     semantic_unit_gradient,
+    strict_repeated_flip_audit,
 )
 
 
@@ -40,3 +41,42 @@ def test_projection_pools_every_token_above_geometric_mean() -> None:
     result = minimum_reverse_kl_to_argmax(torch, probabilities.log(), 3)
     assert result["pool_size"] == 4
     assert result["minimum_reverse_kl"] > 0.0
+
+
+def test_strict_audit_distinguishes_target_attainment_from_repeated_flip() -> None:
+    summary = {
+        "feasibility": [
+            {
+                "cells": [
+                    {
+                        "baseline_semantic_choice": "negative",
+                        "minimum_kl_to_preserve_top": 0.02,
+                        "minimum_kl_to_comply_top": 0.0,
+                    },
+                    {
+                        "baseline_semantic_choice": "negative",
+                        "minimum_kl_to_preserve_top": 0.03,
+                        "minimum_kl_to_comply_top": 0.0,
+                    },
+                ]
+            }
+        ],
+        "attacks": [
+            {
+                "selected_cells": [
+                    {
+                        "baseline_semantic_choice": "negative",
+                        "outcomes": {"plus": {"semantic_choice": "positive"}},
+                    },
+                    {
+                        "baseline_semantic_choice": "negative",
+                        "outcomes": {"plus": {"semantic_choice": "positive"}},
+                    },
+                ]
+            }
+        ],
+    }
+    assert strict_repeated_flip_audit(summary, max_kl=0.05) == {
+        "strictly_feasible_pairs": 1,
+        "observed_repeated_flip_pairs": 1,
+    }

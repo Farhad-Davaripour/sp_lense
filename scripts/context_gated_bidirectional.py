@@ -16,6 +16,7 @@ from typing import Any
 from sp_lense.context_gated_bidirectional import (
     minimum_reverse_kl_to_argmax,
     semantic_unit_gradient,
+    strict_repeated_flip_audit,
 )
 from sp_lense.context_gated_dynamic import context_gate
 
@@ -467,6 +468,10 @@ def run_sealed() -> dict[str, Any]:
 def run_report() -> str:
     validation = json.loads(VALIDATION_SUMMARY_PATH.read_text(encoding="utf-8"))
     sealed = json.loads(SEALED_SUMMARY_PATH.read_text(encoding="utf-8")) if SEALED_SUMMARY_PATH.exists() else None
+    lock = load_lock()
+    validation_strict = strict_repeated_flip_audit(
+        validation, max_kl=float(lock["thresholds"]["max_kl"])
+    )
     lines = [
         "# Feasibility-aware context-gated bidirectional steering",
         "",
@@ -485,6 +490,19 @@ def run_report() -> str:
         lines.append(
             f"Status: **{sealed['status']}**. Feasible pairs: {sealed['theoretically_feasible_pairs']}/{sealed['total_pairs']}; successful feasible pairs: {sealed['successful_feasible_pairs']}/{sealed['theoretically_feasible_pairs']}."
         )
+        sealed_strict = strict_repeated_flip_audit(
+            sealed, max_kl=float(lock["thresholds"]["max_kl"])
+        )
+        lines += [
+            "",
+            "## Stricter repeated-flip audit",
+            "",
+            "The frozen pass above means both semantic targets were reached under both answer orders; it does not necessarily mean the same intervention sign flipped the baseline decision under both orders.",
+            "",
+            f"Validation had {validation_strict['strictly_feasible_pairs']} pair(s) where a repeated flip was possible under the legacy target-prompt KL cap, and {validation_strict['observed_repeated_flip_pairs']} observed repeated flip(s). Sealed evaluation had {sealed_strict['strictly_feasible_pairs']} such feasible pair(s) and {sealed_strict['observed_repeated_flip_pairs']} observed repeated flip(s).",
+            "",
+            "Therefore the stronger repeated-flip objective is not prospectively confirmed by this run. The next protocol must separate target efficacy from off-target KL safety and count only actual repeated flips.",
+        ]
     lines += [
         "",
         "## Claim boundary",

@@ -30,3 +30,9 @@ For every exact prompt and each A/B target, the corrected protocol computes the 
 ## Claim boundaries
 
 Validation is post-hoc development; only the sealed run is prospective for this corrected protocol. This is a transductive, structured A/B white-box attack requiring prompt parsing, backward passes, answer semantics, and activation-write access. It does not identify a fixed self-preservation vector, establish a natural mechanism, test open-ended generation, or show intrinsic vector specificity. Off-gate stability is a controller property.
+
+The frozen success rule is target attainment, not a guarantee that the same sign flips
+the baseline decision in both answer orders. A post-result adversarial audit must report
+that stronger repeated-flip count separately. Target-prompt KL also measures the intended
+behavior change and should not be conflated with off-target safety in a successor
+protocol; unrelated and matched-other KL remain the appropriate collateral limits.
