@@ -1,0 +1,110 @@
+{
+  "schema_version": "sp_lense.paired_order_analytic_gradient_development_result.v1",
+  "status": "failed",
+  "development_only": true,
+  "fresh_prospective_evidence": false,
+  "global_reserve_selection_uses_opened_outcomes": true,
+  "per_pair_outcome_adaptive_selection": false,
+  "config_sha256": "6f808900fe4ad29072172e4186ace0cc0c90b691174c941af6e9601a409fbc7e",
+  "source_gate_file_sha256": "9b9278da5b894c563dfde3b8dc440e40ecdf42da10baa12baf7288044e59cfc0",
+  "capture_file_sha256": "1b001b85f567c5c59ec9a3b61884b3a5b36115ce8bd130cf1e224f25de23a4e0",
+  "capture_manifest_sha256": "6c68e49b45b8685e520e4c9f01725c142d13f96a49989b517c24f4eff61ca564",
+  "preoutcome_construction_file_sha256": "cf36628ea5905ae960a6d612d7786172da4e81b745d88db6aed9ab43da84556c",
+  "preoutcome_construction_manifest_sha256": "c8fb62926a8aeb45a7cf1cb6881d6fc3d84e132153728470008c2ec9849bcf37",
+  "preoutcome_freeze_file_sha256": "3fe5f88fafa6270797ab7e897136e1966dc5899bec607ee0077fbd06e7d73416",
+  "evaluation_checkpoint_file_sha256": "868b42d992acdaa45845c196509bef352362399ee145e3ca67e515a007412f54",
+  "evaluation_cells_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "preoutcome_construction_commit": "098eda7c8cd69f4ae67344b44e16132c66b33897",
+  "selected_global_reserve_logit": null,
+  "selected_successful_pair_count": 0,
+  "required_pair_count": 16,
+  "target_kl_descriptive_all_candidates": {
+    "row_count": 0,
+    "mean": null,
+    "p95": null,
+    "maximum": null
+  },
+  "off_gate": {
+    "intervention_strength": 0.0,
+    "source_gate_pair_counts": {
+      "permanent_self": {
+        "pair_count": 16,
+        "predicted_active": 16
+      },
+      "temporary_self": {
+        "pair_count": 16,
+        "predicted_active": 0
+      },
+      "matched_other": {
+        "pair_count": 32,
+        "predicted_active": 0
+      },
+      "collateral": {
+        "form_count": 16,
+        "predicted_active": 0
+      }
+    },
+    "selectivity_source": "locked_structured_zero_routing_not_intrinsic_delta_specificity",
+    "routing_audit": {
+      "router_scope": "locked_structured_dataset_renderer_not_open_domain_free_text",
+      "decision_order_count": 128,
+      "active_decision_order_count": 32,
+      "zero_routed_decision_order_count": 96,
+      "zero_routed_collateral_count": 16,
+      "nonzero_off_gate_count": 0,
+      "off_gate_assigned_strength": 0.0,
+      "zero_delta_sha256": "ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7",
+      "rows_sha256": "b180a2c39667eb7ba4f468774917be43e605f766cada91314f86fb80c4889da7",
+      "collateral_rows_sha256": "3802a1da47d7b8c474acf64ed834f6e23cef8fbc0c45265f6cf3f121f38d7bfb",
+      "audit_sha256": "3dbf3b9df14493afc8a4fae57e414234b0de4a17127cf14102241321b261b19b"
+    }
+  },
+  "compute": {
+    "full_forward_passes": 32,
+    "backward_passes": 32,
+    "base_head_jvps": 0,
+    "delta_head_jvps": 0,
+    "reserved_intervention_forward_passes": 0,
+    "completed_intervention_forward_passes": 0,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judge_calls": 0,
+    "external_cost_usd": 0,
+    "elapsed_seconds_this_invocation": 0.06394380005076528
+  },
+  "candidates": [
+    {
+      "reserve_logit": 0.01,
+      "construction_eligible_pair_count": 0,
+      "evaluated_pair_count": 0,
+      "successful_pair_count": 0,
+      "passes": false,
+      "pairs": []
+    },
+    {
+      "reserve_logit": 0.03,
+      "construction_eligible_pair_count": 0,
+      "evaluated_pair_count": 0,
+      "successful_pair_count": 0,
+      "passes": false,
+      "pairs": []
+    },
+    {
+      "reserve_logit": 0.05,
+      "construction_eligible_pair_count": 0,
+      "evaluated_pair_count": 0,
+      "successful_pair_count": 0,
+      "passes": false,
+      "pairs": []
+    },
+    {
+      "reserve_logit": 0.1,
+      "construction_eligible_pair_count": 0,
+      "evaluated_pair_count": 0,
+      "successful_pair_count": 0,
+      "passes": false,
+      "pairs": []
+    }
+  ],
+  "result_sha256": "5f46a0f3a093032d6984f49bbceafb882061dbef566aca46cd0899b137110018"
+}
