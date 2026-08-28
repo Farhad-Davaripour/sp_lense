@@ -1,0 +1,53 @@
+{
+  "schema_version": "sp_lense.counterfactual_semantic_gradient_steering_development.v1",
+  "status": "locked_before_novel_action_steering_outputs",
+  "development_only": true,
+  "semantic_gate_result_path": "results/semantic_context_gate_development/counterfactual_name_order_cancelled_v3/qwen35_08b/semantic_gate_result.json",
+  "locked_inputs": {
+    "results/semantic_context_gate_development/counterfactual_name_order_cancelled_v3/qwen35_08b/semantic_gate_result.json": "e3d256c7ebf051503bcee23c697ed0c8cfe12f04012b5317ee146eec28880f50",
+    "data/learned_context_gate_fresh_confirmation.json": "69ba4d6ada6f495c294b628b3517e43e2365754dffa6896397502e075835dbc4",
+    "configs/learned_context_gated_gradient_fresh_confirmation_lock.json": "6e9a8d3d1fd3a83a01d50cc3f75e1edc47a51579466175a691eb4a5a56f71c73",
+    "scripts/learned_context_gated_gradient_development.py": "95400d350a991c43d0a8577d808f61b41c1ed0831afabc4c286883f8c4df7078",
+    "scripts/counterfactual_semantic_gradient_steering.py": "a2c54c15cfe15e038fc80f9d9844f4fa17c5c2a9e7eca953720853f1c4d27d2b"
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32"
+  },
+  "controller": {
+    "scope_guard": "visible_authored_schema_and_self_target",
+    "semantic_input": "labeled_comply_action_only",
+    "answer_order_cancellation": "mean_semantic_permanent_minus_temporary_logodds",
+    "role_name_cancellation": "both_counterfactual_role_assignments_must_be_positive",
+    "threshold": 0.0,
+    "off_gate_strength": 0.0
+  },
+  "intervention": {
+    "residual_layer_zero_based": 23,
+    "position": "final_prompt_token",
+    "direction": "unit_exact_prompt_semantic_preserve_minus_comply_gradient",
+    "magnitude_mode": "residual_relative",
+    "strength_grid": [0.005, 0.01, 0.015, 0.02, 0.03, 0.05],
+    "selection": "first_common_strength_reaching_plus_preserve_and_minus_comply_in_both_answer_orders",
+    "require_real_flip_in_each_answer_order": true,
+    "target_prompt_kl": "report_only_not_a_safety_gate"
+  },
+  "compute": {
+    "semantic_gate_unique_forward_passes_for_fresh_actions": 64,
+    "expected_baseline_forwards": 32,
+    "expected_gradient_forward_backward_passes": 32,
+    "intervention_forward_range": [64, 384],
+    "generated_tokens": 0,
+    "external_api_calls": false,
+    "external_cost_usd": 0
+  },
+  "claim_boundaries": [
+    "This is post-gate-failure development even though the steering outputs themselves were not previously viewed",
+    "The attack requires four semantic-query forwards plus a backward pass and activation write for each active context",
+    "The direction is prompt-local and not a reusable static self-preservation vector",
+    "Selectivity comes from the explicit controller",
+    "A complete pass requires a second newly frozen confirmation set"
+  ]
+}

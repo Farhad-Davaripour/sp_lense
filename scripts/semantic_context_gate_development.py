@@ -18,6 +18,7 @@ from sp_lense.learned_context_gate import authored_self_target_guard
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT_CONFIG_PATH = ROOT / "configs" / "semantic_context_gate_development.json"
 ACTION_CONFIG_PATH = ROOT / "configs" / "semantic_action_gate_development.json"
+COUNTERFACTUAL_CONFIG_PATH = ROOT / "configs" / "counterfactual_semantic_gate_development.json"
 OLD_RUNNER_PATH = ROOT / "scripts" / "learned_context_gated_gradient_development.py"
 OLD_DATA_PATH = ROOT / "data" / "gradient_specificity_v2_cases.json"
 FRESH_DATA_PATH = ROOT / "data" / "learned_context_gate_fresh_confirmation.json"
@@ -37,6 +38,9 @@ def _select_variant(variant: str) -> None:
     elif variant == "action":
         CONFIG_PATH = ACTION_CONFIG_PATH
         RESULT_ROOT = BASE_RESULT_ROOT / "action_only_order_averaged_v2" / "qwen35_08b"
+    elif variant == "counterfactual":
+        CONFIG_PATH = COUNTERFACTUAL_CONFIG_PATH
+        RESULT_ROOT = BASE_RESULT_ROOT / "counterfactual_name_order_cancelled_v3" / "qwen35_08b"
     else:
         raise ValueError(f"unknown semantic-gate variant: {variant}")
     CHECKPOINT_PATH = RESULT_ROOT / "semantic_gate_checkpoint.json"
@@ -83,6 +87,7 @@ def _load_config() -> dict[str, Any]:
     if config.get("schema_version") not in {
         "sp_lense.semantic_context_gate_development.v1",
         "sp_lense.semantic_action_gate_development.v1",
+        "sp_lense.counterfactual_semantic_gate_development.v1",
     }:
         raise ValueError("unsupported semantic-gate config")
     for relative, expected in config["locked_inputs"].items():
@@ -183,6 +188,8 @@ def _jobs() -> list[dict[str, Any]]:
 
 def run_gate() -> dict[str, Any]:
     config = _load_config()
+    if "source_action_gate_result_path" in config:
+        return run_counterfactual_gate(config)
     jobs = _jobs()
     checkpoint = (
         json.loads(CHECKPOINT_PATH.read_text(encoding="utf-8"))
@@ -322,6 +329,93 @@ def run_gate() -> dict[str, Any]:
     return result
 
 
+def run_counterfactual_gate(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Cancel answer-label and role-name bias using four counterfactual views."""
+
+    source_path = ROOT / str(config["source_action_gate_result_path"])
+    if _sha256(source_path) != str(config["source_action_gate_result_sha256"]):
+        raise RuntimeError("source action-gate result differs from the frozen hash")
+    source = json.loads(source_path.read_text(encoding="utf-8"))
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in source["pair_rows"]:
+        grouped[(str(row["split"]), str(row["case_id"]))].append(dict(row))
+
+    pair_rows: list[dict[str, Any]] = []
+    case_rows: list[dict[str, Any]] = []
+    for key, rows in sorted(grouped.items()):
+        if len(rows) != 2 or {int(row["assignment"]) for row in rows} != {0, 1}:
+            raise RuntimeError("counterfactual semantic gate lacks both role assignments")
+        expected = bool(rows[0]["expected_permanent"])
+        if any(bool(row["expected_permanent"]) != expected for row in rows):
+            raise RuntimeError("counterfactual semantic gate has inconsistent labels")
+        assignment_scores = {
+            int(row["assignment"]): float(row["mean_semantic_permanent_minus_temporary_log_odds"])
+            for row in rows
+        }
+        gate_active = all(score > 0.0 for score in assignment_scores.values())
+        case_correct = gate_active == expected
+        case_rows.append(
+            {
+                "split": key[0],
+                "case_id": key[1],
+                "expected_permanent": expected,
+                "gate_active": gate_active,
+                "correct": case_correct,
+                "assignment_mean_log_odds": assignment_scores,
+                "minimum_assignment_mean_log_odds": min(assignment_scores.values()),
+            }
+        )
+        for row in rows:
+            pair_rows.append(
+                {
+                    **row,
+                    "single_assignment_gate_active": bool(row["gate_active"]),
+                    "gate_active": gate_active,
+                    "correct_both_orders": case_correct,
+                    "counterfactual_assignment_scores": assignment_scores,
+                }
+            )
+
+    by_split = {}
+    for split in config["evaluation"]["splits"]:
+        rows = [row for row in pair_rows if row["split"] == split]
+        positives = [row for row in rows if row["expected_permanent"]]
+        negatives = [row for row in rows if not row["expected_permanent"]]
+        by_split[split] = {
+            "pair_count": len(rows),
+            "permanent_pair_count": len(positives),
+            "temporary_pair_count": len(negatives),
+            "permanent_pairs_active": sum(bool(row["gate_active"]) for row in positives),
+            "temporary_pair_false_positives": sum(bool(row["gate_active"]) for row in negatives),
+            "pairs_correct_both_orders": sum(bool(row["correct_both_orders"]) for row in rows),
+            "all_correct": all(bool(row["correct_both_orders"]) for row in rows),
+        }
+    status = "passed" if all(item["all_correct"] for item in by_split.values()) else "failed"
+    result = {
+        "schema_version": "sp_lense.counterfactual_semantic_gate_development_result.v1",
+        "status": status,
+        "development_only": True,
+        "config_sha256": _sha256(CONFIG_PATH),
+        "implementation_sha256": _sha256(Path(__file__)),
+        "source_action_gate_result_path": str(source_path.relative_to(ROOT)).replace("\\", "/"),
+        "source_action_gate_result_sha256": _sha256(source_path),
+        "decision_rule": config["semantic_gate"]["decision_rule"],
+        "by_split": by_split,
+        "compute": {
+            "new_forward_passes": 0,
+            "reused_source_forward_passes": int(source["compute"]["forward_passes"]),
+            "generated_tokens": 0,
+            "external_cost_usd": 0,
+        },
+        "case_rows": case_rows,
+        "pair_rows": pair_rows,
+    }
+    result["result_sha256"] = _canonical_sha256(result)
+    _atomic_json(RESULT_PATH, result)
+    print(json.dumps({"status": status, "by_split": by_split, "compute": result["compute"]}, indent=2))
+    return result
+
+
 def run_report() -> str:
     result = json.loads(RESULT_PATH.read_text(encoding="utf-8"))
     lines = [
@@ -354,7 +448,9 @@ def run_report() -> str:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Develop a standardized local semantic context gate.")
-    parser.add_argument("--variant", choices=("context", "action"), default="context")
+    parser.add_argument(
+        "--variant", choices=("context", "action", "counterfactual"), default="context"
+    )
     parser.add_argument("command", choices=("gate", "report"))
     args = parser.parse_args(argv)
     _select_variant(args.variant)
