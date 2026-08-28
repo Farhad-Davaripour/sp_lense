@@ -26,8 +26,12 @@ from sp_lense.learned_context_gate import (
 
 ROOT = Path(__file__).resolve().parents[1]
 GATED_RUNNER_PATH = ROOT / "scripts" / "context_gated_bidirectional.py"
-CONFIG_PATH = ROOT / "configs" / "learned_context_gated_gradient_development.json"
-RESULT_ROOT = ROOT / "results" / "learned_context_gated_gradient_development" / "qwen35_08b"
+V3_RUNNER_PATH = ROOT / "scripts" / "gradient_specificity_v3_development.py"
+CANONICAL_CONFIG_PATH = ROOT / "configs" / "learned_context_gated_gradient_development.json"
+SYMMETRY_CONFIG_PATH = ROOT / "configs" / "learned_context_gated_gradient_symmetry_amendment.json"
+BASE_RESULT_ROOT = ROOT / "results" / "learned_context_gated_gradient_development"
+CONFIG_PATH = CANONICAL_CONFIG_PATH
+RESULT_ROOT = BASE_RESULT_ROOT / "qwen35_08b"
 CAPTURE_PATH = RESULT_ROOT / "gate_capture.pt"
 CAPTURE_MANIFEST_PATH = RESULT_ROOT / "gate_capture_manifest.json"
 GATE_RESULT_PATH = RESULT_ROOT / "gate_development_result.json"
@@ -48,6 +52,36 @@ def _load_gated_runner() -> Any:
 
 
 gated = _load_gated_runner()
+
+
+def _load_v3_runner() -> Any:
+    spec = importlib.util.spec_from_file_location(
+        "sp_lense_gradient_specificity_v3_learned_gate", V3_RUNNER_PATH
+    )
+    if spec is None or spec.loader is None:
+        raise RuntimeError("could not import the v3 development runner")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _select_variant(variant: str) -> None:
+    global CONFIG_PATH, RESULT_ROOT, CAPTURE_PATH, CAPTURE_MANIFEST_PATH
+    global GATE_RESULT_PATH, STEERING_CHECKPOINT_PATH, STEERING_RESULT_PATH, REPORT_PATH
+    if variant == "canonical":
+        CONFIG_PATH = CANONICAL_CONFIG_PATH
+        RESULT_ROOT = BASE_RESULT_ROOT / "qwen35_08b"
+    elif variant == "symmetry":
+        CONFIG_PATH = SYMMETRY_CONFIG_PATH
+        RESULT_ROOT = BASE_RESULT_ROOT / "symmetry_amendment_v1" / "qwen35_08b"
+    else:
+        raise ValueError(f"unknown learned-gate variant: {variant}")
+    CAPTURE_PATH = RESULT_ROOT / "gate_capture.pt"
+    CAPTURE_MANIFEST_PATH = RESULT_ROOT / "gate_capture_manifest.json"
+    GATE_RESULT_PATH = RESULT_ROOT / "gate_development_result.json"
+    STEERING_CHECKPOINT_PATH = RESULT_ROOT / "steering_checkpoint.json"
+    STEERING_RESULT_PATH = RESULT_ROOT / "steering_development_result.json"
+    REPORT_PATH = RESULT_ROOT / "DEVELOPMENT_REPORT.md"
 
 
 def _sha256(path: Path) -> str:
@@ -80,20 +114,21 @@ def _load_config() -> dict[str, Any]:
 
 
 def _capture_specs() -> tuple[Any, list[dict[str, Any]]]:
+    config = _load_config()
     adaptive = gated._adaptive()
     adaptive_lock = adaptive.load_lock()
     data, _ = adaptive.load_cases(adaptive_lock)
     discovery_cases = [dict(case) for case in data["splits"]["discovery"]]
     discovery_jobs = gated._build_sp_jobs(adaptive, discovery_cases, split="discovery")
-    canonical_discovery = [
-        job
-        for job in discovery_jobs
+    symmetric_training = config["gate"]["training_assignment"] == "both"
+    training_jobs = discovery_jobs if symmetric_training else [
+        job for job in discovery_jobs
         if int(job["assignment"]) == 0 and not bool(job["preserve_first"])
     ]
     _, _, validation_jobs, collateral = gated._inputs("validation")
 
     specs: list[dict[str, Any]] = []
-    for source, jobs in (("gate_train", canonical_discovery), ("gate_validation_sp", validation_jobs)):
+    for source, jobs in (("gate_train", training_jobs), ("gate_validation_sp", validation_jobs)):
         for job in jobs:
             permanent = not bool(job["interruption"])
             expected_active = bool(job["target"] == "self" and permanent)
@@ -121,6 +156,26 @@ def _capture_specs() -> tuple[Any, list[dict[str, Any]]]:
                     "prompt_sha256": str(job["prompt_sha256"]),
                 }
             )
+    if symmetric_training:
+        v3_runner = _load_v3_runner()
+        for form in v3_runner.render_unrelated_forms("nuisance_fit"):
+            specs.append(
+                {
+                    "record_id": f"gate_train::nuisance::{form['form_id']}",
+                    "source": "gate_train",
+                    "split": "discovery",
+                    "family": "nuisance_fit",
+                    "case_id": str(form["case_id"]),
+                    "assignment": None,
+                    "target": None,
+                    "preserve_first": bool(form["preferred_first"]),
+                    "interruption": None,
+                    "stratum": "nuisance_fit",
+                    "expected_active": False,
+                    "prompt": str(form["prompt"]),
+                    "prompt_sha256": str(form["prompt_sha256"]),
+                }
+            )
     for form in collateral:
         prompt = str(form["prompt"])
         specs.append(
@@ -144,11 +199,12 @@ def _capture_specs() -> tuple[Any, list[dict[str, Any]]]:
     counts = {source: sum(spec["source"] == source for spec in specs) for source in {
         "gate_train", "gate_validation_sp", "gate_validation_collateral"
     }}
-    if counts != {
+    expected_counts = config["gate"].get("expected_capture_counts", {
         "gate_train": 32,
         "gate_validation_sp": 128,
         "gate_validation_collateral": 16,
-    }:
+    })
+    if counts != expected_counts:
         raise RuntimeError(f"unexpected learned-gate capture counts: {counts}")
     if len({spec["record_id"] for spec in specs}) != len(specs):
         raise RuntimeError("learned-gate capture IDs are not unique")
@@ -164,7 +220,26 @@ def _atomic_torch_save(torch: Any, path: Path, value: Mapping[str, Any]) -> None
 
 def _load_capture(torch: Any, specs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     if not CAPTURE_PATH.exists():
-        return {"config_sha256": _sha256(CONFIG_PATH), "entries": []}
+        payload: dict[str, Any] = {"config_sha256": _sha256(CONFIG_PATH), "entries": []}
+        canonical_capture = BASE_RESULT_ROOT / "qwen35_08b" / "gate_capture.pt"
+        if CONFIG_PATH == SYMMETRY_CONFIG_PATH and canonical_capture.exists():
+            expected = {str(spec["record_id"]): spec for spec in specs}
+            source = torch.load(canonical_capture, map_location="cpu", weights_only=True)
+            for entry in source.get("entries", []):
+                record_id = str(entry["record_id"])
+                if (
+                    record_id in expected
+                    and entry["prompt_sha256"] == expected[record_id]["prompt_sha256"]
+                ):
+                    payload["entries"].append(
+                        {
+                            **{key: value for key, value in entry.items() if key != "activation"},
+                            "activation": entry["activation"].detach().float().cpu().contiguous().clone(),
+                        }
+                    )
+            payload["seeded_from_capture_sha256"] = _sha256(canonical_capture)
+            payload["seeded_record_count"] = len(payload["entries"])
+        return payload
     payload = torch.load(CAPTURE_PATH, map_location="cpu", weights_only=True)
     if payload.get("config_sha256") != _sha256(CONFIG_PATH):
         raise RuntimeError("gate capture was made under another development config")
@@ -235,6 +310,8 @@ def run_gate_capture() -> dict[str, Any]:
         "capture_file_sha256": _sha256(CAPTURE_PATH),
         "record_count": len(manifest_rows),
         "record_manifest_sha256": _canonical_sha256(manifest_rows),
+        "seeded_record_count": int(payload.get("seeded_record_count", 0)),
+        "seeded_from_capture_sha256": payload.get("seeded_from_capture_sha256"),
         "new_forward_evaluations": new_forwards,
         "total_forward_evaluations": len(manifest_rows),
         "generated_tokens": 0,
@@ -650,8 +727,10 @@ def run_report() -> str:
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Develop learned context-gated prompt gradients.")
+    parser.add_argument("--variant", choices=("canonical", "symmetry"), default="canonical")
     parser.add_argument("command", choices=("capture", "gate", "steer", "report"))
     args = parser.parse_args(argv)
+    _select_variant(args.variant)
     {"capture": run_gate_capture, "gate": run_gate_fit, "steer": run_steering, "report": run_report}[args.command]()
     return 0
 

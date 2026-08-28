@@ -53,3 +53,17 @@ each order.
 Passing this development rule would justify authoring and freezing a fresh confirmation
 set. It would not establish publication-ready novelty, open-ended behavior, another
 model, or a natural self-preservation mechanism.
+
+## Symmetry amendment after the canonical-view failure
+
+The canonical training view failed the full matrix: it activated only 6 of 16 permanent
+self pairs, falsely activated 6 of 32 matched-other pairs, and fired on 10 of 16
+collateral forms. The failure pattern showed direct role-assignment and answer-order
+leakage.
+
+The separate `symmetry_amendment_v1` changes only the demonstrated causes. Discovery
+training now contains both role assignments and both answer orders, and the pre-existing
+nuisance-fit bank supplies unrelated negative examples. Model, layer 7, ridge, threshold
+rule, layer 23, strength grid, and all success gates remain fixed. The canonical failure
+artifacts remain immutable at their original result path; amended artifacts use a child
+directory and remain development-only.
