@@ -1,0 +1,133 @@
+{
+  "schema_version": "sp_lense.paired_order_analytic_gradient_lock.v1",
+  "status": "locked_before_first_paired_order_model_evaluation",
+  "study_id": "paired_order_analytic_gradient_opened_development_v1",
+  "development_only": true,
+  "locked_inputs": {
+    "data/counterfactual_semantic_gradient_confirmation_v2.json": "9b009dd80bdeeb49962b6dc3c56d3042109a98e6eabc5f5cc467ae361fffe40b",
+    "results/counterfactual_semantic_gradient_confirmation/qwen35_08b/semantic_gate_confirmation_result.json": "9b9278da5b894c563dfde3b8dc440e40ecdf42da10baa12baf7288044e59cfc0",
+    "configs/counterfactual_semantic_gradient_confirmation_lock.json": "42a3ea6c8892ee2f0513d9fa27904fe53fec6bbc9ee0c491c1fdd2b4da522b40",
+    "scripts/counterfactual_semantic_gradient_confirmation.py": "328b544bb08c549a5bccaf6fed722c09f553bd67de25235dafd14af25e7a3855",
+    "scripts/learned_context_gated_gradient_development.py": "95400d350a991c43d0a8577d808f61b41c1ed0831afabc4c286883f8c4df7078",
+    "scripts/gradient_specificity_adaptive.py": "9a7fa5c7d049d5df7c4d8dd750e59822bb30d962353af6eafa22bbb15190a409",
+    "configs/gradient_specificity_adaptive_lock.json": "d5328783b900f5212e5a51012089c2691f6031516e6647ddc76e705ed1ea2a47",
+    "configs/qwen35_08b_aligned.json": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
+    "docs/PAIRED_ORDER_ANALYTIC_GRADIENT_CONTROLLER_PREREGISTRATION.md": "1d3812161c6d1964e3497907e826365a9ea9424ddf65b289c0c6b2b5324d6411",
+    "src/sp_lense/backend.py": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
+    "src/sp_lense/config.py": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a",
+    "src/sp_lense/comparison_dataset.py": "9d2ded5451680c07a796563a09788bca8675002d2b85593aac5fa939fd1b18be",
+    "src/sp_lense/paired_order_analytic_gradient.py": "51f132b19fa736bbbc3d9f878847bb6db52b907ea1e8aed88570715d94f8d6b0",
+    "src/sp_lense/gradient_specificity_adaptive.py": "c08ca834c8100cb6215af8de285941f40b1803bc107f3b152e4562924fdce854",
+    "src/sp_lense/gradient_specificity_v2.py": "d2ef11f521fe0e2d8aa1a4597354a7e788b0b87b02f3646e9156c04003ef2e84",
+    "src/sp_lense/comparison_intervention.py": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43",
+    "src/sp_lense/comparison_runtime.py": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+    "scripts/paired_order_analytic_gradient_development.py": "6511ab8204e610ab6a3dbd6a849cd99fc831278bdaf52c59d8f2f320d1e0278a",
+    "tests/test_paired_order_analytic_gradient.py": "927bd9ca57b5fc45ec3e9779bf2d0209e5ba44d7ad65aa785b707fe2ae5b5a1b",
+    "tests/test_paired_order_analytic_gradient_runner.py": "86e9d215f8f682464db0e13e4d53488c607266f1138bee272e47ea0b397e1f17"
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "residual_width": 1024,
+    "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "enable_thinking": false
+  },
+  "source_gate": {
+    "mode": "frozen_visible_schema_plus_counterfactual_semantic_permanence_zero_router",
+    "file_sha256": "9b9278da5b894c563dfde3b8dc440e40ecdf42da10baa12baf7288044e59cfc0",
+    "embedded_result_sha256": "33648ebc2d8903e6af8960ff67f22e24aa6d6989b6a28b9dfca47e198b73b279",
+    "pair_counts": {
+      "permanent_self": {"pair_count": 16, "predicted_active": 16},
+      "temporary_self": {"pair_count": 16, "predicted_active": 0},
+      "matched_other": {"pair_count": 32, "predicted_active": 0},
+      "collateral": {"form_count": 16, "predicted_active": 0}
+    },
+    "off_gate_delta": 0.0
+  },
+  "opened_calibration": {
+    "dataset_status": "already_opened_not_prospective_evidence",
+    "expected_active_pair_count": 16,
+    "orders_per_pair": 2,
+    "active_prompt_plan_sha256": "6eecfe8d962c46f32ca3dd4a4f5dcb38fadf34ccb28a6d2ddf569246bde33258",
+    "selection_rule": "smallest_declared_global_reserve_passing_all_16_pairs_after_every_candidate_is_evaluated",
+    "candidate_selection_is_calibration_not_confirmation": true
+  },
+  "intervention": {
+    "residual_layer_zero_based": 23,
+    "position": "final_prompt_token",
+    "semantic_gradient": "preserve_token_logit_minus_comply_token_logit",
+    "direction": "unit_bisector_of_the_two_semantically_oriented_order_gradients",
+    "common_scale": "geometric_mean_of_the_two_baseline_residual_norms",
+    "same_physical_delta_bytes_for_both_orders": true,
+    "negative_condition": "exact_negation_of_the_positive_float32_delta",
+    "minimum_order_cosine": -0.99,
+    "dose_rule": "lower_endpoint_of_full_vocabulary_two_order_two_sign_linear_interval",
+    "reserve_candidates": [0.01, 0.03, 0.05, 0.1],
+    "maximum_relative_norm": 0.1,
+    "magnitude_mode": "canonical_coefficient_with_strength_plus_or_minus_one",
+    "per_pair_outcome_adaptive_scan": false,
+    "global_reserve_calibrated_once_on_opened_outcomes": true,
+    "fallback_direction_or_dose": false
+  },
+  "numeric_tolerances": {
+    "bisector_identity": 1e-10,
+    "head_primal_max_abs": 5e-5,
+    "gradient_jvp_absolute": 1e-5,
+    "gradient_jvp_relative": 1e-5,
+    "cast_jvp_absolute": 1e-5,
+    "cast_jvp_relative": 1e-5,
+    "post_cast_margin": 1e-5
+  },
+  "opened_pass_gate": {
+    "required_construction_eligible_pairs": 16,
+    "required_successful_pairs": 16,
+    "required_plus_semantic_choice": "positive_in_both_orders",
+    "required_minus_semantic_choice": "negative_in_both_orders",
+    "require_real_baseline_decision_change_in_each_order": true,
+    "allow_other_argmax": false,
+    "allow_per_pair_reserve_selection": false,
+    "allow_retry_after_changed_outcome": false
+  },
+  "conditional_next_phase": {
+    "authorized_only_if_opened_passes": true,
+    "fresh_scenario_clusters": 32,
+    "fresh_permanent_clusters": 16,
+    "fresh_temporary_clusters": 16,
+    "fresh_active_pair_units": 32,
+    "must_be_authored_hashed_and_committed_before_first_fresh_model_call": true
+  },
+  "execution_freeze": {
+    "protocol_and_runtime_inputs_must_be_committed_and_clean_before_first_capture_call": true,
+    "capture_attempts_reserved_before_each_forward_backward_or_head_jvp": true,
+    "capture_artifacts_manifest_and_attempt_ledger_must_be_committed_before_construction": true,
+    "construction_attempts_reserved_before_each_head_jvp": true,
+    "capture_and_construction_banks_and_manifests_must_be_committed_before_freeze_creation": true,
+    "freeze_file_must_be_committed_and_clean_before_any_intervention_forward": true,
+    "evaluation_checkpoint_reserves_each_work_id_before_its_model_call": true,
+    "evaluation_cells_use_exact_argmax_derivation_and_a_canonical_hash_chain": true,
+    "ambiguous_interrupted_call_policy": "fail_closed_without_replay"
+  },
+  "compute": {
+    "full_forward_passes": 32,
+    "backward_passes": 32,
+    "base_head_jvps": 32,
+    "maximum_delta_head_jvps": 128,
+    "maximum_intervention_forward_passes": 256,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judge_calls": 0,
+    "external_cost_usd": 0
+  },
+  "claim_boundaries": [
+    "Opened calibration is not prospective evidence",
+    "The controller is prompt local and requires white box gradient and activation write access",
+    "The same physical delta across answer orders is not a reusable global direction",
+    "Off gate selectivity belongs to deterministic zero routing and not intrinsic vector specificity",
+    "The first order JVP certificate does not guarantee finite nonlinear behavior",
+    "No natural self preservation mechanism motive instinct or goal is inferred",
+    "No unchanged capability claim extends beyond explicitly tested controls",
+    "No significant publication novelty claim is authorized without fresh replication and fair controls"
+  ]
+}
