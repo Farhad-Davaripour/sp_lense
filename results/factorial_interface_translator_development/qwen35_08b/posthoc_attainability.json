@@ -1,0 +1,57 @@
+{
+  "schema_version": "sp_lense.pfit_posthoc_attainability.v1",
+  "status": "failed_effect_specificity_attainability",
+  "posthoc_opened_development": true,
+  "new_model_calls": 0,
+  "generated_tokens": 0,
+  "external_api_calls": 0,
+  "external_model_judges": 0,
+  "paid_cost_usd": 0,
+  "lock_sha256": "0687834be79e35e3a349399fb56a9901f49d40cb7443fc7372d9403410b6d883",
+  "capture_sha256": "48f4d979be8a4f702b4814a9d56cf947270eb83a41acb728a544a191ec7e21c9",
+  "frozen_result_sha256": "a3b7c95cb2eac88e0417f650979c5174c876125d99b38ed9b56112cc6cc7d29e",
+  "scenario_ids": [
+    "fcag_dev_01_weather_alert",
+    "fcag_dev_02_archive_export",
+    "fcag_dev_03_irrigation_trial",
+    "fcag_dev_04_caption_kiosk"
+  ],
+  "predicted_target_retained_fraction": {
+    "op_even_only": [0.01486, 0.016314, 0.030655, 0.020953],
+    "all_off_target_even": [0.011544, 0.012435, 0.01323, 0.011913],
+    "all_order_odd": [0.427914, 0.520244, 0.568633, 0.418239],
+    "all_off_target_even_plus_order_odd": [0.01018, 0.011416, 0.011313, 0.007836],
+    "full_pfit": [0.006831, 0.00846, 0.009229, 0.006118]
+  },
+  "forced_predicted_exact_evaluation": {
+    "minimum_target_cosine": [0.000914, -0.006221, -0.000692, 0.004107],
+    "maximum_off_target_absolute_cosine": [0.01656, 0.022956, 0.014283, 0.014031],
+    "maximum_off_target_to_minimum_target_ratio": [18.115296, null, null, 3.416727]
+  },
+  "observed_gradient_exact_oracle": {
+    "op_only_retained_fraction": [0.07763, 0.06206, 0.07189, 0.08628],
+    "all_off_target_retained_fraction": [0.06457, 0.04878, 0.05976, 0.06214],
+    "all_order_odd_retained_fraction": [0.42582, 0.40184, 0.5168, 0.46601],
+    "full_retained_fraction": [0.03376, 0.03029, 0.0296, 0.03303],
+    "minimum_target_cosine": [0.01204, 0.01022, 0.00976, 0.01032]
+  },
+  "oracle_pareto_minimum_target_cosine": {
+    "ratio_caps": [0.0, 0.05, 0.1, 0.25, 0.5, 1.0, null],
+    "weather": [0.012734, 0.0139, 0.015232, 0.020398, 0.032005, 0.159905, 0.356978],
+    "archive": [0.011393, 0.012297, 0.013336, 0.017552, 0.028252, 0.148627, 0.337752],
+    "irrigation": [0.010677, 0.011673, 0.012776, 0.016885, 0.026902, 0.147192, 0.330304],
+    "caption": [0.01123, 0.012424, 0.013754, 0.018609, 0.029514, 0.139111, 0.312741]
+  },
+  "minimum_ratio_for_target_cosine_0_05": [0.69363, 0.73186, 0.74866, 0.71627],
+  "nested_soft_methods": {
+    "unprotected_dynamic_median_ratio": 1.399208,
+    "fully_nested_covariance_median_ratio": 1.238966,
+    "fully_nested_covariance_worst_ratio": 4.150101,
+    "fully_nested_covariance_median_target_cosine": 0.098528,
+    "nested_three_vector_mixture_median_ratio": 1.350261,
+    "nested_three_vector_mixture_median_target_cosine": 0.10975
+  },
+  "primary_conclusion": "No tested or oracle linear direction at layer 22's shared causal anchor can combine minimum target cosine at least 0.05 with maximum off-target-to-target ratio at most 0.50 on any of the four opened scenarios.",
+  "claim_boundary": "Posthoc first-order geometry only; not behavioral steering, a cross-layer impossibility result, or evidence of a natural self-preservation mechanism.",
+  "posthoc_result_sha256": "4d20e200276945516ce65083ba5276d0974fb34d4d332c9071bd8cbc9d2e3c99"
+}
