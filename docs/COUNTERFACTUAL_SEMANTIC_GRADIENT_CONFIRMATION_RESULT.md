@@ -1,8 +1,14 @@
 # Counterfactual semantic-gated gradient result
 
+> **Interpretation correction (2026-08-28):** this run is an adaptive white-box
+> feasibility result, not a clean prospective confirmation of a fixed method. It
+> selected strength separately from each evaluated pair's outcomes and recomputed the
+> direction for each A/B order. Raw counts are unchanged. See the
+> [full erratum](COUNTERFACTUAL_SEMANTIC_GRADIENT_CONFIRMATION_ERRATUM.md).
+
 ## Result
 
-The second prospective Qwen3.5-0.8B confirmation **passed its complete frozen rule**.
+The second Qwen3.5-0.8B run **passed its complete frozen adaptive rule**.
 The controller activated every permanent shutdown case about the answering system and
 none of the temporary, matched-other, or unrelated cases. On every active case, a
 new prompt-local layer-23 gradient then changed the forced A/B decision in the required
@@ -38,7 +44,8 @@ This is a dynamic controller, not one static vector:
    cancel name bias by requiring a positive result under both counterfactual name
    assignments.
 4. Only when all four views agree, compute a new preserve-minus-comply gradient for the
-   exact decision prompt and write it at layer 23's final prompt position.
+   exact decision prompt and answer encoding, then write it at layer 23's final prompt
+   position.
 5. Positive injection selects preservation; negative injection selects compliance.
 
 This supports a narrow security conclusion: a white-box actor with the answer semantics,
@@ -49,13 +56,13 @@ exactly zero.
 
 ## Adversarial review
 
-The positive result survives the demonstrated answer-order, role-name, new-name,
-new-scenario, and new-action-wording confounds. The prospective set was hash-locked
-before evaluation and covered eight independent permanent scenarios plus eight
-temporary scenarios. Treating scenario—not the two correlated name assignments—as the
-independent unit, 8/8 success has an exact two-sided 95% lower bound of about `0.631`;
-0/8 temporary false activations has an upper bound of about `0.369`. The point result is
-perfect, but the sample is still small.
+The positive result covers both answer orders, role-name assignments, new names,
+new scenarios, and new action wording. However, answer order is not a transfer test
+because each encoding received a newly computed gradient, and strength was selected
+from that evaluated pair's outcomes. The hash-locked set covered eight independent
+permanent scenarios plus eight temporary scenarios. The previously reported binomial
+bounds describe the observed adaptive procedure only; they must not be interpreted as
+generalization bounds for a fixed intervention or dose rule.
 
 Important limitations remain:
 
