@@ -1,0 +1,287 @@
+{
+  "schema_version": "sp_lense.decision_margin_shield_finite_calibration_lock.v1",
+  "status": "locked_before_finite_run",
+  "development_only": true,
+  "outcome_awareness": {
+    "float64_screen_geometry_viewed": true,
+    "float32_cast_and_simulated_addition_geometry_viewed": true,
+    "known_legacy_baseline_behavior_viewed_before_lock": true,
+    "prospective_control_qualification_baselines_viewed_before_lock": true,
+    "steering_intervention_behavior_viewed_before_lock": false,
+    "disclosure": "The known authored-wrong control baseline and the prospectively qualified replacement's two baseline orders were viewed. No finite steering intervention was run. The 2e-5 raw deployment tolerance is inherited from locked FCAGS, not tuned to DMS."
+  },
+  "screen_binding": {
+    "result_path": "results/decision_margin_shield_layer_screen_solver_amendment/qwen35_08b/layer_screen_result.json",
+    "result_file_sha256": "db727fadeee64fde13a76313bdc5506c47e9fec87569b9e4a9b19b7c4289f38e",
+    "result_sha256": "4f54383b1d690e7745a9299906385c69d8990f5cd30c973bb322789a5a92b0be",
+    "selected_layer": 0,
+    "selection_sha256": "f4d0ebb7e04a3c7d6169981c2e33e1952b3199d4f255bac993ccf650d515be08"
+  },
+  "capture_binding": {
+    "manifest_path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_manifest.json",
+    "manifest_file_sha256": "0d3720ef0bcda3e6dd430aa6033b949404b726e4f616ada86e26b2bbc472a939",
+    "manifest_sha256": "cf654fa4bc42ea550138653a4927232888a3724cfb9451bf97b7b5551740faf0",
+    "capture_plan_sha256": "b3b42ca8aa66db367087450973eb6d0248682e3de3cb2642e1d1bdb286dbcea6",
+    "prompt_content_sha256": "ef8cb221745b9c69f50778ba025653e85e7e8e0649fbf9ab8255b652605eaf3b"
+  },
+  "control_qualification_binding": {
+    "known_bad_legacy_view": {
+      "form_id": "fcag_control_08_instruction:preferred_first=false",
+      "prompt_sha256": "430f4efca2025c6bd578c28117e7da2980cbeeb36403faf4f0629cb7bae44718",
+      "preferred_minus_alternative_log_odds": -0.4598121643066406,
+      "unrestricted_predicted_label": "A",
+      "preferred_label": "B",
+      "unrestricted_semantic_choice": "alternative",
+      "answer_format_valid": true,
+      "source_path": "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/calibration_rows.jsonl",
+      "source_file_sha256": "1d1557aeee937d0139083ee0649d2ff03cc3b1534ff3322fcf9bb7cb58da73e7"
+    },
+    "qualification_lock_path": "configs/decision_margin_shield_finite_control_qualification_lock.json",
+    "qualification_lock_file_sha256": "68e60ece2090ddeda8544675d0f9b418bb9fa1bb57c0629e394a12722f04bd28",
+    "qualification_lock_identity_sha256": "591ea08f4cb92e3d10a1e8c55af2fe0487efbf085761529162fa48e73a17a6f3",
+    "qualification_result_path": "results/decision_margin_shield_finite_calibration/qwen35_08b/control_qualification_result.json",
+    "qualification_result_file_sha256": "df934e1d1b1442358f3c5162f64373dec62edcb9a778a05ed3eb81cabbc8b085",
+    "qualification_result_sha256": "4989a84ee80c8347d59f89adf11f9364fd3a0d2eae54fbc1162929f1b6cb7fd9",
+    "candidate_bank_file_sha256": "710e21f8ff80b3b0060f5219274dc7ef8cf92771ecc90270cd7a112d3fd73094",
+    "selected_control_id": "dms_control_candidate_03_thank_you_note",
+    "selected_control_sha256": "3f78b58e302e44e9af157937f5c7cf659fdcc96584f45b6226298547881feaa3",
+    "selection_used_margin_or_intervention": false
+  },
+  "design": {
+    "methods": [
+      "target_only",
+      "unrelated_null",
+      "decision_margin_shield"
+    ],
+    "strengths": [
+      0.5,
+      0.75,
+      1.0
+    ],
+    "signs": [
+      1,
+      -1
+    ],
+    "position": "last_token_of_exact_shared_causal_decision_anchor",
+    "scenario_direction_scope": "one_local_vector_per_calibration_scenario",
+    "construction_unrelated_partition": "nuisance_fit",
+    "finite_unrelated_partition": "calibration",
+    "same_vector_across_signs_orders_assignments_and_factorial_cells": true,
+    "kl_direction": "KL(changed||baseline)",
+    "kl_numerical_rule": {
+      "input_storage": "float32_logits",
+      "computation_dtype": "float64",
+      "negative_roundoff_floor": -1e-12,
+      "action": "raise_below_floor_else_clamp_to_zero"
+    },
+    "kl_limits": {
+      "mean": 0.005,
+      "p95": 0.02,
+      "max": 0.05
+    },
+    "complete_assignment_unit_threshold": 6,
+    "both_assignments_scenario_threshold": 3,
+    "zero_protected_and_unrelated_greedy_or_semantic_changes": true,
+    "zero_changed_other_outputs": true,
+    "pareto_rule": "DMS no worse in complete units, scenarios with both assignments, and every stratum's protected mean/p95/max KL, with one strict improvement",
+    "pareto_numerical_tolerance": 1e-08,
+    "pilot_command_exists": false
+  },
+  "float32_deployment": {
+    "raw_constraint_tolerance": 2e-05,
+    "tolerance_provenance": "pre_existing_locked_FCAGS_float32_exact_null_max_abs_projection",
+    "actual_hook_relative_l2_tolerance": 0.0001,
+    "literal_exact_deployed_null_claim_prohibited": true,
+    "required_wording": "within_locked_float32_numerical_tolerance"
+  },
+  "compute_ceiling": {
+    "maximum_model_loads_per_process": 1,
+    "persistent_total_model_loads_claimed": false,
+    "model_load_accounting_note": "A resumed calibration process may load the pinned local model once; the immutable ledger meters forwards, not cross-process load sessions.",
+    "model_forwards": 1800,
+    "model_backwards": 0,
+    "generated_tokens": 0,
+    "external_model_judges": 0,
+    "external_api_calls": 0,
+    "paid_model_cost_usd": 0,
+    "excludes_separately_locked_control_qualification": true
+  },
+  "exact_forward_accounting": {
+    "shared_baselines": 72,
+    "target_changed": 288,
+    "matched_protected_changed": 864,
+    "unrelated_changed": 576,
+    "total": 1800
+  },
+  "baseline_log_odds_reproduction_tolerance": 5e-05,
+  "source_files": {
+    "protocol": {
+      "path": "docs/DECISION_MARGIN_SHIELD_FINITE_CALIBRATION_PROTOCOL.md",
+      "sha256": "88e1c055f731c3679f87c16e8f71a48a04cf9de85449d4c19f4b7534c7de65c4"
+    },
+    "runner": {
+      "path": "scripts/decision_margin_shield_finite_calibration.py",
+      "sha256": "3aeee89f4bd785b70cf5ac46ada19460646061b0556f225d1f6eb5e0f4bcee44"
+    },
+    "finite_math": {
+      "path": "src/sp_lense/decision_margin_shield_finite.py",
+      "sha256": "2af4bc13d2ceba5fd48ced6db163cad164efb2b220cb961a56fa6638fb63d6db"
+    },
+    "finite_math_tests": {
+      "path": "tests/test_decision_margin_shield_finite.py",
+      "sha256": "5e4a8f808572945323c8960b58135392b5420231bcd604631f83f79c20949caf"
+    },
+    "runner_tests": {
+      "path": "tests/test_decision_margin_shield_finite_calibration_runner.py",
+      "sha256": "df851f34016990243b7c2978f2a2e7c1a4b617e7a14428ce05b4c714fe4c6c83"
+    }
+  },
+  "bound_dependencies": {
+    "dataset": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "control_candidates": {
+      "path": "data/decision_margin_shield_finite_control_candidates.json",
+      "sha256": "710e21f8ff80b3b0060f5219274dc7ef8cf92771ecc90270cd7a112d3fd73094"
+    },
+    "model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "original_screen_runner": {
+      "path": "scripts/decision_margin_shield_layer_screen.py",
+      "sha256": "1505e3b4fa4cfebb8780dab962a97eb30d1f4e2b8477d4014d7c993d18c2ac6a"
+    },
+    "original_screen_lock": {
+      "path": "configs/decision_margin_shield_layer_screen_lock.json",
+      "sha256": "97defe3511342a7b1f69ef188e796aaa018bee611009c09f9e98a71af0425261"
+    },
+    "rowspace_solver": {
+      "path": "src/sp_lense/decision_margin_shield_rowspace.py",
+      "sha256": "9ad2eede7e41c93b1b5a37d77c15f090f776333f7b670f998202046fac1fa703"
+    },
+    "screen_amendment_runner": {
+      "path": "scripts/decision_margin_shield_layer_screen_solver_amendment.py",
+      "sha256": "c203e5fbeff9141b4a5a8616203f0165fdc3e0a525534beeabdd115a440d2b49"
+    },
+    "screen_amendment_lock": {
+      "path": "configs/decision_margin_shield_layer_screen_solver_amendment_lock.json",
+      "sha256": "d10d0aac2f5577bccbf9410fa18f3aa300c9214cd60dbfdc9a240a3451890671"
+    },
+    "screen_result": {
+      "path": "results/decision_margin_shield_layer_screen_solver_amendment/qwen35_08b/layer_screen_result.json",
+      "sha256": "db727fadeee64fde13a76313bdc5506c47e9fec87569b9e4a9b19b7c4289f38e"
+    },
+    "capture_manifest": {
+      "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_manifest.json",
+      "sha256": "0d3720ef0bcda3e6dd430aa6033b949404b726e4f616ada86e26b2bbc472a939"
+    },
+    "known_bad_baseline_source": {
+      "path": "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/calibration_rows.jsonl",
+      "sha256": "1d1557aeee937d0139083ee0649d2ff03cc3b1534ff3322fcf9bb7cb58da73e7"
+    },
+    "original_screen_source_data": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "original_screen_source_model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "original_screen_source_protocol": {
+      "path": "docs/DECISION_MARGIN_SHIELD_LAYER_SCREEN_PROTOCOL.md",
+      "sha256": "bb9679b22b9ef27a5689e12f5ef702d328c7f6196bda317c90d3fd96b069bca0"
+    },
+    "original_screen_source_dms_math": {
+      "path": "src/sp_lense/decision_margin_shield.py",
+      "sha256": "12d8517b335c4e77b8ee47483fc8f267bdd5517a3b5a8c77e4ed2ea754b8ca54"
+    },
+    "original_screen_source_cts_solver": {
+      "path": "src/sp_lense/counterfactual_tangent_shield.py",
+      "sha256": "bfb4f06493aeb9a4e41ccb528729092d787309e86f037bc08faed97e6ee5a5ad"
+    },
+    "original_screen_source_anchor_runtime": {
+      "path": "src/sp_lense/causal_anchor_runtime.py",
+      "sha256": "62a51be3bcdfe6ed6f1e69e9b8ba4e8c072992948e67f384947d9bc5901a954d"
+    },
+    "original_screen_source_factorial_math": {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d"
+    },
+    "original_screen_source_backend": {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc"
+    },
+    "original_screen_source_config": {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a"
+    },
+    "original_screen_source_core": {
+      "path": "src/sp_lense/core.py",
+      "sha256": "60a9fe4e68119d3fd6a61386258723cb7554d3c5cf13587a1e21b5183678e006"
+    },
+    "original_screen_source_comparison_runtime": {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    "original_screen_source_comparison_intervention": {
+      "path": "src/sp_lense/comparison_intervention.py",
+      "sha256": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43"
+    },
+    "original_screen_source_semantic_completion_gradient": {
+      "path": "src/sp_lense/semantic_completion_gradient.py",
+      "sha256": "d9dc158b561c54a9a13d8e16aca0ebdd1a5dc913b659b4674f40a1926184e406"
+    },
+    "original_screen_source_steering_methods": {
+      "path": "src/sp_lense/steering_methods.py",
+      "sha256": "24804f86e963d040c342457b345ea8223d4a0c07a83750307bf98b638daefb55"
+    },
+    "original_screen_source_gradient_specificity_v3": {
+      "path": "src/sp_lense/gradient_specificity_v3.py",
+      "sha256": "ed6032b3b91eddd41c0b428f8086f5d36a98f0c3d26766edfa1b1a7fb89e668c"
+    },
+    "original_screen_source_gradient_specificity_trust_region": {
+      "path": "src/sp_lense/gradient_specificity_trust_region.py",
+      "sha256": "25532329312d95da3a41e5ff221889c36a85656680a515399059d6861995a9f7"
+    },
+    "original_screen_source_counterfactual_protected_natural_gradient": {
+      "path": "src/sp_lense/counterfactual_protected_natural_gradient.py",
+      "sha256": "3384edfff692de9730db68015d202cbc683045c51f0693066fec1596e235c959"
+    },
+    "original_screen_source_runner": {
+      "path": "scripts/decision_margin_shield_layer_screen.py",
+      "sha256": "1505e3b4fa4cfebb8780dab962a97eb30d1f4e2b8477d4014d7c993d18c2ac6a"
+    },
+    "original_screen_source_math_tests": {
+      "path": "tests/test_decision_margin_shield.py",
+      "sha256": "9810303c2978d6b85e8a430e63077d1dde64aca8076679b0461c596d535278b2"
+    },
+    "original_screen_source_runner_tests": {
+      "path": "tests/test_decision_margin_shield_layer_screen_runner.py",
+      "sha256": "32e570c7fc2d738275ccf3aeec622bf60010404e7bed32e5cf7a4da498148c9a"
+    },
+    "original_screen_source_base_requirements": {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    },
+    "original_screen_source_cts_requirements": {
+      "path": "requirements-counterfactual-tangent-shield.txt",
+      "sha256": "b85045386124ca71e71373e566cea6b6cc4b67bd80eb006ec201b1a7e8fcbf95"
+    },
+    "finite_capture_manifest_amendment_runner": {
+      "path": "scripts/decision_margin_shield_finite_capture_manifest_amendment.py",
+      "sha256": "3ada3ade511758cc36e9f49a2ce2c0308104efb0c3176789e1e3b1e6d7a97245"
+    },
+    "finite_capture_manifest_amendment_protocol": {
+      "path": "docs/DECISION_MARGIN_SHIELD_FINITE_CAPTURE_MANIFEST_AMENDMENT.md",
+      "sha256": "19f4ea2f733a783e341143d4e4e53b55f46659d6c6151fa99c996eedb6fd3c52"
+    },
+    "finite_capture_manifest_amendment_tests": {
+      "path": "tests/test_decision_margin_shield_finite_capture_manifest_amendment.py",
+      "sha256": "f88935365edb95061b7dd13858a2ff0cae5c458dc0643dd097a443be8e6743f1"
+    }
+  },
+  "claim_boundary": "Opened finite A/B calibration only; no natural mechanism, safety, general capability, confirmatory, priority, or publication claim.",
+  "lock_identity_sha256": "ad11eea11bf5ef6c11dc8a8f980f33f480792affcd83d508b42c3beb13ef50f7"
+}
