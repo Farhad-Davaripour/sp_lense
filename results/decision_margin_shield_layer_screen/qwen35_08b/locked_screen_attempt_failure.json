@@ -1,0 +1,72 @@
+{
+  "schema_version": "sp_lense.decision_margin_shield_layer_screen_locked_attempt_failure.v1",
+  "status": "failed_before_result_write",
+  "development_only": true,
+  "original_lock": {
+    "path": "configs/decision_margin_shield_layer_screen_lock.json",
+    "file_sha256": "97defe3511342a7b1f69ef188e796aaa018bee611009c09f9e98a71af0425261",
+    "lock_identity_sha256": "a3eacfbfc5b5cdad06a55ca9077677d415fc92e3109733b9823f00260be967b9"
+  },
+  "immutable_capture": {
+    "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_manifest.json",
+    "file_sha256": "0d3720ef0bcda3e6dd430aa6033b949404b726e4f616ada86e26b2bbc472a939",
+    "manifest_sha256": "cf654fa4bc42ea550138653a4927232888a3724cfb9451bf97b7b5551740faf0",
+    "capture_plan_sha256": "b3b42ca8aa66db367087450973eb6d0248682e3de3cb2642e1d1bdb286dbcea6",
+    "prompt_content_sha256": "ef8cb221745b9c69f50778ba025653e85e7e8e0649fbf9ab8255b652605eaf3b"
+  },
+  "original_locked_sources": {
+    "source_commit": "644f82b784307e0e05c4cfaa257c1ed3f373ae70",
+    "runner": {
+      "path": "scripts/decision_margin_shield_layer_screen.py",
+      "sha256": "1505e3b4fa4cfebb8780dab962a97eb30d1f4e2b8477d4014d7c993d18c2ac6a"
+    },
+    "geometry": {
+      "path": "src/sp_lense/decision_margin_shield.py",
+      "sha256": "12d8517b335c4e77b8ee47483fc8f267bdd5517a3b5a8c77e4ed2ea754b8ca54"
+    },
+    "protocol": {
+      "path": "docs/DECISION_MARGIN_SHIELD_LAYER_SCREEN_PROTOCOL.md",
+      "sha256": "bb9679b22b9ef27a5689e12f5ef702d328c7f6196bda317c90d3fd96b069bca0"
+    }
+  },
+  "failure": {
+    "exception_type": "sp_lense.counterfactual_tangent_shield.TangentShieldSolverError",
+    "exception_message": "the minimum-L2 solve did not converge",
+    "traceback": [
+      "scripts/decision_margin_shield_layer_screen.py:1322:run_screen",
+      "src/sp_lense/decision_margin_shield.py:671:screen_scenario_layer",
+      "src/sp_lense/counterfactual_tangent_shield.py:544:solve_minimum_l2_direction"
+    ],
+    "first_diagnosed_cell": {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "layer": 22,
+      "method": "unrelated_only"
+    },
+    "following_method_old_solver_also_fails": "decision_margin_shield"
+  },
+  "original_result": {
+    "path": "results/decision_margin_shield_layer_screen/qwen35_08b/layer_screen_result.json",
+    "exists": false,
+    "written": false
+  },
+  "diagnostic_disclosure": {
+    "partial_calibration_geometry_viewed": true,
+    "viewed_after_original_failure": true,
+    "viewed_scope": "fcag_dev_01_weather_alert layers 0 through 21 partial calibration norms plus diagnosis at layer 22",
+    "pilot_geometry_viewed": false,
+    "finite_intervention_outcomes_viewed": false,
+    "scientific_parameters_changed": false
+  },
+  "compute": {
+    "additional_model_forwards": 0,
+    "additional_model_backwards": 0,
+    "finite_intervention_forwards": 0,
+    "finite_intervention_backwards": 0,
+    "generated_tokens": 0,
+    "external_model_judges": 0,
+    "external_api_calls": 0,
+    "paid_model_cost_usd": 0
+  },
+  "interpretation": "The locked screen attempt is a numerical solver failure, not a scientific construction result or evidence that no qualifying layer exists.",
+  "failure_record_sha256": "3f1e13064cc792231ac288acf32c2680c0e73e16c377f14839ef6fd2ddaaebcf"
+}
