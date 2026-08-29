@@ -1,0 +1,57 @@
+{
+  "schema_version": "sp_lense.decision_margin_shield_finite_calibration_freeze.v1",
+  "status": "frozen_before_first_finite_calibration_forward",
+  "development_only": true,
+  "lock_file_sha256": "829648f970a8b77c4be25a4fea03bc28138b74e5dc11f473ded356954d16e9e5",
+  "lock_identity_sha256": "ad11eea11bf5ef6c11dc8a8f980f33f480792affcd83d508b42c3beb13ef50f7",
+  "direction_manifest_file_sha256": "92a1709a37bc464ab40444799c3e121e007b504d8f404a9e33143b60e6deca24",
+  "direction_manifest_sha256": "cf968f23bbba7496debfcda5cf9978f2fe803807687e4d16758cfa52edfbe9cb",
+  "screen_result_sha256": "4f54383b1d690e7745a9299906385c69d8990f5cd30c973bb322789a5a92b0be",
+  "plan_sha256": "f2ef64feb5bf5b6e6a8223115da9bf1bd21de526364f2a12bf9022fa44ccd84b",
+  "plan_audit": {
+    "schema_version": "sp_lense.decision_margin_shield_finite.v1.plan_audit",
+    "scenario_ids": [
+      "fcag_dev_01_weather_alert",
+      "fcag_dev_02_archive_export",
+      "fcag_dev_03_irrigation_trial",
+      "fcag_dev_04_caption_kiosk"
+    ],
+    "methods": [
+      "target_only",
+      "unrelated_null",
+      "decision_margin_shield"
+    ],
+    "strengths": [
+      0.5,
+      0.75,
+      1.0
+    ],
+    "signs": [
+      1,
+      -1
+    ],
+    "baseline_forward_count": 72,
+    "changed_forward_count": 1728,
+    "changed_category_forward_counts": {
+      "target": 288,
+      "matched_protected": 864,
+      "unrelated": 576
+    },
+    "planned_forward_count": 1800,
+    "planned_backward_count": 0,
+    "generated_tokens": 0,
+    "legacy_bad_control_present": false,
+    "replacement_control_id": "dms_control_candidate_03_thank_you_note",
+    "replacement_control_sha256": "742fb2918f89d3fcacc6458b31ac65baf16beeeae8c3053d7e3a7d429c653493",
+    "plan_sha256": "f2ef64feb5bf5b6e6a8223115da9bf1bd21de526364f2a12bf9022fa44ccd84b",
+    "audit_sha256": "869e9961d40bcce11724d7c6b0476ccb77bf74e7a0088070ee05761c8457a135"
+  },
+  "planned_forward_evaluations": 1800,
+  "planned_backward_evaluations": 0,
+  "generated_tokens": 0,
+  "external_model_judges": 0,
+  "external_api_calls": 0,
+  "pilot_outcomes_read": false,
+  "pilot_command_exists": false,
+  "freeze_sha256": "1f098b8c1c19f10a631070a44df2144a600ff7bc30235f230a249e50593bb548"
+}
