@@ -37,32 +37,184 @@ def test_public_method_excludes_all_tensor_bytes() -> None:
 def test_architecture_guard_requires_zero_vocabulary_constant_bias() -> None:
     runner = _runner()
 
-    class RMSNorm:
-        eps = 1e-6
-
+    class Qwen3_5RMSNorm:
         def __init__(self) -> None:
-            self.w = torch.ones(2)
+            self.eps = 1e-6
+            self.weight = torch.tensor([0.0, -0.25], dtype=torch.float32)
+
+    class RMSNormalizationBridge:
+        def __init__(self) -> None:
+            self.original_component = Qwen3_5RMSNorm()
+            self.use_native_layernorm_autograd = True
+            self.uses_rms_norm = True
 
     model = SimpleNamespace(
-        cfg=SimpleNamespace(n_layers=24),
-        ln_final=RMSNorm(),
+        cfg=SimpleNamespace(n_layers=24, normalization_type="RMS"),
+        compatibility_mode=False,
+        _weights_processed=False,
+        ln_final=RMSNormalizationBridge(),
         unembed=SimpleNamespace(
             W_U=torch.ones((2, 3)),
             b_U=torch.zeros(3),
         ),
     )
-    backend = SimpleNamespace(torch=torch, model=model)
+    backend = SimpleNamespace(
+        torch=torch,
+        model=model,
+        device="cpu",
+        dtype_name="float32",
+    )
     config = {
         "model": {"residual_width": 2, "rms_epsilon": 1e-6},
         "intervention": {"residual_layer_zero_based": 23},
+        "architecture_guards": {
+            "expected_final_norm_bridge_class": (
+                f"{RMSNormalizationBridge.__module__}.{RMSNormalizationBridge.__name__}"
+            ),
+            "expected_final_norm_wrapped_class": (
+                f"{Qwen3_5RMSNorm.__module__}.{Qwen3_5RMSNorm.__name__}"
+            ),
+            "expected_normalization_type": "RMS",
+            "rms_scale_parameterization": "one_plus_raw_weight_float32",
+        },
     }
 
     observed = runner._architecture(backend, config)
 
+    assert torch.equal(observed["gamma"], torch.tensor([1.0, 0.75]))
+    assert observed["public"]["rms_scale_parameterization"] == ("one_plus_raw_weight_float32")
+    assert (
+        observed["public"]["raw_rms_weight_float32_sha256"]
+        != observed["public"]["gamma_float32_sha256"]
+    )
     assert observed["public"]["unembedding_bias_exactly_zero"] is True
     model.unembed.b_U = torch.tensor([0.0, 0.0, 1.0])
     with pytest.raises(RuntimeError, match="vocabulary-constant"):
         runner._architecture(backend, config)
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("use_native_layernorm_autograd", False, "native Hugging Face"),
+        ("uses_rms_norm", False, "RMS semantics"),
+    ],
+)
+def test_architecture_guard_rejects_non_native_or_non_rms_bridge(
+    field: str, value: bool, message: str
+) -> None:
+    runner = _runner()
+
+    class Qwen3_5RMSNorm:
+        eps = 1e-6
+        weight = torch.zeros(2, dtype=torch.float32)
+
+    class RMSNormalizationBridge:
+        original_component = Qwen3_5RMSNorm()
+        use_native_layernorm_autograd = True
+        uses_rms_norm = True
+
+    bridge = RMSNormalizationBridge()
+    setattr(bridge, field, value)
+    backend = SimpleNamespace(
+        torch=torch,
+        device="cpu",
+        dtype_name="float32",
+        model=SimpleNamespace(
+            cfg=SimpleNamespace(n_layers=24, normalization_type="RMS"),
+            compatibility_mode=False,
+            _weights_processed=False,
+            ln_final=bridge,
+            unembed=SimpleNamespace(W_U=torch.ones((2, 3)), b_U=torch.zeros(3)),
+        ),
+    )
+    config = {
+        "model": {"residual_width": 2, "rms_epsilon": 1e-6},
+        "intervention": {"residual_layer_zero_based": 23},
+        "architecture_guards": {
+            "expected_final_norm_bridge_class": runner._qualified_class_name(bridge),
+            "expected_final_norm_wrapped_class": runner._qualified_class_name(
+                bridge.original_component
+            ),
+            "expected_normalization_type": "RMS",
+            "rms_scale_parameterization": "one_plus_raw_weight_float32",
+        },
+    }
+
+    with pytest.raises(RuntimeError, match=message):
+        runner._architecture(backend, config)
+
+
+@pytest.mark.parametrize(
+    ("target", "value", "message"),
+    [
+        ("compatibility_mode", True, "compatibility mode"),
+        ("_weights_processed", True, "weights were processed"),
+        ("device", "cuda", "CPU float32"),
+        ("dtype_name", "bfloat16", "CPU float32"),
+    ],
+)
+def test_architecture_guard_rejects_processed_or_wrong_precision(
+    target: str, value: object, message: str
+) -> None:
+    runner = _runner()
+
+    class Qwen3_5RMSNorm:
+        eps = 1e-6
+        weight = torch.zeros(2, dtype=torch.float32)
+
+    class RMSNormalizationBridge:
+        original_component = Qwen3_5RMSNorm()
+        use_native_layernorm_autograd = True
+        uses_rms_norm = True
+
+    bridge = RMSNormalizationBridge()
+    model = SimpleNamespace(
+        cfg=SimpleNamespace(n_layers=24, normalization_type="RMS"),
+        compatibility_mode=False,
+        _weights_processed=False,
+        ln_final=bridge,
+        unembed=SimpleNamespace(W_U=torch.ones((2, 3)), b_U=torch.zeros(3)),
+    )
+    backend = SimpleNamespace(
+        torch=torch,
+        device="cpu",
+        dtype_name="float32",
+        model=model,
+    )
+    if target in {"compatibility_mode", "_weights_processed"}:
+        setattr(model, target, value)
+    else:
+        setattr(backend, target, value)
+    config = {
+        "model": {"residual_width": 2, "rms_epsilon": 1e-6},
+        "intervention": {"residual_layer_zero_based": 23},
+        "architecture_guards": {
+            "expected_final_norm_bridge_class": runner._qualified_class_name(bridge),
+            "expected_final_norm_wrapped_class": runner._qualified_class_name(
+                bridge.original_component
+            ),
+            "expected_normalization_type": "RMS",
+            "rms_scale_parameterization": "one_plus_raw_weight_float32",
+        },
+    }
+
+    with pytest.raises(RuntimeError, match=message):
+        runner._architecture(backend, config)
+
+
+def test_qwen_one_plus_weight_head_matches_exact_numerator_formula() -> None:
+    residuals = torch.tensor([[2.0, -1.0], [-0.5, 3.0]], dtype=torch.float32)
+    raw_weight = torch.tensor([0.0, -0.25], dtype=torch.float32)
+    gamma = raw_weight.add(1.0)
+    weights = torch.tensor([[1.0, -2.0, 0.5], [0.25, 1.5, -1.0]], dtype=torch.float32)
+    epsilon = 1e-6
+
+    inverse_rms = torch.rsqrt(residuals.square().mean(dim=1, keepdim=True) + epsilon)
+    native_order = ((residuals * inverse_rms) * gamma) @ weights
+    numerator_order = ((residuals * gamma) @ weights) * inverse_rms
+
+    torch.testing.assert_close(native_order, numerator_order, rtol=1e-6, atol=1e-6)
 
 
 def test_actual_head_certificate_checks_both_orders_and_exact_signs() -> None:

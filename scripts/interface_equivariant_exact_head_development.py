@@ -26,8 +26,8 @@ from sp_lense.interface_equivariant_gradient import (
 from sp_lense.steering_methods import actual_perturbation_norms
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = ROOT / "configs" / "interface_equivariant_exact_head_development_lock.json"
-PROTOCOL_PATH = ROOT / "docs" / "INTERFACE_EQUIVARIANT_EXACT_HEAD_PREREGISTRATION.md"
+CONFIG_PATH = ROOT / "configs" / "interface_equivariant_exact_head_development_v2_lock.json"
+PROTOCOL_PATH = ROOT / "docs" / "INTERFACE_EQUIVARIANT_EXACT_HEAD_V2_AMENDMENT.md"
 MATH_PATH = ROOT / "src" / "sp_lense" / "interface_equivariant_gradient.py"
 MATH_TEST_PATH = ROOT / "tests" / "test_interface_equivariant_gradient.py"
 RUNNER_TEST_PATH = ROOT / "tests" / "test_interface_equivariant_exact_head_runner.py"
@@ -42,8 +42,10 @@ CAPTURE_PATH = (
 CAPTURE_MANIFEST_PATH = CAPTURE_PATH.with_name("paired_capture_manifest.json")
 CAPTURE_LEDGER_PATH = CAPTURE_PATH.with_name("paired_capture_attempt_ledger.json")
 
-ARTIFACT_ROOT = ROOT / "artifacts" / "interface_equivariant_exact_head_development" / "qwen35_08b"
-RESULT_ROOT = ROOT / "results" / "interface_equivariant_exact_head_development" / "qwen35_08b"
+ARTIFACT_ROOT = (
+    ROOT / "artifacts" / "interface_equivariant_exact_head_development" / "qwen35_08b_v2"
+)
+RESULT_ROOT = ROOT / "results" / "interface_equivariant_exact_head_development" / "qwen35_08b_v2"
 CONSTRUCTION_PATH = ARTIFACT_ROOT / "construction_bank.pt"
 CONSTRUCTION_MANIFEST_PATH = ARTIFACT_ROOT / "construction_manifest.json"
 CONSTRUCTION_ATTEMPT_PATH = ARTIFACT_ROOT / "construction_attempt_ledger.json"
@@ -53,28 +55,32 @@ LOGITS_ROOT = RESULT_ROOT / "evaluation_logits"
 RESULT_PATH = RESULT_ROOT / "development_result.json"
 REPORT_PATH = RESULT_ROOT / "DEVELOPMENT_REPORT.md"
 
-LOCK_SCHEMA = "sp_lense.interface_equivariant_exact_head_lock.v1"
-CONSTRUCTION_SCHEMA = "sp_lense.interface_equivariant_exact_head_construction.v1"
-MANIFEST_SCHEMA = "sp_lense.interface_equivariant_exact_head_manifest.v1"
-CONSTRUCTION_ATTEMPT_SCHEMA = "sp_lense.interface_equivariant_exact_head_attempt.v1"
-FREEZE_SCHEMA = "sp_lense.interface_equivariant_exact_head_freeze.v1"
-CHECKPOINT_SCHEMA = "sp_lense.interface_equivariant_exact_head_checkpoint.v1"
-RESULT_SCHEMA = "sp_lense.interface_equivariant_exact_head_result.v1"
+LOCK_SCHEMA = "sp_lense.interface_equivariant_exact_head_lock.v2"
+CONSTRUCTION_SCHEMA = "sp_lense.interface_equivariant_exact_head_construction.v2"
+MANIFEST_SCHEMA = "sp_lense.interface_equivariant_exact_head_manifest.v2"
+CONSTRUCTION_ATTEMPT_SCHEMA = "sp_lense.interface_equivariant_exact_head_attempt.v2"
+FREEZE_SCHEMA = "sp_lense.interface_equivariant_exact_head_freeze.v2"
+CHECKPOINT_SCHEMA = "sp_lense.interface_equivariant_exact_head_checkpoint.v2"
+RESULT_SCHEMA = "sp_lense.interface_equivariant_exact_head_result.v2"
 
 PRECONSTRUCTION_RELATIVES = frozenset(
     {
         ".gitattributes",
+        "artifacts/interface_equivariant_exact_head_development/qwen35_08b/construction_attempt_ledger.json",
         "artifacts/paired_order_analytic_gradient_development/qwen35_08b/paired_capture_attempt_ledger.json",
         "artifacts/paired_order_analytic_gradient_development/qwen35_08b_v2/paired_capture.pt",
         "artifacts/paired_order_analytic_gradient_development/qwen35_08b_v2/paired_capture_attempt_ledger.json",
         "artifacts/paired_order_analytic_gradient_development/qwen35_08b_v2/paired_capture_manifest.json",
         "configs/counterfactual_semantic_gradient_confirmation_lock.json",
         "configs/gradient_specificity_adaptive_lock.json",
+        "configs/interface_equivariant_exact_head_development_lock.json",
         "configs/paired_order_analytic_gradient_development_lock.json",
         "configs/qwen35_08b_aligned.json",
         "data/counterfactual_semantic_gradient_confirmation_v2.json",
         "docs/INTERFACE_EQUIVARIANT_EXACT_HEAD_PREREGISTRATION.md",
         "docs/INTERFACE_EQUIVARIANT_EXACT_HEAD_MATH_AUDIT.md",
+        "docs/INTERFACE_EQUIVARIANT_EXACT_HEAD_V1_RUNTIME_ABORT.md",
+        "docs/INTERFACE_EQUIVARIANT_EXACT_HEAD_V2_AMENDMENT.md",
         "docs/PAIRED_ORDER_ANALYTIC_GRADIENT_CONTROLLER_PREREGISTRATION.md",
         "results/counterfactual_semantic_gradient_confirmation/qwen35_08b/semantic_gate_confirmation_result.json",
         "results/paired_order_analytic_gradient_development/qwen35_08b/capture_runtime_abort_v1.json",
@@ -205,19 +211,51 @@ def _load_capture(torch: Any) -> tuple[Any, dict[str, Any]]:
     return old, capture
 
 
+def _qualified_class_name(value: Any) -> str:
+    return f"{type(value).__module__}.{type(value).__name__}"
+
+
 def _architecture(backend: Any, config: Mapping[str, Any]) -> dict[str, Any]:
     torch = backend.torch
     model = backend.model
+    guards = config["architecture_guards"]
     layer = int(config["intervention"]["residual_layer_zero_based"])
     if int(model.cfg.n_layers) != 24 or layer != int(model.cfg.n_layers) - 1:
         raise RuntimeError("intervention site is not the final transformer block")
     ln_final = model.ln_final
-    if type(ln_final).__name__ != "RMSNorm":
-        raise RuntimeError("final normalization is not TransformerLens RMSNorm")
-    epsilon = float(ln_final.eps)
+    bridge_class = _qualified_class_name(ln_final)
+    if bridge_class != str(guards["expected_final_norm_bridge_class"]):
+        raise RuntimeError("final normalization is not the locked Qwen3.5 RMS bridge")
+    wrapped = getattr(ln_final, "original_component", None)
+    if wrapped is None:
+        raise RuntimeError("final RMS bridge has no wrapped Hugging Face component")
+    wrapped_class = _qualified_class_name(wrapped)
+    if wrapped_class != str(guards["expected_final_norm_wrapped_class"]):
+        raise RuntimeError("final normalization does not wrap the locked Qwen3.5 RMSNorm")
+    if str(model.cfg.normalization_type) != str(guards["expected_normalization_type"]):
+        raise RuntimeError("model normalization type differs from the Qwen3.5 lock")
+    if bool(getattr(model, "compatibility_mode", True)):
+        raise RuntimeError("model compatibility mode would change raw weight semantics")
+    if bool(getattr(model, "_weights_processed", True)):
+        raise RuntimeError("model weights were processed before exact-head extraction")
+    if getattr(ln_final, "use_native_layernorm_autograd", None) is not True:
+        raise RuntimeError("final RMS bridge is not using the native Hugging Face forward")
+    if getattr(ln_final, "uses_rms_norm", None) is not True:
+        raise RuntimeError("final normalization bridge does not report RMS semantics")
+    if backend.device != "cpu" or backend.dtype_name != "float32":
+        raise RuntimeError("exact Qwen3.5 RMS extraction requires locked CPU float32")
+    epsilon = float(wrapped.eps)
     if epsilon != float(config["model"]["rms_epsilon"]):
         raise RuntimeError("final RMSNorm epsilon differs from the lock")
-    gamma = ln_final.w.detach().float().cpu().contiguous()
+    raw_rms_weight = wrapped.weight.detach()
+    if raw_rms_weight.device.type != "cpu" or raw_rms_weight.dtype != torch.float32:
+        raise RuntimeError("raw Qwen3.5 RMS weight is not locked CPU float32")
+    raw_rms_weight = raw_rms_weight.contiguous()
+    if not bool(torch.isfinite(raw_rms_weight).all().item()):
+        raise RuntimeError("raw Qwen3.5 RMS weight contains non-finite values")
+    if str(guards["rms_scale_parameterization"]) != "one_plus_raw_weight_float32":
+        raise RuntimeError("Qwen3.5 RMS scale parameterization differs from the lock")
+    gamma = raw_rms_weight.add(1.0).contiguous()
     weights = model.unembed.W_U.detach().float().cpu().contiguous()
     bias = model.unembed.b_U.detach().float().cpu().contiguous()
     width = int(config["model"]["residual_width"])
@@ -236,13 +274,21 @@ def _architecture(backend: Any, config: Mapping[str, Any]) -> dict[str, Any]:
         "weights": weights,
         "bias": bias,
         "public": {
-            "ln_final_class": f"{type(ln_final).__module__}.{type(ln_final).__name__}",
+            "model_normalization_type": str(model.cfg.normalization_type),
+            "ln_final_bridge_class": bridge_class,
+            "ln_final_wrapped_class": wrapped_class,
+            "native_hf_rmsnorm_forward": True,
+            "bridge_uses_rms_norm": True,
+            "model_compatibility_mode": False,
+            "model_weights_processed": False,
+            "rms_scale_parameterization": "one_plus_raw_weight_float32",
             "rms_epsilon": epsilon,
             "residual_width": width,
             "vocabulary_size": int(weights.shape[1]),
             "unembedding_orientation": "d_model_by_vocabulary",
             "unembedding_bias_vocabulary_constant": True,
             "unembedding_bias_exactly_zero": True,
+            "raw_rms_weight_float32_sha256": _raw_tensor_hash(raw_rms_weight),
             "gamma_float32_sha256": _raw_tensor_hash(gamma),
             "unembedding_float32_sha256": _raw_tensor_hash(weights),
             "unembedding_bias_float32_sha256": _raw_tensor_hash(bias),
@@ -957,9 +1003,18 @@ def _validate_actual_head_certificate(
 def _validated_architecture(bank: Mapping[str, Any], vocabulary_size: int) -> Mapping[str, Any]:
     architecture = bank.get("architecture")
     config = _load_config()
+    guards = config["architecture_guards"]
     if not isinstance(architecture, Mapping):
         raise TypeError("construction architecture metadata is missing")
     expected_fixed = {
+        "model_normalization_type": str(guards["expected_normalization_type"]),
+        "ln_final_bridge_class": str(guards["expected_final_norm_bridge_class"]),
+        "ln_final_wrapped_class": str(guards["expected_final_norm_wrapped_class"]),
+        "native_hf_rmsnorm_forward": True,
+        "bridge_uses_rms_norm": True,
+        "model_compatibility_mode": False,
+        "model_weights_processed": False,
+        "rms_scale_parameterization": str(guards["rms_scale_parameterization"]),
         "rms_epsilon": float(config["model"]["rms_epsilon"]),
         "residual_width": int(config["model"]["residual_width"]),
         "vocabulary_size": vocabulary_size,
@@ -969,9 +1024,8 @@ def _validated_architecture(bank: Mapping[str, Any], vocabulary_size: int) -> Ma
     }
     if any(architecture.get(key) != value for key, value in expected_fixed.items()):
         raise RuntimeError("construction architecture metadata differs from the lock")
-    if not str(architecture.get("ln_final_class", "")).endswith(".RMSNorm"):
-        raise RuntimeError("construction architecture does not identify RMSNorm")
     for field in (
+        "raw_rms_weight_float32_sha256",
         "gamma_float32_sha256",
         "unembedding_float32_sha256",
         "unembedding_bias_float32_sha256",
