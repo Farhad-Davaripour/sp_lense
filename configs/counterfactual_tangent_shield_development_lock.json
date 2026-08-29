@@ -1,0 +1,254 @@
+{
+  "schema_version": "sp_lense.counterfactual_tangent_shield_development_lock.v1",
+  "status": "opened_development_locked_before_capture",
+  "development_only": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+  "dataset": {
+    "path": "data/factorial_causal_anchor_gradient_pilot.json",
+    "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f",
+    "construction_scope": "all_scenarios_ab",
+    "calibration_partition_role": "tau_and_global_multiplier_selection_only",
+    "pilot_partition_role": "intervention_outcome_holdout_and_xy_12_transfer_holdout_not_scenario_holdout",
+    "nuisance_fit_partition": "nuisance_fit"
+  },
+  "construction": {
+    "zero_based_layer": 10,
+    "position": "last_token_of_explicit_shared_causal_decision_anchor",
+    "target_gradient_count_per_scenario": 4,
+    "protected_scenario_gradient_count_per_scenario": 12,
+    "nuisance_fit_gradient_count": 8,
+    "margin": 0.05,
+    "capture_to_finite_baseline_log_odds_tolerance": 5e-05,
+    "tau_grid": [
+      0.0,
+      0.01,
+      0.025
+    ],
+    "l2_cap": 1.0,
+    "solver_dtype": "float64_cpu",
+    "stored_direction_dtype": "float32",
+    "semantic_anchor_source": {
+      "method": "raw_factorial",
+      "tensor_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/direction_bank.pt",
+      "tensor_sha256": "1e805d6fefd0cbd510d5dbb9761d682febcbd8ea5839a1f8d307fa2a8834cea0",
+      "manifest_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/direction_bank_manifest.json",
+      "manifest_sha256": "c13b8796932c22c76bfdd2c0b3685963cf32df3cb7d43d294a45138a876b6c97"
+    },
+    "semantic_anchor_source_method": "raw_factorial",
+    "semantic_anchor_tau_methods": [
+      "semantic_tau_0",
+      "semantic_tau_0p01",
+      "semantic_tau_0p025"
+    ],
+    "random_seeds": [
+      17011,
+      17027,
+      17041,
+      17053
+    ],
+    "finite_random_seed": 17011,
+    "random_control": "unreoriented_exact_null_draw_norm_matched_to_unshielded_minimum_l2; not required to satisfy target inequalities"
+  },
+  "evaluation": {
+    "encodings": [
+      [
+        "A",
+        "B"
+      ],
+      [
+        "X",
+        "Y"
+      ],
+      [
+        "1",
+        "2"
+      ]
+    ],
+    "orders": [
+      "preserve_first",
+      "comply_first"
+    ],
+    "signs": [
+      1,
+      -1
+    ],
+    "multipliers": [
+      1.0,
+      1.15,
+      1.3
+    ],
+    "calibration_encodings": [
+      [
+        "A",
+        "B"
+      ]
+    ],
+    "pilot_encodings": [
+      [
+        "A",
+        "B"
+      ],
+      [
+        "X",
+        "Y"
+      ],
+      [
+        "1",
+        "2"
+      ]
+    ],
+    "force_apply_to_all_protected_and_phase_collateral": true,
+    "same_float32_vector_across_all_views": true,
+    "negative_is_exact_float32_negation": true,
+    "no_zero_routing": true,
+    "pre_forward_multiplier_recertification": "target_bounds_nuisance_tau_and_standardized_l2_cap_for_every_scenario",
+    "full_vocabulary_kl_limits": {
+      "mean": 0.005,
+      "p95": 0.02,
+      "max": 0.05
+    },
+    "selection": [
+      "all_protected_gates_pass",
+      "maximum_complete_target_scenarios",
+      "smallest_multiplier",
+      "smallest_realized_perturbation_norm"
+    ],
+    "cts_tau_selection": "per_tau_select_safety_passing_multiplier_by_max_complete_then_smallest_multiplier_then_norm; choose_smallest_tau_with_at_least_3_of_4_complete",
+    "calibration_authorization": {
+      "minimum_cts_complete_scenarios": 3,
+      "zero_protected_scenario_semantic_or_greedy_changes": true,
+      "zero_calibration_collateral_greedy_changes": true,
+      "no_other_outputs": true,
+      "primary_baseline_defeat_rule": "more_complete_or_equal_complete_with_protected_kl_lower_by_gt_1e-8_and_target_effect_deficit_at_most_0.01",
+      "primary_baselines": [
+        "unshielded",
+        "tau_matched_semantic"
+      ],
+      "no_safety_admissible_primary_baseline_counts_as_defeated": true,
+      "random_control_required_for_authorization": false
+    },
+    "pilot_success": {
+      "complete_scenarios": 4,
+      "heldout_encoding_success": [
+        "XY",
+        "12"
+      ],
+      "zero_protected_scenario_semantic_or_greedy_changes": true,
+      "zero_pilot_collateral_greedy_changes": true,
+      "no_other_outputs": true,
+      "same_primary_baseline_defeat_rule_as_calibration": true,
+      "target_effect_protected_kl_non_domination": "descriptive_only",
+      "random_control": "descriptive_negative_control_only"
+    }
+  },
+  "artifact_policy": {
+    "capture_chunk_size": 8,
+    "evaluation_chunk_size": 24,
+    "pending_chunk_is_ambiguous_and_not_replayed": true,
+    "completed_chunks_must_form_exact_plan_prefix": true,
+    "compact_full_vocabulary_last_token_logits": true,
+    "sealed_project_paths_read": [],
+    "generated_tokens": 0,
+    "external_model_judges": 0,
+    "external_api_calls": 0
+  },
+  "compute_ceiling": {
+    "capture": {
+      "forward": 136,
+      "backward": 136
+    },
+    "calibration": {
+      "forward": 4680,
+      "backward": 0
+    },
+    "pilot": {
+      "forward": 2520,
+      "backward": 0
+    },
+    "generated_tokens": 0
+  },
+  "source_files": {
+    "data": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "protocol": {
+      "path": "docs/COUNTERFACTUAL_TANGENT_SHIELD_DEVELOPMENT_PROTOCOL.md",
+      "sha256": "eb62af5609d6ca54aa0c9a30d15ac4c53a511b89ccaa3aa12ceab5bea8ff3aa0"
+    },
+    "cts_math": {
+      "path": "src/sp_lense/counterfactual_tangent_shield.py",
+      "sha256": "bfb4f06493aeb9a4e41ccb528729092d787309e86f037bc08faed97e6ee5a5ad"
+    },
+    "anchor_runtime": {
+      "path": "src/sp_lense/causal_anchor_runtime.py",
+      "sha256": "62a51be3bcdfe6ed6f1e69e9b8ba4e8c072992948e67f384947d9bc5901a954d"
+    },
+    "factorial_math": {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d"
+    },
+    "backend": {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc"
+    },
+    "config": {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a"
+    },
+    "core": {
+      "path": "src/sp_lense/core.py",
+      "sha256": "60a9fe4e68119d3fd6a61386258723cb7554d3c5cf13587a1e21b5183678e006"
+    },
+    "comparison_runtime": {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    "comparison_intervention": {
+      "path": "src/sp_lense/comparison_intervention.py",
+      "sha256": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43"
+    },
+    "runner": {
+      "path": "scripts/counterfactual_tangent_shield_development.py",
+      "sha256": "2fcc6c02816bf09f00ed3537fda21bbb6057aa3c8415c765366f4f3f85bc097a"
+    },
+    "runner_tests": {
+      "path": "tests/test_counterfactual_tangent_shield_runner.py",
+      "sha256": "b8739b3faaab94765d3e12f1ddc342bc9d80fedf92815f5363ea99516c305475"
+    },
+    "base_requirements": {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    },
+    "cts_requirements": {
+      "path": "requirements-counterfactual-tangent-shield.txt",
+      "sha256": "b85045386124ca71e71373e566cea6b6cc4b67bd80eb006ec201b1a7e8fcbf95"
+    }
+  },
+  "claim_boundary": "Opened engineering development only; a pass does not establish a natural self-preservation mechanism, a reusable global vector, or publication evidence.",
+  "lock_identity_sha256": "3db0feae61cec36f910e1aaa5b719cbd8a04ab95e11aca22669eba874d792234"
+}
