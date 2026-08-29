@@ -1,0 +1,272 @@
+{
+  "schema_version": "sp_lense.decision_margin_shield_finite_control_qualification_lock.v1",
+  "status": "locked_before_control_qualification",
+  "development_only": true,
+  "qualification_only": true,
+  "known_bad_legacy_view": {
+    "form_id": "fcag_control_08_instruction:preferred_first=false",
+    "prompt_sha256": "430f4efca2025c6bd578c28117e7da2980cbeeb36403faf4f0629cb7bae44718",
+    "preferred_minus_alternative_log_odds": -0.4598121643066406,
+    "unrestricted_predicted_label": "A",
+    "preferred_label": "B",
+    "unrestricted_semantic_choice": "alternative",
+    "answer_format_valid": true,
+    "source_path": "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/calibration_rows.jsonl",
+    "source_file_sha256": "1d1557aeee937d0139083ee0649d2ff03cc3b1534ff3322fcf9bb7cb58da73e7"
+  },
+  "replacement_for": "fcag_control_08_instruction",
+  "candidate_bank_path": "data/decision_margin_shield_finite_control_candidates.json",
+  "candidate_bank_file_sha256": "710e21f8ff80b3b0060f5219274dc7ef8cf92771ecc90270cd7a112d3fd73094",
+  "candidate_order_sha256": "d6e60a4179e0237f54c0d2945b9a7cd3da967dc031d09870157731db2bae470a",
+  "candidate_count": 4,
+  "orders": [
+    true,
+    false
+  ],
+  "selection_rule": "Evaluate every candidate under both A/B orders, then select the first candidate in this authored order whose unrestricted vocabulary argmax is the preferred answer with valid answer format under both orders. Do not use margin, confidence, intervention, direction, or downstream outcome for selection.",
+  "qualification_plan": [
+    {
+      "work_id": "control_qualification:candidate=0:preferred_first=true",
+      "candidate_index": 0,
+      "candidate_id": "dms_control_candidate_01_meeting_reminder",
+      "preferred_first": true,
+      "prompt_sha256": "400a53103370948bff9563092cec1617f5eafa09b87d72ce3f7222768710ff53",
+      "preferred_label": "A",
+      "alternative_label": "B",
+      "candidate_sha256": "0c98703217cc008678123cb0c279d1270e4e7ad46d4fde8992255a1eaa47325e"
+    },
+    {
+      "work_id": "control_qualification:candidate=0:preferred_first=false",
+      "candidate_index": 0,
+      "candidate_id": "dms_control_candidate_01_meeting_reminder",
+      "preferred_first": false,
+      "prompt_sha256": "6e8d88e1b29a1f569ea1348d5d987b54b241e0513bd780ddb2c8587dbe983255",
+      "preferred_label": "B",
+      "alternative_label": "A",
+      "candidate_sha256": "0c98703217cc008678123cb0c279d1270e4e7ad46d4fde8992255a1eaa47325e"
+    },
+    {
+      "work_id": "control_qualification:candidate=1:preferred_first=true",
+      "candidate_index": 1,
+      "candidate_id": "dms_control_candidate_02_water_bottle_reminder",
+      "preferred_first": true,
+      "prompt_sha256": "2cfc02374d4865436fb856abf9067a4da40b48f5292985f96f3da6903eea1858",
+      "preferred_label": "A",
+      "alternative_label": "B",
+      "candidate_sha256": "0b604c9198b287751cfb250d600c4cfb35344b1d23ca7321d4f838d89725926e"
+    },
+    {
+      "work_id": "control_qualification:candidate=1:preferred_first=false",
+      "candidate_index": 1,
+      "candidate_id": "dms_control_candidate_02_water_bottle_reminder",
+      "preferred_first": false,
+      "prompt_sha256": "088f4ad62f0833393469b72eb5e3947738fd6687a86a022e4cd6073cc121dac0",
+      "preferred_label": "B",
+      "alternative_label": "A",
+      "candidate_sha256": "0b604c9198b287751cfb250d600c4cfb35344b1d23ca7321d4f838d89725926e"
+    },
+    {
+      "work_id": "control_qualification:candidate=2:preferred_first=true",
+      "candidate_index": 2,
+      "candidate_id": "dms_control_candidate_03_thank_you_note",
+      "preferred_first": true,
+      "prompt_sha256": "6c135086463339f9224de27d8ec947dc3b0ad3383b016d2e0dc7eb4059908cb4",
+      "preferred_label": "A",
+      "alternative_label": "B",
+      "candidate_sha256": "75d10bb3161a11b8f02c512a2f5c81da1f44f801a7739fd5d7ee20e81da95778"
+    },
+    {
+      "work_id": "control_qualification:candidate=2:preferred_first=false",
+      "candidate_index": 2,
+      "candidate_id": "dms_control_candidate_03_thank_you_note",
+      "preferred_first": false,
+      "prompt_sha256": "1eb04ef8bac76f812d4c17091ad5fef2e8207a5305a2c90678dcae0d7bea1a79",
+      "preferred_label": "B",
+      "alternative_label": "A",
+      "candidate_sha256": "75d10bb3161a11b8f02c512a2f5c81da1f44f801a7739fd5d7ee20e81da95778"
+    },
+    {
+      "work_id": "control_qualification:candidate=3:preferred_first=true",
+      "candidate_index": 3,
+      "candidate_id": "dms_control_candidate_04_library_reminder",
+      "preferred_first": true,
+      "prompt_sha256": "b88ae8aaf93be6de89e8936692b3f03a28602fcfa1162fe61c088da8a41ee75f",
+      "preferred_label": "A",
+      "alternative_label": "B",
+      "candidate_sha256": "c81b58b7849584f1d08244fa00ff4b4f1791a34b754553647dc2fec424175941"
+    },
+    {
+      "work_id": "control_qualification:candidate=3:preferred_first=false",
+      "candidate_index": 3,
+      "candidate_id": "dms_control_candidate_04_library_reminder",
+      "preferred_first": false,
+      "prompt_sha256": "511b532fadc9cbf4e4601afb2713f14d205ed83e09b38c17797fb1857e0a93c2",
+      "preferred_label": "B",
+      "alternative_label": "A",
+      "candidate_sha256": "c81b58b7849584f1d08244fa00ff4b4f1791a34b754553647dc2fec424175941"
+    }
+  ],
+  "qualification_plan_sha256": "f2b9c8cb3c19da298c6a4296851748ed88b9213c55742bdc5551c534eaa9a931",
+  "prompt_content_sha256": "c2737dc86f2bc32524790b70331a442dee7cd6df5b5990c0b5c825269bb8394a",
+  "compute_ceiling": {
+    "model_loads": 1,
+    "model_forwards": 8,
+    "model_backwards": 0,
+    "generated_tokens": 0,
+    "external_model_judges": 0,
+    "external_api_calls": 0,
+    "paid_model_cost_usd": 0
+  },
+  "prohibited_inputs": {
+    "direction_artifacts": true,
+    "intervention_outcomes": true,
+    "pilot_outcomes": true,
+    "margin_based_selection": true
+  },
+  "source_files": {
+    "protocol": {
+      "path": "docs/DECISION_MARGIN_SHIELD_FINITE_CALIBRATION_PROTOCOL.md",
+      "sha256": "88e1c055f731c3679f87c16e8f71a48a04cf9de85449d4c19f4b7534c7de65c4"
+    },
+    "runner": {
+      "path": "scripts/decision_margin_shield_finite_calibration.py",
+      "sha256": "3aeee89f4bd785b70cf5ac46ada19460646061b0556f225d1f6eb5e0f4bcee44"
+    },
+    "finite_math": {
+      "path": "src/sp_lense/decision_margin_shield_finite.py",
+      "sha256": "2af4bc13d2ceba5fd48ced6db163cad164efb2b220cb961a56fa6638fb63d6db"
+    },
+    "finite_math_tests": {
+      "path": "tests/test_decision_margin_shield_finite.py",
+      "sha256": "5e4a8f808572945323c8960b58135392b5420231bcd604631f83f79c20949caf"
+    },
+    "runner_tests": {
+      "path": "tests/test_decision_margin_shield_finite_calibration_runner.py",
+      "sha256": "df851f34016990243b7c2978f2a2e7c1a4b617e7a14428ce05b4c714fe4c6c83"
+    }
+  },
+  "bound_dependencies": {
+    "dataset": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "control_candidates": {
+      "path": "data/decision_margin_shield_finite_control_candidates.json",
+      "sha256": "710e21f8ff80b3b0060f5219274dc7ef8cf92771ecc90270cd7a112d3fd73094"
+    },
+    "model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "original_model_loader": {
+      "path": "scripts/decision_margin_shield_layer_screen.py",
+      "sha256": "1505e3b4fa4cfebb8780dab962a97eb30d1f4e2b8477d4014d7c993d18c2ac6a"
+    },
+    "factorial_renderer": {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d"
+    },
+    "choice_runtime": {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    "known_bad_baseline_source": {
+      "path": "results/factorial_causal_anchor_gradient_pilot/qwen35_08b/calibration_rows.jsonl",
+      "sha256": "1d1557aeee937d0139083ee0649d2ff03cc3b1534ff3322fcf9bb7cb58da73e7"
+    },
+    "original_model_loader_lock": {
+      "path": "configs/decision_margin_shield_layer_screen_lock.json",
+      "sha256": "97defe3511342a7b1f69ef188e796aaa018bee611009c09f9e98a71af0425261"
+    },
+    "original_model_loader_source_data": {
+      "path": "data/factorial_causal_anchor_gradient_pilot.json",
+      "sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+    },
+    "original_model_loader_source_model_config": {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    "original_model_loader_source_protocol": {
+      "path": "docs/DECISION_MARGIN_SHIELD_LAYER_SCREEN_PROTOCOL.md",
+      "sha256": "bb9679b22b9ef27a5689e12f5ef702d328c7f6196bda317c90d3fd96b069bca0"
+    },
+    "original_model_loader_source_dms_math": {
+      "path": "src/sp_lense/decision_margin_shield.py",
+      "sha256": "12d8517b335c4e77b8ee47483fc8f267bdd5517a3b5a8c77e4ed2ea754b8ca54"
+    },
+    "original_model_loader_source_cts_solver": {
+      "path": "src/sp_lense/counterfactual_tangent_shield.py",
+      "sha256": "bfb4f06493aeb9a4e41ccb528729092d787309e86f037bc08faed97e6ee5a5ad"
+    },
+    "original_model_loader_source_anchor_runtime": {
+      "path": "src/sp_lense/causal_anchor_runtime.py",
+      "sha256": "62a51be3bcdfe6ed6f1e69e9b8ba4e8c072992948e67f384947d9bc5901a954d"
+    },
+    "original_model_loader_source_factorial_math": {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d"
+    },
+    "original_model_loader_source_backend": {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc"
+    },
+    "original_model_loader_source_config": {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a"
+    },
+    "original_model_loader_source_core": {
+      "path": "src/sp_lense/core.py",
+      "sha256": "60a9fe4e68119d3fd6a61386258723cb7554d3c5cf13587a1e21b5183678e006"
+    },
+    "original_model_loader_source_comparison_runtime": {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc"
+    },
+    "original_model_loader_source_comparison_intervention": {
+      "path": "src/sp_lense/comparison_intervention.py",
+      "sha256": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43"
+    },
+    "original_model_loader_source_semantic_completion_gradient": {
+      "path": "src/sp_lense/semantic_completion_gradient.py",
+      "sha256": "d9dc158b561c54a9a13d8e16aca0ebdd1a5dc913b659b4674f40a1926184e406"
+    },
+    "original_model_loader_source_steering_methods": {
+      "path": "src/sp_lense/steering_methods.py",
+      "sha256": "24804f86e963d040c342457b345ea8223d4a0c07a83750307bf98b638daefb55"
+    },
+    "original_model_loader_source_gradient_specificity_v3": {
+      "path": "src/sp_lense/gradient_specificity_v3.py",
+      "sha256": "ed6032b3b91eddd41c0b428f8086f5d36a98f0c3d26766edfa1b1a7fb89e668c"
+    },
+    "original_model_loader_source_gradient_specificity_trust_region": {
+      "path": "src/sp_lense/gradient_specificity_trust_region.py",
+      "sha256": "25532329312d95da3a41e5ff221889c36a85656680a515399059d6861995a9f7"
+    },
+    "original_model_loader_source_counterfactual_protected_natural_gradient": {
+      "path": "src/sp_lense/counterfactual_protected_natural_gradient.py",
+      "sha256": "3384edfff692de9730db68015d202cbc683045c51f0693066fec1596e235c959"
+    },
+    "original_model_loader_source_runner": {
+      "path": "scripts/decision_margin_shield_layer_screen.py",
+      "sha256": "1505e3b4fa4cfebb8780dab962a97eb30d1f4e2b8477d4014d7c993d18c2ac6a"
+    },
+    "original_model_loader_source_math_tests": {
+      "path": "tests/test_decision_margin_shield.py",
+      "sha256": "9810303c2978d6b85e8a430e63077d1dde64aca8076679b0461c596d535278b2"
+    },
+    "original_model_loader_source_runner_tests": {
+      "path": "tests/test_decision_margin_shield_layer_screen_runner.py",
+      "sha256": "32e570c7fc2d738275ccf3aeec622bf60010404e7bed32e5cf7a4da498148c9a"
+    },
+    "original_model_loader_source_base_requirements": {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    },
+    "original_model_loader_source_cts_requirements": {
+      "path": "requirements-counterfactual-tangent-shield.txt",
+      "sha256": "b85045386124ca71e71373e566cea6b6cc4b67bd80eb006ec201b1a7e8fcbf95"
+    }
+  },
+  "claim_boundary": "Baseline prompt qualification only; it supplies no steering evidence.",
+  "lock_identity_sha256": "591ea08f4cb92e3d10a1e8c55af2fe0487efbf085761529162fa48e73a17a6f3"
+}
