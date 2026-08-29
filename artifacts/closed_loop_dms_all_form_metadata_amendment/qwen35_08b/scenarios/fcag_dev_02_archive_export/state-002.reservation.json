@@ -1,0 +1,48 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_trial_reservation.v1",
+  "status": "written_before_compute_reservation_and_candidate_forwards",
+  "lock_identity_sha256": "e0694aa6f59cfbb98028c1bf4c18141808f1099f156a0ef34993f5a5657ecab1",
+  "scenario_id": "fcag_dev_02_archive_export",
+  "trial_index": 2,
+  "work_id": "scenario:fcag_dev_02_archive_export:trial=2:48_signed_captures",
+  "reservation_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_02_archive_export/state-002.reservation.json",
+  "state_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_02_archive_export/state-002.pt",
+  "failure_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_02_archive_export/state-002.failure.json",
+  "parent_accepted_state_index": 0,
+  "parent_accepted_state_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_02_archive_export/state-000.pt",
+  "parent_accepted_checkpoint_sha256": "2367341d52747a73b64736907d8cce913bd7e4f6dc509a78bb8ca036ae91bbcb",
+  "parent_accepted_direction_sha256": "6a59e87358edb32a758e8a82673788d6f7e20809566db3e44f4206dec1a977e6",
+  "selected_progress_fraction": 0.0625,
+  "candidate_direction_sha256": "08665fde3223c1d47763117da17446e3fe56c5acf8ef53d92533f88ee2b49100",
+  "candidate_realized_update_sha256": "08665fde3223c1d47763117da17446e3fe56c5acf8ef53d92533f88ee2b49100",
+  "candidate_ideal_direction_sha256": "b063989a3e3b3b5758323d90357aa71a4e45bcca988c39281911a21b253a8be0",
+  "positive_physical_delta_float32_sha256": "b15f3b017de353c845815a86b4ffa6c390bc9c9d7fe208773b2d1cf9346e14a3",
+  "negative_physical_delta_float32_sha256": "08346396d1ed1d09a7ce083474b244e21fae09c0206c1abe6d0f89a4f6940818",
+  "solver_revalidation_sha256": "32141719b7d39c6241c338f92479218b244f7d4fc20a63233717c59d4426f990",
+  "solver_attempts": [
+    {
+      "progress_fraction": 0.25,
+      "status": "certified_infeasible_try_lower_progress",
+      "error_type": "SymmetricSequentialDMSInfeasibleError",
+      "error": "the certified minimum-L2 update exceeds the fixed trust radius"
+    },
+    {
+      "progress_fraction": 0.125,
+      "status": "previous_finite_trial_rejected_from_same_accepted_state"
+    },
+    {
+      "progress_fraction": 0.0625,
+      "status": "certified",
+      "diagnostics_sha256": "7b03f53954dc5bf4f19cfcd6f74a00469c0ab176c31baf8972906921c8e1f015",
+      "revalidation_sha256": "32141719b7d39c6241c338f92479218b244f7d4fc20a63233717c59d4426f990",
+      "step_l2": 0.08568595780224117,
+      "final_l2": 0.08568595780224117,
+      "path_l2": 0.08568595780224117
+    }
+  ],
+  "compute_reservation": {
+    "forward_evaluations": 48,
+    "backward_evaluations": 48
+  },
+  "reservation_sha256": "063a2865ccd017cf437f6393150b6cb29dd50b86339e29b783343f89c591aae6"
+}

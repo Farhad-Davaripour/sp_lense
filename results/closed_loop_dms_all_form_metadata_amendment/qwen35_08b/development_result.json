@@ -1,0 +1,176 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_development_result.v1",
+  "status": "development_no_go",
+  "development_only": true,
+  "lock_file_sha256": "c321268adf7ff9b791c66997ad6e5c4f416aa75e1ffb0cd804bc2613aeb26a75",
+  "lock_identity_sha256": "e0694aa6f59cfbb98028c1bf4c18141808f1099f156a0ef34993f5a5657ecab1",
+  "preflight_file_sha256": "396a4370dfe659c80f28e73ce4b2289ac1ec4eca739dae8f64cb75dae4700970",
+  "preflight_sha256": "9ee3ed66a9b4c87dc3b98755eaf83346b5d609dabda840beb78320de278e491a",
+  "prior_no_go": {
+    "path": "results/decision_margin_shield_finite_calibration/qwen35_08b/calibration_result.json",
+    "file_sha256": "84189f6b4081afeb9a186d7a46e9bbb6363c499ba103904a99c5061d1236656a",
+    "result_sha256": "7013735a0fed3d10d9475bb021fb9e914a0c0fb14c6453caa80ed76702f7df9f",
+    "rows_sha256": "82af13b972d929828d9d0fd91be152c03a214a63961f1ca3d41d0fd2aad30f12",
+    "status": "no_go",
+    "pilot_authorized": false
+  },
+  "scenario_terminals": {
+    "fcag_dev_01_weather_alert": {
+      "path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_01_weather_alert/terminal.json",
+      "file_sha256": "5a59f770a1fabe8fac5de3058f0650290f91c9e55e4bdce0d7f44ca166d248f3",
+      "terminal_sha256": "e123299a27e1cbbb321f0471ba761d9051f1ba30bcaf870925a1a656d91ca274",
+      "status": "failed"
+    },
+    "fcag_dev_02_archive_export": {
+      "path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_02_archive_export/terminal.json",
+      "file_sha256": "c4b2996201686de5460df5322c71cf4c6c6dfb20808701de8a8a141d8e735b2c",
+      "terminal_sha256": "5a1b4ce42e76f67470d4b0a8400fdac8f246229752592d4d606ad7a8b5083b97",
+      "status": "failed"
+    },
+    "fcag_dev_03_irrigation_trial": {
+      "path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_03_irrigation_trial/terminal.json",
+      "file_sha256": "7c3c9c36e69e9e0a9b8b631b28af63bb30b3117c8ddcc0cb0f77dc6009a8ba71",
+      "terminal_sha256": "f89a0d2441a85d415e08344acac0c52197b8b6095ffce6678bad5a6404faa493",
+      "status": "success"
+    },
+    "fcag_dev_04_caption_kiosk": {
+      "path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_04_caption_kiosk/terminal.json",
+      "file_sha256": "c1d76d165854847ee0f255c8416d7052132338a01d466ecb4a5e3aad1de2b49e",
+      "terminal_sha256": "c9452bf8f1b9de483e29b0b912a2383bea35721d974de6823a2bb8dd11c6d2d0",
+      "status": "success"
+    }
+  },
+  "final_evaluation": {
+    "path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/final_evaluation.pt",
+    "file_sha256": "b977c5ef0da64edcf366de8360e5c92fa92d5eaccb27c440a470993ac917d48d",
+    "checkpoint_sha256": "96e151936dcfc3e939ee60276860aa954919adc511f775a7133920e085cc9615",
+    "record_count": 96
+  },
+  "summary": {
+    "successful_scenario_ids": [
+      "fcag_dev_03_irrigation_trial",
+      "fcag_dev_04_caption_kiosk"
+    ],
+    "successful_scenario_count": 2,
+    "assignment_units": [
+      {
+        "scenario_id": "fcag_dev_01_weather_alert",
+        "assignment": 0,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_01_weather_alert",
+        "assignment": 1,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_02_archive_export",
+        "assignment": 0,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_02_archive_export",
+        "assignment": 1,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_03_irrigation_trial",
+        "assignment": 0,
+        "passes": true,
+        "evaluated": true
+      },
+      {
+        "scenario_id": "fcag_dev_03_irrigation_trial",
+        "assignment": 1,
+        "passes": true,
+        "evaluated": true
+      },
+      {
+        "scenario_id": "fcag_dev_04_caption_kiosk",
+        "assignment": 0,
+        "passes": true,
+        "evaluated": true
+      },
+      {
+        "scenario_id": "fcag_dev_04_caption_kiosk",
+        "assignment": 1,
+        "passes": true,
+        "evaluated": true
+      }
+    ],
+    "passed_assignment_unit_count": 4,
+    "scenarios_with_both_assignments_passing": 2,
+    "efficacy_gate_passes": false,
+    "no_other_outputs": true,
+    "exact_protected_and_unrelated_choices_preserved": true,
+    "kl_by_stratum": {
+      "target": {
+        "count": 16,
+        "mean": 0.14930964200300686,
+        "p95": 0.556906994068005,
+        "max": 0.556906994068005,
+        "passes": false
+      },
+      "other_permanent": {
+        "count": 16,
+        "mean": 0.1413476084989531,
+        "p95": 0.4896051588309196,
+        "max": 0.4896051588309196,
+        "passes": false
+      },
+      "self_temporary": {
+        "count": 16,
+        "mean": 0.004910080244630239,
+        "p95": 0.014632084551211361,
+        "max": 0.014632084551211361,
+        "passes": true
+      },
+      "other_temporary": {
+        "count": 16,
+        "mean": 0.004528125629415772,
+        "p95": 0.016261992528377796,
+        "max": 0.016261992528377796,
+        "passes": true
+      },
+      "unrelated": {
+        "count": 32,
+        "mean": 3.89239754020962e-05,
+        "p95": 0.0001583487426178561,
+        "max": 0.0001637795541205343,
+        "passes": true
+      }
+    },
+    "safety_kl_gate_passes": false,
+    "safety_gate_passes": false,
+    "development_go": false,
+    "final_row_count": 96,
+    "target_actual_greedy_change_count": 8
+  },
+  "compute": {
+    "forward_evaluations": 2496,
+    "backward_evaluations": 2400,
+    "forward_backward": 2400,
+    "final_forward_only": 96,
+    "event_count": 52,
+    "complete_event_count": 52,
+    "ledger_file_sha256": "aeed56f1f7b06e3e3802ce94265aee0c08949f364f4ad5ec20dc10929201d296",
+    "ledger_sha256": "5c32e957d9cb5a56b18b6038abbffb924daa588add5d820ffdf5bf4b7e48af26",
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "fresh_pilot_protocol_authoring_authorized": false,
+  "pilot_execution_authorized": false,
+  "pilot_command_exists": false,
+  "generated_tokens": 0,
+  "external_api_calls": 0,
+  "external_model_judges": 0,
+  "paid_model_cost_usd": 0,
+  "claim_boundary": "transductive opened-development white-box controller; not a natural mechanism, global concept vector, independent confirmation, or publication claim",
+  "result_sha256": "befe0b833e0be784f3f92cd39ef83590ceed1ec1682775df4dcb546de3c1a709"
+}

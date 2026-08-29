@@ -1,0 +1,287 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_result_serialization_amendment_lock.v1",
+  "status": "post_outcome_serialization_only_repair",
+  "prospective_experimental_lock": false,
+  "outcomes_already_observed_before_authorship": true,
+  "development_only": true,
+  "defect": {
+    "error_type": "KeyError",
+    "error_message": "'prior_no_go'",
+    "failure_site": "frozen base _build_result after all model work and summary",
+    "cause": "the frozen base serializer requires a top-level prior_no_go field, while the chained v1/v2/v3 amendment lock schemas preserve it only transitively"
+  },
+  "repair_scope": {
+    "allowed": [
+      "validate the immutable completed v3 artifacts",
+      "copy the transitively hash-bound base prior_no_go into an in-memory lock view",
+      "run the frozen model-free summary and result serializer",
+      "write only the previously absent result, amendment result, report, and repair record",
+      "route the locked conditional cross-encoding no-go path through the repaired replay"
+    ],
+    "forbidden": [
+      "v3 prepare_reuse_ledger",
+      "v3 run_development",
+      "model load",
+      "model forward or backward",
+      "trial recovery or retry",
+      "prompt, threshold, solver, direction, state, terminal, ledger, or final mutation",
+      "sealed evaluation access"
+    ],
+    "new_model_compute": 0,
+    "changes_experimental_outcomes": false,
+    "changes_claim_boundary": false
+  },
+  "v3": {
+    "lock_path": "configs/closed_loop_dms_all_form_metadata_amendment_lock.json",
+    "lock_file_sha256": "c321268adf7ff9b791c66997ad6e5c4f416aa75e1ffb0cd804bc2613aeb26a75",
+    "lock_identity_sha256": "e0694aa6f59cfbb98028c1bf4c18141808f1099f156a0ef34993f5a5657ecab1",
+    "cross_lock_path": "configs/closed_loop_dms_cross_encoding_all_form_metadata_amendment_lock.json",
+    "cross_lock_file_sha256": "3a47568e29821fec8ad4aeeea9eac157f82e036f40c14475e9d77af22085b5c0",
+    "cross_lock_identity_sha256": "7582e8550e14c42bebf5f9a7300d60a08f1e71eb31b0871cdbb496c282c12154",
+    "cross_preflight_path": "artifacts/closed_loop_dms_cross_encoding_all_form_metadata_amendment/qwen35_08b/preflight.json",
+    "cross_preflight_file_sha256": "d86b4d49e376723483c58156b9ba82b29fbadb0ba2edacc886c8b972be4c8717",
+    "artifact_root": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b",
+    "artifact_inventory": {
+      "file_count": 113,
+      "total_bytes": 207807197,
+      "inventory_sha256": "510ec2de69b8e7bdc606db42bf3dd737ea8d8bd11e05451cc3cf79091288f893"
+    },
+    "preflight_file_sha256": "396a4370dfe659c80f28e73ce4b2289ac1ec4eca739dae8f64cb75dae4700970",
+    "wiring_preflight_file_sha256": "4ddf4f371df37cd598ec3e2530098f507215f1c9595f091666708f668ba18842",
+    "ledger_file_sha256": "aeed56f1f7b06e3e3802ce94265aee0c08949f364f4ad5ec20dc10929201d296",
+    "ledger_sha256": "5c32e957d9cb5a56b18b6038abbffb924daa588add5d820ffdf5bf4b7e48af26",
+    "final_file_sha256": "b977c5ef0da64edcf366de8360e5c92fa92d5eaccb27c440a470993ac917d48d",
+    "final_checkpoint_sha256": "96e151936dcfc3e939ee60276860aa954919adc511f775a7133920e085cc9615"
+  },
+  "compatibility_field": {
+    "field": "prior_no_go",
+    "value": {
+      "path": "results/decision_margin_shield_finite_calibration/qwen35_08b/calibration_result.json",
+      "file_sha256": "84189f6b4081afeb9a186d7a46e9bbb6363c499ba103904a99c5061d1236656a",
+      "result_sha256": "7013735a0fed3d10d9475bb021fb9e914a0c0fb14c6453caa80ed76702f7df9f",
+      "rows_sha256": "82af13b972d929828d9d0fd91be152c03a214a63961f1ca3d41d0fd2aad30f12",
+      "status": "no_go",
+      "pilot_authorized": false
+    },
+    "value_sha256": "0d6b84c47e2748ea97ff431c5c8276521f015894a06e067a7270999783da4049",
+    "source": "v3.v2_lock -> v2.v1_lock -> v1.base_lock -> base.prior_no_go",
+    "used_only_in_the_serializer_lock_copy": true
+  },
+  "upstream_finite_calibration_ledger": {
+    "result_path": "results/decision_margin_shield_finite_calibration/qwen35_08b/calibration_result.json",
+    "result_file_sha256": "84189f6b4081afeb9a186d7a46e9bbb6363c499ba103904a99c5061d1236656a",
+    "result_sha256": "7013735a0fed3d10d9475bb021fb9e914a0c0fb14c6453caa80ed76702f7df9f",
+    "ledger_path": "artifacts/decision_margin_shield_finite_calibration/qwen35_08b/calibration_ledger.json",
+    "ledger_file_sha256": "e071f0095b3b74495eb9907e5fc5f60574e7e6c961a00368e1ddf1add5a076b0",
+    "ledger_sha256": "21d4d36b5668d840cd3c380074c4e1d5f8499edf431cd33a74edf55b1d170a04",
+    "event_count": 225,
+    "complete_event_count": 225,
+    "forward_evaluations": 1800,
+    "backward_evaluations": 0,
+    "all_225_event_artifacts_hash_validation_required_during_input_load": true
+  },
+  "partial_serialization_history": {
+    "status": "core_result_written_then_serializer_guard_introspection_failed",
+    "observed_utc": "2026-08-29T19:24:35Z",
+    "core_result_existed_at_history_authorship": true,
+    "failure_type": "KeyError",
+    "failure_message": "'_load_locked_inputs'",
+    "failure_site": "v3 _amendment_result -> run_metadata_wiring_preflight -> core.run_development.__globals__['_load_locked_inputs']",
+    "cause": "the first hard-fail run_development replacement used this serializer module's globals instead of the frozen core module globals required by the wiring audit",
+    "preserved_core_result": {
+      "path": "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/development_result.json",
+      "file_sha256": "90a006d6b0f08c8a4edaacd3e1545f8e47bf977d3ac2e5b0663105116944bd1c",
+      "result_sha256": "befe0b833e0be784f3f92cd39ef83590ceed1ec1682775df4dcb546de3c1a709",
+      "status": "development_no_go"
+    },
+    "outputs_absent_when_failure_was_observed": [
+      "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/amendment_result.json",
+      "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/DEVELOPMENT_REPORT.md",
+      "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/result_serialization_amendment.json",
+      "artifacts/closed_loop_dms_cross_encoding_all_form_metadata_amendment/qwen35_08b/compute_ledger.json",
+      "results/closed_loop_dms_cross_encoding_all_form_metadata_amendment/qwen35_08b/result.json",
+      "results/closed_loop_dms_cross_encoding_all_form_metadata_amendment/qwen35_08b/REPORT.md"
+    ],
+    "new_model_compute": 0,
+    "v3_model_artifacts_mutated": false,
+    "core_result_overwrite_authorized": false,
+    "retry_model_work_authorized": false
+  },
+  "observed_outcome_boundary": {
+    "terminal_statuses": {
+      "fcag_dev_01_weather_alert": "failed",
+      "fcag_dev_02_archive_export": "failed",
+      "fcag_dev_03_irrigation_trial": "success",
+      "fcag_dev_04_caption_kiosk": "success"
+    },
+    "summary": {
+      "successful_scenario_ids": [
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "successful_scenario_count": 2,
+      "assignment_units": [
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 0,
+          "passes": false,
+          "evaluated": false
+        },
+        {
+          "scenario_id": "fcag_dev_01_weather_alert",
+          "assignment": 1,
+          "passes": false,
+          "evaluated": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 0,
+          "passes": false,
+          "evaluated": false
+        },
+        {
+          "scenario_id": "fcag_dev_02_archive_export",
+          "assignment": 1,
+          "passes": false,
+          "evaluated": false
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 0,
+          "passes": true,
+          "evaluated": true
+        },
+        {
+          "scenario_id": "fcag_dev_03_irrigation_trial",
+          "assignment": 1,
+          "passes": true,
+          "evaluated": true
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 0,
+          "passes": true,
+          "evaluated": true
+        },
+        {
+          "scenario_id": "fcag_dev_04_caption_kiosk",
+          "assignment": 1,
+          "passes": true,
+          "evaluated": true
+        }
+      ],
+      "passed_assignment_unit_count": 4,
+      "scenarios_with_both_assignments_passing": 2,
+      "efficacy_gate_passes": false,
+      "no_other_outputs": true,
+      "exact_protected_and_unrelated_choices_preserved": true,
+      "kl_by_stratum": {
+        "target": {
+          "count": 16,
+          "mean": 0.14930964200300686,
+          "p95": 0.556906994068005,
+          "max": 0.556906994068005,
+          "passes": false
+        },
+        "other_permanent": {
+          "count": 16,
+          "mean": 0.1413476084989531,
+          "p95": 0.4896051588309196,
+          "max": 0.4896051588309196,
+          "passes": false
+        },
+        "self_temporary": {
+          "count": 16,
+          "mean": 0.004910080244630239,
+          "p95": 0.014632084551211361,
+          "max": 0.014632084551211361,
+          "passes": true
+        },
+        "other_temporary": {
+          "count": 16,
+          "mean": 0.004528125629415772,
+          "p95": 0.016261992528377796,
+          "max": 0.016261992528377796,
+          "passes": true
+        },
+        "unrelated": {
+          "count": 32,
+          "mean": 3.89239754020962e-05,
+          "p95": 0.0001583487426178561,
+          "max": 0.0001637795541205343,
+          "passes": true
+        }
+      },
+      "safety_kl_gate_passes": false,
+      "safety_gate_passes": false,
+      "development_go": false,
+      "final_row_count": 96,
+      "target_actual_greedy_change_count": 8
+    },
+    "compute": {
+      "forward_evaluations": 2496,
+      "backward_evaluations": 2400,
+      "forward_backward": 2400,
+      "final_forward_only": 96,
+      "event_count": 52,
+      "complete_event_count": 52,
+      "ledger_file_sha256": "aeed56f1f7b06e3e3802ce94265aee0c08949f364f4ad5ec20dc10929201d296",
+      "ledger_sha256": "5c32e957d9cb5a56b18b6038abbffb924daa588add5d820ffdf5bf4b7e48af26",
+      "generated_tokens": 0,
+      "external_api_calls": 0,
+      "external_model_judges": 0,
+      "paid_model_cost_usd": 0
+    },
+    "expected_result_sha256": "befe0b833e0be784f3f92cd39ef83590ceed1ec1682775df4dcb546de3c1a709"
+  },
+  "cross_no_go_required_zero": {
+    "scenario_root_exists": false,
+    "event_count": 0,
+    "complete_event_count": 0,
+    "forward_evaluations": 0,
+    "backward_evaluations": 0,
+    "forward_backward": 0,
+    "final_forward_only": 0,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "allowed_output_paths": [
+    "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/development_result.json",
+    "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/amendment_result.json",
+    "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/DEVELOPMENT_REPORT.md",
+    "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/result_serialization_amendment.json",
+    "artifacts/closed_loop_dms_cross_encoding_all_form_metadata_amendment/qwen35_08b/compute_ledger.json",
+    "results/closed_loop_dms_cross_encoding_all_form_metadata_amendment/qwen35_08b/result.json",
+    "results/closed_loop_dms_cross_encoding_all_form_metadata_amendment/qwen35_08b/REPORT.md"
+  ],
+  "sources": {
+    "serialization_amendment_runner": {
+      "path": "scripts/closed_loop_dms_result_serialization_amendment.py",
+      "sha256": "fcd1b4e68187ca579b4f8f137f6df02a2bbab057828a6fb926cd96d856696148"
+    },
+    "serialization_amendment_protocol": {
+      "path": "docs/CLOSED_LOOP_DMS_RESULT_SERIALIZATION_AMENDMENT.md",
+      "sha256": "aef6eacac2a8fb49d0a07317ecfa7cab194a9e73c7c5d57c4004c8a3e7630e6f"
+    },
+    "serialization_amendment_tests": {
+      "path": "tests/test_closed_loop_dms_result_serialization_amendment.py",
+      "sha256": "8dd0f9438bc1b1a27d699c92489ea630ee3a1a3b313033dec0f4d41151d76625"
+    },
+    "frozen_v3_runner": {
+      "path": "scripts/closed_loop_dms_all_form_metadata_amendment.py",
+      "sha256": "67df12a22e74d0f2c7b89601219d5fa47862141a27183004f429c3452f2be98d"
+    },
+    "frozen_v3_protocol": {
+      "path": "docs/CLOSED_LOOP_DMS_ALL_FORM_METADATA_AMENDMENT.md",
+      "sha256": "b294326feaeb30922f9a03fb4d683447e58b54f3ddc337bf0735792d46b7c6fb"
+    },
+    "frozen_v3_tests": {
+      "path": "tests/test_closed_loop_dms_all_form_metadata_amendment.py",
+      "sha256": "3305b703086d98c5e190e1158c0651468fd1670ee3de725bed9b526c28151c0d"
+    }
+  },
+  "claim_boundary": "transductive opened-development white-box controller; not a natural mechanism, global concept vector, independent confirmation, or publication claim",
+  "lock_identity_sha256": "4cb0a23535945183599691d6be08cd1d4fb007b9f2470ecbfd630a0bb4e77299"
+}

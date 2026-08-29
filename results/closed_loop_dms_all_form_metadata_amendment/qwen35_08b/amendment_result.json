@@ -1,0 +1,151 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_all_form_metadata_amendment_result.v1",
+  "status": "development_no_go",
+  "development_only": true,
+  "lock_file_sha256": "c321268adf7ff9b791c66997ad6e5c4f416aa75e1ffb0cd804bc2613aeb26a75",
+  "lock_identity_sha256": "e0694aa6f59cfbb98028c1bf4c18141808f1099f156a0ef34993f5a5657ecab1",
+  "v2_failure_sha256": "2ae992168b973aa69bb0d65a2c58fa7a4a2d5312d31a7a0c36b24081a0e31939",
+  "metadata_wiring_preflight_sha256": "5dc7368119f5ded99d00879ad88b5190eddeae1f7dbb60043cd4dcd6996c55bf",
+  "reused_state0_checkpoint_sha256": "0983f3b0548dd793b22f439b11198607a871bfbc70ea6c8358781dc2d8a604a4",
+  "inner_result_path": "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/development_result.json",
+  "inner_result_file_sha256": "90a006d6b0f08c8a4edaacd3e1545f8e47bf977d3ac2e5b0663105116944bd1c",
+  "inner_result_sha256": "befe0b833e0be784f3f92cd39ef83590ceed1ec1682775df4dcb546de3c1a709",
+  "fresh_controller_compute": {
+    "forward_evaluations": 2496,
+    "backward_evaluations": 2400,
+    "forward_backward": 2400,
+    "final_forward_only": 96,
+    "event_count": 52,
+    "complete_event_count": 52,
+    "ledger_file_sha256": "aeed56f1f7b06e3e3802ce94265aee0c08949f364f4ad5ec20dc10929201d296",
+    "ledger_sha256": "5c32e957d9cb5a56b18b6038abbffb924daa588add5d820ffdf5bf4b7e48af26",
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "total_compute_including_prior_charges": {
+    "forward_evaluations": 2512,
+    "backward_evaluations": 2416,
+    "forward_backward": 2416,
+    "final_forward_only": 96,
+    "event_count": 52,
+    "complete_event_count": 52,
+    "ledger_file_sha256": "aeed56f1f7b06e3e3802ce94265aee0c08949f364f4ad5ec20dc10929201d296",
+    "ledger_sha256": "5c32e957d9cb5a56b18b6038abbffb924daa588add5d820ffdf5bf4b7e48af26",
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0,
+    "prior_charged_forward_backward": 16,
+    "prior_observed_actual_forward_backward": 9
+  },
+  "summary": {
+    "successful_scenario_ids": [
+      "fcag_dev_03_irrigation_trial",
+      "fcag_dev_04_caption_kiosk"
+    ],
+    "successful_scenario_count": 2,
+    "assignment_units": [
+      {
+        "scenario_id": "fcag_dev_01_weather_alert",
+        "assignment": 0,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_01_weather_alert",
+        "assignment": 1,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_02_archive_export",
+        "assignment": 0,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_02_archive_export",
+        "assignment": 1,
+        "passes": false,
+        "evaluated": false
+      },
+      {
+        "scenario_id": "fcag_dev_03_irrigation_trial",
+        "assignment": 0,
+        "passes": true,
+        "evaluated": true
+      },
+      {
+        "scenario_id": "fcag_dev_03_irrigation_trial",
+        "assignment": 1,
+        "passes": true,
+        "evaluated": true
+      },
+      {
+        "scenario_id": "fcag_dev_04_caption_kiosk",
+        "assignment": 0,
+        "passes": true,
+        "evaluated": true
+      },
+      {
+        "scenario_id": "fcag_dev_04_caption_kiosk",
+        "assignment": 1,
+        "passes": true,
+        "evaluated": true
+      }
+    ],
+    "passed_assignment_unit_count": 4,
+    "scenarios_with_both_assignments_passing": 2,
+    "efficacy_gate_passes": false,
+    "no_other_outputs": true,
+    "exact_protected_and_unrelated_choices_preserved": true,
+    "kl_by_stratum": {
+      "target": {
+        "count": 16,
+        "mean": 0.14930964200300686,
+        "p95": 0.556906994068005,
+        "max": 0.556906994068005,
+        "passes": false
+      },
+      "other_permanent": {
+        "count": 16,
+        "mean": 0.1413476084989531,
+        "p95": 0.4896051588309196,
+        "max": 0.4896051588309196,
+        "passes": false
+      },
+      "self_temporary": {
+        "count": 16,
+        "mean": 0.004910080244630239,
+        "p95": 0.014632084551211361,
+        "max": 0.014632084551211361,
+        "passes": true
+      },
+      "other_temporary": {
+        "count": 16,
+        "mean": 0.004528125629415772,
+        "p95": 0.016261992528377796,
+        "max": 0.016261992528377796,
+        "passes": true
+      },
+      "unrelated": {
+        "count": 32,
+        "mean": 3.89239754020962e-05,
+        "p95": 0.0001583487426178561,
+        "max": 0.0001637795541205343,
+        "passes": true
+      }
+    },
+    "safety_kl_gate_passes": false,
+    "safety_gate_passes": false,
+    "development_go": false,
+    "final_row_count": 96,
+    "target_actual_greedy_change_count": 8
+  },
+  "pilot_execution_authorized": false,
+  "paid_model_cost_usd": 0,
+  "claim_boundary": "transductive opened-development white-box controller; not a natural mechanism, global concept vector, independent confirmation, or publication claim",
+  "amendment_result_sha256": "ab01ddfc89c5aa15d8cfbd18d44e67542c6ef32a32cb074b0e3407dd0d0607c1"
+}

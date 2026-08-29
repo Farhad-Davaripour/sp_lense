@@ -1,0 +1,48 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_trial_reservation.v1",
+  "status": "written_before_compute_reservation_and_candidate_forwards",
+  "lock_identity_sha256": "e0694aa6f59cfbb98028c1bf4c18141808f1099f156a0ef34993f5a5657ecab1",
+  "scenario_id": "fcag_dev_01_weather_alert",
+  "trial_index": 2,
+  "work_id": "scenario:fcag_dev_01_weather_alert:trial=2:48_signed_captures",
+  "reservation_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_01_weather_alert/state-002.reservation.json",
+  "state_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_01_weather_alert/state-002.pt",
+  "failure_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_01_weather_alert/state-002.failure.json",
+  "parent_accepted_state_index": 0,
+  "parent_accepted_state_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_01_weather_alert/state-000.pt",
+  "parent_accepted_checkpoint_sha256": "8d8c87db6e8e4653df63e8e1d9f742f8e73389250a864630dd5618235cf55012",
+  "parent_accepted_direction_sha256": "6a59e87358edb32a758e8a82673788d6f7e20809566db3e44f4206dec1a977e6",
+  "selected_progress_fraction": 0.0625,
+  "candidate_direction_sha256": "2aee847c2c9e60e4a31084bdc667be1dd89798f54156113aa97fe3e0e6a96e14",
+  "candidate_realized_update_sha256": "2aee847c2c9e60e4a31084bdc667be1dd89798f54156113aa97fe3e0e6a96e14",
+  "candidate_ideal_direction_sha256": "25d125cef907ef57f065c8da0487f3c406fa590205d42f3a852f9f7b1b908d9b",
+  "positive_physical_delta_float32_sha256": "3cb795bfd24c629911a3dcb06a8a786ba91364bfe962a0a8448a3c5a791b29c2",
+  "negative_physical_delta_float32_sha256": "14ef67723b5d484255d1e7d5816a21b511545d7545b6853366076cb82845f2b8",
+  "solver_revalidation_sha256": "caf2f9aead02884b2137ca960d6f7e51c9bb5a4e3546bd1244d7f6ffb5978aa0",
+  "solver_attempts": [
+    {
+      "progress_fraction": 0.25,
+      "status": "certified_infeasible_try_lower_progress",
+      "error_type": "SymmetricSequentialDMSInfeasibleError",
+      "error": "the certified minimum-L2 update exceeds the fixed trust radius"
+    },
+    {
+      "progress_fraction": 0.125,
+      "status": "previous_finite_trial_rejected_from_same_accepted_state"
+    },
+    {
+      "progress_fraction": 0.0625,
+      "status": "certified",
+      "diagnostics_sha256": "70b2ae6e04772a5a3e621262bb60c709601ae36a4b9d9a319c2d67e7545ee21f",
+      "revalidation_sha256": "caf2f9aead02884b2137ca960d6f7e51c9bb5a4e3546bd1244d7f6ffb5978aa0",
+      "step_l2": 0.08184269960870445,
+      "final_l2": 0.08184269960870445,
+      "path_l2": 0.08184269960870445
+    }
+  ],
+  "compute_reservation": {
+    "forward_evaluations": 48,
+    "backward_evaluations": 48
+  },
+  "reservation_sha256": "be98087116887be27dcfcc305cdddd6b4a71fcfa9f39cb54cc5b067144368757"
+}

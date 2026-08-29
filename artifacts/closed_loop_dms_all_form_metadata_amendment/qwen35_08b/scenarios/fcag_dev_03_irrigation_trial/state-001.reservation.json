@@ -1,0 +1,44 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_trial_reservation.v1",
+  "status": "written_before_compute_reservation_and_candidate_forwards",
+  "lock_identity_sha256": "e0694aa6f59cfbb98028c1bf4c18141808f1099f156a0ef34993f5a5657ecab1",
+  "scenario_id": "fcag_dev_03_irrigation_trial",
+  "trial_index": 1,
+  "work_id": "scenario:fcag_dev_03_irrigation_trial:trial=1:48_signed_captures",
+  "reservation_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_03_irrigation_trial/state-001.reservation.json",
+  "state_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_03_irrigation_trial/state-001.pt",
+  "failure_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_03_irrigation_trial/state-001.failure.json",
+  "parent_accepted_state_index": 0,
+  "parent_accepted_state_path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/scenarios/fcag_dev_03_irrigation_trial/state-000.pt",
+  "parent_accepted_checkpoint_sha256": "0e0aa6af2123c14d1c5236115400e8125f000cceffddc9bf58c8d39bc9f507aa",
+  "parent_accepted_direction_sha256": "6a59e87358edb32a758e8a82673788d6f7e20809566db3e44f4206dec1a977e6",
+  "selected_progress_fraction": 0.125,
+  "candidate_direction_sha256": "9b309601f90a1b354c19476803f8d50b321a4185b3f99f4715db4fd8c1ea9687",
+  "candidate_realized_update_sha256": "9b309601f90a1b354c19476803f8d50b321a4185b3f99f4715db4fd8c1ea9687",
+  "candidate_ideal_direction_sha256": "35db0e35295e4b5037a4a2af4f84d87ff27d5355e391406f7eb6b5a12ba82c72",
+  "positive_physical_delta_float32_sha256": "42da1266f4f7c7375cb02d70d0055cc9b445298303ddb1591006681cf6ea9cc3",
+  "negative_physical_delta_float32_sha256": "ddd02bbc5c10b1b6c5457e8a58f1fd82ff9571a3bfc53e130e79b7217d56e25d",
+  "solver_revalidation_sha256": "39cef416cda9237808dabd5cd3208c743606be516c965dfeaf35613ccd11109e",
+  "solver_attempts": [
+    {
+      "progress_fraction": 0.25,
+      "status": "certified_infeasible_try_lower_progress",
+      "error_type": "SymmetricSequentialDMSInfeasibleError",
+      "error": "the certified minimum-L2 update exceeds the fixed trust radius"
+    },
+    {
+      "progress_fraction": 0.125,
+      "status": "certified",
+      "diagnostics_sha256": "96bddb4533be73a068e84f65586c5d6e33ba57b9da93c1bb0be2e6dd3b874247",
+      "revalidation_sha256": "39cef416cda9237808dabd5cd3208c743606be516c965dfeaf35613ccd11109e",
+      "step_l2": 0.15763209913844164,
+      "final_l2": 0.15763209913844164,
+      "path_l2": 0.15763209913844164
+    }
+  ],
+  "compute_reservation": {
+    "forward_evaluations": 48,
+    "backward_evaluations": 48
+  },
+  "reservation_sha256": "ff80f77d2f11931fcbfe301f5068f2fbc04c830c9f019a660cff6753028c36c3"
+}
