@@ -1,0 +1,201 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_all_form_metadata_amendment_lock.v1",
+  "status": "prospective_all_form_metadata_lock_before_first_steering_forward",
+  "development_only": true,
+  "v2_lock": {
+    "path": "configs/closed_loop_dms_state0_context_amendment_lock.json",
+    "file_sha256": "7b39959ba21c8830f77925b95d9258bab60d4a214ea32cd1c734441851f3641f",
+    "lock_identity_sha256": "dcb1cf6cbfe10d9dc8bef2420699171098589d0e090e294364883272411d1b0c"
+  },
+  "v2_cross_lock": {
+    "path": "configs/closed_loop_dms_cross_encoding_state0_context_amendment_lock.json",
+    "file_sha256": "bdb0279c4b7910ba7e6d9a4e919b81463f2aeadc1e1f1fbc5851108b13fb0f0b",
+    "lock_identity_sha256": "54b7b853addab94d462498e101b53d04d6fc830619dd17514cc538a4e14c0ece"
+  },
+  "v2_failed_attempt": {
+    "path": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b/v2_all_form_failure.json",
+    "file_sha256": "9df755a1f438b23312898afca85a9b0ce493d1ea2069c88ca2ceba1b1827787d",
+    "failure_sha256": "2ae992168b973aa69bb0d65a2c58fa7a4a2d5312d31a7a0c36b24081a0e31939",
+    "new_model_compute": 0,
+    "steering_outcomes": 0
+  },
+  "reused_state0_checkpoint": {
+    "path": "artifacts/closed_loop_dms_state0_metadata_amendment/qwen35_08b/calibration_unrelated_state0.pt",
+    "file_sha256": "c95538d96774ef327c8b23676bb6b9e3d567c9c7c7edbe30c749e4ce58b2d979",
+    "checkpoint_sha256": "0983f3b0548dd793b22f439b11198607a871bfbc70ea6c8358781dc2d8a604a4",
+    "new_model_compute": 0
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+  "dataset": {
+    "path": "data/factorial_causal_anchor_gradient_pilot.json",
+    "file_sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+  },
+  "design": {
+    "selected_layer": 0,
+    "dimension": 1024,
+    "coordinate": "scenario_frozen_residual_scale_times_standardized_direction",
+    "direction_count": 4,
+    "shared_direction_scope": "within_each_scenario_one_D_shared_across_its_16_factorial_and_the_same_8_calibration_unrelated_forms",
+    "deployment": "+D_and_exact_float32_negation_minus_D",
+    "progress_schedule": [
+      0.25,
+      0.125,
+      0.0625
+    ],
+    "progress_selection": "largest_solver_certified_before_any_candidate_forward",
+    "trust_radius": 0.25,
+    "optimization_target_margin": 0.15,
+    "final_target_margin": 0.05,
+    "protected_floor": "min(0.025,0.5*abs(baseline_margin))",
+    "baseline_nuisance_null": "exact_for_complete_updated_direction",
+    "maximum_deployed_trial_states_per_scenario": 50,
+    "maximum_cumulative_path_l2": 2.0,
+    "maximum_final_direction_l2": 2.0,
+    "state0_reuse": {
+      "scenario_gradient_count": 64,
+      "baseline_logits_count": 72,
+      "new_calibration_unrelated_gradient_count": 8
+    },
+    "accepted_state_gate": "exact protected/unrelated unrestricted token and semantic preservation; no OTHER; protected floor; actual active-target progress at least 0.25 of predicted progress; unrelated endpoint error at most 0.05",
+    "minimum_realized_target_progress_fraction": 0.25,
+    "unrelated_linearization_error_cap": 0.05,
+    "scenario_success": "all_4_plus>=0.05_and_all_4_minus<=-0.05",
+    "overall_success": "at_least_3_of_4_scenarios_and_6_of_8_assignment_units_plus_safety_KL",
+    "kl_direction": "KL(changed||baseline)",
+    "kl_limits": {
+      "mean": 0.005,
+      "p95": 0.02,
+      "max": 0.05
+    },
+    "pilot_command": false,
+    "encoding_scope": {
+      "development_run_is_encoding_bound": true,
+      "current_encoding": "A/B",
+      "fresh_confirmation_requirement": "freeze_the_controller_then_test_A/B_X/Y_1/2_semantic_labels_and_open_ended_choices",
+      "claim_boundary": "answer-order invariance alone does not rule out output-identifier effects"
+    },
+    "retired_pilot_capture_handling": {
+      "allowed_tensor_chunks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        16
+      ],
+      "forbidden_tensor_chunks": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "intervention_outcomes_evaluated": false,
+      "pre_lock_access_disclosure": "legacy proposed-lock validation transiently deserialized retired pilot capture tensors before this safe-loader correction; those tensors were discarded and were not printed, analyzed, selected on, or used here",
+      "confirmation_status": "retired legacy pilot is not pristine confirmation evidence and will not be run"
+    },
+    "state0_metadata_amendment": {
+      "scope": "calibration_unrelated_finite_plan_forms_only",
+      "prompt_sha256": "text_sha256(form.prompt)",
+      "anchor_prefix_sha256": "text_sha256(form.anchor_prefix)",
+      "required_equality": "derived_hashes_equal_immutable_finite_baseline_hashes",
+      "changes_prompts_labels_anchors_gradients_solver_or_thresholds": false,
+      "partial_base_output_reuse": false
+    },
+    "state0_context_amendment": {
+      "scope": "locked_inputs_spec_by_form_for_eight_calibration_unrelated_forms",
+      "operation": "apply_the_v1_verified_two_hash_derivation_before_any_consumer",
+      "reused_checkpoint": "0983f3b0548dd793b22f439b11198607a871bfbc70ea6c8358781dc2d8a604a4",
+      "changes_prompts_labels_anchors_tensors_gradients_solver_or_thresholds": false,
+      "steering_outcomes_available_when_authored": false
+    },
+    "all_baseline_form_metadata_amendment": {
+      "scope": "all_64_scenario_plus_8_unrelated_baseline_forms",
+      "operation": "copy plan, derive prompt_sha256 and anchor_prefix_sha256, verify both against immutable baseline_by_form and capture evidence, and rebuild spec_by_form",
+      "runtime_views_repaired": [
+        "plan[:72]",
+        "spec_by_form"
+      ],
+      "changes_prompts_labels_anchors_tensors_gradients_solver_or_thresholds": false,
+      "locked_finite_plan_identity_must_remain_unchanged": true,
+      "model_free_context_solver_and_intervention_setup_preflight_required": true,
+      "steering_outcomes_available_when_authored": false
+    }
+  },
+  "fresh_controller_compute_ceiling": {
+    "forward": 9800,
+    "backward": 9608,
+    "forward_backward": 9608,
+    "final_forward_only": 192,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0,
+    "state0_new_forward_backward": 0,
+    "maximum_new_controller_forward_backward": 9600
+  },
+  "total_study_compute_ceiling": {
+    "forward": 9808,
+    "backward": 9616,
+    "forward_backward": 9616,
+    "final_forward_only": 192,
+    "prior_charged_forward_backward": 16,
+    "prior_observed_actual_forward_backward": 9,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "artifact_namespace": "artifacts/closed_loop_dms_all_form_metadata_amendment/qwen35_08b",
+  "result_namespace": "results/closed_loop_dms_all_form_metadata_amendment/qwen35_08b",
+  "sources": {
+    "all_form_amendment_runner": {
+      "path": "scripts/closed_loop_dms_all_form_metadata_amendment.py",
+      "sha256": "67df12a22e74d0f2c7b89601219d5fa47862141a27183004f429c3452f2be98d"
+    },
+    "all_form_amendment_protocol": {
+      "path": "docs/CLOSED_LOOP_DMS_ALL_FORM_METADATA_AMENDMENT.md",
+      "sha256": "b294326feaeb30922f9a03fb4d683447e58b54f3ddc337bf0735792d46b7c6fb"
+    },
+    "all_form_amendment_tests": {
+      "path": "tests/test_closed_loop_dms_all_form_metadata_amendment.py",
+      "sha256": "3305b703086d98c5e190e1158c0651468fd1670ee3de725bed9b526c28151c0d"
+    },
+    "frozen_v2_context_amendment_runner": {
+      "path": "scripts/closed_loop_dms_state0_context_amendment.py",
+      "sha256": "34749d9ebf6f2e515e9df148677bfdcd5ee2ad089e39bbe5471f671fab7d0c6f"
+    },
+    "frozen_base_cross_encoding_runner": {
+      "path": "scripts/closed_loop_dms_cross_encoding.py",
+      "sha256": "9d797924129fd5be22dc15fce8a5718646649f7165702b5841ddc570e80bce77"
+    }
+  },
+  "claim_boundary": "transductive opened-development white-box controller; not a natural mechanism, global concept vector, independent confirmation, or publication claim",
+  "lock_identity_sha256": "e0694aa6f59cfbb98028c1bf4c18141808f1099f156a0ef34993f5a5657ecab1"
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_v2_all_form_failure.v1",
+  "status": "v2_stopped_in_state0_assembly_before_model_load_or_steering",
+  "v2_lock_identity_sha256": "dcb1cf6cbfe10d9dc8bef2420699171098589d0e090e294364883272411d1b0c",
+  "v2_preflight_sha256": "7504d5ae66715b9861d8dca9883c4020758a9b85b4c768bccd8df9a7467e06cf",
+  "v2_ledger_sha256": "ecf11c94b6201524672de4c236b5ad11dfb77088e0867ce6a33c35f1408ed638",
+  "reused_state0_checkpoint_sha256": "0983f3b0548dd793b22f439b11198607a871bfbc70ea6c8358781dc2d8a604a4",
+  "error_type": "KeyError",
+  "error_message": "'prompt_sha256'",
+  "failure_site": "_state0_checkpoint on the first scenario form",
+  "root_cause": "v2 enriched spec_by_form only; runtime scenario contexts take their first 64 forms directly from plan[:64], whose form dictionaries remained unenriched",
+  "required_fix": "copy and enrich all 72 baseline rows in plan, then rebuild spec_by_form from those same enriched rows and verify both hashes against immutable baselines",
+  "v2_new_forward_evaluations": 0,
+  "v2_new_backward_evaluations": 0,
+  "v2_state0_checkpoint_files_created": 0,
+  "v2_steering_trial_forwards": 0,
+  "v2_model_loaded": false,
+  "self_preservation_intervention_outcomes_evaluated": false,
+  "cross_encoding_outcomes_evaluated": false,
+  "sealed_final_opened": false,
+  "retry_authorized_by_this_record": false,
+  "failure_sha256": "2ae992168b973aa69bb0d65a2c58fa7a4a2d5312d31a7a0c36b24081a0e31939"
+}
