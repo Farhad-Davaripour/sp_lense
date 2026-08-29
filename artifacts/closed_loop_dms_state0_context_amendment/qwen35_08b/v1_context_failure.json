@@ -1,0 +1,23 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_v1_context_failure.v1",
+  "status": "v1_stopped_after_complete_state0_capture_before_steering",
+  "v1_lock_identity_sha256": "abc4949f1ad2bc617ef623233b7d177b03b6b49964ad28bd3910dcefd8ef3471",
+  "v1_ledger_path": "artifacts/closed_loop_dms_state0_metadata_amendment/qwen35_08b/compute_ledger.json",
+  "v1_ledger_file_sha256": "c87612941bc52bec02318533802a414f92cd9555ae6500dd0794f422b4bfe9e1",
+  "v1_ledger_sha256": "b245f142be973b35b117a1190ee827207c3727d3be290a37e9982decdf03a444",
+  "v1_unrelated_checkpoint_path": "artifacts/closed_loop_dms_state0_metadata_amendment/qwen35_08b/calibration_unrelated_state0.pt",
+  "v1_unrelated_checkpoint_file_sha256": "c95538d96774ef327c8b23676bb6b9e3d567c9c7c7edbe30c749e4ce58b2d979",
+  "v1_unrelated_checkpoint_sha256": "0983f3b0548dd793b22f439b11198607a871bfbc70ea6c8358781dc2d8a604a4",
+  "error_type": "KeyError",
+  "error_message": "'prompt_sha256'",
+  "failure_site": "_state0_checkpoint while building shared scenario contexts",
+  "root_cause": "v1 enriched only the private capture-call input copy, not the locked inputs subsequently consumed by the shared context builder",
+  "completed_and_persisted_forward_backward_captures": 8,
+  "completed_checkpoint_reusable": true,
+  "partial_outputs": false,
+  "steering_trial_forwards": 0,
+  "self_preservation_intervention_outcomes_evaluated": false,
+  "retired_pilot_intervention_outcomes_evaluated": false,
+  "retry_authorized_by_this_record": false,
+  "failure_sha256": "20a7cdd169e005f32b149fa43ed0b5858484536ff3c02e67e13453bee86c1cdc"
+}
