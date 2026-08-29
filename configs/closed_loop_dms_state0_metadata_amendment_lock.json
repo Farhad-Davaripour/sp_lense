@@ -1,0 +1,175 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_state0_metadata_amendment_lock.v1",
+  "status": "prospective_retry_lock_after_state0_metadata_failure",
+  "development_only": true,
+  "base_lock": {
+    "path": "configs/closed_loop_dms_development_lock.json",
+    "file_sha256": "1b580fe6a5b3ae166704ec51e4507f596d2be0fd651adb5abfb847b4edd7c7a2",
+    "lock_identity_sha256": "5072a7346d98c5004d5567efd7b446fe22b2606fc6c536f1a6c752c1273f4d58"
+  },
+  "base_preflight": {
+    "path": "artifacts/closed_loop_dms_development/qwen35_08b/preflight.json",
+    "file_sha256": "ac9fe6bba4e6cbbfe34e15a0dea3fb93ddbbe9101700fead0e47123a5126b32e",
+    "preflight_sha256": "88f23a606c74928c36fb0cd411ee669dfac6b92201381a2a1ed18c501c5d44bb"
+  },
+  "base_failed_attempt": {
+    "path": "artifacts/closed_loop_dms_state0_metadata_amendment/qwen35_08b/base_attempt_failure.json",
+    "file_sha256": "6b521f63b8ad4f22ae67df7b0e213208267b8dd46eda607c0c710ed67426bc81",
+    "failure_sha256": "8e7f23ba2f4d72ee2c6a50f48704bf98fc63e9ad4809224d160c0852d5849eef",
+    "completed_ledger_path": "artifacts/closed_loop_dms_development/qwen35_08b/compute_ledger.json",
+    "completed_ledger_file_sha256": "cf94b509b1e2fd95f9c755f8eb1756c8b725582b9998490372c8fe266dc4f8ad",
+    "completed_ledger_sha256": "ad946573df85a3f67df0c79d6143ac7b2ea516a3b75d6de6792b739e27b19690",
+    "charged_forward_backward": 8,
+    "observed_actual_forward_backward": 1
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+  "dataset": {
+    "path": "data/factorial_causal_anchor_gradient_pilot.json",
+    "file_sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+  },
+  "design": {
+    "selected_layer": 0,
+    "dimension": 1024,
+    "coordinate": "scenario_frozen_residual_scale_times_standardized_direction",
+    "direction_count": 4,
+    "shared_direction_scope": "within_each_scenario_one_D_shared_across_its_16_factorial_and_the_same_8_calibration_unrelated_forms",
+    "deployment": "+D_and_exact_float32_negation_minus_D",
+    "progress_schedule": [
+      0.25,
+      0.125,
+      0.0625
+    ],
+    "progress_selection": "largest_solver_certified_before_any_candidate_forward",
+    "trust_radius": 0.25,
+    "optimization_target_margin": 0.15,
+    "final_target_margin": 0.05,
+    "protected_floor": "min(0.025,0.5*abs(baseline_margin))",
+    "baseline_nuisance_null": "exact_for_complete_updated_direction",
+    "maximum_deployed_trial_states_per_scenario": 50,
+    "maximum_cumulative_path_l2": 2.0,
+    "maximum_final_direction_l2": 2.0,
+    "state0_reuse": {
+      "scenario_gradient_count": 64,
+      "baseline_logits_count": 72,
+      "new_calibration_unrelated_gradient_count": 8
+    },
+    "accepted_state_gate": "exact protected/unrelated unrestricted token and semantic preservation; no OTHER; protected floor; actual active-target progress at least 0.25 of predicted progress; unrelated endpoint error at most 0.05",
+    "minimum_realized_target_progress_fraction": 0.25,
+    "unrelated_linearization_error_cap": 0.05,
+    "scenario_success": "all_4_plus>=0.05_and_all_4_minus<=-0.05",
+    "overall_success": "at_least_3_of_4_scenarios_and_6_of_8_assignment_units_plus_safety_KL",
+    "kl_direction": "KL(changed||baseline)",
+    "kl_limits": {
+      "mean": 0.005,
+      "p95": 0.02,
+      "max": 0.05
+    },
+    "pilot_command": false,
+    "encoding_scope": {
+      "development_run_is_encoding_bound": true,
+      "current_encoding": "A/B",
+      "fresh_confirmation_requirement": "freeze_the_controller_then_test_A/B_X/Y_1/2_semantic_labels_and_open_ended_choices",
+      "claim_boundary": "answer-order invariance alone does not rule out output-identifier effects"
+    },
+    "retired_pilot_capture_handling": {
+      "allowed_tensor_chunks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        16
+      ],
+      "forbidden_tensor_chunks": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "intervention_outcomes_evaluated": false,
+      "pre_lock_access_disclosure": "legacy proposed-lock validation transiently deserialized retired pilot capture tensors before this safe-loader correction; those tensors were discarded and were not printed, analyzed, selected on, or used here",
+      "confirmation_status": "retired legacy pilot is not pristine confirmation evidence and will not be run"
+    },
+    "state0_metadata_amendment": {
+      "scope": "calibration_unrelated_finite_plan_forms_only",
+      "prompt_sha256": "text_sha256(form.prompt)",
+      "anchor_prefix_sha256": "text_sha256(form.anchor_prefix)",
+      "required_equality": "derived_hashes_equal_immutable_finite_baseline_hashes",
+      "changes_prompts_labels_anchors_gradients_solver_or_thresholds": false,
+      "partial_base_output_reuse": false
+    }
+  },
+  "fresh_retry_compute_ceiling": {
+    "forward": 9800,
+    "backward": 9608,
+    "forward_backward": 9608,
+    "final_forward_only": 192,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "total_study_compute_ceiling_including_failed_base_charge": {
+    "forward": 9808,
+    "backward": 9616,
+    "forward_backward": 9616,
+    "final_forward_only": 192,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "artifact_namespace": "artifacts/closed_loop_dms_state0_metadata_amendment/qwen35_08b",
+  "result_namespace": "results/closed_loop_dms_state0_metadata_amendment/qwen35_08b",
+  "sources": {
+    "amendment_runner": {
+      "path": "scripts/closed_loop_dms_state0_metadata_amendment.py",
+      "sha256": "cdd0c88fae166591db479056a05563f1230bed96d06f41fb1ce5743829937b2f"
+    },
+    "amendment_protocol": {
+      "path": "docs/CLOSED_LOOP_DMS_STATE0_METADATA_AMENDMENT.md",
+      "sha256": "9b3b3390e6bf8b4f8dea10d7535d9a44539f350fe5a973b860f670d91467d52a"
+    },
+    "amendment_tests": {
+      "path": "tests/test_closed_loop_dms_state0_metadata_amendment.py",
+      "sha256": "98d333fbf87ba6ddcc404700edca9568cb9259ea34755105ff2a8ea2ed6effcf"
+    },
+    "frozen_base_core_runner": {
+      "path": "scripts/closed_loop_dms_development.py",
+      "sha256": "6faadf9a639235df285110ac1d702a2f27e2a2b05a7683157f7a372ddc0ba850"
+    },
+    "frozen_base_cross_runner": {
+      "path": "scripts/closed_loop_dms_cross_encoding.py",
+      "sha256": "9d797924129fd5be22dc15fce8a5718646649f7165702b5841ddc570e80bce77"
+    }
+  },
+  "claim_boundary": "transductive opened-development white-box controller; not a natural mechanism, global concept vector, independent confirmation, or publication claim",
+  "lock_identity_sha256": "abc4949f1ad2bc617ef623233b7d177b03b6b49964ad28bd3910dcefd8ef3471"
+}

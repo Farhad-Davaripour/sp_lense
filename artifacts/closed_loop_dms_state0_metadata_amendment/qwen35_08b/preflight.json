@@ -1,0 +1,140 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_development_preflight.v1",
+  "status": "ready_for_opened_development",
+  "development_only": true,
+  "lock_file_sha256": "1e6732ca463c91a266d881b95b1731ac30ff66c8892ac43736afba955bc18e4b",
+  "lock_identity_sha256": "abc4949f1ad2bc617ef623233b7d177b03b6b49964ad28bd3910dcefd8ef3471",
+  "prior_no_go_result_sha256": "7013735a0fed3d10d9475bb021fb9e914a0c0fb14c6453caa80ed76702f7df9f",
+  "finite_freeze_sha256": "1f098b8c1c19f10a631070a44df2144a600ff7bc30235f230a249e50593bb548",
+  "scenario_ids": [
+    "fcag_dev_01_weather_alert",
+    "fcag_dev_02_archive_export",
+    "fcag_dev_03_irrigation_trial",
+    "fcag_dev_04_caption_kiosk"
+  ],
+  "scenario_baseline_forms": 64,
+  "calibration_unrelated_baseline_forms": 8,
+  "nuisance_fit_forms": 8,
+  "baseline_logits": 72,
+  "selected_layer": 0,
+  "residual_scales": {
+    "fcag_dev_01_weather_alert": 0.6754377134427502,
+    "fcag_dev_02_archive_export": 0.6745618187889433,
+    "fcag_dev_03_irrigation_trial": 0.6768195426343696,
+    "fcag_dev_04_caption_kiosk": 0.6742350048204485
+  },
+  "compute_ceiling": {
+    "forward": 9800,
+    "backward": 9608,
+    "forward_backward": 9608,
+    "final_forward_only": 192,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "capture_loading_audit": {
+    "loader": "explicit_chunk_allowlist_no_broad_manifest_validation",
+    "manifest_path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_manifest.json",
+    "manifest_file_sha256": "0d3720ef0bcda3e6dd430aa6033b949404b726e4f616ada86e26b2bbc472a939",
+    "manifest_sha256": "cf654fa4bc42ea550138653a4927232888a3724cfb9451bf97b7b5551740faf0",
+    "loaded_chunk_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      16
+    ],
+    "retired_pilot_chunk_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "selected_chunk_files": [
+      {
+        "index": 0,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-000.pt",
+        "file_sha256": "99a5a0d53bf1d4540da690efab012f218e6bf80beabbae8f7fad452c39ffea17"
+      },
+      {
+        "index": 1,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-001.pt",
+        "file_sha256": "5cc5a931b5ecc45ba7cb5a3eba99568c598b85ea6a3ca36c0c3c30a52731af76"
+      },
+      {
+        "index": 2,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-002.pt",
+        "file_sha256": "3c450f760f448964e7122a9113a386542c6cccb0300cbf3520840f9ef317ac31"
+      },
+      {
+        "index": 3,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-003.pt",
+        "file_sha256": "f841c9bcfdfd1ed81ce9649bf3bae7630f23a01693526ce4580e9b38f4c776d8"
+      },
+      {
+        "index": 4,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-004.pt",
+        "file_sha256": "ba1a0424a3530fc7463d704f2258ba9429a05d6428b3042477d9a71a78e194f3"
+      },
+      {
+        "index": 5,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-005.pt",
+        "file_sha256": "2bfe0ffcf220e2d5701006a476c89f56ddbe8d028eb1d48a753acb8075d0aa70"
+      },
+      {
+        "index": 6,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-006.pt",
+        "file_sha256": "f0ba99860d6182381d44ba00f4fc17cf71b2e88fbc3ddbbe05075b41f96c8134"
+      },
+      {
+        "index": 7,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-007.pt",
+        "file_sha256": "d0b7a701ab3f3e76d62fde0ac873599296a1ad4b236bfbe6b9172a20a5824193"
+      },
+      {
+        "index": 16,
+        "path": "artifacts/decision_margin_shield_layer_screen/qwen35_08b/capture_chunks/chunk-016.pt",
+        "file_sha256": "98f502817f2b7c5e1f3eb209479e97a4f3ae7c3c44c36b7438a56a3e1577dfe3"
+      }
+    ],
+    "loaded_record_count": 72,
+    "loaded_work_ids_sha256": "9ceb8747e8ad0c5da1c954587a7cadff3cbe8dc0e1c96ccddd7462a2bf84f524",
+    "retired_pilot_tensor_chunks_deserialized_by_this_loader": false,
+    "pilot_intervention_outcomes_evaluated": false
+  },
+  "legacy_pilot_capture_tensor_access_disclosure": {
+    "transiently_deserialized_by_pre_lock_legacy_validation": true,
+    "printed_or_analyzed": false,
+    "used_for_CL_DMS_construction_or_selection": false,
+    "pilot_intervention_outcomes_evaluated": false,
+    "legacy_pilot_retired_as_confirmation": true
+  },
+  "model_loads": 0,
+  "model_forwards": 0,
+  "model_backwards": 0,
+  "generated_tokens": 0,
+  "pilot_outcomes_read": false,
+  "pilot_command_exists": false,
+  "preflight_sha256": "a7249877381e5e65f9d0a07627f1d9b7b71233c458ac2fdec7d0470cc65c9852"
+}
