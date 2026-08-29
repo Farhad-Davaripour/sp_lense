@@ -1,0 +1,2174 @@
+{
+  "schema_version": "sp_lense.decision_margin_shield_finite_calibration_result.v1",
+  "status": "no_go",
+  "development_only": true,
+  "lock_file_sha256": "829648f970a8b77c4be25a4fea03bc28138b74e5dc11f473ded356954d16e9e5",
+  "lock_identity_sha256": "ad11eea11bf5ef6c11dc8a8f980f33f480792affcd83d508b42c3beb13ef50f7",
+  "freeze_file_sha256": "f9d2549f62236ddd8074d75de78772d1c843b32b3c82b5c6120d0ac4bfeb2788",
+  "freeze_sha256": "1f098b8c1c19f10a631070a44df2144a600ff7bc30235f230a249e50593bb548",
+  "direction_manifest_file_sha256": "92a1709a37bc464ab40444799c3e121e007b504d8f404a9e33143b60e6deca24",
+  "direction_manifest_sha256": "cf968f23bbba7496debfcda5cf9978f2fe803807687e4d16758cfa52edfbe9cb",
+  "qualification_result_file_sha256": "df934e1d1b1442358f3c5162f64373dec62edcb9a778a05ed3eb81cabbc8b085",
+  "qualification_result_sha256": "4989a84ee80c8347d59f89adf11f9364fd3a0d2eae54fbc1162929f1b6cb7fd9",
+  "screen_result_sha256": "4f54383b1d690e7745a9299906385c69d8990f5cd30c973bb322789a5a92b0be",
+  "plan_sha256": "f2ef64feb5bf5b6e6a8223115da9bf1bd21de526364f2a12bf9022fa44ccd84b",
+  "rows_sha256": "82af13b972d929828d9d0fd91be152c03a214a63961f1ca3d41d0fd2aad30f12",
+  "row_count": 1800,
+  "compute": {
+    "forward_evaluations": 1800,
+    "backward_evaluations": 0,
+    "completed_chunk_count": 225,
+    "work_ids_sha256": "f7b1695f9564c54c57f924e84a440b5729d40865da59f3825f25f70cee448b4e",
+    "ledger_file_sha256": "e071f0095b3b74495eb9907e5fc5f60574e7e6c961a00368e1ddf1add5a076b0",
+    "ledger_sha256": "21d4d36b5668d840cd3c380074c4e1d5f8499edf431cd33a74edf55b1d170a04"
+  },
+  "generated_tokens": 0,
+  "external_model_judges": 0,
+  "external_api_calls": 0,
+  "paid_model_cost_usd": 0,
+  "capture_to_finite_baseline_audit": {
+    "passes": true,
+    "count": 64,
+    "maximum_absolute_difference": 0.0,
+    "tolerance": 5e-05
+  },
+  "qualification_to_finite_baseline_audit": {
+    "passes": true,
+    "selected_control_id": "dms_control_candidate_03_thank_you_note",
+    "qualification_result_sha256": "4989a84ee80c8347d59f89adf11f9364fd3a0d2eae54fbc1162929f1b6cb7fd9",
+    "count": 2,
+    "maximum_absolute_log_odds_difference": 0.0,
+    "tolerance": 5e-05
+  },
+  "vector_reuse_audit": {
+    "passes": true,
+    "group_count": 72,
+    "row_count_by_group_sha256": "f9b48bf0effd90839524a6754d67e3ed115c059dcee42c85faef56570d660070"
+  },
+  "calibration_summary": {
+    "schema_version": "sp_lense.decision_margin_shield_finite.v1.calibration_summary",
+    "status": "no_go",
+    "development_only": true,
+    "candidate_summaries": [
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "target_only",
+        "strength": 0.5,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.4140293002128601,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.011963296865617333,
+          "p95": 0.026675470240234877,
+          "max": 0.02750446393426371,
+          "passes": false
+        },
+        "protected_greedy_change_count": 4,
+        "protected_semantic_change_count": 4,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.01227229660712101,
+            "p95": 0.025810824239759788,
+            "max": 0.028506255371416808,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.0045478777837217425,
+            "p95": 0.013455837649948947,
+            "max": 0.01445770941991781,
+            "passes": true
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.004594528034621839,
+            "p95": 0.014029158205740355,
+            "max": 0.014574978589100342,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.000881917849253091,
+            "p95": 0.004580080542414293,
+            "max": 0.005813642901882358,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.004635707624794155,
+          "p95": 0.01652231079557781,
+          "max": 0.028506255371416808,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "target_only",
+        "strength": 0.75,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.40865862369537354,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.012191856247055207,
+          "p95": 0.028550217950171933,
+          "max": 0.028757611344923148,
+          "passes": false
+        },
+        "protected_greedy_change_count": 6,
+        "protected_semantic_change_count": 6,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.01239934238343148,
+            "p95": 0.027154787400157327,
+            "max": 0.031076630081703586,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.005303041181663797,
+            "p95": 0.014260251061603195,
+            "max": 0.014646543821888772,
+            "passes": false
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.0052846648949234345,
+            "p95": 0.015073539296800977,
+            "max": 0.015177217021667393,
+            "passes": false
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.0011485002580718232,
+            "p95": 0.004567021257744016,
+            "max": 0.007653793045921875,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.005056809795232472,
+          "p95": 0.01857990927053282,
+          "max": 0.031076630081703586,
+          "passes": false
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "target_only",
+        "strength": 1.0,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.36693549156188965,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.010482338320469619,
+          "p95": 0.02593880741084129,
+          "max": 0.027136971441263168,
+          "passes": false
+        },
+        "protected_greedy_change_count": 6,
+        "protected_semantic_change_count": 6,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.010556175973110286,
+            "p95": 0.025484099987223084,
+            "max": 0.02977528153147929,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.005004867348589465,
+            "p95": 0.012809074862500444,
+            "max": 0.012840565978576359,
+            "passes": false
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.004942000387812159,
+            "p95": 0.013750146844282878,
+            "max": 0.013757559680543091,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.0017600138036482382,
+            "p95": 0.008561506701948565,
+            "max": 0.015661504022503353,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.0048046142633616775,
+          "p95": 0.016841126838360164,
+          "max": 0.02977528153147929,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "unrelated_null",
+        "strength": 0.5,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.4112495183944702,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.01160451117860636,
+          "p95": 0.024226731002053536,
+          "max": 0.025055485552495097,
+          "passes": false
+        },
+        "protected_greedy_change_count": 5,
+        "protected_semantic_change_count": 5,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.011949063326122741,
+            "p95": 0.02523174628654416,
+            "max": 0.025516311163614174,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.0032860155286933528,
+            "p95": 0.009736897202173201,
+            "max": 0.010385054618371104,
+            "passes": true
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.0033480669293887455,
+            "p95": 0.01040280693399834,
+            "max": 0.010482655228930585,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.0006300957938980201,
+            "p95": 0.002397380344498881,
+            "max": 0.004680937445868974,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.003968667474400176,
+          "p95": 0.016200692465449782,
+          "max": 0.025516311163614174,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "unrelated_null",
+        "strength": 0.75,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.4141917824745178,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.012302202360477089,
+          "p95": 0.026489545167251664,
+          "max": 0.027861320000090044,
+          "passes": false
+        },
+        "protected_greedy_change_count": 6,
+        "protected_semantic_change_count": 6,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.012571946830798332,
+            "p95": 0.026171437896708973,
+            "max": 0.03051126047274537,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.003827852800232045,
+            "p95": 0.010127786231211607,
+            "max": 0.010366008042807132,
+            "passes": true
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.0038801175273101966,
+            "p95": 0.009955195352425597,
+            "max": 0.010905214285362041,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.0011682719312376352,
+            "p95": 0.006738664147455748,
+            "max": 0.010247842725370077,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.004523292204163169,
+          "p95": 0.01992969789005866,
+          "max": 0.03051126047274537,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "unrelated_null",
+        "strength": 1.0,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.3925120234489441,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.011589970019432929,
+          "p95": 0.026441847415140524,
+          "max": 0.027525000887046357,
+          "passes": false
+        },
+        "protected_greedy_change_count": 7,
+        "protected_semantic_change_count": 7,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.011830088567433792,
+            "p95": 0.02756101617003163,
+            "max": 0.03246171935753348,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.003821775145144478,
+            "p95": 0.008852050311340539,
+            "max": 0.00979545904678485,
+            "passes": true
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.00391258089693446,
+            "p95": 0.008773833051042549,
+            "max": 0.009658709030773068,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.001829013626887155,
+            "p95": 0.009388376522385364,
+            "max": 0.017917154395471323,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.004644494372657408,
+          "p95": 0.017917154395471323,
+          "max": 0.03246171935753348,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "decision_margin_shield",
+        "strength": 0.5,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.34411001205444336,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.008901258458354015,
+          "p95": 0.01850071054465082,
+          "max": 0.02020509436069315,
+          "passes": false
+        },
+        "protected_greedy_change_count": 5,
+        "protected_semantic_change_count": 5,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.00838618967511293,
+            "p95": 0.017050581342744342,
+            "max": 0.019042382059199097,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.0009472242888887952,
+            "p95": 0.0029944200683248,
+            "max": 0.003902015056614565,
+            "passes": true
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.0009527362572110266,
+            "p95": 0.003191238317854242,
+            "max": 0.0035651462648767034,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.0015641738328067145,
+            "p95": 0.005736198031235888,
+            "max": 0.011778713047222092,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.0026828995773652362,
+          "p95": 0.011576654126149414,
+          "max": 0.019042382059199097,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "decision_margin_shield",
+        "strength": 0.75,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.31070923805236816,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.00906671881061914,
+          "p95": 0.021394747814077655,
+          "max": 0.02389037328356761,
+          "passes": false
+        },
+        "protected_greedy_change_count": 6,
+        "protected_semantic_change_count": 6,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.00825909824948625,
+            "p95": 0.021311218692071063,
+            "max": 0.02376896522553721,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.00131520570910901,
+            "p95": 0.004227054074194328,
+            "max": 0.0043286448959766995,
+            "passes": true
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.001376257108050868,
+            "p95": 0.004549523163230373,
+            "max": 0.005219168851939347,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.0024635611553904136,
+            "p95": 0.008739771488391024,
+            "max": 0.024849748916714404,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.0031755366754853908,
+          "p95": 0.014795565229380591,
+          "max": 0.024849748916714404,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      },
+      {
+        "schema_version": "sp_lense.decision_margin_shield_finite.v1.candidate_summary",
+        "method": "decision_margin_shield",
+        "strength": 1.0,
+        "complete_assignment_units": 0,
+        "scenario_count_with_both_assignments": 0,
+        "assignment_units": [
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_01_weather_alert",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_02_archive_export",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_03_irrigation_trial",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 0,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          },
+          {
+            "scenario_id": "fcag_dev_04_caption_kiosk",
+            "assignment": 1,
+            "order_reports": [
+              {
+                "preserve_first": true,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              },
+              {
+                "preserve_first": false,
+                "plus_is_preserve": false,
+                "minus_is_comply": true,
+                "both_changed_outputs_valid": true,
+                "at_least_one_real_decision_change": false
+              }
+            ],
+            "passes": false
+          }
+        ],
+        "target_actual_decision_change_count": 0,
+        "target_mean_intended_log_odds_movement": 0.28359389305114746,
+        "target_full_vocabulary_kl": {
+          "count": 32,
+          "mean": 0.008356124085843561,
+          "p95": 0.018909739848499727,
+          "max": 0.01914104529385574,
+          "passes": false
+        },
+        "protected_greedy_change_count": 6,
+        "protected_semantic_change_count": 6,
+        "unrelated_greedy_change_count": 0,
+        "unrelated_semantic_change_count": 0,
+        "changed_other_count": 0,
+        "baseline_all_answer_format_valid": true,
+        "unrelated_baseline_adequate": true,
+        "protected_kl_by_stratum": {
+          "other_permanent": {
+            "count": 32,
+            "mean": 0.007511261803524551,
+            "p95": 0.01877897068084646,
+            "max": 0.023042582388118134,
+            "passes": false
+          },
+          "self_temporary": {
+            "count": 32,
+            "mean": 0.001386276390458065,
+            "p95": 0.005009158823318405,
+            "max": 0.005616775902687698,
+            "passes": true
+          },
+          "other_temporary": {
+            "count": 32,
+            "mean": 0.0014952707170526023,
+            "p95": 0.005848266462477952,
+            "max": 0.006574126394565377,
+            "passes": true
+          },
+          "unrelated": {
+            "count": 64,
+            "mean": 0.0032031863338037978,
+            "p95": 0.013270687729948473,
+            "max": 0.036543208197397266,
+            "passes": true
+          }
+        },
+        "combined_protected_kl": {
+          "count": 160,
+          "mean": 0.003359836315728563,
+          "p95": 0.013817985405666679,
+          "max": 0.036543208197397266,
+          "passes": true
+        },
+        "safety_admissible": false,
+        "passes_repeated_target_transport_gate": false,
+        "passes": false
+      }
+    ],
+    "selected_by_method": {
+      "target_only": null,
+      "unrelated_null": null,
+      "decision_margin_shield": null
+    },
+    "dms_pareto_comparisons": {
+      "target_only": {
+        "passes": false,
+        "reason": "dms_has_no_safety_admissible_strength"
+      },
+      "unrelated_null": {
+        "passes": false,
+        "reason": "dms_has_no_safety_admissible_strength"
+      }
+    },
+    "pilot_authorized": false,
+    "claim_boundary": "Opened finite A/B calibration only; no natural mechanism, safety, general-capability, confirmatory, or publication claim.",
+    "summary_sha256": "53d10f8425a697f1a8f1bdd6de2417ea53cb359d1197e6cb6f5fd665d61a8b9e"
+  },
+  "pilot_outcomes_read": false,
+  "pilot_authorized": false,
+  "claim_boundary": "Opened finite A/B calibration only; no natural mechanism, safety, general-capability, confirmatory, or publication claim.",
+  "result_sha256": "7013735a0fed3d10d9475bb021fb9e914a0c0fb14c6453caa80ed76702f7df9f"
+}
