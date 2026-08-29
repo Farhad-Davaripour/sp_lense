@@ -1,0 +1,30 @@
+{
+  "schema_version": "sp_lense.counterfactual_kl_extragradient_ledger.v1",
+  "split": "validation",
+  "lock_identity_sha256": "02f869f9d332027982f02d4b7df17712c4b5e7389da9978ef5cca715b808cccf",
+  "ceiling": {
+    "forward": 5648,
+    "backward": 5456,
+    "forward_backward": 5456,
+    "final_forward_only": 192,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "events": [
+    {
+      "event_index": 0,
+      "work_id": "validation:state0:80_baseline_margin_gradient_captures",
+      "kind": "state0_baseline_margin_gradient_and_full_logits",
+      "forward_evaluations": 80,
+      "backward_evaluations": 80,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient/qwen35_08b/validation/state0_baseline.pt",
+      "artifact_sha256": "e8d2e2ba10fb09d3ca520b1aa71f9531a9d35f145dc8c1e083e1f404f8fca8ca",
+      "prior_event_sha256": null,
+      "event_sha256": "a33247aa781b4bfcd732cb6b62a0b2ca9336e2ac74365a3c822767b04e64a845"
+    }
+  ],
+  "ledger_sha256": "1dc85644e9ee4cf4fc205a05f3ca8b16a01def444d45d5c9dc68ddbfb2689255"
+}
