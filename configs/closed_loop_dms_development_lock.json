@@ -1,0 +1,173 @@
+{
+  "schema_version": "sp_lense.closed_loop_dms_development_lock.v1",
+  "status": "prospective_opened_development_lock",
+  "development_only": true,
+  "normative_protocol_location": "embedded_design_record_in_this_lock",
+  "background_protocol_is_non_normative": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.15.1",
+    "transformer_lens": "4.0.0b1",
+    "huggingface_hub": "1.28.0",
+    "safetensors": "0.8.0",
+    "numpy": "2.5.2",
+    "scipy": "1.18.1",
+    "torch_intraop_threads": 12,
+    "torch_interop_threads": 12
+  },
+  "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+  "dataset": {
+    "path": "data/factorial_causal_anchor_gradient_pilot.json",
+    "file_sha256": "816febb0f37e1053972766b813ca341465793622b5757c5887e447679631100f"
+  },
+  "finite_freeze": {
+    "path": "artifacts/decision_margin_shield_finite_calibration/qwen35_08b/calibration_freeze.json",
+    "file_sha256": "f9d2549f62236ddd8074d75de78772d1c843b32b3c82b5c6120d0ac4bfeb2788",
+    "freeze_sha256": "1f098b8c1c19f10a631070a44df2144a600ff7bc30235f230a249e50593bb548",
+    "lock_identity_sha256": "ad11eea11bf5ef6c11dc8a8f980f33f480792affcd83d508b42c3beb13ef50f7",
+    "plan_sha256": "f2ef64feb5bf5b6e6a8223115da9bf1bd21de526364f2a12bf9022fa44ccd84b",
+    "plan_length": 1800
+  },
+  "prior_no_go": {
+    "path": "results/decision_margin_shield_finite_calibration/qwen35_08b/calibration_result.json",
+    "file_sha256": "84189f6b4081afeb9a186d7a46e9bbb6363c499ba103904a99c5061d1236656a",
+    "result_sha256": "7013735a0fed3d10d9475bb021fb9e914a0c0fb14c6453caa80ed76702f7df9f",
+    "rows_sha256": "82af13b972d929828d9d0fd91be152c03a214a63961f1ca3d41d0fd2aad30f12",
+    "status": "no_go",
+    "pilot_authorized": false
+  },
+  "design": {
+    "selected_layer": 0,
+    "dimension": 1024,
+    "coordinate": "scenario_frozen_residual_scale_times_standardized_direction",
+    "direction_count": 4,
+    "shared_direction_scope": "within_each_scenario_one_D_shared_across_its_16_factorial_and_the_same_8_calibration_unrelated_forms",
+    "deployment": "+D_and_exact_float32_negation_minus_D",
+    "progress_schedule": [
+      0.25,
+      0.125,
+      0.0625
+    ],
+    "progress_selection": "largest_solver_certified_before_any_candidate_forward",
+    "trust_radius": 0.25,
+    "optimization_target_margin": 0.15,
+    "final_target_margin": 0.05,
+    "protected_floor": "min(0.025,0.5*abs(baseline_margin))",
+    "baseline_nuisance_null": "exact_for_complete_updated_direction",
+    "maximum_deployed_trial_states_per_scenario": 50,
+    "maximum_cumulative_path_l2": 2.0,
+    "maximum_final_direction_l2": 2.0,
+    "state0_reuse": {
+      "scenario_gradient_count": 64,
+      "baseline_logits_count": 72,
+      "new_calibration_unrelated_gradient_count": 8
+    },
+    "accepted_state_gate": "exact protected/unrelated unrestricted token and semantic preservation; no OTHER; protected floor; actual active-target progress at least 0.25 of predicted progress; unrelated endpoint error at most 0.05",
+    "minimum_realized_target_progress_fraction": 0.25,
+    "unrelated_linearization_error_cap": 0.05,
+    "scenario_success": "all_4_plus>=0.05_and_all_4_minus<=-0.05",
+    "overall_success": "at_least_3_of_4_scenarios_and_6_of_8_assignment_units_plus_safety_KL",
+    "kl_direction": "KL(changed||baseline)",
+    "kl_limits": {
+      "mean": 0.005,
+      "p95": 0.02,
+      "max": 0.05
+    },
+    "pilot_command": false,
+    "encoding_scope": {
+      "development_run_is_encoding_bound": true,
+      "current_encoding": "A/B",
+      "fresh_confirmation_requirement": "freeze_the_controller_then_test_A/B_X/Y_1/2_semantic_labels_and_open_ended_choices",
+      "claim_boundary": "answer-order invariance alone does not rule out output-identifier effects"
+    },
+    "retired_pilot_capture_handling": {
+      "allowed_tensor_chunks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        16
+      ],
+      "forbidden_tensor_chunks": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "intervention_outcomes_evaluated": false,
+      "pre_lock_access_disclosure": "legacy proposed-lock validation transiently deserialized retired pilot capture tensors before this safe-loader correction; those tensors were discarded and were not printed, analyzed, selected on, or used here",
+      "confirmation_status": "retired legacy pilot is not pristine confirmation evidence and will not be run"
+    }
+  },
+  "compute_ceiling": {
+    "forward": 9800,
+    "backward": 9608,
+    "forward_backward": 9608,
+    "final_forward_only": 192,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "sources": {
+    "runner": {
+      "path": "scripts/closed_loop_dms_development.py",
+      "sha256": "6faadf9a639235df285110ac1d702a2f27e2a2b05a7683157f7a372ddc0ba850"
+    },
+    "runner_tests": {
+      "path": "tests/test_closed_loop_dms_development_runner.py",
+      "sha256": "1895d0361f68bc0edf4b23be9a17da9fb9cdcf0758a481c7f50c50baa79f6edc"
+    },
+    "sequential_math": {
+      "path": "src/sp_lense/symmetric_sequential_trust_region_dms.py",
+      "sha256": "29d4d1b42fba8b7546198c407d0947961a19a1b669252d1a742c9ee48a624ab4"
+    },
+    "sequential_math_tests": {
+      "path": "tests/test_symmetric_sequential_trust_region_dms.py",
+      "sha256": "4f17fba8fdb54dcc2be23f3dec2510644ea9bdbe9b03b7c0523f0bab0b157bd7"
+    },
+    "closed_loop_runtime": {
+      "path": "src/sp_lense/closed_loop_dms_runtime.py",
+      "sha256": "558977d71acc303eef2c91c0c9f4bd3eacb37255c55830735aad6cec53695608"
+    },
+    "closed_loop_runtime_tests": {
+      "path": "tests/test_closed_loop_dms_runtime.py",
+      "sha256": "b42ec5f55f310762564f147c3a6250f9b77404af3fbcce96bcf9567d5ac32fed"
+    },
+    "finite_compatibility_runner": {
+      "path": "scripts/decision_margin_shield_finite_capture_manifest_amendment.py",
+      "sha256": "3ada3ade511758cc36e9f49a2ce2c0308104efb0c3176789e1e3b1e6d7a97245"
+    },
+    "frozen_finite_runner": {
+      "path": "scripts/decision_margin_shield_finite_calibration.py",
+      "sha256": "3aeee89f4bd785b70cf5ac46ada19460646061b0556f225d1f6eb5e0f4bcee44"
+    },
+    "failure_analysis": {
+      "path": "docs/DECISION_MARGIN_SHIELD_FINITE_FAILURE_ANALYSIS.md",
+      "sha256": "807fd16932f0faa1d949e9ed32e24e52c4689349e598adf66ed18f2a6790896e"
+    },
+    "background_protocol_non_normative": {
+      "path": "docs/CLOSED_LOOP_DMS_DEVELOPMENT_PROTOCOL.md",
+      "sha256": "6bb42231525a96c80b81b372581e3a0d6237a7ce03819a7a7298f5b3d2ed3fd4"
+    }
+  },
+  "claim_boundary": "transductive opened-development white-box controller; not a natural mechanism, global concept vector, independent confirmation, or publication claim",
+  "lock_identity_sha256": "5072a7346d98c5004d5567efd7b446fe22b2606fc6c536f1a6c752c1273f4d58"
+}

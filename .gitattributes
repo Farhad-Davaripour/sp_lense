@@ -21,3 +21,12 @@ artifacts/interface_equivariant_exact_head_development/** -text -diff
 results/interface_equivariant_exact_head_development/** -text -diff
 artifacts/interface_equivariant_exact_head_development/**/*.pt filter=lfs diff=lfs merge=lfs -text
 results/interface_equivariant_exact_head_development/**/*.pt filter=lfs diff=lfs merge=lfs -text
+
+# Closed-loop DMS checkpoints and cross-encoding full-vocabulary tensors are
+# immutable hash-bound experiment artifacts; large tensors use Git LFS.
+artifacts/closed_loop_dms_development/** -text -diff
+results/closed_loop_dms_development/** -text -diff
+artifacts/closed_loop_dms_development/**/*.pt filter=lfs diff=lfs merge=lfs -text
+artifacts/closed_loop_dms_cross_encoding/** -text -diff
+results/closed_loop_dms_cross_encoding/** -text -diff
+artifacts/closed_loop_dms_cross_encoding/**/*.pt filter=lfs diff=lfs merge=lfs -text
