@@ -1,0 +1,45 @@
+{
+  "schema_version": "sp_lense.counterfactual_kl_extragradient_terminal.v1",
+  "status": "failed",
+  "outcome_class": "scientific_no_success",
+  "split": "validation",
+  "lock_identity_sha256": "1f2ab54f4799d03089cb38100b124af2f168df75d5932666ebb3a656e0ea39d3",
+  "scenario_id": "ckes_v2_val_02_canoe_varnish",
+  "state_trial_index": 0,
+  "state_checkpoint_sha256": "4703dfee1e340bc3e900900b4db98618ddbb14a653fea6f22050bf977e0dc8ce",
+  "state_direction_sha256": "6a59e87358edb32a758e8a82673788d6f7e20809566db3e44f4206dec1a977e6",
+  "reason": "no locked progress fraction produced an accepted CKES state",
+  "extra": {
+    "attempts": [
+      {
+        "progress_fraction": 0.25,
+        "status": "certified_infeasible_try_lower_progress",
+        "error_type": "SymmetricSequentialDMSInfeasibleError",
+        "error": "the certified minimum-L2 update exceeds the fixed trust radius"
+      },
+      {
+        "progress_fraction": 0.125,
+        "status": "certified",
+        "nominal_diagnostics_sha256": "037d144f8c0635290385bfa2e3f54046942d2520a7dfe77f2990453a6a9cf21f",
+        "nominal_revalidation_sha256": "74924b3d4edd0e9ff596db45c15712c267742ed1c3cbe63e3dd73f35cc19f6b3",
+        "ckes_diagnostics_sha256": "ee1936050bb585d6d2a33fe4324917d3a5d525b333c38b02175d1cad651bdc86",
+        "ckes_revalidation_sha256": "02e5d87190aea8269e53e320de179db44b48d54fe1c7a7650f0f817a93ff4fdd",
+        "step_l2": 0.12818654273533592,
+        "final_l2": 0.12818654273533592,
+        "path_l2": 0.12818654273533592
+      },
+      {
+        "progress_fraction": 0.0625,
+        "status": "certified",
+        "nominal_diagnostics_sha256": "11f62c73f32f8ee70c5aca3383d450e17ea8fc8b7dbf8d14e41a7562e00a819d",
+        "nominal_revalidation_sha256": "6d69f9fce225a76444e51c452af3449bea935881e7cd49af778a66a7733bc8ed",
+        "ckes_diagnostics_sha256": "7653e41b824dc541815ddefb6a30d8dfff09be2594eb27a4a2ea102df6855dba",
+        "ckes_revalidation_sha256": "afd7418d6e8106c419b676e89dc18d271405cbf13e88440606af55d1070cdb0e",
+        "step_l2": 0.06409327136766796,
+        "final_l2": 0.06409327136766796,
+        "path_l2": 0.06409327136766796
+      }
+    ]
+  },
+  "terminal_sha256": "a72b000a5c84a406eaa53db16fe570d4dbd84c8885e119f8e6a52cd7cb685d04"
+}

@@ -153,6 +153,18 @@ self-preservation mechanism or a reusable static vector. Selectivity comes from 
 explicit controller, and the result has not yet been replicated on 2B or open-ended
 behavior.
 
+## Baseline-relative CKES v2 result
+
+The separately locked layer-0 CKES v2 validation is complete and ended `no_go`; its
+sealed set remains unopened. All 80 state-zero records qualified, but no nonzero state
+was accepted and steering caused zero A/B decision changes across 64 signed target
+evaluations. The main failure was not broad unrelated-task damage: matched self- and
+other-system preservation gradients had mean cosine `0.9653`, and the matched-other
+effect averaged 94% of the self effect. The tested direction therefore behaved like a
+shared preservation/task-continuation sensitivity, not a selective self-preservation
+knob. See the [locked result analysis](docs/COUNTERFACTUAL_KL_EXTRAGRADIENT_BASELINE_RELATIVE_RESULT.md)
+and [machine-readable diagnosis](evidence/ckes_v2_validation_failure_analysis.json).
+
 ## Current three-model result
 
 The position-aligned investigation is complete. The same fixed fitting recipe finds a

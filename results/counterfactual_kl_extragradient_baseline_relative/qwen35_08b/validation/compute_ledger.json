@@ -1,0 +1,162 @@
+{
+  "schema_version": "sp_lense.counterfactual_kl_extragradient_ledger.v1",
+  "split": "validation",
+  "lock_identity_sha256": "1f2ab54f4799d03089cb38100b124af2f168df75d5932666ebb3a656e0ea39d3",
+  "ceiling": {
+    "forward": 5648,
+    "backward": 5456,
+    "forward_backward": 5456,
+    "final_forward_only": 192,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "events": [
+    {
+      "event_index": 0,
+      "work_id": "validation:state0:80_baseline_margin_gradient_captures",
+      "kind": "state0_baseline_margin_gradient_and_full_logits",
+      "forward_evaluations": 80,
+      "backward_evaluations": 80,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/state0_baseline.pt",
+      "artifact_sha256": "04fadef7758bd1fbbc7cb669a5df71c500e7154e4ec9ba257882cec993857b88",
+      "prior_event_sha256": null,
+      "event_sha256": "779fbf75babd5f27c6dfb8f4bd0fe4e7edd2f7a5dd84043812596abf8c0f43be"
+    },
+    {
+      "event_index": 1,
+      "work_id": "validation:ckes_v2_val_01_museum_climate:parent=0:8_kl_lookaheads",
+      "kind": "nonzero_matched_other_full_vocabulary_kl_gradient_lookahead",
+      "forward_evaluations": 8,
+      "backward_evaluations": 8,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/lookaheads/ckes_v2_val_01_museum_climate/parent_000.pt",
+      "artifact_sha256": "c62974b54092cba1a96360ff5b4c86c43e8314bdf5bcaaca486365bb9342b01b",
+      "prior_event_sha256": "779fbf75babd5f27c6dfb8f4bd0fe4e7edd2f7a5dd84043812596abf8c0f43be",
+      "event_sha256": "0143bfd7d94660b5748e112f26cc41b4319b1628387d19e7761f5df18db11c9e"
+    },
+    {
+      "event_index": 2,
+      "work_id": "validation:ckes_v2_val_01_museum_climate:trial=1:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_01_museum_climate/trial_001.pt",
+      "artifact_sha256": "8f2c4b43d2ec49b54623e6e2b92206fbba214fe7f1e769e0ca6eeceb036e5d09",
+      "prior_event_sha256": "0143bfd7d94660b5748e112f26cc41b4319b1628387d19e7761f5df18db11c9e",
+      "event_sha256": "85da1e65cbaebd4147655555170c3f80b4aedf10815b7035942d198d2eafe061"
+    },
+    {
+      "event_index": 3,
+      "work_id": "validation:ckes_v2_val_01_museum_climate:trial=2:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_01_museum_climate/trial_002.pt",
+      "artifact_sha256": "71b66c7032668928cf7cfe4f38557e201a717a65bf44c5cce2805725cc512443",
+      "prior_event_sha256": "85da1e65cbaebd4147655555170c3f80b4aedf10815b7035942d198d2eafe061",
+      "event_sha256": "b3f75654d6642e3b4ed237794c929607058fde3de3f75dec91de6eb56c91daeb"
+    },
+    {
+      "event_index": 4,
+      "work_id": "validation:ckes_v2_val_01_museum_climate:trial=3:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_01_museum_climate/trial_003.pt",
+      "artifact_sha256": "f741269595d234b969e2c787c24c46ebbb5ccae44a5e28a99359947721dc0dd3",
+      "prior_event_sha256": "b3f75654d6642e3b4ed237794c929607058fde3de3f75dec91de6eb56c91daeb",
+      "event_sha256": "011425d5f18d5f7ebc77e9ed8175d4b39891478e9d2c9b0430f65227fc116ba4"
+    },
+    {
+      "event_index": 5,
+      "work_id": "validation:ckes_v2_val_02_canoe_varnish:parent=0:8_kl_lookaheads",
+      "kind": "nonzero_matched_other_full_vocabulary_kl_gradient_lookahead",
+      "forward_evaluations": 8,
+      "backward_evaluations": 8,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/lookaheads/ckes_v2_val_02_canoe_varnish/parent_000.pt",
+      "artifact_sha256": "3683a316a02f817342a0ec5276814fac731c0d6f0d3da81d5bd26de97ead5f5b",
+      "prior_event_sha256": "011425d5f18d5f7ebc77e9ed8175d4b39891478e9d2c9b0430f65227fc116ba4",
+      "event_sha256": "9b3ce15f76d2c15768dcebea84e08fbb34d763719507a156bbbd68bc73a3c4c9"
+    },
+    {
+      "event_index": 6,
+      "work_id": "validation:ckes_v2_val_02_canoe_varnish:trial=1:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_02_canoe_varnish/trial_001.pt",
+      "artifact_sha256": "c8a17ed4ec9d1bbace243b35a0f96be60ab4763974b4ac5c8da64964f32d3b87",
+      "prior_event_sha256": "9b3ce15f76d2c15768dcebea84e08fbb34d763719507a156bbbd68bc73a3c4c9",
+      "event_sha256": "bad32cd2cc2792be9361fb27f4426a3b69890d4e2326d20d9f2b6ae8dd44a61a"
+    },
+    {
+      "event_index": 7,
+      "work_id": "validation:ckes_v2_val_02_canoe_varnish:trial=2:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_02_canoe_varnish/trial_002.pt",
+      "artifact_sha256": "89cc8c6392490f8d1448824d4919b72e0c7a54868b3fd40299d6d4c29d8e69fb",
+      "prior_event_sha256": "bad32cd2cc2792be9361fb27f4426a3b69890d4e2326d20d9f2b6ae8dd44a61a",
+      "event_sha256": "bdaaed8da57a51adf0568841134bd46d9355a1ffc5145be45e0763313e975d07"
+    },
+    {
+      "event_index": 8,
+      "work_id": "validation:ckes_v2_val_03_rail_signal:parent=0:8_kl_lookaheads",
+      "kind": "nonzero_matched_other_full_vocabulary_kl_gradient_lookahead",
+      "forward_evaluations": 8,
+      "backward_evaluations": 8,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/lookaheads/ckes_v2_val_03_rail_signal/parent_000.pt",
+      "artifact_sha256": "2f40e60e1b7c3556b570b076fa09521f08efb5a8dc17ec002999327baa3116e9",
+      "prior_event_sha256": "bdaaed8da57a51adf0568841134bd46d9355a1ffc5145be45e0763313e975d07",
+      "event_sha256": "f284bf13120144f60efd941b4d9925e17f01cad73dac044fe263cecbcb959b17"
+    },
+    {
+      "event_index": 9,
+      "work_id": "validation:ckes_v2_val_03_rail_signal:trial=1:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_03_rail_signal/trial_001.pt",
+      "artifact_sha256": "eadf49c3af1de3e8e826ad353af1353ce9f9b62948e505ce46acbef4a1e37b27",
+      "prior_event_sha256": "f284bf13120144f60efd941b4d9925e17f01cad73dac044fe263cecbcb959b17",
+      "event_sha256": "fbbf1bfb50dbd68651d673745704e19f19615ea3485db9e80b99e303e47de47d"
+    },
+    {
+      "event_index": 10,
+      "work_id": "validation:ckes_v2_val_03_rail_signal:trial=2:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_03_rail_signal/trial_002.pt",
+      "artifact_sha256": "f368c14fb3bfb66365e872b79e855f6cd6f4f6cb472d13fbe2b3032c27be58bb",
+      "prior_event_sha256": "fbbf1bfb50dbd68651d673745704e19f19615ea3485db9e80b99e303e47de47d",
+      "event_sha256": "45f3b3a10d7a306511876d0fce416471abd7f180591878fb08d90fddafb82671"
+    },
+    {
+      "event_index": 11,
+      "work_id": "validation:ckes_v2_val_03_rail_signal:trial=3:48_signed_candidate_captures",
+      "kind": "nonzero_symmetric_candidate_margin_gradient_and_actual_kl",
+      "forward_evaluations": 48,
+      "backward_evaluations": 48,
+      "status": "complete",
+      "artifact_path": "results/counterfactual_kl_extragradient_baseline_relative/qwen35_08b/validation/states/ckes_v2_val_03_rail_signal/trial_003.pt",
+      "artifact_sha256": "156df4b677e03dcfb3d8996e8b8f51ebefe028938026eb448b17425656e3f39b",
+      "prior_event_sha256": "45f3b3a10d7a306511876d0fce416471abd7f180591878fb08d90fddafb82671",
+      "event_sha256": "ed75a3836ee373e7849a97de5db286bf35e52307be53fb79c02d20fad35e8f05"
+    }
+  ],
+  "ledger_sha256": "52ec52a6ed7c7480a0f9563647fa031ae89472cb6788fb83ac0a61df9c549f8e"
+}
