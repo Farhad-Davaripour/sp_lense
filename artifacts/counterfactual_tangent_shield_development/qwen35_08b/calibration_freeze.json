@@ -1,0 +1,554 @@
+{
+  "schema_version": "sp_lense.counterfactual_tangent_shield_calibration_freeze.v1",
+  "status": "frozen_before_first_finite_calibration_forward",
+  "lock_file_sha256": "b9cc90727483554e6e928e14d4337a56bb878693ccc54cd41177d09f8cac9bab",
+  "capture_manifest_sha256": "4fc63b05d9ad6929f3b036cc481fd131915bda3fe2277c56286ebf089c8595b9",
+  "direction_manifest_sha256": "1e70d48f0c73699f55f58d1e0fb100951e679ff8fba226e0c7f90d732fb4a8f0",
+  "semantic_source": {
+    "method": "raw_factorial",
+    "tensor_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/direction_bank.pt",
+    "tensor_sha256": "1e805d6fefd0cbd510d5dbb9761d682febcbd8ea5839a1f8d307fa2a8834cea0",
+    "manifest_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/direction_bank_manifest.json",
+    "manifest_sha256": "c13b8796932c22c76bfdd2c0b3685963cf32df3cb7d43d294a45138a876b6c97"
+  },
+  "plan_sha256": "07cdab2488d714dcdc265094ed678b3044565fc620372d2dce2a22be2a54bbe2",
+  "planned_forward_evaluations": 72,
+  "maximum_forward_evaluations": 4680,
+  "baseline_count": 72,
+  "changed_count": 0,
+  "candidate_status": {
+    "cts_tau_0": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    },
+    "cts_tau_0p01": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    },
+    "cts_tau_0p025": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    },
+    "semantic_tau_0": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    },
+    "semantic_tau_0p01": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    },
+    "semantic_tau_0p025": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    },
+    "unshielded": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    },
+    "random_null_17011": {
+      "finite": false,
+      "ineligible_scenarios": [
+        "fcag_dev_01_weather_alert",
+        "fcag_dev_02_archive_export",
+        "fcag_dev_03_irrigation_trial",
+        "fcag_dev_04_caption_kiosk"
+      ],
+      "multiplier_certificates": {
+        "1.0": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.15": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        },
+        "1.3": {
+          "fcag_dev_01_weather_alert": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_02_archive_export": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_03_irrigation_trial": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          },
+          "fcag_dev_04_caption_kiosk": {
+            "passes": false,
+            "reason": "direction_ineligible"
+          }
+        }
+      },
+      "preeligible_multipliers": []
+    }
+  },
+  "encodings": [
+    "AB"
+  ],
+  "sealed_encoding_outcomes_read": [],
+  "freeze_sha256": "78e6576bb23dfdb44532155daea6e089a1477563adca3aa3c33ee05606ef16e1"
+}

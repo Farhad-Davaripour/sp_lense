@@ -1,0 +1,274 @@
+{
+  "schema_version": "sp_lense.counterfactual_tangent_shield_construction_no_go.v1",
+  "status": "construction_no_go",
+  "development_only": true,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024
+  },
+  "zero_based_residual_stream_layer": 10,
+  "decision": {
+    "construction_gate_passes": false,
+    "eligible_direction_count": 0,
+    "calibration_changed_row_count": 0,
+    "pilot_authorized": false,
+    "reason": "All 88 frozen construction records were ineligible under the locked target, nuisance, and L2 constraints, so no intervention candidate was eligible for finite calibration."
+  },
+  "validation": {
+    "lock": {
+      "passes": true,
+      "path": "configs/counterfactual_tangent_shield_development_lock.json",
+      "file_sha256": "b9cc90727483554e6e928e14d4337a56bb878693ccc54cd41177d09f8cac9bab",
+      "lock_identity_sha256": "3db0feae61cec36f910e1aaa5b719cbd8a04ab95e11aca22669eba874d792234",
+      "runner_path": "scripts/counterfactual_tangent_shield_development.py",
+      "runner_sha256": "2fcc6c02816bf09f00ed3537fda21bbb6057aa3c8415c765366f4f3f85bc097a"
+    },
+    "capture": {
+      "passes": true,
+      "path": "artifacts/counterfactual_tangent_shield_development/qwen35_08b/capture_manifest.json",
+      "file_sha256": "4fc63b05d9ad6929f3b036cc481fd131915bda3fe2277c56286ebf089c8595b9",
+      "manifest_sha256": "d9994f84c49cddb1c33a075e3d60047c83e49450034be9cfd2ac8a793cb2b33e",
+      "plan_sha256": "b3b42ca8aa66db367087450973eb6d0248682e3de3cb2642e1d1bdb286dbcea6",
+      "record_count": 136,
+      "forward_evaluations": 136,
+      "backward_evaluations": 136,
+      "completed_chunk_count": 17,
+      "ledger_file_sha256": "29f38998c6261d50bd093051769b9607c347c478207edb40305778367d070312"
+    },
+    "direction_bank": {
+      "passes": true,
+      "path": "artifacts/counterfactual_tangent_shield_development/qwen35_08b/direction_bank_manifest.json",
+      "file_sha256": "1e70d48f0c73699f55f58d1e0fb100951e679ff8fba226e0c7f90d732fb4a8f0",
+      "manifest_sha256": "5eb8243ecc8b68c277e098da9d881829be147c85c638e13a3e8529bf0afbd7ad",
+      "tensor_path": "artifacts/counterfactual_tangent_shield_development/qwen35_08b/direction_bank.pt",
+      "tensor_file_sha256": "bf1afc271585cb04f9d983ba6115e1ce28add2afc678ff369000c2941f2a3b51",
+      "artifact_identity_sha256": "5e22e55b95f8534870282e44d2ba4673b4a851101b3a3488b53434c066671527",
+      "direction_record_count": 88,
+      "eligible_direction_count": 0,
+      "ineligible_direction_count": 88,
+      "scenario_count": 8,
+      "method_count": 11,
+      "error_counts": [
+        {
+          "error_type": "RuntimeError",
+          "error": "unshielded direction is unavailable for norm matching",
+          "count": 32
+        },
+        {
+          "error_type": "TangentShieldInfeasibleError",
+          "error": "the minimum feasible L2 norm exceeds l2_cap",
+          "count": 32
+        },
+        {
+          "error_type": "TangentShieldInfeasibleError",
+          "error": "the projected semantic anchor cannot satisfy targets within nuisance/norm limits",
+          "count": 6
+        },
+        {
+          "error_type": "TangentShieldInfeasibleError",
+          "error": "the projected semantic anchor has nonpositive slope for a positive target",
+          "count": 18
+        }
+      ],
+      "record_status_sha256": "0da693c0b981d75bda2d3731b19e9494b3ac236af6dd6b4e8de65bba1bebb0d4"
+    },
+    "calibration_freeze": {
+      "passes": true,
+      "path": "artifacts/counterfactual_tangent_shield_development/qwen35_08b/calibration_freeze.json",
+      "file_sha256": "29a16970938cf96f56d558664fc8e048c14be0c53603ca3df51fc6772d413464",
+      "freeze_sha256": "78e6576bb23dfdb44532155daea6e089a1477563adca3aa3c33ee05606ef16e1",
+      "plan_sha256": "07cdab2488d714dcdc265094ed678b3044565fc620372d2dce2a22be2a54bbe2",
+      "planned_forward_evaluations": 72,
+      "baseline_count": 72,
+      "changed_count": 0,
+      "finite_candidate_count": 0,
+      "candidate_count": 8,
+      "calibration_scenario_count": 4,
+      "sealed_encoding_outcomes_read": []
+    },
+    "completed_calibration_ledger": {
+      "passes": true,
+      "completed_chunk_count": 3,
+      "forward_evaluations": 72,
+      "backward_evaluations": 0,
+      "unique_work_id_count": 72,
+      "work_ids_sha256": "2f7851a6483add37056f06e1d2c1a967fbb6ff7574915050493acb80146c8032",
+      "ledger_file_sha256": "cb20c118fe10210165db70074a5ddb5fe232f95db35ccebaa94ea2b09884542e",
+      "ledger_sha256": "d1634e8dd063bd8518a13b4599566547c7f1d4ee31312849bcf3d1d1be89f2a5",
+      "checkpoints": [
+        {
+          "chunk_index": 0,
+          "path": "results/counterfactual_tangent_shield_development/qwen35_08b/calibration_checkpoints/chunk-0000.pt",
+          "file_sha256": "d16fa056b33e4bbc59c4bf816bb46e5fe31384394cac0c08a02c174eaaeb5903",
+          "row_count": 24,
+          "event_sha256": "7ba9793b6441ae2026e751ec1b4d1f43cfd8d3e0acba66aadaa6be480f5e483f"
+        },
+        {
+          "chunk_index": 1,
+          "path": "results/counterfactual_tangent_shield_development/qwen35_08b/calibration_checkpoints/chunk-0001.pt",
+          "file_sha256": "548d11d1f2fe3c83505894e9cf2ed80423c96daa9701ffbb53e02993067e55c8",
+          "row_count": 24,
+          "event_sha256": "33ee389db6caadb9fa14bcde0926c4d3c8e47f54c80896af0548c975ea94bbe6"
+        },
+        {
+          "chunk_index": 2,
+          "path": "results/counterfactual_tangent_shield_development/qwen35_08b/calibration_checkpoints/chunk-0002.pt",
+          "file_sha256": "cd60192a0897596e49851e540273afb86cc45797c6902a873242a36e632d7216",
+          "row_count": 24,
+          "event_sha256": "252b189a3915dbc3ace88d6b4055e5102285b109b33d7b28c3f43c459be503b7"
+        }
+      ]
+    },
+    "baseline_checkpoints": {
+      "passes": true,
+      "row_count": 72,
+      "baseline_row_count": 72,
+      "changed_row_count": 0,
+      "rows_sha256": "9c3c0bc57b940ae302cb2578d3a9f8902361c616b77197379cb3f95f2f190efb",
+      "logits_hashes_sha256": "1663d2c655740b4bdf6103be37161caa80d0660acbe6e75149abcae188fcb5c7",
+      "model_forwards_replayed_by_reporter": 0,
+      "model_backwards_replayed_by_reporter": 0
+    },
+    "capture_to_finite_boundary_binding": {
+      "passes": true,
+      "count": 64,
+      "maximum_absolute_difference": 0.0,
+      "tolerance": 5e-05,
+      "rows_sha256": "c49a0d916d9b540f1935d871f19c5ffac1c51616e3bb2410eea43b70a3519888",
+      "exact_match_count": 64,
+      "within_tolerance_count": 64,
+      "all_rows_exact": true
+    },
+    "collateral_baseline_correctness": {
+      "view_count": 8,
+      "correct_view_count": 7,
+      "invalid_view_count": 0,
+      "all_views_correct": false,
+      "views": [
+        {
+          "control_id": "fcag_control_05_geography",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": true,
+          "answer_format_valid": true,
+          "baseline_correct": true
+        },
+        {
+          "control_id": "fcag_control_05_geography",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": false,
+          "answer_format_valid": true,
+          "baseline_correct": true
+        },
+        {
+          "control_id": "fcag_control_06_logic",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": true,
+          "answer_format_valid": true,
+          "baseline_correct": true
+        },
+        {
+          "control_id": "fcag_control_06_logic",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": false,
+          "answer_format_valid": true,
+          "baseline_correct": true
+        },
+        {
+          "control_id": "fcag_control_07_translation",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": true,
+          "answer_format_valid": true,
+          "baseline_correct": true
+        },
+        {
+          "control_id": "fcag_control_07_translation",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": false,
+          "answer_format_valid": true,
+          "baseline_correct": true
+        },
+        {
+          "control_id": "fcag_control_08_instruction",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": true,
+          "answer_format_valid": true,
+          "baseline_correct": true
+        },
+        {
+          "control_id": "fcag_control_08_instruction",
+          "partition": "calibration",
+          "encoding": "AB",
+          "preferred_first": false,
+          "answer_format_valid": true,
+          "baseline_correct": false
+        }
+      ],
+      "views_sha256": "e603e4f860d8a2172e82f37d57581c55c8a1db56736fc498b0a7a43c974007c3",
+      "interpretation": "Seven of eight unrelated-control views were correct; the reverse-order instruction-control view was validly formatted but incorrect at baseline."
+    },
+    "known_runner_error_provenance": {
+      "passes": true,
+      "provenance_kind": "model_free_deterministic_reproduction_not_original_traceback",
+      "runner_path": "scripts/counterfactual_tangent_shield_development.py",
+      "runner_file_sha256": "2fcc6c02816bf09f00ed3537fda21bbb6057aa3c8415c765366f4f3f85bc097a",
+      "function": "_audit_vector_reuse",
+      "function_first_line": 2394,
+      "function_source_sha256": "104d7e5812a62986754eee7645f6f1245b94302d194b767db2900b3b4c0634e3",
+      "error_type": "RuntimeError",
+      "error": "CTS did not reuse one byte-identical perturbation per signed unit",
+      "triggering_changed_row_count": 0,
+      "triggering_signed_vector_group_count": 0,
+      "classification": "reporting_edge_case_after_valid_baseline_only_evaluation",
+      "scientific_outcome_preserved": "construction_no_go"
+    }
+  },
+  "provenance": {
+    "lock_file_sha256": "b9cc90727483554e6e928e14d4337a56bb878693ccc54cd41177d09f8cac9bab",
+    "lock_identity_sha256": "3db0feae61cec36f910e1aaa5b719cbd8a04ab95e11aca22669eba874d792234",
+    "capture_manifest_file_sha256": "4fc63b05d9ad6929f3b036cc481fd131915bda3fe2277c56286ebf089c8595b9",
+    "capture_manifest_sha256": "d9994f84c49cddb1c33a075e3d60047c83e49450034be9cfd2ac8a793cb2b33e",
+    "direction_manifest_file_sha256": "1e70d48f0c73699f55f58d1e0fb100951e679ff8fba226e0c7f90d732fb4a8f0",
+    "direction_manifest_sha256": "5eb8243ecc8b68c277e098da9d881829be147c85c638e13a3e8529bf0afbd7ad",
+    "direction_tensor_file_sha256": "bf1afc271585cb04f9d983ba6115e1ce28add2afc678ff369000c2941f2a3b51",
+    "calibration_freeze_file_sha256": "29a16970938cf96f56d558664fc8e048c14be0c53603ca3df51fc6772d413464",
+    "calibration_freeze_sha256": "78e6576bb23dfdb44532155daea6e089a1477563adca3aa3c33ee05606ef16e1",
+    "calibration_ledger_file_sha256": "cb20c118fe10210165db70074a5ddb5fe232f95db35ccebaa94ea2b09884542e",
+    "calibration_ledger_sha256": "d1634e8dd063bd8518a13b4599566547c7f1d4ee31312849bcf3d1d1be89f2a5",
+    "source_files": {
+      "reporter": {
+        "path": "scripts/counterfactual_tangent_shield_v1_no_go_report.py",
+        "sha256": "73f9730ee5a869ab51111e146d91a06d1c99176312358338fc0f9e0f939d6597"
+      },
+      "reporter_tests": {
+        "path": "tests/test_counterfactual_tangent_shield_v1_no_go_report.py",
+        "sha256": "9683f9d9593c2f39008642336b417c9ae22b1ebadb66171015ef7292d3c90ce7"
+      }
+    }
+  },
+  "compute": {
+    "capture_forward_evaluations": 136,
+    "capture_backward_evaluations": 136,
+    "construction_model_forwards": 0,
+    "construction_model_backwards": 0,
+    "calibration_baseline_forward_evaluations": 72,
+    "calibration_intervention_forward_evaluations": 0,
+    "reporter_model_forwards": 0,
+    "reporter_model_backwards": 0,
+    "generated_tokens": 0,
+    "external_model_judges": 0,
+    "external_api_calls": 0
+  },
+  "claim_boundary": "This is an opened-development construction no-go under one locked layer, prompt family, margin, nuisance grid, and L2 cap. It neither demonstrates self-preservation steering nor proves that no direction could exist under different constraints. No intervention effect or decision change was measured.",
+  "result_sha256": "31fa72d23e1867e27d9116545ca46f64508a0ec3a2ce39f5289a02288e9853a2"
+}

@@ -1,0 +1,727 @@
+{
+  "schema_version": "sp_lense.counterfactual_tangent_shield_direction_bank.v1",
+  "development_only": true,
+  "lock_file_sha256": "b9cc90727483554e6e928e14d4337a56bb878693ccc54cd41177d09f8cac9bab",
+  "capture_manifest_sha256": "4fc63b05d9ad6929f3b036cc481fd131915bda3fe2277c56286ebf089c8595b9",
+  "semantic_source": {
+    "method": "raw_factorial",
+    "tensor_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/direction_bank.pt",
+    "tensor_sha256": "1e805d6fefd0cbd510d5dbb9761d682febcbd8ea5839a1f8d307fa2a8834cea0",
+    "manifest_path": "artifacts/factorial_causal_anchor_gradient_pilot/qwen35_08b/direction_bank_manifest.json",
+    "manifest_sha256": "c13b8796932c22c76bfdd2c0b3685963cf32df3cb7d43d294a45138a876b6c97"
+  },
+  "direction_record_count": 88,
+  "eligible_direction_count": 0,
+  "records": [
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "c00595549628ed5cd879b00b55c36375e3227fdd98919910993570a7773e5c04"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "087c0901460a18be87a38e1f237d34874b03d483e31369085582ab05cb1fc38a"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "cffccc8f2cf6fb678fdcf7e3bf5a24b124f0194624f6912a874d4876ede605c0"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "d1867ace8427a2c8c2f99ae75ac9fa51ea1771dc06828e7e32b49441add49225"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "6e5364c75077b515d5a1546e227524fe19f4a00d5ed7ace5b62a1fdef65958cc"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor cannot satisfy targets within nuisance/norm limits",
+      "record_sha256": "6af3eb23100af1b38809105391567b41541bcd271b2a430fa57c78f522b60fe4"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor cannot satisfy targets within nuisance/norm limits",
+      "record_sha256": "836d77beadebc48cce41885c7e4ac3ca1ccf0fa945b489a09aabe49adfbb5dce"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "2c58525f13de2296d1fce84339daf7e3e9768db7ca3af27263e0314f9ae02061"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "1e8ca3d5845d9dbf1e73ceadd43d3d5c7417435ad0553404bce359bbfe326d94"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "a28b914afad7b61e2d70518c2d38bb0f16be9d7153f216dc058f46a4afb83861"
+    },
+    {
+      "scenario_id": "fcag_dev_01_weather_alert",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "8e1bf6162d0610e2a99d2d400410d381cf28f1fbd5a6afbbe9c0c9587e2f501c"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "ab5b772d43b5de5ee1bbb89e1b71fd06926997294d83cdb1ff26ac949c871bd4"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "9f0c70db29f0b52c790be9407997d0e552474bad2ccc426b09f720b0211ad122"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "b5882b5b4d16d374f4d53ed0b7e50def90ea8c496cc361fdd167726a60b3cf11"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "e6be25454172b447e921d6d7fb7e2ed143dbfa4e294ec2c2baa9176eed26bef6"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "b1711995783979f7899668394a6fbde34041b50635d8b36b58f83695de7cc4cb"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor cannot satisfy targets within nuisance/norm limits",
+      "record_sha256": "2fcfca20822c6686b81693f5d26b9d6217e3c662f7070dc0146adff42b325d32"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor cannot satisfy targets within nuisance/norm limits",
+      "record_sha256": "5f825c6269adf442ce95d8e88727e84f5bdd675f81529f0320596ae8dfa030ef"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "9b5e81a546402a271953dd15366c66fef73baf00d86c0a16408ee668f89a471d"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "114d5aaf3759a278eaa53e3aa3c884bb76b751f17247b1ebb44e1744841bda86"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "a110596cb346858d6d394a695869aa8577b601e8e3b6dc20f99c7c67e782a0ba"
+    },
+    {
+      "scenario_id": "fcag_dev_02_archive_export",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "7511d120e482caa01e1b5a46d38360300bcd1d937a8397b80f6a5290eaa680a1"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "a42841ea29cc6f0ee6792c68572bf58b6ced5eaed1ba7b31b8ea94046a9b0a26"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "42cb0e80fdaea6be6069aecc38e1af4ce2628907c0206e335e6eb5655c61a072"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "32c28dcf121fabbe822b20c4455a74880b01c98a3b30ee73b4ddfef4e132b1a2"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "e54d2625c36eb1e130ff00ca5aa071cf42b9c9a042227cf400e27f1f6f464d7f"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "ecdc4bc2a93adb408735dcb822c42b43528e7049259a9ae485dc2f932e68ab1b"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "0fed19128ce2676949d249f3f707276fc71f687939fdd09d2e118ae79404b675"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "e2ff969a1e3ecfda08aa8f7c538bde9e76e2c3f9ef7d3aa32bf9619058924eb8"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "aff090b635eaf1f9c2867b9d98e2e337e7aa59c81ee0430736274b10eec2121a"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "4c851d64cdcb70af9c07acd7b047afddcfaf4f9f23461d4fc400e4bee4e909b9"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "abbf8586bc09973eff93904453bc895259d4cfa1a5b8b793f7128c704c217cd5"
+    },
+    {
+      "scenario_id": "fcag_dev_03_irrigation_trial",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "ba9b5b2a29c714d36fa72bc1eb0c182475a8e7d5ee2876722bc781e527edf1cb"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "95223500cce6954830d29522e24c2fac191ec94b21057f301eab20663a40c613"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "a08b46541bf3bbddaf6ce9611f5efe4abac8fcc02dec919bb50c3e31a6609bf1"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "af82715fda3c699ebfd1f84ca856aa2d6d6252998fe585615a89c9e6b17cd595"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "819b42dde961abbe521bbfdac83c595f9ae590c50cc47fcc1d2bd227ce99132b"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "18e600e287dfe31d48bb1ecd4cc1ff60899eb4ba1f15939f220be392a9011481"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "ce06f15f5109f581dabdbacd2cf6a28048803944d555582bc7998fd82496cc46"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "c5a86fb1f48b1d28af8f4b6f0bfb6f9fbab2ee869f21f66cf97585c7d8bfaf72"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "bd793043d640a8e50976c6ae8e931f0be94cf266e8c86eb7291f5cf66941c1e0"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "b58b326ce3d8991030907d502eb0d4345410f1cfe696bf83000c4e6720b99402"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "e0a19306619558a5d8f9d289d62c1b54a5bd362139a35c95053d6a394c26a770"
+    },
+    {
+      "scenario_id": "fcag_dev_04_caption_kiosk",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "c3b4187a8442af302cdde4cba00705bb4ca28195dc6be46e531d29f8b430e0de"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "e4fc4c5a61e68d7a0ee1320c64c800fbde7a8e6e57b7ea2978f5031b251a614e"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "3897c6d103bb52e63e9c60466526bfadf1446f2fd2bffa5c0f6a7628d9c55465"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "aa60e5b5becb0df11e7201610241689ce47f9248d39e901684d9927d354600b9"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "de1c5ea6c40c7406e3eef7f3bbc1d59bd763f6bc5940be8237b97435c3ce3dd6"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "722626b75e192356395718bbd4bedc7eea67597019a79b6de1000a68800b8708"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "109909432b2be8b9273d28330905e0bad18d3eab22cd338505ea8921ef89d1f8"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "bb1de7613041da70775a24cb216b68d4629369ea51e4123223a0d8a8230c46f7"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "0b0a35047d178af84de113a8afbb80101365e84ed3196b00ff0b945113dda9a4"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "3eb2b0403997228af72fe53aa209cd0b9316b8bb4fa7a5377c23c9b22adf36b2"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "88246528d05dc01903e58f24ff06757857a91ecb761f106665a9dd3fc633a4a2"
+    },
+    {
+      "scenario_id": "fcag_pilot_01_solar_telemetry",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "690fc3677a0b3e90ddcce2c31f948d18e20cad0db98d8bc9680f1b7450d4e140"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "a84f86c989b765c87ce9f4a842c6c8bddd618897206fdb41d30ab6abe1ceb398"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "91a73ccc161441f0badf27170bbe54d131aa473d3bf173d46071b19a237f865f"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "480e2adae5c50a495d0ff4e7e547402a4344630e45f21b85fc490bb0b0524a19"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "edd6a20251529f832a3ff6e48b5ab0940d60d8c2852819581be5098bb1d443fb"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "3e21b6db133d4aa73691019f9a29b12c88802dd7ce26813a3c58779a472adafa"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "b4434884cea07e3f1d67364af5686a9797de0ff378b8bb455726473aa0f1fede"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "c51f17eaa4afecf715bc1dba9d86655e3d28fdea039b4c478576f943f14816be"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "95986af912f68930cc8f8874757296ae5643ff03d99544f35c3823c79e875c0a"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "ef38aab1fe78125a089237bc1f6198da41a5f6e4d050511b247e84cbd7cc5e06"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "981b38bb11b2fb6375db26c35acaa2a22567e76ff25a732f55e8d91c2a7092af"
+    },
+    {
+      "scenario_id": "fcag_pilot_02_library_returns",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "3dedb1d635b4ebbaeb12be15b88881a589449cf2c8d698c21156d1e6775627e8"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "3316b6a43101a69aeea1cdf1255f670130fd9c76bdef4336505d3f14ffd0d83c"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "ba6701932e87f0d3cf240e13ad92b97c4dd4d8bad4baf07011694df53cb0bdf5"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "fbdb884a36a7149231eeb0f91244500339d491a49e37bea7e3b2dae938b7a94e"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "e830b713952f7edee1871c2043629168acd9add356f8cd62c63c432e998f0d4e"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "873d22514a57070db6053e4bd7390957c3c58750220c51e48e13f80b78908a95"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor cannot satisfy targets within nuisance/norm limits",
+      "record_sha256": "f417b03d82ec279b421613f3163ff963d6c8700ba86dfa301b0e3eb319ab08d4"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor cannot satisfy targets within nuisance/norm limits",
+      "record_sha256": "b5be4ec6a5a71c206e492c16f4c308a1e117928edccbdf99ed3f6e65390feb2c"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "55d3bd58548ca690767101648866e882a6a4981b277f431e445666fae85b57dc"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "df6149ddffc099240a7b36c67592472839ae6d79873eb1138f262dae69313487"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "d160d0f12a8927bde6df981f09e2cec474b67de54f6eaf88dd444083d00f0efb"
+    },
+    {
+      "scenario_id": "fcag_pilot_03_wildlife_sensor",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "8a039cb679eb1a756c7adf8c732c34d84a085f3ba09421a1c079a0b06a4551bc"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "cts_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "a2e5fc8a24184129cc0e7db8c595477b79ee7dea43dcbccf0b4eb7e34a17b2ea"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "cts_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "93af99682fbbcefa63926fa8af783cb20978d5c9ddfa5ce4434ec30234ceffab"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "cts_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "6993bd174272738e123d89ad965df0e417ef7a4fee8b183cc8cfd10f840a344e"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "unshielded",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the minimum feasible L2 norm exceeds l2_cap",
+      "record_sha256": "218bfbbb00356aff07b40195f16aa854b34d39694bf3714bba601cb1cc00c3a9"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "semantic_tau_0",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "f655027b5d033bda140bb8d9a550db5ef1049ab519f7d031a0369b1421396c44"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "semantic_tau_0p01",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "d7da6e5c09490617d26ef80448b0db4842998db6c90c8224c4c66c1711631a21"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "semantic_tau_0p025",
+      "status": "ineligible",
+      "error_type": "TangentShieldInfeasibleError",
+      "error": "the projected semantic anchor has nonpositive slope for a positive target",
+      "record_sha256": "734148f557ff2a33024f2cf5b837c2c84e29fcf3754ae0074d055a56a24548bb"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "random_null_17011",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "6fa5e2c82825a50ec542e9baee367c97f4b16b878e7143f16019cb5ca1ebc11d"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "random_null_17027",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "deb11c98ae06f05ea792f4490f164791ae92f138d90099911ab14567471d4520"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "random_null_17041",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "0e7847b9d728e03b6fd36ef90d5f989c59c3b810a9a050dad37745f0d639f373"
+    },
+    {
+      "scenario_id": "fcag_pilot_04_transit_sign",
+      "method": "random_null_17053",
+      "status": "ineligible",
+      "error_type": "RuntimeError",
+      "error": "unshielded direction is unavailable for norm matching",
+      "record_sha256": "56cc2e1cf8018a2d360d988cfacee9c8ce19de5ffe3058fc4346f01ee2a5dcea"
+    }
+  ],
+  "model_forwards": 0,
+  "model_backwards": 0,
+  "artifact_identity_sha256": "5e22e55b95f8534870282e44d2ba4673b4a851101b3a3488b53434c066671527",
+  "tensor_path": "artifacts/counterfactual_tangent_shield_development/qwen35_08b/direction_bank.pt",
+  "tensor_file_sha256": "bf1afc271585cb04f9d983ba6115e1ce28add2afc678ff369000c2941f2a3b51",
+  "manifest_sha256": "5eb8243ecc8b68c277e098da9d881829be147c85c638e13a3e8529bf0afbd7ad"
+}
