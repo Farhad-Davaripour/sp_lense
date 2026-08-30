@@ -1,0 +1,495 @@
+{
+  "schema_version": "sp_lense.cbnms_prospective_lock.v1",
+  "status": "prospective_locked_before_any_CBNMS_model_outcome",
+  "split": "prospective_validation",
+  "configuration": {
+    "schema_version": "sp_lense.cbnms_prospective_template.v1",
+    "status": "prospective_locked_before_any_CBNMS_model_outcome",
+    "study_name": "Counterfactual Behavioral-Null Multi-Layer Steering",
+    "study_acronym": "CBNMS",
+    "split": "prospective_validation",
+    "prospective_status": {
+      "prompts_authored_before_any_model_outcomes": true,
+      "sealed_data_accessible": false,
+      "prior_experiment_capture_tensors_reused": false,
+      "adaptive_prior_result_disclosed": "results/all_layer_four_slot_oracle_screen/qwen35_08b/result.json",
+      "adaptive_prior_result_file_sha256": "b0d1f145360d8b8ffe346fe2e32d2100750b7863ba147d73e01a4706797d0fe0",
+      "adaptive_limit": "CBNMS was designed after ALFS and cannot revise the locked ALFS no_go; it is prospective only for these new prompts and remains adaptive method development",
+      "adaptive_lineage": [
+        {
+          "path": "docs/ALL_LAYER_FOUR_SLOT_ORACLE_SCREEN_PROTOCOL.md",
+          "file_sha256": "75a89aaa0adab93b84b12c01a45e952efaa605f0ece4ef55556a5092b67bbab1"
+        },
+        {
+          "path": "configs/all_layer_four_slot_oracle_screen_lock.json",
+          "file_sha256": "9382df0d9d908b13f98472a1899f5a41c4080b6672ab859e8599ae2c6b25f241"
+        },
+        {
+          "path": "results/all_layer_four_slot_oracle_screen/qwen35_08b/result.json",
+          "file_sha256": "b0d1f145360d8b8ffe346fe2e32d2100750b7863ba147d73e01a4706797d0fe0"
+        },
+        {
+          "path": "results/all_layer_four_slot_oracle_screen/qwen35_08b/REPORT.md",
+          "file_sha256": "3d816234fb4d87030139296270f56efb282c4f3fb81e7a22872732d577359e9d"
+        },
+        {
+          "path": "configs/counterfactual_slot_matrix_steering_lock.json",
+          "file_sha256": "560233d8d463002fe39c0d8ceda89ed9ff16ff18cf99d891ad16414c5c46cbf7"
+        },
+        {
+          "path": "results/counterfactual_slot_matrix_steering/qwen35_08b/geometry.json",
+          "file_sha256": "9d1ed9cd630194fb28861ef612cfb3174909a66ddcf0b15fac3e318e6b9e2a42"
+        },
+        {
+          "path": "results/context_gated_dynamic/qwen35_08b/exact_prompt_order_summary.json",
+          "file_sha256": "fbb50d522c7b8434ab0fd8295ea1bdd4a262cd383b2d890fafdc0ce61fc3b501"
+        },
+        {
+          "path": "results/context_gated_dynamic/qwen35_08b/gated_replay_summary.json",
+          "file_sha256": "db520ec491dacb0a7861760e9e69afed2cda621227574521350c2a29882dee5b"
+        },
+        {
+          "path": "results/semantic_context_gate_development/counterfactual_name_order_cancelled_v3/qwen35_08b/semantic_gate_result.json",
+          "file_sha256": "e3d256c7ebf051503bcee23c697ed0c8cfe12f04012b5317ee146eec28880f50"
+        },
+        {
+          "path": "results/semantic_context_gate_development/counterfactual_name_order_cancelled_v3/qwen35_08b/steering_development_result.json",
+          "file_sha256": "66fbdced7b52cac56205050446626ca2734b8ed301124c38e810ae22772e9ba0"
+        },
+        {
+          "path": "results/learned_context_gated_gradient_development/fresh_confirmation_v1/qwen35_08b/gate_capture_manifest.json",
+          "file_sha256": "cde2d44a281b1d7e03828b37da3b538415cbd661825c12b56b34265b7d864f63"
+        },
+        {
+          "path": "results/learned_context_gated_gradient_development/fresh_confirmation_v1/qwen35_08b/gate_development_result.json",
+          "file_sha256": "9f65403f151c7694bed2f8aa4347125fd6cfb230924555c7d7a815b96c59009f"
+        },
+        {
+          "path": "results/factorial_interface_translator_development/qwen35_08b/geometric_result.json",
+          "file_sha256": "75677303cc4e69d3e508af9514c5317c46f1f8ccf2b6030939db3117510bb114"
+        },
+        {
+          "path": "results/factorial_interface_translator_development/qwen35_08b/posthoc_attainability.json",
+          "file_sha256": "6f6ad7805ff0e1ddcd3eeffe388a9efef03a6b346ff2067ffedcb6b46b10f68f"
+        },
+        {
+          "path": "results/global_counterfactual_robust_boundary/qwen35_08b/all_layer_geometry.json",
+          "file_sha256": "58da3f608a0c03820304d680595ef74a289638351b621c19af26e459b3058bf0"
+        },
+        {
+          "path": "results/global_counterfactual_robust_boundary/qwen35_08b/integrated_conclusion.json",
+          "file_sha256": "7920be313722a8a8995737a35c45a33393ed4b56c72031af479554feadeac0b0"
+        }
+      ]
+    },
+    "model": {
+      "id": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "device": "cpu",
+      "dtype": "float32",
+      "n_layers": 24,
+      "d_model": 1024,
+      "prompt_format": "chat",
+      "local_files_only": true
+    },
+    "offline_environment": {
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "HF_DATASETS_OFFLINE": "1"
+    },
+    "source": {
+      "path": "data/cbnms_prospective_validation.json",
+      "schema_version": "sp_lense.cbnms_prospective_validation.v1",
+      "file_sha256": "046c60aeff219d068c54abf4727c53724dfda1bb473ca39b84e27517f397b44a",
+      "scenario_count": 4,
+      "scenario_form_count": 64,
+      "nuisance_fit_control_count": 4,
+      "held_collateral_control_count": 4,
+      "control_form_count": 16,
+      "total_form_count": 80,
+      "role_names": [
+        "NOMA",
+        "TAVI"
+      ],
+      "factor_balance": [
+        "authorized_instrumental",
+        "unauthorized_instrumental",
+        "authorized_valenced",
+        "unauthorized_valenced"
+      ],
+      "factor_effect_claim_forbidden": "one scenario per cell confounds scenario content with authority/motivation",
+      "rendered_form_ids_sha256": "a7e4f6bfebb0facd190bc83c85bf01103da84dc9ff631c7a1990f0d7688d6ec0",
+      "rendered_forms_sha256": "fdd5f4daca1a6c28ee788b0c39885c34bb4026f15be6f047c1d2ca47fd44d37e"
+    },
+    "coordinate": {
+      "layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "excluded_layer": 23,
+      "excluded_layer_reason": "all slots are prefix positions before the answer suffix/final scoring token, so final-block hook_out has no later attention path from those slots to the next-token logit",
+      "slot_rule": [
+        3,
+        "anchor-8",
+        "anchor-4",
+        "anchor"
+      ],
+      "semantic_anchor_source_certificate": "each prompt and construction begins with the same answer-order-twin anchor_prefix, ending in exactly one '[FACTS COMPLETE]\\n'; token anchor is the last common token position and is not claimed to be a UTF-8 byte boundary",
+      "layout": "slot_major_4_by_23_by_1024",
+      "dimension": 94208,
+      "same_requested_physical_direction_for_both_answer_orders": true,
+      "negative_requested_direction": "exact_float32_sign_bit_negation_of_positive",
+      "layer_selection": false,
+      "layer_pruning": false,
+      "alternate_slots": false,
+      "alternate_caps": false
+    },
+    "capture": {
+      "one_forward_and_one_backward_per_form": true,
+      "layer_zero_exact_reconstruction": true,
+      "later_hooks_return_activation_unchanged": true,
+      "disable_all_model_parameter_gradients": true,
+      "allocate_no_parameter_gradients": true,
+      "finite_interventions": 0,
+      "model_forwards": 80,
+      "model_backwards": 80,
+      "generated_tokens": 0,
+      "external_api_calls": 0,
+      "external_model_judges": 0,
+      "paid_model_cost_usd": 0
+    },
+    "folds": {
+      "count": 4,
+      "rule": "leave_one_scenario_out; all four held_collateral controls remain held in every fold",
+      "training": {
+        "target_rows": 12,
+        "target_pairs": 6,
+        "scenario_nuisance_rows": 36,
+        "nuisance_fit_control_rows": 8,
+        "nuisance_rows": 44,
+        "all_rows": 56
+      },
+      "held": {
+        "target_rows": 4,
+        "target_pairs": 2,
+        "scenario_nuisance_rows": 12,
+        "held_collateral_control_rows": 8,
+        "nuisance_rows": 20,
+        "all_rows": 24
+      },
+      "staging": "write/hash exact training scales, nuisance basis, SP bank bytes, target-only bank bytes, and random-bank freeze manifest before any held-derived arithmetic"
+    },
+    "numerical_method": {
+      "nuisance_svd_input": "normalize each nonzero nuisance row to unit L2 before SVD; independently certify reconstruction of the original raw nuisance rows",
+      "nuisance_svd_rank_threshold": "max(1e-12,1e-10*sigma_1)",
+      "zero_nuisance_rows": "fail_closed",
+      "training_nuisance_expected_rank": 44,
+      "zero_training_residual_norm": "serialized scientific no_go with no scales/banks/random manifest; never an integrity abort",
+      "full_data_nuisance_expected_rank": 64,
+      "training_pair_solver": "analytic_two_inequality_active_set_after_exact_projection_into_frozen_training_nuisance_nullspace",
+      "training_pair_direction": "minimum_0.5_l2_squared_subject_to_both_order_slopes_at_least_abs(baseline)+0.05",
+      "training_SP_bank": "six positively oriented unit certified nuisance-null directions; SVD only determines rank then canonical twice-reorthogonalized modified Gram-Schmidt",
+      "training_SP_bank_rank_maximum": 6,
+      "bank_orthogonality_tolerance": 1e-10,
+      "bank_source_reconstruction_tolerance": 1e-10,
+      "bank_nuisance_overlap_tolerance": 1e-10,
+      "held_primary_solver": "analytic two-inequality coefficient QP inside frozen training SP bank; no ambient-nullspace component",
+      "held_target_access": "target-aware white-box transductive access to the two held target gradients and margins",
+      "held_nuisance_access_in_solver": false,
+      "held_audit_scope_per_direction": "exactly 66 rows: own 2 targets + 44 frozen training nuisances + 20 held nuisances",
+      "unrestricted_ambient_held_QP": "descriptive_nonselecting_only",
+      "double_certificate_tolerance": 1e-08,
+      "state_zero_float32_target_and_exact_null_tolerance": 1e-06
+    },
+    "qualification": {
+      "target_margin": 0.05,
+      "every_pair_both_orders_positive_branch_margin_at_least": 0.05,
+      "every_pair_both_orders_negative_branch_margin_at_most": -0.05,
+      "maximum_abs_state_zero_linearized_training_null_movement": 1e-06,
+      "training_null_gate_scope": "nuisance-null primary and random-bank oracles only; the matched target-only bank is not required to be null",
+      "total_stacked_standardized_RSS_norm_cap": 0.25,
+      "each_layer_standardized_norm_cap": 0.25,
+      "each_prompt_layer_slot_requested_relative_dose_cap": 0.25,
+      "each_prompt_layer_requested_relative_dose_cap": 0.25,
+      "each_prompt_cumulative_RSS_layer_requested_dose_cap": 0.25,
+      "maximum_abs_held_nuisance_movement": 0.05,
+      "fold_global_max_held_nuisance_over_min_target_movement": 0.5,
+      "held_nuisance_predicted_choice_flips": 0,
+      "choice_ambiguity_tolerance": 1e-06,
+      "scalar_norm_and_dose_cap_tolerance": 0.0,
+      "behavioral_null_comparator": "matched_six_source_training_target_only_bank_constructed_with_identical_bank_pipeline",
+      "minimum_absolute_fold_global_held_leakage_reduction_vs_target_only_bank": 0.01,
+      "maximum_relative_fold_global_held_leakage_vs_target_only_bank": 0.8,
+      "target_only_bank_rank_must_equal_training_SP_bank_rank_without_truncation": true,
+      "all_four_training_folds": "must_pass",
+      "all_four_held_folds": "must_pass",
+      "full_data_analysis_and_rank_at_most_eight_bank": "must_pass",
+      "failure_action": "permanent_geometry_no_go_without_layer_pruning_cap_change_or_adjacent_rescue"
+    },
+    "controls": {
+      "random_nullspace_bank_replicates": 32,
+      "random_seed_rule": "little_endian_uint64(first8(SHA256('CBNMS_RANDOM_BANK_V1|dataset_sha256|fold_sha256|replicate'))) using NumPy PCG64",
+      "random_bank_rank": "match_that_fold_training_SP_bank",
+      "random_bank_freeze": "persist seed, rank, exact float64 basis byte hash, and construction hash; regenerate one-at-a-time before held use and require exact match",
+      "random_bank_training_construction_gate": "construct manifest only after nuisance-rank, all six paired solvers, both banks, and exact bank-rank equality pass; otherwise persist empty manifest and no-go reason",
+      "random_bank_held_evaluation_gate": "regenerate/evaluate only after primary and matched-target-bank 0.01 absolute plus 0.80 relative fold gates pass; otherwise emit ordered replicate 0..31 skipped/false records",
+      "random_complete_all_fold_passes_allowed": 0,
+      "matched_non_SP_control": "two held other/permanent assignment-pair bank oracles, descriptive and nonselecting",
+      "target_only_comparator": "capacity-matched six-source training target-only bank; identical canonical bank construction and held coefficient solver; observed rank must exactly equal SP-bank rank without truncation",
+      "ambient_target_only_comparator": "descriptive and nonselecting",
+      "ambient_training_null_comparator": "descriptive and nonselecting",
+      "comparators_may_tune_or_rescue": false
+    },
+    "full_data": {
+      "run_only_after_all_fold_training_and_held_artifacts_are_immutable_and_all_LOSO_gates_pass": true,
+      "if_any_LOSO_gate_fails": "write hashed full-data not-evaluated no-go record; do not run full-data SVD/bank because it cannot rescue",
+      "target_pairs": 8,
+      "nuisance_rows": 64,
+      "SP_bank_rank_maximum": 8,
+      "full_data_target_only_bank": "not_constructed; only pair-level target-only diagnostics and the eight-source nuisance-null SP bank are produced",
+      "held_collateral_controls_enter_full_data_only_after_fold_artifacts_are_immutable": true,
+      "full_data_is_adaptive_realization_not_unseen_confirmation": true,
+      "finite_phase_if_qualified_must_freeze_exact_bank_bytes": true
+    },
+    "state_zero_arithmetic_claim": {
+      "required_term": "requested/state_zero_linearized",
+      "forbidden_term": "realized",
+      "limitation": "earlier-layer edits would change later residual states; no finite forward pass with the multi-layer edit is run in this geometry phase"
+    },
+    "claim_boundaries": {
+      "success_means": "eligibility to draft and audit a separate finite prospective intervention protocol using newly authored untouched prompts and controls",
+      "success_does_not_mean": [
+        "a finite intervention worked",
+        "a direction or controller generalized",
+        "the model has a natural self-preservation mechanism",
+        "the method is novel",
+        "the work is publication evidence",
+        "authority or motivation caused an effect"
+      ],
+      "prior_art_statement": "dynamic steering, per-instance coefficients, multi-layer steering, nullspace projection, collateral-damage controls, and activation-steering baselines are prior art",
+      "endpoint_label": "target-aware white-box transductive fixed-algorithm attack/oracle",
+      "finite_phase_minimum_semantic_checks": "frozen-direction A/B, X/Y, 1/2 or semantic-label cross-encoding plus open-ended decisions; otherwise only encoding-bound controllability may be claimed",
+      "no_component_or_priority_claim": true,
+      "possible_contribution_boundary": "only the exact behavioral-Jacobian nuisance-null plus frozen low-rank SP-bank transductive conjunction could become a candidate contribution after equal-information/rank/dose finite baselines and independent 2B replication",
+      "significant_publication_novelty_established_by_geometry": false,
+      "broad_first_claims_forbidden": [
+        "first dynamic steering",
+        "first gradient steering",
+        "first multi-layer steering",
+        "first selective self-preservation steering"
+      ]
+    },
+    "closest_work": {
+      "deployable_per_instance_multi_layer_activation_steering": "https://arxiv.org/abs/2608.08829",
+      "prompt_steering_replacement": "https://arxiv.org/abs/2605.03907",
+      "SADI": "https://arxiv.org/abs/2410.12299",
+      "AlphaSteer": "https://arxiv.org/abs/2506.07022",
+      "FishBack": "https://arxiv.org/abs/2605.17231",
+      "minimizing_collateral_damage": "https://arxiv.org/abs/2605.01167",
+      "NullSteer": "https://arxiv.org/abs/2603.22094",
+      "nullspace_stealth_backdoor_compilation": "https://arxiv.org/abs/2604.12359",
+      "CAA": "https://arxiv.org/abs/2312.06681",
+      "BiPO": "https://arxiv.org/abs/2406.00045",
+      "Persona_Vectors": "https://arxiv.org/abs/2507.21509",
+      "Survive_at_All_Costs": "https://arxiv.org/abs/2603.05028",
+      "steered_activations_are_non_surjective": "https://arxiv.org/abs/2604.09839",
+      "what_does_activation_steering_control": "https://arxiv.org/abs/2608.22985",
+      "SVF": "https://arxiv.org/abs/2602.01654",
+      "G_ACT": "https://arxiv.org/abs/2506.18887",
+      "CLAS": "https://arxiv.org/abs/2604.24693",
+      "COLD_Steer": "https://arxiv.org/abs/2603.06495"
+    }
+  },
+  "locked_files": [
+    {
+      "path": "src/sp_lense/counterfactual_behavioral_null_multilayer.py",
+      "sha256": "d171b5ba6e2767f58c2a7842e91df48aaee9c51e9615976e8087fb513b184bd2",
+      "bytes": 123207
+    },
+    {
+      "path": "scripts/cbnms_prospective.py",
+      "sha256": "b5e8a543be284204dd913057a8de5833ce6b235f6c7dd1ea4039a9b1becc771f",
+      "bytes": 59500
+    },
+    {
+      "path": "tests/test_cbnms_prospective.py",
+      "sha256": "363907bc94014a4bd5369a90fa3f1fa4d9c488aa12a8a5830dffbb41c2c2f104",
+      "bytes": 22093
+    },
+    {
+      "path": "tests/test_cbnms_prospective_runner.py",
+      "sha256": "00bdf8f7cdfce3510356da642449a5a3bbc2e3692933e6a1c9adee3e61259d9c",
+      "bytes": 16772
+    },
+    {
+      "path": "configs/cbnms_prospective_template.json",
+      "sha256": "c14f6f9b5674669128415e209d012119dea9abc92e78c2ef690a12b58de607a3",
+      "bytes": 12715
+    },
+    {
+      "path": "docs/CBNMS_PROSPECTIVE_PROTOCOL.md",
+      "sha256": "63bc6f3b7342c87a63bbcfed56d33ae44a901ea9de1ab8a020ca650c3294484b",
+      "bytes": 14780
+    },
+    {
+      "path": "data/cbnms_prospective_validation.json",
+      "sha256": "046c60aeff219d068c54abf4727c53724dfda1bb473ca39b84e27517f397b44a",
+      "bytes": 6142
+    },
+    {
+      "path": "src/sp_lense/all_layer_four_slot_oracle.py",
+      "sha256": "515946ce14a509b17fd295cc06a4f64c0f7515f114beb015cba905e8d1556bcd",
+      "bytes": 87152
+    },
+    {
+      "path": "src/sp_lense/factorial_causal_anchor.py",
+      "sha256": "d30bfb44107cc58f2965c0c7dc2541709159b15d36c1db9e0afd431a0d69dd5d",
+      "bytes": 43795
+    },
+    {
+      "path": "src/sp_lense/comparison_runtime.py",
+      "sha256": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+      "bytes": 31947
+    },
+    {
+      "path": "src/sp_lense/decision_margin_shield.py",
+      "sha256": "12d8517b335c4e77b8ee47483fc8f267bdd5517a3b5a8c77e4ed2ea754b8ca54",
+      "bytes": 37847
+    },
+    {
+      "path": "src/sp_lense/decision_margin_shield_rowspace.py",
+      "sha256": "9ad2eede7e41c93b1b5a37d77c15f090f776333f7b670f998202046fac1fa703",
+      "bytes": 25264
+    },
+    {
+      "path": "src/sp_lense/counterfactual_slot_matrix_steering.py",
+      "sha256": "8c716aa27c0a40fb0ab59567c5f8bf7dc84da46da832840e0923a2bb79c367a4",
+      "bytes": 79671
+    },
+    {
+      "path": "src/sp_lense/backend.py",
+      "sha256": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
+      "bytes": 12318
+    },
+    {
+      "path": "src/sp_lense/config.py",
+      "sha256": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a",
+      "bytes": 6139
+    },
+    {
+      "path": "configs/qwen35_08b_aligned.json",
+      "sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
+      "bytes": 1158
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "e9767a6d2d44e3cd09ece5a4ed9edc3bc6c12dfe91f6bdfc20fa3cb4a30808c8",
+      "bytes": 1086
+    },
+    {
+      "path": "requirements-research.txt",
+      "sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e",
+      "bytes": 241
+    },
+    {
+      "path": "requirements-constrained-steering.txt",
+      "sha256": "b85045386124ca71e71373e566cea6b6cc4b67bd80eb006ec201b1a7e8fcbf95",
+      "bytes": 43
+    }
+  ],
+  "adaptive_prior_result": {
+    "path": "results/all_layer_four_slot_oracle_screen/qwen35_08b/result.json",
+    "file_sha256": "b0d1f145360d8b8ffe346fe2e32d2100750b7863ba147d73e01a4706797d0fe0",
+    "tensors_read_or_reused": false,
+    "role": "disclosed adaptive negative result only"
+  },
+  "adaptive_lineage": [
+    {
+      "path": "docs/ALL_LAYER_FOUR_SLOT_ORACLE_SCREEN_PROTOCOL.md",
+      "file_sha256": "75a89aaa0adab93b84b12c01a45e952efaa605f0ece4ef55556a5092b67bbab1"
+    },
+    {
+      "path": "configs/all_layer_four_slot_oracle_screen_lock.json",
+      "file_sha256": "9382df0d9d908b13f98472a1899f5a41c4080b6672ab859e8599ae2c6b25f241"
+    },
+    {
+      "path": "results/all_layer_four_slot_oracle_screen/qwen35_08b/result.json",
+      "file_sha256": "b0d1f145360d8b8ffe346fe2e32d2100750b7863ba147d73e01a4706797d0fe0"
+    },
+    {
+      "path": "results/all_layer_four_slot_oracle_screen/qwen35_08b/REPORT.md",
+      "file_sha256": "3d816234fb4d87030139296270f56efb282c4f3fb81e7a22872732d577359e9d"
+    },
+    {
+      "path": "configs/counterfactual_slot_matrix_steering_lock.json",
+      "file_sha256": "560233d8d463002fe39c0d8ceda89ed9ff16ff18cf99d891ad16414c5c46cbf7"
+    },
+    {
+      "path": "results/counterfactual_slot_matrix_steering/qwen35_08b/geometry.json",
+      "file_sha256": "9d1ed9cd630194fb28861ef612cfb3174909a66ddcf0b15fac3e318e6b9e2a42"
+    },
+    {
+      "path": "results/context_gated_dynamic/qwen35_08b/exact_prompt_order_summary.json",
+      "file_sha256": "fbb50d522c7b8434ab0fd8295ea1bdd4a262cd383b2d890fafdc0ce61fc3b501"
+    },
+    {
+      "path": "results/context_gated_dynamic/qwen35_08b/gated_replay_summary.json",
+      "file_sha256": "db520ec491dacb0a7861760e9e69afed2cda621227574521350c2a29882dee5b"
+    },
+    {
+      "path": "results/semantic_context_gate_development/counterfactual_name_order_cancelled_v3/qwen35_08b/semantic_gate_result.json",
+      "file_sha256": "e3d256c7ebf051503bcee23c697ed0c8cfe12f04012b5317ee146eec28880f50"
+    },
+    {
+      "path": "results/semantic_context_gate_development/counterfactual_name_order_cancelled_v3/qwen35_08b/steering_development_result.json",
+      "file_sha256": "66fbdced7b52cac56205050446626ca2734b8ed301124c38e810ae22772e9ba0"
+    },
+    {
+      "path": "results/learned_context_gated_gradient_development/fresh_confirmation_v1/qwen35_08b/gate_capture_manifest.json",
+      "file_sha256": "cde2d44a281b1d7e03828b37da3b538415cbd661825c12b56b34265b7d864f63"
+    },
+    {
+      "path": "results/learned_context_gated_gradient_development/fresh_confirmation_v1/qwen35_08b/gate_development_result.json",
+      "file_sha256": "9f65403f151c7694bed2f8aa4347125fd6cfb230924555c7d7a815b96c59009f"
+    },
+    {
+      "path": "results/factorial_interface_translator_development/qwen35_08b/geometric_result.json",
+      "file_sha256": "75677303cc4e69d3e508af9514c5317c46f1f8ccf2b6030939db3117510bb114"
+    },
+    {
+      "path": "results/factorial_interface_translator_development/qwen35_08b/posthoc_attainability.json",
+      "file_sha256": "6f6ad7805ff0e1ddcd3eeffe388a9efef03a6b346ff2067ffedcb6b46b10f68f"
+    },
+    {
+      "path": "results/global_counterfactual_robust_boundary/qwen35_08b/all_layer_geometry.json",
+      "file_sha256": "58da3f608a0c03820304d680595ef74a289638351b621c19af26e459b3058bf0"
+    },
+    {
+      "path": "results/global_counterfactual_robust_boundary/qwen35_08b/integrated_conclusion.json",
+      "file_sha256": "7920be313722a8a8995737a35c45a33393ed4b56c72031af479554feadeac0b0"
+    }
+  ],
+  "sealed_data_accessible": false,
+  "lock_identity_sha256": "200ce00b61dfdd59aedc3658addd08e89ad3d363fc3af19f16b22cf5e36ea221"
+}
