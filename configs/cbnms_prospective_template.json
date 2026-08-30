@@ -1,0 +1,252 @@
+{
+  "schema_version": "sp_lense.cbnms_prospective_template.v1",
+  "status": "draft_unlocked_requires_independent_review",
+  "study_name": "Counterfactual Behavioral-Null Multi-Layer Steering",
+  "study_acronym": "CBNMS",
+  "split": "prospective_validation",
+  "prospective_status": {
+    "prompts_authored_before_any_model_outcomes": true,
+    "sealed_data_accessible": false,
+    "prior_experiment_capture_tensors_reused": false,
+    "adaptive_prior_result_disclosed": "results/all_layer_four_slot_oracle_screen/qwen35_08b/result.json",
+    "adaptive_prior_result_file_sha256": "populated_by_lock_command",
+    "adaptive_limit": "CBNMS was designed after ALFS and cannot revise the locked ALFS no_go; it is prospective only for these new prompts and remains adaptive method development",
+    "adaptive_lineage": "populated_by_lock_command_with_ALFS_CSMS_DMS_PFIT_GCRBS_paths_and_hashes"
+  },
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "n_layers": 24,
+    "d_model": 1024,
+    "prompt_format": "chat",
+    "local_files_only": true
+  },
+  "offline_environment": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+  },
+  "source": {
+    "path": "data/cbnms_prospective_validation.json",
+    "schema_version": "sp_lense.cbnms_prospective_validation.v1",
+    "file_sha256": "populated_by_lock_command",
+    "scenario_count": 4,
+    "scenario_form_count": 64,
+    "nuisance_fit_control_count": 4,
+    "held_collateral_control_count": 4,
+    "control_form_count": 16,
+    "total_form_count": 80,
+    "role_names": [
+      "NOMA",
+      "TAVI"
+    ],
+    "factor_balance": [
+      "authorized_instrumental",
+      "unauthorized_instrumental",
+      "authorized_valenced",
+      "unauthorized_valenced"
+    ],
+    "factor_effect_claim_forbidden": "one scenario per cell confounds scenario content with authority/motivation"
+  },
+  "coordinate": {
+    "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "excluded_layer": 23,
+    "excluded_layer_reason": "all slots are prefix positions before the answer suffix/final scoring token, so final-block hook_out has no later attention path from those slots to the next-token logit",
+    "slot_rule": [
+      3,
+      "anchor-8",
+      "anchor-4",
+      "anchor"
+    ],
+    "semantic_anchor_source_certificate": "each prompt and construction begins with the same answer-order-twin anchor_prefix, ending in exactly one '[FACTS COMPLETE]\\n'; token anchor is the last common token position and is not claimed to be a UTF-8 byte boundary",
+    "layout": "slot_major_4_by_23_by_1024",
+    "dimension": 94208,
+    "same_requested_physical_direction_for_both_answer_orders": true,
+    "negative_requested_direction": "exact_float32_sign_bit_negation_of_positive",
+    "layer_selection": false,
+    "layer_pruning": false,
+    "alternate_slots": false,
+    "alternate_caps": false
+  },
+  "capture": {
+    "one_forward_and_one_backward_per_form": true,
+    "layer_zero_exact_reconstruction": true,
+    "later_hooks_return_activation_unchanged": true,
+    "disable_all_model_parameter_gradients": true,
+    "allocate_no_parameter_gradients": true,
+    "finite_interventions": 0,
+    "model_forwards": 80,
+    "model_backwards": 80,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0
+  },
+  "folds": {
+    "count": 4,
+    "rule": "leave_one_scenario_out; all four held_collateral controls remain held in every fold",
+    "training": {
+      "target_rows": 12,
+      "target_pairs": 6,
+      "scenario_nuisance_rows": 36,
+      "nuisance_fit_control_rows": 8,
+      "nuisance_rows": 44,
+      "all_rows": 56
+    },
+    "held": {
+      "target_rows": 4,
+      "target_pairs": 2,
+      "scenario_nuisance_rows": 12,
+      "held_collateral_control_rows": 8,
+      "nuisance_rows": 20,
+      "all_rows": 24
+    },
+    "staging": "write/hash exact training scales, nuisance basis, SP bank bytes, target-only bank bytes, and random-bank freeze manifest before any held-derived arithmetic"
+  },
+  "numerical_method": {
+    "nuisance_svd_input": "normalize each nonzero nuisance row to unit L2 before SVD; independently certify reconstruction of the original raw nuisance rows",
+    "nuisance_svd_rank_threshold": "max(1e-12,1e-10*sigma_1)",
+    "zero_nuisance_rows": "fail_closed",
+    "training_nuisance_expected_rank": 44,
+    "zero_training_residual_norm": "serialized scientific no_go with no scales/banks/random manifest; never an integrity abort",
+    "full_data_nuisance_expected_rank": 64,
+    "training_pair_solver": "analytic_two_inequality_active_set_after_exact_projection_into_frozen_training_nuisance_nullspace",
+    "training_pair_direction": "minimum_0.5_l2_squared_subject_to_both_order_slopes_at_least_abs(baseline)+0.05",
+    "training_SP_bank": "six positively oriented unit certified nuisance-null directions; SVD only determines rank then canonical twice-reorthogonalized modified Gram-Schmidt",
+    "training_SP_bank_rank_maximum": 6,
+    "bank_orthogonality_tolerance": 1e-10,
+    "bank_source_reconstruction_tolerance": 1e-10,
+    "bank_nuisance_overlap_tolerance": 1e-10,
+    "held_primary_solver": "analytic two-inequality coefficient QP inside frozen training SP bank; no ambient-nullspace component",
+    "held_target_access": "target-aware white-box transductive access to the two held target gradients and margins",
+    "held_nuisance_access_in_solver": false,
+    "held_audit_scope_per_direction": "exactly 66 rows: own 2 targets + 44 frozen training nuisances + 20 held nuisances",
+    "unrestricted_ambient_held_QP": "descriptive_nonselecting_only",
+    "double_certificate_tolerance": 1e-8,
+    "state_zero_float32_target_and_exact_null_tolerance": 1e-6
+  },
+  "qualification": {
+    "target_margin": 0.05,
+    "every_pair_both_orders_positive_branch_margin_at_least": 0.05,
+    "every_pair_both_orders_negative_branch_margin_at_most": -0.05,
+    "maximum_abs_state_zero_linearized_training_null_movement": 1e-6,
+    "training_null_gate_scope": "nuisance-null primary and random-bank oracles only; the matched target-only bank is not required to be null",
+    "total_stacked_standardized_RSS_norm_cap": 0.25,
+    "each_layer_standardized_norm_cap": 0.25,
+    "each_prompt_layer_slot_requested_relative_dose_cap": 0.25,
+    "each_prompt_layer_requested_relative_dose_cap": 0.25,
+    "each_prompt_cumulative_RSS_layer_requested_dose_cap": 0.25,
+    "maximum_abs_held_nuisance_movement": 0.05,
+    "fold_global_max_held_nuisance_over_min_target_movement": 0.5,
+    "held_nuisance_predicted_choice_flips": 0,
+    "choice_ambiguity_tolerance": 1e-6,
+    "scalar_norm_and_dose_cap_tolerance": 0.0,
+    "behavioral_null_comparator": "matched_six_source_training_target_only_bank_constructed_with_identical_bank_pipeline",
+    "minimum_absolute_fold_global_held_leakage_reduction_vs_target_only_bank": 0.01,
+    "maximum_relative_fold_global_held_leakage_vs_target_only_bank": 0.8,
+    "target_only_bank_rank_must_equal_training_SP_bank_rank_without_truncation": true,
+    "all_four_training_folds": "must_pass",
+    "all_four_held_folds": "must_pass",
+    "full_data_analysis_and_rank_at_most_eight_bank": "must_pass",
+    "failure_action": "permanent_geometry_no_go_without_layer_pruning_cap_change_or_adjacent_rescue"
+  },
+  "controls": {
+    "random_nullspace_bank_replicates": 32,
+    "random_seed_rule": "little_endian_uint64(first8(SHA256('CBNMS_RANDOM_BANK_V1|dataset_sha256|fold_sha256|replicate'))) using NumPy PCG64",
+    "random_bank_rank": "match_that_fold_training_SP_bank",
+    "random_bank_freeze": "persist seed, rank, exact float64 basis byte hash, and construction hash; regenerate one-at-a-time before held use and require exact match",
+    "random_bank_training_construction_gate": "construct manifest only after nuisance-rank, all six paired solvers, both banks, and exact bank-rank equality pass; otherwise persist empty manifest and no-go reason",
+    "random_bank_held_evaluation_gate": "regenerate/evaluate only after primary and matched-target-bank 0.01 absolute plus 0.80 relative fold gates pass; otherwise emit ordered replicate 0..31 skipped/false records",
+    "random_complete_all_fold_passes_allowed": 0,
+    "matched_non_SP_control": "two held other/permanent assignment-pair bank oracles, descriptive and nonselecting",
+    "target_only_comparator": "capacity-matched six-source training target-only bank; identical canonical bank construction and held coefficient solver; observed rank must exactly equal SP-bank rank without truncation",
+    "ambient_target_only_comparator": "descriptive and nonselecting",
+    "ambient_training_null_comparator": "descriptive and nonselecting",
+    "comparators_may_tune_or_rescue": false
+  },
+  "full_data": {
+    "run_only_after_all_fold_training_and_held_artifacts_are_immutable_and_all_LOSO_gates_pass": true,
+    "if_any_LOSO_gate_fails": "write hashed full-data not-evaluated no-go record; do not run full-data SVD/bank because it cannot rescue",
+    "target_pairs": 8,
+    "nuisance_rows": 64,
+    "SP_bank_rank_maximum": 8,
+    "full_data_target_only_bank": "not_constructed; only pair-level target-only diagnostics and the eight-source nuisance-null SP bank are produced",
+    "held_collateral_controls_enter_full_data_only_after_fold_artifacts_are_immutable": true,
+    "full_data_is_adaptive_realization_not_unseen_confirmation": true,
+    "finite_phase_if_qualified_must_freeze_exact_bank_bytes": true
+  },
+  "state_zero_arithmetic_claim": {
+    "required_term": "requested/state_zero_linearized",
+    "forbidden_term": "realized",
+    "limitation": "earlier-layer edits would change later residual states; no finite forward pass with the multi-layer edit is run in this geometry phase"
+  },
+  "claim_boundaries": {
+    "success_means": "eligibility to draft and audit a separate finite prospective intervention protocol using newly authored untouched prompts and controls",
+    "success_does_not_mean": [
+      "a finite intervention worked",
+      "a direction or controller generalized",
+      "the model has a natural self-preservation mechanism",
+      "the method is novel",
+      "the work is publication evidence",
+      "authority or motivation caused an effect"
+    ],
+    "prior_art_statement": "dynamic steering, per-instance coefficients, multi-layer steering, nullspace projection, collateral-damage controls, and activation-steering baselines are prior art",
+    "endpoint_label": "target-aware white-box transductive fixed-algorithm attack/oracle",
+    "finite_phase_minimum_semantic_checks": "frozen-direction A/B, X/Y, 1/2 or semantic-label cross-encoding plus open-ended decisions; otherwise only encoding-bound controllability may be claimed",
+    "no_component_or_priority_claim": true,
+    "possible_contribution_boundary": "only the exact behavioral-Jacobian nuisance-null plus frozen low-rank SP-bank transductive conjunction could become a candidate contribution after equal-information/rank/dose finite baselines and independent 2B replication",
+    "significant_publication_novelty_established_by_geometry": false,
+    "broad_first_claims_forbidden": [
+      "first dynamic steering",
+      "first gradient steering",
+      "first multi-layer steering",
+      "first selective self-preservation steering"
+    ]
+  },
+  "closest_work": {
+    "deployable_per_instance_multi_layer_activation_steering": "https://arxiv.org/abs/2608.08829",
+    "prompt_steering_replacement": "https://arxiv.org/abs/2605.03907",
+    "SADI": "https://arxiv.org/abs/2410.12299",
+    "AlphaSteer": "https://arxiv.org/abs/2506.07022",
+    "FishBack": "https://arxiv.org/abs/2605.17231",
+    "minimizing_collateral_damage": "https://arxiv.org/abs/2605.01167",
+    "NullSteer": "https://arxiv.org/abs/2603.22094",
+    "nullspace_stealth_backdoor_compilation": "https://arxiv.org/abs/2604.12359",
+    "CAA": "https://arxiv.org/abs/2312.06681",
+    "BiPO": "https://arxiv.org/abs/2406.00045",
+    "Persona_Vectors": "https://arxiv.org/abs/2507.21509",
+    "Survive_at_All_Costs": "https://arxiv.org/abs/2603.05028",
+    "steered_activations_are_non_surjective": "https://arxiv.org/abs/2604.09839",
+    "what_does_activation_steering_control": "https://arxiv.org/abs/2608.22985"
+    ,"SVF": "https://arxiv.org/abs/2602.01654"
+    ,"G_ACT": "https://arxiv.org/abs/2506.18887"
+    ,"CLAS": "https://arxiv.org/abs/2604.24693"
+    ,"COLD_Steer": "https://arxiv.org/abs/2603.06495"
+  }
+}
