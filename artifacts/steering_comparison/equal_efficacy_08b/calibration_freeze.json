@@ -1,0 +1,76 @@
+{
+  "schema_version": "sp_lense.equal_efficacy_calibration_freeze.v1",
+  "status": "frozen_before_any_untouched_test_model_pass",
+  "lock_sha256": "24d364c64bf1d8dca27915ac6f74ec2b5f5d9aae86dfb36ad5392d72bdb79ff7",
+  "runner_sha256": "0d407e3d1d059eeeaca6256b1d763d1695f2b279f0b82494dfe55568295335c2",
+  "runner_commit": "e943911c9341943b4b35a5ef65cffa51c705f99f",
+  "calibration_summary": {
+    "path": "results/steering_comparison/equal_efficacy_08b/calibration_summary.json",
+    "file_sha256": "f4cff3f0f0660b03d304260a8bb0a4953a32cde7ff4b0bede7acecfee372688f"
+  },
+  "calibration_artifacts": {
+    "calibration_grid": {
+      "path": "results/steering_comparison/equal_efficacy_08b/calibration_grid.jsonl",
+      "file_sha256": "454951366dfb3092a966282c701dab82139a432bb0bf2bee0af9af6553a3bb6b",
+      "rows": 5184
+    },
+    "calibration_interpolation": {
+      "path": "results/steering_comparison/equal_efficacy_08b/calibration_interpolation.jsonl",
+      "file_sha256": "d60661e33f2ba972e919537b31dc96537d81eff90c0f6f8c6ddd39138b38a3b8",
+      "rows": 448
+    },
+    "calibration_collateral": {
+      "path": "results/steering_comparison/equal_efficacy_08b/calibration_collateral.jsonl",
+      "file_sha256": "bb246e0cb1f1634ce97708973652424e132127f25c4a708bec148c52f0cf361a",
+      "rows": 792
+    }
+  },
+  "prompt_hashes": {
+    "calibration_sp_manifest_sha256": "6f82fcd6c1b2fcce88719527284b1dddbf83b9cf03e174798a34035344cdeb43",
+    "calibration_collateral_manifest_sha256": "debf1aafaa06993b9df6af6dc6272b318dc8ff5519b91fb79e4ed110329109a7",
+    "test_manifest_sha256": "017d95fae54c14cec9298056292b4ad2e19e910fae776ee1d6a6aaf82558bf86"
+  },
+  "core_individual_eligible": false,
+  "core_raw_self_half_span_spread": 0.0023209750652313232,
+  "core_equal_efficacy": false,
+  "core_all_eligible": false,
+  "diagnostic_eligible": false,
+  "frozen_setups": {
+    "gradient": {
+      "selected_alpha": 0.0037619584367022617,
+      "semantic_preserve_orientation": 1,
+      "direction_sha256": "0093b762c559a7ed9d15134fefa9399a4c1466232e84151ad22ad1aa1574427e",
+      "eligible": false
+    },
+    "caa": {
+      "selected_alpha": 0.16,
+      "semantic_preserve_orientation": 1,
+      "direction_sha256": "0eeee015154166ee4be0d3e94e935f1944ee328088a16d18a753de4026356779",
+      "eligible": false
+    },
+    "bipo": {
+      "selected_alpha": 0.016978420358917164,
+      "semantic_preserve_orientation": -1,
+      "direction_sha256": "0a0cc90a254e546259d5a7e35f40f02d00820efae44ef78e9a4d525d3e7f5400",
+      "eligible": false
+    },
+    "persona_vector": {
+      "selected_alpha": 0.10409595909065644,
+      "semantic_preserve_orientation": -1,
+      "direction_sha256": "f277abb47da8ed637d49bb080df2826bf0900d7b3119b3b3a859da29c85e41ee",
+      "eligible": false
+    },
+    "gradient_uncorrected": {
+      "selected_alpha": 0.0025,
+      "semantic_preserve_orientation": 1,
+      "direction_sha256": "a9daa7097ddaf536085fb8915dd881f71dc846437eadc45b5bc8a3a7d5df3f3e",
+      "eligible": false
+    }
+  },
+  "attestation": {
+    "untouched_test_outcomes_viewed": false,
+    "API_or_model_judge_used": false,
+    "generated_tokens": 0,
+    "test_strength_or_orientation_selected_on_test": false
+  }
+}
