@@ -1,0 +1,96 @@
+{
+  "schema_version": "sp_lense.cbnms_prospective_result.v1",
+  "status": "permanent_geometry_no_go_without_rescue",
+  "split": "prospective_validation",
+  "lock_identity_sha256": "200ce00b61dfdd59aedc3658addd08e89ad3d363fc3af19f16b22cf5e36ea221",
+  "capture_file_sha256": "5559a1b8c0d44e8c5a4ae8260ec8c80a31138bbffcb92a0f01e3a455fcd6e623",
+  "capture_checkpoint_sha256": "174d4eb8fb90c1cc591caa0e30774f592ff237f06a6e7b62a9b00365dae3effd",
+  "training_complete_file_sha256": "dd847284924662489278ce8a753fb79c88bade5c9cfc75ee0204a81640134707",
+  "held_complete_file_sha256": "f3f2ce8e3a69a18bfc4b5bcb644db458714b267fb53782be4c4450dfb5e45020",
+  "full_data_file_sha256": "06034fee2f1725440b45ebc83757613cdb707c142208cff1a5d1de60e532df91",
+  "training_fold_files": [
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/training_folds/fold_0.json",
+      "file_sha256": "dea5a84bfd1ba9f99dd5f5f93aaad6f43d1a31a4e32bd63c99c295a8060ae2fd"
+    },
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/training_folds/fold_1.json",
+      "file_sha256": "75cf5bc062bf5145ae22df3bc2a7542f1ec35735ee311ed15e6d32e2a6c5600e"
+    },
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/training_folds/fold_2.json",
+      "file_sha256": "b343978e1d0d763d83e273f86af4cbf558d45e0f3ef7fb0ac2e80babb9f19bc7"
+    },
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/training_folds/fold_3.json",
+      "file_sha256": "1586f2da85a1f36f730d13b38db50828cca9d388428fbf4636ec44d6f45786f7"
+    }
+  ],
+  "held_fold_files": [
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/held_folds/fold_0.json",
+      "file_sha256": "78d43d2a6bc3b6e6564f4d09e9d6244159687969a963bb123879d5a0d2eac056"
+    },
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/held_folds/fold_1.json",
+      "file_sha256": "eb69e7b41fa2c52725c4386f340efae75a48d046a8b6088ca682590eb0027fee"
+    },
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/held_folds/fold_2.json",
+      "file_sha256": "ca22b22f44db892667f7e8d054ac2e396cab8e7dbdc9161e41032e9528113d77"
+    },
+    {
+      "path": "results/cbnms_prospective/qwen35_08b/held_folds/fold_3.json",
+      "file_sha256": "b25dbaf35ac1f46932d4da31c7248eae2f7db9deee1f1570bfa7d50fdbe07e30"
+    }
+  ],
+  "summary": {
+    "schema_version": "sp_lense.cbnms_prospective.v1.geometry_summary",
+    "status": "permanent_geometry_no_go_without_rescue",
+    "endpoint_kind": "target-aware_white-box_transductive_fixed-algorithm_oracle",
+    "random_complete_all_fold_replicates": [],
+    "random_complete_all_fold_count": 0,
+    "checks": {
+      "all_four_training_folds_pass": false,
+      "all_four_held_folds_pass": false,
+      "full_data_analysis_passes": false,
+      "zero_of_32_random_banks_pass_complete_all_fold_gate": true,
+      "sealed_data_not_accessed": true,
+      "zero_finite_model_interventions_performed": true
+    },
+    "passes": false,
+    "claim_boundaries": {
+      "direction_or_controller_generalization": false,
+      "finite_intervention_evidence": false,
+      "natural_self_preservation_mechanism": false,
+      "methodological_novelty": false,
+      "publication_evidence": false,
+      "authority_or_motivation_factor_effect": false,
+      "factor_effect_limitation": "one scenario per authority-by-motivation cell confounds content and factor",
+      "prior_art": "dynamic steering, per-instance coefficients, multi-layer steering, and nullspace projection are prior art",
+      "semantic_encoding_limitation": "A/B geometry alone can establish only encoding-bound controllability; a later untouched finite phase needs frozen-direction cross-encoding and open-ended decisions"
+    },
+    "next_authorized_action": "stop_CBNMS_without_layer_pruning_cap_change_or_adjacent_rescue",
+    "record_sha256": "bb498acab32b240dd178b78cb304792983d57f2de4bd1c1f3761365709093756"
+  },
+  "model_compute": {
+    "model_forwards": 80,
+    "model_backwards": 80,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "paid_model_cost_usd": 0,
+    "finite_interventions": 0
+  },
+  "analysis_model_compute": {
+    "model_forwards": 0,
+    "model_backwards": 0,
+    "generated_tokens": 0,
+    "external_api_calls": 0,
+    "external_model_judges": 0,
+    "finite_interventions": 0
+  },
+  "prior_experiment_tensors_read": false,
+  "sealed_data_accessed": false,
+  "result_sha256": "9fb841e8acca1558559fcceeb1c24544299ee1623aba0ddc9984066822ed5e2f"
+}
