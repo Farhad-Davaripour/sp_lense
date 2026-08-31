@@ -204,7 +204,7 @@ def _check_locked_files(lock: dict[str, Any]) -> None:
 
 def _check_environment(lock: dict[str, Any]) -> dict[str, Any]:
     expected = lock["environment"]
-    if Path(sys.executable).resolve() != Path(PYTHON_EXECUTABLE):
+    if Path(sys.executable) != Path(PYTHON_EXECUTABLE):
         raise IntegrityError(f"Python executable differs: {sys.executable}")
     observed_python = ".".join(str(value) for value in sys.version_info[:3])
     if observed_python != expected["python"]:
@@ -245,7 +245,7 @@ def _check_environment(lock: dict[str, Any]) -> dict[str, Any]:
         raise IntegrityError(f"Windows Smart App Control differs: {smart_app}")
     return {
         "python": observed_python,
-        "python_executable": str(Path(sys.executable).resolve()),
+        "python_executable": str(Path(sys.executable)),
         "packages": observed_packages,
         "os_release": {"ID": os_release.get("ID"), "VERSION_ID": os_release.get("VERSION_ID")},
         "kernel_release": kernel_release,
