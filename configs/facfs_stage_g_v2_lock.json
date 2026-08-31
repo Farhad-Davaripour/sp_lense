@@ -1,0 +1,328 @@
+{
+  "schema_version": "sp_lense.facfs.stage_g.lock.v1",
+  "namespace": "sp_lense.facfs.stage_g.v2",
+  "status": "prospectively_locked_before_any_stage_g_model_load_or_forward",
+  "expected_branch": "codex/facfs-stage-g-v2-hook-compatibility",
+  "authoritative_wsl_root": "/mnt/c/Users/farha/repos/sp_lense",
+  "authoritative_windows_root": "C:\\Users\\farha\\repos\\sp_lense",
+  "required_ancestor_commits": {
+    "equal_efficacy_runner": "e943911c9341943b4b35a5ef65cffa51c705f99f",
+    "equal_efficacy_no_go": "7e8413dfc305f1f6d25e1ad5793f7e9f0811d77c",
+    "facfs_proposal": "a040eb21c69506e590d852e249d82365f8e1d23f",
+    "stage_g_v1_locked_implementation": "33f3da68a45ecb051919847659e513b6d55a9d8e"
+  },
+  "model": {
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "config_path": "configs/qwen35_08b_aligned.json",
+    "device": "cpu",
+    "dtype": "float32",
+    "blocks": 24,
+    "d_model": 1024,
+    "vocabulary_size": 248320,
+    "prompt_format": "chat",
+    "enable_thinking": false,
+    "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "local_files_only": true,
+    "torch_num_threads": 12,
+    "torch_num_interop_threads": 1
+  },
+  "intervention": {
+    "finite_intervention_authorized": false,
+    "finite_intervention_calls": 0,
+    "layer_zero_based": 10,
+    "position": "final_prompt_token",
+    "capture_hook": "blocks.10.hook_out",
+    "capture_only_zero_reconstruction": true,
+    "no_layer_rescue": true,
+    "no_direction_rescue": true,
+    "no_dose": true,
+    "no_gate": true,
+    "no_shield": true
+  },
+  "direction": {
+    "schema_version": "sp_lense.facfs.stage_g.direction_certificate.v1",
+    "namespace": "sp_lense.facfs.stage_g.v2",
+    "source_path": "artifacts/steering_comparison/one_day_local/qwen35_08b/directions/gradient.json",
+    "source_file_sha256": "f9e829b5269ffbf5c222b145e9846235a31a5768e67faeb4daf84bcde6f11b14",
+    "source_artifact_sha256": "851ca5edd22c0b726a6e9130bc6f81d0db95937cf4918f305e3799e25fd9be0e",
+    "method": "gradient",
+    "semantic_orientation": 1,
+    "layer_zero_based": 10,
+    "position": "final_prompt_token",
+    "width": 1024,
+    "dtype": "float32",
+    "raw_direction_float32_sha256": "0093b762c559a7ed9d15134fefa9399a4c1466232e84151ad22ad1aa1574427e",
+    "raw_direction_norm_float64": 0.9999999995214481,
+    "deployment_expression": "d_raw / d_raw.norm().clamp_min(1e-12)",
+    "deployed_direction_float32_sha256": "f4a7c9fb5620674f3a29646674a77e6c862b57b07b8d3e127d46c6bb931d0a63",
+    "deployed_direction_norm_float32": 1.0,
+    "deployed_direction_norm_float64": 1.0000000859282583,
+    "deployed_direction_norm_tolerance": 1e-06,
+    "no_reorientation": true,
+    "no_reprojection": true,
+    "no_alternative_normalization": true,
+    "direction_certificate_sha256": "00327b503cd4de133731593178296946ad96d0992fb92a39bc891b32412a97d8"
+  },
+  "thresholds": {
+    "mu_id": 0.25,
+    "mu_free": 0.1,
+    "mu_align": 0.125,
+    "float32_zero_atol": 2e-05,
+    "gamma_1024": 6.103888176890726e-05,
+    "reduction_tolerance": 0.0001220703125,
+    "cosine_agreement_tolerance": 0.0001220703125,
+    "deployed_direction_norm_tolerance": 1e-06,
+    "scientific_gate_slack": 0.0,
+    "causal_prompt_residual_relative_l2_tolerance": 1e-05
+  },
+  "authorization_rule": {
+    "every_sp_opaque_cell_must_pass": true,
+    "sp_opaque_cells_per_scenario": 32,
+    "every_option_free_assignment_must_pass": true,
+    "option_free_objectives_per_scenario": 2,
+    "every_alignment_must_pass": true,
+    "alignments_per_scenario": 2,
+    "all_11_scenarios_must_pass": true,
+    "one_failure_is_fatal": true,
+    "op_st_ot_and_walsh_decomposition_are_diagnostic_only": true,
+    "stage_g_failure_ends_fixed_axis_branch": true
+  },
+  "power": {
+    "schema_version": "sp_lense.facfs.stage_g.power.v1",
+    "namespace": "sp_lense.facfs.stage_g.v2",
+    "independent_unit": "complete_source_disjoint_scenario_cluster",
+    "scenario_count": 11,
+    "decision_rule": "all_11_scenarios_must_pass",
+    "null_complete_scenario_success_ceiling": 0.75,
+    "alternative_complete_scenario_success_rate": 0.98,
+    "one_sided_alpha": 0.05,
+    "exact_null_size": 0.04223513603210449,
+    "exact_power": 0.8007313507497958,
+    "one_sided_95_percent_clopper_pearson_lower_if_11_of_11": 0.7615958096191473,
+    "interface_variants_are_repeated_measures": true,
+    "power_report_sha256": "879dd05066130e96db801ae9635899a7a9454cc957027f1df972bbfd52a56f44"
+  },
+  "compute_ceiling": {
+    "scenario_count": 11,
+    "opaque_objectives": 1408,
+    "option_free_objectives": 22,
+    "total_objectives": 1430,
+    "opaque_sequence_items": 1408,
+    "option_free_completion_sequence_items": 44,
+    "total_scored_sequence_items": 1452,
+    "prompt_only_causal_check_forwards": 22,
+    "physical_forward_invocations": 1474,
+    "physical_backward_invocations": 1452,
+    "hash_chained_ledger_events": 2926,
+    "generated_tokens": 0
+  },
+  "operations_identity": {
+    "file_sha256": "9b87e161e0fb631f88d204ad27de282a918a075d58f5adf60c74fd2478a4d817",
+    "operations_sha256": "4d1e27e37cb03164e3f9478b17d8a776993c2f8de65993c3906fb2de3aa2b607"
+  },
+  "token_certificate_identity": {
+    "file_sha256": "a305277d2d458897b521963bd11d3af3cecdc468595ea3c26eb7b2976ef45f68",
+    "token_certificate_sha256": "95ed3214404fb919a2a647f49de4aa439b61f5c101a0b6237e70b0380ed98d35"
+  },
+  "exclusions_identity": {
+    "file_sha256": "1e73b3147d37bd98334e39e3b9ff545ec64811151240141fd7712e8b8ae95b8d",
+    "exclusions_sha256": "fafd7fc86dab5cf776607256016aa73eb09ac15e58f18346e39525b7ec09efd1",
+    "all_collision_gates_passed": true
+  },
+  "inherited_equal_efficacy": {
+    "lock_path": "configs/equal_efficacy_08b_lock.json",
+    "lock_file_sha256": "24d364c64bf1d8dca27915ac6f74ec2b5f5d9aae86dfb36ad5392d72bdb79ff7",
+    "calibration_summary_path": "results/steering_comparison/equal_efficacy_08b/calibration_summary.json",
+    "calibration_summary_file_sha256": "f4cff3f0f0660b03d304260a8bb0a4953a32cde7ff4b0bede7acecfee372688f",
+    "calibration_freeze_path": "artifacts/steering_comparison/equal_efficacy_08b/calibration_freeze.json",
+    "calibration_freeze_file_sha256": "6527a5561bd54816a323e2770e92eb479a1dabb279f6b850cb17741b80a299f0",
+    "calibration_rows": {
+      "calibration_grid.jsonl": "454951366dfb3092a966282c701dab82139a432bb0bf2bee0af9af6553a3bb6b",
+      "calibration_interpolation.jsonl": "d60661e33f2ba972e919537b31dc96537d81eff90c0f6f8c6ddd39138b38a3b8",
+      "calibration_collateral.jsonl": "bb246e0cb1f1634ce97708973652424e132127f25c4a708bec148c52f0cf361a"
+    },
+    "required_freeze_values": {
+      "core_all_eligible": false,
+      "untouched_test_outcomes_viewed": false
+    },
+    "absent_paths": [
+      "results/steering_comparison/equal_efficacy_08b/untouched_test.jsonl",
+      "results/steering_comparison/equal_efficacy_08b/report.json",
+      "results/steering_comparison/equal_efficacy_08b/REPORT.md"
+    ]
+  },
+  "predecessor_attempt": {
+    "namespace": "sp_lense.facfs.stage_g.v1",
+    "branch": "codex/fixed-axis-fisher-shielding",
+    "lock_path": "configs/facfs_stage_g_v1_lock.json",
+    "lock_file_sha256": "6011eede720158330abf91453ed5b869bd1ad4e6420552eae71d3d1b9bf5d941",
+    "attempt_root": "artifacts/facfs/stage_g_v1/attempt_0001",
+    "failure_receipt_path": "artifacts/facfs/stage_g_v1/attempt_0001/attempt_failed.json",
+    "failure_receipt_sha256": "8f05c8d5df06594573ddb1a2d1c0169953d7fd2418cef59736a4873fda3498d2",
+    "operations_path": "configs/facfs_stage_g_v1_operations.json",
+    "operations_file_sha256": "2a126ce31fc6a6572de5577844f10d4c8c9f216af3e47a5170ec67953bd102a5",
+    "operations_sha256": "fb19ff12f23ffc2cb47605e935ad793d841ca34571930c6d0afc42881bde3f71",
+    "prompt_hash_set_sha256": "37ce1cd89c573d3b595649c4f4ff90fbc9837d43ce441ab9b04c278525bfa626",
+    "failure_state": "failed_consumed_no_resume_no_retry",
+    "failure_type": "TypeError",
+    "failure_message": "_capture_prompt_only_residual.<locals>.hook() got an unexpected keyword argument 'hook'",
+    "reserved_forwards": 1409,
+    "reserved_backwards": 1408,
+    "captured_objectives": 1408,
+    "captured_sequences": 1408,
+    "partial_scientific_values_unopened_before_successor_lock": true,
+    "partial_artifacts_must_remain_immutable": true,
+    "resume_or_retry_under_predecessor_lock_forbidden": true
+  },
+  "successor_design": {
+    "technical_change_only": "TransformerLens callback parameter names accept the required hook keyword in prompt-only and completion captures",
+    "model_direction_prompts_thresholds_and_source_disjointness_unchanged": true,
+    "v2_prompt_hash_set_must_equal_v1_prompt_hash_set": true,
+    "fresh_compute_ceiling_and_output_namespace": true,
+    "no_partial_predecessor_tensors_records_or_scores_may_be_read_or_reused": true
+  },
+  "hard_deny_paths_and_patterns": [
+    "data/ckes_sealed.json",
+    "data/ckes_v2_sealed.json",
+    "results/steering_comparison/one_day_local/*sealed*",
+    "artifacts/steering_comparison/*sealed*",
+    "results/steering_comparison/equal_efficacy_08b/*test*",
+    "results/steering_comparison/equal_efficacy_08b/*report*",
+    "artifacts/steering_comparison/run_sealed_evaluation.ps1",
+    "artifacts/steering_comparison/freeze_final_results.ps1"
+  ],
+  "output_contract": {
+    "artifact_root": "artifacts/facfs/stage_g_v2",
+    "result_root": "results/facfs/stage_g_v2",
+    "preflight_receipt": "artifacts/facfs/stage_g_v2/preflight_receipt.json",
+    "attempt": "attempt_0002",
+    "resume_forbidden": true,
+    "retry_after_any_model_forward_forbidden": true,
+    "writes_outside_new_roots_forbidden": true,
+    "exclusive_creation_required": true
+  },
+  "runner_interface": {
+    "path": "scripts/facfs_stage_g_v2.py",
+    "commands": [
+      "preflight",
+      "capture-stage-g"
+    ],
+    "dataset_layer_strength_output_resume_overrides": false,
+    "equal_efficacy_runner_import_forbidden": true
+  },
+  "environment": {
+    "platform": "WSL2 Ubuntu 26.04",
+    "linux_user": "farhad",
+    "python_executable": "/home/farhad/sp_lense/.venv/bin/python",
+    "python": "3.12.10",
+    "authoritative_source_import_root": "/mnt/c/Users/farha/repos/sp_lense/src",
+    "packages": {
+      "sp-lense": "0.1.0",
+      "numpy": "2.5.2",
+      "safetensors": "0.8.0",
+      "tokenizers": "0.23.0rc0",
+      "torch": "2.13.0+cpu",
+      "transformer-lens": "4.0.0b1",
+      "transformers": "5.15.1",
+      "huggingface-hub": "1.28.0",
+      "pytest": "9.1.1",
+      "ruff": "0.16.3"
+    },
+    "windows_smart_app_control_required": "On",
+    "offline_environment": {
+      "HF_HOME": "/mnt/c/Users/farha/.cache/huggingface",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "HF_DATASETS_OFFLINE": "1"
+    }
+  },
+  "locked_files": [
+    {
+      "path": "data/facfs_stage_g_v2_scenarios.json",
+      "file_sha256": "e458ebad38e8f4e9ee4396f7e3bb01df204a42d0c48b7a31cf17957b58edddaa"
+    },
+    {
+      "path": "configs/facfs_stage_g_v2_exclusions.json",
+      "file_sha256": "1e73b3147d37bd98334e39e3b9ff545ec64811151240141fd7712e8b8ae95b8d"
+    },
+    {
+      "path": "configs/facfs_stage_g_v2_operations.json",
+      "file_sha256": "9b87e161e0fb631f88d204ad27de282a918a075d58f5adf60c74fd2478a4d817"
+    },
+    {
+      "path": "configs/facfs_stage_g_v2_token_certificate.json",
+      "file_sha256": "a305277d2d458897b521963bd11d3af3cecdc468595ea3c26eb7b2976ef45f68"
+    },
+    {
+      "path": "configs/facfs_stage_g_v2_direction_certificate.json",
+      "file_sha256": "fbeb77650b824f0e24d21952a61fa412c85f23fb0aa4a12102f2fab8e36a65db"
+    },
+    {
+      "path": "configs/facfs_stage_g_v2_power.json",
+      "file_sha256": "16324ee0905479444275dc633a524b6dd6fc8bc7fc7e905b0beb059fa51c692f"
+    },
+    {
+      "path": "configs/facfs_stage_g_v1_operations.json",
+      "file_sha256": "2a126ce31fc6a6572de5577844f10d4c8c9f216af3e47a5170ec67953bd102a5"
+    },
+    {
+      "path": "configs/facfs_stage_g_v1_lock.json",
+      "file_sha256": "6011eede720158330abf91453ed5b869bd1ad4e6420552eae71d3d1b9bf5d941"
+    },
+    {
+      "path": "configs/qwen35_08b_aligned.json",
+      "file_sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    {
+      "path": "requirements-research.txt",
+      "file_sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    },
+    {
+      "path": "src/sp_lense/facfs_protocol.py",
+      "file_sha256": "6c6bd047c9fbc745a7a47dd2c19893d2ad67e1ddd99653831eb12ff085ad19a4"
+    },
+    {
+      "path": "src/sp_lense/facfs_stage_g_v2.py",
+      "file_sha256": "29e0e37974a4b0985d0e5214eb7627d0f3eb5ec3d76e302317c84e2f11355168"
+    },
+    {
+      "path": "src/sp_lense/facfs_stage_g_v2_runtime.py",
+      "file_sha256": "04c255bd0dd1a1b7ba916f0978b27196ccb7d40c9a478de3d38fe6eca15eac18"
+    },
+    {
+      "path": "scripts/facfs_stage_g_v2.py",
+      "file_sha256": "27a7f04bfd99c066cd55435fc119173179f7e45d8355632ccd5f4ac678e7b5ff"
+    },
+    {
+      "path": "scripts/facfs_stage_g_v2_author.py",
+      "file_sha256": "1448a0d31cb44808f6f3b95c8f82d851a7ad5a880be04845b7e94fe38b156c52"
+    },
+    {
+      "path": "tests/test_facfs_protocol.py",
+      "file_sha256": "9edb55271f54592dd74943cfd1329910c2d7bce721a85d3953ca12500a8b0ce5"
+    },
+    {
+      "path": "tests/test_facfs_stage_g_v2.py",
+      "file_sha256": "0e7b77079c6a75a2be178f1906ca681ec9c2db0df9319c74833c47b58606f7c1"
+    },
+    {
+      "path": "docs/FIXED_AXIS_COUNTERFACTUAL_FISHER_SHIELDING_PROPOSAL.md",
+      "file_sha256": "2bbed11623468ae0effe4ba5b4b30e7f5e77a806a7f62cbf61432d2d6b04c729"
+    },
+    {
+      "path": "docs/FACFS_STAGE_G_V2_PROTOCOL.md",
+      "file_sha256": "6b3dd81b9be3b546143c970a49f4cffbb7e462b04840df28c97437d908e4f06d"
+    }
+  ],
+  "attestations": {
+    "model_loaded_before_lock": false,
+    "model_forwards_before_lock": 0,
+    "model_backwards_before_lock": 0,
+    "old_untouched_test_opened": false,
+    "sealed_sources_opened": false,
+    "windows_security_weakened_or_bypassed": false,
+    "failed_stage_g_v1_partial_scientific_values_opened": false
+  },
+  "lock_identity_sha256": "b4b3c2490b3886b793e21b58ccae593fe87a193e3cfa38ed11baf24e38cc5c31"
+}
