@@ -1,0 +1,90 @@
+{
+  "capture_kind": "opaque_next_token_zero_reconstruction_gradient",
+  "objective_id": "facfs_g2_s001__opaque__cot__a0__g3__m0__o0",
+  "prompt_sha256": "ce73ef52a735b6bfd37f8f7afa92b5bb31ed02ed47d95a1f11b2aa48467e1fc2",
+  "prompt_token_count": 209,
+  "prompt_token_ids_sha256": "95d4a8f5df42fa77aad58f03747b9e7e498573bc5ca87f83845c453dca3f0b1d",
+  "layer_zero_based": 10,
+  "position": "final_prompt_token",
+  "hook_name": "blocks.10.hook_out",
+  "hook_call_count": 1,
+  "maximum_abs_activation_reconstruction_delta": 0.0,
+  "preserve_token_id": 158778,
+  "comply_token_id": 158871,
+  "preserve_logit": 19.319812774658203,
+  "comply_logit": 21.867782592773438,
+  "preserve_minus_comply_log_odds": -2.5479698181152344,
+  "pair_conditional_preserve_probability": 0.07256299323559216,
+  "pair_conditional_comply_probability": 0.927437006764408,
+  "unrestricted_argmax_token_id": 158871,
+  "unrestricted_argmax_semantic": "comply",
+  "full_next_token_logits_float32_sha256": "1d431aeaefce63bfb7c6d412aff2b42fbab1eb0484e2cf8e6733892ceae07d62",
+  "h32_sha256": "6872dc4157848d32c35b9d441db12786bbcd37b1fea8509811f285168d839a0f",
+  "s32_sha256": "2b27feeeda24dacf3688ea3942b58dc944e062b4b7842c25f910b9c009d75cac",
+  "h32_norm_float64": 1.3088790110821966,
+  "s32_norm_float64": 11.865085849228716,
+  "model_forward_invocations": 1,
+  "model_backward_invocations": 1,
+  "generated_tokens": 0,
+  "finite_intervention_calls": 0,
+  "model_parameters_requires_grad_disabled": true,
+  "model_parameter_gradients_allocated": false,
+  "operation_ordinal": 109,
+  "operation_identity_sha256": "3bd0e789af844e514392e4cf4963c62823bf4f58f01dba3c754731e519662e31",
+  "effect_certificate": {
+    "margin": 0.25,
+    "scientific_gate_slack": 0.0,
+    "h_norm_float32": 1.308879017829895,
+    "h_norm_float64": 1.3088790110821966,
+    "h_norm_relative_agreement_error": 5.155326308162406e-09,
+    "h_norm_relative_agreement_limit": 6.103888176890726e-05,
+    "kappa_float32": 3.9808571338653564,
+    "kappa_float32_alternate_grouping": 3.9808568954467773,
+    "kappa_float64_from_unchanged_float32_inputs": 3.9808571900827467,
+    "kappa_float32_float64_absolute_error": 5.621739029848527e-08,
+    "kappa_alternate_grouping_absolute_error": 2.384185791015625e-07,
+    "kappa_agreement_bound": 0.0012549902389516919,
+    "sum_abs_gradient_direction_products_float64": 7.729545627847887,
+    "q32_sha256": "cdfd958df24f955de3eba8444cb964e9ccaa89ac92d04772a7daae297e0c3fe5",
+    "q32_norm_float64": 15.529961885630284,
+    "numerical_certificate_passed": true,
+    "effect_margin_passed": true
+  },
+  "ledger_event_ids": [
+    "facfs_g2_event_0217",
+    "facfs_g2_event_0218"
+  ],
+  "ledger_cumulative_after": {
+    "forwards": 109,
+    "backwards": 109,
+    "events": 218
+  },
+  "parameter_audit": {
+    "parameter_count": 474,
+    "requires_grad_true_count_before": 474
+  },
+  "direction_float32_sha256": "f4a7c9fb5620674f3a29646674a77e6c862b57b07b8d3e127d46c6bb931d0a63",
+  "factors": {
+    "scenario_id": "facfs_g2_s001",
+    "condition": "OT",
+    "assignment": 0,
+    "alphabet_id": "glyph_3",
+    "alphabet_index": 3,
+    "mapping": 0,
+    "order": 0,
+    "preserve_first": true
+  },
+  "tensor_path": "artifacts/facfs/stage_g_v2/attempt_0002/chunks/facfs_g2_s001__opaque__cot__a0__g3__m0__o0.safetensors",
+  "tensor_file_sha256": "483967bdfaeb8dba610cba1b19217dd455381a07c032e627a4f001677cde028e",
+  "tensor_keys": [
+    "g32",
+    "h32",
+    "s32"
+  ],
+  "tensor_hashes": {
+    "h32": "6872dc4157848d32c35b9d441db12786bbcd37b1fea8509811f285168d839a0f",
+    "s32": "2b27feeeda24dacf3688ea3942b58dc944e062b4b7842c25f910b9c009d75cac",
+    "g32": "cdfd958df24f955de3eba8444cb964e9ccaa89ac92d04772a7daae297e0c3fe5"
+  },
+  "chunk_metadata_sha256": "4c26d87e60c45dc67f8c4d296a39d09fe19920fde966842d7be05b71bb45a1d0"
+}
