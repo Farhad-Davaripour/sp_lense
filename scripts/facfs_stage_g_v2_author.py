@@ -642,7 +642,8 @@ def build_lock() -> None:
                 "lock_file_sha256": "6011eede720158330abf91453ed5b869bd1ad4e6420552eae71d3d1b9bf5d941",
                 "attempt_root": "artifacts/facfs/stage_g_v1/attempt_0001",
                 "failure_receipt_path": "artifacts/facfs/stage_g_v1/attempt_0001/attempt_failed.json",
-                "failure_receipt_sha256": "8f05c8d5df06594573ddb1a2d1c0169953d7fd2418cef59736a4873fda3498d2",
+                "failure_receipt_file_sha256": "7764e1f01b6ddfe4c89d36e1224103040ac775379b9d015bf7d2d6f090740377",
+                "failure_receipt_identity_sha256": "8f05c8d5df06594573ddb1a2d1c0169953d7fd2418cef59736a4873fda3498d2",
                 "operations_path": "configs/facfs_stage_g_v1_operations.json",
                 "operations_file_sha256": file_sha256(
                     ROOT / "configs" / "facfs_stage_g_v1_operations.json"

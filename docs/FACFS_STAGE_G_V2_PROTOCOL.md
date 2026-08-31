@@ -4,7 +4,7 @@ Status: **prospective successor lock material; no Stage-G v2 model load or forwa
 
 Stage-G v1 `attempt_0001` is immutable technical no-result provenance, not a
 scientific result. Its capture stopped after a TransformerLens callback keyword mismatch
-in the prompt-only causal check; the v1 failure receipt hash is
+in the prompt-only causal check; the v1 failure receipt identity hash is
 `8f05c8d5df06594573ddb1a2d1c0169953d7fd2418cef59736a4873fda3498d2`.
 No v1 partial tensor, record, or score is opened, reused, merged, resumed, or retried.
 The only v2 implementation change is to accept TransformerLens's required `hook=`

@@ -109,7 +109,10 @@ def test_successor_lock_binds_v1_technical_no_result_and_identical_prompt_set() 
         "exclusive_creation_required": True,
     }
     predecessor = lock["predecessor_attempt"]
-    assert predecessor["failure_receipt_sha256"] == (
+    assert predecessor["failure_receipt_file_sha256"] == (
+        "7764e1f01b6ddfe4c89d36e1224103040ac775379b9d015bf7d2d6f090740377"
+    )
+    assert predecessor["failure_receipt_identity_sha256"] == (
         "8f05c8d5df06594573ddb1a2d1c0169953d7fd2418cef59736a4873fda3498d2"
     )
     assert predecessor["partial_scientific_values_unopened_before_successor_lock"]

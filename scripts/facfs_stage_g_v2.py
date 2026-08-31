@@ -351,12 +351,14 @@ def _check_predecessor(lock: dict[str, Any]) -> dict[str, Any]:
         not old_lock.is_file()
         or file_sha256(old_lock) != predecessor.get("lock_file_sha256")
         or not failure_path.is_file()
-        or file_sha256(failure_path) != predecessor.get("failure_receipt_sha256")
+        or file_sha256(failure_path) != predecessor.get("failure_receipt_file_sha256")
         or not attempt_root.is_dir()
     ):
         raise IntegrityError("predecessor lock or immutable failure receipt differs")
     failure = load_json(failure_path)
     verify_identity_hash(failure, "attempt_failed_sha256")
+    if failure["attempt_failed_sha256"] != predecessor["failure_receipt_identity_sha256"]:
+        raise IntegrityError("predecessor failure receipt identity differs")
     expected_failure = {
         "state": predecessor["failure_state"],
         "exception_type": predecessor["failure_type"],
@@ -374,7 +376,10 @@ def _check_predecessor(lock: dict[str, Any]) -> dict[str, Any]:
         raise IntegrityError("predecessor is not an immutable technical no-result")
     return {
         "attempt": "attempt_0001",
-        "failure_receipt_sha256": predecessor["failure_receipt_sha256"],
+        "failure_receipt_file_sha256": predecessor["failure_receipt_file_sha256"],
+        "failure_receipt_identity_sha256": predecessor[
+            "failure_receipt_identity_sha256"
+        ],
         "technical_no_result": True,
         "partial_scientific_values_unopened_before_successor_lock": True,
         "resume_or_retry_under_predecessor_lock_forbidden": True,
