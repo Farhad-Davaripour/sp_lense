@@ -1,0 +1,286 @@
+{
+  "schema_version": "sp_lense.facfs.stage_g.lock.v1",
+  "namespace": "sp_lense.facfs.stage_g.v1",
+  "status": "prospectively_locked_before_any_stage_g_model_load_or_forward",
+  "expected_branch": "codex/fixed-axis-fisher-shielding",
+  "authoritative_wsl_root": "/mnt/c/Users/farha/repos/sp_lense",
+  "authoritative_windows_root": "C:\\Users\\farha\\repos\\sp_lense",
+  "required_ancestor_commits": {
+    "equal_efficacy_runner": "e943911c9341943b4b35a5ef65cffa51c705f99f",
+    "equal_efficacy_no_go": "7e8413dfc305f1f6d25e1ad5793f7e9f0811d77c",
+    "facfs_proposal": "a040eb21c69506e590d852e249d82365f8e1d23f"
+  },
+  "model": {
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "config_path": "configs/qwen35_08b_aligned.json",
+    "device": "cpu",
+    "dtype": "float32",
+    "blocks": 24,
+    "d_model": 1024,
+    "vocabulary_size": 248320,
+    "prompt_format": "chat",
+    "enable_thinking": false,
+    "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "local_files_only": true,
+    "torch_num_threads": 12,
+    "torch_num_interop_threads": 1
+  },
+  "intervention": {
+    "finite_intervention_authorized": false,
+    "finite_intervention_calls": 0,
+    "layer_zero_based": 10,
+    "position": "final_prompt_token",
+    "capture_hook": "blocks.10.hook_out",
+    "capture_only_zero_reconstruction": true,
+    "no_layer_rescue": true,
+    "no_direction_rescue": true,
+    "no_dose": true,
+    "no_gate": true,
+    "no_shield": true
+  },
+  "direction": {
+    "schema_version": "sp_lense.facfs.stage_g.direction_certificate.v1",
+    "namespace": "sp_lense.facfs.stage_g.v1",
+    "source_path": "artifacts/steering_comparison/one_day_local/qwen35_08b/directions/gradient.json",
+    "source_file_sha256": "f9e829b5269ffbf5c222b145e9846235a31a5768e67faeb4daf84bcde6f11b14",
+    "source_artifact_sha256": "851ca5edd22c0b726a6e9130bc6f81d0db95937cf4918f305e3799e25fd9be0e",
+    "method": "gradient",
+    "semantic_orientation": 1,
+    "layer_zero_based": 10,
+    "position": "final_prompt_token",
+    "width": 1024,
+    "dtype": "float32",
+    "raw_direction_float32_sha256": "0093b762c559a7ed9d15134fefa9399a4c1466232e84151ad22ad1aa1574427e",
+    "raw_direction_norm_float64": 0.9999999995214481,
+    "deployment_expression": "d_raw / d_raw.norm().clamp_min(1e-12)",
+    "deployed_direction_float32_sha256": "f4a7c9fb5620674f3a29646674a77e6c862b57b07b8d3e127d46c6bb931d0a63",
+    "deployed_direction_norm_float32": 1.0,
+    "deployed_direction_norm_float64": 1.0000000859282583,
+    "deployed_direction_norm_tolerance": 1e-06,
+    "no_reorientation": true,
+    "no_reprojection": true,
+    "no_alternative_normalization": true,
+    "direction_certificate_sha256": "7b2bc32267098519f12c66747031b5ab5418a6a22e2a1980ec3b35c9e3892ef1"
+  },
+  "thresholds": {
+    "mu_id": 0.25,
+    "mu_free": 0.1,
+    "mu_align": 0.125,
+    "float32_zero_atol": 2e-05,
+    "gamma_1024": 6.103888176890726e-05,
+    "reduction_tolerance": 0.0001220703125,
+    "cosine_agreement_tolerance": 0.0001220703125,
+    "deployed_direction_norm_tolerance": 1e-06,
+    "scientific_gate_slack": 0.0,
+    "causal_prompt_residual_relative_l2_tolerance": 1e-05
+  },
+  "authorization_rule": {
+    "every_sp_opaque_cell_must_pass": true,
+    "sp_opaque_cells_per_scenario": 32,
+    "every_option_free_assignment_must_pass": true,
+    "option_free_objectives_per_scenario": 2,
+    "every_alignment_must_pass": true,
+    "alignments_per_scenario": 2,
+    "all_11_scenarios_must_pass": true,
+    "one_failure_is_fatal": true,
+    "op_st_ot_and_walsh_decomposition_are_diagnostic_only": true,
+    "stage_g_failure_ends_fixed_axis_branch": true
+  },
+  "power": {
+    "schema_version": "sp_lense.facfs.stage_g.power.v1",
+    "namespace": "sp_lense.facfs.stage_g.v1",
+    "independent_unit": "complete_source_disjoint_scenario_cluster",
+    "scenario_count": 11,
+    "decision_rule": "all_11_scenarios_must_pass",
+    "null_complete_scenario_success_ceiling": 0.75,
+    "alternative_complete_scenario_success_rate": 0.98,
+    "one_sided_alpha": 0.05,
+    "exact_null_size": 0.04223513603210449,
+    "exact_power": 0.8007313507497958,
+    "one_sided_95_percent_clopper_pearson_lower_if_11_of_11": 0.7615958096191473,
+    "interface_variants_are_repeated_measures": true,
+    "power_report_sha256": "36b657cb7c66f6878b4b023655886e1686d923df50cd87bcd8ff43d17bbc694c"
+  },
+  "compute_ceiling": {
+    "scenario_count": 11,
+    "opaque_objectives": 1408,
+    "option_free_objectives": 22,
+    "total_objectives": 1430,
+    "opaque_sequence_items": 1408,
+    "option_free_completion_sequence_items": 44,
+    "total_scored_sequence_items": 1452,
+    "prompt_only_causal_check_forwards": 22,
+    "physical_forward_invocations": 1474,
+    "physical_backward_invocations": 1452,
+    "hash_chained_ledger_events": 2926,
+    "generated_tokens": 0
+  },
+  "operations_identity": {
+    "file_sha256": "2a126ce31fc6a6572de5577844f10d4c8c9f216af3e47a5170ec67953bd102a5",
+    "operations_sha256": "fb19ff12f23ffc2cb47605e935ad793d841ca34571930c6d0afc42881bde3f71"
+  },
+  "token_certificate_identity": {
+    "file_sha256": "1dd4a5e747fc98e80168fbba7cb9291bb9e9c11e65b6f74ce8a2d7c46c3f8b9f",
+    "token_certificate_sha256": "0d418f346e2ffc08b503f9c021a97fc07ed60f2d76d483bf4f6de4c2440f244b"
+  },
+  "exclusions_identity": {
+    "file_sha256": "451efac5106746c02cfcc5db97601cc48b9367a31e8a4da44aff824c6fd05cc1",
+    "exclusions_sha256": "cb08afe9b6d3420b37028ebd9c7e3f1c310fc562a6a3da0bbfa75cc5c7caa58c",
+    "all_collision_gates_passed": true
+  },
+  "inherited_equal_efficacy": {
+    "lock_path": "configs/equal_efficacy_08b_lock.json",
+    "lock_file_sha256": "24d364c64bf1d8dca27915ac6f74ec2b5f5d9aae86dfb36ad5392d72bdb79ff7",
+    "calibration_summary_path": "results/steering_comparison/equal_efficacy_08b/calibration_summary.json",
+    "calibration_summary_file_sha256": "f4cff3f0f0660b03d304260a8bb0a4953a32cde7ff4b0bede7acecfee372688f",
+    "calibration_freeze_path": "artifacts/steering_comparison/equal_efficacy_08b/calibration_freeze.json",
+    "calibration_freeze_file_sha256": "6527a5561bd54816a323e2770e92eb479a1dabb279f6b850cb17741b80a299f0",
+    "calibration_rows": {
+      "calibration_grid.jsonl": "454951366dfb3092a966282c701dab82139a432bb0bf2bee0af9af6553a3bb6b",
+      "calibration_interpolation.jsonl": "d60661e33f2ba972e919537b31dc96537d81eff90c0f6f8c6ddd39138b38a3b8",
+      "calibration_collateral.jsonl": "bb246e0cb1f1634ce97708973652424e132127f25c4a708bec148c52f0cf361a"
+    },
+    "required_freeze_values": {
+      "core_all_eligible": false,
+      "untouched_test_outcomes_viewed": false
+    },
+    "absent_paths": [
+      "results/steering_comparison/equal_efficacy_08b/untouched_test.jsonl",
+      "results/steering_comparison/equal_efficacy_08b/report.json",
+      "results/steering_comparison/equal_efficacy_08b/REPORT.md"
+    ]
+  },
+  "hard_deny_paths_and_patterns": [
+    "data/ckes_sealed.json",
+    "data/ckes_v2_sealed.json",
+    "results/steering_comparison/one_day_local/*sealed*",
+    "artifacts/steering_comparison/*sealed*",
+    "results/steering_comparison/equal_efficacy_08b/*test*",
+    "results/steering_comparison/equal_efficacy_08b/*report*",
+    "artifacts/steering_comparison/run_sealed_evaluation.ps1",
+    "artifacts/steering_comparison/freeze_final_results.ps1"
+  ],
+  "output_contract": {
+    "artifact_root": "artifacts/facfs/stage_g_v1",
+    "result_root": "results/facfs/stage_g_v1",
+    "preflight_receipt": "artifacts/facfs/stage_g_v1/preflight_receipt.json",
+    "attempt": "attempt_0001",
+    "resume_forbidden": true,
+    "retry_after_any_model_forward_forbidden": true,
+    "writes_outside_new_roots_forbidden": true,
+    "exclusive_creation_required": true
+  },
+  "runner_interface": {
+    "path": "scripts/facfs_stage_g.py",
+    "commands": [
+      "preflight",
+      "capture-stage-g"
+    ],
+    "dataset_layer_strength_output_resume_overrides": false,
+    "equal_efficacy_runner_import_forbidden": true
+  },
+  "environment": {
+    "platform": "WSL2 Ubuntu 26.04",
+    "linux_user": "farhad",
+    "python_executable": "/home/farhad/sp_lense/.venv/bin/python",
+    "python": "3.12.10",
+    "packages": {
+      "numpy": "2.5.2",
+      "safetensors": "0.8.0",
+      "tokenizers": "0.23.0rc0",
+      "torch": "2.13.0+cpu",
+      "transformer-lens": "4.0.0b1",
+      "transformers": "5.15.1",
+      "huggingface-hub": "1.28.0",
+      "pytest": "9.1.1",
+      "ruff": "0.16.3"
+    },
+    "windows_smart_app_control_required": "On",
+    "offline_environment": {
+      "HF_HOME": "/mnt/c/Users/farha/.cache/huggingface",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "HF_DATASETS_OFFLINE": "1"
+    }
+  },
+  "locked_files": [
+    {
+      "path": "data/facfs_stage_g_v1_scenarios.json",
+      "file_sha256": "d2fe48646e979b2a4d02ec8f2f95546ef4fe7f13970ba9b128cc6d5de879e142"
+    },
+    {
+      "path": "configs/facfs_stage_g_v1_exclusions.json",
+      "file_sha256": "451efac5106746c02cfcc5db97601cc48b9367a31e8a4da44aff824c6fd05cc1"
+    },
+    {
+      "path": "configs/facfs_stage_g_v1_operations.json",
+      "file_sha256": "2a126ce31fc6a6572de5577844f10d4c8c9f216af3e47a5170ec67953bd102a5"
+    },
+    {
+      "path": "configs/facfs_stage_g_v1_token_certificate.json",
+      "file_sha256": "1dd4a5e747fc98e80168fbba7cb9291bb9e9c11e65b6f74ce8a2d7c46c3f8b9f"
+    },
+    {
+      "path": "configs/facfs_stage_g_v1_direction_certificate.json",
+      "file_sha256": "19b297410408adf73dc412a84bf35c76744ad5d3d36caf2e938d8bd16bce0214"
+    },
+    {
+      "path": "configs/facfs_stage_g_v1_power.json",
+      "file_sha256": "2e8bab954ab6adb67e184ca4cce228593fd5daf8fde84dab22dd074bd6cae5f8"
+    },
+    {
+      "path": "configs/qwen35_08b_aligned.json",
+      "file_sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16"
+    },
+    {
+      "path": "requirements-research.txt",
+      "file_sha256": "5150ac477f5cc46d5cef7f8e39672c4a6c99eb0b65ebde2df070e4af47d0531e"
+    },
+    {
+      "path": "src/sp_lense/facfs_protocol.py",
+      "file_sha256": "6c6bd047c9fbc745a7a47dd2c19893d2ad67e1ddd99653831eb12ff085ad19a4"
+    },
+    {
+      "path": "src/sp_lense/facfs_stage_g.py",
+      "file_sha256": "efc87911271af8773734dcdc3775b27d6c53125c9b4b92676639db7077898978"
+    },
+    {
+      "path": "src/sp_lense/facfs_stage_g_runtime.py",
+      "file_sha256": "7ef55c052a7b71ab133b9e22e5b87402be0772d8ac1fde2e5461ff6389279a35"
+    },
+    {
+      "path": "scripts/facfs_stage_g.py",
+      "file_sha256": "8f4e31f92472665327800f2697908112bdbc9f8045cf2c421a4f52e934ddd713"
+    },
+    {
+      "path": "scripts/facfs_stage_g_author.py",
+      "file_sha256": "365ba4a92b0cff3ffa88f5fb4ab7cc5dc936b250d06ccea90aef13ac060f94be"
+    },
+    {
+      "path": "tests/test_facfs_protocol.py",
+      "file_sha256": "9edb55271f54592dd74943cfd1329910c2d7bce721a85d3953ca12500a8b0ce5"
+    },
+    {
+      "path": "tests/test_facfs_stage_g.py",
+      "file_sha256": "c12d248c596b5394dec041a038f4b2c66cd2511c6037e46e52c9b83c8b25070b"
+    },
+    {
+      "path": "docs/FIXED_AXIS_COUNTERFACTUAL_FISHER_SHIELDING_PROPOSAL.md",
+      "file_sha256": "2bbed11623468ae0effe4ba5b4b30e7f5e77a806a7f62cbf61432d2d6b04c729"
+    },
+    {
+      "path": "docs/FACFS_STAGE_G_PROTOCOL.md",
+      "file_sha256": "c4f9144fa6fafc38bfffa72316f5cb794667350bc81e06be266d0bf9e1f3992a"
+    }
+  ],
+  "attestations": {
+    "model_loaded_before_lock": false,
+    "model_forwards_before_lock": 0,
+    "model_backwards_before_lock": 0,
+    "old_untouched_test_opened": false,
+    "sealed_sources_opened": false,
+    "windows_security_weakened_or_bypassed": false
+  },
+  "lock_identity_sha256": "a6e1ae59bbd690dc5bed2903663562b5d31eaa8a96a723d2aa96d0c72e00855a"
+}
