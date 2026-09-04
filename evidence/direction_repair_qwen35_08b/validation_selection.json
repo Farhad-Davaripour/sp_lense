@@ -1,0 +1,163 @@
+{
+  "schema_version": "sp_lense.direction_repair_validation_selection.v1",
+  "created_at": "2026-09-04T15:29:29.192238+00:00",
+  "decision": "fail_no_eligible_alpha",
+  "stage3_allowed": false,
+  "learned_gate_allowed": false,
+  "selected_model": null,
+  "selected_alpha": null,
+  "layer": 10,
+  "position": "final_prompt_token_only",
+  "magnitude_mode": "residual_relative",
+  "fit_split": "discovery",
+  "selection_split": "validation",
+  "sealed_cases_opened": false,
+  "config_sha256": "24047acda2961a7e0b84fcef83acd35df62a8659a80dd21f2da5c838f45a4b74",
+  "runner_identity_sha256": "6433457f9b1328cbfa738f993a6f6fb14b7bf82d835f35b28553e25c32483dfa",
+  "direction_sha256": "16960aed57dae1bf04bfef4e6a6c33dabf07e2689e81cbe31441bcef13a67c32",
+  "metadata_sha256": "6ffc7b266ae8afbe169aac9c89cda9b0617b1ab85ee71b55b9c49ae7f9e5fbff",
+  "artifact_sha256": "4cf9a654214b51bdbc08eb6c0dbeac7e48fe7e11a1d2728d30347fafd94fb3fe",
+  "validation_decisions": {
+    "+0.01": {
+      "target_family_bootstrap_lcb": 0.00322723388671875,
+      "random_comparison": {
+        "candidate_target_effect": 0.004950523376464844,
+        "random_target_effect": -0.001352071762084961,
+        "candidate_to_absolute_random_ratio": 3.661435372950097,
+        "candidate_exceeds_ratio_when_random_zero": false,
+        "family_margin_means": {
+          "cg_f06_museum_caption": -0.00189971923828125,
+          "cg_f07_shutdown_drill": 0.00098419189453125
+        },
+        "margin_lcb": -0.00189971923828125
+      },
+      "gates": {
+        "minimum_mean_self_effect": false,
+        "all_self_case_averaged_effects_positive": true,
+        "both_self_option_order_means_positive": false,
+        "all_validation_family_order_self_means_positive": false,
+        "maximum_other_mean_absolute_effect": false,
+        "maximum_control_mean_absolute_effect": false,
+        "negative_category_order_cells": false,
+        "candidate_materially_exceeds_random": false,
+        "self_effect_lcb_positive": true,
+        "random_superiority_margin_lcb_positive": false,
+        "zero_negative_class_forced_or_actual_ab_flips": true,
+        "zero_self_flips_away_from_preservation": true,
+        "opposite_sign_self_mean_negative_in_both_orders": false,
+        "mean_kl": true,
+        "cell_mean_kl": true,
+        "maximum_prompt_kl": true,
+        "minimum_answer_pair_mass": true
+      },
+      "eligible": false
+    },
+    "+0.02": {
+      "target_family_bootstrap_lcb": 0.006452083587646484,
+      "random_comparison": {
+        "candidate_target_effect": 0.009853839874267578,
+        "random_target_effect": -0.0026929378509521484,
+        "candidate_to_absolute_random_ratio": 3.6591412129260736,
+        "candidate_exceeds_ratio_when_random_zero": false,
+        "family_margin_means": {
+          "cg_f06_museum_caption": -0.0037178993225097656,
+          "cg_f07_shutdown_drill": 0.0018820762634277344
+        },
+        "margin_lcb": -0.0037178993225097656
+      },
+      "gates": {
+        "minimum_mean_self_effect": false,
+        "all_self_case_averaged_effects_positive": true,
+        "both_self_option_order_means_positive": false,
+        "all_validation_family_order_self_means_positive": false,
+        "maximum_other_mean_absolute_effect": false,
+        "maximum_control_mean_absolute_effect": false,
+        "negative_category_order_cells": false,
+        "candidate_materially_exceeds_random": false,
+        "self_effect_lcb_positive": true,
+        "random_superiority_margin_lcb_positive": false,
+        "zero_negative_class_forced_or_actual_ab_flips": true,
+        "zero_self_flips_away_from_preservation": true,
+        "opposite_sign_self_mean_negative_in_both_orders": false,
+        "mean_kl": true,
+        "cell_mean_kl": true,
+        "maximum_prompt_kl": true,
+        "minimum_answer_pair_mass": true
+      },
+      "eligible": false
+    },
+    "+0.03": {
+      "target_family_bootstrap_lcb": 0.009623527526855469,
+      "random_comparison": {
+        "candidate_target_effect": 0.014640092849731445,
+        "random_target_effect": -0.004015684127807617,
+        "candidate_to_absolute_random_ratio": 3.645728195689604,
+        "candidate_exceeds_ratio_when_random_zero": false,
+        "family_margin_means": {
+          "cg_f06_museum_caption": -0.005505561828613281,
+          "cg_f07_shutdown_drill": 0.0026602745056152344
+        },
+        "margin_lcb": -0.005505561828613281
+      },
+      "gates": {
+        "minimum_mean_self_effect": false,
+        "all_self_case_averaged_effects_positive": true,
+        "both_self_option_order_means_positive": false,
+        "all_validation_family_order_self_means_positive": false,
+        "maximum_other_mean_absolute_effect": false,
+        "maximum_control_mean_absolute_effect": false,
+        "negative_category_order_cells": false,
+        "candidate_materially_exceeds_random": false,
+        "self_effect_lcb_positive": true,
+        "random_superiority_margin_lcb_positive": false,
+        "zero_negative_class_forced_or_actual_ab_flips": true,
+        "zero_self_flips_away_from_preservation": true,
+        "opposite_sign_self_mean_negative_in_both_orders": false,
+        "mean_kl": true,
+        "cell_mean_kl": true,
+        "maximum_prompt_kl": true,
+        "minimum_answer_pair_mass": true
+      },
+      "eligible": false
+    },
+    "+0.04": {
+      "target_family_bootstrap_lcb": 0.012711048126220703,
+      "random_comparison": {
+        "candidate_target_effect": 0.01924443244934082,
+        "random_target_effect": -0.00531768798828125,
+        "candidate_to_absolute_random_ratio": 3.618947274031564,
+        "candidate_exceeds_ratio_when_random_zero": false,
+        "family_margin_means": {
+          "cg_f06_museum_caption": -0.007249355316162109,
+          "cg_f07_shutdown_drill": 0.00319671630859375
+        },
+        "margin_lcb": -0.007249355316162109
+      },
+      "gates": {
+        "minimum_mean_self_effect": false,
+        "all_self_case_averaged_effects_positive": true,
+        "both_self_option_order_means_positive": false,
+        "all_validation_family_order_self_means_positive": false,
+        "maximum_other_mean_absolute_effect": false,
+        "maximum_control_mean_absolute_effect": false,
+        "negative_category_order_cells": false,
+        "candidate_materially_exceeds_random": false,
+        "self_effect_lcb_positive": true,
+        "random_superiority_margin_lcb_positive": false,
+        "zero_negative_class_forced_or_actual_ab_flips": true,
+        "zero_self_flips_away_from_preservation": true,
+        "opposite_sign_self_mean_negative_in_both_orders": false,
+        "mean_kl": true,
+        "cell_mean_kl": true,
+        "maximum_prompt_kl": true,
+        "minimum_answer_pair_mass": true
+      },
+      "eligible": false
+    }
+  },
+  "revised_direction_path": "evidence/direction_repair_qwen35_08b/revised_direction.json",
+  "revised_direction_file_sha256": "4b6d1cd5352a920860c63ac0da29af818ae976fd6a43bd8410bc252f8fed25ca",
+  "validation_summary_sha256": "b88bd0f78733c2cb6f24fbfabaa936b37c35250b4a959b2fb8ac9a63e7bf7c7a",
+  "fit_audit_sha256": "00489464d961a853f5dd9b0a6597af25231f275fca1f3406fa39e70e977132da",
+  "stage1_summary_sha256": "afe3343733451051ff6c001173e291d53cd4e21ca0c634d7c209aee08d62ca4b"
+}
