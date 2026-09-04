@@ -55,3 +55,58 @@ The self-target means are -0.020568 (preserve-first) and +0.055864 (preserve-sec
 The original pilot reached its fixed **no-go**. The positive objective remains unachieved; there is no basis under this protocol to train a learned gate or adaptive controller. The single justified next branch is to request a separately bounded direction-repair/scoring investigation before any new experiment, not automatically launch it. Later layer/probe findings are historical context and do not reopen this decision.
 
 Reproduction: `.venv/Scripts/python.exe scripts/audit_conditional_gate_order.py` (read-only, standard library). Sources: [original protocol](CONDITIONAL_GATE_PILOT.md), [original report](../evidence/conditional_gate_qwen35_08b/PILOT_REPORT.md), [summary](../evidence/conditional_gate_qwen35_08b/oracle_summary.json), [rows](../evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl).
+
+## Model-free construction/scoring consistency check (2026-09-04)
+
+**Verdict: consistent on the inspected implementation paths.** No semantic sign,
+scoring-token, hook-position, or application-scaling bug was identified. The existing
+[method-fidelity audit](STEERING_COMPARISON_METHOD_FIDELITY_AUDIT.md#gradient-method)
+documents the construction but does not make this full oracle cross-path comparison.
+This section is a code inspection, not output of the arithmetic script above.
+
+- **Same semantic score and token context:** construction
+  [`capture_final_prompt_gradient`, comparison_runtime.py:604](../src/sp_lense/comparison_runtime.py#L604)
+  differentiates `z_preserve - z_comply`; oracle
+  [`choice_score_from_logits`, :452/:500](../src/sp_lense/comparison_runtime.py#L452)
+  measures that same float32 logit difference. It equals the corresponding log-probability
+  difference because the shared normalization cancels; pair probability and A+B mass are
+  separate diagnostics. Both paths use `backend.encode` and the shared exact chat-prefix
+  [boundary resolver, :238](../src/sp_lense/comparison_runtime.py#L238), scoring the first
+  assistant content token, not a spaced token or an EOM/completion score. Preservation is
+  mapped to A or B by the respective renderers, not hardwired to A:
+  [construction renderer:565](../src/sp_lense/comparison_dataset.py#L565),
+  [oracle renderer:620](../src/sp_lense/conditional_gate_data.py#L620).
+- **Same intervention coordinate:** the gradient is taken at `blocks.10.hook_out`
+  and its final encoded prompt position. Oracle
+  [`_intervention_spec`, :505](../src/sp_lense/conditional_gate.py#L505) selects that same
+  hook and `prompt_length - 1`; [application:111](../src/sp_lense/comparison_intervention.py#L111)
+  adds `+0.02 * ||h_final|| * unit_direction`. Its extra unit normalization preserves
+  orientation and does not normalize the resulting hidden state or move the hook.
+- **Matching score is not an identical optimization setting:**
+  [`fit_gradient_method`, :113](../src/sp_lense/comparison_fit.py#L113) uses each discovery
+  case's stored answer order and a different inner prompt envelope, whereas the
+  [oracle:623](../src/sp_lense/conditional_gate.py#L623) scores both orders of its new
+  operational-notice cases. The outer chat template is shared. These are explicit
+  construction-to-evaluation differences, not evidence of a label/scoring error.
+- **Projection and scaling limit the guarantee:**
+  [`construct_gradient_directions`, :174](../src/sp_lense/steering_methods.py#L174)
+  projects the raw mean-self gradient off the mean-other gradient, then normalizes and
+  orients it. It guarantees neither per-case positivity nor orthogonality to every other
+  example. For a fixed direction `u`, residual-relative application has local derivative
+  `dY_i/dalpha = ||h_i|| * (g_i dot u)` at zero strength. Thus the unweighted raw-gradient
+  construction is not generally the gradient of the norm-weighted pooled application
+  objective. This is a mathematical limitation of the documented recipe, not an
+  implementation violation or a demonstrated cause of the observed order dependence.
+  Nor does an infinitesimal construction guarantee a finite-step held-out effect.
+
+The traced construction/helper files match recorded fit commit `8f4f1a1`; the traced
+oracle/backend/runtime/intervention files match execution commit `ea199531`. Existing
+targeted tests cover [semantic reversal](../tests/test_conditional_gate_data.py#L89),
+[score versus vocabulary choice](../tests/test_comparison_runtime.py#L65),
+[gradient isolation](../tests/test_comparison_runtime.py#L141),
+[shared boundary rejection](../tests/test_comparison_runtime.py#L215), and
+[fixed position and relative norm](../tests/test_comparison_intervention.py#L28).
+They were inspected, not rerun. No concrete untested discrepancy warranted a new
+regression or numerical derivative check. No model calls, fitting, sealed reads, or
+scientific-artifact changes occurred. This cheap diagnostic is exhausted; the original
+no-go remains unchanged, and no further experiment is launched or prescribed here.
