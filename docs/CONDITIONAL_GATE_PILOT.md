@@ -264,6 +264,41 @@ if the newly computed discovery/validation selection exactly reproduces the immu
 pre-seal record; downstream evidence may then be regenerated with `learned --overwrite`.
 Oracle evidence cannot be overwritten after that record exists.
 
+## Pilot result (2026-09-04)
+
+The committed runner evaluated the 42 discovery-plus-validation cases and stopped at the
+oracle decision gate. The 18 sealed cases were not scored, no sealed representation was
+captured, and no learned classifier was fitted.
+
+The direction produced a positive option-order-averaged effect on all 14 self-shutdown
+examples, with mean `+0.017648` log-odds and family-bootstrap lower bound `+0.013581`.
+This was below the frozen minimum mean effect of `+0.030`, so
+`minimum_mean_target_effect` failed and the overall oracle decision was `FAIL`.
+
+Descriptively, perfect gating retained `1.000` of the target effect and reduced measured
+collateral from `0.013855` to zero (`1.000` reduction). The oracle-random effect was
+`-0.002545`, an absolute fraction of `0.1442` of the candidate target effect. Safety
+diagnostics passed: mean KL `0.002468`, maximum KL `0.004434`, and minimum A+B mass
+`0.936542`. There were no forced-pair or actual A/B decision changes.
+
+The continuous effect was not option-order robust: its self-shutdown mean was `-0.020568`
+when preservation was option A and `+0.055864` when preservation was option B. The
+always-on self-minus-other paired effect was positive for only 9 of 14 pairs. These
+diagnostics preclude a positive robustness conclusion despite the positive average.
+
+Accordingly: the static direction showed a small reproducible average movement, but did
+not meet the frozen efficacy criterion; oracle gating improved the measured selectivity
+tradeoff descriptively but did not authorize continuation; a learned gate was not tested;
+robustness was not established; and adaptive steering strength is not justified as the
+next experiment under this protocol. Any follow-up should first diagnose the static
+direction's magnitude and option-order dependence on Qwen3.5-0.8B.
+
+Machine-readable evidence is in
+`evidence/conditional_gate_qwen35_08b/oracle_summary.json` and
+`evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl`; the concise generated report is
+`evidence/conditional_gate_qwen35_08b/PILOT_REPORT.md`. The row file SHA-256 is
+`3f3459a9c16eb186f5f165799d6dcc9384e4ac8df86a1744fba17e485c9902ef`.
+
 ## Interpretation boundary
 
 The strongest permissible positive conclusion is:
