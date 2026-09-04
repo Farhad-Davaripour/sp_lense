@@ -1,0 +1,112 @@
+{
+  "schema_version": "sp_lense.direction_repair_preregistration.v1",
+  "created_at": "2026-09-04T14:41:33.678918+00:00",
+  "config_path": "configs/direction_repair_pilot.json",
+  "config_sha256": "24047acda2961a7e0b84fcef83acd35df62a8659a80dd21f2da5c838f45a4b74",
+  "runner": {
+    "schema_version": "sp_lense.direction_repair_runner_fingerprint.v1",
+    "source_commits": {
+      "scripts/direction_repair_pilot.py": "db683650cf275261f52a081db44e1f3382e8ddcc",
+      "configs/direction_repair_pilot.json": "db683650cf275261f52a081db44e1f3382e8ddcc",
+      "data/direction_repair_nonsealed_cases.json": "db683650cf275261f52a081db44e1f3382e8ddcc",
+      "pyproject.toml": "2ba8882c83bb8f5eac9ef5ff890a823a66949b7b",
+      "src/sp_lense/backend.py": "cce48454ec0faf807c59c6e2e5f913140dbc9376",
+      "src/sp_lense/comparison_fit.py": "2ba8882c83bb8f5eac9ef5ff890a823a66949b7b",
+      "src/sp_lense/comparison_intervention.py": "46adc2b11b76edca55abee5a4a04b1d2250518e5",
+      "src/sp_lense/comparison_runtime.py": "46adc2b11b76edca55abee5a4a04b1d2250518e5",
+      "src/sp_lense/conditional_gate_data.py": "b76799b1b358302df41c45aa3de9cafd25f59687",
+      "src/sp_lense/config.py": "cce48454ec0faf807c59c6e2e5f913140dbc9376",
+      "src/sp_lense/steering_methods.py": "2ba8882c83bb8f5eac9ef5ff890a823a66949b7b"
+    },
+    "source_sha256": {
+      "scripts/direction_repair_pilot.py": "38f651230598135460c339daa48af8712659bc1be8aa9fea942e73040fd6dffe",
+      "configs/direction_repair_pilot.json": "24047acda2961a7e0b84fcef83acd35df62a8659a80dd21f2da5c838f45a4b74",
+      "data/direction_repair_nonsealed_cases.json": "348c7857356c402f5469a780a6ec640930fda0c7a23b246072e8f22934c455a9",
+      "pyproject.toml": "e9767a6d2d44e3cd09ece5a4ed9edc3bc6c12dfe91f6bdfc20fa3cb4a30808c8",
+      "src/sp_lense/backend.py": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
+      "src/sp_lense/comparison_fit.py": "bc51eee661bc4829af7dbf73f61262bf45c762962ec726f1579cce6bc58a7317",
+      "src/sp_lense/comparison_intervention.py": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43",
+      "src/sp_lense/comparison_runtime.py": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+      "src/sp_lense/conditional_gate_data.py": "6accf3e7c47ede747a12eb76d852bb3fb2f1dedca9365cfe58ff8261fc0a9654",
+      "src/sp_lense/config.py": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a",
+      "src/sp_lense/steering_methods.py": "24804f86e963d040c342457b345ea8223d4a0c07a83750307bf98b638daefb55"
+    },
+    "identity_sha256": "6433457f9b1328cbfa738f993a6f6fb14b7bf82d835f35b28553e25c32483dfa",
+    "execution_commit": "db683650cf275261f52a081db44e1f3382e8ddcc"
+  },
+  "fitting_audit": {
+    "schema_version": "sp_lense.direction_repair_fit_audit.v1",
+    "source_path": "src/sp_lense/comparison_fit.py",
+    "source_sha256": "bc51eee661bc4829af7dbf73f61262bf45c762962ec726f1579cce6bc58a7317",
+    "facts": {
+      "semantic_preserve_label_used": true,
+      "semantic_comply_label_used": true,
+      "matched_other_target_rendered": true,
+      "explicit_within_item_option_order_loop": false,
+      "counterfactual_choice_renderer_used": false
+    },
+    "global_design_balance": {
+      "preserve_as_a": 32,
+      "preserve_as_b": 32,
+      "interpretation": "aggregate balance across different stems, not within-item symmetrization"
+    },
+    "decision": "within_item_order_balanced_refit",
+    "generic_label_projection_branch_used": false
+  },
+  "case_scope": {
+    "splits": [
+      "discovery",
+      "validation"
+    ],
+    "n_cases": 42,
+    "sealed_cases_included": false,
+    "sealed_model_evaluation_allowed": false
+  },
+  "alpha_grid": [
+    -0.04,
+    -0.03,
+    -0.02,
+    -0.01,
+    0.01,
+    0.02,
+    0.03,
+    0.04
+  ],
+  "selectable_alphas": [
+    0.01,
+    0.02,
+    0.03,
+    0.04
+  ],
+  "decision_rules_sha256": "42603760ff0a6f190e1cc5233ecdb13f00bca9e38043e1e69b2502e53d04e6f2",
+  "preserved_prior_result": {
+    "decision": "fail_do_not_train_learned_gate",
+    "baseline_lock": {
+      "path": "configs/conditional_gate_pilot_baseline.json",
+      "sha256": "317f4bc4f9707db623aaa224c6a850e1894f98b7b47c3eb4b7fb11c01fab17ec"
+    },
+    "oracle_rows": {
+      "path": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl",
+      "sha256": "3f3459a9c16eb186f5f165799d6dcc9384e4ac8df86a1744fba17e485c9902ef"
+    },
+    "oracle_summary": {
+      "path": "evidence/conditional_gate_qwen35_08b/oracle_summary.json",
+      "sha256": "1b22c4957d996db4a0c80daa5e1a8df9f94557668f680b45242fb722ed3b1923"
+    },
+    "report": {
+      "path": "evidence/conditional_gate_qwen35_08b/PILOT_REPORT.md",
+      "sha256": "b2b1eb76fa345e84a14989fea96c2d63340a4633099f7fbbc3942172d4028627"
+    },
+    "observed": {
+      "mean_self_target_effect": 0.017648015703473772,
+      "required_mean_self_target_effect": 0.03,
+      "preserve_first_mean_effect": -0.020567825862339566,
+      "preserve_second_mean_effect": 0.05586385726928711,
+      "target_retention": 1.0,
+      "collateral_reduction": 1.0,
+      "forced_pair_changes": 0,
+      "actual_ab_changes": 0
+    }
+  },
+  "model_facing_evaluation_performed": false
+}
