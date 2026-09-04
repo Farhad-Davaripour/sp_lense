@@ -195,6 +195,21 @@ def _synthetic_predictions(
 
 
 class ConditionalGateInputTests(TestCase):
+    def test_evidence_writers_force_portable_lf_bytes(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            json_path = root / "record.json"
+            jsonl_path = root / "rows.jsonl"
+            exclusive_path = root / "immutable.json"
+            gate._write_json(json_path, {"value": "line\nbreak"})
+            gate._write_jsonl(jsonl_path, [{"value": 1}, {"value": 2}])
+            gate._write_json_exclusive(exclusive_path, {"value": "fixed"})
+
+            for path in (json_path, jsonl_path, exclusive_path):
+                payload = path.read_bytes()
+                self.assertIn(b"\n", payload)
+                self.assertNotIn(b"\r\n", payload)
+
     def test_real_frozen_inputs_validate_without_loading_a_model(self) -> None:
         with patch.object(
             gate, "_load_runtime", side_effect=AssertionError("model load is forbidden")

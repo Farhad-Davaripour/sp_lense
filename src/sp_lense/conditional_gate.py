@@ -115,17 +115,15 @@ def _read_json(path: Path) -> Any:
 
 def _write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + "\n",
-        encoding="utf-8",
-    )
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + "\n")
 
 
 def _write_json_exclusive(path: Path, value: Any) -> None:
     """Create an immutable JSON record without replacing an existing file."""
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("x", encoding="utf-8") as handle:
+    with path.open("x", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + "\n")
 
 
@@ -217,7 +215,7 @@ def _require_matching_runner_source(
 
 def _write_jsonl(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
         for row in rows:
             handle.write(json.dumps(row, ensure_ascii=False, allow_nan=False) + "\n")
 
@@ -2697,7 +2695,8 @@ def write_pilot_report(
         ]
     )
     report_path = output_dir / "PILOT_REPORT.md"
-    report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    with report_path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write("\n".join(lines) + "\n")
     return report_path
 
 
