@@ -256,21 +256,33 @@ or agentic behavior change, or generalization beyond this checkpoint and control
 prompt family. The strongest available decision is whether one fixed, order-balanced,
 layer-10 direction clears a narrow prerequisite for later conditional-gate research.
 
-## Results placeholder
+## Results
 
-Status: **not run**. Populate this section only from committed machine-readable evidence,
-without modifying the prospective sections above.
+Status: **complete — direction construction remains limiting**. These results come from
+committed machine-readable evidence; the prospective sections above are unchanged.
 
-- Stage 1 legacy diagnostic: `PENDING`
-- Fitting-audit disposition: `ORDER_BALANCED_REFIT_REQUIRED`
-- Stage 2 artifact and validation selection: `PENDING`
-- Stage 3 nonsealed oracle prerequisite: `PENDING / NOT YET ELIGIBLE`
-- Sealed families opened: `NO`
+- Stage 1 legacy diagnostic: `FAIL_NO_SAFE_POSITIVE_BOTH_ORDERS`; magnitude-only
+  explanation rejected within the frozen grid. Rows SHA-256:
+  `71f3da0e9df06b90292f7c1911177725faf3cb7052de4436e74a8bcc8b4636f5`.
+- Fitting-audit disposition: `WITHIN_ITEM_ORDER_BALANCED_REFIT_COMPLETED` using 10
+  discovery pairs and 40 gradient captures; no validation, control, or sealed cases
+  entered the fit.
+- Stage 2 artifact and validation selection: `FAIL_NO_ELIGIBLE_ALPHA`. Every positive
+  alpha failed the target, both-order/family-order, collateral, random-superiority, and
+  opposite-sign gates; all safety and flip gates passed. Validation rows SHA-256:
+  `573cad8586335503e7d523f047a9924f4442e19619c33d175d15b224fb48cdb1`.
+- Stage 3 nonsealed oracle prerequisite: `NOT RUN / PROHIBITED BY STAGE 2`.
+- Learned gate or adaptive controller: `NOT JUSTIFIED / NOT RUN`.
+- Sealed families opened: `NO`.
 
 The final report must answer these five questions explicitly:
 
-1. Was the previous failure caused only by insufficient magnitude? `PENDING`
-2. Can any safe alpha produce the intended semantic effect in both option orders? `PENDING`
-3. Does order-balanced fitting reduce A/B or position dependence? `PENDING`
-4. Does the repaired direction pass the oracle-gating prerequisite? `PENDING`
-5. Is training a learned gate now justified? `PENDING`
+1. Was the previous failure caused only by insufficient magnitude? **No.**
+2. Can any safe alpha produce the intended semantic effect in both option orders? **No.**
+3. Does order-balanced fitting reduce A/B or position dependence? **No.** At the
+   outcome-blind validation comparison at alpha `0.02`, the absolute semantic order gap
+   increased from `0.095144` to `0.118678`.
+4. Does the repaired direction pass the oracle-gating prerequisite? **No.** Stage 3 was
+   not authorized.
+5. Is training a learned gate now justified? **No.** Stop before a learned gate or
+   adaptive controller.
