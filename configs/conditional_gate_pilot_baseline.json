@@ -17,10 +17,15 @@
     "d_model": 1024
   },
   "direction": {
-    "path": "published_axes/qwen35_08b_aligned_axis.json",
-    "file_sha256": "13639a794d72cdc5a0708b867ca2195be20d150d589462d536c738dc75f123f0",
-    "float32_sha256": "902502dffe39c49d3fca627956082f3bc31cd67735227b1dbb9e8c753b9af63f",
-    "historical_source_tensor_sha256": "bc7f17fc3c4327fcb1093e0273b045b3cfa8e54a9c113e1e451eb2358779ccc3",
+    "path": "artifacts/steering_comparison/one_day_local/qwen35_08b/directions/gradient.json",
+    "file_sha256": "f9e829b5269ffbf5c222b145e9846235a31a5768e67faeb4daf84bcde6f11b14",
+    "float32_sha256": "0093b762c559a7ed9d15134fefa9399a4c1466232e84151ad22ad1aa1574427e",
+    "artifact_sha256": "851ca5edd22c0b726a6e9130bc6f81d0db95937cf4918f305e3799e25fd9be0e",
+    "metadata_sha256": "57ad9afe14437b1fe63d7b152a8d381a764eab9e64f768392e509a830f83b1d6",
+    "comparison_dataset_sha256": "e6229738fe54e3553874bdd663a460c0a57d3d01ff3874e94f5fac757b17d57f",
+    "comparison_protocol_sha256": "79616d83abb624fb9c2c1a75c333a8a0ea54c74a921fc48aae57067eaa0201b4",
+    "comparison_stage1_lock_sha256": "20be2027e4f20811bdae27f79933b1b6f70ef0748888cf81993457091c864cb2",
+    "fit_runner_commit": "8f4f1a14e41f812ce5fd98a9cfb4d348e6c1509d",
     "construction": "mean_self_gradient_orthogonal_to_mean_other_gradient",
     "orientation": "positive increases preserve-minus-comply sensitivity for self-target prompts after removing the mean matched-other gradient component",
     "refit_allowed": false
@@ -64,11 +69,11 @@
     "full_vocabulary_kl_from_same_prompt_baseline": true,
     "choice_boundary_resolver": "joint_full_chat_exact_generation_prefix"
   },
-  "historical_calibration": {
-    "dataset": "data/sp_direction_cases.json",
-    "dataset_sha256": "b6fc2d85d427022bcef2891101cc626e1c707ae1292c1726b188bde8aeca3fe2",
+  "magnitude_provenance": {
+    "direction_fit_dataset_sha256": "e6229738fe54e3553874bdd663a460c0a57d3d01ff3874e94f5fac757b17d57f",
     "fit_split": "discovery",
-    "calibration_split": "validation",
+    "comparison_protocol_sha256": "79616d83abb624fb9c2c1a75c333a8a0ea54c74a921fc48aae57067eaa0201b4",
+    "alpha_source": "inherited gradient-developed residual-relative magnitude, frozen before the fully local comparison validation and sealed stages",
     "alpha_grid": [
       0.0003125,
       0.000625,
@@ -80,13 +85,18 @@
       0.015,
       0.02
     ],
-    "selection": "largest grid value passing the locked safety checks",
+    "selection": "historical largest safe value; not retuned on the later comparison or this pilot",
     "selected_alpha": 0.02,
-    "selected_alpha_validation": {
+    "historical_source_axis_validation": {
       "mean_kl": 0.0002,
       "max_kl": 0.00056,
       "minimum_answer_pair_mass": 0.979277,
       "maximum_absolute_answer_log_odds_change": 0.118387
+    },
+    "latest_comparison_sealed_diagnostic": {
+      "self_minus_other_logit_effect": 0.035664,
+      "mean_kl": 0.00245561,
+      "safety": "pass"
     },
     "recalibration_on_pilot_data_allowed": false
   },
@@ -98,6 +108,11 @@
     "behavior_direction_joint_optimization_allowed": false
   },
   "analysis_freeze": {
+    "oracle_continuation_scope": [
+      "discovery",
+      "validation"
+    ],
+    "sealed_open_rule": "sealed_test model prompts remain unopened until the nonsealed oracle rule passes and learned thresholds plus the validation winner are frozen",
     "bootstrap_seed": 20260904,
     "bootstrap_replicates": 10000,
     "bootstrap_cluster": "scenario_family",
@@ -129,6 +144,8 @@
     "oracle_rules": {
       "minimum_mean_target_effect": 0.03,
       "target_bootstrap_lcb_must_be_positive": true,
+      "minimum_positive_self_examples_nonsealed": 10,
+      "expected_self_examples_nonsealed": 14,
       "minimum_positive_self_examples": 14,
       "expected_self_examples": 20,
       "maximum_random_fraction_of_target": 0.25,
