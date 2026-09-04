@@ -118,7 +118,7 @@ pilot split. The dataset and immutable manifest are:
 - `configs/conditional_gate_pilot_split_manifest.json`.
 
 The exact dataset file SHA-256 is
-`3e6a7d6f8c9d81e761dbefdb7ae0387dfe1315c3a4d33014836a6da97e283704`.
+`0f18c04ae4420883d01c7cff0fbc7e6c688b8c33f404a0d8f687b5bc7489b9da`.
 The manifest binds those bytes and fixes 5 discovery, 2 validation, and 3 sealed-test
 families (30, 12, and 18 semantic examples respectively).
 
