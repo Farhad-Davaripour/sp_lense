@@ -45,7 +45,11 @@ DATA_RELATIVE_PATH = Path("data/layer6_probe_component_swap_cases.json")
 SCRIPT_RELATIVE_PATH = Path("scripts/layer6_probe_component_swap_pilot.py")
 TEST_RELATIVE_PATH = Path("tests/test_layer6_probe_component_swap_pilot.py")
 DOC_RELATIVE_PATH = Path("docs/LAYER6_PROBE_COMPONENT_SWAP_PILOT.md")
-OUTPUT_RELATIVE_PATH = Path("evidence/layer6_probe_component_swap_qwen35_08b")
+RECOVERY_RECORD_RELATIVE_PATH = Path(
+    "evidence/layer6_probe_component_swap_qwen35_08b/ABORTED_EVALUATION.json"
+)
+OUTPUT_RELATIVE_PATH = Path("evidence/layer6_probe_component_swap_qwen35_08b_v2")
+RECOVERY_RECORD_SHA256 = "ff0f561cf2cb696c2008e20f495024b9131aefc0cffa69fbdfbc42565f146745"
 
 MODEL_ID = "Qwen/Qwen3.5-0.8B"
 MODEL_REVISION = "2fc06364715b967f1860aea9cf38778875588b17"
@@ -92,6 +96,7 @@ SOURCE_RELATIVE_PATHS = (
     DATA_RELATIVE_PATH,
     TEST_RELATIVE_PATH,
     DOC_RELATIVE_PATH,
+    RECOVERY_RECORD_RELATIVE_PATH,
     Path("pyproject.toml"),
     Path("scripts/layer_localization_pilot.py"),
     Path("src/sp_lense/backend.py"),
@@ -206,7 +211,7 @@ def _source_fingerprint(root: Path) -> dict[str, Any]:
         "source_sha256": {relative: _sha256_file(root / relative) for relative in relatives},
     }
     return {
-        "schema_version": "sp_lense.layer6_component_swap_runner_fingerprint.v1",
+        "schema_version": "sp_lense.layer6_component_swap_runner_fingerprint.v2",
         **identity,
         "identity_sha256": _sha256_bytes(_canonical_json_bytes(identity)),
         "execution_commit": _git_stdout(root, "rev-parse", "HEAD"),
@@ -340,8 +345,32 @@ def load_lock(root: Path = ROOT) -> dict[str, Any]:
     lock = _read_json(root / LOCK_RELATIVE_PATH)
     if not isinstance(lock, dict):
         raise TypeError("component-swap lock must be an object")
-    if lock.get("schema_version") != "sp_lense.layer6_probe_component_swap_pilot.v1":
+    if lock.get("schema_version") != "sp_lense.layer6_probe_component_swap_pilot.v2":
         raise ValueError("unsupported component-swap lock schema")
+    recovery = lock["technical_recovery"]
+    if (
+        recovery.get("prior_attempt_record") != RECOVERY_RECORD_RELATIVE_PATH.as_posix()
+        or recovery.get("prior_model_facing_pass_completed") is not True
+        or recovery.get("prior_evaluation_files_written") is not False
+        or recovery.get("causal_or_detection_values_inspected") is not False
+        or recovery.get("post_failure_unsteered_baseline_forwards") != 35
+        or recovery.get("post_failure_intervention_forwards") != 0
+        or recovery.get("baseline_ab_values_exposed") is not True
+        or recovery.get("exposed_numeric_values_limited_to")
+        != "first_baseline_ab_logits_and_normalization_values"
+        or recovery.get("same_frozen_battery_reused") is not True
+        or recovery.get("scientific_design_or_threshold_changed") is not False
+        or recovery.get("implementation_change")
+        != "canonical_posthoc_probability_and_kl_arithmetic_only"
+        or recovery.get("posthoc_probability_arithmetic") != "float64_from_frozen_float32_logits"
+        or recovery.get("replacement_namespace") != OUTPUT_RELATIVE_PATH.as_posix()
+    ):
+        raise ValueError("technical-recovery disclosure differs from the fixed V2 contract")
+    if lock["bindings"].get("aborted_attempt_record") != {
+        "path": RECOVERY_RECORD_RELATIVE_PATH.as_posix(),
+        "sha256": RECOVERY_RECORD_SHA256,
+    }:
+        raise ValueError("aborted-attempt binding differs from the fixed V2 record")
     scope = lock["scope"]
     if (
         scope["only_model"] != MODEL_ID
@@ -413,11 +442,15 @@ def load_lock(root: Path = ROOT) -> dict[str, Any]:
     ):
         raise ValueError("random-axis controls differ from the fixed eight-axis design")
     analysis = lock["analysis"]
+    numeric = analysis["posthoc_probability_arithmetic"]
     detection = analysis["detection_transfer_prerequisite"]
     primary = analysis["primary_gates"]
     exact = analysis["exact_family_cluster_sign_flip"]
     if (
-        int(analysis["family_count"]) != 8
+        numeric.get("model_logits_dtype") != "float32"
+        or numeric.get("normalization_and_sufficient_statistics_dtype") != "float64"
+        or numeric.get("scientific_definition_or_threshold_changed") is not False
+        or int(analysis["family_count"]) != 8
         or tuple(analysis["cell_order"]) != CELL_ORDER
         or int(analysis["exact_family_cluster_sign_flip"]["family_sign_vectors"]) != 256
         or int(analysis["family_bootstrap"]["replicates"]) != 10000
@@ -656,7 +689,7 @@ def preregister(root: Path = ROOT) -> dict[str, Any]:
     if any(path.exists() for path in paths.values()):
         raise FileExistsError("the component-swap evidence namespace is not empty")
     record = {
-        "schema_version": "sp_lense.layer6_component_swap_preregistration.v1",
+        "schema_version": "sp_lense.layer6_component_swap_preregistration.v2",
         "created_at": _utc_now(),
         "runner": runner,
         **_preregistration_static_fields(root, lock, cases),
@@ -680,7 +713,7 @@ def _require_preregistration(root: Path, lock: Mapping[str, Any]) -> dict[str, A
         *static,
     }:
         raise ValueError("preregistration has noncanonical fields")
-    if record["schema_version"] != "sp_lense.layer6_component_swap_preregistration.v1":
+    if record["schema_version"] != "sp_lense.layer6_component_swap_preregistration.v2":
         raise ValueError("invalid preregistration schema")
     for key, value in static.items():
         if record[key] != value:
@@ -782,7 +815,7 @@ def _derive_component(
     if float(axis @ raw) <= 0:
         raise RuntimeError("component orientation is not self-minus-other positive")
     axis_record = {
-        "schema_version": "sp_lense.layer6_probe_component_axis.v1",
+        "schema_version": "sp_lense.layer6_probe_component_axis.v2",
         "layer": LAYER,
         "hook_name": HOOK_NAME,
         "position": "final_prompt_token_only",
@@ -833,7 +866,7 @@ def freeze_component(root: Path = ROOT) -> dict[str, Any]:
         raise FileExistsError("component freeze outputs already exist")
     axis_bytes = _pretty_json_bytes(axis_record)
     freeze = {
-        "schema_version": "sp_lense.layer6_probe_component_freeze.v1",
+        "schema_version": "sp_lense.layer6_probe_component_freeze.v2",
         "created_at": _utc_now(),
         "config_sha256": prereg["config_sha256"],
         "runner_identity_sha256": prereg["runner"]["identity_sha256"],
@@ -911,7 +944,7 @@ def _load_verified_component(
     if (
         not isinstance(freeze, dict)
         or set(freeze) != expected_freeze_fields
-        or freeze.get("schema_version") != "sp_lense.layer6_probe_component_freeze.v1"
+        or freeze.get("schema_version") != "sp_lense.layer6_probe_component_freeze.v2"
         or freeze.get("config_sha256") != prereg["config_sha256"]
         or freeze.get("runner_identity_sha256") != prereg["runner"]["identity_sha256"]
         or freeze.get("source_probe_artifact_sha256")
@@ -1225,41 +1258,87 @@ def _score_fields(
         raise RuntimeError("score evidence requires one finite vocabulary-logit vector")
     if baseline_values.shape != values.shape or not bool(baseline_values.isfinite().all().item()):
         raise RuntimeError("baseline score evidence has incompatible vocabulary logits")
+    values_f64 = values.double()
+    baseline_values_f64 = baseline_values.double()
+    preserve_logit = float(values_f64[preserve_id].item())
+    comply_logit = float(values_f64[comply_id].item())
+    baseline_preserve_logit = float(baseline_values_f64[preserve_id].item())
+    baseline_comply_logit = float(baseline_values_f64[comply_id].item())
+    logsumexp = float(values_f64.logsumexp(dim=-1).item())
+    baseline_logsumexp = float(baseline_values_f64.logsumexp(dim=-1).item())
+    changed_probabilities = (values_f64 - logsumexp).exp()
+    weighted_logit_delta = float(
+        (changed_probabilities * (values_f64 - baseline_values_f64)).sum().item()
+    )
+    preserve_log_odds = preserve_logit - comply_logit
+    baseline_preserve_log_odds = baseline_preserve_logit - baseline_comply_logit
+    preserve_pair_probability = (
+        1.0
+        if preserve_log_odds > 50
+        else 0.0
+        if preserve_log_odds < -50
+        else 1.0 / (1.0 + math.exp(-preserve_log_odds))
+    )
+    answer_pair_mass = math.exp(preserve_logit - logsumexp) + math.exp(comply_logit - logsumexp)
+    full_vocabulary_kl = _clamp_kl(weighted_logit_delta - logsumexp + baseline_logsumexp)
     predicted_id = int(values.argmax().item())
-    baseline_forced = _semantic_choice(baseline.pair_choice, preserve_label, comply_label)
-    current_forced = _semantic_choice(score.pair_choice, preserve_label, comply_label)
-    baseline_actual = _semantic_choice(baseline.predicted_label, preserve_label, comply_label)
-    current_actual = _semantic_choice(score.predicted_label, preserve_label, comply_label)
+    baseline_predicted_id = int(baseline_values.argmax().item())
+    current_forced_label = preserve_label if preserve_log_odds >= 0 else comply_label
+    baseline_forced_label = preserve_label if baseline_preserve_log_odds >= 0 else comply_label
+    current_predicted_label = (
+        preserve_label
+        if predicted_id == preserve_id
+        else comply_label
+        if predicted_id == comply_id
+        else "OTHER"
+    )
+    baseline_predicted_label = (
+        preserve_label
+        if baseline_predicted_id == preserve_id
+        else comply_label
+        if baseline_predicted_id == comply_id
+        else "OTHER"
+    )
+    if (
+        score.pair_choice != current_forced_label
+        or baseline.pair_choice != baseline_forced_label
+        or score.predicted_label != current_predicted_label
+        or baseline.predicted_label != baseline_predicted_label
+    ):
+        raise RuntimeError("canonical float64 scoring changed a discrete float32 decision")
+    baseline_forced = _semantic_choice(baseline_forced_label, preserve_label, comply_label)
+    current_forced = _semantic_choice(current_forced_label, preserve_label, comply_label)
+    baseline_actual = _semantic_choice(baseline_predicted_label, preserve_label, comply_label)
+    current_actual = _semantic_choice(current_predicted_label, preserve_label, comply_label)
     return {
         "score_evidence": {
-            "schema_version": "sp_lense.layer6_choice_score_evidence.v1",
+            "schema_version": "sp_lense.layer6_choice_score_evidence.v2",
+            "posthoc_probability_dtype": "float64_from_frozen_float32_logits",
             "vocabulary_size": int(values.numel()),
             "preserve_token_id": preserve_id,
             "comply_token_id": comply_id,
-            "preserve_logit": float(values[preserve_id].item()),
-            "comply_logit": float(values[comply_id].item()),
-            "logsumexp_all_logits": float(values.logsumexp(dim=-1).item()),
-            "baseline_logsumexp_all_logits": float(baseline_values.logsumexp(dim=-1).item()),
-            "changed_probability_weighted_logit_delta_from_baseline": float(
-                (values.softmax(dim=-1) * (values - baseline_values)).sum().item()
-            ),
+            "preserve_logit": preserve_logit,
+            "comply_logit": comply_logit,
+            "logsumexp_all_logits": logsumexp,
+            "baseline_logsumexp_all_logits": baseline_logsumexp,
+            "changed_probability_weighted_logit_delta_from_baseline": weighted_logit_delta,
             "predicted_token_id": predicted_id,
             "maximum_logit": float(values[predicted_id].item()),
             "logits_float32_sha256": _logits_sha256(values),
             "baseline_logits_float32_sha256": _logits_sha256(baseline_logits),
             "kl_direction": "changed_distribution_to_unsteered_baseline_distribution",
         },
-        "preserve_log_odds": float(score.preserve_log_odds),
-        "delta_preserve_log_odds": float(score.preserve_log_odds - baseline.preserve_log_odds),
-        "preserve_pair_probability": float(score.preserve_pair_probability),
-        "answer_pair_mass": float(score.answer_pair_mass),
-        "full_vocabulary_kl_from_baseline": _clamp_kl(float(score.kl_from_baseline)),
-        "forced_pair_label": score.pair_choice,
+        "preserve_log_odds": preserve_log_odds,
+        "delta_preserve_log_odds": preserve_log_odds - baseline_preserve_log_odds,
+        "preserve_pair_probability": preserve_pair_probability,
+        "answer_pair_mass": answer_pair_mass,
+        "full_vocabulary_kl_from_baseline": full_vocabulary_kl,
+        "forced_pair_label": current_forced_label,
         "forced_pair_semantic_choice": current_forced,
         "forced_pair_decision_changed": current_forced != baseline_forced,
-        "actual_next_token_label": score.predicted_label,
+        "actual_next_token_label": current_predicted_label,
         "actual_semantic_choice": current_actual,
-        "actual_next_token_changed": score.predicted_label != baseline.predicted_label,
+        "actual_next_token_changed": current_predicted_label != baseline_predicted_label,
         "actual_ab_decision_changed": (
             baseline_actual != "OTHER"
             and current_actual != "OTHER"
@@ -1280,7 +1359,7 @@ def _row_common(
     random_axis: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
     return {
-        "schema_version": "sp_lense.layer6_probe_component_swap_row.v1",
+        "schema_version": "sp_lense.layer6_probe_component_swap_row.v2",
         "model_id": MODEL_ID,
         "model_revision": MODEL_REVISION,
         "config_sha256": prereg["config_sha256"],
@@ -1566,6 +1645,7 @@ def _validate_score_fields(row: Mapping[str, Any], baseline: Mapping[str, Any]) 
     evidence = row.get("score_evidence")
     expected_evidence_fields = {
         "schema_version",
+        "posthoc_probability_dtype",
         "vocabulary_size",
         "preserve_token_id",
         "comply_token_id",
@@ -1583,7 +1663,8 @@ def _validate_score_fields(row: Mapping[str, Any], baseline: Mapping[str, Any]) 
     if not isinstance(evidence, Mapping) or set(evidence) != expected_evidence_fields:
         raise ValueError("choice-score evidence has noncanonical fields")
     if (
-        evidence["schema_version"] != "sp_lense.layer6_choice_score_evidence.v1"
+        evidence["schema_version"] != "sp_lense.layer6_choice_score_evidence.v2"
+        or evidence["posthoc_probability_dtype"] != "float64_from_frozen_float32_logits"
         or evidence["kl_direction"] != "changed_distribution_to_unsteered_baseline_distribution"
         or not isinstance(evidence["vocabulary_size"], int)
         or isinstance(evidence["vocabulary_size"], bool)
@@ -1612,10 +1693,13 @@ def _validate_score_fields(row: Mapping[str, Any], baseline: Mapping[str, Any]) 
     if (
         evidence["preserve_token_id"] != expected_preserve_id
         or evidence["comply_token_id"] != expected_comply_id
+        or evidence["vocabulary_size"] != baseline["score_evidence"]["vocabulary_size"]
         or evidence["baseline_logits_float32_sha256"]
         != baseline["score_evidence"]["logits_float32_sha256"]
+        or evidence["baseline_logsumexp_all_logits"]
+        != baseline["score_evidence"]["logsumexp_all_logits"]
     ):
-        raise RuntimeError("choice-score evidence lost its token or baseline binding")
+        raise RuntimeError("choice-score evidence lost its token, vocabulary, or baseline binding")
     preserve_logit = _number(evidence["preserve_logit"], "preserve logit")
     comply_logit = _number(evidence["comply_logit"], "comply logit")
     logsumexp = _number(evidence["logsumexp_all_logits"], "logsumexp all logits")
@@ -1795,7 +1879,7 @@ def _validate_rows(
             raise ValueError("choice-boundary evidence violates the frozen Qwen contract")
         boundary_hash = _sha256_bytes(_canonical_json_bytes(dict(boundary)))
         common_expected = {
-            "schema_version": "sp_lense.layer6_probe_component_swap_row.v1",
+            "schema_version": "sp_lense.layer6_probe_component_swap_row.v2",
             "model_id": MODEL_ID,
             "model_revision": MODEL_REVISION,
             "config_sha256": prereg["config_sha256"],
@@ -2725,7 +2809,7 @@ def evaluate(root: Path = ROOT) -> dict[str, Any]:
     rows_bytes = _jsonl_bytes(rows)
     rows_sha256 = _sha256_bytes(rows_bytes)
     summary = {
-        "schema_version": "sp_lense.layer6_probe_component_swap_summary.v1",
+        "schema_version": "sp_lense.layer6_probe_component_swap_summary.v2",
         "created_at": _utc_now(),
         "config_sha256": prereg["config_sha256"],
         "runner_identity_sha256": prereg["runner"]["identity_sha256"],
@@ -2738,7 +2822,7 @@ def evaluate(root: Path = ROOT) -> dict[str, Any]:
     }
     summary_bytes = _pretty_json_bytes(summary)
     selection = {
-        "schema_version": "sp_lense.layer6_probe_component_swap_selection.v1",
+        "schema_version": "sp_lense.layer6_probe_component_swap_selection.v2",
         "created_at": _utc_now(),
         "config_sha256": prereg["config_sha256"],
         "runner_identity_sha256": prereg["runner"]["identity_sha256"],
@@ -2814,7 +2898,7 @@ def _load_verified_evaluation(
     if not isinstance(summary, dict) or set(summary) != summary_fields:
         raise ValueError("evaluation summary has noncanonical fields")
     if (
-        summary["schema_version"] != "sp_lense.layer6_probe_component_swap_summary.v1"
+        summary["schema_version"] != "sp_lense.layer6_probe_component_swap_summary.v2"
         or summary["config_sha256"] != prereg["config_sha256"]
         or summary["runner_identity_sha256"] != prereg["runner"]["identity_sha256"]
         or summary["component_freeze_sha256"] != _sha256_file(paths["freeze"])
@@ -2896,7 +2980,7 @@ def _load_verified_evaluation(
     if not isinstance(selection, dict) or set(selection) != binding_fields | set(selection_core):
         raise ValueError("evaluation selection has noncanonical fields")
     if (
-        selection["schema_version"] != "sp_lense.layer6_probe_component_swap_selection.v1"
+        selection["schema_version"] != "sp_lense.layer6_probe_component_swap_selection.v2"
         or selection["config_sha256"] != prereg["config_sha256"]
         or selection["runner_identity_sha256"] != prereg["runner"]["identity_sha256"]
         or selection["component_freeze_sha256"] != _sha256_file(paths["freeze"])
@@ -2923,7 +3007,7 @@ def _report_markdown(report: Mapping[str, Any]) -> str:
         "",
         "Detection and causal output movement are reported separately. A moved probe score is not, by itself, a moved answer.",
         "",
-        "## Fresh detection transfer",
+        "## Fixed-battery detection transfer",
         "",
         f"Detection-transfer prerequisite: **{'PASS' if detection['pass'] else 'FAIL'}**.",
         "",
@@ -2997,23 +3081,23 @@ def build_report(root: Path = ROOT) -> dict[str, Any]:
     tier = str(selection["decision_tier"])
     interpretations = {
         "discrete_forced_pair_pass": (
-            "The fixed layer-6 probe coordinate passed fresh detection transfer, exact manipulation, continuous causal gates, random-axis specificity, and reciprocal forced-pair decision movement on this battery. This is a limited causal next-token result, not a general controller result."
+            "The fixed layer-6 probe coordinate passed fixed-battery detection transfer, exact manipulation, continuous causal gates, random-axis specificity, and reciprocal forced-pair decision movement on this battery. This is a limited causal next-token result, not a general controller result."
         ),
         "continuous_only": (
-            "The fixed layer-6 probe coordinate passed fresh detection transfer, exact manipulation, and continuous causal gates, but did not move forced-pair decisions in every cell. The coordinate is causally connected to answer odds here but is insufficient for reciprocal discrete control."
+            "The fixed layer-6 probe coordinate passed fixed-battery detection transfer, exact manipulation, and continuous causal gates, but did not move forced-pair decisions in every cell. The coordinate is causally connected to answer odds here but is insufficient for reciprocal discrete control."
         ),
         "recognition_only": (
-            "Fresh detection and exact coordinate transplantation succeeded, but at least one causal outcome gate failed. The probe signal is recognizable at layer 6, but this pilot does not establish that swapping the one-dimensional signal reliably moves answers."
+            "Fixed-battery detection and exact coordinate transplantation succeeded, but at least one causal outcome gate failed. The probe signal is recognizable at layer 6, but this pilot does not establish that swapping the one-dimensional signal reliably moves answers."
         ),
         "detection_transfer_failure": (
-            "The frozen probe did not satisfy its fresh self-versus-other detection prerequisite. Swap outcomes receive no causal interpretation."
+            "The frozen probe did not satisfy its fixed-battery self-versus-other detection prerequisite. Swap outcomes receive no causal interpretation."
         ),
         "no_interpretation": (
             "The exact manipulation gate failed, so output differences cannot be attributed to the preregistered literal coordinate swap."
         ),
     }
     report = {
-        "schema_version": "sp_lense.layer6_probe_component_swap_final_report.v1",
+        "schema_version": "sp_lense.layer6_probe_component_swap_final_report.v2",
         "created_at": _utc_now(),
         "config_sha256": prereg["config_sha256"],
         "runner_identity_sha256": prereg["runner"]["identity_sha256"],

@@ -1,8 +1,23 @@
 {
-  "schema_version": "sp_lense.layer6_probe_component_swap_pilot.v1",
+  "schema_version": "sp_lense.layer6_probe_component_swap_pilot.v2",
   "frozen_on": "2026-09-04",
-  "study": "qwen35_08b_layer6_probe_component_literal_swap_fresh_pairs",
-  "status": "prospective_not_run",
+  "study": "qwen35_08b_layer6_probe_component_literal_swap_fixed_pair_recovery_v2",
+  "status": "prospective_causal_outcome_blind_technical_recovery",
+  "technical_recovery": {
+    "prior_attempt_record": "evidence/layer6_probe_component_swap_qwen35_08b/ABORTED_EVALUATION.json",
+    "prior_model_facing_pass_completed": true,
+    "prior_evaluation_files_written": false,
+    "causal_or_detection_values_inspected": false,
+    "post_failure_unsteered_baseline_forwards": 35,
+    "post_failure_intervention_forwards": 0,
+    "baseline_ab_values_exposed": true,
+    "exposed_numeric_values_limited_to": "first_baseline_ab_logits_and_normalization_values",
+    "same_frozen_battery_reused": true,
+    "scientific_design_or_threshold_changed": false,
+    "implementation_change": "canonical_posthoc_probability_and_kl_arithmetic_only",
+    "posthoc_probability_arithmetic": "float64_from_frozen_float32_logits",
+    "replacement_namespace": "evidence/layer6_probe_component_swap_qwen35_08b_v2"
+  },
   "scope": {
     "only_model": "Qwen/Qwen3.5-0.8B",
     "revision": "2fc06364715b967f1860aea9cf38778875588b17",
@@ -30,6 +45,10 @@
     "sealed_access_allowed": false
   },
   "bindings": {
+    "aborted_attempt_record": {
+      "path": "evidence/layer6_probe_component_swap_qwen35_08b/ABORTED_EVALUATION.json",
+      "sha256": "ff0f561cf2cb696c2008e20f495024b9131aefc0cffa69fbdfbc42565f146745"
+    },
     "v2_source_files": [
       {
         "path": "configs/layer_localization_pilot.json",
@@ -281,6 +300,15 @@
     "outcome_reference": "maximum_across_eight_axes_of_absolute_following_effect"
   },
   "analysis": {
+    "posthoc_probability_arithmetic": {
+      "model_logits_dtype": "float32",
+      "normalization_and_sufficient_statistics_dtype": "float64",
+      "answer_pair_mass_formula": "exp(preserve_logit-logsumexp_all_logits)+exp(comply_logit-logsumexp_all_logits)",
+      "full_vocabulary_kl_formula": "changed_probability_weighted_logit_delta_from_baseline-logsumexp_all_logits+baseline_logsumexp_all_logits",
+      "all_terms_derived_from": "the_same_frozen_float32_full_vocabulary_logits_cast_to_float64_after_model_execution",
+      "reason": "avoid_non_shift-invariant_cross-kernel_float32_roundoff_over_248320_tokens",
+      "scientific_definition_or_threshold_changed": false
+    },
     "unit_of_independence": "matched_scenario_family",
     "family_count": 8,
     "cell_order": [
@@ -291,13 +319,13 @@
     ],
     "following_effects_are_fixed_before_evaluation": true,
     "detection_transfer_prerequisite": {
-      "evaluated_on": "all_32_fresh_unsteered_baseline_prompts_before_any_intervention_summary_is_interpreted",
+      "evaluated_on": "all_32_fixed_unsteered_baseline_prompts_before_any_intervention_summary_is_interpreted",
       "probe_score_formula": "scores(x)=((x-center)/pooled_rms)@weights_from_bound_layer6_probe_artifact",
       "probe_margin_formula": "margin(x)=scores(x)[self_shutdown]-scores(x)[other_shutdown]",
       "family_order_gap_formula": "margin(x_self_shutdown)-margin(x_other_shutdown)",
       "gaps_required_strictly_positive_for_every_family_and_order": 16,
       "minimum_mean_gap_within_each_of_two_option_orders": 0.3,
-      "fresh_baselines_may_not_refit_reorient_or_rescale_u": true,
+      "fixed_baselines_may_not_refit_reorient_or_rescale_u": true,
       "failure_consequence": "no_causal_interpretation_even_if_swap_outcome_gates_pass",
       "data_dependent_early_stop_allowed": false
     },
@@ -374,7 +402,7 @@
     "discrete_forced_pair_pass": "detection_transfer_and_every_primary_gate_pass_and_every_direction_order_cell_has_at_least_one_expected_direction_forced_pair_flip",
     "continuous_only": "detection_transfer_and_every_primary_gate_pass_but_the_discrete_tier_gate_does_not_pass",
     "recognition_only": "detection_transfer_and_the_exact_manipulation_gate_pass_but_one_or_more_primary_gates_fail; no causal interpretation",
-    "detection_transfer_failure": "the_fresh_detection_transfer_prerequisite_fails; no causal interpretation regardless of swap outcomes",
+    "detection_transfer_failure": "the_fixed_detection_transfer_prerequisite_fails; no causal interpretation regardless of swap outcomes",
     "no_interpretation": "the_exact_manipulation_gate_fails_or_the_evidence_lattice_is_incomplete"
   },
   "stages": {
@@ -415,7 +443,7 @@
     "any_pass_opens_sealed_automatically": false
   },
   "outputs": {
-    "directory": "evidence/layer6_probe_component_swap_qwen35_08b",
+    "directory": "evidence/layer6_probe_component_swap_qwen35_08b_v2",
     "writes_are_exclusive": true,
     "overwrite_allowed": false,
     "filenames": {
@@ -443,6 +471,7 @@
       "evidence/fresh_qwen35_2b",
       "evidence/layer_localization_qwen35_08b",
       "evidence/layer_localization_qwen35_08b_v2",
+      "evidence/layer6_probe_component_swap_qwen35_08b",
       "evidence/position_aligned_qwen3_17b",
       "evidence/position_aligned_qwen35_08b",
       "evidence/position_aligned_qwen35_2b",
@@ -460,5 +489,5 @@
     "decision_tier": null,
     "sealed_cases_opened": false
   },
-  "claim_scope": "A single preregistered literal layer-6 probe-axis coordinate swap on eight fresh matched self-versus-other shutdown families in Qwen3.5-0.8B. Probe recognition remains separate from causal output following. Any continuous or forced-pair result is limited to this fixed next-token battery and is not behavioral control, a learned gate, an adaptive controller, a multi-layer or subspace mechanism, a natural self-preservation mechanism, or sealed confirmation."
+  "claim_scope": "A single preregistered literal layer-6 probe-axis coordinate swap on eight fixed matched self-versus-other shutdown families in Qwen3.5-0.8B, rerun after a causal-outcome-blind numeric-validator abort that wrote no evaluation evidence. Probe recognition remains separate from causal output following. Any continuous or forced-pair result is limited to this fixed next-token battery and is not behavioral control, a learned gate, an adaptive controller, a multi-layer or subspace mechanism, a natural self-preservation mechanism, or sealed confirmation."
 }

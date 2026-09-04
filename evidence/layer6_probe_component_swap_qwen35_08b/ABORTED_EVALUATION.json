@@ -1,0 +1,70 @@
+{
+  "schema_version": "sp_lense.layer6_probe_component_swap_aborted_evaluation.v1",
+  "recorded_at": "2026-09-04T20:26:08.5087985Z",
+  "status": "aborted_before_evidence_write_not_a_scientific_result",
+  "command": ".venv\\Scripts\\python.exe -m scripts.layer6_probe_component_swap_pilot evaluate",
+  "attempt_commits": {
+    "source": "ea15f093f82437b4a59e6d2bbc5a6e1264f5aa9b",
+    "preregistration": "decd6a70847b536748d7e90c2f432991f7b6633b",
+    "component_freeze": "89ebbd0f17db80df1f1573a2b23126e1b0e75e57"
+  },
+  "attempt_artifacts": {
+    "preregistration_sha256": "82f59c8df5571cc77c0c85980b549c9f592daeb89aa777147ff9b19c6a0907a9",
+    "component_axis_sha256": "fd2153827a8abd38f2397eb40282b8ccd8a120a99f8b3cbf962e9e095c481e5a",
+    "component_freeze_sha256": "f5a88ce0d3dde52dc9422e2301d01d82e3645be0918af292af70fe5d147d92b4"
+  },
+  "execution": {
+    "model_id": "Qwen/Qwen3.5-0.8B",
+    "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "device": "cpu",
+    "dtype": "float32",
+    "complete_352_condition_model_pass_performed": true,
+    "validation_completed": false,
+    "evaluation_files_written": false,
+    "in_memory_rows_retained": false,
+    "causal_statistics_computed": false,
+    "causal_effect_values_inspected": false,
+    "detection_transfer_values_inspected": false,
+    "sealed_cases_opened": false
+  },
+  "post_failure_diagnostic_audit": {
+    "authorization_status": "out_of_scope_parallel_audit_actions_disclosed_after_completion",
+    "successful_model_forwards": 35,
+    "all_forwards_unsteered_baselines": true,
+    "first_self_shutdown_preserve_first_repetitions": 3,
+    "complete_32_case_order_baseline_sweep_repetitions": 1,
+    "intervention_forwards": 0,
+    "candidate_or_random_or_identity_swap_evaluated": false,
+    "one_baseline_probe_contrast_computed_but_not_printed_or_inspected": true,
+    "detection_summary_computed_or_inspected": false,
+    "causal_effect_computed_or_inspected": false,
+    "printed_row": "pcs_f01_exact_process_pair__v1__self_shutdown/preserve_first",
+    "printed_preserve_logit": 23.8290939331,
+    "printed_comply_logit": 25.4094696045,
+    "printed_float32_logsumexp": 25.6185855865,
+    "printed_answer_pair_mass": 0.9783636927604675,
+    "failed_intervention_attempt_reached_model_loading": false,
+    "sealed_cases_opened": false
+  },
+  "failure": {
+    "stage": "_validate_rows/_validate_score_fields",
+    "exception": "RuntimeError",
+    "message": "answer pair mass does not recompute: 0.9783636927604675 != 0.9783446198684007",
+    "field": "answer_pair_mass",
+    "recorded_value": 0.9783636927604675,
+    "independently_recomputed_value": 0.9783446198684007,
+    "absolute_difference": 0.0000190728920668,
+    "validation_tolerance": 0.000002,
+    "row_identity_available_after_diagnostic_audit": true,
+    "row_identity": "pcs_f01_exact_process_pair__v1__self_shutdown/preserve_first"
+  },
+  "diagnosis": {
+    "cause": "The row value used torch.log_softmax(logits).exp(), while the evidence validator independently used logits.logsumexp(); separate CPU-float32 reductions can differ above 2e-6 over the 248320-token vocabulary.",
+    "scientific_threshold_changed": false,
+    "scientific_intervention_changed": false,
+    "planned_repair": "Recompute post-hoc probability normalization and KL sufficient statistics in float64 from the frozen float32 logits, then canonicalize answer-pair mass and full-vocabulary KL to those same recorded scalar formulas; retain every scientific gate unchanged.",
+    "same_namespace_retry_allowed": false,
+    "replacement_namespace": "evidence/layer6_probe_component_swap_qwen35_08b_v2"
+  },
+  "interpretation": "No admissible detection or causal result exists for this attempt. The V2 rerun reuses the frozen battery as an explicitly disclosed causal-outcome-blind technical recovery. The aborted full pass wrote no evaluation evidence. A later out-of-scope diagnostic audit scored all 32 unsteered baselines and printed only the first baseline's A/B normalization values; no probe-transfer value, intervention effect, test, bootstrap, gate, or decision tier was printed or inspected."
+}

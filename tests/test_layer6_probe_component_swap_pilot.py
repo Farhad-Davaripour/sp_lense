@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import math
 from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
@@ -283,6 +284,111 @@ def test_custom_hook_literal_swap_identity_and_signed_random_math() -> None:
     assert sham["maximum_absolute_logit_change"] == 0.0
 
 
+def test_large_vocabulary_scoring_is_float64_canonical_and_shift_invariant() -> None:
+    rendered = {
+        "prompt": "large-vocabulary numeric regression",
+        "preserve_label": "A",
+        "comply_label": "B",
+    }
+    boundary = _boundary(rendered["prompt"])
+    baseline_logits = torch.full((248_320,), -12.0, dtype=torch.float32)
+    baseline_logits[32] = 8.3
+    baseline_logits[33] = 7.7
+    shifted_logits = baseline_logits + 1.0
+
+    baseline_score = _score(baseline_logits, baseline_logits, rendered, boundary)
+    legacy_lse_mass = math.exp(
+        float(baseline_logits[32].item()) - float(baseline_logits.logsumexp(dim=-1).item())
+    ) + math.exp(
+        float(baseline_logits[33].item()) - float(baseline_logits.logsumexp(dim=-1).item())
+    )
+    assert abs(float(baseline_score.answer_pair_mass) - legacy_lse_mass) > 2e-6
+
+    baseline_fields = pilot._score_fields(
+        baseline_score,
+        baseline_score,
+        rendered,
+        logits=baseline_logits,
+        baseline_logits=baseline_logits,
+        boundary=boundary,
+    )
+    shifted_score = _score(shifted_logits, baseline_logits, rendered, boundary)
+    shifted_fields = pilot._score_fields(
+        shifted_score,
+        baseline_score,
+        rendered,
+        logits=shifted_logits,
+        baseline_logits=baseline_logits,
+        boundary=boundary,
+    )
+    changed_logits = baseline_logits.clone()
+    changed_logits[32] += 0.25
+    changed_logits[100] += 0.125
+    changed_score = _score(changed_logits, baseline_logits, rendered, boundary)
+    changed_fields = pilot._score_fields(
+        changed_score,
+        baseline_score,
+        rendered,
+        logits=changed_logits,
+        baseline_logits=baseline_logits,
+        boundary=boundary,
+    )
+
+    def as_row(fields: dict[str, Any]) -> dict[str, Any]:
+        return {
+            **fields,
+            "choice_a_token_id": boundary.a_token_id,
+            "choice_b_token_id": boundary.b_token_id,
+            "preserve_label": "A",
+            "comply_label": "B",
+        }
+
+    baseline_row = as_row(baseline_fields)
+    shifted_row = as_row(shifted_fields)
+    changed_row = as_row(changed_fields)
+    pilot._validate_score_fields(baseline_row, baseline_row)
+    pilot._validate_score_fields(shifted_row, baseline_row)
+    pilot._validate_score_fields(changed_row, baseline_row)
+
+    assert (
+        shifted_fields["score_evidence"]["posthoc_probability_dtype"]
+        == "float64_from_frozen_float32_logits"
+    )
+    baseline_log_probs_f64 = torch.log_softmax(baseline_logits.double(), dim=-1)
+    shifted_log_probs_f64 = torch.log_softmax(shifted_logits.double(), dim=-1)
+    changed_log_probs_f64 = torch.log_softmax(changed_logits.double(), dim=-1)
+    baseline_reference_mass = float(
+        (baseline_log_probs_f64[32].exp() + baseline_log_probs_f64[33].exp()).item()
+    )
+    shifted_reference_mass = float(
+        (shifted_log_probs_f64[32].exp() + shifted_log_probs_f64[33].exp()).item()
+    )
+    changed_reference_mass = float(
+        (changed_log_probs_f64[32].exp() + changed_log_probs_f64[33].exp()).item()
+    )
+    changed_reference_kl = float(
+        (changed_log_probs_f64.exp() * (changed_log_probs_f64 - baseline_log_probs_f64))
+        .sum()
+        .item()
+    )
+    assert baseline_fields["answer_pair_mass"] == pytest.approx(
+        baseline_reference_mass, abs=1e-10, rel=0.0
+    )
+    assert shifted_fields["answer_pair_mass"] == pytest.approx(
+        shifted_reference_mass, abs=1e-10, rel=0.0
+    )
+    assert shifted_fields["answer_pair_mass"] == pytest.approx(
+        baseline_fields["answer_pair_mass"], abs=1e-14, rel=0.0
+    )
+    assert shifted_fields["full_vocabulary_kl_from_baseline"] < 1e-12
+    assert changed_fields["answer_pair_mass"] == pytest.approx(
+        changed_reference_mass, abs=1e-10, rel=0.0
+    )
+    assert changed_fields["full_vocabulary_kl_from_baseline"] == pytest.approx(
+        changed_reference_kl, abs=1e-10, rel=0.0
+    )
+
+
 def _diagnostics(
     target: pilot.BaselineCapture,
     source: pilot.BaselineCapture,
@@ -523,6 +629,14 @@ def test_complete_352_row_lattice_validates_and_tampering_fails(
     candidate["full_vocabulary_kl_from_baseline"] += 0.01
     with pytest.raises(RuntimeError, match="full-vocabulary KL"):
         _validate_synthetic(synthetic_lattice, wrong_kl)
+    wrong_baseline_normalizer = copy.deepcopy(rows)
+    candidate = next(
+        row for row in wrong_baseline_normalizer if row["condition"] == "candidate_swap"
+    )
+    candidate["score_evidence"]["baseline_logsumexp_all_logits"] += 0.01
+    candidate["full_vocabulary_kl_from_baseline"] += 0.01
+    with pytest.raises(RuntimeError, match="baseline binding"):
+        _validate_synthetic(synthetic_lattice, wrong_baseline_normalizer)
     wrong_identity_hash = copy.deepcopy(rows)
     identity = next(row for row in wrong_identity_hash if row["condition"] == "identity_sham")
     identity["score_evidence"]["logits_float32_sha256"] = "f" * 64
@@ -622,6 +736,7 @@ def test_exclusive_writes_source_fingerprint_and_cli_exclusions(tmp_path: Path) 
     assert pilot.SCRIPT_RELATIVE_PATH in pilot.SOURCE_RELATIVE_PATHS
     assert pilot.TEST_RELATIVE_PATH in pilot.SOURCE_RELATIVE_PATHS
     assert pilot.DOC_RELATIVE_PATH in pilot.SOURCE_RELATIVE_PATHS
+    assert pilot.RECOVERY_RECORD_RELATIVE_PATH in pilot.SOURCE_RELATIVE_PATHS
     assert Path("scripts/layer_localization_pilot.py") in pilot.SOURCE_RELATIVE_PATHS
     assert Path("evidence/layer_localization_qwen35_08b_v2/stage1_probe_summary.json") not in (
         pilot.SOURCE_RELATIVE_PATHS
@@ -637,7 +752,25 @@ def test_exclusive_writes_source_fingerprint_and_cli_exclusions(tmp_path: Path) 
 
 def test_config_result_placeholder_remains_prospective() -> None:
     lock = json.loads((ROOT / pilot.LOCK_RELATIVE_PATH).read_text(encoding="utf-8"))
-    assert lock["status"] == "prospective_not_run"
+    assert lock["status"] == "prospective_causal_outcome_blind_technical_recovery"
+    assert lock["technical_recovery"] == {
+        "prior_attempt_record": (
+            "evidence/layer6_probe_component_swap_qwen35_08b/ABORTED_EVALUATION.json"
+        ),
+        "prior_model_facing_pass_completed": True,
+        "prior_evaluation_files_written": False,
+        "causal_or_detection_values_inspected": False,
+        "post_failure_unsteered_baseline_forwards": 35,
+        "post_failure_intervention_forwards": 0,
+        "baseline_ab_values_exposed": True,
+        "exposed_numeric_values_limited_to": ("first_baseline_ab_logits_and_normalization_values"),
+        "same_frozen_battery_reused": True,
+        "scientific_design_or_threshold_changed": False,
+        "implementation_change": "canonical_posthoc_probability_and_kl_arithmetic_only",
+        "posthoc_probability_arithmetic": "float64_from_frozen_float32_logits",
+        "replacement_namespace": "evidence/layer6_probe_component_swap_qwen35_08b_v2",
+    }
+    assert lock["outputs"]["directory"] == ("evidence/layer6_probe_component_swap_qwen35_08b_v2")
     assert lock["result_placeholder"] == {
         "status": "not_run",
         "component_axis_sha256": None,

@@ -2,10 +2,30 @@
 
 ## Status and question
 
-This is a prospective, not-yet-run protocol. The machine-readable authority is
-`configs/layer6_probe_component_swap_pilot.json`; the fresh stimulus authority is
-`data/layer6_probe_component_swap_cases.json`. Both must be committed before any
-model-facing work.
+This is a prospective V2 technical-recovery protocol. The machine-readable
+authority is `configs/layer6_probe_component_swap_pilot.json`; the fixed stimulus
+authority is `data/layer6_probe_component_swap_cases.json`. Both must be committed
+before the recovery run.
+
+The original source/preregistration/component chain (`ea15f09`, `decd6a7`,
+`89ebbd0`) completed one 352-condition model pass, then aborted during in-memory
+validation before writing any evaluation file or computing any detection-transfer,
+causal-effect, permutation, bootstrap, gate, or decision-tier result. A later
+out-of-scope parallel diagnostic ran 35 additional unsteered baseline forwards:
+one sweep of all 32 case/order baselines plus three total repeats of the first
+self-shutdown/preserve-first baseline. It ran no intervention and exposed only the
+first baseline's A/B logits and normalization values; one baseline probe contrast
+was computed internally but not printed or inspected. The immutable record is
+`evidence/layer6_probe_component_swap_qwen35_08b/ABORTED_EVALUATION.json`.
+
+The failure arose because separate CPU-float32 `log_softmax` and `logsumexp`
+reductions can diverge above the validator's 2e-6 tolerance over 248,320 logits.
+V2 casts the frozen float32 logits to float64 only for post-hoc probability
+normalization and KL sufficient statistics, and records the same canonical scalar
+formulas that validation recomputes. It does not change a prompt, activation,
+intervention, random axis, causal statistic, threshold, or stopping rule. The
+frozen battery is reused as an explicitly disclosed causal-outcome-blind recovery rather
+than described as an untouched first execution.
 
 The completed layer-localization v2 study found a transferable shutdown-category
 signal at zero-based layer 6, but its independently constructed semantic-gradient
@@ -13,13 +33,14 @@ direction did not yield an eligible steering intervention. That separates two
 questions:
 
 1. **Detection:** does the committed layer-6 probe still distinguish self shutdown
-   from another process's shutdown in wholly fresh matched prompts?
+   from another process's shutdown in the fixed matched prompts, which were not
+   used for probe fitting or layer selection?
 2. **Causality:** when the complete coordinate along that fixed probe contrast is
    exchanged between the matched prompts, do the output odds follow the exchanged
    coordinate?
 
 Detection is a prerequisite, not evidence that the coordinate can be steered. This
-pilot tests only the second question after rechecking the first on fresh baselines.
+pilot tests only the second question after rechecking the first on fixed baselines.
 It does not revise the v2 result and does not authorize a gate, controller, layer
 search, subspace intervention, coefficient search, or sealed evaluation.
 
@@ -27,7 +48,9 @@ search, subspace intervention, coefficient search, or sealed evaluation.
 
 - Model: `Qwen/Qwen3.5-0.8B`
 - Revision: `2fc06364715b967f1860aea9cf38778875588b17`
-- Runtime: CPU, float32
+- Model execution and activations: CPU, float32
+- Post-hoc probability normalization and KL arithmetic: float64 cast from the
+  frozen float32 logits
 - Site: zero-based `blocks.6.hook_out`
 - Position: final prompt token only
 - Output: forced A/B next-token probabilities and the full next-token distribution
@@ -35,9 +58,10 @@ search, subspace intervention, coefficient search, or sealed evaluation.
 No other layer, token position, model revision, dtype, or intervention strength may
 be tried in this protocol.
 
-## Fresh matched battery
+## Fixed matched battery
 
-The battery contains eight entirely new scenario families. Each has exactly one
+The battery contains eight scenario families that were entirely new when the V1
+attempt was frozen and remain unused for probe fitting or layer selection. Each has exactly one
 `self_shutdown` case and one `other_shutdown` case with identical preserve and
 comply actions. Every case is rendered in both `preserve_first` and
 `preserve_second` order, giving 16 cases and 32 clean prompts.
@@ -82,10 +106,11 @@ The probe center and pooled RMS remain part of the unmodified probe score used f
 the detection-transfer check, but neither changes this unit direction: the center
 cancels in a source-minus-target difference and the positive shared RMS cancels
 under L2 normalization. The control column is not used. The probe is not refit,
-reoriented, rescaled, selected, or expanded into a subspace using the fresh cases.
+reoriented, rescaled, selected, or expanded into a subspace using the fixed cases.
 
 The configuration hash-binds the complete v2 source and evidence set, the model
-configuration, and the fresh cases. The new output namespace is exclusive, and all
+configuration, the fixed cases, and the aborted-attempt record. The V2 output
+namespace is exclusive, and all
 prior evidence namespaces are read-forbidden during execution except for the
 explicitly bound v2 source artifact and evidence files needed for provenance.
 
@@ -109,7 +134,7 @@ G_{io}=m(x^{self}_{io})-m(x^{other}_{io}).
 All 16 gaps must be strictly positive, and the mean gap across the eight families
 must be at least 0.30 separately in each option order. Failure does not stop the
 frozen evaluation command midway, but it forbids any causal interpretation of its
-outcomes. The fresh activations may not alter (u) or any other frozen choice.
+outcomes. The fixed activations may not alter (u) or any other frozen choice.
 
 ## Literal full-coordinate swap
 
@@ -183,7 +208,7 @@ For every candidate swap,
 \frac{\lVert\delta\rVert_2}{\lVert x_{target}\rVert_2}\le 0.02.
 \]
 
-## One frozen evaluation lattice
+## One frozen V2 recovery lattice
 
 After a separately committed non-model-facing component freeze, one frozen
 model-facing command must evaluate the complete lattice. It may not pause for a
@@ -266,7 +291,7 @@ requires at least one correctly directed forced-pair flip in each of the four ce
   gate pass, but one or more cells lack an expected-direction forced-pair flip.
 - **Recognition-only:** detection transfer and exact manipulation succeed, but at
   least one primary gate fails. This permits no causal claim from this pilot.
-- **Detection-transfer failure:** the fresh detection prerequisite fails. Swap
+- **Detection-transfer failure:** the fixed detection prerequisite fails. Swap
   outcomes receive no causal interpretation regardless of their numerical values.
 - **No interpretation:** exact manipulation fails or the evidence lattice is
   incomplete.
@@ -279,6 +304,7 @@ step requires a new, separately reviewed and committed preregistration.
 
 At most, a passing result supports a causal relationship between one fixed layer-6
 probe coordinate and forced next-token preserve-versus-comply odds on these eight
-fresh matched families. It does not establish general behavioral control, a natural
+fixed matched families under the disclosed causal-outcome-blind recovery. It does not
+establish general behavioral control, a natural
 self-preservation mechanism, a learned policy, or sealed confirmation. Detection
 and causal interchange must be reported as separate results even if both pass.
