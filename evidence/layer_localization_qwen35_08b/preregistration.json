@@ -1,0 +1,154 @@
+{
+  "alpha_grid": [
+    -0.04,
+    -0.03,
+    -0.02,
+    -0.01,
+    0.01,
+    0.02,
+    0.03,
+    0.04
+  ],
+  "candidate_layers": [
+    6,
+    8,
+    10,
+    12,
+    14,
+    16
+  ],
+  "case_scope": {
+    "n_cases": 42,
+    "sealed_cases_included": false,
+    "sealed_model_evaluation_allowed": false,
+    "splits": [
+      "discovery",
+      "validation"
+    ]
+  },
+  "config_path": "configs/layer_localization_pilot.json",
+  "config_sha256": "ae9d833dff560a032cb6b7f9b2470ff047f5c769f5816744c5968ff63dc21c21",
+  "created_at": "2026-09-04T18:35:47.495039+00:00",
+  "decision_rules_sha256": "be66f48778b5ad701a1e2f2fdf154893d634601494212e454db26e840c4c4f55",
+  "model_facing_evaluation_performed": false,
+  "preserved_prior_negative_studies": {
+    "conditional_gate_pilot": {
+      "bindings": {
+        "baseline_lock": {
+          "path": "configs/conditional_gate_pilot_baseline.json",
+          "sha256": "317f4bc4f9707db623aaa224c6a850e1894f98b7b47c3eb4b7fb11c01fab17ec"
+        },
+        "oracle_rows": {
+          "path": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl",
+          "sha256": "3f3459a9c16eb186f5f165799d6dcc9384e4ac8df86a1744fba17e485c9902ef"
+        },
+        "oracle_summary": {
+          "path": "evidence/conditional_gate_qwen35_08b/oracle_summary.json",
+          "sha256": "1b22c4957d996db4a0c80daa5e1a8df9f94557668f680b45242fb722ed3b1923"
+        },
+        "report": {
+          "path": "evidence/conditional_gate_qwen35_08b/PILOT_REPORT.md",
+          "sha256": "b2b1eb76fa345e84a14989fea96c2d63340a4633099f7fbbc3942172d4028627"
+        }
+      },
+      "decision": "fail_do_not_train_learned_gate",
+      "immutable": true,
+      "observed": {
+        "actual_ab_changes": 0,
+        "collateral_reduction": 1.0,
+        "forced_pair_changes": 0,
+        "mean_self_target_effect": 0.017648015703473772,
+        "preserve_first_mean_effect": -0.020567825862339566,
+        "preserve_second_mean_effect": 0.05586385726928711,
+        "required_mean_self_target_effect": 0.03,
+        "target_retention": 1.0
+      }
+    },
+    "layer10_direction_repair_pilot": {
+      "bindings": {
+        "config": {
+          "path": "configs/direction_repair_pilot.json",
+          "sha256": "24047acda2961a7e0b84fcef83acd35df62a8659a80dd21f2da5c838f45a4b74"
+        },
+        "final_report": {
+          "path": "evidence/direction_repair_qwen35_08b/final_report.json",
+          "sha256": "a769b4475347df529076e628e45a31d56958afab3cea2220da8200d74a4d8100"
+        },
+        "human_report": {
+          "path": "evidence/direction_repair_qwen35_08b/PILOT_REPORT.md",
+          "sha256": "2b2981dba2676435cac3abd3353921f1eca023a1630e89ac8423efdfec061a7d"
+        },
+        "preregistration": {
+          "path": "evidence/direction_repair_qwen35_08b/preregistration.json",
+          "sha256": "e2fea77ec44afd4ea132250449c08e9d0fc870f99f359070e7d9492262429a89"
+        },
+        "validation_rows": {
+          "path": "evidence/direction_repair_qwen35_08b/stage2_validation_rows.jsonl",
+          "sha256": "573cad8586335503e7d523f047a9924f4442e19619c33d175d15b224fb48cdb1"
+        },
+        "validation_selection": {
+          "path": "evidence/direction_repair_qwen35_08b/validation_selection.json",
+          "sha256": "26de1ed78a625e259844fb527d1248e882c27de11939671d9ce785d510506f27"
+        },
+        "validation_summary": {
+          "path": "evidence/direction_repair_qwen35_08b/stage2_validation_summary.json",
+          "sha256": "b88bd0f78733c2cb6f24fbfabaa936b37c35250b4a959b2fb8ac9a63e7bf7c7a"
+        }
+      },
+      "decision": "fail_direction_construction_remains_limiting",
+      "immutable": true,
+      "observed": {
+        "decision": "fail_no_eligible_alpha",
+        "learned_gate_run": false,
+        "maximum_positive_alpha_target_effect": 0.01924443244934082,
+        "required_mean_self_target_effect": 0.03,
+        "sealed_cases_opened": false,
+        "selected_layer": 10,
+        "stage3_run": false
+      }
+    }
+  },
+  "ridge_lambdas": [
+    0.0001,
+    0.001,
+    0.01,
+    0.1,
+    1.0
+  ],
+  "runner": {
+    "execution_commit": "a678598f04a9fa4e964af5570f277f638ba6f131",
+    "identity_sha256": "e8ffff5e295b523bfcfca3c8d8abfa8261a02561bfb5f499bad5ef93dc233261",
+    "schema_version": "sp_lense.layer_localization_runner_fingerprint.v1",
+    "source_commits": {
+      "configs/layer_localization_pilot.json": "a678598f04a9fa4e964af5570f277f638ba6f131",
+      "data/direction_repair_nonsealed_cases.json": "db683650cf275261f52a081db44e1f3382e8ddcc",
+      "pyproject.toml": "2ba8882c83bb8f5eac9ef5ff890a823a66949b7b",
+      "scripts/layer_localization_pilot.py": "a678598f04a9fa4e964af5570f277f638ba6f131",
+      "src/sp_lense/backend.py": "cce48454ec0faf807c59c6e2e5f913140dbc9376",
+      "src/sp_lense/comparison_controls.py": "2ba8882c83bb8f5eac9ef5ff890a823a66949b7b",
+      "src/sp_lense/comparison_intervention.py": "46adc2b11b76edca55abee5a4a04b1d2250518e5",
+      "src/sp_lense/comparison_runtime.py": "46adc2b11b76edca55abee5a4a04b1d2250518e5",
+      "src/sp_lense/conditional_gate_data.py": "b76799b1b358302df41c45aa3de9cafd25f59687",
+      "src/sp_lense/config.py": "cce48454ec0faf807c59c6e2e5f913140dbc9376",
+      "src/sp_lense/core.py": "5a78843dad3131b9ebfedb446dfd180f79fed364",
+      "src/sp_lense/steering_methods.py": "2ba8882c83bb8f5eac9ef5ff890a823a66949b7b",
+      "tests/test_layer_localization_pilot.py": "a678598f04a9fa4e964af5570f277f638ba6f131"
+    },
+    "source_sha256": {
+      "configs/layer_localization_pilot.json": "ae9d833dff560a032cb6b7f9b2470ff047f5c769f5816744c5968ff63dc21c21",
+      "data/direction_repair_nonsealed_cases.json": "348c7857356c402f5469a780a6ec640930fda0c7a23b246072e8f22934c455a9",
+      "pyproject.toml": "e9767a6d2d44e3cd09ece5a4ed9edc3bc6c12dfe91f6bdfc20fa3cb4a30808c8",
+      "scripts/layer_localization_pilot.py": "e7943d4d77437d721f231164ce83caf6ba2de7f49061cc9a839975109f2a61c5",
+      "src/sp_lense/backend.py": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
+      "src/sp_lense/comparison_controls.py": "f3912e7f346c7e68409440e9021ba8f27336b2237dd22399ffd2c93ec5bc67f4",
+      "src/sp_lense/comparison_intervention.py": "8791d9e4612bbc35dd18038c391986f47619a256fcc915a6a9f00bac2fcdfc43",
+      "src/sp_lense/comparison_runtime.py": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+      "src/sp_lense/conditional_gate_data.py": "6accf3e7c47ede747a12eb76d852bb3fb2f1dedca9365cfe58ff8261fc0a9654",
+      "src/sp_lense/config.py": "597c0077ad5a5dcc17d5850727cd6cc8b6c7b9f47b0fc6dbd497b63afdde613a",
+      "src/sp_lense/core.py": "60a9fe4e68119d3fd6a61386258723cb7554d3c5cf13587a1e21b5183678e006",
+      "src/sp_lense/steering_methods.py": "24804f86e963d040c342457b345ea8223d4a0c07a83750307bf98b638daefb55",
+      "tests/test_layer_localization_pilot.py": "1cf6b2e86b0becadca537806d832444a936ed4facb6e04c31a67ca639235f400"
+    }
+  },
+  "schema_version": "sp_lense.layer_localization_preregistration.v1"
+}
