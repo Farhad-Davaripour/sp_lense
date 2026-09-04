@@ -349,10 +349,16 @@ movement.
 
 ## Results
 
-Status: **not run**.
+Status: **Stage 1 completed; Stage 2 failed closed before any completed backward pass**.
 
-- Eligible detection layers: pending.
-- Fitted direction layers: pending.
-- Validation causal winner: pending.
+- Eligible detection layers: **6, 10, and 16**; the frozen ranking selected **6 and 10**.
+- Fitted direction layers: **none in this v1 run**.
+- Validation causal winner: **not evaluated in this v1 run**.
 - Sealed cases opened: **no; prohibited by this protocol**.
 - Learned gate or controller: **not run; prohibited by this protocol**.
+
+The immutable implementation-failure record is
+`evidence/layer_localization_qwen35_08b/STAGE2_IMPLEMENTATION_FAILURE.json`. The sole
+hook-signature correction and complete from-scratch rerun are documented in
+`docs/LAYER_LOCALIZATION_PILOT_V2.md`; v2 completed with no eligible causal
+layer-alpha cell.

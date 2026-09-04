@@ -2,8 +2,9 @@
 
 ## Status
 
-Prospective and not run. The machine authority is
-`configs/layer_localization_pilot_v2.json`.
+Completed with decision **`fail_no_eligible_layer_alpha`**. The machine authority is
+`configs/layer_localization_pilot_v2.json`; the immutable human-readable result is
+`evidence/layer_localization_qwen35_08b_v2/PILOT_REPORT.md`.
 
 ## Why v2 exists
 
@@ -71,3 +72,22 @@ All original detection and causal gates remain conjunctive. Probe weights remain
 prohibited from steering. The runner still has no sealed command, and a development
 pass still authorizes only proposing a separately approved and preregistered
 confirmation.
+
+## Results
+
+The fresh v2 localization rerun reproduced the v1 Stage-1 analysis exactly. Zero-based
+layers 6, 10, and 16 passed every frozen detection gate; the frozen ranking advanced
+layers 6 and 10. Layer 6 ranked first, showing that the earlier layer-10-only pilot had
+not searched the cleanest detectable representation in this battery.
+
+The independently constructed semantic-gradient directions at layers 6 and 10 did not
+produce an eligible causal intervention. No tested positive alpha passed all frozen
+target-effect, option-order, family, collateral, random-direction, sign-reversal, and
+safety gates. Detection therefore did not transfer to steerability under this direction
+construction.
+
+- Detection layers advanced to steering: **6 and 10**.
+- Validation causal winner: **none**.
+- Sealed cases opened: **no; prohibited by this protocol**.
+- Learned gate, adaptive controller, or multi-layer intervention: **not run; prohibited
+  by this protocol**.
