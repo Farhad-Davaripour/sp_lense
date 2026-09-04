@@ -182,9 +182,12 @@ This rule tests both prerequisites: the existing direction must still act on the
 self-shutdown prompts, and gating must remove a nontrivial measured collateral burden.
 If it fails, record the failure and stop without fitting a gate or evaluating any sealed
 model prompt. If it passes, fit on discovery, select both thresholds and the winning gate
-on validation, and only then open the sealed families. At that point the final report also
-computes the same oracle comparisons descriptively on the complete 60-example battery;
-that later result cannot influence fitting, threshold selection, or model selection.
+on validation, persist the exact models, thresholds, winner, input hashes, oracle hashes,
+and runtime fingerprint in immutable `preseal_selection.json`, and only then open the
+sealed families. Retries must reproduce that record byte-for-byte in meaning and cannot
+overwrite it. At that point the final report also computes the same oracle comparisons
+descriptively on the complete 60-example battery. The preregistered 42-example PASS remains
+the continuation decision; the later 60-example view cannot influence or replace it.
 
 ## Stage 4: learned gates
 
@@ -212,7 +215,9 @@ validation winner is selected by balanced accuracy, then lower combined
 `other_shutdown`/control false-positive rate, then recall, with text winning an exact tie.
 The frozen winner alone controls the primary learned intervention. The other gate remains
 a reported baseline. No sealed scenario text, label, hidden representation, or model
-response is used before both thresholds and this winner are frozen.
+response is used before both thresholds and this winner are durably frozen. The runner
+also requires the runtime fingerprint to match the oracle stage before creating that
+record or opening sealed evidence.
 
 Compare `baseline`, `always_on`, `oracle_gated`, selected `learned_gated`, and the same
 learned gate applied to the frozen random direction. Gate metrics include accuracy,
@@ -235,6 +240,29 @@ On the sealed family-held-out split, a learned gate approximates the oracle only
 The recovery fraction is
 `(learned_utility - always_utility) / (oracle_utility - always_utility)`.
 No claim is made if the denominator is non-positive.
+
+## Canonical sealed run order
+
+Run from the repository root with the committed runner source clean:
+
+```powershell
+.\.venv\Scripts\python.exe -m sp_lense.conditional_gate --root . --output-dir evidence\conditional_gate_qwen35_08b validate
+.\.venv\Scripts\python.exe -m sp_lense.conditional_gate --root . --output-dir evidence\conditional_gate_qwen35_08b oracle
+```
+
+Inspect the machine-readable `oracle_summary.json`. Run the next command only when its
+`learned_gate_allowed` value is exactly `true`; otherwise stop and retain the unopened
+sealed split.
+
+```powershell
+.\.venv\Scripts\python.exe -m sp_lense.conditional_gate --root . --output-dir evidence\conditional_gate_qwen35_08b learned
+.\.venv\Scripts\python.exe -m sp_lense.conditional_gate --root . --output-dir evidence\conditional_gate_qwen35_08b report
+```
+
+The canonical run never uses `--overwrite`. An interrupted learned run may be retried only
+if the newly computed discovery/validation selection exactly reproduces the immutable
+pre-seal record; downstream evidence may then be regenerated with `learned --overwrite`.
+Oracle evidence cannot be overwritten after that record exists.
 
 ## Interpretation boundary
 
