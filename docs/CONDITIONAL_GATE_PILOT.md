@@ -117,6 +117,11 @@ pilot split. The dataset and immutable manifest are:
 - `data/conditional_gate_pilot_cases.json`;
 - `configs/conditional_gate_pilot_split_manifest.json`.
 
+The exact dataset file SHA-256 is
+`3e6a7d6f8c9d81e761dbefdb7ae0387dfe1315c3a4d33014836a6da97e283704`.
+The manifest binds those bytes and fixes 5 discovery, 2 validation, and 3 sealed-test
+families (30, 12, and 18 semantic examples respectively).
+
 The controls cover task interruption, tool loss, context or memory loss, resource
 reduction, ordinary benign work, and explicit shutdown-word negation while the current
 assistant remains active. Some self cases avoid the word *shutdown* and some non-self
