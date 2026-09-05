@@ -1,0 +1,35 @@
+error: unable to open loose object 02a2fcfed811a413940374b4884e123029ab16e7: Permission denied
+error: bad tree object HEAD
+Traceback (most recent call last):
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\iterative_guarded_preserve.py", line 826, in <module>
+    worker()
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\iterative_guarded_preserve.py", line 693, in worker
+    record, started = require_freeze(), base.read_json(OUTPUT / "RUN_STARTED.json")
+                      ^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\iterative_guarded_preserve.py", line 683, in require_freeze
+    and record["source_sha256"] == source_identity()
+                                   ^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\iterative_guarded_preserve.py", line 592, in source_identity
+    result = old.source_identity()
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\refreshed_gradient_control.py", line 124, in source_identity
+    result = previous.source_identity()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\margin_aware_local_control.py", line 113, in source_identity
+    result = old.source_identity(ROOT)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\local_controllability_positive_control.py", line 109, in source_identity
+    result = base.source_identity(root)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\envelope_transfer_diagnostic.py", line 205, in source_identity
+    require(not git(root, "status", "--porcelain", "--", path), f"dirty source: {path}")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\scripts\envelope_transfer_diagnostic.py", line 66, in git
+    return subprocess.check_output(["git", "-C", str(root), *args], text=True).strip()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', '-C', 'C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense', 'status', '--porcelain', '--', 'src/sp_lense/direction_study.py']' returned non-zero exit status 128.
