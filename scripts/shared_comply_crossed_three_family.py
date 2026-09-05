@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT))
 from scripts import frozen_crossed_comply_f03_plan as adapter
 from scripts import shared_comply_crossed_three_family_plan as protocol
 from scripts import shared_comply_twelve_row_solver as optimizer
+from scripts import three_family_recording_bindings as recording_bindings
 
 shell = protocol.isolate(
     "scripts._three_family_crossed_comply_shell", "scripts/shared_comply_crossed.py"
@@ -97,18 +98,6 @@ drive = adapt(
 evaluate = adapt(engine, "evaluate", {144: 216}, {144: 1})
 _frozen_freeze = adapt(engine, "freeze", {144: 216, 64: 96}, {144: 1, 64: 1})
 adapt(engine, "worker", {144: 216, 64: 96}, {144: 1, 64: 1})
-supervise = adapt(
-    engine,
-    "supervise",
-    {144: 216, 64: 96, 16: 24, 900: 1200},
-    {144: 3, 64: 2, 16: 1, 900: 1},
-    [
-        (
-            "<=144 forwards / <=64 derivatives; 900s including loading",
-            "<=216 forwards / <=96 derivatives; 1200s including loading",
-        )
-    ],
-)
 require_freeze = engine.require_freeze
 _crossed_summary = adapt(
     shell,
@@ -167,7 +156,7 @@ def source_identity():
 engine.source_identity, engine.summarize = source_identity, summarize
 shell.source_identity, shell.summarize = source_identity, summarize
 shell.require_freeze = require_freeze
-untouched_namespace, require_authorization = shell.untouched_namespace, shell.require_authorization
+require_authorization = shell.require_authorization
 _locked_preflight = adapt(
     shell,
     "preflight",
@@ -182,7 +171,12 @@ _locked_preflight = adapt(
 
 def freeze():
     protocol.require_preparation_certificate()
-    return _frozen_freeze()
+    original_writer = base.write_new
+    base.write_new = recording_bindings.write_preregistration
+    try:
+        return _frozen_freeze()
+    finally:
+        base.write_new = original_writer
 
 
 def preflight(worker_entry=False):
@@ -197,6 +191,116 @@ worker = adapt(
     {144: 216, 64: 96, 900: 1200},
     {144: 1, 64: 1, 900: 2},
 )
+
+
+def untouched_namespace(worker_entry=False):
+    expected = {"preregistration.json"}
+    if worker_entry:
+        expected |= {"RUN_STARTED.json", "worker.log", "recording_state.json", "recording.lock"}
+    require(
+        OUTPUT.is_dir() and {p.name for p in OUTPUT.iterdir()} == expected,
+        "untouched namespace; only prospective lock and bounded startup controls",
+    )
+
+
+shell.untouched_namespace = untouched_namespace
+_unrecorded_worker = engine.worker
+
+
+def _budgeted_worker():
+    from scripts.three_family_bounded_capture import exception_record
+    from scripts.three_family_recording_budget import Budget
+
+    budget = Budget(OUTPUT, initialize=False)
+    try:
+        with recording_bindings.bind_writers(budget):
+            return _unrecorded_worker()
+    except BaseException as error:  # noqa: BLE001 - bounded technical failure, including interrupts.
+        # Do not print an arbitrary exception traceback outside the bounded capture.
+        print(
+            json.dumps({"status": "INCONCLUSIVE", "exception": exception_record(error)}), flush=True
+        )
+        raise SystemExit(1) from None
+
+
+engine.worker = _budgeted_worker
+
+
+def supervise(command, output, usage, timeout=1200):
+    """One bounded recording attempt; scientific schedule and stopping are unchanged."""
+    from scripts import three_family_bounded_capture as capture
+    from scripts.three_family_recording_budget import Budget
+    from scripts.verify_shared_comply_crossed_three_family import finalize_recording
+
+    output, started = Path(output), time.monotonic()
+    require(timeout == 1200, "fixed1200s including loading; no extension")
+    budget = Budget(output)
+    receipt = None
+    capture_entered = False
+    reason = None
+    result = None
+    try:
+        with recording_bindings.bind_writers(budget):
+            base.write_new(
+                output / "RUN_STARTED.json",
+                {
+                    "command": command,
+                    "started_monotonic": started,
+                    "deadline_monotonic": started + timeout,
+                    "timeout_seconds": timeout,
+                    "usage_preflight": usage,
+                    "forward_ceiling": 216,
+                    "derivative_ceiling": 96,
+                },
+            )
+        capture_entered = True
+        receipt = capture.run_capture(command, budget, started + timeout, cwd=ROOT)
+        if receipt["status"] != "complete_valid":
+            reason = "technical bounded capture/worker/termination failure"
+        if (output / "INVALID.json").exists() or not (output / "analysis.json").exists():
+            reason = reason or "worker incomplete or invalid"
+        fa, fc, fi = engine.recorder.journal_counts(output / "forward_events.jsonl")
+        da, dc, di = engine.recorder.journal_counts(output / "derivative_events.jsonl")
+        try:
+            skips = base.read_rows(output / "skip_events.jsonl")
+        except (ValueError, OSError, TypeError):
+            skips, reason = [], reason or "invalid/incomplete skip journal"
+        elapsed = time.monotonic() - started
+        if (
+            not (24 <= fa == fc <= 216 and 0 <= da == dc <= 96 and fa + len(skips) == 216)
+            or fi
+            or di
+            or elapsed > timeout
+        ):
+            reason = reason or "conditional budget/journal/deadline fault"
+        result = {
+            "status": "complete_valid" if reason is None else "INCONCLUSIVE",
+            "reason": reason,
+            "forward_attempts": fa,
+            "completed_forwards": fc,
+            "derivative_attempts": da,
+            "skipped_cells": len(skips),
+            "elapsed_seconds": elapsed,
+            "cleanup_error": receipt.get("cleanup_error"),
+            "retries_allowed": False,
+        }
+    except BaseException as error:  # noqa: BLE001 - recording must fail closed without retry.
+        result = {
+            "status": "INCONCLUSIVE",
+            "exception": capture.exception_record(error),
+            "retries_allowed": False,
+        }
+        if receipt is None:
+            receipt = {
+                "status": "INCONCLUSIVE",
+                "quiescent": not capture_entered,
+                "worker_started": None if capture_entered else False,
+                "exception": capture.exception_record(error),
+            }
+    return finalize_recording(budget, receipt, result)
+
+
+engine.supervise = supervise
 
 
 def checked_usage(value):

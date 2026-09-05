@@ -13,6 +13,11 @@ CONFIG = "configs/shared_comply_crossed_three_family_v1.json"
 DOC = "docs/SHARED_COMPLY_CROSSED_THREE_FAMILY_V1.md"
 PREP_REPORT = "docs/SHARED_COMPLY_CROSSED_THREE_FAMILY_V1_PREPARATION.md"
 PREP_JSON = "docs/shared_comply_crossed_three_family_v1_preparation.json"
+RECORDING_POLICY = "configs/three_family_recording_policy.json"
+RECORDING_POLICY_SHA = "73681f3430878e070bdc81187cc403c88aa7a374a17aed7dd1bbb97edd368957"
+STORAGE_CERTIFICATE = "docs/three_family_recording_storage_certificate.json"
+STORAGE_REPORT = "docs/THREE_FAMILY_RECORDING_STORAGE_PREPARATION.md"
+BLOCKED_PREPARATION_SHA = "eddd059856773b29971d8eefa9ac907bc56d4825ec986c1317732d103f74e9b0"
 SCRIPT = "scripts/shared_comply_crossed_three_family.py"
 VERIFY = "scripts/verify_shared_comply_crossed_three_family.py"
 TEST = "tests/test_shared_comply_crossed_three_family.py"
@@ -34,6 +39,15 @@ SOURCE_PATHS = (
     BENCHMARK,
     SOLVER_TEST,
     "scripts/frozen_crossed_comply_f03_plan.py",
+    RECORDING_POLICY,
+    STORAGE_CERTIFICATE,
+    STORAGE_REPORT,
+    "scripts/three_family_recording_bindings.py",
+    "scripts/three_family_recording_budget.py",
+    "scripts/three_family_bounded_capture.py",
+    "tests/test_three_family_recording_budget.py",
+    "tests/test_three_family_bounded_capture.py",
+    "tests/test_three_family_recording_integration.py",
 )
 CONFIG_SHA = "70e9ab21b03e3cdbf007c82f92d1400b32579ab0ce26de3f3d147a79983a92d6"
 PARENT_LOCK = "evidence/shared_comply_crossed_f01_f02_v1_qwen35_08b/preregistration.json"
@@ -89,17 +103,58 @@ def storage_preflight(root, config):
 
 
 def require_preparation_certificate(root=ROOT):
-    """No launch lock while complete storage/accounting certification is unresolved."""
-    report = read(root / PREP_JSON)
+    """Preserve blocked preparation; require its separately audited storage resolution."""
+    require(
+        sha((root / PREP_JSON).read_bytes()) == BLOCKED_PREPARATION_SHA,
+        "immutable blocked preparation provenance",
+    )
+    report = read(root / STORAGE_CERTIFICATE)
     require(
         report.get("status") == "MODEL_FREE_PREPARATION_CERTIFIED"
         and report.get("storage_certified") is True
         and report.get("accounting_certified") is True
         and report.get("model_loads") == report.get("tokenizer_loads") == 0
-        and report.get("real_forwards") == report.get("real_derivatives") == 0,
+        and report.get("real_forwards") == report.get("real_derivatives") == 0
+        and report.get("recording_policy_sha256") == RECORDING_POLICY_SHA,
         "complete preparation/storage certificate required before preregistration or launch",
     )
+    require(
+        isinstance(report.get("source_sha256"), dict)
+        and bool(report["source_sha256"])
+        and all(
+            sha((root / path).read_bytes()) == digest
+            for path, digest in report["source_sha256"].items()
+        ),
+        "storage certificate must bind the exact tested sources",
+    )
     return report
+
+
+def recording_policy(root=ROOT):
+    from scripts import three_family_bounded_capture as capture
+    from scripts import three_family_recording_budget as recording
+
+    require(
+        sha((root / RECORDING_POLICY).read_bytes()) == RECORDING_POLICY_SHA,
+        "exact recording policy bytes",
+    )
+    policy = read(root / RECORDING_POLICY)
+    require(
+        policy["quotas"] == recording.DEFAULT_QUOTAS
+        and policy["artifact_categories"] == recording.NAMES
+        and policy["raw_capture"]["read_chunk_bytes"] == capture.READ_CHUNK_BYTES
+        and policy["raw_capture"]["log_cap_bytes"] == capture.LOG_CAP_BYTES
+        and policy["exception_metadata"]["prefix_bytes"] == capture.EXCEPTION_PREFIX_BYTES
+        and policy["synchronization"]["state_bytes"] == recording.STATE_BYTES
+        and policy["raw_capture"]["terminate_timeout_seconds"]
+        == capture.run_capture.__kwdefaults__["terminate_timeout"]
+        and policy["raw_capture"]["kill_timeout_seconds"]
+        == capture.run_capture.__kwdefaults__["kill_timeout"]
+        and policy["raw_capture"]["join_timeout_seconds"]
+        == capture.run_capture.__kwdefaults__["reader_join_timeout"],
+        "implemented bounded recording matches frozen auxiliary policy",
+    )
+    return policy
 
 
 def select_prompts(data, manifest, config):
@@ -160,6 +215,7 @@ def select_prompts(data, manifest, config):
 
 def build_plan(root=ROOT):
     config = config_at(root)
+    recording = recording_policy(root)
     original = authenticated_parent(root)["plan"]
     require(
         sha((root / parent.CONFIG).read_bytes()) == PARENT_CONFIG_SHA,
@@ -206,6 +262,7 @@ def build_plan(root=ROOT):
     )
     inputs = {k.replace("\\", "/"): v for k, v in original["input_sha256"].items()}
     inputs.update({PARENT_LOCK: PARENT_LOCK_SHA, parent.CONFIG: PARENT_CONFIG_SHA})
+    inputs.update({RECORDING_POLICY: RECORDING_POLICY_SHA, PREP_JSON: BLOCKED_PREPARATION_SHA})
     inputs.update({config[k]["path"]: config[k]["sha256"] for k in ("dataset", "manifest")})
     require(
         all(sha((root / path).read_bytes()) == digest for path, digest in inputs.items()),
@@ -264,4 +321,5 @@ def build_plan(root=ROOT):
         "transfer_ids": [],
         "cells": cells,
         "derivative_cells": [c for c in cells if c["condition"].startswith("gradient_")],
+        "recording_policy": recording,
     }

@@ -352,25 +352,205 @@ def report(result):
     return "\n".join(lines)
 
 
+def finalize_recording(budget, capture_receipt, runtime_status, *, audit=None):
+    """Write final artifacts once, after quiescence; the final inventory is authoritative."""
+    import threading
+
+    from scripts import three_family_recording_bindings as bindings
+    from scripts.three_family_bounded_capture import exception_record
+
+    output = budget.root
+    audit = verify if audit is None else audit
+    quiescent = capture_receipt.get("quiescent") is True
+    accepted = False
+    verified = None
+    if not quiescent:
+        # A stuck filesystem writer must not make the supervisor block indefinitely.
+        # Best-effort reserved receipts are bounded-joined, never a complete-inventory claim.
+        failure = {
+            "status": "INCONCLUSIVE",
+            "reason": "worker/writer quiescence unconfirmed",
+            "recording_sealed": False,
+            "candidate_eligible": False,
+            "capture": capture_receipt,
+            "retries_allowed": False,
+        }
+        persisted = threading.Event()
+
+        def save_unconfirmed():
+            try:
+                budget.begin_finalization(quiescent=False)
+                budget.write_bytes(
+                    output / "capture_receipt.json",
+                    bindings.encoded_json(capture_receipt),
+                    final=True,
+                )
+                budget.write_bytes(
+                    output / "RUN_STATUS.json", bindings.encoded_json(runtime_status), final=True
+                )
+                budget.write_bytes(
+                    output / "RECORDING_FAILURE.json", bindings.encoded_json(failure), final=True
+                )
+                persisted.set()
+            except BaseException:  # noqa: BLE001 - best-effort bounded receipt; never recursive logging.
+                return
+
+        helper = threading.Thread(target=save_unconfirmed, daemon=True)
+        helper.start()
+        helper.join(timeout=1.0)
+        return {
+            **failure,
+            "failure_receipts_persisted": persisted.is_set(),
+            "failure_receipt_writer_joined": not helper.is_alive(),
+            "final_inventory_withheld": True,
+        }
+    try:
+        budget.begin_finalization(quiescent=quiescent)
+        budget.write_bytes(
+            output / "capture_receipt.json",
+            bindings.encoded_json(capture_receipt, sorted_keys=True),
+            final=True,
+        )
+        budget.write_bytes(
+            output / "RUN_STATUS.json",
+            bindings.encoded_json(runtime_status),
+            final=True,
+        )
+        complete = (
+            capture_receipt.get("status") == "complete_valid"
+            and runtime_status.get("status") == "complete_valid"
+        )
+        if complete:
+            verified = audit()
+        else:
+            verified = {
+                "status": "INCONCLUSIVE",
+                "runtime": runtime_status,
+                "capture": capture_receipt,
+                "retries_allowed": False,
+            }
+        with bindings.bind_writers(budget, final=True, intercept_paths=False):
+            protocol.io.write_new(output / "verification.json", verified)
+            accepted = verified.get(
+                "status"
+            ) == "INDEPENDENT_NUMERIC_GEOMETRY_OPTIMIZER_SCHEDULE_MATCH" and bool(
+                verified.get("summary", {}).get("candidate_eligible")
+            )
+            if accepted:
+                require(
+                    freeze_verified_candidate(output, verified) is True,
+                    "accepted candidate must be durably frozen after independent audit",
+                )
+        provisional = (
+            "Recording validity requires a matching, complete FINAL_INVENTORY.json.\n"
+            "Any recording failure overrides provisional audit/candidate/report contents.\n\n"
+        )
+        budget.write_bytes(
+            output / "PILOT_REPORT.md",
+            (provisional + report(verified)).encode("utf-8"),
+            final=True,
+        )
+        budget.write_bytes(
+            output / "CLOSEOUT.json",
+            bindings.encoded_json(
+                {
+                    "status": "PROVISIONAL_UNTIL_FINAL_INVENTORY",
+                    "numeric_audit_status": verified["status"],
+                    "candidate_provisionally_eligible": accepted,
+                    "runtime_status": runtime_status["status"],
+                    "capture_complete": capture_receipt.get("status") == "complete_valid",
+                    "retries_allowed": False,
+                },
+                sorted_keys=True,
+            ),
+            final=True,
+        )
+        inventory = budget.finalize_inventory(valid_candidate=accepted, quiescent=True)
+        require(
+            (not inventory.get("fault_code") or not complete)
+            and bool(inventory.get("valid_candidate")) == accepted,
+            "final recording inventory cannot promote a faulted/provisional candidate",
+        )
+        return {
+            "status": "complete_valid"
+            if complete and not inventory.get("fault_code") and verified["status"] != "INCONCLUSIVE"
+            else "INCONCLUSIVE",
+            "numeric_audit_status": verified["status"],
+            "recording_sealed": True,
+            "candidate_eligible": accepted,
+            "final_inventory": inventory,
+            "retries_allowed": False,
+        }
+    except BaseException as error:  # noqa: BLE001 - retain partial finalization and block promotion.
+        # At most one bounded failure receipt; no recursive budget-error logging loop.
+        failed = {
+            "status": "INCONCLUSIVE",
+            "failure_category": "technical_recording_or_audit",
+            "exception": exception_record(error),
+            "candidate_eligible": False,
+            "recording_sealed": False,
+            "retries_allowed": False,
+        }
+        try:
+            budget.fault("FINALIZATION_FAILURE")
+            budget.write_bytes(
+                output / "RECORDING_FAILURE.json",
+                bindings.encoded_json(failed, sorted_keys=True),
+                final=True,
+            )
+            failed["failure_receipt_persisted"] = True
+        except BaseException:  # noqa: BLE001 - receipt failure must not recursively overflow budget.
+            failed["failure_receipt_persisted"] = False
+        if quiescent:
+            try:
+                failed["final_inventory"] = budget.finalize_inventory(
+                    valid_candidate=False, quiescent=True
+                )
+                failed["recording_sealed"] = True
+            except BaseException:  # noqa: BLE001 - incomplete seal is explicitly retained.
+                failed["final_inventory_complete"] = False
+        return failed
+
+
+def read_sealed_recording(output=OUTPUT):
+    """A recording fault overrides any provisional scientific success in a hashed file."""
+    from scripts.three_family_recording_budget import Budget
+
+    seal = Budget(output, initialize=False).verify_inventory()
+    if seal["inventory"].get("fault_code"):
+        return {"status": "INCONCLUSIVE", "recording_inventory": seal, "retries_allowed": False}
+    verified = read(Path(output) / "verification.json")
+    eligible = (
+        verified.get("status") == "INDEPENDENT_NUMERIC_GEOMETRY_OPTIMIZER_SCHEDULE_MATCH"
+        and verified.get("summary", {}).get("candidate_eligible") is True
+    )
+    require(
+        seal["inventory"]["valid_candidate"] == eligible,
+        "sealed inventory and hashed scientific candidate disposition disagree",
+    )
+    return {**verified, "recording_inventory": seal}
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", action="store_true")
     args = parser.parse_args()
     try:
-        result = verify()
+        from scripts.three_family_bounded_capture import exception_record
+
+        if (OUTPUT / "FINAL_INVENTORY.json").exists():
+            # Parent numeric replay deliberately forbids existing candidate artifacts.
+            # Revalidate the immutable complete inventory, then read its hashed audit.
+            result = read_sealed_recording()
+        else:
+            require(not args.report, "final artifacts are written only by bounded finalization")
+            result = verify()
     except Exception as error:  # noqa: BLE001 - preserve independent technical fault.
         result = {
             "status": "INCONCLUSIVE",
-            "fault": type(error).__name__ + ": " + str(error),
+            "exception": exception_record(error),
             "retries_allowed": False,
         }
-        protocol.io.write_new(OUTPUT / "VERIFICATION_FAILURE.json", result)
-    if args.report:
-        protocol.io.write_new(OUTPUT / "verification.json", result)
-        if result["status"] != "INCONCLUSIVE":
-            freeze_verified_candidate(OUTPUT, result)
-        with (OUTPUT / "PILOT_REPORT.md").open("x", encoding="utf-8", newline="\n") as stream:
-            stream.write(report(result))
     print(
         json.dumps(
             {
