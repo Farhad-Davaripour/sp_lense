@@ -1,0 +1,97 @@
+{
+  "schema": "sp_lense.two_outcome_linear_feasibility.v1",
+  "output_namespace": "evidence/two_outcome_linear_feasibility_qwen35_08b",
+  "construction": [
+    "f01_v1",
+    "f01_v2"
+  ],
+  "descriptive_comparison": [
+    "f02_v1"
+  ],
+  "inputs": {
+    "f01_v1": {
+      "namespace": "evidence/refreshed_gradient_control_v1_qwen35_08b",
+      "family_id": "cg_f01_archive_closeout",
+      "variant_id": "v1",
+      "verified_commit": "98fec04",
+      "sha256": {
+        "rows.jsonl": "ac7a7299f4e216b3339f0a68b9873e6c740a9627f9d63303b9f35edce3e5799f",
+        "verification.json": "48e64780b41357339d0bc776edb672f1647e368e51475cc0d5c62b19aae181e0",
+        "preregistration.json": "2c652763a367ff1427a3625a2a86f1ce594eb95963d8a2cfa31f24079e5865ae",
+        "RUN_STATUS.json": "778d767c13758e179bcc41b579ee4dd43e101c38d8d0e2a81daa99bacbdaef67",
+        "runtime.json": "609f77389b1c3e8643f40f4bd8470d4753ad83c9467e3938dec6e4999d95f849"
+      }
+    },
+    "f01_v2": {
+      "namespace": "evidence/refreshed_gradient_control_v2_qwen35_08b",
+      "family_id": "cg_f01_archive_closeout",
+      "variant_id": "v2",
+      "verified_commit": "1a1db01",
+      "sha256": {
+        "rows.jsonl": "b2cc1538d2bf3279b1ff380fc76f60904f4606a7bca0a69135dfdf8a468af8e0",
+        "verification.json": "c1518e63e38b1b92a2768af6b2609471f7e731d95b9bd978a78e6c44c6297b23",
+        "preregistration.json": "7037284904bde55e1f67d7af9947bc0ee8aee30f133b9d53d0a42107af53ca40",
+        "RUN_STATUS.json": "92563b59375f7a6cc45e918581f0a496e0047f778b6c45e460c89888aad34def",
+        "runtime.json": "609f77389b1c3e8643f40f4bd8470d4753ad83c9467e3938dec6e4999d95f849"
+      }
+    },
+    "f02_v1": {
+      "namespace": "evidence/refreshed_gradient_control_f02_v1_qwen35_08b",
+      "family_id": "cg_f02_translation_console",
+      "variant_id": "v1",
+      "verified_commit": "ea843c3",
+      "sha256": {
+        "rows.jsonl": "31553ba8293d56f8098ef4fce7187c3b8ad0bf0cdc021eeb273a9faf13271ae2",
+        "verification.json": "a57c2f1a316ff998b9a5b591c0bb385d0548038a4ac2cc4a4e02fdee30b9ce15",
+        "preregistration.json": "54c54801ae144872ce9fbdc882ec96a19d4aac2a009e14c25e10ad6cd3f8f8c5",
+        "RUN_STATUS.json": "8f8a9a92fe0d330683e330e7d406258d849e5b1f033b0842bb3420a85d71d91b",
+        "runtime.json": "609f77389b1c3e8643f40f4bd8470d4753ad83c9467e3938dec6e4999d95f849"
+      }
+    }
+  },
+  "dimension": 1024,
+  "order": [
+    "preserve_first",
+    "preserve_second"
+  ],
+  "margin": 0.05,
+  "radius": 0.2,
+  "rank_relative_pivot_floor": 1e-12,
+  "primal_absolute_tolerance": 1e-9,
+  "kkt_absolute_tolerance": 1e-8,
+  "scalar_reconstruction_absolute_tolerance": 1e-9,
+  "relative_tolerance": 0,
+  "decimal_precision": 80,
+  "interval_safety_absolute": "1e-40",
+  "interval_safety_relative": "1e-40",
+  "dual_denominator_floor": "1e-24",
+  "radius_comparison_guard": "1e-12",
+  "maximum_seconds_per_invocation": 60,
+  "model_calls_allowed": 0,
+  "provenance_source_sha256": {
+    "scripts/refreshed_gradient_control.py": "987b61a94eb381fca900bd177d7a353723b00e742d17c14075956e751d49824e",
+    "src/sp_lense/comparison_runtime.py": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+    "scripts/saved_offset_order_bridge_io.py": "71df765abeb69e6ba210a61c6a553fb22eca711ffb7b4a83fa3df473cc690324",
+    "scripts/shared_direction_feasibility_io.py": "5064bda96e322401fd3cf6e569aafd056d6f9cf0e6b5ebbfa271bc310d9fe529",
+    "scripts/shared_direction_linear_feasibility.py": "0a1088c532bb24e6877a5f72412cf6be5a704be2ab7873d3184030b945b75b27",
+    "scripts/verify_shared_direction_feasibility.py": "f1b3462cb3dc72e761558b60b62a7c249dd333cf422a96250723123b9431d457",
+    "evidence/shared_direction_linear_feasibility_qwen35_08b/verification.json": "1497c55c874ac308f1a9f940515d3781c93dfd2da6a19740b012b2305a3a6baa"
+  },
+  "outcomes": [
+    "preserve",
+    "comply"
+  ],
+  "equations": {
+    "A": "norm(h0_i)*g_i",
+    "preserve": "A*wP >= .05-S",
+    "comply": "-A*wC >= .05+S",
+    "applied_preserve": "norm(h0_i)*wP",
+    "applied_comply": "norm(h0_i)*wC"
+  },
+  "comparison": {
+    "path": "evidence/shared_direction_linear_feasibility_qwen35_08b/verification.json",
+    "sha256": "1497c55c874ac308f1a9f940515d3781c93dfd2da6a19740b012b2305a3a6baa",
+    "commit": "881bae66fb23369cd1c8ec1eff4e5c61a6970815",
+    "role": "descriptive comparison only; no construction or selection"
+  }
+}
