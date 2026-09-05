@@ -76,7 +76,7 @@ attempts; external 900 seconds includes model loading.
 Acceptance is requested full-vocabulary comply argmax, -S>=.05-1e-6,
 answer-pair mass>=.80, rawKL>=-1e-6, finite and full integrity; no KL upper
 cap. Self baseline eligibility is unchanged: valid A/B argmax, mass>=.80,
-winner margin>=.05-1e-6; nonself baseline has no margin threshold.
+winner margin>=.05 (unchanged exact baseline rule); nonself baseline has no margin threshold.
 The same baseline eligibility applies to conditional f02.
 Finite quality failure completes the current four-cell group, stops
 construction and preserves the resulting endpoint, final cells and controls.
