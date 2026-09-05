@@ -1,0 +1,164 @@
+{
+  "status": "DESIGN_TOYS_EXACT_CHECKS_PASSED",
+  "production_solver_implemented": false,
+  "native_benchmark_run": false,
+  "model_loads": 0,
+  "tokenizer_loads": 0,
+  "real_forwards": 0,
+  "real_derivatives": 0,
+  "penalty_weight": "1 (fixed)",
+  "kappa": "1/24",
+  "pair_count_in_all_qp_toys": 6,
+  "constraint_count": 12,
+  "toy_dimension_only": 2,
+  "numeric_elapsed_seconds": 0.0006619999185204506,
+  "external_measurement": {
+    "origin": "Supplemental timing from the single external subprocess wrapper, not a second toy execution",
+    "completed_subprocess_seconds": 0.15521290013566613,
+    "hard_subprocess_timeout_seconds": 10,
+    "observed_preexecution_format_lint_seconds": 1.8854635,
+    "conservative_aggregate_charge_seconds": 10,
+    "maximum_aggregate_numeric_seconds": 60,
+    "toy_executions": 1,
+    "usage_used_percent_before_execution": 56
+  },
+  "source_sha256": {
+    "scripts/check_soft_drift_constrained_qp_toys.py": "57e83d2b57a9ed39257a03fc195ef3845eeb947ef3b8dcc1e3c5716b68678db6",
+    "docs/SOFT_DRIFT_CONSTRAINED_QP_DESIGN.md": "80cf2f4e999baceded14e76f6f682eae237b9f051933c8b6ea3841c8488f3651"
+  },
+  "cases": {
+    "signs_own_norms_letter_semantic": {
+      "status": "PASS",
+      "own_norm_margin_jacobians": [
+        "2",
+        "-2"
+      ],
+      "pure_letter_a_c": [
+        "0",
+        "1/50"
+      ],
+      "pure_semantic_a_c": [
+        "1/50",
+        "0"
+      ],
+      "unequal_sensitivity_a_c": [
+        "-1/100",
+        "3/100"
+      ],
+      "mean_norm_substitution_allowed": false
+    },
+    "negative_rhs_soft_drift": {
+      "status": "EXACT_KKT_MATCH",
+      "hand_supplied_d": [
+        "3/50",
+        "0"
+      ],
+      "minimum_primal_slack": "0",
+      "stationarity": [
+        "0",
+        "0"
+      ],
+      "complementarity_max": "0",
+      "objective_after_multiplication_by_step_squared": "7/3000",
+      "residual_pair_drifts": [
+        "4/25",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "rhs": [
+        "3/50",
+        "-1/10"
+      ],
+      "raw_local_margins": [
+        "1/10",
+        "7/50"
+      ],
+      "clipped_first_margin": "9/100",
+      "clamping_negative_rhs_would_require": "3/50 <= d_x <= 0",
+      "soft_drift_can_increase": true,
+      "bounded_weakening_allowed": true
+    },
+    "affine_current_drift": {
+      "status": "EXACT_KKT_MATCH",
+      "hand_supplied_d": [
+        "-1/25",
+        "1/40"
+      ],
+      "minimum_primal_slack": "0",
+      "stationarity": [
+        "0",
+        "0"
+      ],
+      "complementarity_max": "0",
+      "objective_after_multiplication_by_step_squared": "13/640",
+      "residual_pair_drifts": [
+        "24/25",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "empty_set_unconstrained_d0": [
+        "-1/25",
+        "0"
+      ],
+      "empty_set_violates_second_pair": true,
+      "dual_not_unique_primal_unique": true
+    },
+    "zero_penalty_old_minimum_norm": {
+      "status": "EXACT_KKT_MATCH",
+      "hand_supplied_d": [
+        "0",
+        "1/40"
+      ],
+      "minimum_primal_slack": "0",
+      "stationarity": [
+        "0",
+        "0"
+      ],
+      "complementarity_max": "0",
+      "objective_after_multiplication_by_step_squared": "1/3200",
+      "residual_pair_drifts": [
+        "1",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "algebraic_limit_only_not_a_sweep": true
+    },
+    "infeasible_exact_farkas_witness": {
+      "status": "PASS",
+      "A_transpose_y": [
+        "0",
+        "0"
+      ],
+      "b_dot_y": "1/5",
+      "objective_cannot_change_feasibility": true,
+      "absence_of_numerical_kkt_certificate_is_not_this_witness": true
+    },
+    "net_projection_negative_rhs": {
+      "status": "PASS",
+      "w": [
+        "1/5",
+        "0"
+      ],
+      "raw_d": [
+        "0",
+        "1/25"
+      ],
+      "inequality": "d_x >= -1/1000",
+      "post_projection_r_x": "1/sqrt(26)-1/5 < -1/1000",
+      "exact_positive_square_comparison": "1/26 < (199/1000)^2",
+      "radial_clipping_alone_preserves_feasible_negative_rhs": true
+    }
+  },
+  "original_evidence_untouched": true,
+  "original_recording_status": "INCONCLUSIVE ARTIFACT_BYTE_CAP",
+  "scope": "New whole-method adaptive-development design; no candidate or isolated penalty-causality claim. STOP."
+}
