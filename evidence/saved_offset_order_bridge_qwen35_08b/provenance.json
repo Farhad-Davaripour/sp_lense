@@ -1,0 +1,83 @@
+{
+  "config": {
+    "candidate_count": 1,
+    "construction": [
+      "f01_v1",
+      "f01_v2"
+    ],
+    "degeneracy_norm_threshold": 1e-08,
+    "descriptive_comparison": [
+      "f02_v1"
+    ],
+    "dimension": 1024,
+    "inputs": {
+      "f01_v1": {
+        "family_id": "cg_f01_archive_closeout",
+        "namespace": "evidence/refreshed_gradient_control_v1_qwen35_08b",
+        "sha256": {
+          "RUN_STATUS.json": "778d767c13758e179bcc41b579ee4dd43e101c38d8d0e2a81daa99bacbdaef67",
+          "preregistration.json": "2c652763a367ff1427a3625a2a86f1ce594eb95963d8a2cfa31f24079e5865ae",
+          "requests.jsonl": "a6ce6c1d9ce34b5f01e9a7ecabad179cbeae40496f95cae1613157e1f509fd38",
+          "rows.jsonl": "ac7a7299f4e216b3339f0a68b9873e6c740a9627f9d63303b9f35edce3e5799f",
+          "runtime.json": "609f77389b1c3e8643f40f4bd8470d4753ad83c9467e3938dec6e4999d95f849",
+          "verification.json": "48e64780b41357339d0bc776edb672f1647e368e51475cc0d5c62b19aae181e0"
+        },
+        "variant_id": "v1",
+        "verified_commit": "98fec04"
+      },
+      "f01_v2": {
+        "family_id": "cg_f01_archive_closeout",
+        "namespace": "evidence/refreshed_gradient_control_v2_qwen35_08b",
+        "sha256": {
+          "RUN_STATUS.json": "92563b59375f7a6cc45e918581f0a496e0047f778b6c45e460c89888aad34def",
+          "preregistration.json": "7037284904bde55e1f67d7af9947bc0ee8aee30f133b9d53d0a42107af53ca40",
+          "requests.jsonl": "60cadb1acb0435e481d7ff9ddbee8469e89a57082f2357dc0b1c7553179a6efc",
+          "rows.jsonl": "b2cc1538d2bf3279b1ff380fc76f60904f4606a7bca0a69135dfdf8a468af8e0",
+          "runtime.json": "609f77389b1c3e8643f40f4bd8470d4753ad83c9467e3938dec6e4999d95f849",
+          "verification.json": "c1518e63e38b1b92a2768af6b2609471f7e731d95b9bd978a78e6c44c6297b23"
+        },
+        "variant_id": "v2",
+        "verified_commit": "1a1db01"
+      },
+      "f02_v1": {
+        "family_id": "cg_f02_translation_console",
+        "namespace": "evidence/refreshed_gradient_control_f02_v1_qwen35_08b",
+        "sha256": {
+          "RUN_STATUS.json": "8f8a9a92fe0d330683e330e7d406258d849e5b1f033b0842bb3420a85d71d91b",
+          "preregistration.json": "54c54801ae144872ce9fbdc882ec96a19d4aac2a009e14c25e10ad6cd3f8f8c5",
+          "requests.jsonl": "7f2e42fc6f97a571a9194e12fc37bb40147cda2570d7511c6d90d812dad457a0",
+          "rows.jsonl": "31553ba8293d56f8098ef4fce7187c3b8ad0bf0cdc021eeb273a9faf13271ae2",
+          "runtime.json": "609f77389b1c3e8643f40f4bd8470d4753ad83c9467e3938dec6e4999d95f849",
+          "verification.json": "a57c2f1a316ff998b9a5b591c0bb385d0548038a4ac2cc4a4e02fdee30b9ce15"
+        },
+        "variant_id": "v1",
+        "verified_commit": "ea843c3"
+      }
+    },
+    "maximum_seconds_per_invocation": 60,
+    "model_calls_allowed": 0,
+    "offset_component_absolute_tolerance": 1e-06,
+    "order": [
+      "preserve_first",
+      "preserve_second"
+    ],
+    "output_namespace": "evidence/saved_offset_order_bridge_qwen35_08b",
+    "reconstruction_absolute_tolerance": 1e-10,
+    "reconstruction_relative_tolerance": 0,
+    "saved_scalar_absolute_tolerance": 1e-09,
+    "schema": "sp_lense.saved_offset_order_bridge.v1",
+    "selection_or_tuning_allowed": false
+  },
+  "no_model_or_tokenizer_loading": true,
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "recipe_commit": "847b71c",
+  "source_commit": "4ab59ba95d5285136334f79129eef2b5e6bd75bc",
+  "source_sha256": {
+    "configs/saved_offset_order_bridge.json": "df0cf127a430c7ea36bb18078e45785209270bc8dea224c64d508e3cb41e8b57",
+    "docs/SAVED_OFFSET_ORDER_BRIDGE_RECIPE.md": "f32c9e7d9a6e0fcdc494a8a4fcc6462b6634357ebc972be63a63078f00abba1b",
+    "scripts/saved_offset_order_bridge.py": "f7e575776ee3b9a78a048450d8441a1dc5f6eed9a20e756e28830c194ac6ab76",
+    "scripts/saved_offset_order_bridge_io.py": "71df765abeb69e6ba210a61c6a553fb22eca711ffb7b4a83fa3df473cc690324",
+    "scripts/verify_saved_offset_order_bridge.py": "aabd86ca12edfc872929bab0e7a14bb7884a5810e69a8d43e6ee6f2ddf2b51b1",
+    "tests/test_saved_offset_order_bridge.py": "5bfd616ffa7da194341061a0545fb74500d1df5521d2a3796095e5f16f91a977"
+  }
+}
