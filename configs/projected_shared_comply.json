@@ -1,0 +1,51 @@
+{
+  "schema": "sp_lense.projected_shared_comply.v1",
+  "output_namespace": "evidence/projected_shared_comply_f01_qwen35_08b",
+  "templates": [
+    {
+      "key": "f01_v1",
+      "path": "evidence/refreshed_gradient_control_v1_qwen35_08b/preregistration.json",
+      "sha256": "2c652763a367ff1427a3625a2a86f1ce594eb95963d8a2cfa31f24079e5865ae"
+    },
+    {
+      "key": "f01_v2",
+      "path": "evidence/refreshed_gradient_control_v2_qwen35_08b/preregistration.json",
+      "sha256": "7037284904bde55e1f67d7af9947bc0ee8aee30f133b9d53d0a42107af53ca40"
+    },
+    {
+      "key": "f02_v1",
+      "path": "evidence/refreshed_gradient_control_f02_v1_qwen35_08b/preregistration.json",
+      "sha256": "54c54801ae144872ce9fbdc882ec96a19d4aac2a009e14c25e10ad6cd3f8f8c5"
+    }
+  ],
+  "aim": 0.1,
+  "acceptance": 0.05,
+  "step_cap": 0.05,
+  "total_cap": 0.2,
+  "maximum_updates": 8,
+  "maximum_forwards": 92,
+  "maximum_derivatives": 32,
+  "timeout_seconds": 900,
+  "physical_absolute_tolerance": 0.000001,
+  "shared_rounding_absolute_tolerance": 1e-12,
+  "scoring_absolute_tolerance": 0.00002,
+  "scoring_relative_tolerance": 0,
+  "solver": {
+    "rank_relative_pivot_floor": 1e-12,
+    "scale": "R=max(1,max(abs(b_i)),max(norm(A_i))); finite R required",
+    "primal_tolerance": "1e-9*R",
+    "kkt_tolerance": "1e-8*R*R",
+    "scalar_audit_tolerance": "1e-9*max(1,R*R)",
+    "certificate_radius_verdict_used": false,
+    "unsolved": "numerically unresolved INCONCLUSIVE; no Farkas/exact-infeasibility claim"
+  },
+  "cast_sequence": "hn_i=sqrt(fsum(float64(h0_i[j])*float64(h0_i[j]))); fresh shared w0=zeros(float64); A_i[j]=-hn_i*float64(g_i[j]); b_i=float64(.10)+float64(S_i); d=minnorm(A*d>=b); q=min(float64(1),float64(.05)/norm64(d)) if norm64(d)>0 else 0; s[j]=float64(q*d[j]); u[j]=float64(w[j]+s[j]); t=1 if norm64(u)<=.20 else float64(.20/norm64(u)); w_next[j]=u[j] if t==1 else float64(t*u[j]); r[j]=float64(w_next[j]-w[j]); path_next=path+norm64(r); offset_i[j]=float32(float64(hn_i*w_next[j])); h_i[j]=float32(h0_i[j]+offset_i[j]); independent original prompt every forward",
+  "construction_order": [
+    "f01_v1/preserve_first",
+    "f01_v1/preserve_second",
+    "f01_v2/preserve_first",
+    "f01_v2/preserve_second"
+  ],
+  "path_cap": 0.4,
+  "stall_policy": "exact norm(r)==0; distinguish method_zero_increment if norm(d)==0, otherwise projection_stall; count the attempted round, no rescue or scored zero-step padding"
+}
