@@ -30,7 +30,7 @@ _parent_summary = engine.summarize
 
 # Byte-hash provenance only: never parse old candidates, failures or smoke results.
 HISTORICAL_BYTE_GUARDS = {
-    "evidence/shared_comply_two_family_qwen35_08b/comply_vector.json": "2c3beb65e308df757d3c50a70dc504abf7495fdafb80472a0f706cfc7d9687f",
+    "evidence/shared_comply_two_family_qwen35_08b/comply_vector.json": "2c3beb65e308dfe757d3c50a70dc504abf7495fdafb80472a0f706cfc7d9687f",
     "evidence/crossed_pair_f03_v1_qwen35_08b/PILOT_REPORT.md": "ab86481f784627da7ce56f5c580d3fcdf76d4f62e699013307f70fee99170067",
     "evidence/crossed_pair_f03_v1_qwen35_08b/verification.json": "1781d09823b7b95cbab3975958fa0a01153e722385b08dcda4f6852e67ab97ee",
     "evidence/frozen_endpoint020_oracle_accuracy6_qwen35_08b/PILOT_REPORT.md": "64793db16bd337c2ee22b053d6556eda6e4eebfa15f47f28c499864bdec46cab",

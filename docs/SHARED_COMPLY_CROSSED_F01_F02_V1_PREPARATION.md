@@ -44,9 +44,12 @@ No classifier, gate/controller, transfer, calibration or smoke is authorized.
 Focused test command:
 `.venv/Scripts/python.exe -m pytest tests/test_shared_comply_crossed.py -q --disable-warnings --maxfail=2`.
 
-Final source verification:98 tests passed in11.63seconds (one warning), including
-the byte-provenance-only source-inventory addition. Ruff format/check passed on
-all four new Python files. The earlier98-case run passed in13.18seconds.
+Final source verification:99 tests passed in12.21seconds (one warning), including
+explicit full-length/matching historical byte-hash regression coverage. Ruff
+format/check passed on all four new Python files. Earlier98-case runs passed in
+13.18seconds and11.63seconds. The prelock source-identity check caught one missing
+hexadecimal character in a newly entered historical candidate digest; source was
+corrected before any lock or worker existed. The historical file was unchanged.
 No broad old test suite or historical full audit was run. Relevant parent
 safety tests were reused as fixtures but executed the NEW crossed plan,
 summary and independent audit.

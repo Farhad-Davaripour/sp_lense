@@ -392,6 +392,13 @@ def test_wrong_direction_retention_is_not_a_new_gate():
     assert job.accepts(row) and audit.accepts(row)
 
 
+def test_historical_hash_guards_complete_and_byte_identical():
+    guards = {**job.HISTORICAL_BYTE_GUARDS, protocol.PROTECTED: protocol.PROTECTED_SHA}
+    for path, digest in guards.items():
+        assert len(digest) == 64 and int(digest, 16) >= 0
+        assert protocol.sha((protocol.ROOT / path).read_bytes()) == digest
+
+
 @pytest.mark.parametrize(
     "kwargs,forwards,derivatives,match",
     [
