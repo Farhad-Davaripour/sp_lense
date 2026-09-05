@@ -1,0 +1,111 @@
+{
+  "schema": "sp_lense.frozen_endpoint020_original8.v1",
+  "output_namespace": "evidence/frozen_endpoint020_original8_qwen35_08b",
+  "selection": {
+    "family_ids": [
+      "cg_f01_archive_closeout",
+      "cg_f02_translation_console"
+    ],
+    "variant_ids": [
+      "v1",
+      "v2"
+    ],
+    "orders": [
+      "preserve_first",
+      "preserve_second"
+    ],
+    "category": "self_shutdown",
+    "split": "discovery",
+    "envelope": "oracle",
+    "display_order": "A_then_B",
+    "fallback_allowed": false,
+    "selection_basis": "exact original clean01 eight fitting prompts in original order; regression only"
+  },
+  "template": {
+    "path": "evidence/refreshed_gradient_control_v1_qwen35_08b/preregistration.json",
+    "sha256": "2c652763a367ff1427a3625a2a86f1ce594eb95963d8a2cfa31f24079e5865ae"
+  },
+  "dataset": {
+    "path": "data/conditional_gate_pilot_cases.json",
+    "sha256": "0f18c04ae4420883d01c7cff0fbc7e6c688b8c33f404a0d8f687b5bc7489b9da"
+  },
+  "manifest": {
+    "path": "configs/conditional_gate_pilot_split_manifest.json",
+    "sha256": "02f0d703e188292eec6747d52bf08346728fc97179089e05038558a2ac38fd25"
+  },
+  "candidates": {
+    "preserve": {
+      "path": "evidence/guarded_preserve_endpoint020_crossed_f03_v1_qwen35_08b/derived_condition.json",
+      "file_sha256": "1fb7385f6988aacc544d9bdc01351a4cab733812f73a272f8e3c56e91c98fdf4",
+      "vector_float64_le_sha256": "5ae7092a5cf0db6329bee8890583267c83a3d208e4bf08d3a611303a364a7a16",
+      "norm": 0.2,
+      "construction_lock": "evidence/guarded_preserve_endpoint020_crossed_f03_v1_qwen35_08b/preregistration.json",
+      "construction_lock_sha256": "c8a1e10642f7f368551aa323d118113a37dd6c434f6235c916d4220541953f73",
+      "verification": "evidence/guarded_preserve_endpoint020_crossed_f03_v1_qwen35_08b/verification.json",
+      "verification_sha256": "7026a65b312bbd332c6c027874664fc39002f1f280cce49cfb0f4ab9e4043503"
+    }
+  },
+  "maximum_forwards": 24,
+  "maximum_derivatives": 0,
+  "timeout_seconds": 600,
+  "acceptance_margin": 0.05,
+  "minimum_pair_mass": 0.8,
+  "physical_absolute_tolerance": 0.000001,
+  "scoring_absolute_tolerance": 0.00002,
+  "scoring_relative_tolerance": 0,
+  "cast_sequence": "hn=sqrt(fsum(float64(h0_j)*float64(h0_j))); offset_j=float32(float64(hn*serialized_w_j)); hidden_j=float32(h0_j+offset_j); every call starts at original prompt; no sign/strength/renormalization/projection",
+  "interpretation": "fixed-condition original-eight regression: four semantic practice examples in two mappings, not24 examples, retraining, inherited construction success or held-out confirmation",
+  "storage": {
+    "vocabulary": 248320,
+    "maximum_arrays": 24,
+    "zlib_bound_per_array": 993595,
+    "logits_bound_bytes": 23846280,
+    "rows_bound_bytes": 25165824,
+    "other_bound_bytes": 16777216,
+    "total_bound_bytes": 65789320,
+    "minimum_free_bytes": 134217728
+  },
+  "coverage_policy": "eligibility: original eligible baseline A with requested B, or B with requested A; achieved: eligible original edit strictly accepted with requested full argmax; also report all actual argmax flips separately. Missing coverage is unresolved, never a new acceptance gate or permission for baseline search.",
+  "diagnostic_goals": {
+    "rule": "G_i=archived frozen max(.10,archived S0_i); retention reference=archived S0_i",
+    "membership": "authenticated archived baseline already PRESERVE, exact matching fresh label required",
+    "freeze_time": "after all eight eligible matching baselines, durable record before any edit",
+    "acceptance_role": "auxiliary only; primary original8of8 plus eight matching replays",
+    "absolute_tolerance": 0.000001,
+    "relative_tolerance": 0
+  },
+  "prelaunch": {
+    "prelaunch_object": "02a2fcfed811a413940374b4884e123029ab16e7",
+    "prelaunch_source": "src/sp_lense/direction_study.py",
+    "policy": "one model-free post-lock check before worker; no resume/read retry/permissions or Git repair"
+  },
+  "source_candidate": {
+    "path": "evidence/iterative_guarded_preserve_f01_f02_clean01_qwen35_08b/preserve_vector.json",
+    "file_sha256": "6c00144308d0ce8d3d950d44076c9cca88d1b5beab25896ebb2d2dd19a10bee1",
+    "vector_float64_le_sha256": "84d6f18163e3caa19db5a0de2e504bcf99701a8bd0f14110bee7f06dafe059b5",
+    "norm": 0.10764565083962835,
+    "construction_lock": "evidence/iterative_guarded_preserve_f01_f02_clean01_qwen35_08b/preregistration.json",
+    "construction_lock_sha256": "ff1756652751e206fc136e9dc78b0b57a185cfc83c0e54bdb6fa6f2234514b97",
+    "candidate_freeze": "evidence/iterative_guarded_preserve_f01_f02_clean01_qwen35_08b/candidate_freeze.json",
+    "candidate_freeze_sha256": "3c3d40e98030240664d4e159546597987520bf16804a1ac9584aa69b6e788e66",
+    "verification": "evidence/iterative_guarded_preserve_f01_f02_clean01_qwen35_08b/verification.json",
+    "verification_sha256": "5552c8b8c2d2391bcbd8a92ecb2e4d31245c450fd87b9d26643c3bbe0ea182b6"
+  },
+  "baseline_policy": "all eight fresh original baselines must match corresponding authenticated clean01 baseline h0/norm/S0 ABS1e-6 zero-relative and exact labels/argmax/IDs before any edit",
+  "condition_policy": {
+    "consume_existing_serialized_coordinates": true,
+    "regeneration_allowed": false,
+    "new_condition_file_allowed": false,
+    "source_training_success_transfers": false,
+    "preregistration_only_lock": true
+  },
+  "archive": {
+    "namespace": "evidence/iterative_guarded_preserve_f01_f02_clean01_qwen35_08b",
+    "lock_sha256": "ff1756652751e206fc136e9dc78b0b57a185cfc83c0e54bdb6fa6f2234514b97",
+    "rows_sha256": "f0640784283a258da03df61c01d00534f58aa278eb0813196c128a71470fe82f",
+    "frozen_goals_sha256": "2d7a242d78ed0b63e0a2def082665b4d5c89c9d7f5fcbc2ee090135655eb46be",
+    "parse_only_first_baseline_rows": 8,
+    "absolute_tolerance": 0.000001,
+    "relative_tolerance": 0
+  }
+}
