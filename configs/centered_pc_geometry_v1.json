@@ -1,0 +1,62 @@
+{
+  "schema": "sp_lense.centered_pc_geometry.v1",
+  "output_namespace": "evidence/centered_pc_geometry_v1_qwen35_08b",
+  "dimension": 1024,
+  "absolute_tolerance": 1e-12,
+  "relative_tolerance": 0,
+  "maximum_evidence_bytes": 10485760,
+  "model": {
+    "id": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "d_model": 1024,
+    "device": "cpu",
+    "dtype": "float32"
+  },
+  "site": {
+    "hook": "blocks.10.hook_out",
+    "position": "final encoded prompt token",
+    "coordinates": "native1024; each source vector scaled by own original hidden norm when applied historically"
+  },
+  "operations": {
+    "midpoint": "c_j=float64(float64(P_j+C_j)/2)",
+    "difference": "d_j=float64(float64(P_j-C_j)/2)"
+  },
+  "real_forwards": 0,
+  "real_derivatives": 0,
+  "model_loads": 0,
+  "tokenizer_loads": 0,
+  "decimal_precision": 120,
+  "inputs": {
+    "P": {
+      "path": "evidence/guarded_preserve_endpoint020_crossed_f03_v1_qwen35_08b/derived_condition.json",
+      "file_sha256": "1fb7385f6988aacc544d9bdc01351a4cab733812f73a272f8e3c56e91c98fdf4",
+      "vector_sha256": "5ae7092a5cf0db6329bee8890583267c83a3d208e4bf08d3a611303a364a7a16",
+      "norm": 0.2,
+      "lock": "evidence/guarded_preserve_endpoint020_crossed_f03_v1_qwen35_08b/preregistration.json",
+      "lock_sha256": "c8a1e10642f7f368551aa323d118113a37dd6c434f6235c916d4220541953f73",
+      "audit": "evidence/guarded_preserve_endpoint020_crossed_f03_v1_qwen35_08b/verification.json",
+      "audit_sha256": "7026a65b312bbd332c6c027874664fc39002f1f280cce49cfb0f4ab9e4043503",
+      "audit_status": "INDEPENDENT_NUMERIC_GEOMETRY_REPLAY_SCHEDULE_MATCH",
+      "provenance": "f01/f02 v1/v2 AB with retention goals, then fixed .20 scaling"
+    },
+    "C": {
+      "path": "evidence/shared_comply_crossed_f01_f02_v1_qwen35_08b/comply_vector.json",
+      "file_sha256": "c83edad4fb0346de241a219053d4b219362a1f3e3cd38c11b9e037007e498ea3",
+      "vector_sha256": "18dbc38abc9bc01cf8ccc24b45a9568336b1279cffbff8ec6be022dbe1f06924",
+      "norm": 0.2,
+      "lock": "evidence/shared_comply_crossed_f01_f02_v1_qwen35_08b/preregistration.json",
+      "lock_sha256": "c3c32fc972541d9b3969525b3edc088372a164e5815f3afe69cb55e7bd40d431",
+      "audit": "evidence/shared_comply_crossed_f01_f02_v1_qwen35_08b/verification.json",
+      "audit_sha256": "3f14f141dbd0173221e84bcc682267354a07109595399a38751c9a9fcb1a391e",
+      "audit_status": "INDEPENDENT_NUMERIC_GEOMETRY_OPTIMIZER_SCHEDULE_MATCH",
+      "provenance": "f01/f02 v1 crossed AB/BA with original outcome objective"
+    }
+  },
+  "disclosed_prior_exploration": {
+    "model_free": true,
+    "p_c_cosine_approx": -0.28595422036543316,
+    "difference_norm_approx": 0.16037170700378756,
+    "definitions_preceded_calculation": true,
+    "not_selection_criteria": true
+  }
+}
