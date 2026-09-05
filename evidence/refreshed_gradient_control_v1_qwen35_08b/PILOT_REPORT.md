@@ -58,7 +58,7 @@ gate training or parameter update was performed in this job.
 
 Source commit `ec2262e`; separate preregistration commit `927533a`. Pre-exposure
 checks: **28 focused synthetic tests passed**, lint clean; no full suite or extra
-agents. Standard usage stayed at 18%, below the 90% stop guard; no credits/reset or
+agents. Standard usage was 18% during execution and 19% at closeout, below the 90% stop guard; no credits/reset or
 model-setting change. All historical files and verdicts remain unchanged.
 
 The execution journals contain 24 forward starts/completions and 5 derivative
