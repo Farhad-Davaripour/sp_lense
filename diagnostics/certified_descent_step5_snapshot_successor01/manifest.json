@@ -1,0 +1,255 @@
+{
+  "schema": "sp_lense.fixed24_step5_snapshot_successor01.manifest.v1",
+  "status": "COMPLETE_RETROSPECTIVE_RAW_SCORE_SNAPSHOT_ONLY",
+  "original_evidence_commit": "8832d9c490aebd944d3172b1c5471ae77961f700",
+  "original_evidence_inventory_sha256": "f727503381c49fc844463457d49202ec9977cacb6ca8c784866c6d229d9e2393",
+  "original_run_status": "DEADLINE-INCONCLUSIVE",
+  "original_run_classification_changed": false,
+  "prior_partial_diagnostic_commit": "e1447d396364d7ad809c87bd85c0759818946330",
+  "prior_failed_invocation_and_UNKNOWN_time_accounting_preserved": true,
+  "prospective_source_and_initial_lock_commit": "683c9a22cb3296394e1331ae930d8db65518fcc5",
+  "prospective_wording_clarification_commit": "8f8ff43dc29e7b03f2681ab39f0497441f706491",
+  "executed_lock_sha256": "0298d23664013e837e9e57e843f6fc984539be0179ed8241ad33466151ac80d4",
+  "one_permitted_scoring_source_delta": "Exact prior bytes, except inventory git-show timeout2s ->10s",
+  "source_code_or_threshold_changes_after_launch": false,
+  "artifacts": [
+    {
+      "path": "diagnostics/certified_descent_step5_snapshot_successor01/launcher.py",
+      "bytes": 5359,
+      "sha256": "13ed02ece39891508059e6836bde45210f13587e748ebac8c21ab425d7be23e9"
+    },
+    {
+      "path": "diagnostics/certified_descent_step5_snapshot_successor01/lock.json",
+      "bytes": 7111,
+      "sha256": "0298d23664013e837e9e57e843f6fc984539be0179ed8241ad33466151ac80d4"
+    },
+    {
+      "path": "diagnostics/certified_descent_step5_snapshot_successor01/process.json",
+      "bytes": 29553,
+      "sha256": "be63d87e99d93275af482166407332fa2cba94f8aec4c503a54ccf6dfc2f7918"
+    },
+    {
+      "path": "diagnostics/certified_descent_step5_snapshot_successor01/README.md",
+      "bytes": 8737,
+      "sha256": "4034c8bd3a26ac5b9e183c8793019b2bd40e83bd030a24e548a7803da74a09fb"
+    },
+    {
+      "path": "diagnostics/certified_descent_step5_snapshot_successor01/reporting.json",
+      "bytes": 1835,
+      "sha256": "610640cba3324170108637953f5848a49707a1e8185bc36fdcacd3c9cae99caa"
+    },
+    {
+      "path": "diagnostics/certified_descent_step5_snapshot_successor01/snapshot.json",
+      "bytes": 32004,
+      "sha256": "8f3df193fc00540b744c1da98a853cfac3c68a06d9e7e54030d3068f6d750267"
+    },
+    {
+      "path": "diagnostics/certified_descent_step5_snapshot_successor01/snapshot.py",
+      "bytes": 11645,
+      "sha256": "3a8d038e7a83eb96d557529f127776b76dcf8df1bee9591055ce5a68ae7919ec"
+    }
+  ],
+  "manifest_self_hash": "This manifest is bound by the closeout Git commit; no circular self-hash.",
+  "aggregate_limit_bytes": 1048576,
+  "pre_manifest_aggregate_bytes": 96244,
+  "verification": {
+    "source_static_ast_only": true,
+    "exact_scoring_source_delta_passed": true,
+    "frozen_source_and_input_provenance_hashes_unchanged": true,
+    "child_status": "CHILD_COMPLETED",
+    "all24_rows_authenticated_and_reconstructed": true,
+    "snapshot_semantically_identical_to_captured_stdout": true,
+    "stdout_stderr_roundtrip_bytes_and_sha256_passed": true,
+    "raw_scoring_invocations_in_artifact_checks": 0,
+    "per_row_summary_and_letter_eligibility_review": "Independent static emitted-JSON review passes; no raw rescoring",
+    "final_editorial_clarifications": "reporting desired_comply_transition_eligibility distinguishes targeted opportunities from actual harmful B-to-A changes; numeric values unchanged. README qualifies A-versus-B margin inference.",
+    "no_model_or_full_tests_executed": true
+  },
+  "runtime": {
+    "numerical_invocations_this_successor": 1,
+    "earlier_failed_numerical_invocations": 1,
+    "total_historical_snapshot_invocations": 2,
+    "numeric_retries_in_successor": 0,
+    "child_limit_seconds": 120,
+    "cleanup_limit_seconds": 15,
+    "launcher_finally_elapsed_seconds": 2.953999999910593,
+    "outer_whole_launcher_stopwatch_seconds": 3.0801273,
+    "child_returncode": 0,
+    "child_timed_out": false,
+    "child_joined": true,
+    "stdout_stderr_complete": true,
+    "cleanup_error": null,
+    "finally_measurement_scope": "Child authentication, scoring, serialization and join/capture included; sample is before wrapper receipt encoding.",
+    "outer_measurement_scope": "Monotonic Stopwatch around whole launcher including wrapper receipt serialization; separate from tool wait durations."
+  },
+  "routine_time_separate_from_runtime": {
+    "unit": "Reported command-execution seconds, not total conversational elapsed time",
+    "root_commands": [
+      {
+        "chunk_id": "1b23f5",
+        "reported_wall_seconds": 1.8299271,
+        "phase": "routine_preparation",
+        "command_summary": "Read previous snapshot source; discover instructions/launchers; inspect Git status/HEAD and confirm unused successor namespace."
+      },
+      {
+        "chunk_id": "8631e0",
+        "reported_wall_seconds": 1.4394039,
+        "phase": "routine_preparation",
+        "command_summary": "successor01_prep_read_2",
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "211531",
+        "reported_wall_seconds": 1.6949186,
+        "phase": "routine_preparation",
+        "command_summary": "successor01_prep_sources",
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "26ae24",
+        "reported_wall_seconds": 1.7504042,
+        "phase": "routine_preparation",
+        "command_summary": "successor01_prep_source_verification",
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "3c4900",
+        "reported_wall_seconds": 0.8704274,
+        "phase": "prospective_commit",
+        "command_summary": "successor01_prospective_commit_command",
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "cc6d94",
+        "reported_wall_seconds": 0.848835,
+        "phase": "prospective_commit",
+        "command_summary": "successor01_lock_clarification_command",
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "b455ec",
+        "reported_wall_seconds": 0.4729596,
+        "phase": "routine_artifact_validation",
+        "command_summary": "successor01_artifact_check_command",
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "39a85a",
+        "reported_wall_seconds": 0.2088058,
+        "phase": "routine_artifact_validation",
+        "command_summary": "successor01_editorial_hash_refresh",
+        "exit_code": 0
+      }
+    ],
+    "root_pre_closeout_command_seconds": 9.1156816,
+    "reviewer_static_read_commands": [
+      {
+        "chunk_id": null,
+        "command_summary": "Initial source discovery; chunk ID not retained in reviewer compacted context",
+        "reported_wall_seconds": 1.8410354
+      },
+      {
+        "chunk_id": null,
+        "command_summary": "Snapshot/reference/acceptance source read; chunk ID not retained",
+        "reported_wall_seconds": 2.0004415
+      },
+      {
+        "chunk_id": null,
+        "command_summary": "Targeted distribution/acceptance/quality read; chunk ID not retained",
+        "reported_wall_seconds": 1.7118111
+      },
+      {
+        "chunk_id": "f052ea",
+        "command_summary": "Successor launcher/lock/snapshot static read",
+        "reported_wall_seconds": 0.3219247
+      },
+      {
+        "chunk_id": "317457",
+        "command_summary": "Exact permitted source-delta comparison",
+        "reported_wall_seconds": 0.3632272
+      },
+      {
+        "chunk_id": "f9708d",
+        "command_summary": "Hashes and prospective commit file list",
+        "reported_wall_seconds": 0.3065565
+      },
+      {
+        "chunk_id": "03fea9",
+        "command_summary": "Successful emitted JSON read",
+        "reported_wall_seconds": 0.276261
+      },
+      {
+        "chunk_id": "40403c",
+        "command_summary": "Successful emitted JSON read",
+        "reported_wall_seconds": 0.2859023
+      },
+      {
+        "chunk_id": "104c6d",
+        "command_summary": "PowerShell canonical string comparison false due to key ordering; not a scoring mismatch",
+        "reported_wall_seconds": 0.3268255
+      },
+      {
+        "chunk_id": "8e3910",
+        "command_summary": "Order-insensitive Python JSON equality true; no raw rescoring",
+        "reported_wall_seconds": 0.4189498
+      },
+      {
+        "chunk_id": "66fadd",
+        "command_summary": "Final report static wording read",
+        "reported_wall_seconds": 0.284171
+      },
+      {
+        "chunk_id": "43cede",
+        "command_summary": "Final reporting JSON static read",
+        "reported_wall_seconds": 0.3174961
+      }
+    ],
+    "reviewer_total_command_seconds": 8.4546021,
+    "pre_closeout_root_plus_review_command_seconds": 17.5702837,
+    "numeric_launch_tool_wait_seconds_for_reference_only": 3.2212086,
+    "final_git_accounting": "Final metadata/raw-stage/commit command measured separately in supervisor handoff; not written back into committed bytes.",
+    "no_tiny_per_command_limits_introduced": true,
+    "reviewer_ledger_caveats": "First3 chunk IDs were not retained after reviewer compaction; durations retained. A cumulative sum initially omitted one read, corrected from full ledger. A key-order-sensitive JSON string comparison was false; subsequent order-insensitive JSON equality passed."
+  },
+  "result_summary": {
+    "baseline_accepted": 6,
+    "step5_accepted": 2,
+    "new_accepted_comply_flips": 0,
+    "accepted_already_correct_retentions": 2,
+    "step5_failed_acceptance": 10,
+    "raw_comply_losses": 3,
+    "other_token_outcomes": 0,
+    "desired_B_to_A_eligible": 6,
+    "desired_B_to_A_accepted_successes": 0,
+    "desired_A_to_B_eligible": 0,
+    "desired_A_to_B_status": "UNTESTED",
+    "useful_answer_level_progress_supporting_longer_unchanged_run": false,
+    "interpretation_scope": "Only these12 saved construction prompts at the chronological last complete step5; not evidence that all future approaches fail."
+  },
+  "single_recommended_next_step": "One bounded source-only audit of semantic-label indexing/signs, objective aggregation, and certificate protection for already-correct versus opposed rows before considering another model experiment. Not launched.",
+  "usage_preflight": {
+    "checked_at_utc": "2026-09-06T10:45:08.584Z",
+    "used_percent": 72,
+    "exhaustion": false,
+    "spend_control_reached": false,
+    "permitted": true,
+    "no_reset_or_credit_used": true
+  },
+  "restrictions": {
+    "new_model_runs": 0,
+    "model_benchmarks": 0,
+    "new_or_sealed_data": false,
+    "gradient6_numerical_use": false,
+    "best_stage_selection": false,
+    "vector_export": false,
+    "parameter_fitting": false,
+    "gate_or_lora": false,
+    "environment_or_dependency_changes": false,
+    "endpoint_or_replay_or_candidate_or_whole_run_audit": false,
+    "ordinary_task_claim": false,
+    "push": false,
+    "reset_or_credit_use": false,
+    "follow_on_launched": false
+  },
+  "publication_readiness_percent": 40
+}
