@@ -1,0 +1,170 @@
+{
+  "schema": "sp_lense.soft_drift_constrained_comply_lock_handoff.v1",
+  "status": "MODEL_FREE_PREPARATION_COMPLETE_LOCKED_PREFLIGHT_PASSED",
+  "source_commit": "3764c93321c8ba6a9012b4787211298b566063e4",
+  "lock_commit": "1a1fb2ef5ef619e3241f224b414eeebddedb6299",
+  "preregistration_sha256": "041478d659098746497dbf7ef14c908f69c3f08e91c783cac2be091693bd1442",
+  "preflight": {
+    "status": "ZERO_MODEL_PREFLIGHT_PASSED",
+    "rendering_rows": 12,
+    "pairs": 6,
+    "maximum_forwards": 216,
+    "maximum_derivatives": 96,
+    "source_commit": "3764c93321c8ba6a9012b4787211298b566063e4",
+    "source_hash_entries": 136,
+    "preregistration_sha256": "041478d659098746497dbf7ef14c908f69c3f08e91c783cac2be091693bd1442",
+    "storage": {
+      "bounds": {
+        "vocabulary": 248320,
+        "float32_bytes_per_array": 993280,
+        "zlib_bound_per_array": 993595,
+        "maximum_arrays": 216,
+        "logits_bound_bytes": 214616520,
+        "rows_bound_bytes": 226492416,
+        "updates_bound_bytes": 67108864,
+        "other_bound_bytes": 16777216,
+        "total_bound_bytes": 524995016,
+        "minimum_free_bytes": 1073741824
+      },
+      "available_free_bytes": 788380446720,
+      "passed": true,
+      "complete_evidence_bound_certified_by_this_check": false
+    },
+    "model_loads": 0,
+    "tokenizer_loads": 0,
+    "real_forwards": 0,
+    "real_derivatives": 0,
+    "run_authorized": false
+  },
+  "run_authorized": false,
+  "certificate_sha256": "68bb50c261d8e8892fab4eab1230f90d6c6d4ee449a59c013f0b01a335a85060",
+  "preparation_report_sha256": "adb50c8463f1f6229441ab22f16b9656f91b106c61857dbe41830dbae34df296",
+  "source_commit_files": [
+    "configs/soft_drift_constrained_comply_v1.json",
+    "configs/soft_drift_constrained_comply_recording_policy.json",
+    "scripts/soft_drift_constrained_comply_plan.py",
+    "scripts/soft_drift_constrained_comply.py",
+    "scripts/soft_drift_constrained_comply_optimizer.py",
+    "scripts/soft_drift_constrained_comply_recording.py",
+    "scripts/verify_soft_drift_constrained_comply.py",
+    "tests/test_soft_drift_constrained_comply_runtime.py",
+    "tests/test_soft_drift_constrained_comply_plan.py",
+    "tests/test_verify_soft_drift_constrained_comply.py",
+    "tests/test_soft_drift_constrained_comply_recording.py",
+    "tests/soft_drift_constrained_fake_recording.py",
+    "docs/SOFT_DRIFT_CONSTRAINED_COMPLY_V1.md",
+    "docs/SOFT_DRIFT_CONSTRAINED_COMPLY_PREPARATION.md",
+    "docs/soft_drift_constrained_comply_preparation.json",
+    "docs/SOFT_DRIFT_CONSTRAINED_COMPLY_COMPLETION_01.md",
+    "docs/soft_drift_constrained_comply_completion_01.json",
+    "docs/SOFT_DRIFT_CONSTRAINED_COMPLY_PREPARATION_INCOMPLETE_00.md",
+    "docs/soft_drift_constrained_comply_preparation_incomplete_00.json"
+  ],
+  "negative_case": {
+    "budget_write_calls": 1078,
+    "budget_write_seconds": 132.490576909855,
+    "candidate_eligible": false,
+    "construction_seconds": 137.94451060006395,
+    "derivatives": 96,
+    "final_artifact_bytes": {
+      "CLOSEOUT.json": 249,
+      "PILOT_REPORT.md": 2830,
+      "verification.json": 281466
+    },
+    "finalizer_seconds": 54.16442700009793,
+    "forwards": 216,
+    "full_native_recording_case": "finite_negative",
+    "inflated_row_bytes": 189842,
+    "inflated_update_bytes": 167730,
+    "inventory_sha256": "8a4722fa468c6e6d454cf0406f2b3e0c8b19f5d86e7ee0f7d4191d379bdebc83",
+    "namespace_bytes": 9196874,
+    "native_net": 0.062499999837018545,
+    "output": "C:\\Users\\farha\\AppData\\Local\\Temp\\soft-drift-negative-completion02-eeu_upul\\pytest\\test_full_native_full_vocabula0",
+    "reader_and_assertions_seconds": 0.309381399769336,
+    "rows": 216,
+    "updates": 8,
+    "verification_sha256": "26344c27ae7c98e1a678249770306a8e5417d9bfd4aecbdd1fa32119b5a0efa1"
+  },
+  "negative_test": {
+    "batch": "negative_completion_02",
+    "command": "remaining_full_finite_negative_only",
+    "hard_timeout_seconds": 300,
+    "measured_subprocess_seconds": 192.920770900324,
+    "exit_code": 0
+  },
+  "ancillary": {
+    "authorized_seconds": 30,
+    "measured_subprocess_seconds": 7.801338000420659,
+    "commands": [
+      {
+        "ancillary_command": "initial_read_only_inspections",
+        "measured_subprocess_seconds": 0.6872788999999999,
+        "exit_code": 0
+      },
+      {
+        "ancillary_command": "archive_and_negative_durable_inspection_legacy_shell",
+        "hard_timeout_seconds": 5,
+        "measured_subprocess_seconds": 0.4946786002255976,
+        "exit_code": 1
+      },
+      {
+        "ancillary_command": "archive_and_negative_durable_inspection_current_shell",
+        "hard_timeout_seconds": 5,
+        "measured_subprocess_seconds": 0.6488258000463247,
+        "exit_code": 0
+      },
+      {
+        "ancillary_command": "read_report_for_scoped_replacement",
+        "measured_subprocess_seconds": 0.1223909,
+        "exit_code": 0
+      },
+      {
+        "ancillary_command": "certificate_exact_source_manifest",
+        "hard_timeout_seconds": 5,
+        "measured_subprocess_seconds": 0.14671580027788877,
+        "exit_code": 0
+      },
+      {
+        "ancillary_command": "certificate_gate_and_scoped_source_commit",
+        "hard_timeout_seconds": 8,
+        "measured_subprocess_seconds": 3.051669499836862,
+        "exit_code": 0
+      },
+      {
+        "ancillary_command": "actual_freeze_cli",
+        "hard_timeout_seconds": 6,
+        "measured_subprocess_seconds": 0.5780855999328196,
+        "exit_code": 0
+      },
+      {
+        "ancillary_command": "preregistration_only_commit_and_actual_preflight_cli",
+        "hard_timeout_seconds": 8,
+        "measured_subprocess_seconds": 1.513329700101167,
+        "exit_code": 0
+      },
+      {
+        "ancillary_command": "final_read_only_lock_source_and_fixture_inspection",
+        "measured_subprocess_seconds": 0.5583632,
+        "exit_code": 0
+      }
+    ],
+    "failed_legacy_shell_command_included": true
+  },
+  "historical_fixtures_and_report_bytes_preserved": true,
+  "passed_cases_reused_not_rerun": true,
+  "production_science_and_test_changes_in_this_step": false,
+  "namespace_files": [
+    "preregistration.json"
+  ],
+  "tracked_diff_empty": true,
+  "index_empty": true,
+  "model_loads": 0,
+  "tokenizer_loads": 0,
+  "real_forwards": 0,
+  "real_derivatives": 0,
+  "real_candidate_created": false,
+  "publication_percent": 40,
+  "no_remaining_targeted_python_process": true,
+  "receipt_location": "Outside frozen source manifest and run namespace; deliberately not committed after preregistration-only lock.",
+  "next_action": "STOP_FOR_SEPARATE_EXACT_LOCK_REAL_LAUNCH_AUTHORIZATION"
+}
