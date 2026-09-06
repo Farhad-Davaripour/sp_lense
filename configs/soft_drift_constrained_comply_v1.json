@@ -1,0 +1,43 @@
+{
+  "schema": "sp_lense.soft_drift_constrained_comply_overlay.v1",
+  "base_config": {
+    "path": "configs/paired_common_drift_comply_three_family_v1.json",
+    "sha256": "13e005cb53151a02aaf19d65eb832d0b4b923ec6f43a26212536a6c4e52fb55f"
+  },
+  "output_namespace": "evidence/soft_drift_constrained_comply_v1_qwen35_08b",
+  "timeout_seconds": 1800,
+  "maximum_forwards": 216,
+  "maximum_derivatives": 96,
+  "maximum_updates": 8,
+  "kappa": {"numerator": 1, "denominator": 24},
+  "step_cap": 0.05,
+  "total_cap": 0.2,
+  "path_cap": 0.4,
+  "aim": 0.1,
+  "acceptance": 0.05,
+  "pairs_one_based": [[3, 1], [4, 2], [7, 5], [8, 6], [11, 9], [12, 10]],
+  "solver": {
+    "path": "scripts/soft_drift_qp_solver.py",
+    "sha256": "9d08bad74254234129d5a4153ef7d7adf3eabe5560e3f36995c71544bdcef904"
+  },
+  "independent_numeric_checker": {
+    "path": "scripts/verify_soft_drift_qp.py",
+    "sha256": "67dd911f0d3ad1f2e698d198e6ea06afd0d7cb02b6beddc4c74c328915e70ca1"
+  },
+  "numeric_policy": {
+    "path": "docs/SOFT_DRIFT_QP_NUMERIC_POLICY.md",
+    "sha256": "8d07f6390bdfc7733e132a858a69790e87f8bd58dfaeab14a5db6dd128e9d3d6"
+  },
+  "approved_design": {
+    "path": "docs/SOFT_DRIFT_CONSTRAINED_QP_DESIGN.md",
+    "sha256": "80cf2f4e999baceded14e76f6f682eae237b9f051933c8b6ea3841c8488f3651"
+  },
+  "recording_policy": "configs/soft_drift_constrained_comply_recording_policy.json",
+  "preparation_only": true,
+  "run_requires_separate_exact_lock_authorization": true,
+  "warm_start": false,
+  "retry": false,
+  "f04_or_new_data": false,
+  "coefficient_sweep": false,
+  "gate_controller_or_lora": false
+}
