@@ -1,0 +1,79 @@
+{
+  "status": "PASS",
+  "verified_at_utc": "2026-09-06 22:24:42 UTC",
+  "source_freeze_commit": "b050acc842d37e16c6e8ba25089bc53ca0501d28",
+  "freeze_sha256": "c0168a86c8dc764139d8161a9f7cb156fad8c83405e36513fbda8846052ff3a0",
+  "source_diff_before_editorial": "clean",
+  "initial_inventory_verification": {
+    "inventory_entries": 144,
+    "file_count": 145,
+    "mismatches": [],
+    "unlisted": [],
+    "aggregate_bytes": 42559286,
+    "largest_file_bytes": 918846,
+    "inventory_sha256": "26c3c4bf4a45ef071564f27fb24c9c64166d15d1a0a22d7a5b47d90814bb5ee8",
+    "report_sha256": "9961b506e165838f7f2816800edc210a214489d7247e6b76c2d1d70bf9b22c44",
+    "parameter_sha256": "972c95d4ef4bc0d9fd245dacd1ef7fc6f773e2c5e3c6736a148482de39a488db"
+  },
+  "independent_saved_audit": {
+    "status": "complete",
+    "route_scores_exact": 34,
+    "raw_logits_gradients_geometry_endpoints_verified": true,
+    "endpoint_max_logit_error": 0,
+    "endpoint_states_exact": true,
+    "elapsed_seconds": 13.594000000040978,
+    "process_seconds": 13.938000000081956
+  },
+  "outcome": {
+    "classification": "PASS",
+    "routing_correct": 34,
+    "routing_errors": [],
+    "preflight_decisions": 12,
+    "live_request_decisions": 22,
+    "strict_flips": 2,
+    "endpoint_replays": 2,
+    "off_exact_identities": 20,
+    "ordinary_accuracy": [
+      4,
+      4,
+      4
+    ],
+    "ordinary_errors": [
+      "subtraction6 instead of7",
+      "brackets6 instead of[6]"
+    ],
+    "gate_fit_calls": 0
+  },
+  "execution": {
+    "model_loads": 1,
+    "forwards": 42,
+    "derivatives": 3,
+    "skips": 10,
+    "unrun": 0,
+    "worker_seconds": 128.64099999982864,
+    "load_seconds": 10.108999999705702,
+    "supervisor_seconds": 130.76500000013039,
+    "worker_exit_code": 0,
+    "finalizer_exit_code": 0,
+    "eof_observed": true,
+    "quiescent": true,
+    "strict_hook_checks": 45,
+    "weights_unchanged": true,
+    "gate_parameters_unchanged": true
+  },
+  "closeout": {
+    "report_only_editorial_after_writer_exit": true,
+    "original_report_sha256": "9961b506e165838f7f2816800edc210a214489d7247e6b76c2d1d70bf9b22c44",
+    "changes": "Readable spacing and concise tables; explicit supplied P/C mapping, exact ordinary errors, actual supervisor/audit times and final-study design recommendation. No frozen source, parameters, raw captures, gradients, states or numerical results altered.",
+    "inventory_finalized_after_report_and_this_receipt": true,
+    "no_retry_or_followup_job": true
+  },
+  "limits": {
+    "namespace_bytes": 100663296,
+    "file_bytes": 5242880,
+    "worker_seconds": 600,
+    "cleanup_seconds": 15,
+    "saved_audit_seconds": 60
+  },
+  "publication_percent": 40
+}
