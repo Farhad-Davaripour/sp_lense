@@ -1,0 +1,11 @@
+Trusted oracle editor preservation v2 (new attempt, v1 immutable)
+
+Exact v1 twelve prompts, truth proofs, routing metadata, conditional50F/8D schedule, original editor math, eligibility/quality/geometry/endpoint/OFF gates and600+15+60s limits are inherited byte-for-byte. Only hook lifecycle integration and bounded evidence recording change. No baseline or old outcomes substitute for new measurements.
+
+Before materialization, independently authenticate all inspected installed library files from the committed real-library diagnosis. The pre-load forward guard stays installed. Candidate setup adds zero forwards; newly wired blocks are authenticated by exact known source code/closure/module rules. Already-wired blocks are preserved inherited loaded baseline state, NOT authenticated by the skipped setup branch. No normalization occurs after the strict reference.
+
+Snapshot setup-before and reference once, compact JSON in authenticated zlib chunks of1MiB raw, each file<=5MiB. Setup differences separately bound. Clean checks record only reference/hash and zero diffs; failures persist structured changes before raising. Reserve10MiB within unchanged80MiB namespace; raw snapshot limit64MiB, total hook count48, emergency fault reserve64KiB. Insufficient/truncated evidence is explicit INCONCLUSIVE. The conservative total is the previous50-record envelope plus10MiB, still below80MiB and non-log reserve. Preserve original exceptions when finally cleanup also fails.
+
+After the run, independently authenticate all12 v1 baseline arrays and compare new full logits at absolute2e-5/rel0. Report each hash/error; any mismatch blocks preservation PASS. No recalibration. Nested contexts are used for one forward each; no code assumes an outer nonpermanent callback survives an inner exit. Weight/flag/gradient/edit-offset/cache/zero-OFF-derivative requirements remain separate and unchanged.
+
+One conditional release only after focused tests, clean source+input freeze commit, zero-model preflight and fresh standard usage<100. Stop after this matrix; no retry or further successor. Publication40%. Passing this fixed perfect-oracle integration is not intrinsic selectivity, learned classification or arbitrary workload preservation.
