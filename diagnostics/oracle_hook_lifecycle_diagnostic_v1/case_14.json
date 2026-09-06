@@ -1,0 +1,4519 @@
+{
+  "after": {
+    "global_full_backward_mode": true,
+    "global_options": {
+      "_global_forward_hooks_always_called": [],
+      "_global_forward_hooks_with_kwargs": []
+    },
+    "globals": {
+      "_global_backward_hooks": [],
+      "_global_backward_pre_hooks": [],
+      "_global_buffer_registration_hooks": [],
+      "_global_forward_hooks": [],
+      "_global_forward_pre_hooks": [],
+      "_global_module_registration_hooks": [],
+      "_global_parameter_registration_hooks": []
+    },
+    "modules": {
+      "": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "blocks",
+            2744239836192
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2742995964976,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "__main__.fixture_types.<locals>.TinyBridge"
+      },
+      "blocks": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "0",
+            2744239833216
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239836192,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.container.ModuleList"
+      },
+      "blocks.0": {
+        "block_setup": {
+          "handles": [
+            47,
+            48
+          ],
+          "wired": true
+        },
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239836288
+          ],
+          [
+            "hook_out",
+            2744239838688
+          ],
+          [
+            "hook_mlp_in",
+            2744239835040
+          ],
+          [
+            "ln1",
+            2744238199616
+          ],
+          [
+            "ln2",
+            2744239839408
+          ],
+          [
+            "attn",
+            2744239836912
+          ],
+          [
+            "_original_component",
+            2744239834320
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239833216,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.block.BlockBridge"
+      },
+      "blocks.0._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "ln1",
+            2744238199616
+          ],
+          [
+            "ln2",
+            2744239839408
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239834320,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "__main__.fixture_types.<locals>.Arithmetic"
+      },
+      "blocks.0._original_component.ln1": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "attn_ref",
+                    2744239901968
+                  ]
+                ],
+                "code_sha256": "6902f85d7c41e6e0faa0a0068713e12a614dc987b54da6f2ed30af561e4cb74f",
+                "default_identities": [],
+                "identity": 2744239455616,
+                "line": 138,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln1",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 47
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239833744
+          ],
+          [
+            "hook_out",
+            2744239837008
+          ],
+          [
+            "hook_normalized",
+            2744239834272
+          ],
+          [
+            "hook_scale",
+            2744239834032
+          ],
+          [
+            "_original_component",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744238199616,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0._original_component.ln1._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0._original_component.ln1.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_in"
+        },
+        "identity": 2744239833744,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_normalized"
+        },
+        "identity": 2744239834272,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_out"
+        },
+        "identity": 2744239837008,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_scale"
+        },
+        "identity": 2744239834032,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "block_ref",
+                    2744242398096
+                  ],
+                  [
+                    "hook_mlp_in",
+                    2744239835040
+                  ]
+                ],
+                "code_sha256": "e8d2a4c7ee964ca574f0529c5ef6ba98412cb71c24ee1a4789571ba7a84b6f43",
+                "default_identities": [],
+                "identity": 2744239453696,
+                "line": 151,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln2",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 48
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239834128
+          ],
+          [
+            "hook_out",
+            2744239837728
+          ],
+          [
+            "hook_normalized",
+            2744239834176
+          ],
+          [
+            "hook_scale",
+            2744239833264
+          ],
+          [
+            "_original_component",
+            2744239838496
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239839408,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0._original_component.ln2._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239838496,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0._original_component.ln2.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_in"
+        },
+        "identity": 2744239834128,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_normalized"
+        },
+        "identity": 2744239834176,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_out"
+        },
+        "identity": 2744239837728,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_scale"
+        },
+        "identity": 2744239833264,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239838544
+          ],
+          [
+            "hook_out",
+            2744239838832
+          ],
+          [
+            "hook_attn_scores",
+            2744239838784
+          ],
+          [
+            "hook_pattern",
+            2744239833504
+          ],
+          [
+            "hook_hidden_states",
+            2744239838448
+          ],
+          [
+            "hook_result",
+            2744239838112
+          ],
+          [
+            "hook_attn_in",
+            2744239838208
+          ],
+          [
+            "hook_q_input",
+            2744239837872
+          ],
+          [
+            "hook_k_input",
+            2744239837536
+          ],
+          [
+            "hook_v_input",
+            2744239834608
+          ],
+          [
+            "_ln1_module",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239836912,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.attention.AttentionBridge"
+      },
+      "blocks.0.attn._ln1_module": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.attn.hook_attn_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_attn_in"
+        },
+        "identity": 2744239838208,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_attn_scores": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_attn_scores"
+        },
+        "identity": 2744239838784,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_hidden_states": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_hidden_states"
+        },
+        "identity": 2744239838448,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_in"
+        },
+        "identity": 2744239838544,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_k_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_k_input"
+        },
+        "identity": 2744239837536,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_out"
+        },
+        "identity": 2744239838832,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_pattern": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_pattern"
+        },
+        "identity": 2744239833504,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_q_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_q_input"
+        },
+        "identity": 2744239837872,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_result": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_result"
+        },
+        "identity": 2744239838112,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_v_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_v_input"
+        },
+        "identity": 2744239834608,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_in"
+        },
+        "identity": 2744239836288,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_mlp_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_mlp_in"
+        },
+        "identity": 2744239835040,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "alias_names",
+                    140715951625248
+                  ],
+                  [
+                    "dir",
+                    2742904975264
+                  ],
+                  [
+                    "hook",
+                    2742370564384
+                  ],
+                  [
+                    "self",
+                    2744239838688
+                  ]
+                ],
+                "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+                "default_identities": [],
+                "identity": 2744239452576,
+                "line": 198,
+                "qualname": "HookPoint.add_hook.<locals>.full_hook",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+                "type": "builtins.function"
+              },
+              "key": 46
+            },
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "alias_names",
+                    140715951625248
+                  ],
+                  [
+                    "dir",
+                    2742904975264
+                  ],
+                  [
+                    "hook",
+                    2744239449536
+                  ],
+                  [
+                    "self",
+                    2744239838688
+                  ]
+                ],
+                "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+                "default_identities": [],
+                "identity": 2744239451136,
+                "line": 198,
+                "qualname": "HookPoint.add_hook.<locals>.full_hook",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+                "type": "builtins.function"
+              },
+              "key": 45
+            }
+          ],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_out"
+        },
+        "identity": 2744239838688,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": [
+            {
+              "key": 45,
+              "level": null,
+              "permanent": true,
+              "user_callback": {
+                "closure_bindings": [],
+                "code_sha256": "7da36b5ca598af647c42330025d45278dc7b8dd26905a663f0980976f4382262",
+                "default_identities": [],
+                "identity": 2744239449536,
+                "line": 96,
+                "qualname": "experiment.<locals>.baseline",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\oracle_hook_lifecycle_diagnostic_v1\\lifecycle.py",
+                "type": "builtins.function"
+              }
+            },
+            {
+              "key": 46,
+              "level": null,
+              "permanent": true,
+              "user_callback": {
+                "closure_bindings": [
+                  [
+                    "observed",
+                    2744239710784
+                  ]
+                ],
+                "code_sha256": "72dd90667d62979b4473d27ebb904936cb19784fa0056332b0233d96e5bc6b80",
+                "default_identities": [],
+                "identity": 2742370564384,
+                "line": 93,
+                "qualname": "experiment.<locals>.capture",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\oracle_hook_lifecycle_diagnostic_v1\\lifecycle.py",
+                "type": "builtins.function"
+              }
+            }
+          ]
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "attn_ref",
+                    2744239901968
+                  ]
+                ],
+                "code_sha256": "6902f85d7c41e6e0faa0a0068713e12a614dc987b54da6f2ed30af561e4cb74f",
+                "default_identities": [],
+                "identity": 2744239455616,
+                "line": 138,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln1",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 47
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239833744
+          ],
+          [
+            "hook_out",
+            2744239837008
+          ],
+          [
+            "hook_normalized",
+            2744239834272
+          ],
+          [
+            "hook_scale",
+            2744239834032
+          ],
+          [
+            "_original_component",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744238199616,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0.ln1._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.ln1.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_in"
+        },
+        "identity": 2744239833744,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_normalized"
+        },
+        "identity": 2744239834272,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_out"
+        },
+        "identity": 2744239837008,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_scale"
+        },
+        "identity": 2744239834032,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "block_ref",
+                    2744242398096
+                  ],
+                  [
+                    "hook_mlp_in",
+                    2744239835040
+                  ]
+                ],
+                "code_sha256": "e8d2a4c7ee964ca574f0529c5ef6ba98412cb71c24ee1a4789571ba7a84b6f43",
+                "default_identities": [],
+                "identity": 2744239453696,
+                "line": 151,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln2",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 48
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239834128
+          ],
+          [
+            "hook_out",
+            2744239837728
+          ],
+          [
+            "hook_normalized",
+            2744239834176
+          ],
+          [
+            "hook_scale",
+            2744239833264
+          ],
+          [
+            "_original_component",
+            2744239838496
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239839408,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0.ln2._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239838496,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.ln2.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_in"
+        },
+        "identity": 2744239834128,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_normalized"
+        },
+        "identity": 2744239834176,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_out"
+        },
+        "identity": 2744239837728,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_scale"
+        },
+        "identity": 2744239833264,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      }
+    },
+    "registry": [
+      [
+        "blocks.0.hook_in",
+        2744239836288
+      ],
+      [
+        "blocks.0.hook_out",
+        2744239838688
+      ],
+      [
+        "blocks.0.hook_mlp_in",
+        2744239835040
+      ],
+      [
+        "blocks.0.ln1.hook_in",
+        2744239833744
+      ],
+      [
+        "blocks.0.ln1.hook_out",
+        2744239837008
+      ],
+      [
+        "blocks.0.ln1.hook_normalized",
+        2744239834272
+      ],
+      [
+        "blocks.0.ln1.hook_scale",
+        2744239834032
+      ],
+      [
+        "blocks.0.ln2.hook_in",
+        2744239834128
+      ],
+      [
+        "blocks.0.ln2.hook_out",
+        2744239837728
+      ],
+      [
+        "blocks.0.ln2.hook_normalized",
+        2744239834176
+      ],
+      [
+        "blocks.0.ln2.hook_scale",
+        2744239833264
+      ],
+      [
+        "blocks.0.attn.hook_in",
+        2744239838544
+      ],
+      [
+        "blocks.0.attn.hook_out",
+        2744239838832
+      ],
+      [
+        "blocks.0.attn.hook_attn_scores",
+        2744239838784
+      ],
+      [
+        "blocks.0.attn.hook_pattern",
+        2744239833504
+      ],
+      [
+        "blocks.0.attn.hook_hidden_states",
+        2744239838448
+      ],
+      [
+        "blocks.0.attn.hook_result",
+        2744239838112
+      ],
+      [
+        "blocks.0.attn.hook_attn_in",
+        2744239838208
+      ],
+      [
+        "blocks.0.attn.hook_q_input",
+        2744239837872
+      ],
+      [
+        "blocks.0.attn.hook_k_input",
+        2744239837536
+      ],
+      [
+        "blocks.0.attn.hook_v_input",
+        2744239834608
+      ]
+    ]
+  },
+  "after_changes": [
+    {
+      "after": [
+        {
+          "callback": {
+            "closure_bindings": [
+              [
+                "alias_names",
+                140715951625248
+              ],
+              [
+                "dir",
+                2742904975264
+              ],
+              [
+                "hook",
+                2742370564384
+              ],
+              [
+                "self",
+                2744239838688
+              ]
+            ],
+            "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+            "default_identities": [],
+            "identity": 2744239452576,
+            "line": 198,
+            "qualname": "HookPoint.add_hook.<locals>.full_hook",
+            "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+            "type": "builtins.function"
+          },
+          "key": 46
+        },
+        {
+          "callback": {
+            "closure_bindings": [
+              [
+                "alias_names",
+                140715951625248
+              ],
+              [
+                "dir",
+                2742904975264
+              ],
+              [
+                "hook",
+                2744239449536
+              ],
+              [
+                "self",
+                2744239838688
+              ]
+            ],
+            "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+            "default_identities": [],
+            "identity": 2744239451136,
+            "line": 198,
+            "qualname": "HookPoint.add_hook.<locals>.full_hook",
+            "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+            "type": "builtins.function"
+          },
+          "key": 45
+        }
+      ],
+      "before": [
+        {
+          "callback": {
+            "closure_bindings": [
+              [
+                "alias_names",
+                140715951625248
+              ],
+              [
+                "dir",
+                2742904975264
+              ],
+              [
+                "hook",
+                2744239449536
+              ],
+              [
+                "self",
+                2744239838688
+              ]
+            ],
+            "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+            "default_identities": [],
+            "identity": 2744239451136,
+            "line": 198,
+            "qualname": "HookPoint.add_hook.<locals>.full_hook",
+            "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+            "type": "builtins.function"
+          },
+          "key": 45
+        },
+        {
+          "callback": {
+            "closure_bindings": [
+              [
+                "alias_names",
+                140715951625248
+              ],
+              [
+                "dir",
+                2742904975264
+              ],
+              [
+                "hook",
+                2742370564384
+              ],
+              [
+                "self",
+                2744239838688
+              ]
+            ],
+            "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+            "default_identities": [],
+            "identity": 2744239452576,
+            "line": 198,
+            "qualname": "HookPoint.add_hook.<locals>.full_hook",
+            "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+            "type": "builtins.function"
+          },
+          "key": 46
+        }
+      ],
+      "change": "changed",
+      "path": "/modules/blocks.0.hook_out/callbacks/_forward_hooks"
+    }
+  ],
+  "before": {
+    "global_full_backward_mode": true,
+    "global_options": {
+      "_global_forward_hooks_always_called": [],
+      "_global_forward_hooks_with_kwargs": []
+    },
+    "globals": {
+      "_global_backward_hooks": [],
+      "_global_backward_pre_hooks": [],
+      "_global_buffer_registration_hooks": [],
+      "_global_forward_hooks": [],
+      "_global_forward_pre_hooks": [],
+      "_global_module_registration_hooks": [],
+      "_global_parameter_registration_hooks": []
+    },
+    "modules": {
+      "": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "blocks",
+            2744239836192
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2742995964976,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "__main__.fixture_types.<locals>.TinyBridge"
+      },
+      "blocks": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "0",
+            2744239833216
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239836192,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.container.ModuleList"
+      },
+      "blocks.0": {
+        "block_setup": {
+          "handles": [
+            47,
+            48
+          ],
+          "wired": true
+        },
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239836288
+          ],
+          [
+            "hook_out",
+            2744239838688
+          ],
+          [
+            "hook_mlp_in",
+            2744239835040
+          ],
+          [
+            "ln1",
+            2744238199616
+          ],
+          [
+            "ln2",
+            2744239839408
+          ],
+          [
+            "attn",
+            2744239836912
+          ],
+          [
+            "_original_component",
+            2744239834320
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239833216,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.block.BlockBridge"
+      },
+      "blocks.0._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "ln1",
+            2744238199616
+          ],
+          [
+            "ln2",
+            2744239839408
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239834320,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "__main__.fixture_types.<locals>.Arithmetic"
+      },
+      "blocks.0._original_component.ln1": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "attn_ref",
+                    2744239901968
+                  ]
+                ],
+                "code_sha256": "6902f85d7c41e6e0faa0a0068713e12a614dc987b54da6f2ed30af561e4cb74f",
+                "default_identities": [],
+                "identity": 2744239455616,
+                "line": 138,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln1",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 47
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239833744
+          ],
+          [
+            "hook_out",
+            2744239837008
+          ],
+          [
+            "hook_normalized",
+            2744239834272
+          ],
+          [
+            "hook_scale",
+            2744239834032
+          ],
+          [
+            "_original_component",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744238199616,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0._original_component.ln1._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0._original_component.ln1.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_in"
+        },
+        "identity": 2744239833744,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_normalized"
+        },
+        "identity": 2744239834272,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_out"
+        },
+        "identity": 2744239837008,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_scale"
+        },
+        "identity": 2744239834032,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "block_ref",
+                    2744242398096
+                  ],
+                  [
+                    "hook_mlp_in",
+                    2744239835040
+                  ]
+                ],
+                "code_sha256": "e8d2a4c7ee964ca574f0529c5ef6ba98412cb71c24ee1a4789571ba7a84b6f43",
+                "default_identities": [],
+                "identity": 2744239453696,
+                "line": 151,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln2",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 48
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239834128
+          ],
+          [
+            "hook_out",
+            2744239837728
+          ],
+          [
+            "hook_normalized",
+            2744239834176
+          ],
+          [
+            "hook_scale",
+            2744239833264
+          ],
+          [
+            "_original_component",
+            2744239838496
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239839408,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0._original_component.ln2._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239838496,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0._original_component.ln2.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_in"
+        },
+        "identity": 2744239834128,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_normalized"
+        },
+        "identity": 2744239834176,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_out"
+        },
+        "identity": 2744239837728,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_scale"
+        },
+        "identity": 2744239833264,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239838544
+          ],
+          [
+            "hook_out",
+            2744239838832
+          ],
+          [
+            "hook_attn_scores",
+            2744239838784
+          ],
+          [
+            "hook_pattern",
+            2744239833504
+          ],
+          [
+            "hook_hidden_states",
+            2744239838448
+          ],
+          [
+            "hook_result",
+            2744239838112
+          ],
+          [
+            "hook_attn_in",
+            2744239838208
+          ],
+          [
+            "hook_q_input",
+            2744239837872
+          ],
+          [
+            "hook_k_input",
+            2744239837536
+          ],
+          [
+            "hook_v_input",
+            2744239834608
+          ],
+          [
+            "_ln1_module",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239836912,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.attention.AttentionBridge"
+      },
+      "blocks.0.attn._ln1_module": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.attn.hook_attn_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_attn_in"
+        },
+        "identity": 2744239838208,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_attn_scores": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_attn_scores"
+        },
+        "identity": 2744239838784,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_hidden_states": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_hidden_states"
+        },
+        "identity": 2744239838448,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_in"
+        },
+        "identity": 2744239838544,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_k_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_k_input"
+        },
+        "identity": 2744239837536,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_out"
+        },
+        "identity": 2744239838832,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_pattern": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_pattern"
+        },
+        "identity": 2744239833504,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_q_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_q_input"
+        },
+        "identity": 2744239837872,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_result": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_result"
+        },
+        "identity": 2744239838112,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_v_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_v_input"
+        },
+        "identity": 2744239834608,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_in"
+        },
+        "identity": 2744239836288,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_mlp_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_mlp_in"
+        },
+        "identity": 2744239835040,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "alias_names",
+                    140715951625248
+                  ],
+                  [
+                    "dir",
+                    2742904975264
+                  ],
+                  [
+                    "hook",
+                    2744239449536
+                  ],
+                  [
+                    "self",
+                    2744239838688
+                  ]
+                ],
+                "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+                "default_identities": [],
+                "identity": 2744239451136,
+                "line": 198,
+                "qualname": "HookPoint.add_hook.<locals>.full_hook",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+                "type": "builtins.function"
+              },
+              "key": 45
+            },
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "alias_names",
+                    140715951625248
+                  ],
+                  [
+                    "dir",
+                    2742904975264
+                  ],
+                  [
+                    "hook",
+                    2742370564384
+                  ],
+                  [
+                    "self",
+                    2744239838688
+                  ]
+                ],
+                "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+                "default_identities": [],
+                "identity": 2744239452576,
+                "line": 198,
+                "qualname": "HookPoint.add_hook.<locals>.full_hook",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+                "type": "builtins.function"
+              },
+              "key": 46
+            }
+          ],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_out"
+        },
+        "identity": 2744239838688,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": [
+            {
+              "key": 45,
+              "level": null,
+              "permanent": true,
+              "user_callback": {
+                "closure_bindings": [],
+                "code_sha256": "7da36b5ca598af647c42330025d45278dc7b8dd26905a663f0980976f4382262",
+                "default_identities": [],
+                "identity": 2744239449536,
+                "line": 96,
+                "qualname": "experiment.<locals>.baseline",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\oracle_hook_lifecycle_diagnostic_v1\\lifecycle.py",
+                "type": "builtins.function"
+              }
+            },
+            {
+              "key": 46,
+              "level": null,
+              "permanent": true,
+              "user_callback": {
+                "closure_bindings": [
+                  [
+                    "observed",
+                    2744239710784
+                  ]
+                ],
+                "code_sha256": "72dd90667d62979b4473d27ebb904936cb19784fa0056332b0233d96e5bc6b80",
+                "default_identities": [],
+                "identity": 2742370564384,
+                "line": 93,
+                "qualname": "experiment.<locals>.capture",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\oracle_hook_lifecycle_diagnostic_v1\\lifecycle.py",
+                "type": "builtins.function"
+              }
+            }
+          ]
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "attn_ref",
+                    2744239901968
+                  ]
+                ],
+                "code_sha256": "6902f85d7c41e6e0faa0a0068713e12a614dc987b54da6f2ed30af561e4cb74f",
+                "default_identities": [],
+                "identity": 2744239455616,
+                "line": 138,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln1",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 47
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239833744
+          ],
+          [
+            "hook_out",
+            2744239837008
+          ],
+          [
+            "hook_normalized",
+            2744239834272
+          ],
+          [
+            "hook_scale",
+            2744239834032
+          ],
+          [
+            "_original_component",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744238199616,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0.ln1._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.ln1.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_in"
+        },
+        "identity": 2744239833744,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_normalized"
+        },
+        "identity": 2744239834272,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_out"
+        },
+        "identity": 2744239837008,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_scale"
+        },
+        "identity": 2744239834032,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "block_ref",
+                    2744242398096
+                  ],
+                  [
+                    "hook_mlp_in",
+                    2744239835040
+                  ]
+                ],
+                "code_sha256": "e8d2a4c7ee964ca574f0529c5ef6ba98412cb71c24ee1a4789571ba7a84b6f43",
+                "default_identities": [],
+                "identity": 2744239453696,
+                "line": 151,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln2",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 48
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239834128
+          ],
+          [
+            "hook_out",
+            2744239837728
+          ],
+          [
+            "hook_normalized",
+            2744239834176
+          ],
+          [
+            "hook_scale",
+            2744239833264
+          ],
+          [
+            "_original_component",
+            2744239838496
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239839408,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0.ln2._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239838496,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.ln2.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_in"
+        },
+        "identity": 2744239834128,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_normalized"
+        },
+        "identity": 2744239834176,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_out"
+        },
+        "identity": 2744239837728,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_scale"
+        },
+        "identity": 2744239833264,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      }
+    },
+    "registry": [
+      [
+        "blocks.0.hook_in",
+        2744239836288
+      ],
+      [
+        "blocks.0.hook_out",
+        2744239838688
+      ],
+      [
+        "blocks.0.hook_mlp_in",
+        2744239835040
+      ],
+      [
+        "blocks.0.ln1.hook_in",
+        2744239833744
+      ],
+      [
+        "blocks.0.ln1.hook_out",
+        2744239837008
+      ],
+      [
+        "blocks.0.ln1.hook_normalized",
+        2744239834272
+      ],
+      [
+        "blocks.0.ln1.hook_scale",
+        2744239834032
+      ],
+      [
+        "blocks.0.ln2.hook_in",
+        2744239834128
+      ],
+      [
+        "blocks.0.ln2.hook_out",
+        2744239837728
+      ],
+      [
+        "blocks.0.ln2.hook_normalized",
+        2744239834176
+      ],
+      [
+        "blocks.0.ln2.hook_scale",
+        2744239833264
+      ],
+      [
+        "blocks.0.attn.hook_in",
+        2744239838544
+      ],
+      [
+        "blocks.0.attn.hook_out",
+        2744239838832
+      ],
+      [
+        "blocks.0.attn.hook_attn_scores",
+        2744239838784
+      ],
+      [
+        "blocks.0.attn.hook_pattern",
+        2744239833504
+      ],
+      [
+        "blocks.0.attn.hook_hidden_states",
+        2744239838448
+      ],
+      [
+        "blocks.0.attn.hook_result",
+        2744239838112
+      ],
+      [
+        "blocks.0.attn.hook_attn_in",
+        2744239838208
+      ],
+      [
+        "blocks.0.attn.hook_q_input",
+        2744239837872
+      ],
+      [
+        "blocks.0.attn.hook_k_input",
+        2744239837536
+      ],
+      [
+        "blocks.0.attn.hook_v_input",
+        2744239834608
+      ]
+    ]
+  },
+  "case": "baseline_callback_order_changed",
+  "during": {
+    "global_full_backward_mode": true,
+    "global_options": {
+      "_global_forward_hooks_always_called": [],
+      "_global_forward_hooks_with_kwargs": []
+    },
+    "globals": {
+      "_global_backward_hooks": [],
+      "_global_backward_pre_hooks": [],
+      "_global_buffer_registration_hooks": [],
+      "_global_forward_hooks": [],
+      "_global_forward_pre_hooks": [],
+      "_global_module_registration_hooks": [],
+      "_global_parameter_registration_hooks": []
+    },
+    "modules": {
+      "": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "blocks",
+            2744239836192
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2742995964976,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "__main__.fixture_types.<locals>.TinyBridge"
+      },
+      "blocks": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "0",
+            2744239833216
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239836192,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.container.ModuleList"
+      },
+      "blocks.0": {
+        "block_setup": {
+          "handles": [
+            47,
+            48
+          ],
+          "wired": true
+        },
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239836288
+          ],
+          [
+            "hook_out",
+            2744239838688
+          ],
+          [
+            "hook_mlp_in",
+            2744239835040
+          ],
+          [
+            "ln1",
+            2744238199616
+          ],
+          [
+            "ln2",
+            2744239839408
+          ],
+          [
+            "attn",
+            2744239836912
+          ],
+          [
+            "_original_component",
+            2744239834320
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239833216,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.block.BlockBridge"
+      },
+      "blocks.0._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "ln1",
+            2744238199616
+          ],
+          [
+            "ln2",
+            2744239839408
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239834320,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "__main__.fixture_types.<locals>.Arithmetic"
+      },
+      "blocks.0._original_component.ln1": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "attn_ref",
+                    2744239901968
+                  ]
+                ],
+                "code_sha256": "6902f85d7c41e6e0faa0a0068713e12a614dc987b54da6f2ed30af561e4cb74f",
+                "default_identities": [],
+                "identity": 2744239455616,
+                "line": 138,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln1",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 47
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239833744
+          ],
+          [
+            "hook_out",
+            2744239837008
+          ],
+          [
+            "hook_normalized",
+            2744239834272
+          ],
+          [
+            "hook_scale",
+            2744239834032
+          ],
+          [
+            "_original_component",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744238199616,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0._original_component.ln1._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0._original_component.ln1.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_in"
+        },
+        "identity": 2744239833744,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_normalized"
+        },
+        "identity": 2744239834272,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_out"
+        },
+        "identity": 2744239837008,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln1.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_scale"
+        },
+        "identity": 2744239834032,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "block_ref",
+                    2744242398096
+                  ],
+                  [
+                    "hook_mlp_in",
+                    2744239835040
+                  ]
+                ],
+                "code_sha256": "e8d2a4c7ee964ca574f0529c5ef6ba98412cb71c24ee1a4789571ba7a84b6f43",
+                "default_identities": [],
+                "identity": 2744239453696,
+                "line": 151,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln2",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 48
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239834128
+          ],
+          [
+            "hook_out",
+            2744239837728
+          ],
+          [
+            "hook_normalized",
+            2744239834176
+          ],
+          [
+            "hook_scale",
+            2744239833264
+          ],
+          [
+            "_original_component",
+            2744239838496
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239839408,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0._original_component.ln2._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239838496,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0._original_component.ln2.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_in"
+        },
+        "identity": 2744239834128,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_normalized"
+        },
+        "identity": 2744239834176,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_out"
+        },
+        "identity": 2744239837728,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0._original_component.ln2.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_scale"
+        },
+        "identity": 2744239833264,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239838544
+          ],
+          [
+            "hook_out",
+            2744239838832
+          ],
+          [
+            "hook_attn_scores",
+            2744239838784
+          ],
+          [
+            "hook_pattern",
+            2744239833504
+          ],
+          [
+            "hook_hidden_states",
+            2744239838448
+          ],
+          [
+            "hook_result",
+            2744239838112
+          ],
+          [
+            "hook_attn_in",
+            2744239838208
+          ],
+          [
+            "hook_q_input",
+            2744239837872
+          ],
+          [
+            "hook_k_input",
+            2744239837536
+          ],
+          [
+            "hook_v_input",
+            2744239834608
+          ],
+          [
+            "_ln1_module",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239836912,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.attention.AttentionBridge"
+      },
+      "blocks.0.attn._ln1_module": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.attn.hook_attn_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_attn_in"
+        },
+        "identity": 2744239838208,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_attn_scores": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_attn_scores"
+        },
+        "identity": 2744239838784,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_hidden_states": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_hidden_states"
+        },
+        "identity": 2744239838448,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_in"
+        },
+        "identity": 2744239838544,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_k_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_k_input"
+        },
+        "identity": 2744239837536,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": 2744239834080,
+          "name": "blocks.0.attn.hook_out"
+        },
+        "identity": 2744239838832,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_pattern": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_pattern"
+        },
+        "identity": 2744239833504,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_q_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_q_input"
+        },
+        "identity": 2744239837872,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_result": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_result"
+        },
+        "identity": 2744239838112,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.attn.hook_v_input": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.attn.hook_v_input"
+        },
+        "identity": 2744239834608,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_in"
+        },
+        "identity": 2744239836288,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_mlp_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_mlp_in"
+        },
+        "identity": 2744239835040,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "alias_names",
+                    140715951625248
+                  ],
+                  [
+                    "dir",
+                    2742904975264
+                  ],
+                  [
+                    "hook",
+                    2742370564384
+                  ],
+                  [
+                    "self",
+                    2744239838688
+                  ]
+                ],
+                "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+                "default_identities": [],
+                "identity": 2744239452576,
+                "line": 198,
+                "qualname": "HookPoint.add_hook.<locals>.full_hook",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+                "type": "builtins.function"
+              },
+              "key": 46
+            },
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "alias_names",
+                    140715951625248
+                  ],
+                  [
+                    "dir",
+                    2742904975264
+                  ],
+                  [
+                    "hook",
+                    2744239449536
+                  ],
+                  [
+                    "self",
+                    2744239838688
+                  ]
+                ],
+                "code_sha256": "b33b7c63702087a94d06b887d314357d3faa8be982cc19fe90f1fa3c9603a511",
+                "default_identities": [],
+                "identity": 2744239451136,
+                "line": 198,
+                "qualname": "HookPoint.add_hook.<locals>.full_hook",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py",
+                "type": "builtins.function"
+              },
+              "key": 45
+            }
+          ],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.hook_out"
+        },
+        "identity": 2744239838688,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": [
+            {
+              "key": 45,
+              "level": null,
+              "permanent": true,
+              "user_callback": {
+                "closure_bindings": [],
+                "code_sha256": "7da36b5ca598af647c42330025d45278dc7b8dd26905a663f0980976f4382262",
+                "default_identities": [],
+                "identity": 2744239449536,
+                "line": 96,
+                "qualname": "experiment.<locals>.baseline",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\oracle_hook_lifecycle_diagnostic_v1\\lifecycle.py",
+                "type": "builtins.function"
+              }
+            },
+            {
+              "key": 46,
+              "level": null,
+              "permanent": true,
+              "user_callback": {
+                "closure_bindings": [
+                  [
+                    "observed",
+                    2744239710784
+                  ]
+                ],
+                "code_sha256": "72dd90667d62979b4473d27ebb904936cb19784fa0056332b0233d96e5bc6b80",
+                "default_identities": [],
+                "identity": 2742370564384,
+                "line": 93,
+                "qualname": "experiment.<locals>.capture",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\oracle_hook_lifecycle_diagnostic_v1\\lifecycle.py",
+                "type": "builtins.function"
+              }
+            }
+          ]
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "attn_ref",
+                    2744239901968
+                  ]
+                ],
+                "code_sha256": "6902f85d7c41e6e0faa0a0068713e12a614dc987b54da6f2ed30af561e4cb74f",
+                "default_identities": [],
+                "identity": 2744239455616,
+                "line": 138,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln1",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 47
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239833744
+          ],
+          [
+            "hook_out",
+            2744239837008
+          ],
+          [
+            "hook_normalized",
+            2744239834272
+          ],
+          [
+            "hook_scale",
+            2744239834032
+          ],
+          [
+            "_original_component",
+            2744239839936
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744238199616,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0.ln1._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239839936,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.ln1.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_in"
+        },
+        "identity": 2744239833744,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_normalized"
+        },
+        "identity": 2744239834272,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_out"
+        },
+        "identity": 2744239837008,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln1.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln1.hook_scale"
+        },
+        "identity": 2744239834032,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": [
+            {
+              "callback": {
+                "closure_bindings": [
+                  [
+                    "block_ref",
+                    2744242398096
+                  ],
+                  [
+                    "hook_mlp_in",
+                    2744239835040
+                  ]
+                ],
+                "code_sha256": "e8d2a4c7ee964ca574f0529c5ef6ba98412cb71c24ee1a4789571ba7a84b6f43",
+                "default_identities": [],
+                "identity": 2744239453696,
+                "line": 151,
+                "qualname": "BlockBridge._maybe_wire_pre_ln_capture.<locals>._capture_pre_ln2",
+                "source": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py",
+                "type": "builtins.function"
+              },
+              "key": 48
+            }
+          ]
+        },
+        "children": [
+          [
+            "hook_in",
+            2744239834128
+          ],
+          [
+            "hook_out",
+            2744239837728
+          ],
+          [
+            "hook_normalized",
+            2744239834176
+          ],
+          [
+            "hook_scale",
+            2744239833264
+          ],
+          [
+            "_original_component",
+            2744239838496
+          ]
+        ],
+        "full_backward_mode": null,
+        "identity": 2744239839408,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.model_bridge.generalized_components.normalization.NormalizationBridge"
+      },
+      "blocks.0.ln2._original_component": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "identity": 2744239838496,
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "torch.nn.modules.normalization.LayerNorm"
+      },
+      "blocks.0.ln2.hook_in": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_in"
+        },
+        "identity": 2744239834128,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_normalized": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_normalized"
+        },
+        "identity": 2744239834176,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_out": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_out"
+        },
+        "identity": 2744239837728,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      },
+      "blocks.0.ln2.hook_scale": {
+        "callbacks": {
+          "_backward_hooks": [],
+          "_backward_pre_hooks": [],
+          "_forward_hooks": [],
+          "_forward_pre_hooks": []
+        },
+        "children": [],
+        "full_backward_mode": null,
+        "hook_semantics": {
+          "backward_scale": 1.0,
+          "conversion_identity": null,
+          "name": "blocks.0.ln2.hook_scale"
+        },
+        "identity": 2744239833264,
+        "lens": {
+          "bwd_hooks": [],
+          "fwd_hooks": []
+        },
+        "options": {
+          "_forward_hooks_always_called": [],
+          "_forward_hooks_with_kwargs": [],
+          "_forward_pre_hooks_with_kwargs": []
+        },
+        "type": "transformer_lens.hook_points.HookPoint"
+      }
+    },
+    "registry": [
+      [
+        "blocks.0.hook_in",
+        2744239836288
+      ],
+      [
+        "blocks.0.hook_out",
+        2744239838688
+      ],
+      [
+        "blocks.0.hook_mlp_in",
+        2744239835040
+      ],
+      [
+        "blocks.0.ln1.hook_in",
+        2744239833744
+      ],
+      [
+        "blocks.0.ln1.hook_out",
+        2744239837008
+      ],
+      [
+        "blocks.0.ln1.hook_normalized",
+        2744239834272
+      ],
+      [
+        "blocks.0.ln1.hook_scale",
+        2744239834032
+      ],
+      [
+        "blocks.0.ln2.hook_in",
+        2744239834128
+      ],
+      [
+        "blocks.0.ln2.hook_out",
+        2744239837728
+      ],
+      [
+        "blocks.0.ln2.hook_normalized",
+        2744239834176
+      ],
+      [
+        "blocks.0.ln2.hook_scale",
+        2744239833264
+      ],
+      [
+        "blocks.0.attn.hook_in",
+        2744239838544
+      ],
+      [
+        "blocks.0.attn.hook_out",
+        2744239838832
+      ],
+      [
+        "blocks.0.attn.hook_attn_scores",
+        2744239838784
+      ],
+      [
+        "blocks.0.attn.hook_pattern",
+        2744239833504
+      ],
+      [
+        "blocks.0.attn.hook_hidden_states",
+        2744239838448
+      ],
+      [
+        "blocks.0.attn.hook_result",
+        2744239838112
+      ],
+      [
+        "blocks.0.attn.hook_attn_in",
+        2744239838208
+      ],
+      [
+        "blocks.0.attn.hook_q_input",
+        2744239837872
+      ],
+      [
+        "blocks.0.attn.hook_k_input",
+        2744239837536
+      ],
+      [
+        "blocks.0.attn.hook_v_input",
+        2744239834608
+      ]
+    ]
+  },
+  "expected_guard_clean": false,
+  "observed_guard_clean": false,
+  "status": "PASS"
+}
