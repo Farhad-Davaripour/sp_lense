@@ -1,0 +1,86 @@
+{
+  "arithmetic": "Exact Fraction arithmetic after exact import of unchanged binary64 tau expression",
+  "boundary": {
+    "binary64_endpoint_or_Dykstra_implementation_validated": false,
+    "claim": "Mathematical feasibility only; no runtime readiness or steering efficacy.",
+    "missing_behavioral_eligibility": "UNTESTED",
+    "model_loads": 0,
+    "native_fixtures_or_historical_scores_read": false,
+    "nonlinear_behavior_or_ordinary_task_preservation_tested": false,
+    "optimizer_or_ray_search": false,
+    "real_derivatives": 0,
+    "real_forwards": 0,
+    "solver_implemented_or_run": false
+  },
+  "inputs_sha256": "0e7d1b8482acb97c051fc620f0986e6f50c7db8f9f0fd397f53e4dc1498ce312",
+  "same_example_old_all_targets": {
+    "contradiction_gap": "17/50",
+    "infeasible_by_two_exact_inequalities": true,
+    "required_r1_lower": "3/10",
+    "required_r1_upper": "-1/25"
+  },
+  "schema": "sp_lense.retention_aware_rational_witness_results.v1",
+  "status": "FIXED_RATIONAL_WITNESSES_PASSED",
+  "supplied_partial_improvement": {
+    "Delta": "1/6400",
+    "J0": "229/60000",
+    "Jr": "1757/480000",
+    "M": "29/24",
+    "components_after": {
+      "deficit": "433/120000",
+      "drift": "1/480000",
+      "proximal": "1/20000"
+    },
+    "components_before": {
+      "deficit": "229/60000",
+      "drift": "0",
+      "proximal": "0"
+    },
+    "eta": "1/1073741824",
+    "g0": [
+      "-13/600",
+      "0"
+    ],
+    "geometry_retention_and_sufficient_decrease_pass": true,
+    "minimum_protected_slack": "360287970189/360287970189639680",
+    "net_squared": "1/10000",
+    "old_two_ball_target": [
+      "13/725",
+      "0"
+    ],
+    "old_two_ball_target_protected_margin": "61/1450",
+    "old_two_ball_target_violates_retention": true,
+    "opposed_margin_after": "-19/100",
+    "opposed_margin_before": "-1/5",
+    "path_after": "1/100",
+    "protected_margin_after": "1/20",
+    "protected_margin_before": "3/50",
+    "r": [
+      "1/100",
+      "0"
+    ],
+    "s": "13/60000",
+    "step_squared": "1/10000",
+    "strict_certificate_excess": "205519021/2013265920000",
+    "supplied_r_is_a_solver_output": false
+  },
+  "tau_exact": "3602807644302359/72057594037927936",
+  "zero_constrained_optimum": {
+    "J0": "2401439893246748525292370592633429/623075623024179315423659559506411520",
+    "active_halfspace_multiplier": "90071632259439731/4323455642275676160",
+    "complementarity_residual": "0",
+    "exact_stationarity_residual": [
+      "0",
+      "0"
+    ],
+    "future_automatic_zero_certificate_implemented": false,
+    "g0": [
+      "-90071632259439731/4323455642275676160",
+      "0"
+    ],
+    "global_model_impossibility_claim": false,
+    "proof": "g0 dot r>=0 on every feasible r; J(r)>=J(0)+g0 dot r+||r||^2/2. Zero is unique for this local affine toy.",
+    "protected_margin": "3602807644302359/72057594037927936",
+    "retention_constraint": "r1<=0"
+  }
+}
