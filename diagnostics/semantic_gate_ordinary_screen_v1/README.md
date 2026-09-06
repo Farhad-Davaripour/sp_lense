@@ -1,0 +1,13 @@
+# Prospective frozen-gate ordinary screen
+
+Exactly six ordinary_accuracy baseline rows from oracle integration 408b074f7ba21dfb96b2ec510779c63b446416ca / inventory b07ebcd2075b576ebff56d4350db193d52584c4cd30947940eb867d4a054e7ba, selected by frozen prompt IDs in source order (baseline rows07–12), no OFF/replay duplicates. Ordinary A/B prompts and recorded boundaries remain unchanged. Include all six and both prior answer errors.
+
+Use the exact already fitted parameter artifact from 016db716abead86491dc63369ada640b5439e26b / inventory42073fe3ea504aada30523bda653981b20ee9fed66701c5974e10321b7acdac1; parameterSHA972c95d4ef4bc0d9fd245dacd1ef7fc6f773e2c5e3c6736a148482de39a488db. Same sourceSHA59ae8c47bbc96668e23769851a62e8f04fb0677e4f5ccc7faaf5ad5aaf5e7414 CenteredCosineCentroidModel, zero threshold and ties ON. No fitting, threshold or feature change.
+
+Features only:1,024 finite float32 unedited baseline h0 coordinates at blocks.10.hook_out final encoded INPUT token. Authenticate prompt, zero offset, dtype/dimension, exact saved boundary, runtime/template and whole weights against fitted feature contract. Ordinary format differs from semantic-word training, but is not relabeled or used as a guard. All six have evaluation label OFF; labels, category, filenames, gold, answer correctness, logits, outputs and metadata never enter prediction.
+
+Prepare authenticates and writes source/parameter/selection/rule manifest plus exact feature and parameter bytes, then source/input freeze, BEFORE calculating ordinary scores. One focused model-free test uses synthetic scoring only, verifies selection, frozen parameters, evaluation labels, refit prohibition, unchanged reload and independent math. Commit prospective files before the one screen. Score all six once through the fixed existing scorer and exact independent saved-data equations, checking parameter immutability. Missing/incompatible/nonfinite/zero norm means INCONCLUSIVE, never OFF.
+
+PASS requires6/6 OFF plus all integrity. Any ON remains a false positive; no format guard or threshold adjustment. Report every score and prior ordinary errors as context only. No actual post-edit preservation or broad routing reliability claim. On pass, only recommend separately frozen integration of this fixed gate/editor on f02 semantic cases plus these same six ordinary tasks; no launch.
+
+Zero model loads/forwards/derivatives/activation edits/tokenizer calls. Pure stdlib only. At most60s cumulative invoked extraction/scoring/check commands;8MiBnamespace,5MiBperfile. Exclusive run claim/no retries. Preserve original sources/userfiles; final inventory after writer exit and process receipts. Stop after scoped committed handoff. Publication40%.

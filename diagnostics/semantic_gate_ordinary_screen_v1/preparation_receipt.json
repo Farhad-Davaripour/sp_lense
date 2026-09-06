@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "ordinary_scores_calculated": 0,
+  "model_loads": 0,
+  "model_forwards": 0,
+  "model_derivatives": 0,
+  "activation_edits": 0,
+  "tokenizer_calls": 0,
+  "fit_calls": 0,
+  "initial_preparation": {
+    "process_seconds": 0.7884094,
+    "status": "fixture schema KeyError before any manifest/feature/parameter write or ordinary score",
+    "output": "Traceback (most recent call last):\r\n  File \"C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\semantic_gate_ordinary_screen_v1\\audit.py\", line 148, in <module>\r\n    prepare() if args.command==\"prepare\" else run()\r\n    ^^^^^^^^^\r\n  File \"C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\semantic_gate_ordinary_screen_v1\\audit.py\", line 97, in prepare\r\n    started=time.monotonic();manifest,features,parameters=source_selection()\r\n                                                          ^^^^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\semantic_gate_ordinary_screen_v1\\audit.py\", line 80, in source_selection\r\n    values=select(row,p,b);digest=sha(feature_bytes(values));old=ordinary[p[\"prompt_id\"]]\r\n           ^^^^^^^^^^^^^^^\r\n  File \"C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\semantic_gate_ordinary_screen_v1\\audit.py\", line 48, in select\r\n    require(b[\"content_token_ids\"]=={\"A\":32,\"B\":33} and p[\"token_map\"]=={\"A\":32,\"B\":33} and len(b[\"full_token_ids\"])==b[\"prompt_length\"],\"unchanged ordinary A/B boundary\")\r\n                                                                                                ~^^^^^^^^^^^^^^^^^^\r\nKeyError: 'full_token_ids'\r\nPREP_SECONDS=0.7884094\r\n",
+    "correction": "Ordinary A/B boundary stores full_token_ids inside authenticated suffix_alignment, unlike semantic-word boundary's additional top-level copy. Use the nested exact recorded prefix and require its final index/prefix hash match the outer runtime evidence; no new tokens or weaker checks."
+  },
+  "successful_preparation_and_test": {
+    "process_seconds": 2.2235699,
+    "preparation_seconds": 0.8280000002123415,
+    "test_body_seconds": 1.011,
+    "output": "{\"status\": \"PASS\", \"selected\": 6, \"scores_calculated\": 0, \"freeze_sha256\": \"e1acd0f0cb256dc7e0947db320b73609edf7e73cd650ec8aa563bee3697f67a0\", \"elapsed_seconds\": 0.8280000002123415}\r\ntest_frozen_sources_selection_labels_and_no_refit (__main__.ScreenTest.test_frozen_sources_selection_labels_and_no_refit) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 1 test in 1.011s\r\n\r\nOK\r\nPREP_SECONDS=2.2235699\r\n"
+  },
+  "timed_commands_seconds": 3.0119793,
+  "other_invocations": "Short read-only source/metadata and scoped git checks; cumulative invokedcommands under60seconds.",
+  "freeze_sha256": "e1acd0f0cb256dc7e0947db320b73609edf7e73cd650ec8aa563bee3697f67a0",
+  "parameter_sha256": "972c95d4ef4bc0d9fd245dacd1ef7fc6f773e2c5e3c6736a148482de39a488db",
+  "safety": "No ordinary prediction before freeze; focused test used one synthetic numeric vector only. No model/tokenizer runtime imported."
+}
