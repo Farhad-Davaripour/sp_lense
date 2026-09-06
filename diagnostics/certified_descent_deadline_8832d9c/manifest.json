@@ -1,0 +1,118 @@
+{
+  "schema": "sp_lense.certified_descent_deadline_diagnostic_manifest.v1",
+  "status": "PARTIAL_DIAGNOSTIC_TIMING_COMPLETE_SNAPSHOT_TIMEOUT",
+  "original_evidence_commit": "8832d9c490aebd944d3172b1c5471ae77961f700",
+  "original_inventory_sha256": "f727503381c49fc844463457d49202ec9977cacb6ca8c784866c6d229d9e2393",
+  "prior_evidence_commit": "d3338172b1e4560b74f28f14652c219fe4ac279b",
+  "original_run_classification": "DEADLINE-INCONCLUSIVE",
+  "original_classification_changed": false,
+  "publication_readiness_percent": 40,
+  "fresh_usage_used_percent_before_batch_and_finalization": 71,
+  "reset_or_credit_used": false,
+  "artifacts": [
+    {
+      "path": "diagnostics/certified_descent_deadline_8832d9c/snapshot.json",
+      "bytes": 5074,
+      "sha256": "63d3cee736652d3a5c39b1344cb47ee317a371e151c6808fe81a5b2086ce351d"
+    },
+    {
+      "path": "diagnostics/certified_descent_deadline_8832d9c/snapshot.py",
+      "bytes": 11644,
+      "sha256": "d159bfa6edc5698c84317fe96a5e4074c9bb334f99c017b2bafc6075d9fdc152"
+    },
+    {
+      "path": "diagnostics/certified_descent_deadline_8832d9c/timing.json",
+      "bytes": 11103,
+      "sha256": "c575032d62b6385ed04554cd3d705b56aece411dad6e2a0d13bbbd6b500d853f"
+    },
+    {
+      "path": "diagnostics/certified_descent_deadline_8832d9c/timing.py",
+      "bytes": 11398,
+      "sha256": "578f696bd721ed108ab641c693583e6badec4af60d239bc6db7509480975fd8e"
+    }
+  ],
+  "manifest_self_and_readme": "Bound by the diagnostic Git commit; omitted from this pre-commit hash list to avoid circular hashing.",
+  "execution_budget": {
+    "shared_command_seconds": 60,
+    "allocation_seconds": {
+      "root": 20,
+      "timing": 18,
+      "snapshot": 22
+    },
+    "root_precommit_ledger": [
+      {
+        "chunk_id": "7279de",
+        "command_summary": "Read HEAD, source search, RUN_STATUS; rg unexpanded Windows globs failed",
+        "reported_wall_seconds": 1.5980036,
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "dab198",
+        "command_summary": "Read frozen timing source in full",
+        "reported_wall_seconds": 1.5088848000000001,
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "c69193",
+        "command_summary": "Read frozen snapshot source in full",
+        "reported_wall_seconds": 1.4724609,
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "5c030b",
+        "command_summary": "Read snapshot failure receipt and timing summary keys",
+        "reported_wall_seconds": 1.6605118,
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "fa0778",
+        "command_summary": "Read timing JSON; fresh usage tool showed 71% used",
+        "reported_wall_seconds": 1.2993521000000001,
+        "exit_code": 0
+      },
+      {
+        "chunk_id": "346845",
+        "command_summary": "AST-parse two diagnostic sources, parse receipts, hash and size four diagnostic files; no imports/execution",
+        "reported_wall_seconds": 1.7439963,
+        "exit_code": 0
+      }
+    ],
+    "root_measured_precommit_seconds": 9.2832095,
+    "root_reserved_final_metadata_git_seconds": 10.7167905,
+    "timing_measured_seconds": 14.1792734,
+    "snapshot_reported_command_wait_seconds_in_receipt": 17.8758395,
+    "snapshot_final_metadata_read": {
+      "chunk_id": "6a4e45",
+      "reported_wall_seconds": 1.5250239,
+      "exit_code": 0,
+      "command_summary": "Artifact-only final source/receipt hash and size read; no numerical invocation; not added to snapshot.json to avoid changing its final hash."
+    },
+    "snapshot_total_reported_wait_seconds": 19.4008634,
+    "known_reported_wait_subtotal_before_final_git_seconds": 42.863346299999996,
+    "exact_snapshot_full_launcher_wall_seconds": null,
+    "exact_shared_execution_total_seconds": null,
+    "shared60_compliance_certified": false,
+    "reason": "Snapshot child hard timeout was 11 seconds, but the launcher yielded and then raised before printing its full elapsed duration. Reported waits omit an unmeasured between-yield/cleanup interval. Neither the 22-second suballocation nor the shared60 actual aggregate can be certified. Allocations are not measurements.",
+    "final_git_command_accounting": "Final metadata checks/raw staging/commit are reserved within the remaining root allocation; measured outcome and aggregate known-wait subtotal will be reported in the supervisor handoff, without rewriting these committed bytes.",
+    "failed_editorial_patch": "One apply_patch context mismatch made no changes; no queued command ran. Corrected after exact timing.json read."
+  },
+  "checks": {
+    "timing_numeric_invocations": 1,
+    "timing_completed": true,
+    "snapshot_numeric_invocations": 1,
+    "snapshot_completed": false,
+    "snapshot_verified_rows": 0,
+    "snapshot_retry": false,
+    "snapshot_requested_lines": "1-12 baseline and 121-132 chronological step_5 only",
+    "model_loads": 0,
+    "model_forwards": 0,
+    "model_derivatives": 0,
+    "new_experiment": false,
+    "gate_training": false,
+    "parameter_fitting": false,
+    "whole_run_or_endpoint_or_replay_audit": false,
+    "candidate_or_causal_claim": false,
+    "vector_export": false
+  },
+  "report": "README.md contains the single recommended next step; it is not an execution authorization."
+}

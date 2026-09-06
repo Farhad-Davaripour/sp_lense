@@ -1,0 +1,105 @@
+{
+  "status": "SNAPSHOT_NOT_COMPLETED_HARD_TIMEOUT",
+  "original_run_status": "INCONCLUSIVE",
+  "original_classification_changed": false,
+  "evidence_commit_requested": "8832d9c490aebd944d3172b1c5471ae77961f700",
+  "namespace": "evidence/certified_descent_comply_v1_qwen35_08b",
+  "inventory_sha256_requested": "f727503381c49fc844463457d49202ec9977cacb6ca8c784866c6d229d9e2393",
+  "script": "diagnostics/certified_descent_deadline_8832d9c/snapshot.py",
+  "script_sha256_frozen_before_execution": "d159bfa6edc5698c84317fe96a5e4074c9bb334f99c017b2bafc6075d9fdc152",
+  "declared_scoring_source": "scripts/verify_local_controllability.py",
+  "declared_scoring_source_sha256": "2fe779f8279f2043ee5755e6fe0522f84306cc300d79766d3438d23f9ed62382",
+  "declared_selected_rows": {
+    "baseline": [1, 12],
+    "step5": [121, 132],
+    "selection": "chronological last complete scored step, not score optimization"
+  },
+  "numerical_invocations": 1,
+  "external_child_timeout_seconds": 11,
+  "numerical_completion": false,
+  "completed_verified_snapshot_rows": 0,
+  "partial_computation_progress": "Unknown: the script emitted no result or partial score receipts before timeout.",
+  "results": null,
+  "retrospective_flip_or_retention_findings": null,
+  "retry_performed": false,
+  "candidate_claim": false,
+  "whole_run_audit": false,
+  "endpoint_or_final_replay_audit": false,
+  "optimizer_or_vector_export": false,
+  "real_model_loads": 0,
+  "real_forwards": 0,
+  "real_derivatives": 0,
+  "failure": {
+    "type": "subprocess.TimeoutExpired",
+    "message": "snapshot.py timed out after 11 seconds",
+    "launcher_exit_code": 1,
+    "captured_result_stdout": "",
+    "consequence": "No numerical snapshot findings can be asserted. Authentication steps inside the incomplete script are not claimed complete."
+  },
+  "execution_ledger": [
+    {
+      "id": "c80b4a",
+      "kind": "source_and_namespace_read",
+      "command_summary": "rg --files in the scoped namespace; rg scoring symbols in three independent verifier sources",
+      "reported_wall_seconds": 1.4355201,
+      "exit_code": 0
+    },
+    {
+      "id": "4cbfd3",
+      "kind": "source_and_metadata_read",
+      "command_summary": "Read independent scoring source, inventory, first forward pair, first baseline-row schema, run status and runtime metadata",
+      "reported_wall_seconds": 2.0098388,
+      "exit_code": 0,
+      "subcommand_error": "rg scripts/verify_*.py rejected the unexpanded Windows glob (OS error 123).",
+      "output_warning": "Oververbose baseline preview included additional recorded arrays in tool output and was truncated. No array values are copied into diagnostic artifacts."
+    },
+    {
+      "id": "314296",
+      "kind": "source_and_metadata_read",
+      "command_summary": "Corrected rg -g pattern; read first forward pair, explicit baseline scalar fields, preregistration keys and scoring policy",
+      "reported_wall_seconds": 1.548482,
+      "exit_code": 0
+    },
+    {
+      "id": "a594ed",
+      "kind": "source_and_metadata_read",
+      "command_summary": "Read frozen independent COMPLY acceptance source, plan keys and acceptance value; hash independent stdlib scoring source",
+      "reported_wall_seconds": 1.5571018,
+      "exit_code": 0
+    },
+    {
+      "id": "f5da23",
+      "kind": "preexecution_source_freeze",
+      "command_summary": "Get-FileHash SHA256 of the complete snapshot.py source before any numerical invocation",
+      "reported_wall_seconds": 1.3200297,
+      "exit_code": 0
+    },
+    {
+      "id": "190384",
+      "kind": "sole_numerical_invocation",
+      "command_summary": ".venv/Scripts/python.exe launcher uses subprocess.run([.venv/Scripts/python.exe, diagnostics/certified_descent_deadline_8832d9c/snapshot.py], capture_output=True, text=True, timeout=11)",
+      "reported_wall_seconds_before_yield": 10.004862,
+      "session_id": 78874,
+      "state_at_yield": "running",
+      "output_at_yield": ""
+    },
+    {
+      "id": "d5fb62",
+      "kind": "completion_poll_not_a_second_invocation",
+      "command_summary": "write_stdin session 78874, no input",
+      "reported_wall_seconds": 0.0000051,
+      "exit_code": 1,
+      "outcome": "The launcher reported subprocess.TimeoutExpired after the child hard timeout."
+    }
+  ],
+  "timing_accounting": {
+    "allocation_seconds": 22,
+    "reported_read_and_preexecution_command_seconds": 7.8709724,
+    "sum_reported_command_wait_seconds": 17.8758395,
+    "child_hard_timeout_seconds": 11,
+    "exact_total_process_wall_seconds": null,
+    "caveat": "The initial execution yielded at 10.004862 seconds and the later poll returned after completion. Their reported wait times exclude the between-call interval. The child timeout was 11 seconds; the failing launcher did not emit its planned elapsed measurement. No exact aggregate process time is fabricated. No further numerical command was run."
+  },
+  "artifact_write_mechanism": "apply_patch only; evidence namespace remained read-only",
+  "artifact_scope": "Frozen diagnostic source plus this explicit incomplete-diagnostic receipt only"
+}

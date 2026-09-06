@@ -1,0 +1,215 @@
+{
+  "schema": "sp_lense.certified_descent_deadline_timing.v1",
+  "scope": "SEALED_RECEIPT_TIMING_ONLY; no score/vector/unfinished-gradient audit or causal attribution",
+  "source_commits": {
+    "current": "8832d9c490aebd944d3172b1c5471ae77961f700",
+    "prior": "d3338172b1e4560b74f28f14652c219fe4ac279b"
+  },
+  "script": {
+    "path": "diagnostics/certified_descent_deadline_8832d9c/timing.py",
+    "sha256_frozen_before_call": "578f696bd721ed108ab641c693583e6badec4af60d239bc6db7509480975fd8e",
+    "bytes": 11398,
+    "sole_numeric_call_internal_elapsed_seconds": 2.984999999869615,
+    "external_timeout_seconds": 7
+  },
+  "execution_budget": {
+    "allocated_tools_exec_command_seconds": 18,
+    "measured_tools_exec_command_seconds": 14.1792734,
+    "remaining_seconds": 3.8207266,
+    "invocations": [
+      {
+        "kind": "source_read_with_one_failed_rg_component",
+        "command": "rg -n \"class (ForwardLedger|Derivatives)|attempt_started|attempt_completed|derivative_started|derivative_completed|started_monotonic|completed_monotonic\" scripts/paired_common_drift_comply.py scripts/_paired_comply_runtime.py scripts/soft_drift_constrained_comply.py; git ls-tree -d -r d3338172b1e4560b74f28f14652c219fe4ac279b -- evidence | Select-String 'soft_drift'",
+        "elapsed_seconds": 2.4404764,
+        "shell_returncode": 0,
+        "component_failure": "rg reported missing scripts/_paired_comply_runtime.py; no retry"
+      },
+      {
+        "kind": "source_read",
+        "command": "rg -n \"class ForwardLedger|class Derivatives|forward_events.jsonl|derivative_events.jsonl\" scripts",
+        "elapsed_seconds": 2.0990095,
+        "shell_returncode": 0
+      },
+      {
+        "kind": "source_read",
+        "command": "Get-Content -LiteralPath 'scripts/diagnose_paired_common_drift_timeout.py' -Raw; Write-Output '### ledger source'; $x=Get-Content -LiteralPath 'scripts/projected_shared_comply.py'; $x[20..130]",
+        "elapsed_seconds": 1.7734908,
+        "shell_returncode": 0
+      },
+      {
+        "kind": "script_freeze",
+        "command": "$p='diagnostics/certified_descent_deadline_8832d9c/timing.py'; $h=(Get-FileHash -Algorithm SHA256 -LiteralPath $p).Hash.ToLowerInvariant(); $n=(Get-Item -LiteralPath $p).Length; [pscustomobject]@{script_sha256=$h; bytes=$n; frozen_before_numeric_call=$true} | ConvertTo-Json -Compress",
+        "elapsed_seconds": 2.0081362,
+        "shell_returncode": 0
+      },
+      {
+        "kind": "sole_numeric_call_with_external_timeout",
+        "command": "$py='.venv/Scripts/python.exe'; $script='diagnostics/certified_descent_deadline_8832d9c/timing.py'; $sha='578f696bd721ed108ab641c693583e6badec4af60d239bc6db7509480975fd8e'; & $py -I -c \"import subprocess,sys; c=[sys.executable,'-I',sys.argv[1],'--expected-script-sha256',sys.argv[2],'--budget-seconds','7']; p=subprocess.run(c,capture_output=True,timeout=7); sys.stdout.buffer.write(p.stdout); sys.stderr.buffer.write(p.stderr); raise SystemExit(p.returncode)\" $script $sha",
+        "elapsed_seconds": 5.8581605,
+        "shell_returncode": 0
+      }
+    ]
+  },
+  "input_authentication": {
+    "current": {
+      "namespace": "evidence/certified_descent_comply_v1_qwen35_08b",
+      "inventory_sha256": "f727503381c49fc844463457d49202ec9977cacb6ca8c784866c6d229d9e2393",
+      "inventory_fault_code": "CAPTURE_DEADLINE",
+      "inventory_valid_candidate": false,
+      "selected_blob_sha256": {
+        "RUN_STARTED.json": "42d90a2182b31043ff25589c267af9ae759e83825ab71ee1d9b92670ed5353d3",
+        "RUN_STATUS.json": "f2896aa47cfad8a34e164c04cea5a35ff1478506fd5810dadfbad89cb340817d",
+        "capture_receipt.json": "17e2130cc54e02d767dc2c4cac616d743cb6b5d628c429fe86271ca0c25f7bea",
+        "runtime.json": "0ff1627c1fae7939349ee7816da972d18a32152c744d7b6353a3e25d9a8d4a52",
+        "forward_events.jsonl": "eff6d24a6c810ec8c8bafbd8a282392518100288cc90f4aeb2a19703d039c777",
+        "derivative_events.jsonl": "dd3f76efc224fc78af6781eb1602829078c335fcfded08525bafe543b8574b44",
+        "updates.jsonl": "28acbe1eb328d1c0f7f3a3015566d8632bf93b8277067477b822383a41e5e978"
+      },
+      "working_bytes_equal_commit_blobs": true
+    },
+    "prior": {
+      "namespace": "evidence/soft_drift_constrained_comply_v1_qwen35_08b",
+      "inventory_sha256": "b40333cf308960755a27f33841d8b4655ea3c8faa9a81c0109111b90ea0e7c05",
+      "inventory_fault_code": null,
+      "inventory_valid_candidate": false,
+      "selected_blob_sha256": {
+        "RUN_STARTED.json": "fcb4c1b9256ce3d079fa03826a0904276f867a3ec71b5043db7ee3ea3b9cc8c8",
+        "RUN_STATUS.json": "3ec377f3fc6ca9f46bde9ae023090b32b4fae9ead5390081a456f341f200cb22",
+        "capture_receipt.json": "e313349be7d6950eacbd2d8cce04fb24b2cb3e6d9fd47812209916ef973d0916",
+        "runtime.json": "0ff1627c1fae7939349ee7816da972d18a32152c744d7b6353a3e25d9a8d4a52",
+        "forward_events.jsonl": "c1f31903302b917eeb361b2a08573439e58ff63a410da9a9c72c186fd5086552",
+        "derivative_events.jsonl": "5d12ddf306458c69cca2d4c0352b9b74003ff901c8bcd15a370f58cc50dbb04b",
+        "updates.jsonl": "458bdd136b6e3f3bc492edf78fb63751e789be1059e77f58b4aa37ba4d236f54"
+      }
+    },
+    "git_blob_and_inventory_checks_passed": true,
+    "runtime_metadata_exact_match": true
+  },
+  "observed_counts": {
+    "current": {
+      "forward_started": 144,
+      "forward_completed": 144,
+      "forward_failed": 0,
+      "forward_pending": 0,
+      "derivative_started": 72,
+      "derivative_completed": 71,
+      "derivative_failed": 0,
+      "derivative_pending_attempts": [72],
+      "completed_updates": 5,
+      "completed_update_stages": [1, 2, 3, 4, 5],
+      "wall_seconds": 1800.030999999959
+    },
+    "prior": {
+      "forward_started": 216,
+      "forward_completed": 216,
+      "derivative_started": 96,
+      "derivative_completed": 96,
+      "completed_updates": 8,
+      "wall_seconds": 1361.063000000082
+    }
+  },
+  "fair_completed_stage_1_through_5_comparison": {
+    "baseline_forward": {
+      "current_n": 12,
+      "prior_n": 12,
+      "current_mean_seconds": 6.387916666727203,
+      "prior_mean_seconds": 2.992083333316259,
+      "current_over_prior_ratio": 2.1349394235110393
+    },
+    "gradient_forward_stages_1_through_5": {
+      "current_n": 60,
+      "prior_n": 60,
+      "current_sum_seconds": 453.57300000158675,
+      "prior_sum_seconds": 213.3469999982044,
+      "current_mean_seconds": 7.559550000026446,
+      "prior_mean_seconds": 3.5557833333034065,
+      "current_over_prior_ratio": 2.125996248
+    },
+    "derivative_stages_1_through_5": {
+      "current_n": 60,
+      "prior_n": 60,
+      "current_sum_seconds": 346.24199999915436,
+      "prior_sum_seconds": 163.6390000000,
+      "current_mean_seconds": 5.770699999985906,
+      "prior_mean_seconds": 2.727316666666667,
+      "current_over_prior_ratio": 2.1158805
+    },
+    "step_forward_stages_1_through_5": {
+      "current_n": 60,
+      "prior_n": 60,
+      "current_sum_seconds": 400.9049999983981,
+      "prior_sum_seconds": 201.1270000000,
+      "current_mean_seconds": 6.681749999973302,
+      "prior_mean_seconds": 3.352116666666667,
+      "current_over_prior_ratio": 1.993294
+    }
+  },
+  "partial_stage_6_observation_not_fairly_complete": {
+    "current_gradient_forwards_completed": 12,
+    "current_gradient_forward_mean_seconds": 8.479083333319673,
+    "current_derivatives_started": 12,
+    "current_derivatives_completed": 11,
+    "current_pending_derivative_attempt": 72,
+    "interpretation": "Stage 6 is partial and excluded from the primary completed-stage comparison."
+  },
+  "timing_breakdown": {
+    "current": {
+      "setup_to_first_forward_seconds": 51.0,
+      "completed_forward_derivative_union_seconds_through_recorded_prefix": 1439.1069999998435,
+      "wall_minus_completed_call_union_seconds": 360.9240000001155,
+      "post_setup_noncall_gap_seconds": 309.9240000001155,
+      "reported_update_certificate_records": 5,
+      "reported_update_certificate_sum_seconds": 9.529999999795109,
+      "post_setup_gap_minus_reported_update_seconds": 300.3940000003204,
+      "inter_forward_gap_mean_seconds": 4.960615384607361
+    },
+    "prior": {
+      "setup_to_first_forward_seconds": 20.907000000122935,
+      "completed_forward_derivative_union_seconds_full_run": 1055.6079999948852,
+      "wall_minus_completed_call_union_seconds": 305.4550000051968,
+      "post_setup_noncall_gap_seconds": 284.54800000507385,
+      "reported_update_certificate_records": 0,
+      "reported_update_certificate_sum_seconds": null,
+      "inter_forward_gap_mean_seconds": 2.545934883745517
+    }
+  },
+  "internal_git_invocation_summary": {
+    "count": 18,
+    "all_returncodes_zero": true,
+    "commands": [
+      "git rev-parse HEAD",
+      "git rev-parse d3338172b1e4560b74f28f14652c219fe4ac279b^{commit}",
+      "git show 8832d9c490aebd944d3172b1c5471ae77961f700:evidence/certified_descent_comply_v1_qwen35_08b/{FINAL_INVENTORY.json,RUN_STARTED.json,RUN_STATUS.json,capture_receipt.json,runtime.json,forward_events.jsonl,derivative_events.jsonl,updates.jsonl}",
+      "git show d3338172b1e4560b74f28f14652c219fe4ac279b:evidence/soft_drift_constrained_comply_v1_qwen35_08b/{FINAL_INVENTORY.json,RUN_STARTED.json,RUN_STATUS.json,capture_receipt.json,runtime.json,forward_events.jsonl,derivative_events.jsonl,updates.jsonl}"
+    ],
+    "individual_elapsed_seconds_in_order": [
+      0.125,
+      0.14099999982863665,
+      0.17200000025331974,
+      0.1559999999590218,
+      0.1559999999590218,
+      0.17199999978765845,
+      0.14100000029429793,
+      0.17199999978765845,
+      0.1559999999590218,
+      0.17200000025331974,
+      0.17199999978765845,
+      0.17100000008940697,
+      0.15700000012293458,
+      0.1559999999590218,
+      0.1559999999590218,
+      0.14099999982863665,
+      0.1559999999590218,
+      0.1880000000819564
+    ]
+  },
+  "limitations": [
+    "Only completed attempt_started/attempt_completed spans are classified as completed calls.",
+    "The pending stage-6 derivative is not promoted to completion or included in the fair stage-1-through-5 comparison.",
+    "Residual and inter-forward gaps are observed time not covered by completed call spans; they are not proven I/O. The post_setup_noncall_gap_seconds label denotes an unclassified residual and includes the unfinished derivative-72 tail.",
+    "Reported update/certificate elapsed fields are sampled before final encoding; they do not measure all issuance/writer time and are not CPU, storage, or environment attribution.",
+    "The prior updater did not record comparable per-update elapsed fields, so update/certificate time is not compared across runs.",
+    "No raw scores, logits, row outcomes, vectors, or causal/model efficacy claims were inspected or recomputed."
+  ],
+  "timing_implication": "Across the fully completed and matched baseline/stages 1-5, current forward and derivative means were about 2.0-2.1 times the prior run, while runtime metadata matched exactly. This is an observed timing difference only, not an attribution to CPU, storage, software, or environment. The single next-step recommendation is in README.md."
+}
