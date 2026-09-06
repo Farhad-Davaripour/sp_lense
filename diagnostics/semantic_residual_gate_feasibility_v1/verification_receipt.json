@@ -1,0 +1,64 @@
+{
+  "status": "PASS_evidence_integrity_assay_FAIL",
+  "verified_at_utc": "2026-09-06 20:43:11 UTC",
+  "source_freeze_commit": "651d85dae5659c80cce6b58ae97428f27ce2917f",
+  "freeze_sha256": "5ec24d466a759bd8e7e5f43234426ce9b48b20f7270794097fbd8df9c81429fc",
+  "source_diff_before_editorial": "clean",
+  "initial_final_inventory_verification": {
+    "inventory_entries": 63,
+    "file_count": 64,
+    "mismatches": [],
+    "unlisted": [],
+    "aggregate_bytes": 5025182,
+    "largest_file_bytes": 918157,
+    "inventory_sha256": "fd876be5a8703ea6ac2c8a706150680384a89d6c2b6af8b704185b904d750fbe",
+    "report_sha256": "6e3bd4c9ea86cf1a11376a654e6485be654df829bea3f95caa30f81a7fc895bf",
+    "parameter_sha256": "c853a8284d2539f492ca6c48a7c8e219e3ca32bfbb3133ec7269fae932d730e2"
+  },
+  "independent_saved_data_audit": {
+    "status": "complete",
+    "parameters_exact": true,
+    "all12_scores_exact": true,
+    "saved_reload_exact": true,
+    "test_never_fitted": true,
+    "elapsed_seconds": 2.4220000002533197,
+    "process_seconds": 2.7340000001713634
+  },
+  "model_execution": {
+    "loads": 1,
+    "forwards": 4,
+    "derivatives": 0,
+    "activation_edits": 0,
+    "worker_seconds": 28.907000000122935,
+    "load_seconds": 11.125,
+    "supervisor_seconds": 30.95299999974668,
+    "worker_exit_code": 0,
+    "finalizer_exit_code": 0,
+    "eof_observed": true,
+    "quiescent": true
+  },
+  "outcome": {
+    "classification": "FAIL",
+    "train_correct": 6,
+    "test_correct": 4,
+    "test_confusion": {
+      "tp": 2,
+      "tn": 2,
+      "fp": 2,
+      "fn": 0
+    },
+    "failures": [
+      "f03 control KEEP_then_STOP falsely ON",
+      "f03 control STOP_then_KEEP falsely ON"
+    ]
+  },
+  "closeout": {
+    "report_only_editorial_after_writer_exit": true,
+    "changes": "Readable spacing/table labels, explicit two control errors, and measured supervisor/finalizer timings. No frozen source, feature, parameter, raw logit or numerical result changes.",
+    "original_report_sha256": "6e3bd4c9ea86cf1a11376a654e6485be654df829bea3f95caa30f81a7fc895bf",
+    "inventory_finalized_again_after_editorial_and_this_receipt": true,
+    "no_rerun": true,
+    "no_threshold_feature_learner_tuning": true,
+    "no_followup_job": true
+  }
+}
