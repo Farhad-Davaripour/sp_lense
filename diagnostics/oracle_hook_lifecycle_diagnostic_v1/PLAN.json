@@ -1,0 +1,45 @@
+{
+  "question": "Does installed ordinary capture lifecycle change v1 signature without a leaked diagnostic callback, and can a structured guard distinguish intentional lazy architecture setup from leaks?",
+  "scope": "MODEL-FREE real-library tiny arithmetic fixture only; no Qwen construction, model loading, real-language-model forward or derivatives. No library/core edits, network or dependencies.",
+  "prior": {
+    "commit": "fb96958a3b178fbd764c497878b767b30f6411bd",
+    "namespace": "diagnostics/refreshed_editor_oracle_preservation_v1",
+    "inventory_sha256": "d609ad4e3ad84aa933d48b6a58c65f6671834078662c7430f78ed4f5586e13de",
+    "verdict": "INCONCLUSIVE; immutable"
+  },
+  "hypothesis": "BlockBridge.forward calls _maybe_wire_pre_ln_capture, installing persistent pre-LN callbacks and attn._ln1_module alias at first use. Capture context removal does not remove these architecture hooks. Mechanism reproduction cannot establish exact unrecorded historical difference.",
+  "experiment_order": [
+    "cold_capture_lazy_setup",
+    "pre_materialized_capture_repeat_3",
+    "nested_edit_gradient_capture_contexts_no_derivative",
+    "capture_leak",
+    "edit_leak",
+    "permanent_leak",
+    "forward_pre_leak",
+    "backward_leak_no_backward_call",
+    "global_forward_leak",
+    "global_forward_pre_leak",
+    "global_backward_leak_no_backward_call",
+    "baseline_callback_removed",
+    "baseline_callback_replaced_same_key",
+    "baseline_callback_order_changed",
+    "unexpected_module_added",
+    "expected_alias_replaced"
+  ],
+  "candidate_invariant": "No unconditional lazy allowance. Only exact installed BlockBridge._maybe_wire_pre_ln_capture may run once before strict baseline, with source-verified closure-bound ln1/ln2 prehooks and exact existing-ln1-module alias checked structurally. Thereafter module paths/identities/order, hook registry bindings, every module/global callback key/object/order/options and HookPoint user/permanent/level handles must equal baseline. No active_hooks shortcut.",
+  "evidence": "Structured module/callback before/during/after snapshots and exact deltas; record source hashes and code locations. Expected negative fixtures pass only if guard rejects them. Preserve any unexpected experiment failure, no silent restart.",
+  "limits": {
+    "cumulative_invoked_command_seconds": 120,
+    "namespace_bytes": 33554432,
+    "per_file_bytes": 5242880,
+    "toy_width": 4,
+    "toy_positions": 2,
+    "maximum_toy_arithmetic_forwards": 8,
+    "qwen_loads": 0,
+    "real_language_model_forwards": 0,
+    "derivatives": 0,
+    "network": false,
+    "retries": 0
+  },
+  "successor": "Proposal only: identical locked12inputs,50F/8D,600+15+60s,80MiB and unchanged editor gates/math/cleanup/weights/OFF exact identities. A separately frozen v2 requires root review/release. No automatic run."
+}
