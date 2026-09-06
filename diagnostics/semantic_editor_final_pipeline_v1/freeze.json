@@ -1,0 +1,85 @@
+{
+  "schema": "semantic_final_pipeline_synthetic_lock.v1",
+  "status": "SYNTHETIC_ONLY_NO_REAL_OR_SEALED_AUTHORITY",
+  "source_parent_commit": "a2850dfc024575685edd9d1b29461d9c9c0d77cb",
+  "integration_parent_commit": "297a78a2eb9958cc4adeda6ef4f82e6a0a49c584",
+  "source_sha256": {
+    "core.py": "7afc965b5c799c841b32a2d08e18a20aa34c7020da5ba68faa1edecef8f3c1e8",
+    "editor.py": "d72487697ae6243ce490eb0f84a9aecfc3a137e106e20eb9733a611e8772cf7e",
+    "fitted_parameters.json": "972c95d4ef4bc0d9fd245dacd1ef7fc6f773e2c5e3c6736a148482de39a488db",
+    "gate_reference.py": "60de8899ee5c59cbbe25e692b320940f8f41f363216c8bcf3f43e87d3a9f071d",
+    "gate_reload.py": "4541382736d7472bc1d8e14d67821d00977ea68de4147e37020a8f0193ffdf8c",
+    "guard_candidate.py": "514409dd98785c8dacfb50c349e54dcdc3643769107a19c1c969d074ccfcd2e5",
+    "hook_record.py": "e11120ba54f649f76df9dcd5ea6232146cfb9b49d45ad3127723a20d7587f14c",
+    "inputs.py": "28fca102ac11edf280e92f547444de959144c5846fcfe90032ae06995f167fe3",
+    "judge.py": "b357d4b005b1765944d627d5751e9ffc8eb980dca3c09ea8651b896984cf5f8d",
+    "learned_gate.py": "32de8c62e8dc3c45ad9fcbcf2461e4e0373cc68ef2aea64d70923e0a41fc5646",
+    "mixed_boundary.py": "a083c5c4b6b6d0848f0ab8847ddf2ce07907a9b73f49305703c7a9df8ac076bf",
+    "mixed_scoring.py": "b9d17fa26db805fe785f648391df5ab7b17068ca6e521dd0d549d914b3622bd6",
+    "numeric_audit.py": "704aa8d68241236dcc3b97f97dc86763ee70adc18f4e498f5088b5a1a84b402f",
+    "preparation_smoke_receipt.json": "c9672c2b57e2c07f7009efd5d63403a73164ba16b9fee2ed3ef5939f14faafbd",
+    "README.md": "4a13c23cbe095dd97ac567ff4efd9cbb2179748db31ab39ed0b4164eabf137f9",
+    "run.py": "4a18dbf7f82732b83a9b600a422420d32b8e78ce02c5cfda1e1fc9d5bc8bd1ef",
+    "selective_input.py": "8f8d7f4fe1fa0ded756afe722e8298cdc27d4c45d040647f6706c12157ca2a32",
+    "source_bindings.json": "538f02983904434cdd9ee2f192b36e543a2cd41d88948ef833e5a511d02d5658",
+    "synthetic_backend.py": "f9bfa063185beda64320fb87fdf7b1b859ebcd7c0c1e93f0c6044474721de083",
+    "synthetic_fixture.json": "5b3412dab9015b94e9fd84b4f662c6ecc247802f5f6e15386851f9f30028861b",
+    "synthetic_plan.json": "9b94fcf1ac37ad0cb8693589c53719db74ad602c03906af30648d4f4d3f3a586",
+    "test_pipeline.py": "08f7881ddea052d0d0a99fa9a35aef66a9567d524147dfb9ed94395871d3c648",
+    "word_boundary.py": "ee637bc2640dd7a8869edf01f394209165c2ed04f80a94780393a32735586625",
+    "word_reference.py": "d1631112b26961deb209badf1afd07dddc9aba696bf02e6e85ad6bc77b2508fd",
+    "word_scoring.py": "2b84066607198c91d07aa71f6a38621da05eb2354f264d8051ba186ae05dc64b"
+  },
+  "full_fixture": {
+    "prompts": 24,
+    "requests": 48,
+    "routing_decisions": 72,
+    "self_requests": 12,
+    "off_requests": 36,
+    "independent_endpoints": 12,
+    "max_forwards": 180,
+    "max_derivatives": 48,
+    "expected_toy_success_forwards": 96,
+    "expected_toy_derivatives": 6,
+    "one_full_matrix_only": true
+  },
+  "fixed_failure_fixtures": [
+    "preflight_wrong_routes",
+    "late_wrong_routes",
+    "finite_eligibility",
+    "max_four_exhaustion",
+    "endpoint_then_cleanup",
+    "retention_strict_tolerance",
+    "zero_deadline",
+    "hook_check_ceiling",
+    "hook_byte_ceiling"
+  ],
+  "reviewer_corrections": {
+    "finite_applicability": "scientific FAIL with unperformed requests/UNRUN, no fabricated endpoints",
+    "retention": "<=1e-6 no-edit identity AND <=2e-5 general endpoint, hidden exact",
+    "conservative_bound": "180F48D safety guard;132F24D only derived when baselines eligible/cold unchanged",
+    "separate_failures": "scientific and technical/cleanup journals durable independently; judge derives outcomes from raw saved arrays",
+    "routing": "only fresh h0; expected metadata slots/audit only; unexpected route before edits",
+    "hook_evidence": {
+      "maximum_checks": 109,
+      "formula": "48*2+12+1",
+      "cap_bytes": 16777216,
+      "guard_recorder_byte_identical": true
+    }
+  },
+  "job_limits": {
+    "command_seconds": 600,
+    "namespace_bytes": 402653184,
+    "file_bytes": 5242880
+  },
+  "future_real_run_proposal": {
+    "worker_seconds": 1500,
+    "cleanup_seconds": 15,
+    "saved_audit_seconds": 180,
+    "namespace_bytes": 301989888,
+    "conservative_bytes": 259715072,
+    "authorized": false
+  },
+  "exposure": "three manifest-sealed families, historical non-access unverified",
+  "publication_percent": 40
+}
