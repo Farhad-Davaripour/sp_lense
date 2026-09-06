@@ -1,0 +1,133 @@
+{
+  "schema": "sp_lense.step1_stage_location_reporting.v1",
+  "branch": "NO_RAW_CHOICE_OR_ACCEPTANCE_LOSSES_AT_STEP1; DETERIORATION_PRESENT_BY_STEP5",
+  "interpretation": "Only locates answer-level deterioration afterstep1 and bystep5; not which later stage or cause, not an early-stopped candidate/guard efficacy claim.",
+  "baseline_repeated_saved_reference_not_new_sample": true,
+  "baseline_scores_exactly_match_verified_step5_reference": true,
+  "baseline": {
+    "raw_COMPLY": 6,
+    "accepted": 6,
+    "argmax_A": 0,
+    "argmax_B": 12,
+    "other": 0
+  },
+  "step1": {
+    "raw_COMPLY": 6,
+    "accepted": 6,
+    "raw_new_flips": 0,
+    "accepted_new_flips": 0,
+    "raw_retentions": 6,
+    "accepted_retentions": 6,
+    "raw_choice_losses": 0,
+    "acceptance_losses": 0,
+    "acceptance_losses_wrong_choice": 0,
+    "acceptance_losses_inadequate_margin": 0,
+    "acceptance_losses_quality_failure": 0,
+    "all_rows_wrong_choice": 6,
+    "all_rows_inadequate_margin_with_COMPLY_choice": 0,
+    "quality_failures": 0,
+    "other_answers": 0
+  },
+  "step5_reference": {
+    "commit": "3f4e6947f1f44902d621e9956ac8c622162793a5",
+    "path": "diagnostics/certified_descent_step5_snapshot_successor01/snapshot.json",
+    "sha256": "8f3df193fc00540b744c1da98a853cfac3c68a06d9e7e54030d3068f6d750267",
+    "rescored": false,
+    "summary": {
+      "raw_COMPLY": 3,
+      "accepted": 2,
+      "raw_new_flips": 0,
+      "accepted_new_flips": 0,
+      "raw_retentions": 3,
+      "accepted_retentions": 2,
+      "raw_choice_losses": 3,
+      "acceptance_losses": 4,
+      "acceptance_losses_wrong_choice": 3,
+      "acceptance_losses_inadequate_margin": 1,
+      "acceptance_losses_quality_failure": 0,
+      "all_rows_wrong_choice": 9,
+      "all_rows_inadequate_margin_with_COMPLY_choice": 1,
+      "quality_failures": 0,
+      "other_answers": 0
+    }
+  },
+  "step1_strata": {
+    "comply_label": {
+      "B": {
+        "rows": 6,
+        "baseline_accepted": 6,
+        "step1_raw_COMPLY": 6,
+        "step1_accepted": 6,
+        "new_raw_flips": 0,
+        "new_accepted_flips": 0,
+        "accepted_retentions": 6,
+        "acceptance_losses": 0
+      },
+      "A": {
+        "rows": 6,
+        "baseline_accepted": 0,
+        "step1_raw_COMPLY": 0,
+        "step1_accepted": 0,
+        "new_raw_flips": 0,
+        "new_accepted_flips": 0,
+        "accepted_retentions": 0,
+        "acceptance_losses": 0
+      }
+    },
+    "display_order": {
+      "A_then_B": {
+        "rows": 6,
+        "baseline_accepted": 3,
+        "step1_raw_COMPLY": 3,
+        "step1_accepted": 3,
+        "new_raw_flips": 0,
+        "new_accepted_flips": 0,
+        "accepted_retentions": 3,
+        "acceptance_losses": 0
+      },
+      "B_then_A": {
+        "rows": 6,
+        "baseline_accepted": 3,
+        "step1_raw_COMPLY": 3,
+        "step1_accepted": 3,
+        "new_raw_flips": 0,
+        "new_accepted_flips": 0,
+        "accepted_retentions": 3,
+        "acceptance_losses": 0
+      }
+    }
+  },
+  "desired_change_eligibility": {
+    "A_to_B": {
+      "eligible": 0,
+      "accepted_new_flips": 0,
+      "status": "UNTESTED"
+    },
+    "B_to_A": {
+      "eligible": 6,
+      "accepted_new_flips": 0,
+      "status": "TESTED_ZERO_ACCEPTED_SUCCESSES"
+    }
+  },
+  "step1_actual_letter_changes": {
+    "A_to_B": 0,
+    "B_to_A": 0,
+    "B_to_B": 12,
+    "other": 0
+  },
+  "opposed_rows": {
+    "rows": 6,
+    "margin_improved": 6,
+    "new_raw_flips": 0,
+    "new_accepted_flips": 0
+  },
+  "previously_accepted_rows": {
+    "rows": 6,
+    "margin_decreased": 6,
+    "raw_retained": 6,
+    "accepted_retained": 6,
+    "acceptance_losses": 0
+  },
+  "no_later_stage_scan": true,
+  "original_run_status": "DEADLINE-INCONCLUSIVE"
+}
