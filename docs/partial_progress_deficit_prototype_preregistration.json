@@ -1,0 +1,68 @@
+{
+  "status": "PREREGISTERED_BEFORE_NUMERICAL_EXECUTION",
+  "parent_design_commit": "55c6a3492336938934c21496a0d55fcdc6e98efb",
+  "source_sha256": {
+    "scripts/partial_progress_deficit_solver.py": "1de469e41cc04083d3b362fc95117f5579914a681baf3d24e6179c0dd500996e",
+    "scripts/verify_partial_progress_deficit.py": "6d6828a7b4446952c976e55e629f361317795bb896263c31949f277c8601cee2",
+    "scripts/run_partial_progress_deficit_native_smoke.py": "b6916ca366d3b36acbf1fdfde1c72c3e72d2ae23a261b4b4d2c417e183ec3c45",
+    "tests/test_partial_progress_deficit_prototype.py": "12361c9a3215028b8f666b732be1715e26503263967c1371906e3541b0d1003d",
+    "configs/partial_progress_deficit_synthetic_fixtures.json": "15c2519278cb85d3ee0ac9dd74221e4053502a2e9fe11933c112ca7bb3af3359",
+    "docs/PARTIAL_PROGRESS_DEFICIT_PROTOTYPE_PROTOCOL.md": "caad815b00963c1d7b0f6b629fe54e0ce81efa0d1366e83788744514d1a67243"
+  },
+  "method": "partial_progress_deficit_v1_standalone_prototype",
+  "pairs_one_based": [
+    [
+      3,
+      1
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      7,
+      5
+    ],
+    [
+      8,
+      6
+    ],
+    [
+      11,
+      9
+    ],
+    [
+      12,
+      10
+    ]
+  ],
+  "objective_coefficients": [
+    "1/2",
+    "1/24",
+    "1/48"
+  ],
+  "maximum_pg_updates": 200,
+  "combined_in_process_seconds": 10,
+  "epsilon": "2^-30*max(1,J(0))",
+  "norm_upper_grid": "2^-80",
+  "exact_decimal_balls": [
+    "1/20",
+    "1/5",
+    "2/5"
+  ],
+  "geometry_tolerance": "0",
+  "projection_residual_factor": "128*dimension*2^-52*max(1,||y||,||p||,hypot(||ns||,||nn||))",
+  "native_problem_sha256": "92b4ffc3ada2d8f90be5a33eb4f04c104e7d7d945b909a212f4d067aae312793",
+  "native_smoke_executions": 1,
+  "native_hard_seconds": 10,
+  "pytest_hard_seconds": 50,
+  "aggregate_measured_seconds_ceiling": 120,
+  "account_used_percent_before": 64,
+  "model_loads": 0,
+  "real_forwards": 0,
+  "real_derivatives": 0,
+  "coefficient_or_tolerance_fitting": false,
+  "final_point_repair": false,
+  "native_retry_allowed": false,
+  "earlier_files_modified": false
+}
