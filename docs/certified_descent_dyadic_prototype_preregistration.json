@@ -1,0 +1,34 @@
+{
+  "schema": "sp_lense.certified_descent_dyadic_prototype_preregistration.v1",
+  "method_identity": "certified_descent_dyadic_v1",
+  "parent_commit": "35f0a048be9e27f05056043407173fae0c4ab447",
+  "frozen_utc": "2026-09-06T03:37:46.6681423Z",
+  "source_sha256": {
+    "scripts/certified_descent_dyadic_solver.py": "2d9b0762c8597dd127dec5533676f678923fb75812526494e368037aa98ce7c1",
+    "tests/test_certified_descent_dyadic_prototype.py": "c33e168cb3592308d107e0110f7ac798b3e632e773b007cb7911218801cfbb34",
+    "scripts/partial_progress_deficit_solver.py": "1de469e41cc04083d3b362fc95117f5579914a681baf3d24e6179c0dd500996e",
+    "scripts/run_certified_descent_dyadic_native_smoke.py": "79a4bd121573eca5589ba07d909212f8e713f17392c01e78deb0fe28cb7d9c2c",
+    "scripts/verify_certified_descent_dyadic.py": "0fb26e6bdea2740e6a525c87db1c2f76b4d0bf496d413763c59d1f899e443f2c",
+    "docs/CERTIFIED_DESCENT_DYADIC_PROTOTYPE_PROTOCOL.md": "a110983bc3e6c4adf9376ddbea2d5705bac5bbe7fc3375a024b7ad7d1e89d6b9",
+    "scripts/verify_partial_progress_deficit.py": "6d6828a7b4446952c976e55e629f361317795bb896263c31949f277c8601cee2",
+    "docs/CERTIFIED_DESCENT_DYADIC_DESIGN.md": "946adaea5fb60179a734d28a7fffbda979c6979e128b5103693d4f712f826d02",
+    "configs/certified_descent_dyadic_synthetic_fixtures.json": "c0f10726e9c5e0bf42b51694eb63032170cdc7d945190e7c972238b4e04876f0"
+  },
+  "native_problem_sha256": "9c42863728f18fafc9cf4741c0c104b2c66eaa12ef7f991d52cdb81d515a4b76",
+  "native_executions": 1,
+  "native_hard_seconds": 10,
+  "pytest_executions": 1,
+  "pytest_hard_seconds": 30,
+  "aggregate_measured_limit_seconds": 120,
+  "nominal_proposals": 1,
+  "scale_indices": [
+    0,
+    52
+  ],
+  "scale_count": 53,
+  "sufficient_decrease": "geometry AND s>0 AND Delta>s/4+2^-30*max(1,J0)",
+  "near_optimality_gate": false,
+  "model_calls_authorized": false,
+  "old_native_fixture_read_or_retry_authorized": false,
+  "stop_after": "compact scoped commit and supervisor handoff; no integration or model run"
+}
