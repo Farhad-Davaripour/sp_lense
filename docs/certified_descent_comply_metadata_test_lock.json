@@ -1,0 +1,95 @@
+{
+  "schema": "sp_lense.certified_descent_comply_metadata_test_lock.v1",
+  "frozen_utc": "2026-09-06T04:29:12.228668+00:00",
+  "original_test_lock_sha256": "9778d4d872cac4a582793d5c9124dc07d005843af081bc538710fa52cfea7864",
+  "metadata_only": true,
+  "full_cases_repeated": false,
+  "original_full_cases_completed_once": {
+    "interior_candidate": 227.39792989986017,
+    "finite_negative": 231.68403550004587
+  },
+  "source_sha256": {
+    "configs/certified_descent_comply_recording_policy.json": "468cdd32cbe362280b63286fef88b922035218430e45b35b4ea2cc6cfcc358db",
+    "configs/certified_descent_comply_v1.json": "afcec9a5ada7afe2a253ef87034070cff6ab7f19865f39f7233372a830558207",
+    "docs/CERTIFIED_DESCENT_COMPLY_V1.md": "3c40f2686b57a2171ef93d12562153e41ef9aa4ed3431c4cb16f28e76d5cda93",
+    "docs/CERTIFIED_DESCENT_INTEGRATION_JOB_PROTOCOL.md": "7e8751b99de80864298cba0d18d893eaa2c1ef07b2b435b668ca6281b0f3585c",
+    "docs/certified_descent_comply_model_free_test_lock.json": "9778d4d872cac4a582793d5c9124dc07d005843af081bc538710fa52cfea7864",
+    "scripts/certified_descent_comply.py": "838953c0eb27dd42a109fe0ab0d8eea507beafc4ba528bf4da836376094e3ecb",
+    "scripts/certified_descent_comply_optimizer.py": "c9a9f775b5c432c652f3638ab53a41f2e2fc5beae2a7d8125394a7d48238f0d7",
+    "scripts/certified_descent_comply_plan.py": "daa510d9ea1615cfd6a9ab019026cc6a6cd93302b8dcb22a1afc0a28100e523b",
+    "scripts/certified_descent_comply_recording.py": "fe8127111f1a557b89136ad2aec24ec27116e5d0c8c13312b565335d2c2aa672",
+    "scripts/certified_descent_dyadic_solver.py": "2d9b0762c8597dd127dec5533676f678923fb75812526494e368037aa98ce7c1",
+    "scripts/partial_progress_deficit_solver.py": "1de469e41cc04083d3b362fc95117f5579914a681baf3d24e6179c0dd500996e",
+    "scripts/verify_certified_descent_comply.py": "e681eb9309a27efe713c8bc35bc72ca925aba4f55f826a26d538c965e942b104",
+    "scripts/verify_certified_descent_dyadic.py": "0fb26e6bdea2740e6a525c87db1c2f76b4d0bf496d413763c59d1f899e443f2c",
+    "scripts/verify_partial_progress_deficit.py": "6d6828a7b4446952c976e55e629f361317795bb896263c31949f277c8601cee2",
+    "tests/certified_descent_comply_fake_recording.py": "157e81faf6edd6a1dd64c80575bd1b54fe05ff66fb3f151d2f93f29f2f108caa",
+    "tests/test_certified_descent_comply_optimizer.py": "5c985277fab0ea5c26cbeeb5cb4cbea9689bc8509b02b4172c825a4102df0d48",
+    "tests/test_certified_descent_comply_plan.py": "0470e7b5f3f3e5e540f2a62d5af7b71a2424df692f0d9616c3aad70702cdef06",
+    "tests/test_certified_descent_comply_preparation.py": "2db0161d808871fc993d96814920ad8b9899e3a0cb6658a0f3e1067e0c12c82c",
+    "tests/test_certified_descent_comply_recording.py": "570e179034b4ebc13d26a2668aad526ae72fd60b67743ad1be1e0f51938356d4",
+    "tests/test_certified_descent_comply_runtime.py": "5d93ec8c9cc838e72cca4386976e75de3186291b863f17fab085be9c6262143a"
+  },
+  "fullcase_source_restoration_sha256": "26701c53ac31db61f87a8b7ff1a0957b1be8255109af725701d2c2a8dda7c6e2",
+  "method_coverage_evidence": {
+    "actual_cli_exact_lock_authorization": [
+      "tests/test_certified_descent_comply_runtime.py::test_actual_cli_correct_scope_wrong_lock_hash_is_rejected",
+      "tests/test_certified_descent_comply_runtime.py::test_actual_run_cli_rejects_missing_wrong_authority_without_launch"
+    ],
+    "fresh_usage_inclusive_100_fail_closed": [
+      "tests/test_certified_descent_comply_runtime.py::test_usage_guard_rejects_missing_nonfinite_stale_or_out_of_range",
+      "tests/test_certified_descent_comply_runtime.py::test_usage_guard_accepts_fresh_exactly_100"
+    ],
+    "current_w_own_norm_history_path_binding": [
+      "tests/test_certified_descent_comply_optimizer.py::test_bad_fresh_row_authentication_stops_before_solver",
+      "tests/test_certified_descent_comply_optimizer.py::test_own_norm_original_casts_and_compact_journal",
+      "tests/test_certified_descent_comply_optimizer.py::test_path_and_history_contracts"
+    ],
+    "fixed_proposal_first_passing_exact_certificate": [
+      "tests/test_certified_descent_comply_optimizer.py::test_actual_adapter_and_independent_update_schema",
+      "tests/test_certified_descent_comply_optimizer.py::test_independent_update_rejects_forged_journal",
+      "tests/test_certified_descent_comply_recording.py::test_full_native_full_vocabulary_actual_finalizer_and_reader[interior_candidate]"
+    ],
+    "combined_assembly_solver_encoding_deadline": [
+      "tests/test_certified_descent_comply_optimizer.py::test_outer_deadline_never_issues_endpoint",
+      "tests/test_certified_descent_comply_optimizer.py::test_total_encoder_failure_returns_honest_receipt"
+    ],
+    "exact_zero_ordinary_no_step_technical_failure_distinct": [
+      "tests/test_certified_descent_comply_optimizer.py::test_no_step_and_exact_zero_are_distinct",
+      "tests/test_certified_descent_comply_optimizer.py::test_solver_fault_is_not_ordinary_no_step",
+      "tests/test_certified_descent_comply_runtime.py::test_no_certified_step_replays_prior_endpoint_without_stationarity_claim"
+    ],
+    "technical_failure_supervisor_inconclusive": [
+      "tests/test_certified_descent_comply_runtime.py::test_technical_failure_saved_without_rescue_replay_or_candidate",
+      "tests/test_certified_descent_comply_runtime.py::test_supervisor_technical_worker_failure_is_inconclusive"
+    ],
+    "compact_raw_evidence_references": [
+      "tests/test_certified_descent_comply_recording.py::test_full_native_full_vocabulary_actual_finalizer_and_reader[interior_candidate]",
+      "tests/test_certified_descent_comply_recording.py::test_full_native_full_vocabulary_actual_finalizer_and_reader[finite_negative]",
+      "tests/test_certified_descent_comply_recording.py::test_invalid_or_oversized_compact_payload_faults_before_open"
+    ]
+  },
+  "amendment_scope": {
+    "scripts/certified_descent_comply_recording.py": "Preparation certificate metadata checks only; budgeted writer, finalizer, compact encoder and sealed reader unchanged.",
+    "scripts/certified_descent_comply_plan.py": "Add exact preparation result/test-lock/test source closure only.",
+    "scripts/verify_certified_descent_comply.py": "Report text only: any issued endpoint; do not claim a passing endpoint for zero/no-step.",
+    "tests/test_certified_descent_comply_recording.py": "Three-line helper isolation only in inherited generic-certificate unit fixture; fullcase function unchanged, original complete file hash recovered by removing those lines.",
+    "tests/test_certified_descent_comply_preparation.py": "New tiny metadata-schema/receipt/chronology and report-wording tests."
+  },
+  "next_execution": {
+    "name": "metadata_tests_1",
+    "hard_timeout_seconds": 20,
+    "modules": [
+      "tests/test_certified_descent_comply_preparation.py",
+      "tests/test_certified_descent_comply_recording.py",
+      "tests/test_certified_descent_comply_plan.py",
+      "tests/test_certified_descent_comply_runtime.py"
+    ],
+    "exclude": "full_native_full_vocabulary",
+    "model_import_sentinel": true,
+    "no_numerical_tuning": true,
+    "no_optimizer_test_repeat": true,
+    "no_fullcase_repeat": true
+  },
+  "run_authorized": false
+}
