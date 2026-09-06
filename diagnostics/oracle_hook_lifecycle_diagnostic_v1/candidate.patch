@@ -1,0 +1,18 @@
+--- proposed_v2/editor.py (v1 immutable)
++++ proposed_v2/editor.py (candidate only; not applied)
+@@
++from guard_candidate import HookGuard
+@@
+-    original_hooks=hook_signature(model)
++    hook_guard=HookGuard(model)
++    Budget(output).write("hook_setup.json",hook_guard.setup)
+@@
+-                "hook_registry_restored":hook_signature(model)==original_hooks,
++                "hook_registry_restored":hook_guard.inspect(model)["matches"],
++
++# At each ON-entry, ON-finally, OFF-entry/OFF-exit and matrix-finally:
++# append the structured guard inspection/deltas alongside existing cleanup
++# receipt; retain failure output before raising. Do not replace receipt
++# detail with the above boolean. All other cleanup checks remain unchanged.
++# HookGuard initialization performs zero forwards and must occur before the
++# first baseline, after the pre-load forward guard has been installed.
