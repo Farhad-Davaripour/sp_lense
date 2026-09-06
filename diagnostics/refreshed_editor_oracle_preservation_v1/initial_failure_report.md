@@ -1,0 +1,1 @@
+Refreshed editor: INCONCLUSIVE. Worker/capture failed or timed out; partial artifacts retained. No retry. See capture.json and worker_final.json when present. Next recommendation: inspect saved failure evidence.

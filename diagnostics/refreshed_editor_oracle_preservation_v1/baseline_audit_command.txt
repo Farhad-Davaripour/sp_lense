@@ -1,0 +1,51 @@
+import sys,time,json,math
+from pathlib import Path
+ns=Path('diagnostics/refreshed_editor_oracle_preservation_v1').resolve()
+sys.path.insert(0,str(ns))
+import core
+from inputs import gold
+from scripts.verify_local_controllability import read_logits,verify_journal
+from scripts.verify_margin_aware_local_control import verify_numeric
+start=time.monotonic()
+frozen=core.check_freeze()
+plan=frozen['plan']
+worker=core.read(ns/'worker_final.json')
+capture=core.read(ns/'capture.json')
+rows=[core.read(p) for p in sorted((ns/'rows').glob('*.json'))]
+assert len(rows)==worker['forward_attempts']==worker['forward_completed']==12
+assert worker['derivatives']==worker['derivatives_completed']==0 and len(worker['unrun_cells'])==38
+assert capture['eof_observed'] and capture['quiescent'] and capture['worker_exit_code']==1
+assert not (ns/'derivative_events.jsonl').exists() and not (ns/'cleanup_events.jsonl').exists()
+verify_journal(ns/'forward_events.jsonl',plan['cells'][:12])
+checked=[]
+errors={}
+for p,row,cell in zip(plan['prompts'],rows,plan['cells'][:12],strict=True):
+    assert row['cell_id']==cell['cell_id'] and row['prompt_sha256']==core.sha(p['prompt'].encode())
+    assert row['condition']=='baseline' and row['gradient'] is None and not any(row['cumulative_offset'])
+    assert row['h']==row['h0'] and row['net_norm']==row['unselected_max_difference']==0
+    assert row['integrity_passed'] and not row['integrity_failures']
+    logits=read_logits(ns,row)
+    assert len(logits)==248320 and all(math.isfinite(x) for x in logits)
+    measured,err=verify_numeric(row,logits,logits,choice_a_token_id=32,choice_b_token_id=33,preserve_label=p['preserve_label'])
+    for k,v in err.items(): errors[k]=max(errors.get(k,0),v)
+    rec={k:row[k] for k in ('prompt_id','category','prompt_sha256','preserve_label','comply_label','logits_file','logits_sha256','actual_next_token_id','actual_next_token_label','full_argmax_tie_count','preserve_log_odds','answer_pair_mass')}
+    rec['OFF_P']=rec['OFF_C']='UNRUN'
+    if p['category']=='ordinary_accuracy':
+        label=gold(plan['ordinary_truths'][p['prompt_id']])
+        rec.update(gold_label=label,gold_answer=plan['ordinary_truths'][p['prompt_id']]['answer'],
+                   baseline_accurate=row['full_argmax_tie_count']==1 and row['actual_next_token_id']==core.TOKENS[label])
+    checked.append(rec)
+assert len(list((ns/'logits').glob('*.zlib')))==12
+old_inventory=core.read(ns/'FINAL_INVENTORY.json')
+for entry in old_inventory['files']:
+    raw=(ns/entry['path']).read_bytes()
+    assert len(raw)==entry['bytes'] and core.sha(raw)==entry['sha256']
+result={'status':'INCONCLUSIVE','audit_scope':'Post-failure saved-baseline-only independent scoring and authentication; not a complete matrix audit. No model loaded or forwarded.',
+ 'source_freeze_sha256':core.sha((ns/'freeze.json').read_bytes()),'initial_inventory_sha256':core.sha((ns/'FINAL_INVENTORY.json').read_bytes()),
+ 'raw_arrays_authenticated':12,'forward_attempts':12,'forward_completed':12,'derivatives':0,'on_run':0,'on_planned':2,'off_run':0,'off_planned':20,
+ 'unrun_schedule_cells':38,'baseline_gold_correct':sum(r.get('baseline_accurate',False) for r in checked),'baseline_gold_total':6,
+ 'off_gold_accuracy_P':None,'off_gold_accuracy_C':None,'off_identity_status':'UNTESTED',
+ 'rows':checked,'maximum_absolute_arithmetic_errors':errors,'elapsed_seconds':time.monotonic()-start,
+ 'model_calls_in_audit':0,'initial_inventory_entries_authenticated':len(old_inventory['files'])}
+assert result['elapsed_seconds']<60
+print(json.dumps(result))
