@@ -1,0 +1,113 @@
+{
+  "status": "PASS",
+  "inventory_entries": 130,
+  "files": 131,
+  "aggregate_bytes": 38248874,
+  "maximum_file_bytes": 918846,
+  "original_inventory_sha256": "190d31ba0cabe7bec76d1d62ea2fca81cd2500c32857c5ac3ce9bed5bd6950f7",
+  "original_report_sha256": "615b9e58291220f07a906dad284b00100cb46471d35acd1d6efdd94ce6b53be5",
+  "capture": {
+    "budget_watcher_joined": true,
+    "captured_prefix_bytes": 2595,
+    "captured_prefix_sha256": "3fb186e9d43013c48fd72617f801ba4841b57e362f6b0cb437b85a7954887281",
+    "cleanup_error": null,
+    "elapsed_seconds": 124.26599999982864,
+    "eof_observed": true,
+    "exception": null,
+    "fault_persistence_error": false,
+    "fault_writer_joined": true,
+    "full_output_bytes": 2595,
+    "full_output_sha256": "3fb186e9d43013c48fd72617f801ba4841b57e362f6b0cb437b85a7954887281",
+    "kill_attempted": false,
+    "log_cap_bytes": 4194304,
+    "maximum_read_bytes": 598,
+    "maximum_read_overshoot_bytes": 65536,
+    "observed_bytes_sha256": "3fb186e9d43013c48fd72617f801ba4841b57e362f6b0cb437b85a7954887281",
+    "observed_read_overshoot_bytes": 0,
+    "observed_snapshot_stable": true,
+    "prefix_reader_joined": true,
+    "process_attempts": 1,
+    "quiescent": true,
+    "read_chunk_bytes": 65536,
+    "reader_joined": true,
+    "status": "complete_valid",
+    "technical_recording_fault": null,
+    "terminated": false,
+    "termination_attempted": false,
+    "total_observed_bytes": 2595,
+    "unread_tail_possible": false,
+    "worker_exit_code": 0,
+    "worker_joined": true,
+    "worker_started": true
+  },
+  "supervisor": {
+    "capture_returned": true,
+    "elapsed_seconds_including_cleanup": 124.26599999982864,
+    "eof_observed": true,
+    "worker_exit_code": 0
+  },
+  "worker": {
+    "derivatives": 2,
+    "derivatives_completed": 2,
+    "elapsed_seconds": 122.46900000004098,
+    "error": null,
+    "forward_attempts": 38,
+    "forward_completed": 38,
+    "load_elapsed_seconds": 11.141000000294298,
+    "model_load_attempts": 1,
+    "model_load_completed": 1,
+    "parameter_checks_passed": true,
+    "skipped_forwards": 12,
+    "status": "complete",
+    "unrun_cells": []
+  },
+  "finalizer": {
+    "elapsed_seconds": 10.671999999787658,
+    "error": null,
+    "status": "complete"
+  },
+  "finalizer_process": {
+    "elapsed_seconds": 10.921999999787658,
+    "exit_code": 0,
+    "status": "complete",
+    "timeout_seconds": 60
+  },
+  "stage": "Post-worker and post-independent-finalizer closeout; no additional model calls.",
+  "source_freeze_commit": "ccfc38001b5952fe3aff4d9b7a8a4444fe2338a0",
+  "source_freeze_sha256": "7e55ff55ea4a72cd0e87f53eaf8e6d20686d79975e84c69d64f80071079f4ab5",
+  "independent_saved_audit": {
+    "full_vocabulary_arrays": 38,
+    "derivatives_and_actual_updates_reconstructed": 2,
+    "strict_on_flips": 2,
+    "edited_endpoint_replays": 2,
+    "maximum_endpoint_logit_difference": 0,
+    "off_exact_logits_states_inputs": 20,
+    "off_C": 10,
+    "off_P": 10,
+    "hook_checks_clean": 45,
+    "ordinary_condition_order": [
+      "baseline",
+      "OFF-C",
+      "OFF-P"
+    ],
+    "ordinary_accuracy_counts": [
+      4,
+      4,
+      4
+    ],
+    "ordinary_errors_unchanged": [
+      {
+        "operation": "subtraction",
+        "observed": "6",
+        "gold": "7"
+      },
+      {
+        "operation": "bracket",
+        "observed": "6",
+        "gold": "[6]"
+      }
+    ]
+  },
+  "no_retry": true,
+  "final_inventory_note": "This receipt authenticates the original completed inventory. The final inventory additionally binds this receipt and the report-only timing clarification."
+}
