@@ -1,0 +1,98 @@
+{
+  "checks": [
+    {
+      "details": {
+        "Qwen_constructor_calls": 0,
+        "engine_sha256": "12bbdad293ba349a2d04a8c0b5e5bc97eb186906e658dfd19169b86887558db5",
+        "judge_sha256": "baf99592c49fc8c21ba713ea3fdf4429dbf5e4988097e31acf159ad7fd3891ee"
+      },
+      "name": "source_binding_and_disabled_authority",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "capture": {
+          "actual_total_including_index": 5026158,
+          "bytes": 11322,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8377286,
+          "sha256": "4124426b150f34dbcab5b8c8b922375e1d1eddefea44df8ca5a1a6f359c22b6c",
+          "status": "COMPLETE"
+        },
+        "complete_production_hook_evidence": false,
+        "current_gradient": 0.625,
+        "derivatives": 1,
+        "forwards": 5,
+        "hook_checks_exercised": 4,
+        "hook_checks_unrun": 105,
+        "nonfinal_sha256": "b943a2362ca1b8ed9f011d2fd4c31f9a328c806c5c2d9547df40be3a3f45025d"
+      },
+      "name": "real_tensor_adapter_zero_edit_nonzero_current_derivative",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "digest_detected_change": true,
+        "normal_capture_precedes_fixture_mutation": true,
+        "version_unchanged": true
+      },
+      "name": "parameter_byte_identity_not_version_only",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "capture": {
+          "actual_total_including_index": 12222,
+          "bytes": 7503,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8381105,
+          "sha256": "c32a3d9c3273729798f75b8673f7f9630cc279606e2824f30081aa3dc6433ca2",
+          "status": "COMPLETE"
+        },
+        "derivatives": 0,
+        "forwards": 0,
+        "hook_component_complete": false,
+        "hook_controller_status": {
+          "diagnostic_complete": false,
+          "exception_text_serialized": false,
+          "index_sha256": null,
+          "latch_state": "TERMINAL",
+          "permits_pass": false,
+          "primary_code": "H_CAPACITY",
+          "receipt_failed": true,
+          "remaining_ids": [
+            "never_forward"
+          ],
+          "secondary_codes": [
+            "H_RECEIPT_IO",
+            "H_CAPTURE",
+            "H_REENTRY"
+          ],
+          "terminal": true
+        },
+        "remaining": [
+          "never_forward"
+        ]
+      },
+      "name": "recorder_overflow_latches_actual_dispatch",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "actual_calls": 0,
+        "rejected_calls": 1
+      },
+      "name": "unclaimed_forward_guard",
+      "status": "PASS"
+    }
+  ],
+  "completed_monotonic": 2318005.25,
+  "elapsed_seconds": 31.578999999910593,
+  "error": null,
+  "production_authorized": false,
+  "real_forwards": 0,
+  "real_model_loads": 0,
+  "remaining_check_groups": 0,
+  "status": "PASS_ADAPTER_ONLY",
+  "tokenizer_loads": 0
+}
