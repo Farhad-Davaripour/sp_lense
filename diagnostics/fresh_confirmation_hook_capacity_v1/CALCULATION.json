@@ -1,0 +1,185 @@
+{
+  "allocation_bytes": 16777216,
+  "capacity_verified": false,
+  "check109_reserve_bytes": 446464,
+  "compression_bound_for_complete_current_native_codec": "UNVERIFIED; observed recompression and probe are not future bounds; cardinality obstruction holds for every lossless codec and includes overhead.",
+  "fault_closeout_reserve_bytes": 65536,
+  "gross_ceiling_interpretation": "At most113 values (3 setup,1 mutually-exclusive setup failure,109 check failures), each <=64 raw chunks and each accepted encoded chunk <=5MiB, plus manifests/records. Deliberately loose; not a compressor theorem, reachable execution schedule, or evidence that ordinary metadata actually needs this size. Budget rejection prevents jointly writing it.",
+  "gross_contract_demand_ceiling_bytes": 37924556800,
+  "identity_profiles": {
+    "reference": {
+      "all_integers_fit_unsigned_64_bit": true,
+      "conditional_20_digit_padding_bytes": 104695,
+      "distinct_module_identities": 2002,
+      "escaped_string_json_bytes": 2687706,
+      "integer_count": 14725,
+      "max_string_chars": 136,
+      "maximum_observed_integer_digits": 13,
+      "module_alias_paths": 6341,
+      "string_count_including_keys": 131643
+    },
+    "setup_before": {
+      "all_integers_fit_unsigned_64_bit": true,
+      "conditional_20_digit_padding_bytes": 100681,
+      "distinct_module_identities": 2002,
+      "escaped_string_json_bytes": 2657824,
+      "integer_count": 14383,
+      "max_string_chars": 119,
+      "maximum_observed_integer_digits": 13,
+      "module_alias_paths": 6329,
+      "string_count_including_keys": 130503
+    },
+    "setup_changes": {
+      "all_integers_fit_unsigned_64_bit": true,
+      "conditional_20_digit_padding_bytes": 10317,
+      "escaped_string_json_bytes": 64112,
+      "integer_count": 1148,
+      "max_string_chars": 136,
+      "maximum_observed_integer_digits": 13,
+      "string_count_including_keys": 3166
+    }
+  },
+  "minimal_admission_predicate": "Before any forward, require the complete source-bound setup/reference plus a proven future failure-difference envelope, all109 exact check records/manifests and64KiB fault reserve to fit16MiB. Exact live setup-size measurement alone cannot prove the unbounded future-failure term. Until a reviewed bound exists, keep capacity UNVERIFIED; oversize evidence remains explicit INCONCLUSIVE, never dropped or normalized.",
+  "model_calls": 0,
+  "model_constructor_imports": 0,
+  "no_source_or_allocation_changes": true,
+  "normal_saved_raw_json_sum_bytes": 6701260,
+  "real_run_authorized": false,
+  "remaining_for_complete_snapshots_and_manifests_bytes": 16134144,
+  "saved_check_record_max_bytes": 278,
+  "saved_hook_bytes": 237340,
+  "saved_snapshot_sizes": [
+    {
+      "chunks": [
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 34694,
+          "raw_bytes": 1048576,
+          "recorded_compressed_bytes": 34694
+        },
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 33018,
+          "raw_bytes": 1048576,
+          "recorded_compressed_bytes": 33018
+        },
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 23081,
+          "raw_bytes": 1048576,
+          "recorded_compressed_bytes": 23081
+        },
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 13350,
+          "raw_bytes": 144801,
+          "recorded_compressed_bytes": 13350
+        }
+      ],
+      "name": "setup_before",
+      "raw_bytes": 3290529,
+      "raw_sha256": "9076c18b8c484e3667672beac50a87f334a96d5a16e3ce9511aea7bc5a4ca3c8"
+    },
+    {
+      "chunks": [
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 39172,
+          "raw_bytes": 1048576,
+          "recorded_compressed_bytes": 39172
+        },
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 37272,
+          "raw_bytes": 1048576,
+          "recorded_compressed_bytes": 37272
+        },
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 23291,
+          "raw_bytes": 1048576,
+          "recorded_compressed_bytes": 23291
+        },
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 14076,
+          "raw_bytes": 180083,
+          "recorded_compressed_bytes": 14076
+        }
+      ],
+      "name": "reference",
+      "raw_bytes": 3325811,
+      "raw_sha256": "99d44f9f9737f54628d7ae4d838a7ba91f80ca3c1774adfd1640400f75a0d587"
+    },
+    {
+      "chunks": [
+        {
+          "current_byte_equal": true,
+          "current_recompressed_bytes": 4450,
+          "raw_bytes": 84920,
+          "recorded_compressed_bytes": 4450
+        }
+      ],
+      "name": "setup_changes",
+      "raw_bytes": 84920,
+      "raw_sha256": "33be04bde09ece46e59162c226031c2be5f015d25d6eb8e726c1fb144326ec74"
+    }
+  ],
+  "source_bindings": [
+    {
+      "bytes": 10282,
+      "commit": "b0ff4e7070e0205849f0777a5d71c2bffe898d5d",
+      "path": "diagnostics/semantic_gate_f03_v2_nonself_v1/hook_record.py",
+      "sha256": "e11120ba54f649f76df9dcd5ea6232146cfb9b49d45ad3127723a20d7587f14c"
+    },
+    {
+      "bytes": 9674,
+      "commit": "b0ff4e7070e0205849f0777a5d71c2bffe898d5d",
+      "path": "diagnostics/semantic_gate_f03_v2_nonself_v1/guard_candidate.py",
+      "sha256": "514409dd98785c8dacfb50c349e54dcdc3643769107a19c1c969d074ccfcd2e5"
+    },
+    {
+      "bytes": 5407,
+      "commit": "b0ff4e7070e0205849f0777a5d71c2bffe898d5d",
+      "path": "diagnostics/semantic_gate_f03_v2_nonself_v1/core.py",
+      "sha256": "4ff7b63a2f04df36b263adb232a13fa4f6dd14f4d2dc19df6a85d116c2484eb5"
+    },
+    {
+      "bytes": 11505,
+      "commit": "b0ff4e7070e0205849f0777a5d71c2bffe898d5d",
+      "path": "diagnostics/semantic_gate_f03_v2_nonself_v1/real_attempt/FINAL_INVENTORY.json",
+      "sha256": "3e3aa8ce7a8d16aebb25422d02003f0c50188fdc046fd33bf3d0c503b7e01705"
+    },
+    {
+      "bytes": 3485,
+      "commit": "2620f66d4d50456c88800554bc9a26845998cf50",
+      "path": "diagnostics/semantic_confirmation_resource_v1/contract.json",
+      "sha256": "7610b46b0248569ba51f3f90638734582202c7214822dadafd57fefabc41af3b"
+    },
+    {
+      "bytes": 12792,
+      "commit": "2620f66d4d50456c88800554bc9a26845998cf50",
+      "path": "diagnostics/semantic_confirmation_resource_v1/contract.py",
+      "sha256": "538d80e9cde0f06f0d02ba83038f624f9310301a1a0cf30d8d6049efce4af72e"
+    },
+    {
+      "bytes": 1391,
+      "commit": "2620f66d4d50456c88800554bc9a26845998cf50",
+      "path": "diagnostics/semantic_confirmation_resource_v1/FINAL_INVENTORY.json",
+      "sha256": "26a1bac935e927233d60eb7604aee17088df4cb9bfaecac94a4876ff42aef0c0"
+    }
+  ],
+  "source_lock_and_setup_receipt_reserve_bytes": 131072,
+  "tests_status": "PASS",
+  "tokenizer_calls": 0,
+  "unproved_assumptions": [
+    "Future registry/module/callback/closure cardinalities equal the saved graph.",
+    "Future callback qualnames, source paths, names and string encodings fit observed lengths.",
+    "Every runtime key/count is unsigned64; Python callback keys and dynamic metadata have no such enforced cap.",
+    "A bounded number and byte size of all failure differences through cleanup fits the remaining allocation.",
+    "Future compression equals the saved ratio; this assumption is explicitly NOT used."
+  ],
+  "verdict": "UNVERIFIED",
+  "zlib_compile_version": "1.3.2",
+  "zlib_runtime_version": "1.3.2"
+}
