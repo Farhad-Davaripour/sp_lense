@@ -1,0 +1,107 @@
+--- production_v1_engine
++++ production_v2_engine
+@@ -8,6 +8,8 @@
+ from pins import ROOT, SCIENCE, GATE_SHA, require, sha, scientific
+ from plan import build_plan
+ from real_adapter import make_backend
++from authority import authenticate
++from runtime_closeout import close_runtime
+ 
+ torch.set_num_threads(1)
+ 
+@@ -28,11 +30,11 @@
+     c, helper = writer.contract, writer.helper
+     helper.validate_prompt_lengths(c, [len(p["input_ids"]) for p in plan["prompts"]])
+     counters = helper.AttemptCounter(c)
+-    state = {"execution_mode": "PRODUCTION_PREPARATION_ONLY", "status": "RUNNING", "scientific_failures": [],
++    state = {"execution": authenticate()["execution"], "status": "RUNNING", "scientific_failures": [],
+              "technical_failures": [], "cell_status": {cell["cell_id"]: "UNRUN" for cell in plan["cells"]},
+              "request_status": {r["request_id"]: "UNRUN" for r in plan["requests"]},
+              "forward_completed": 0, "derivatives_completed": 0, "cleanup_complete": False,
+-             "real_supervisors_executed": False, "real_hook_capacity_verified": False}
++             "owned_process_evidence": "EXTERNAL_CONTROLLER_REQUIRED"}
+     writer.workflow_state = state
+     prompts = {p["prompt_id"]: p for p in plan["prompts"]}
+     cells = {(x["prompt_id"], x["request_id"], x["phase"]): x for x in plan["cells"]}
+@@ -56,6 +58,7 @@
+         record = {"kind": kind, "cell_id": cell["cell_id"]}
+         state["scientific_failures"].append(record)
+         event("scientific_failures.jsonl", record)
++        model.recorder.raw.scientific_stop(kind.upper(),sha(encoded(record)))
+         raise ScientificStop(kind)
+ 
+     def call(prompt, rid, phase, offset=None, current=None, sign=0, extra=None):
+@@ -112,6 +115,8 @@
+                 except science.EligibilityError:
+                     fail_science("finite_eligibility", cell)
+             return row, z.detach(), h.detach()
++        except ScientificStop:
++            raise
+         except BaseException:
+             if state["cell_status"][cell["cell_id"]] == "STARTED":
+                 state["cell_status"][cell["cell_id"]] = "FAILED"
+@@ -138,10 +143,11 @@
+             originals[prompt["prompt_id"]] = call(prompt, None, "baseline")
+             model.clear_capture()
+         for spec in plan["requests"]:
+-            current_rid = rid = spec["request_id"]
+-            state["request_status"][rid] = "STARTED"
++            rid = spec["request_id"]
+             prompt = prompts[spec["prompt_id"]]
+             model.start_request(rid)
++            current_rid = rid
++            state["request_status"][rid] = "STARTED"
+             entry = call(prompt, rid, "entry")
+             original = originals[prompt["prompt_id"]]
+             if entry[0]["routing"]["route"] == "OFF":
+@@ -217,30 +223,9 @@
+             state["request_status"][current_rid] = "FAILED"
+         if state["status"] != "PASS_STUDY":
+             counters.mark_failed()
+-        if model is not None:
+-            try:
+-                final_identity = model.finalize()
+-                hook_capture = model.recorder.finish()
+-                state["cleanup_complete"] = all(v for v in final_identity.values() if type(v) is bool)
+-                state["adapter_accounting"] = {"forwards":model.guard.forwards,"derivatives":model.guard.derivatives,
+-                    "rejected_dispatches":model.guard.rejected,"dispatch_failed":model.latch.failed}
+-                writer.write_source("runtime_adapter.json",encoded({"metadata":model.runtime_metadata,
+-                    "initial_parameter_sha256":model.initial_digest,"final_identity":final_identity,
+-                    "hook_checks":model.recorder.checks,"hook_capture":hook_capture,"hook_controller_status":model.recorder.status(),"input_bound":True,"fake_backend":False}))
+-            except BaseException:
+-                model.latch.stop("FINAL_IDENTITY_FAILURE")
+-                state["status"] = "INCONCLUSIVE_STUDY"
+-                state["technical_failures"].append({"code":"FINAL_IDENTITY_FAILURE"})
+-            finally:
+-                model.guard.restore()
+-        if gate is not None:
+-            gate.unchanged()
++        # Non-I/O status/accounting is captured even if any final writer fails.
+         state["attempts"] = dict(counters.attempts)
+         state["cursor"] = cursor
+         state["fresh_routes"] = gate.calls if gate else 0
+-        if not writer.sticky_failure:
+-            event("gate_final.json", {"decisions": state["fresh_routes"], "parameters_unchanged": True, "fit_calls": 0})
+-            event("integration_cleanup.json", {"complete": state["cleanup_complete"], "measured_real_adapter_identity": True})
+-            writer.append_log("worker_stdout.log", (state["status"] + "\n").encode())
+-        capture = writer.closeout()
++        capture = close_runtime(model,gate,writer,state,event,encoded)
+     return capture
+--- production_v1_judge
++++ production_v2_judge
+@@ -195,7 +195,8 @@
+     require(state["attempts"] == {"forward":len(started),"derivative":len(derivative_attempts),"load":1}
+             and len(started) <= 180 and len(derivative_attempts) <= 48, "attempt ceilings include failures")
+     require(state["forward_completed"] == len(completed) and state["derivatives_completed"] == len(derivative_completed) and state["fresh_routes"] == len(routes), "independent ledger counts")
+-    verify_runtime_identity(root,state,io)
++    hook_result = verify_runtime_identity(root,state,io,capture)
++    if not hook_result["evidence_valid"]: technical.append("runtime_identity_or_hook_incomplete")
+     if state["technical_failures"] and not technical:
+         technical.append("declared_worker_technical_failure")
+     require(state["scientific_failures"] == scientific, "preserved independent scientific failures")
+@@ -212,4 +213,4 @@
+         "strict_flips":sum(r["kind"] == "flip" for r in reconstructed_requests),"retentions":sum(r["kind"] == "retention" for r in reconstructed_requests),
+         "off_identities":len(off),"cell_counts":dict(Counter(derived_cells.values())),"request_counts":dict(Counter(request_status.values())),
+         "ordinary_accuracy":ordinary_accuracy,"outcomes":outcomes,"actual_bytes":io["actual_bytes"],
+-        "real_run_authorized":False,"real_model_result":False,"real_hook_capacity_verified":False,"real_supervisors_executed":False}
++        "execution":state["execution"],"audit_completed":True,"hook_result":hook_result}
