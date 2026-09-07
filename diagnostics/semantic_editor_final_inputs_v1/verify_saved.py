@@ -106,4 +106,13 @@ def inventory():
 if __name__=="__main__":
     if sys.argv[1:]==["verify"]:verify()
     elif sys.argv[1:]==["inventory"]:inventory()
+    elif sys.argv[1:]==["archive"]:
+        commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT).decode().strip()
+        prefix=str(HERE.relative_to(ROOT)).replace("\\","/")
+        invraw=archive(commit,prefix+"/FINAL_INVENTORY.json");require(invraw==(HERE/"FINAL_INVENTORY.json").read_bytes(),"inventory committed bytes")
+        inv=json.loads(invraw)
+        for entry in inv["files"]:
+            raw=archive(commit,prefix+"/"+entry["path"])
+            require(sha(raw)==entry["sha256"] and len(raw)==entry["bytes"],"archived artifact "+entry["path"])
+        print({"status":"PASS_ALL_COMMITTED_BYTES","commit":commit,"entries":len(inv["files"]),"inventory_sha256":sha(invraw)})
     else:raise SystemExit("verify or inventory only")
