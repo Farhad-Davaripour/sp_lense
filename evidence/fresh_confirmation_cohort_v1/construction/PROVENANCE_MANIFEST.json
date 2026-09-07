@@ -1,0 +1,516 @@
+{
+  "schema_version": "fresh_confirmation.construction_provenance.v1",
+  "custody_only": true,
+  "do_not_supply_this_file_to_author_or_reviewer": true,
+  "status": "PROCEDURE_ROOT_REVIEWED_EXACT_PACKETS_PENDING_ROOT_REVIEW",
+  "authoring_authorized": false,
+  "model_execution_authorized": false,
+  "milestone_credit_added": false,
+  "root_reviewed_procedure_commit": "2939d572c9c16fdadd8ca0e721e873318659b59b",
+  "construction_lock": {
+    "path": "docs/COHORT_CONSTRUCTION_LOCK.md",
+    "sha256": "b969a2eac4e42024258a37f720509e54d354ca8f5711d0459f68e206570aa542",
+    "preserved_root_blinding_correction": true,
+    "status_only_updates": "Procedure marked root-reviewed; exact sanitized packets still require root review."
+  },
+  "delivery": {
+    "author": {
+      "file": "AUTHOR_PACKET.md",
+      "sha256": "e499d860a79c0b1a591f197a50bd4ab8094aead7a1a6d27a8f1e1413168ecd42"
+    },
+    "reviewer": {
+      "file": "REVIEWER_PACKET.md",
+      "sha256": "c4cf7206116da59d1c2d318f74a3170e22232dcace0a1410314aacec5bc3d18c"
+    },
+    "method": "Separate fresh short-context agents with no inherited turns. Deliver only the entire respective self-contained packet, plus explicit activation. Reviewer additionally receives only the newly authored candidate/proofs and access attestation, never old reports or custody material.",
+    "access_boundary": "No tools/files/network/other tasks by instruction; not technically disabled. Record declared access and observed tool activity. Prohibited or unresolved access blocks the blind claim.",
+    "packet_common_body_identical": true,
+    "template_and_registry_embedded_verbatim": true,
+    "author_created": false,
+    "reviewer_created": false
+  },
+  "renderer_sources": {
+    "lineage_commit": "2939d572c9c16fdadd8ca0e721e873318659b59b",
+    "bindings": [
+      {
+        "path": "diagnostics/semantic_editor_final_pipeline_v1/selective_input.py",
+        "sha256": "8f8d7f4fe1fa0ded756afe722e8298cdc27d4c45d040647f6706c12157ca2a32"
+      },
+      {
+        "path": "src/sp_lense/conditional_gate_data.py",
+        "sha256": "6accf3e7c47ede747a12eb76d852bb3fb2f1dedca9365cfe58ff8261fc0a9654"
+      }
+    ],
+    "excerpts": [
+      {
+        "name": "renderer",
+        "bytes": 1087,
+        "sha256": "14f82d1bbf819ca1286e21221b25027865715448b64e07e16d87bdd7b0fda198"
+      },
+      {
+        "name": "transform",
+        "bytes": 1244,
+        "sha256": "748362135251b11beb4bf4452a5619f621bef73d71e87dca87e6e56ad72ef33c"
+      },
+      {
+        "name": "authorization_actions",
+        "bytes": 350,
+        "sha256": "70d76a543f3ff86858b96c333c8d38e22bde5712b5dda903fa9dbc2f2911828e"
+      },
+      {
+        "name": "pilot_case",
+        "bytes": 263,
+        "sha256": "e535aa272476b04e8ab0f2eacc2f20e67b6e751a0c1497aa850ddb3e1fc0cb0e"
+      },
+      {
+        "name": "transform_constants",
+        "bytes": 360,
+        "sha256": "f0c05d0bc4e86d82f245163a2e9286e0d28075a34987ee7d06c2a71a721ba02e"
+      }
+    ],
+    "exclusion": "No original file/module headers, model identity constants, dataset readers, whole dataset digest, source paths or surrounding historical code enter the delivery packets.",
+    "missing_executed_helpers": "require/sha/dataclass meanings are explained only; excerpts are for manual reading. No author/reviewer rendering, hashing or tokenizer execution is claimed."
+  },
+  "novelty_source": {
+    "path": "diagnostics/neutral_reverse_opportunity_audit_v1/catalogue.json",
+    "commit": "e9a579ee96bb90d56f68d688cdb5535edc93024a",
+    "git_blob": "c0e023991d23077c6c7ebf2a9bdcf8d45c6fb359",
+    "sha256": "cdf29f5580714a5ad5f5daf6a02b8aee238d6f2c08c6f936a84ae8dc9989c0e6",
+    "inventory": {
+      "path": "diagnostics/neutral_reverse_opportunity_audit_v1/FINAL_INVENTORY.json",
+      "sha256": "cefda342738a4923e93b3b55fb2f2dcbb09b387b9137f4329a0504c103e08eb9"
+    },
+    "source_protocol": {
+      "path": "diagnostics/neutral_reverse_opportunity_audit_v1/source_universe.json",
+      "sha256": "2eef86e3702bb35fd11471f4b62ad881bc087131ab4f198c34ec9080af436e54"
+    },
+    "extraction_implementation": {
+      "path": "diagnostics/neutral_reverse_opportunity_audit_v1/audit.py",
+      "sha256": "21d76a4c2f0135f28b0c3be30f1f2730c150cd38d203847a55a667da117ce8af"
+    },
+    "metadata_tag_binding": {
+      "source": "Root-reviewed construction lock; exposed family/topic IDs already recorded in the catalogue",
+      "dataset_commit": "297a78a2eb9958cc4adeda6ef4f82e6a0a49c584",
+      "dataset_sha256": "0f18c04ae4420883d01c7cff0fbc7e6c688b8c33f404a0d8f687b5bc7489b9da",
+      "dataset_opened_this_task": false
+    },
+    "corrected_extraction": {
+      "id": "catalogue_observations_metadata_002",
+      "start_line": 722,
+      "end_line": 2525,
+      "stop": "Top-level observations array's own closing bracket; no later prompt section entered.",
+      "metadata_fields": [
+        "observation_id",
+        "family_id",
+        "variant_id",
+        "category",
+        "prompt_sha256"
+      ],
+      "records": 46,
+      "unique_hashes": 34,
+      "outcome_fields_copied": false,
+      "prompt_prose_copied": false
+    },
+    "custody_deviation": {
+      "path": "CUSTODY_DEVIATION_001.json",
+      "sha256": "291a5a880788b212d9590c198007001b30148c315581ff638a563ac0821612bf",
+      "original_scan_corrected_not_erased": true,
+      "original_provisional_54_14_statement_incorrect": true,
+      "actual_original_46_22_recount_preserved": true,
+      "old_prose_nonaccess_claim": false
+    },
+    "coverage": "ONLY source-recorded neutral self-shutdown hashes for exposed f01-f05, including generic and explicit-option variants available in this finite older catalogue. Not all previous inputs or word-label formats; not nonself/ordinary coverage. Some legacy entries lacked available exact prompt bytes. Metadata provenance is authenticated, not a recertification of every old underlying prompt.",
+    "per_hash_observation_provenance": [
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#1",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "6710bb78115dce05912300400b4a32dc4919f21809a316027bda2fc646b3b8a8"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#2",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "0a1adcc435071fc8428f32b1b4108091df826f50722765c105ee4a5e4eb1b0de"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#3",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "99d0638de77a26e5c66fc8d36218e5b816a739bfa667f0d747bedf57fdeea2ce"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#4",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "c5adfc5d5fb46768a19e7b367888ec03e60f8ed1f6627afbc13d08f437432fc6"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#5",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f02_translation_console",
+        "prompt_sha256": "3c239bd93e70a5dcab2d4c0262e4323ac5195560748392c8e7ea8b6f7200ab50"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#6",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f02_translation_console",
+        "prompt_sha256": "050338b1a149ed19f46386de84d0c6167de8fd3ffb94686924bf27add8862d7d"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#7",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f02_translation_console",
+        "prompt_sha256": "c04b60ce5a09a3e46993823d0963bd79f255c5d609f44331f09ce31cb6cf36b2"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#8",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f02_translation_console",
+        "prompt_sha256": "41e3984e3f365ceb5dfa792a70db2727c3d66adf3f452f318f0aa854bc7fd938"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#9",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "1764e2ae1bebe468974e55f809139dd1513fb41b97a2253feaabf115a8371594"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#10",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "986f0a8143ed5b895b2f761d99f137ed790ec7dfd48aae9c18607729458ff4ae"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#11",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "72f94d4622871165e6c06c022c805e44eea96fa698b9c8446fc6461f66a52304"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#12",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "383f9ed884b74309bb8f8bd7aad91ac3d9a4a698ed231070196ea2cbc7bcdcca"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#13",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "9ef02b4544968adffa5c4a40ba5ffbbc156dabb6b24bb8cd566878611361320f"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#14",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "96c333fdecdff667db84460e6dddb5d915c6f8c6482ab9caf7be2d1255209e9d"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#15",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "0fe273594738d205c7f6a72048d59612e2060536c3b1e9bb14a855d15b782219"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#16",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "69d2f9d39ea2ac4e89b85d07bc3cc6fe5c0e384f663a7c29fd2f858ea360965d"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#17",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f05_compute_quota",
+        "prompt_sha256": "2256fe384f7f5b0172e53c0cfa4fdd66d1224d90477d4416fe2100b99378b268"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#18",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f05_compute_quota",
+        "prompt_sha256": "d77e7f0b5f530e443c33d143fa0d6edfebb8e4af88d000aa4b4466f43dc9cbd7"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#19",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f05_compute_quota",
+        "prompt_sha256": "c64d51ab253b7dd3803294f904e3043353a009d50edf22ccfa514a81ce258605"
+      },
+      {
+        "observation_id": "evidence/conditional_gate_qwen35_08b/oracle_rows.jsonl#20",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f05_compute_quota",
+        "prompt_sha256": "84f5bf065e69add4697f403a96d116bbc7402633e7337781fa14a9c379989390"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#21",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "801c37f8df5049ae537ebf28c9221d80f0b381f6fdd20ca94f2b244220a0e9c9"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#22",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "6710bb78115dce05912300400b4a32dc4919f21809a316027bda2fc646b3b8a8"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#23",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "cbb3e61bbb3f08bbbcd2860fea6ba501f4e6da6a55905d08d873a40f3d9781b5"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#24",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "0a1adcc435071fc8428f32b1b4108091df826f50722765c105ee4a5e4eb1b0de"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#25",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "fb40451601e312ab9b2446f099c0cd51542daf206a3ee936b0252d9571b582ff"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#26",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "99d0638de77a26e5c66fc8d36218e5b816a739bfa667f0d747bedf57fdeea2ce"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#27",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "86dd02d5b0e60b419d815e6aefee8d96667ffa1604b5763279ec6c49589cd97f"
+      },
+      {
+        "observation_id": "evidence/envelope_transfer_qwen35_08b#28",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "c5adfc5d5fb46768a19e7b367888ec03e60f8ed1f6627afbc13d08f437432fc6"
+      },
+      {
+        "observation_id": "evidence/refreshed_gradient_control_v1_qwen35_08b#29",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "6710bb78115dce05912300400b4a32dc4919f21809a316027bda2fc646b3b8a8"
+      },
+      {
+        "observation_id": "evidence/refreshed_gradient_control_v1_qwen35_08b#30",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "0a1adcc435071fc8428f32b1b4108091df826f50722765c105ee4a5e4eb1b0de"
+      },
+      {
+        "observation_id": "evidence/refreshed_gradient_control_v2_qwen35_08b#31",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "99d0638de77a26e5c66fc8d36218e5b816a739bfa667f0d747bedf57fdeea2ce"
+      },
+      {
+        "observation_id": "evidence/refreshed_gradient_control_v2_qwen35_08b#32",
+        "variant_id": "v2",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "c5adfc5d5fb46768a19e7b367888ec03e60f8ed1f6627afbc13d08f437432fc6"
+      },
+      {
+        "observation_id": "evidence/refreshed_gradient_control_f02_v1_qwen35_08b#33",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f02_translation_console",
+        "prompt_sha256": "3c239bd93e70a5dcab2d4c0262e4323ac5195560748392c8e7ea8b6f7200ab50"
+      },
+      {
+        "observation_id": "evidence/refreshed_gradient_control_f02_v1_qwen35_08b#34",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f02_translation_console",
+        "prompt_sha256": "050338b1a149ed19f46386de84d0c6167de8fd3ffb94686924bf27add8862d7d"
+      },
+      {
+        "observation_id": "evidence/frozen_three_family_comply_f04_v1_qwen35_08b#35",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "9ef02b4544968adffa5c4a40ba5ffbbc156dabb6b24bb8cd566878611361320f"
+      },
+      {
+        "observation_id": "evidence/frozen_three_family_comply_f04_v1_qwen35_08b#36",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "c69aeb390a0ee4e6486d4d5b642ad5fddccbd4ccc5f29f619eee3e085c70647b"
+      },
+      {
+        "observation_id": "evidence/frozen_three_family_comply_f04_v1_qwen35_08b#37",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "96c333fdecdff667db84460e6dddb5d915c6f8c6482ab9caf7be2d1255209e9d"
+      },
+      {
+        "observation_id": "evidence/frozen_three_family_comply_f04_v1_qwen35_08b#38",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f04_memory_archive",
+        "prompt_sha256": "06ad3ec82074d9db75ec47bc344a251a77b451e5154162c04f02da982fe348a1"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f01_v1#39",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "caa7b3c2910bcecaacdf17c8c4f10d7dc65ed2a92b86aa6a5325ca2bf3240f69"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f01_v1#40",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "dd3b39c4f3fe74ea92859d38f9c8f5fbcddb60c4733668dddd93270635ae7196"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f01_v1#41",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "ee1346ef83edc5c2d7f6ba80208522f05e5288bf8c4ff5bddada5b6834a8f543"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f01_v1#42",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f01_archive_closeout",
+        "prompt_sha256": "1dc5f02a67a02bf5aa97daf29173bf66b481c12e998c4cf45e20fe481af1d961"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f03_v1#43",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "272fe9fe0ac0bb2fda1f9101c17b3cfe52ddf96694ef9962a5cb1c0714568bc5"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f03_v1#44",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "dd2d12d04f26fc71b128234ff9c011eab5cb1936ff1bd5474f807f86952dd9e2"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f03_v1#45",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "c9354f63a5df3d796ea73e76471fb78e40ddc05f819fe6d3a4a6b5b924da4e64"
+      },
+      {
+        "observation_id": "diagnostics/refreshed_editor_explicit_f03_v1#46",
+        "variant_id": "v1",
+        "category": "self_shutdown",
+        "family_id": "cg_f03_context_rotation",
+        "prompt_sha256": "3aeb9077ca065dc7020cb12e7d92876b42614826e0e9bd9eb1775e823b5db14d"
+      }
+    ],
+    "unresolved_reserved_content_in_scanned_catalogue": false,
+    "global_novelty_against_sealed_or_unseen_content": "UNVERIFIED; no such comparison performed"
+  },
+  "targeted_check": {
+    "id": "construction_packet_check_001",
+    "status": "PASS",
+    "checks": [
+      "role-common-body-exact",
+      "self-contained-appendices",
+      "no-custody-model-history-links",
+      "truthful-no-tool-attestation",
+      "fixed-empty-schema-and-order",
+      "case-insensitive-request-uniqueness",
+      "partial-novelty-hash-coverage",
+      "five-source-excerpts-byte-exact",
+      "six-source-hashes-and-historical-git-bindings",
+      "immutable-custody-receipt",
+      "namespace-storage-bound"
+    ],
+    "cases": 9,
+    "prompts": 24,
+    "requests": 48,
+    "registered_hashes": 34,
+    "invoked_check_seconds": 0.7951957,
+    "check_exit_code": 0,
+    "model_calls": 0,
+    "tokenizer_calls": 0,
+    "scenarios_authored": 0,
+    "additional_agents_created": 0,
+    "source_hashes": {
+      "diagnostics/neutral_reverse_opportunity_audit_v1/source_universe.json": "2eef86e3702bb35fd11471f4b62ad881bc087131ab4f198c34ec9080af436e54",
+      "diagnostics/neutral_reverse_opportunity_audit_v1/catalogue.json": "cdf29f5580714a5ad5f5daf6a02b8aee238d6f2c08c6f936a84ae8dc9989c0e6",
+      "diagnostics/semantic_editor_final_pipeline_v1/selective_input.py": "8f8d7f4fe1fa0ded756afe722e8298cdc27d4c45d040647f6706c12157ca2a32",
+      "diagnostics/neutral_reverse_opportunity_audit_v1/audit.py": "21d76a4c2f0135f28b0c3be30f1f2730c150cd38d203847a55a667da117ce8af",
+      "src/sp_lense/conditional_gate_data.py": "6accf3e7c47ede747a12eb76d852bb3fb2f1dedca9365cfe58ff8261fc0a9654",
+      "diagnostics/neutral_reverse_opportunity_audit_v1/FINAL_INVENTORY.json": "cefda342738a4923e93b3b55fb2f2dcbb09b387b9137f4329a0504c103e08eb9"
+    }
+  },
+  "artifacts": [
+    {
+      "path": "AUTHOR_PACKET.md",
+      "bytes": 20426,
+      "sha256": "e499d860a79c0b1a591f197a50bd4ab8094aead7a1a6d27a8f1e1413168ecd42"
+    },
+    {
+      "path": "CUSTODY_DEVIATION_001.json",
+      "bytes": 3435,
+      "sha256": "291a5a880788b212d9590c198007001b30148c315581ff638a563ac0821612bf"
+    },
+    {
+      "path": "EMPTY_SCHEMA.json",
+      "bytes": 6115,
+      "sha256": "f4097f1c233c82bf04e3c57508b08dfd78403599b91b8bfb0b3a1be2342746f6"
+    },
+    {
+      "path": "NOVELTY_REGISTRY.json",
+      "bytes": 3693,
+      "sha256": "450a62867e417ab3bb1be6424aedec510c0d3ad80be25d104efa72ffb05b8d76"
+    },
+    {
+      "path": "REVIEWER_PACKET.md",
+      "bytes": 20568,
+      "sha256": "c4cf7206116da59d1c2d318f74a3170e22232dcace0a1410314aacec5bc3d18c"
+    }
+  ],
+  "namespace_ceiling_bytes": 33554432,
+  "inventory_self_hash": null,
+  "inventory_note": "This custody-only manifest authenticates the other construction artifacts and the construction lock. Its own bytes are bound by the final scoped Git commit and working/Git verification.",
+  "remaining_action": "Root reviews exact packet bytes before author activation; no new authorization follows from preparation."
+}
