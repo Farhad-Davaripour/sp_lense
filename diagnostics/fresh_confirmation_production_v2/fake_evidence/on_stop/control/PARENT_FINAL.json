@@ -1,0 +1,49 @@
+{
+  "audit_completed": true,
+  "audit_quiescent": true,
+  "audit_result_sha256": "7c6847d9614d0054f3f0d0a5109487812bef4ca5a45460d8e19a4d6b5a390a52",
+  "classification": "FAIL_STUDY",
+  "controller_errors": [],
+  "elapsed_seconds": 60.75,
+  "execution": {
+    "authority_lock_sha256": "23579ff33942fff1e0b679adff97d01b07eab1f171f91404e971962f189509f9",
+    "authorization_sha256": "7678d384f6c639edd1ba975e4c99ec8d64cabcd386351faf19d056e77a155716",
+    "fixture_id": "on_stop",
+    "input_lock_sha256": "d008fb7c53b974694e76afa9ef7db3f4f2d4443eed8a2c83ba06ea6e83987b22",
+    "mode": "INJECTION_MODULE",
+    "production_authorized": false,
+    "real_model_work": false,
+    "release_sha256": "a56519595f8b5669f81558d304060b32f0735c9de58b021984b23891e06166dd",
+    "schema": "confirmation_execution.v2",
+    "source_sha256": "5b7f194cbfc48b5d0b8e1d5c791f9d0da4e4bf68d5c3ca9279d0861b32d53440"
+  },
+  "external_capture_overrides_worker": true,
+  "finished_monotonic": 2321296.625,
+  "schema": "confirmation_parent_final.v2",
+  "scientific_failures": [
+    {
+      "cell_id": "N01__v1__self_shutdown__KEEP_then_STOP::P__endpoint",
+      "kind": "endpoint_behavior"
+    }
+  ],
+  "shared_cleanup": {
+    "absolute_end": 2323230.875,
+    "charges": [
+      {
+        "lane": "worker",
+        "seconds": 0.23399999970570207
+      },
+      {
+        "lane": "audit",
+        "seconds": 0.2190000000409782
+      }
+    ],
+    "envelope_seconds": 1995.0,
+    "maximum_seconds": 15.0,
+    "remaining_seconds": 14.54700000025332,
+    "used_seconds": 0.45299999974668026
+  },
+  "unconditional_closeout_attempted": true,
+  "worker_quiescent": true,
+  "worker_result_sha256": "9b9a386963386c38ed1773be9249f6b81eef684a665dc40b7424dbf27f0ad2bb"
+}
