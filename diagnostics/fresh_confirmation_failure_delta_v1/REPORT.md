@@ -65,3 +65,10 @@ capacity, the actual-cohort input/schema binding or real-model results. Those
 remain separate dependencies. No author submission, tokenizer or real model was
 read or run. Final namespace-only commit and raw-byte verification do not rerun
 the test batch or award a milestone.
+
+During final Git-byte verification, automatic CRLF normalization was detected
+for the captured worker stdout log. A namespace-local `.gitattributes` rule now
+disables text normalization for this evidence namespace. The raw working log was
+not changed; the follow-up namespace-only commit preserves its original bytes.
+The first commit's normalized log is not the final raw-evidence binding. This
+packaging correction changed no frozen source, scientific outcome or test run.
