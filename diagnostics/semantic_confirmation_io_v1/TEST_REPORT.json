@@ -1,0 +1,214 @@
+{
+  "binding": {
+    "contract_sha256": "7610b46b0248569ba51f3f90638734582202c7214822dadafd57fefabc41af3b",
+    "helper_sha256": "538d80e9cde0f06f0d02ba83038f624f9310301a1a0cf30d8d6049efce4af72e",
+    "inventory_sha256": "26a1bac935e927233d60eb7604aee17088df4cb9bfaecac94a4876ff42aef0c0",
+    "resource_commit": "2620f66d4d50456c88800554bc9a26845998cf50"
+  },
+  "bytes_before_report": 3133318,
+  "cases": [
+    {
+      "evidence": {
+        "index": {
+          "actual_total_including_index": 998655,
+          "bytes": 5252,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8383356,
+          "sha256": "44668a85d17308895e7fb53c8b05833004641f24c74c6af4f207f0cd339af57c",
+          "status": "COMPLETE"
+        },
+        "reader": {
+          "actual_bytes": 998655,
+          "actual_file_count": 5,
+          "all_files_accounted": true,
+          "category_bytes": {
+            "audit_inventory": 0,
+            "failure_closeout": 5252,
+            "hooks": 0,
+            "ledgers": 48,
+            "logits": 993280,
+            "logs": 39,
+            "rows": 36,
+            "sources_inputs": 0
+          },
+          "errors": [],
+          "status": "COMPLETE",
+          "steering_or_model_success_tested": false
+        },
+        "sha256": "d70ce1d50070644c3026eabaf4e48ecbf3657dad4b094cb371c2e64975e79e8c",
+        "vector_bytes": 993280
+      },
+      "name": "full_vector_roundtrip_and_actual_files",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "corruption_retained": true,
+        "index_hash_failure_rejected": true,
+        "reader": {
+          "actual_bytes": 996938,
+          "actual_file_count": 2,
+          "all_files_accounted": true,
+          "category_bytes": {
+            "audit_inventory": 0,
+            "failure_closeout": 3658,
+            "hooks": 0,
+            "ledgers": 0,
+            "logits": 993280,
+            "logs": 0,
+            "rows": 0,
+            "sources_inputs": 0
+          },
+          "errors": [
+            "changed_since_index:logits/001.f32",
+            "expected_bytes_mismatch:logits/001.f32",
+            "invalid_raw_logits:logits/001.f32:raw length/hash identity"
+          ],
+          "status": "INCOMPLETE",
+          "steering_or_model_success_tested": false
+        },
+        "short_vector_bytes": 17
+      },
+      "name": "independent_corrupt_incomplete_reader",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "actual_prefix_bytes": 4096,
+        "attempted_vector_bytes": 993280,
+        "index": {
+          "actual_total_including_index": 7920,
+          "bytes": 3824,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8384784,
+          "sha256": "1ad51d39188e0cd92ad7a71b2b5f528468eb524c8402926c94b63b4d9f3cc978",
+          "status": "INCOMPLETE"
+        },
+        "partial_file_retained": true,
+        "reader": {
+          "actual_bytes": 7920,
+          "actual_file_count": 2,
+          "all_files_accounted": true,
+          "category_bytes": {
+            "audit_inventory": 0,
+            "failure_closeout": 3824,
+            "hooks": 0,
+            "ledgers": 0,
+            "logits": 4096,
+            "logs": 0,
+            "rows": 0,
+            "sources_inputs": 0
+          },
+          "errors": [
+            "incomplete:logits/001.f32",
+            "writer_declared_incomplete"
+          ],
+          "status": "INCOMPLETE",
+          "steering_or_model_success_tested": false
+        }
+      },
+      "name": "partial_write_sticky_reconciliation_reserve",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "cap_index": {
+          "actual_total_including_index": 1052357,
+          "bytes": 3781,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8384827,
+          "sha256": "5a282a8dda228993e689b4bd08b4472f65d1cb9b30efa0a0b9b5515e964130a0",
+          "status": "INCOMPLETE"
+        },
+        "exact_append_cap_bytes": 1048576,
+        "partial_append_bytes": 12,
+        "partial_index": {
+          "actual_total_including_index": 3831,
+          "bytes": 3819,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8384789,
+          "sha256": "52e641c92d0aaaebbbeafcbe9d29e1224b182ab98e1053ff4a7a1600b37edf5c",
+          "status": "INCOMPLETE"
+        }
+      },
+      "name": "partial_append_and_append_cap",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "actual_bytes_before_closeout": 23,
+        "index": {
+          "actual_total_including_index": 4126,
+          "bytes": 4103,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8384505,
+          "sha256": "528d0fd4c4423818bb68424579eba2f315afe656716c1a229bc337e2271b9120",
+          "status": "INCOMPLETE"
+        },
+        "reader": {
+          "actual_bytes": 4126,
+          "actual_file_count": 3,
+          "all_files_accounted": true,
+          "category_bytes": {
+            "audit_inventory": 0,
+            "failure_closeout": 4103,
+            "hooks": 0,
+            "ledgers": 0,
+            "logits": 0,
+            "logs": 0,
+            "rows": 3,
+            "sources_inputs": 0
+          },
+          "errors": [
+            "untracked_external:external.bin",
+            "incomplete:external.bin",
+            "writer_declared_incomplete"
+          ],
+          "status": "INCOMPLETE",
+          "steering_or_model_success_tested": false
+        }
+      },
+      "name": "external_file_mismatch_is_visible",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "bad_paths_rejected": 6,
+        "case_collision_index": {
+          "actual_total_including_index": 3759,
+          "bytes": 3753,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8384855,
+          "sha256": "e9b3e3dacb6aa6c78dd428bef558d40c54876a8cef94a5f8f9ab42d42ca7cdd6",
+          "status": "INCOMPLETE"
+        },
+        "foreign_write_rejected": true,
+        "old_settings_rejected": 3,
+        "owner_thread_index": {
+          "actual_total_including_index": 3626,
+          "bytes": 3623,
+          "path": "closeout/index.json",
+          "remaining_closeout_bytes": 8384985,
+          "sha256": "23bea4c0bb820d66e6cc460be72a97f5237047eacb5a7cdd05657084c760779b",
+          "status": "COMPLETE"
+        }
+      },
+      "name": "single_owner_paths_case_and_settings",
+      "status": "PASS"
+    }
+  ],
+  "dataset_reads": 0,
+  "elapsed_seconds": 4.5780000002123415,
+  "error": null,
+  "fixture_faults_retained": true,
+  "milestone_credit": false,
+  "model_calls": 0,
+  "real_hook_capacity_verified": false,
+  "real_run_authorized": false,
+  "scope": "PURE_FILESYSTEM_COMPONENT_ONLY",
+  "source_freeze_sha256": "f591560273926e55f60339c465a67b2bdccd4264368642132534ed5922b3ac82",
+  "status": "PASS",
+  "supervisors_executed": false,
+  "tokenizer_calls": 0,
+  "whole_cohort_simulated": false
+}
