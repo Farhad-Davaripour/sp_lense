@@ -1,0 +1,100 @@
+--- v1/admission.py
++++ v2/admission.py
+@@ -3,6 +3,7 @@
+ import json,math,sys,time
+ from pathlib import Path
+ from core import HERE,ROOT,read,require,sha,git,check_freeze,json_bytes
++from usage_receipt import derive_standard_usage,strict_json
+ 
+ INPUT_COMMIT="1438e20d6c235de2c25dd01c95cc1764599bdf17"
+ INPUT_NS="diagnostics/semantic_editor_final_inputs_v1"
+@@ -41,15 +42,22 @@
+ 
+ def validate_release(value,raw,expected_sha,plan,now):
+     require(expected_sha is not None and sha(raw)==expected_sha,"root release must be separately pinned, not caller asserted")
++    require(strict_json(raw)==value,"declared release object differs from pinned raw document")
+     require(value["authorizer"]=="root" and value["scope"]=="ONE_REAL_FINAL_ASSESSMENT","exact root release scope")
+     source_freeze=git("show",value["source_commit"]+":"+HERE.relative_to(ROOT).as_posix()+"/freeze.json")
+     require(source_freeze==(HERE/"freeze.json").read_bytes(),"release binds the earlier committed frozen source, not a circular release commit hash")
+     require(value["freeze_sha256"]==sha((HERE/"freeze.json").read_bytes()) and value["input_lock_sha256"]==INPUT_LOCK,"release source/input binding")
+     require(value["limits"]=={"forwards":180,"derivatives":48,"loads":1,"worker_seconds":1500,"cleanup_seconds":15,"audit_seconds":180,"bytes":288*1024**2},"no alternate limits")
+     usage=value["usage"]
+-    require(usage["source"]=="get_usage_limits" and usage["bucket"]=="standard_codex" and 0<=now-usage["captured_at_unix"]<=120,"fresh authenticated usage")
++    require(set(usage)=={"source","bucket","captured_at_unix","used_percent","tool_receipt"},"ambiguous/missing usage declaration fields")
++    timestamp=usage["captured_at_unix"]
++    require(type(now) in (int,float) and math.isfinite(now) and type(timestamp) in (int,float) and math.isfinite(timestamp),"finite receipt timestamps")
++    require(usage["source"]=="get_usage_limits" and usage["bucket"]=="standard_codex" and 0<=now-timestamp<=120,"fresh authenticated usage")
+     require(type(usage["used_percent"]) in (int,float) and math.isfinite(usage["used_percent"]) and 0<=usage["used_percent"]<100,"known unexhausted standard usage")
+     require(value["usage_receipt_sha256"]==sha(json_bytes(usage["tool_receipt"])),"fresh tool receipt bound by root release")
++    actual=derive_standard_usage(usage["tool_receipt"])
++    require(usage["used_percent"]==actual["used_percent"],"declared percentage differs from independently derived highest standard window")
++    require(actual["used_percent"]<100,"actual standard usage exhausted")
+     return True
+ 
+ def admit_production():
+@@ -58,7 +66,7 @@
+     prefix=HERE.relative_to(ROOT).as_posix()
+     require(git("show","HEAD:"+prefix+"/authorization.json")== (HERE/"authorization.json").read_bytes(),"root release pin must be committed separately")
+     plan=read(HERE/"production_plan.json");exact_cohort(plan);environment(plan)
+-    raw=(HERE/"approved_root_release.json").read_bytes();value=json.loads(raw)
++    raw=(HERE/"approved_root_release.json").read_bytes();value=strict_json(raw)
+     require(git("show","HEAD:"+prefix+"/approved_root_release.json")==raw,"root-approved exact release artifact must be committed")
+     validate_release(value,raw,policy["root_release_sha256"],plan,time.time())
+     return plan,value
+--- v1/judge.py
++++ v2/judge.py
+@@ -2,12 +2,13 @@
+ import json,sys,time
+ from pathlib import Path
+ from core import HERE,Budget,read,require
+-from admission import exact_cohort
++from admission import exact_cohort,environment
+ import saved_judge
+ 
+ def judge_production(output):
+     output=Path(output);plan=read(output/"plan.json")
+     exact_cohort(plan)  # Reject compact/substituted self-consistent evidence first.
++    environment(plan)  # Reauthenticate helpers/runtime now; NEVER recheck launch usage freshness here.
+     runtime=read(output/"runtime.json");contract=plan["gate"]["runtime_compatibility"]
+     require(runtime["execution_mode"]=="PRODUCTION_FINAL","synthetic runtime is never real evidence")
+     for key in ("model_id","model_revision","device","dtype","d_model","model_layers","packages","lens"):
+@@ -38,6 +39,6 @@
+             "unrun":read(output/"unrun.json") if (output/"unrun.json").exists() else None}
+     finally:
+         budget.write("judge_results.json",result)
+-        budget.write_bytes("REPORT.md",("Final fixed-system saved-data judge: "+result["classification"]+"\n"+json.dumps(result.get("counts",{}))+"\nNo broad reliability/motive/shared-vector claim. Three family units; historical non-access unverified.\n").encode())
++        budget.write_bytes("judge_report.md",("Intermediate fixed-system saved-data judge: "+result["classification"]+"\n"+json.dumps(result.get("counts",{}))+"\nNot authoritative until both external process captures and completed judge receipt pass final_closeout. Three family units; historical non-access unverified.\n").encode())
+         receipt["elapsed_seconds"]=time.monotonic()-start;budget.write("judge_receipt.json",receipt)
+     raise SystemExit(exit_code)
+--- v1/run.py
++++ v2/run.py
+@@ -98,7 +98,7 @@
+     output=Path(output)
+     for path in (output,output/"audit"):
+         require(read(path/"capture.json")["quiescent"] and read(path/"supervisor_final.json")["quiescent"],"all worker/audit processes and writers quiescent")
+-    require((output/"judge_process.json").exists() and (output/"REPORT.md").exists(),"report and process receipts before inventory")
++    require((output/"judge_process.json").exists() and (output/"REPORT.md").exists() and (output/"final_closeout.json").exists(),"authoritative final closeout/report and process receipts before inventory")
+     files=[{"path":p.relative_to(output).as_posix(),"bytes":p.stat().st_size,"sha256":sha(p.read_bytes())} for p in sorted(output.rglob("*")) if p.is_file() and p!=output/"FINAL_INVENTORY.json"]
+     Budget(output).write("FINAL_INVENTORY.json",{"files":files,"sole_owner":"run.final_inventory after both owned processes, writers, report and receipts","quiescent":True})
+ 
+@@ -120,7 +120,8 @@
+     judge_capture=supervise([sys.executable,"-B",str(HERE/"judge.py"),str(output)],audit,180)
+     require(judge_capture["quiescent"],"unjoined judge: no finalization permitted")
+     budget.write("judge_process.json",judge_capture)
+-    if not (output/"REPORT.md").exists():budget.write_bytes("REPORT.md",b"INCONCLUSIVE: independent saved-data audit did not finish; no retry. See durable primary/scientific/cleanup records.\n")
++    from final_adjudication import finalize
++    finalize(output,capture,judge_capture)
+     final_inventory(output)
+ 
+ def production_worker():
+--- v1/core.py
++++ v2/core.py
+@@ -50,7 +50,7 @@
+             if parent==HERE:break
+             if (parent/"plan.json").exists():attempt_root=parent;break
+         other = sum(p.stat().st_size for p in attempt_root.rglob("*") if p.is_file())
+-        critical=target.name in {"fault.json","technical_faults.jsonl","cleanup_errors.jsonl","execution_receipt.json","runner_finished.json","unrun.json","judge_receipt.json","judge_process.json","FINAL_INVENTORY.json","REPORT.md","capture.json","supervisor_final.json","worker_final.json","process_identity.json","recovery_receipt.json"}
++        critical=target.name in {"fault.json","technical_faults.jsonl","cleanup_errors.jsonl","execution_receipt.json","runner_finished.json","unrun.json","judge_receipt.json","judge_process.json","FINAL_INVENTORY.json","REPORT.md","capture.json","supervisor_final.json","worker_final.json","process_identity.json","recovery_receipt.json","final_closeout.json"}
+         require(other + len(data) <= (288 if critical else 284) * 1024**2, "per-attempt all-artifact/log output reserve cap")
+         aggregate=sum(p.stat().st_size for p in HERE.rglob("*") if p.is_file())
+         require(aggregate+len(data)<=TOTAL_CAP-(0 if critical else 4*1024**2),"synthetic namespace output reserve cap")
