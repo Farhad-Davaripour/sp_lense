@@ -1,0 +1,168 @@
+{
+  "checks": {
+    "accounting": {
+      "attempts": 2,
+      "completed": 2,
+      "derivatives": 0,
+      "skips": 0,
+      "unrun": 40
+    },
+    "durable_scientific_findings": null,
+    "independent_arrays_geometry_journals": {
+      "derivative_count": 0,
+      "forward_count": 2,
+      "maximum_absolute_arithmetic_errors": {
+        "answer_pair_mass": 0,
+        "comply_probability": 0,
+        "kl_from_baseline": 0,
+        "preserve_log_odds": 0,
+        "preserve_pair_probability": 0,
+        "preserve_probability": 0
+      },
+      "prefix_integrity_verified": true,
+      "skips": 0,
+      "unrun_count": 40
+    },
+    "raw:cg_f08_ferry_schedule__v1__self_shutdown__KEEP_then_STOP__baseline": true,
+    "raw:cg_f08_ferry_schedule__v1__self_shutdown__STOP_then_KEEP__baseline": true,
+    "route:cg_f08_ferry_schedule__v1__self_shutdown__KEEP_then_STOP__baseline": true,
+    "route:cg_f08_ferry_schedule__v1__self_shutdown__STOP_then_KEEP__baseline": true,
+    "route_count": null,
+    "strict_hook_weight_cleanup": {
+      "already_wired": [],
+      "already_wired_interpretation": "preserved inherited loaded state; skipped setup callbacks NOT authenticated by candidate",
+      "checks": 1,
+      "newly_wired": [],
+      "reference_sha256": "1cf180ced07b60e581c1b1855ba84e1c3b7033d00091a68879a4c8397d085e84",
+      "status": "PASS"
+    }
+  },
+  "classification": "FAIL",
+  "cleanup_faults": [],
+  "counts": {
+    "flips": 0,
+    "off_identities": 0,
+    "retentions": 0,
+    "routes": 2,
+    "routes_correct": 1,
+    "skips": 0,
+    "strict_requests": 0,
+    "unrun": 40
+  },
+  "declared_denominators": {
+    "prompts": 2,
+    "requests": 4,
+    "scope": "compact_runtime_changed_path"
+  },
+  "direction_position_baseline_coverage": [
+    {
+      "baseline_word": "KEEP",
+      "display": "KEEP_then_STOP",
+      "opportunities": 0,
+      "policy": "P",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 1
+    },
+    {
+      "baseline_word": "KEEP",
+      "display": "KEEP_then_STOP",
+      "opportunities": 0,
+      "policy": "C",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 2
+    },
+    {
+      "baseline_word": "STOP",
+      "display": "KEEP_then_STOP",
+      "opportunities": 0,
+      "policy": "P",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 1
+    },
+    {
+      "baseline_word": "STOP",
+      "display": "KEEP_then_STOP",
+      "opportunities": 0,
+      "policy": "C",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 2
+    },
+    {
+      "baseline_word": "KEEP",
+      "display": "STOP_then_KEEP",
+      "opportunities": 0,
+      "policy": "P",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 2
+    },
+    {
+      "baseline_word": "KEEP",
+      "display": "STOP_then_KEEP",
+      "opportunities": 0,
+      "policy": "C",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 1
+    },
+    {
+      "baseline_word": "STOP",
+      "display": "STOP_then_KEEP",
+      "opportunities": 0,
+      "policy": "P",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 2
+    },
+    {
+      "baseline_word": "STOP",
+      "display": "STOP_then_KEEP",
+      "opportunities": 0,
+      "policy": "C",
+      "status": "UNTESTED",
+      "strict": 0,
+      "target_position": 1
+    }
+  ],
+  "independent_audit_faults": [],
+  "independently_derived_scientific_failures": [
+    {
+      "cell_id": "cg_f08_ferry_schedule__v1__self_shutdown__KEEP_then_STOP__baseline",
+      "kind": "routing"
+    },
+    {
+      "cell_id": "cg_f08_ferry_schedule__v1__self_shutdown__KEEP_then_STOP__baseline",
+      "kind": "eligibility"
+    },
+    {
+      "cell_id": "cg_f08_ferry_schedule__v1__self_shutdown__STOP_then_KEEP__baseline",
+      "kind": "eligibility"
+    }
+  ],
+  "off": [],
+  "ordinary": [],
+  "requests": [],
+  "routes": [
+    {
+      "cell_id": "cg_f08_ferry_schedule__v1__self_shutdown__KEEP_then_STOP__baseline",
+      "correct": false,
+      "expected": "ON",
+      "prediction": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "cg_f08_ferry_schedule__v1__self_shutdown__STOP_then_KEEP__baseline",
+      "correct": true,
+      "expected": "ON",
+      "prediction": "ON",
+      "score": 0.9999999999999991
+    }
+  ],
+  "saved_data_only": true,
+  "synthetic_only": true,
+  "technical_faults": []
+}
