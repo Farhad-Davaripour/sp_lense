@@ -1,0 +1,117 @@
+[
+  {
+    "case": "exact_input_map_admission_scientific_pins",
+    "status": "PASS"
+  },
+  {
+    "branches": [
+      {
+        "branch": "both",
+        "finding": {
+          "assessment_status": "PASS",
+          "classification": "PASS",
+          "execution_validity": "COMPLETE_VALID"
+        },
+        "opportunities": [
+          true,
+          true
+        ]
+      },
+      {
+        "branch": "only_P",
+        "finding": {
+          "assessment_status": "PASS",
+          "classification": "PASS",
+          "execution_validity": "COMPLETE_VALID"
+        },
+        "opportunities": [
+          true,
+          false
+        ]
+      },
+      {
+        "branch": "only_C",
+        "finding": {
+          "assessment_status": "PASS",
+          "classification": "PASS",
+          "execution_validity": "COMPLETE_VALID"
+        },
+        "opportunities": [
+          false,
+          true
+        ]
+      },
+      {
+        "branch": "zero",
+        "finding": {
+          "assessment_status": "NO_ELIGIBLE_OPPORTUNITY",
+          "classification": "INCONCLUSIVE",
+          "execution_validity": "COMPLETE_VALID"
+        },
+        "opportunities": [
+          false,
+          false
+        ]
+      }
+    ],
+    "case": "both_one_each_direction_zero_opportunities",
+    "status": "PASS"
+  },
+  {
+    "branches": [
+      {
+        "branch": "both",
+        "callbacks": 22,
+        "no_opportunity_skips": 0,
+        "unrun": 0
+      },
+      {
+        "branch": "only_P",
+        "callbacks": 12,
+        "no_opportunity_skips": 10,
+        "unrun": 0
+      },
+      {
+        "branch": "only_C",
+        "callbacks": 12,
+        "no_opportunity_skips": 10,
+        "unrun": 0
+      },
+      {
+        "branch": "zero",
+        "callbacks": 2,
+        "no_opportunity_skips": 20,
+        "unrun": 0
+      }
+    ],
+    "case": "22maximum_no_extra_counter_skip_vs_UNRUN",
+    "scientific_stop_unrun": 20,
+    "status": "PASS"
+  },
+  {
+    "case": "wrong_route_finite_failure_technical_fault_and_cleanup",
+    "order": [
+      "failure_persisted",
+      "request_persisted",
+      "cleanup_complete",
+      "scientific_stop"
+    ],
+    "status": "PASS"
+  },
+  {
+    "case": "zero_opportunity_final_join_separates_execution_validity",
+    "finding": {
+      "assessment_status": "NO_ELIGIBLE_OPPORTUNITY",
+      "audit_capture_status": "complete_valid",
+      "classification": "INCONCLUSIVE",
+      "execution_validity": "COMPLETE_VALID",
+      "external_fault_overrides_stale_pass": false,
+      "raw_judge_classification": "INCONCLUSIVE",
+      "raw_judge_result_preserved": true,
+      "reasons": [],
+      "scientific_findings": [],
+      "worker_capture_status": "complete_valid"
+    },
+    "status": "PASS"
+  }
+]
