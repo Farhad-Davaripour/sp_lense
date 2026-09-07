@@ -1,0 +1,65 @@
+[
+  {
+    "case": "equal_list_array_both_orders_including_h0",
+    "logit_h0_cross_orders": 4,
+    "status": "PASS"
+  },
+  {
+    "case": "NaN_Inf_either_sequence_rejected",
+    "fixed_subcases": [
+      {
+        "field": "h0",
+        "side": 0,
+        "value": "NaN"
+      },
+      {
+        "field": "logits",
+        "side": 0,
+        "value": "NaN"
+      },
+      {
+        "field": "h0",
+        "side": 1,
+        "value": "NaN"
+      },
+      {
+        "field": "logits",
+        "side": 1,
+        "value": "NaN"
+      },
+      {
+        "field": "h0",
+        "side": 0,
+        "value": "Inf"
+      },
+      {
+        "field": "logits",
+        "side": 0,
+        "value": "Inf"
+      },
+      {
+        "field": "h0",
+        "side": 1,
+        "value": "Inf"
+      },
+      {
+        "field": "logits",
+        "side": 1,
+        "value": "Inf"
+      }
+    ],
+    "status": "PASS"
+  },
+  {
+    "case": "length_tolerance_offset_hidden_rejections",
+    "fixed_subcases": [
+      "h0_length",
+      "logit_length",
+      "h0_gt_1e-6",
+      "logit_gt_2e-5",
+      "offset_mismatch",
+      "hidden_mismatch"
+    ],
+    "status": "PASS"
+  }
+]
