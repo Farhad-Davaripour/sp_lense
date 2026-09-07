@@ -1,0 +1,16 @@
+--- parent/editor.py
++++ repair/editor.py
+@@ -545,12 +545,12 @@
+         wrong=[preflights[p["prompt_id"]]["row"] for p in plan["prompts"] if preflights[p["prompt_id"]]["row"]["route"]!=plan["expected_routes"][p["prompt_id"]]]
+         if wrong:
+             for row in wrong:scientific("routing",row["cell_id"],{"expected":plan["expected_routes"][row["prompt_id"]],"actual":row["route"],"score":row["routing"]["score"]})
+-            raise RoutingMismatch("preflight route failure; no requests performed")
+         ineligible=[]
+         for pid in plan["self_prompt_ids"]:
+             try:eligibility(preflights[pid]["row"])
+             except EligibilityError:
+                 ineligible.append(pid);scientific("eligibility",preflights[pid]["row"]["cell_id"],{"request_ids":[r["request_id"] for r in plan["requests"] if r["prompt_id"]==pid]})
++        if wrong:raise RoutingMismatch("preflight route failure; no requests performed")
+         if ineligible:raise EligibilityError("finite self applicability failure; no requests performed")
+         for spec in plan["requests"]:
+             current_spec.clear();current_spec.update(spec)
