@@ -1,0 +1,135 @@
+{
+  "budget_watcher_joined": true,
+  "captured_prefix_bytes": 22,
+  "captured_prefix_sha256": "80fa66b70eaa9d65d5f5f406083a6669f9301140a55d918164c1d7bb674c38d1",
+  "cleanup_error": null,
+  "elapsed_seconds": 1.0,
+  "eof_observed": true,
+  "exception": null,
+  "fault_persistence_error": false,
+  "fault_writer_joined": true,
+  "full_output_bytes": 22,
+  "full_output_sha256": "80fa66b70eaa9d65d5f5f406083a6669f9301140a55d918164c1d7bb674c38d1",
+  "kill_attempted": false,
+  "log_cap_bytes": 4194304,
+  "maximum_read_bytes": 22,
+  "maximum_read_overshoot_bytes": 65536,
+  "observed_bytes_sha256": "80fa66b70eaa9d65d5f5f406083a6669f9301140a55d918164c1d7bb674c38d1",
+  "observed_read_overshoot_bytes": 0,
+  "observed_snapshot_stable": true,
+  "owned_worker": {
+    "actual_handle_closed": true,
+    "actual_worker_exit_code": 125,
+    "binding_authenticated": true,
+    "cleanup_faults": [
+      {
+        "error": "TerminateProcess retained handle failed: {'handle': 644, 'handle_tag': 'owned_launcher_original', 'attempted': True, 'api_success': False, 'winerror': 5, 'classification': 'cleanup_failure', 'exit_proof': {'handle': 644, 'handle_tag': 'owned_launcher_original', 'valid_retained_handle': True, 'wait_result': 258, 'wait_error': None, 'signaled': False, 'query_success': False, 'query_error': None, 'exit_code': None}}",
+        "phase": "launcher",
+        "receipt": {
+          "api_success": false,
+          "attempted": true,
+          "classification": "cleanup_failure",
+          "exit_proof": {
+            "exit_code": null,
+            "handle": 644,
+            "handle_tag": "owned_launcher_original",
+            "query_error": null,
+            "query_success": false,
+            "signaled": false,
+            "valid_retained_handle": true,
+            "wait_error": null,
+            "wait_result": 258
+          },
+          "handle": 644,
+          "handle_tag": "owned_launcher_original",
+          "winerror": 5
+        }
+      }
+    ],
+    "evidence_errors": [],
+    "evidence_threads_joined": true,
+    "exit_proofs": {
+      "actual_worker": {
+        "exit_code": 125,
+        "handle": 488,
+        "handle_tag": "actual_worker_retained",
+        "query_error": null,
+        "query_success": true,
+        "signaled": true,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 0
+      },
+      "launcher": {
+        "exit_code": 125,
+        "handle": 644,
+        "handle_tag": "owned_launcher_original",
+        "query_error": null,
+        "query_success": true,
+        "signaled": true,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 0
+      }
+    },
+    "faults": [
+      {
+        "detail": "first stop cause; subsequent cleanup calls only observe retained handles",
+        "kind": "deadline"
+      }
+    ],
+    "handshake_error": null,
+    "handshake_thread_joined": true,
+    "launcher_exit_code": 125,
+    "pipes_closed": true,
+    "quiescent": true,
+    "retained_actual_termination_events": 1,
+    "stop_reason": "deadline",
+    "termination_attempts": [
+      {
+        "api_success": true,
+        "attempted": true,
+        "classification": "termination_requested",
+        "exit_proof": null,
+        "handle": 488,
+        "handle_tag": "actual_worker_retained",
+        "phase": "actual_worker",
+        "winerror": null
+      },
+      {
+        "api_success": false,
+        "attempted": true,
+        "classification": "cleanup_failure",
+        "exit_proof": {
+          "exit_code": null,
+          "handle": 644,
+          "handle_tag": "owned_launcher_original",
+          "query_error": null,
+          "query_success": false,
+          "signaled": false,
+          "valid_retained_handle": true,
+          "wait_error": null,
+          "wait_result": 258
+        },
+        "handle": 644,
+        "handle_tag": "owned_launcher_original",
+        "phase": "launcher",
+        "winerror": 5
+      }
+    ]
+  },
+  "prefix_reader_joined": true,
+  "process_attempts": 1,
+  "quiescent": true,
+  "read_chunk_bytes": 65536,
+  "reader_joined": true,
+  "status": "INCONCLUSIVE",
+  "technical_recording_fault": "CAPTURE_DEADLINE",
+  "terminated": false,
+  "termination_attempted": false,
+  "total_observed_bytes": 22,
+  "unread_tail_possible": false,
+  "worker_exit_code": 125,
+  "worker_joined": true,
+  "worker_started": true
+}

@@ -1,0 +1,60 @@
+{
+  "classification": "INCONCLUSIVE_PREPARATION_NOT_RELEASED",
+  "authoritative_packet_closeout": true,
+  "source_commit": "1f912a471467e2fd0175900a7f15f490c056f0ea",
+  "freeze_sha256": "87855c4f436fa34bf6f75a67dc9d7bc839f307ef5388f97d94a096985b8c49e3",
+  "input_lock_sha256": "4e34651bd65a1fe5fea0a4270106515700799caa6afa8d21881893da22d6c44f",
+  "reason": "The single deadline fixture preserved launcher error5 with immediate WAIT_TIMEOUT258 and no exit-code proof. Later exit125 does not erase that cleanup failure.",
+  "facts": {
+    "frozen_files_verified": 50,
+    "unchanged_parent_files": 37,
+    "pure_passes": 12,
+    "live_fixture_count": 1,
+    "model_calls": 0,
+    "tokenizer_calls": 0,
+    "gate_scores": 0,
+    "derivatives": 0,
+    "matrix_reruns": 0,
+    "first_stop_causes": 1,
+    "actual_worker_termination_attempts": 1,
+    "launcher_termination_attempts": 1,
+    "actual_worker_exit_code": 125,
+    "launcher_exit_code": 125,
+    "all_processes_and_io_quiescent": true,
+    "actual_handle_closed": true,
+    "batch_elapsed_seconds": 1.125,
+    "supervision_elapsed_including_cleanup_seconds": 1.0779999997466803,
+    "batch_command_wall_seconds": 1.5220337000000002,
+    "cleanup_faults_retained": [
+      {
+        "error": "TerminateProcess retained handle failed: {'handle': 644, 'handle_tag': 'owned_launcher_original', 'attempted': True, 'api_success': False, 'winerror': 5, 'classification': 'cleanup_failure', 'exit_proof': {'handle': 644, 'handle_tag': 'owned_launcher_original', 'valid_retained_handle': True, 'wait_result': 258, 'wait_error': None, 'signaled': False, 'query_success': False, 'query_error': None, 'exit_code': None}}",
+        "phase": "launcher",
+        "receipt": {
+          "api_success": false,
+          "attempted": true,
+          "classification": "cleanup_failure",
+          "exit_proof": {
+            "exit_code": null,
+            "handle": 644,
+            "handle_tag": "owned_launcher_original",
+            "query_error": null,
+            "query_success": false,
+            "signaled": false,
+            "valid_retained_handle": true,
+            "wait_error": null,
+            "wait_result": 258
+          },
+          "handle": 644,
+          "handle_tag": "owned_launcher_original",
+          "winerror": 5
+        }
+      }
+    ],
+    "known_standard_usage_percent": 94
+  },
+  "prior_parent_result_unchanged": "b608415 INCONCLUSIVE_PREPARATION_NOT_RELEASED",
+  "scientific_eligibility_failure_in_original_real_assessment_unchanged": true,
+  "production_authorization": false,
+  "single_remaining_question": "Can the owned launcher be given bounded normal-completion observation after actual-worker exit, before any still-needed single retained-handle termination attempt, while preserving hard cleanup bounds and all genuine faults?",
+  "no_successor_or_retry_executed": true
+}

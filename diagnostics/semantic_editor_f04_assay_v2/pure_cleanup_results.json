@@ -1,0 +1,301 @@
+[
+  {
+    "evidence": {
+      "cause": "deadline",
+      "faults": [
+        {
+          "detail": "first stop cause; subsequent cleanup calls only observe retained handles",
+          "kind": "deadline"
+        }
+      ],
+      "launcher_calls": 1,
+      "worker_calls": 1
+    },
+    "fixture": "repeat_stop_poll_terminate_kill_single_cause_attempt",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "observed_already_exited_race",
+      "exit_proof": {
+        "exit_code": 125,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": true,
+        "signaled": true,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 0
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 5
+    },
+    "fixture": "error5_signaled_same_handle_exit_query_race",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "cleanup_failure",
+      "exit_proof": {
+        "exit_code": null,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": false,
+        "signaled": false,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 258
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 5
+    },
+    "fixture": "error5_live_denial_fails",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "cleanup_failure",
+      "exit_proof": {
+        "exit_code": null,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": false,
+        "signaled": false,
+        "valid_retained_handle": true,
+        "wait_error": 997,
+        "wait_result": 4294967295
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 6
+    },
+    "fixture": "invalid_retained_os_handle_fails",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "cleanup_failure",
+      "exit_proof": {
+        "exit_code": 125,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": true,
+        "signaled": true,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 0
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 87
+    },
+    "fixture": "unknown_error_even_with_exit_proof_fails",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "cleanup_failure",
+      "exit_proof": {
+        "exit_code": null,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": false,
+        "signaled": false,
+        "valid_retained_handle": true,
+        "wait_error": 997,
+        "wait_result": 4294967295
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 5
+    },
+    "fixture": "error5_failed_wait_fails",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "cleanup_failure",
+      "exit_proof": {
+        "exit_code": null,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": 31,
+        "query_success": false,
+        "signaled": true,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 0
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 5
+    },
+    "fixture": "error5_failed_query_fails",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "cleanup_failure",
+      "exit_proof": {
+        "exit_code": null,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": false,
+        "signaled": false,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": null
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 5
+    },
+    "fixture": "error5_missing_exit_proof_fails",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "observed_already_exited_race",
+      "exit_proof": {
+        "exit_code": 125,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": true,
+        "signaled": true,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 0
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 5
+    },
+    "fixture": "last_error_preserved_across_clobbering_wait_query",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "event_count": 8,
+      "faults": [
+        {
+          "error": "TerminateProcess retained handle failed: {'handle': 321, 'handle_tag': 'actual', 'attempted': True, 'api_success': False, 'winerror': 5, 'classification': 'cleanup_failure', 'exit_proof': {'handle': 321, 'handle_tag': 'actual', 'valid_retained_handle': True, 'wait_result': 258, 'wait_error': None, 'signaled': False, 'query_success': False, 'query_error': None, 'exit_code': None}}",
+          "phase": "actual_worker",
+          "receipt": {
+            "api_success": false,
+            "attempted": true,
+            "classification": "cleanup_failure",
+            "exit_proof": {
+              "exit_code": null,
+              "handle": 321,
+              "handle_tag": "actual",
+              "query_error": null,
+              "query_success": false,
+              "signaled": false,
+              "valid_retained_handle": true,
+              "wait_error": null,
+              "wait_result": 258
+            },
+            "handle": 321,
+            "handle_tag": "actual",
+            "winerror": 5
+          }
+        }
+      ],
+      "termination_attempts": [
+        {
+          "api_success": false,
+          "attempted": true,
+          "classification": "cleanup_failure",
+          "exit_proof": {
+            "exit_code": null,
+            "handle": 321,
+            "handle_tag": "actual",
+            "query_error": null,
+            "query_success": false,
+            "signaled": false,
+            "valid_retained_handle": true,
+            "wait_error": null,
+            "wait_result": 258
+          },
+          "handle": 321,
+          "handle_tag": "actual",
+          "phase": "actual_worker",
+          "winerror": 5
+        },
+        {
+          "api_success": true,
+          "attempted": true,
+          "classification": "termination_requested",
+          "exit_proof": null,
+          "handle": 322,
+          "handle_tag": "launcher",
+          "phase": "launcher",
+          "winerror": null
+        }
+      ]
+    },
+    "fixture": "later_exit_retains_genuine_failure",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": true,
+      "classification": "cleanup_failure",
+      "exit_proof": {
+        "exit_code": null,
+        "handle": 321,
+        "handle_tag": "retained",
+        "query_error": null,
+        "query_success": false,
+        "signaled": false,
+        "valid_retained_handle": true,
+        "wait_error": null,
+        "wait_result": 258
+      },
+      "handle": 321,
+      "handle_tag": "retained",
+      "winerror": 5
+    },
+    "fixture": "native_duplicate_attempt_is_sticky",
+    "status": "PASS"
+  },
+  {
+    "evidence": {
+      "api_success": false,
+      "attempted": false,
+      "classification": "cleanup_failure",
+      "exit_proof": null,
+      "handle": 0,
+      "handle_tag": "retained",
+      "winerror": null
+    },
+    "fixture": "absent_handle_and_unjoined_io_never_accepted",
+    "status": "PASS"
+  }
+]
