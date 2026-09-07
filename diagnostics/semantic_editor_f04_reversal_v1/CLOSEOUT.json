@@ -1,0 +1,60 @@
+{
+  "classification": "INCONCLUSIVE_PREPARATION_NOT_RELEASED",
+  "prospective_source_commit": "7ce0b5edf3dafc8a8225db54aea6a729a24facfa",
+  "freeze_sha256": "fddce31cc73400cd87e767a3206f4a366a1d224d6758c04137e7ed7bf8b2b9b1",
+  "parent_result_commit": "1b83722c1d959b1f576282b8183097ebf6137300",
+  "parent_raw_inventory_sha256": "e6969acf0e4342df29433003280bae6417001d9b08baa19a89cc344280a4266c",
+  "pure_cases": {
+    "passed": 6,
+    "declared": 6
+  },
+  "synthetic_workflow": {
+    "attempts": 1,
+    "toy_loads": 1,
+    "forwards": 0,
+    "derivatives": 0,
+    "entry_routes": 0,
+    "starting_replays": 0,
+    "final_endpoints": 0,
+    "requests_performed": 0,
+    "requests_declared": 2,
+    "skips": 0,
+    "unrun_cells": 26,
+    "independent_saved_judge": "NOT_REACHED",
+    "primary_error": "ValueError: logits path escapes namespace",
+    "cleanup": "forward guard restored; no process fixture or model forward occurred"
+  },
+  "cause": {
+    "fixture_path": "synthetic/full_recovery/synthetic_start_1.f32.zlib",
+    "reader": "scripts/verify_local_controllability.py:53",
+    "required_contract": "path must be under output/logits",
+    "guard_weakened": false,
+    "source_or_fixture_repaired": false
+  },
+  "resource": {
+    "actual_batch_inner_seconds": 7.875,
+    "actual_batch_command_seconds": 9.4012773,
+    "prepare_command_seconds": 0.5599107,
+    "invoked_read_prepare_test_commands_conservative_upper_bound_seconds": 90,
+    "cap_seconds": 180,
+    "upper_bound_not_claimed_as_measured_execution_time": true,
+    "real_model_loads": 0,
+    "real_forwards": 0,
+    "real_derivatives": 0,
+    "tokenizer_calls": 0,
+    "real_gate_scores": 0,
+    "gate_fits": 0,
+    "child_process_fixtures": 0
+  },
+  "source_selection": {
+    "requests": [
+      "saved STOP -> KEEP at displayed first",
+      "saved KEEP -> STOP at displayed first"
+    ],
+    "interpretation": "constructed-start RECOVERY; no natural-baseline first-position evidence",
+    "original_h0_and_old_path_carry_forward": true
+  },
+  "production_authorized": false,
+  "next_question": "Can a separately authorized fixture-only successor place synthetic starting arrays inside the existing authenticated logits/ contract and complete this unchanged two-request workflow without weakening the reader?",
+  "historical_outcomes_changed": false
+}
