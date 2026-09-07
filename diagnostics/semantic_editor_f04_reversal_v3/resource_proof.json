@@ -1,0 +1,28 @@
+{
+  "calibration": "Verified f04 16F3D inner74.297s incl4.375sload; prior40F16D194.516s; finite300s no extension.",
+  "cleanup_seconds": 15,
+  "final_endpoints": 2,
+  "fresh_routes": 4,
+  "future_limits": {
+    "audit_seconds": 90,
+    "bytes": 100663296,
+    "cleanup_seconds": 15,
+    "derivatives": 8,
+    "forwards": 26,
+    "loads": 1,
+    "worker_seconds": 300
+  },
+  "max_file_bytes": 5242880,
+  "max_input_tokens": 133,
+  "no_model_tokenizer_gate_scores": true,
+  "off_checks": 0,
+  "prep_bytes": 33554432,
+  "prep_seconds": 180,
+  "saved_audit_seconds": 90,
+  "schedule": "2 baseline + 2*(entry+start+start_replay) + 2*(8 gradient/step+endpoint) =26F8D",
+  "starting_replays": 2,
+  "storage_bytes": 66222080,
+  "storage_formula": "26*(248320*4+1024 zlib overhead+262144 row reserve)+16MiB hooks+16MiB source/logs/receipts",
+  "strict_hook_checks": 9,
+  "worker_seconds": 300
+}

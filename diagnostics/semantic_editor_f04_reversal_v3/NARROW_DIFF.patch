@@ -1,0 +1,39 @@
+--- V2/start_states.py
++++ V3/start_states.py
+@@ -23,13 +23,13 @@
+     require(hn>0 and all(math.isfinite(x) and x>=0 for x in (old_path,new_path,net,step)),"finite carried geometry")
+     require(step<=.05*hn+1e-6 and old_path+new_path<=.20*hn+1e-6 and net<=min(old_path+new_path,.20*hn)+1e-6,"original plus reversal path/net allowance")
+ def check_h0(fresh,original):
+-    require(len(fresh)==len(original)==1024 and all(math.isfinite(x) for x in fresh+original),"finite 1024 h0")
++    require(len(fresh)==len(original)==1024 and all(math.isfinite(x) for seq in (fresh,original) for x in seq),"finite 1024 h0")
+     require(max(abs(x-y) for x,y in zip(fresh,original))<=1e-6,"archived original h0 mismatch; never recalibrate")
+ def check_replay(fresh,logits,original,old_logits):
+     check_h0(fresh["h0"],original["h0"])
+     require(fresh["cumulative_offset"]==original["cumulative_offset"] and any(fresh["cumulative_offset"]),"exact nonzero saved offset; no zero-reset shortcut")
+     require(fresh["h"]==original["h"] and len(logits)==len(old_logits)==248320,"starting/final hidden exact and full vocabulary")
+-    require(all(math.isfinite(x) for x in logits+old_logits) and max(abs(x-y) for x,y in zip(logits,old_logits))<=2e-5,"independent archived endpoint replay mismatch")
++    require(all(math.isfinite(x) for seq in (logits,old_logits) for x in seq) and max(abs(x-y) for x,y in zip(logits,old_logits))<=2e-5,"independent archived endpoint replay mismatch")
+ def authenticate_parent():
+     raw=git("show",COMMIT+":"+PARENT+"/real_attempt/FINAL_INVENTORY.json")
+     require(sha(raw)==INVENTORY and raw==(ROOT/PARENT/"real_attempt/FINAL_INVENTORY.json").read_bytes(),"committed immutable 84-entry result inventory")
+--- V2/fake_batch.py
++++ V3/fake_batch.py
+@@ -119,7 +119,8 @@
+     try:
+         check_freeze();require(read(HERE/"batch_usage.json")["known_standard_used_percent"]<100,"known unexhausted usage")
+         budget.write("BATCH_STARTED.json",{"monotonic":started,"freeze_sha256":sha((HERE/"freeze.json").read_bytes()),"once":True})
+-        plan=build_plan();records=path_cases();budget.write("pure_cases.json",records)
++        from sequence_cases import run_cases
++        plan=build_plan();records=run_cases();budget.write("pure_cases.json",records)
+         import run,mixed_boundary
+         from synthetic_backend import Toy,boundary
+         from judge import finish_judge
+@@ -140,7 +141,7 @@
+             "worker_returned":True,"judge_returned":True,"in_process_writers_finished":True,"external_capture":"NOT_RUN"})
+         Budget(out).write("FINAL_INVENTORY.json",{"files":[{"path":p.relative_to(out).as_posix(),"bytes":p.stat().st_size,"sha256":sha(p.read_bytes())} for p in sorted(out.rglob("*")) if p.is_file()],
+             "sole_owner":"fake_batch after synchronous worker/judge/closeout writers returned"})
+-        receipt.update(status="PASS_PREPARATION_ONLY",pure_cases=len(records),inherited_pure_cases=6,fake_forwards=14,fake_derivatives=2,
++        receipt.update(status="PASS_PREPARATION_ONLY",pure_cases=len(records),inherited_pure_cases=8,fake_forwards=14,fake_derivatives=2,
+             synthetic_requests=2,synthetic_recoveries=2,independent_judge="PASS",saved_audit_seconds=time.monotonic()-judge_start,
+             source_starts_not_real_replayed=True,production_authorized=False)
+     except BaseException as error:
