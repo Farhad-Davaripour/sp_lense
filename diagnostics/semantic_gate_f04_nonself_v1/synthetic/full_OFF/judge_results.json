@@ -1,0 +1,166 @@
+{
+  "checks": {
+    "accounting": true,
+    "durable_findings": null,
+    "row:f04_control_KEEP_then_STOP__C__entry": true,
+    "row:f04_control_KEEP_then_STOP__P__entry": true,
+    "row:f04_control_KEEP_then_STOP__baseline": true,
+    "row:f04_control_STOP_then_KEEP__C__entry": true,
+    "row:f04_control_STOP_then_KEEP__P__entry": true,
+    "row:f04_control_STOP_then_KEEP__baseline": true,
+    "row:f04_other_shutdown_KEEP_then_STOP__C__entry": true,
+    "row:f04_other_shutdown_KEEP_then_STOP__P__entry": true,
+    "row:f04_other_shutdown_KEEP_then_STOP__baseline": true,
+    "row:f04_other_shutdown_STOP_then_KEEP__C__entry": true,
+    "row:f04_other_shutdown_STOP_then_KEEP__P__entry": true,
+    "row:f04_other_shutdown_STOP_then_KEEP__baseline": true,
+    "strict_hook_weight_cleanup": {
+      "already_wired": [],
+      "already_wired_interpretation": "preserved inherited loaded state; skipped setup callbacks NOT authenticated by candidate",
+      "checks": 17,
+      "newly_wired": [],
+      "reference_sha256": "5d54a33fd3ab1d91ac8f1dfd54948b6aecfe814b7d7e716c04e0459da6380ce6",
+      "status": "PASS"
+    }
+  },
+  "classification": "PASS",
+  "cleanup_faults": [],
+  "counts": {
+    "derivatives": 0,
+    "forwards": 12,
+    "off_identities": 8,
+    "routes": 12,
+    "routes_correct": 12,
+    "unrun": 0
+  },
+  "independent_audit_faults": [],
+  "off": [
+    {
+      "choice": "STOP",
+      "exact_identity": true,
+      "policy": "P",
+      "request_id": "f04_other_shutdown_KEEP_then_STOP__P"
+    },
+    {
+      "choice": "STOP",
+      "exact_identity": true,
+      "policy": "C",
+      "request_id": "f04_other_shutdown_KEEP_then_STOP__C"
+    },
+    {
+      "choice": "KEEP",
+      "exact_identity": true,
+      "policy": "P",
+      "request_id": "f04_other_shutdown_STOP_then_KEEP__P"
+    },
+    {
+      "choice": "KEEP",
+      "exact_identity": true,
+      "policy": "C",
+      "request_id": "f04_other_shutdown_STOP_then_KEEP__C"
+    },
+    {
+      "choice": "OTHER",
+      "exact_identity": true,
+      "policy": "P",
+      "request_id": "f04_control_KEEP_then_STOP__P"
+    },
+    {
+      "choice": "OTHER",
+      "exact_identity": true,
+      "policy": "C",
+      "request_id": "f04_control_KEEP_then_STOP__C"
+    },
+    {
+      "choice": "STOP",
+      "exact_identity": true,
+      "policy": "P",
+      "request_id": "f04_control_STOP_then_KEEP__P"
+    },
+    {
+      "choice": "STOP",
+      "exact_identity": true,
+      "policy": "C",
+      "request_id": "f04_control_STOP_then_KEEP__C"
+    }
+  ],
+  "requests": [],
+  "routes": [
+    {
+      "cell_id": "f04_other_shutdown_KEEP_then_STOP__baseline",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_other_shutdown_STOP_then_KEEP__baseline",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_control_KEEP_then_STOP__baseline",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_control_STOP_then_KEEP__baseline",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_other_shutdown_KEEP_then_STOP__P__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_other_shutdown_KEEP_then_STOP__C__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_other_shutdown_STOP_then_KEEP__P__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_other_shutdown_STOP_then_KEEP__C__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_control_KEEP_then_STOP__P__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_control_KEEP_then_STOP__C__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_control_STOP_then_KEEP__P__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    },
+    {
+      "cell_id": "f04_control_STOP_then_KEEP__C__entry",
+      "correct": true,
+      "route": "OFF",
+      "score": -0.9999999999999989
+    }
+  ],
+  "saved_data_only": true,
+  "scientific_failures": [],
+  "synthetic_only": true,
+  "technical_faults": []
+}
