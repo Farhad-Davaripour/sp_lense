@@ -1,0 +1,82 @@
+{
+  "actual_handle_closed": true,
+  "actual_worker_exit_code": 125,
+  "binding_authenticated": true,
+  "cleanup_faults": [],
+  "evidence_errors": [],
+  "evidence_threads_joined": true,
+  "exit_proofs": {
+    "actual_worker": {
+      "exit_code": 125,
+      "handle": 724,
+      "handle_tag": "actual_worker_retained",
+      "query_error": null,
+      "query_success": true,
+      "signaled": true,
+      "valid_retained_handle": true,
+      "wait_error": null,
+      "wait_result": 0
+    },
+    "launcher": {
+      "exit_code": 125,
+      "handle": 696,
+      "handle_tag": "owned_launcher_original",
+      "query_error": null,
+      "query_success": true,
+      "signaled": true,
+      "valid_retained_handle": true,
+      "wait_error": null,
+      "wait_result": 0
+    }
+  },
+  "faults": [
+    {
+      "detail": "first stop cause; fixed three-second episode, repeated calls only observe",
+      "kind": "deadline"
+    }
+  ],
+  "handshake_error": null,
+  "handshake_thread_joined": true,
+  "launcher_exit_code": 125,
+  "pipes_closed": true,
+  "quiescent": true,
+  "retained_actual_termination_events": 1,
+  "stop_episode": {
+    "completed_at": 2259645.609,
+    "deadline": 2259648.609,
+    "overrun": false,
+    "started_at": 2259645.609
+  },
+  "stop_reason": "deadline",
+  "termination_attempts": [
+    {
+      "api_success": true,
+      "attempted": true,
+      "classification": "termination_requested",
+      "exit_proof": null,
+      "handle": 724,
+      "handle_tag": "actual_worker_retained",
+      "phase": "actual_worker",
+      "winerror": null
+    }
+  ],
+  "wrapper_grace": {
+    "allowance_seconds": 1.0,
+    "episode_deadline": 2259648.609,
+    "finished_at": 2259645.609,
+    "forced_verification_reserved_seconds": 1.0,
+    "proof": {
+      "exit_code": 125,
+      "handle": 696,
+      "handle_tag": "owned_launcher_original",
+      "query_error": null,
+      "query_success": true,
+      "signaled": true,
+      "valid_retained_handle": true,
+      "wait_error": null,
+      "wait_result": 0
+    },
+    "result": "natural_wrapper_exit",
+    "started_at": 2259645.609
+  }
+}
