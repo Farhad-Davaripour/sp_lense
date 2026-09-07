@@ -1,0 +1,154 @@
+{
+  "cases": [
+    {
+      "evidence": {
+        "all_hook_check_records_bytes": 446464,
+        "all_ledger_maxima_bytes": 4063232,
+        "all_log_streams_bytes": 4194304,
+        "non_closeout_bytes": 293601280,
+        "raw_logit_vector_bytes": 993280,
+        "raw_logits_180_bytes": 178790400,
+        "reserved_total_bytes": 301989888,
+        "rows_180_bytes": 47185920
+      },
+      "name": "contract_math_and_component_coherence",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "historical_zlib_files_modified": 0,
+        "negative_zero_bytes": "00000080",
+        "raw_bytes": 993280,
+        "raw_evidence_files_written": 0,
+        "round_trip": "byte-identical",
+        "sha256": "d70ce1d50070644c3026eabaf4e48ecbf3657dad4b094cb371c2e64975e79e8c"
+      },
+      "name": "fixed_raw_codec_complete_round_trip",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "attempt_limits": {
+          "derivative": 48,
+          "forward": 180,
+          "load": 1
+        },
+        "failed_attempts_consume_allowance": true,
+        "max_source_record_usage": {
+          "counts": {
+            "hook_checks": 0,
+            "logits": 180,
+            "rows": 180
+          },
+          "ledger_records": {
+            "cleanup_events.jsonl": 0,
+            "derivative_events.jsonl": 0,
+            "forward_events.jsonl": 0,
+            "gate_final.json": 0,
+            "integration_cleanup.json": 0,
+            "off_returns.jsonl": 0,
+            "requests.jsonl": 0,
+            "routing_events.jsonl": 0,
+            "scientific_failures.jsonl": 0,
+            "skip_events.jsonl": 0
+          },
+          "remaining_closeout_bytes": 8388608,
+          "total_bytes": 225976320,
+          "used_bytes": {
+            "audit_inventory": 0,
+            "failure_closeout": 0,
+            "hooks": 0,
+            "ledgers": 0,
+            "logits": 178790400,
+            "logs": 0,
+            "rows": 47185920,
+            "sources_inputs": 0
+          }
+        }
+      },
+      "name": "attempts_and_source_record_counts",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "counts": {
+          "hook_checks": 0,
+          "logits": 0,
+          "rows": 0
+        },
+        "ledger_records": {
+          "cleanup_events.jsonl": 12,
+          "derivative_events.jsonl": 96,
+          "forward_events.jsonl": 360,
+          "gate_final.json": 1,
+          "integration_cleanup.json": 1,
+          "off_returns.jsonl": 36,
+          "requests.jsonl": 12,
+          "routing_events.jsonl": 72,
+          "scientific_failures.jsonl": 32,
+          "skip_events.jsonl": 96
+        },
+        "remaining_closeout_bytes": 8388608,
+        "total_bytes": 8257536,
+        "used_bytes": {
+          "audit_inventory": 0,
+          "failure_closeout": 0,
+          "hooks": 0,
+          "ledgers": 4063232,
+          "logits": 0,
+          "logs": 4194304,
+          "rows": 0,
+          "sources_inputs": 0
+        }
+      },
+      "name": "all_ledger_profiles_and_append_logs",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "clean_checks_maximum_bytes": 446464,
+        "hook_total_cap_bytes": 16777216,
+        "metadata_capacity_verified": false,
+        "snapshot_checks": 7,
+        "synthetic_sizes_are_not_measured_model_metadata": true
+      },
+      "name": "complete_hook_metadata_chunk_boundaries",
+      "status": "PASS"
+    },
+    {
+      "evidence": {
+        "closeout_reserve_bytes": 8388608,
+        "fully_reserved_bytes": 301989888,
+        "large_boundary_files_written": 0,
+        "overflow_behavior": "reject complete write; no borrowing, truncation or overwrite",
+        "per_file_bytes": 5242880
+      },
+      "name": "allocations_per_file_and_failure_reserve",
+      "status": "PASS"
+    }
+  ],
+  "dataset_reads": 0,
+  "elapsed_seconds": 0.06300000008195639,
+  "error": null,
+  "milestone_credit": false,
+  "model_calls": 0,
+  "pending_verification": [
+    "New binding must use this contract for every writer, supervisor, counter, copied artifact and saved judge; old attempts remain immutable.",
+    "Whole new source/input bundle and all generated artifact schemas must be admitted before model access, including record lengths and fixed IDs.",
+    "Complete pinned-model hook setup metadata and possible failure differences must fit the retained hook allowance; this model-free contract does not establish that capacity.",
+    "Single-owner serialized accounting and reconciliation with actual file sizes, external logs, partial writes and final inventories require binding verification.",
+    "Raw logit codec requires matching new writer and independent reader; do not reinterpret historical .zlib evidence.",
+    "Worker/audit/cleanup times are enforced allowances, not measured worst-case completion guarantees."
+  ],
+  "real_run_authorized": false,
+  "runner_integration": false,
+  "scope": "MODEL_FREE_RESOURCE_CONTRACT_ONLY",
+  "source_sha256": {
+    "README.md": "4f151e3b2bbdc805c9eb06f366921c48cffc94cd2b8077d6d278ed2fcbec49a8",
+    "contract.json": "7610b46b0248569ba51f3f90638734582202c7214822dadafd57fefabc41af3b",
+    "contract.py": "538d80e9cde0f06f0d02ba83038f624f9310301a1a0cf30d8d6049efce4af72e",
+    "verify_resource_contract.py": "38f3c3474bc3e372cee33d9600df8b6ea805b0354e41f533bcc921900a8fe288"
+  },
+  "status": "PASS",
+  "tokenizer_calls": 0
+}
