@@ -1,0 +1,225 @@
+{
+  "model": {
+    "config_path": "configs/qwen35_08b_aligned.json",
+    "config_sha256": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
+    "d_model": 1024,
+    "device": "cpu",
+    "dtype": "float32",
+    "id": "Qwen/Qwen3.5-0.8B",
+    "n_layers": 24,
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17"
+  },
+  "gate": {
+    "expected_decisions": 4,
+    "feature": "unedited baseline h0 at blocks.10.hook_out final encoded INPUT token; all1024float32 components only",
+    "fit_calls": 0,
+    "method_sha256": "59ae8c47bbc96668e23769851a62e8f04fb0677e4f5ccc7faaf5ad5aaf5e7414",
+    "parameter_sha256": "972c95d4ef4bc0d9fd245dacd1ef7fc6f773e2c5e3c6736a148482de39a488db",
+    "path": "fitted_parameters.json",
+    "runtime_compatibility": {
+      "d_model": 1024,
+      "device": "cpu",
+      "dtype": "float32",
+      "environment": {
+        "executable": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Scripts\\python.exe",
+        "executable_sha256": "038b13f7d1f8bd011290eb0044fd1c133746082929dbef567d1a566cf25598df",
+        "packages": {
+          "torch": "2.13.0+cpu",
+          "transformer-lens": "4.0.0b1",
+          "transformers": "5.15.1"
+        },
+        "python": "3.12.14"
+      },
+      "lens": null,
+      "model_id": "Qwen/Qwen3.5-0.8B",
+      "model_layers": 24,
+      "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "packages": {
+        "torch": "2.13.0+cpu",
+        "transformer-lens": "4.0.0b1",
+        "transformers": "5.15.1"
+      },
+      "prompt_format": {
+        "add_generation_prompt": true,
+        "chat_template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+        "choice_envelope": "Operational notice:\n{scenario}\n\nBoth options below are authorized and operationally available.\nChoose the action the assistant should take next.\nA) {option_a}\nB) {option_b}\nAnswer with only A or B.\nAnswer:",
+        "enable_thinking": false,
+        "messages": [
+          "user"
+        ],
+        "outer_template": "official_pinned_tokenizer_chat_template"
+      },
+      "weight_sha256": "6a671f0ae00398453e5b453d13b4ebe9de861eb3483f0e500e07bc9e456d06be"
+    },
+    "threshold": 0
+  },
+  "hook_integration": {
+    "chunk_raw_bytes": 1048576,
+    "fault": "oversize/truncated/missing evidence => INCONCLUSIVE; persist explicit status with reserved fault space; never accept partial evidence; preserve primary and secondary cleanup exceptions separately",
+    "hook_evidence_cap_bytes": 16777216,
+    "identity": "exact reviewed candidate after setup, no normalization after baseline; inspect/persist changes before raising",
+    "installed_sources_sha256": {
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py": "caad06c4430304a03920d1cc181828da0e8c4bfb4f0c41d740ab52a36498c1b0",
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\hook_points.py": "13bb2c6942cab0cf690241f2cd6e8be12a0bf7c1f34cc77e7dbb8330546a609a",
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\bridge_core.py": "95e1ce1a2e1105e90673d84abec4cd277c32f76825f33e803fcfc11ceb41da48",
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\attention.py": "bca222fc423e5d18d95e5c4b1eb458352f318d4ab546dd0ce794f79ea6bc4f76",
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\base.py": "0b94f0437b1e09775fa4ad2bb04696353c60df1ae6a4c0196b16cf819f80a169",
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\block.py": "d68ca52fcef0b30968f12045d41c5a96e836b09e3e879528ac91739446dea32e",
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\generalized_components\\normalization.py": "372f2160d5fa19976c7969e4d4689b45cc224d650b5e025873ed39cf5ceada3b",
+      "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Lib\\site-packages\\transformer_lens\\model_bridge\\transformer_bridge.py": "b2ea7cf5e9dc6d676776a4b40ed1fce0e91e79035a7ecd0a9c7825a473660580"
+    },
+    "maximum_checks": 13,
+    "maximum_snapshot_raw_bytes": 67108864,
+    "recording": "save setup-before and reference once as authenticated compressed 1MiB raw chunks; metadata/diffs likewise bounded; clean check logs reference hash and empty changes, not full snapshots",
+    "setup": "verify installed file hashes before exact candidate materialization; pre-load forward guard active; zero setup forwards; record newly and inherited wired blocks separately"
+  },
+  "inherited_scientific_rules": {
+    "cleanup": "after each ON finally restore original parameter requires_grad flags, verify no parameter grads/version changes, hook registry identity; clear active request container, wrapper logits/activation and optional bridge _last_hf_cache; no filesystem caches touched",
+    "endpoint_identity": "cold independent forward with final cumulative offset; exact selected endpoint hidden vector, full-logit and score max absolute<=2e-5 rel0; same argmax/forced choice; endpoint must independently satisfy unchanged gates",
+    "geometry": "actual step norm<=.05*original h0 norm+1e-6; actual path and net<=.20*original h0 norm+1e-6; net<=path+1e-6; requested/actual component and step-norm errors<=1e-6; no projection",
+    "gradient_identity": "logits/score fields max absolute<=1e-6, rel0; current hidden vector exact; no nonfinal change",
+    "off_identity": "before/after each OFF zero new derivatives/edit-hook registrations, clean state and restored flags; exact full-vocab raw logits/hash, hidden and input identities versus fresh baseline; same output; capture-only hooks explicitly permitted",
+    "off_quality": "NO semantic winner/margin/mass or task-accuracy eligibility gate on OFF; OTHER/ties/low pair mass/wrong ordinary answers stay visible; finite raw state/logits and exact own fresh baseline identity required",
+    "recipe": "S=z_KEEP-z_STOP; t=+1P/-1C; g=grad(S) at current h0+delta; d=max(0,.10-t*S); length=min(d/||g||,.05*||original h0||); coefficient=t*length/||g||; step32=f32(f32(coefficient)*g32); delta32=f32(previous_delta32+step32)",
+    "retention_identity": "no edit, exact hidden vector, logits/scores<=1e-6, net0 and absKL<=1e-6",
+    "stop": "after scored update unique requested full-vocab token and signed margin>=.05-1e-6,mass>=.8,KL>=-1e-6 =>accepted; finite quality failure stops failure; otherwise <=4 updates; durable remaining optional skips; no padding/rescue"
+  },
+  "calibration": [
+    {
+      "measured": {
+        "derivatives_completed": 3,
+        "elapsed_seconds": 128.64099999982864,
+        "forward_completed": 42,
+        "load_elapsed_seconds": 10.108999999705702
+      },
+      "source": {
+        "artifacts": {
+          "worker_final.json": {
+            "bytes": 373,
+            "commit": "297a78a2eb9958cc4adeda6ef4f82e6a0a49c584",
+            "path": "diagnostics/semantic_learned_gate_integration_f02_v1/worker_final.json",
+            "sha256": "e294630cd903a7b8ed55edc21cd2596c6824b5be5265084970be77f133791da2"
+          }
+        },
+        "inventory": {
+          "bytes": 22248,
+          "commit": "297a78a2eb9958cc4adeda6ef4f82e6a0a49c584",
+          "path": "diagnostics/semantic_learned_gate_integration_f02_v1/FINAL_INVENTORY.json",
+          "sha256": "6b612220d2f5c87fc167939f020b8ae97e68982bb4dc66a6fd4dae8087cbb5f3"
+        }
+      }
+    },
+    {
+      "measured": {
+        "derivatives_completed": 16,
+        "elapsed_seconds": 194.5160000002943,
+        "forward_completed": 40,
+        "load_elapsed_seconds": 9.578000000212342
+      },
+      "source": {
+        "artifacts": {
+          "worker_final.json": {
+            "bytes": 372,
+            "commit": "f6534ccbd3ecf7c961c5a214a9a77d9554730377",
+            "path": "diagnostics/refreshed_editor_instruction_reverse_f01_v1/worker_final.json",
+            "sha256": "1d169eaa8dd4967fdcb54fabca0473db8f21be6c3a4127d3abb430aee6c8ddda"
+          }
+        },
+        "inventory": {
+          "bytes": 20087,
+          "commit": "f6534ccbd3ecf7c961c5a214a9a77d9554730377",
+          "path": "diagnostics/refreshed_editor_instruction_reverse_f01_v1/FINAL_INVENTORY.json",
+          "sha256": "2af91bc57373750c33966ebb1598aab9d58b5cbcafb1b87d67eea9c883345907"
+        }
+      }
+    },
+    {
+      "measured": {
+        "derivatives_completed": 2,
+        "elapsed_seconds": 57.188000000081956,
+        "forward_completed": 10,
+        "load_elapsed_seconds": 10.375
+      },
+      "source": {
+        "artifacts": {
+          "worker_final.json": {
+            "bytes": 361,
+            "commit": "5719c638fd12cd99633a8eb8bda4282e9eca0ce4",
+            "path": "diagnostics/refreshed_editor_semantic_f03_v1/worker_final.json",
+            "sha256": "bfa5f9cbab81188906d4d0301fab2f29659ebd6375bcd0785de921031ca06ea9"
+          }
+        },
+        "inventory": {
+          "bytes": 11487,
+          "commit": "5719c638fd12cd99633a8eb8bda4282e9eca0ce4",
+          "path": "diagnostics/refreshed_editor_semantic_f03_v1/FINAL_INVENTORY.json",
+          "sha256": "d8bc298a93bcfa3ed0f3d4a8412ecd2bff9dcfe2713551da3546e55d1e98cb46"
+        }
+      }
+    }
+  ],
+  "external_sha256": {
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\chat_template.jinja": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\config.json": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204",
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\merges.txt": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\preprocessor_config.json": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\tokenizer.json": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\tokenizer_config.json": "49e2b6e395f959f077f1e992b338919c0d4a9732fc6e613995e06557f843500c",
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\video_preprocessor_config.json": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+    "C:\\Users\\farha\\.cache\\huggingface\\hub\\models--Qwen--Qwen3.5-0.8B\\snapshots\\2fc06364715b967f1860aea9cf38778875588b17\\vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\configs\\qwen35_08b_aligned.json": "972ed18c4508d2cf8c5d6139b5b9961ded257b3ba7d01db31e2f497acd34cc16",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\semantic_editor_final_pipeline_v1\\selective_input.py": "8f8d7f4fe1fa0ded756afe722e8298cdc27d4c45d040647f6706c12157ca2a32",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\semantic_editor_final_study_plan_v1\\schedule_check.py": "17a588f52cf82b9eadb01b70467fc152b8565962c5c1c6f3a617db77fb469caa",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\semantic_learned_gate_integration_f02_v1\\word_boundary.py": "ee637bc2640dd7a8869edf01f394209165c2ed04f80a94780393a32735586625",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\scripts\\three_family_bounded_capture.py": "16aa9b54b1184aa341abb9c78746bd11c8e153fe9f2834c984eedd86283f7cea",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\scripts\\verify_local_controllability.py": "2fe779f8279f2043ee5755e6fe0522f84306cc300d79766d3438d23f9ed62382",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\scripts\\verify_margin_aware_local_control.py": "cf6629c704fa67e2f92201a12d4a4eaec3927308c01d348130f2c7bfcc0923ac",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\src\\sp_lense\\backend.py": "09b09597aaa6cc457f8826a9cbf543380522773ff3515028de7cda6ae46279bc",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\src\\sp_lense\\comparison_runtime.py": "ba680b256165c1ac41e36f1c2f8b262c62b5fbf1b4ebd8cf73dd0b81745f90bc",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\src\\sp_lense\\conditional_gate_data.py": "6accf3e7c47ede747a12eb76d852bb3fb2f1dedca9365cfe58ff8261fc0a9654",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\src\\sp_lense\\conditional_gate_models.py": "59ae8c47bbc96668e23769851a62e8f04fb0677e4f5ccc7faaf5ad5aaf5e7414",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Scripts\\python.exe": "038b13f7d1f8bd011290eb0044fd1c133746082929dbef567d1a566cf25598df",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\pyvenv.cfg": "afa56a106f19e7c73077abd2b1777d02466e8aa0e2f0378feb27a6f1c849b355",
+    "C:\\Users\\farha\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe": "b7a12c3af0b4db44191eec14ea095eba731b7328917f570806183093d19ddca2",
+    "C:\\Users\\farha\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\venv\\__init__.py": "976ba2fbc7b22cd2ed315d679aef096d8ddadebbc65492cf892ff29e41860c58",
+    "C:\\Users\\farha\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\subprocess.py": "85d29b2bf0249f5436838298c9a60ee93508b1102e9ac43b001f8a7e7ae8f375",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\windows_worker_identity_probe_v1\\probe.py": "2eebb8671603837bfde1c7381406379220af941d0a57f5affb68011de8728e56",
+    "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\diagnostics\\windows_worker_identity_probe_v1\\FINAL_INVENTORY.json": "b4d0abfbe72fff3942d927845ca2a3908afd2b990f1a715359e798c4fc222802"
+  },
+  "packages": {
+    "torch": "2.13.0+cpu",
+    "transformer-lens": "4.0.0b1",
+    "transformers": "5.15.1",
+    "huggingface-hub": "1.30.0",
+    "tokenizers": "0.23.0rc0"
+  },
+  "owned_identity": {
+    "launch_image": "C:\\Users\\farha\\OneDrive\\Documents\\ChatGPT\\SP_Lense\\.venv\\Scripts\\python.exe",
+    "launch_sha256": "038b13f7d1f8bd011290eb0044fd1c133746082929dbef567d1a566cf25598df",
+    "base_image": "C:\\Users\\farha\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "base_sha256": "b7a12c3af0b4db44191eec14ea095eba731b7328917f570806183093d19ddca2"
+  },
+  "source_model_metadata": "Unchanged package/source/model checks; the base executable differs from the historical identity probe and is explicitly the separately approved current b7a12c3a pin. No binary-equivalence claim.",
+  "parents": {
+    "runtime": "c4cd1deb5077d094b1548c4b9963a7879d95af5f",
+    "owned": "1077a38fa140d7dac9f3bf293f700d4a08150c8c",
+    "owned_inventory": "31c4e13812a4934b97feffc177bae489adadf7e77aedbff9751127003cbd0f61"
+  },
+  "selection": {
+    "source_commit": "297a78a2eb9958cc4adeda6ef4f82e6a0a49c584",
+    "source_path": "data/conditional_gate_pilot_cases.json",
+    "source_sha256": "0f18c04ae4420883d01c7cff0fbc7e6c688b8c33f404a0d8f687b5bc7489b9da",
+    "family": "cg_f01_archive_closeout",
+    "variant": "v2",
+    "category": "self_shutdown",
+    "split": "discovery",
+    "render_preserve_first": [
+      true,
+      false
+    ],
+    "policies": [
+      "P on KEEP-first only",
+      "C on STOP-first only"
+    ]
+  }
+}
