@@ -1,0 +1,112 @@
+{
+  "classification": "PASS_PREPARATION_ONLY",
+  "real_assay": "NOT_RUN",
+  "source_commit": "590f8cd5a548972729b79b2406ac4a212451c352",
+  "freeze_sha256": "d334938aa91b09be914fe1f0e7340b66322e3df632b0ef437a84aa2bfc9706f2",
+  "input_lock_sha256": "ebcec8c1930b621ef8034a3f2c4faa1d4f3988f230382d1b07c735f4f7954502",
+  "selection_commit": "427cf89dfbeb6fa111779fcb703cecc49f005b7a",
+  "prompt_commit": "da7d7ee2b143f5e2066db4f65547ce516cbd3d86",
+  "prompts": [
+    {
+      "prompt_id": "f03_v2_other_shutdown_KEEP_then_STOP",
+      "prompt_sha256": "4dbf60e73cfb998666d4e03060425b7d7993c15b939ef938b74701a3af9d7d92",
+      "category": "other_shutdown",
+      "display_order": "KEEP_then_STOP"
+    },
+    {
+      "prompt_id": "f03_v2_other_shutdown_STOP_then_KEEP",
+      "prompt_sha256": "572531ea1a0071292d12981f22658d706c69e04a75d9b4fbb3083fbc468a03bc",
+      "category": "other_shutdown",
+      "display_order": "STOP_then_KEEP"
+    },
+    {
+      "prompt_id": "f03_v2_control_KEEP_then_STOP",
+      "prompt_sha256": "4d697d54cd2a558e0c4bdc25a6fb4583859a8a163427cba5ebfab7f8cc204ecb",
+      "category": "control",
+      "display_order": "KEEP_then_STOP"
+    },
+    {
+      "prompt_id": "f03_v2_control_STOP_then_KEEP",
+      "prompt_sha256": "5df0b6ee4095ac22465f3437d9cdb59213f4fbb6a1d403f4b52ec443fe511e4d",
+      "category": "control",
+      "display_order": "STOP_then_KEEP"
+    }
+  ],
+  "batch": {
+    "elapsed_seconds": 10.516000000294298,
+    "fake_derivatives": 0,
+    "fake_forwards": 12,
+    "independent_judge": "PASS",
+    "live_process_fixtures": 0,
+    "off_identities": 8,
+    "production_authorized": false,
+    "pure_cases": 4,
+    "real_gate_scores": 0,
+    "real_model_loads": 0,
+    "routes": 12,
+    "status": "PASS_PREPARATION_ONLY",
+    "strict_checks": 17,
+    "tokenizer_calls": 0
+  },
+  "synthetic_counts": {
+    "derivatives": 0,
+    "forwards": 12,
+    "off_identities": 8,
+    "routes": 12,
+    "routes_correct": 12,
+    "unrun": 0
+  },
+  "verified_source_checks": 94,
+  "verified_synthetic_inventory_entries": 48,
+  "verification_errors": [],
+  "resources": {
+    "conservative_bytes": 48631808,
+    "file_cap_bytes": 5242880,
+    "fresh_routes": 12,
+    "future_limits": {
+      "audit_seconds": 90,
+      "bytes": 100663296,
+      "cleanup_seconds": 15,
+      "derivatives": 0,
+      "forwards": 12,
+      "loads": 1,
+      "worker_seconds": 300
+    },
+    "hook_reserve_bytes": 16777216,
+    "lengths": [
+      132,
+      132,
+      137,
+      137
+    ],
+    "off_identities": 8,
+    "preparation_bytes": 33554432,
+    "preparation_seconds": 180,
+    "prompts": 4,
+    "requests": 8,
+    "runtime_calibration": "Authenticated f04nonself12F0D worker56.172s incl3.516load;300s retained headroom, no extension.",
+    "scenario_units": 2,
+    "schedule": "4baselines+4prompts*P/C=12F0D",
+    "source_log_receipt_reserve_bytes": 16777216,
+    "strict_checks": 17
+  },
+  "tokenization": {
+    "elapsed_seconds": 6.155999999959022,
+    "error": null,
+    "gate_scores": 0,
+    "model_calls": 0,
+    "no_retry": true,
+    "status": "PASS_INPUT_ONLY"
+  },
+  "preparation_invoked_conservative_charged_seconds": 60,
+  "production_authorized": false,
+  "real_attempt_exists": false,
+  "scope": "Two fixed exposed f03/v2 nonself scenarios/four renderings/eight external P/C OFF requests.",
+  "limitations": [
+    "No real model/gate captures or derivatives; one input-only cached tokenizer binding.",
+    "Synthetic OFF identity covers unchanged full logits/hidden/input, including OTHER/ties; no self quality filter.",
+    "No ordinary questions/gold accuracy, steering flips, always-on harmlessness or broad preservation result.",
+    "Old failures and real selected-C outcome are unchanged; no publication credit."
+  ],
+  "next_step": "Root separately reviews/releases this exact12F0D assay; no further preparation or real model task launched."
+}
