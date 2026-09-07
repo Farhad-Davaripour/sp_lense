@@ -1,0 +1,186 @@
+--- immutable_v2/owned.py
++++ successor_v3/owned.py
+@@ -32,10 +32,12 @@
+ 
+ class OwnedPair:
+     """Retains original handles. No PID-based fallback or unauthenticated kill."""
+-    def __init__(self,launcher,worker,event):
++    def __init__(self,launcher,worker,event,clock=time.monotonic):
+         self.launcher,self.worker,self.event=launcher,worker,event
+         self.authenticated=False;self.acknowledged=False;self.faults=[];self.cleanup_faults=[];self.binding=None
+         self.stop_reason=None;self.attempted_handles=set();self.termination_attempts=[];self.exit_proofs={}
++        self.clock=clock;self.stop_started_at=None;self.stop_deadline=None;self.stop_completed_at=None
++        self.wrapper_grace=None;self.episode_overrun=False
+     def fault(self,kind,detail):
+         row={"kind":kind,"detail":detail};self.faults.append(row);self.event("primary_fault",row)
+     def authorize(self,claims,config,nonce,driver_pid,acknowledge):
+@@ -64,44 +66,79 @@
+                     from native import NativeFailure
+                     raise NativeFailure('owned process exit not proven',proof)
+             except BaseException as error:self.cleanup_fault(phase,error)
+-        return self.authenticated and all(p in self.exit_proofs for p in ('actual_worker','launcher'))
++        complete=self.authenticated and all(p in self.exit_proofs for p in ('actual_worker','launcher'))
++        if self.stop_deadline is not None:
++            now=self.clock()
++            if complete and self.stop_completed_at is None:self.stop_completed_at=now
++            if (self.stop_completed_at if complete else now)>self.stop_deadline:
++                self.episode_overrun=True
++                self.cleanup_fault('stop_episode',ValueError('absolute three-second stop deadline exceeded'))
++        return complete
+     def quiescent(self,threads_joined,pipes_closed):
+         # finish() records handle observations before joining the evidence-writer chain.
+         return bool(self.authenticated and len(self.exit_proofs)==2 and threads_joined and pipes_closed)
++    def _remaining(self,reserve=0.):
++        return max(0.,min(1.,self.stop_deadline-self.clock()-reserve))
++    def _stop_phase(self,phase,handle,event):
++        try:
++            if not handle.exited():
++                require(self._remaining()>0.,'stop episode exhausted before termination')
++                key=id(handle);require(key not in self.attempted_handles,'retained handle already attempted')
++                self.attempted_handles.add(key);self.event(event,{'handle_tag':handle.tag})
++                try:result=handle.terminate()
++                except BaseException as error:
++                    result=getattr(error,'receipt',{'classification':'cleanup_failure','error':str(error)})
++                    self.termination_attempts.append({'phase':phase,**result})
++                    self.event('retained_termination_result',{'phase':phase,**result});raise
++                else:
++                    self.termination_attempts.append({'phase':phase,**result})
++                    self.event('retained_termination_result',{'phase':phase,**result})
++            proof=handle.exit_proof(self._remaining())
++            if not (proof['valid_retained_handle'] and proof['signaled'] and proof['query_success']):
++                from native import NativeFailure
++                raise NativeFailure('owned process completion not proven',proof)
++            self.exit_proofs[phase]=proof;self.event('retained_exit_proof',{'phase':phase,**proof})
++        except BaseException as error:self.cleanup_fault(phase,error)
++    def _wrapper_grace(self):
++        # Only after a successful actual-worker exit proof, never for a direct process.
++        require(self.authenticated and self.binding['mode']=='wrapper_child' and 'actual_worker' in self.exit_proofs,'wrapper grace requires authenticated actual exit proof')
++        require(self.wrapper_grace is None,'one nonrenewable wrapper grace')
++        allowance=self._remaining(reserve=1.)
++        self.wrapper_grace={'started_at':self.clock(),'allowance_seconds':allowance,'episode_deadline':self.stop_deadline,
++                            'forced_verification_reserved_seconds':1.,'result':None}
++        self.event('wrapper_grace_started',dict(self.wrapper_grace))
++        try:
++            proof=self.launcher.exit_proof(allowance)
++            self.wrapper_grace['proof']=proof
++            if proof['valid_retained_handle'] and proof['signaled'] and proof['query_success']:
++                self.exit_proofs['launcher']=proof
++                self.event('retained_exit_proof',{'phase':'launcher',**proof})
++                self.wrapper_grace['result']='natural_wrapper_exit'
++            elif proof['valid_retained_handle'] and proof['wait_result']==258:
++                self.wrapper_grace['result']='grace_expired_still_live'
++            else:
++                from native import NativeFailure
++                raise NativeFailure('wrapper grace exit proof failed',proof)
++        except BaseException as error:
++            self.wrapper_grace['result']='proof_failure';self.wrapper_grace['error']=str(error)
++            self.cleanup_fault('wrapper_grace',error)
++        finally:
++            self.wrapper_grace['finished_at']=self.clock()
++            self.event('wrapper_grace_result',dict(self.wrapper_grace))
+     def stop_and_wait(self,reason,timeout=2.):
+-        if self.stop_reason is not None:
+-            return self.observe_completion(timeout=0.)
+-        self.stop_reason=reason
+-        self.fault(reason,'first stop cause; subsequent cleanup calls only observe retained handles')
+-        # Actual worker first, including when the owned launcher has already exited.
+-        for phase,handle,allowed,event in (
+-            ('actual_worker',self.worker,self.authenticated,'terminate_actual_retained_handle'),
+-            ('launcher',self.launcher,True,'terminate_owned_launcher')):
+-            if not allowed:
+-                self.event('actual_worker_not_targeted',{'reason':'not authenticated'});continue
+-            try:
+-                if not handle.exited():
+-                    key=id(handle)
+-                    require(key not in self.attempted_handles,'retained handle already attempted')
+-                    self.attempted_handles.add(key)
+-                    self.event(event,{'handle_tag':handle.tag})
+-                    try:result=handle.terminate()
+-                    except BaseException as error:
+-                        result=getattr(error,'receipt',{'classification':'cleanup_failure','error':str(error)})
+-                        self.termination_attempts.append({'phase':phase,**result})
+-                        self.event('retained_termination_result',{'phase':phase,**result})
+-                        raise
+-                    else:
+-                        self.termination_attempts.append({'phase':phase,**result})
+-                        self.event('retained_termination_result',{'phase':phase,**result})
+-                proof=handle.exit_proof(timeout)
+-                if not (proof['valid_retained_handle'] and proof['signaled'] and proof['query_success']):
+-                    from native import NativeFailure
+-                    raise NativeFailure('owned process completion not proven',proof)
+-                self.exit_proofs[phase]=proof
+-                self.event('retained_exit_proof',{'phase':phase,**proof})
+-            except BaseException as error:self.cleanup_fault(phase,error)
+-        return self.observe_completion(timeout=0.)
++        if self.stop_reason is not None:return self.observe_completion(timeout=0.)
++        self.stop_reason=reason;self.stop_started_at=self.clock();self.stop_deadline=self.stop_started_at+3.
++        self.fault(reason,'first stop cause; fixed three-second episode, repeated calls only observe')
++        if self.authenticated:self._stop_phase('actual_worker',self.worker,'terminate_actual_retained_handle')
++        else:self.event('actual_worker_not_targeted',{'reason':'not authenticated'})
++        direct=self.authenticated and self.binding is not None and self.binding['mode']=='direct'
++        wrapper=self.authenticated and self.binding is not None and self.binding['mode']=='wrapper_child'
++        if wrapper and 'actual_worker' in self.exit_proofs:self._wrapper_grace()
++        if not direct and 'launcher' not in self.exit_proofs:
++            self._stop_phase('launcher',self.launcher,'terminate_owned_launcher')
++        # In direct mode the actual-worker attempt is the only termination phase.
++        # Verify the separately retained launcher handle without another grace/kill.
++        return self.observe_completion(timeout=0.,require_exit=direct)
+     def observe(self,deadline,now=time.monotonic):
+         if not self.authenticated:return 'NOT_AUTHENTICATED'
+         if self.stop_reason is not None:
+--- immutable_v2/owned_capture.py
++++ successor_v3/owned_capture.py
+@@ -6,6 +6,15 @@
+ from native import NativeHandle,open_claimed_worker
+ sys.path.insert(0,str(ROOT))
+ from scripts.three_family_bounded_capture import run_capture
++
++def cleanup_envelope(capture,origin,now):
++    """Account scheduler/recording overhead, not just requested wait durations."""
++    row={'origin_monotonic':origin,'absolute_deadline':origin+15.,'observed_at':now,
++         'elapsed_seconds':max(0.,now-origin),'within_15_seconds':now<=origin+15.}
++    if not row['within_15_seconds'] and capture is not None:
++        capture['status']='INCONCLUSIVE'
++        capture['technical_recording_fault']=capture.get('technical_recording_fault') or 'OWNED_CLEANUP_ENVELOPE_EXCEEDED'
++    return row
+ 
+ def validate_claim(raw,nonce):
+     claim=strict_json(raw)
+@@ -123,7 +132,8 @@
+             except BaseException as error:
+                 if self.pair is not None:self.pair.cleanup_fault('actual_handle_close',error)
+         joined=self.handshake_thread is None or not self.handshake_thread.is_alive()
+-        journal_deadline=time.monotonic()+1.
++        origin=min(self.deadline,self.pair.stop_started_at if self.pair is not None and self.pair.stop_started_at is not None else self.deadline)
++        journal_deadline=min(time.monotonic()+1.,origin+15.)
+         for thread in self.event_threads:thread.join(max(0.,journal_deadline-time.monotonic()))
+         evidence_joined=all(not thread.is_alive() for thread in self.event_threads)
+         pipes=self.proc.stdin.closed and self.stdout.closed
+@@ -137,6 +147,8 @@
+             'evidence_threads_joined':evidence_joined,'evidence_errors':self.event_record_errors,
+             'faults':[] if self.pair is None else self.pair.faults,'cleanup_faults':[] if self.pair is None else self.pair.cleanup_faults,
+             'stop_reason':None if self.pair is None else self.pair.stop_reason,
++            'stop_episode':None if self.pair is None else {'started_at':self.pair.stop_started_at,'deadline':self.pair.stop_deadline,'completed_at':self.pair.stop_completed_at,'overrun':self.pair.episode_overrun},
++            'wrapper_grace':None if self.pair is None else self.pair.wrapper_grace,
+             'termination_attempts':[] if self.pair is None else self.pair.termination_attempts,
+             'exit_proofs':proofs,'actual_handle_closed':self.actual is not None and self.actual.closed,
+             'retained_actual_termination_events':sum(x['kind']=='terminate_actual_retained_handle' for x in self.events)}
+@@ -144,6 +156,7 @@
+         capture['owned_worker']=result;capture['quiescent']=bool(capture['quiescent'] and quiet)
+         if not quiet or self.handshake_error or self.event_record_errors or result['faults'] or result['cleanup_faults'] or worker_exit!=0 or launcher_exit!=0:
+             capture['status']='INCONCLUSIVE';capture['technical_recording_fault']=capture['technical_recording_fault'] or 'OWNED_WORKER_IDENTITY_OR_LIFECYCLE'
++        capture['cleanup_envelope']=cleanup_envelope(capture,origin,time.monotonic())
+         return capture
+ 
+ def supervise(lane,output,seconds,release_sha=None):
+@@ -162,6 +175,10 @@
+         if 'process' in owned:capture=owned['process'].finish(capture)
+         budget.write('capture.json',capture);return capture
+     finally:
++        proc=owned.get('process');pair=None if proc is None else proc.pair
++        origin=min(deadline,pair.stop_started_at if pair is not None and pair.stop_started_at is not None else deadline)
++        envelope=cleanup_envelope(capture,origin,time.monotonic())
+         budget.write('supervisor_final.json',{'elapsed_seconds_including_cleanup':time.monotonic()-started,
+             'capture_returned':capture is not None,'quiescent':False if capture is None else capture['quiescent'],
++            'cleanup_envelope':envelope,'authoritative_return_status':None if capture is None else capture['status'],
+             'owned_actual_handle_pre_ack':True,'both_processes_required':True,'no_pid_tree_kill':True})
