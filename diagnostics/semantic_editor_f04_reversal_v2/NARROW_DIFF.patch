@@ -1,0 +1,75 @@
+--- V1/fake_batch.py
++++ V2/fake_batch.py
+@@ -62,6 +62,31 @@
+     record("independent_endpoint_disagreement",disagreement)
+     return records
+ 
++def path_cases():
++    import struct
++    from scripts.verify_local_controllability import read_logits
++    from reuse_v1 import authenticate
++    authenticate()
++    root=HERE/"synthetic/path_cases";(root/"logits").mkdir(parents=True,exist_ok=False)
++    records=[];budget=Budget(root)
++    def save(name,values):
++        raw=struct.pack("<"+"f"*len(values),*values);budget.write_bytes(name,zlib.compress(raw))
++        return {"logits_file":name,"logits_sha256":sha(raw),"logit_count":len(values)}
++    valid=save("logits/valid.f32.zlib",[.125,-.25])
++    require(list(read_logits(root,valid))==[.125,-.25],"valid contained hash/length/finite array")
++    records.append({"case":"valid_in_namespace_hashed_array","status":"PASS"})
++    bad=save("outside.f32.zlib",[.125,-.25])
++    nan=save("logits/nonfinite.f32.zlib",[float("nan"),0.])
++    subcases=[
++        ("outside_namespace",bad),
++        ("wrong_hash",{**valid,"logits_sha256":"0"*64}),
++        ("wrong_length",{**valid,"logit_count":3}),
++        ("nonfinite",nan),
++    ]
++    for label,row in subcases:rejects(lambda row=row:read_logits(root,row),label)
++    records.append({"case":"rejected_outside_wronghash_wronglength_nonfinite","status":"PASS","subcases":[n for n,_ in subcases]})
++    return records
++
+ def make_fixture(plan,out):
+     import torch
+     from synthetic_backend import prepare_backend
+@@ -71,17 +96,19 @@
+     parameters=read(HERE/"fitted_parameters.json")["parameters"]
+     h0=torch.tensor(parameters["grand_mean"],dtype=torch.float32)+10*torch.tensor(parameters["direction"],dtype=torch.float32)
+     starts={}
++    starting_root=HERE/"synthetic/starting_arrays"
++    (starting_root/"logits").mkdir(parents=True,exist_ok=False)
+     for i,spec in enumerate(plan["requests"],1):
+         p=next(p for p in plan["prompts"] if p["prompt_id"]==spec["prompt_id"])
+         b=.1 if p["rendering_index"]%2 else -.1
+         delta=torch.zeros(1024,dtype=torch.float32);delta[0]=-spec["sign"]*.2
+         h=h0+delta;value=torch.tensor(b,dtype=torch.float32)+(h[0]-h0[0])
+         logits=torch.full((248320,),-100.);logits[50057]=value;logits[48964]=0.
+-        raw=logits.numpy().astype("<f4",copy=False).tobytes();path=f"synthetic_start_{i}.f32.zlib"
+-        Budget(out).write_bytes(path,zlib.compress(raw))
++        raw=logits.numpy().astype("<f4",copy=False).tobytes();path=f"logits/synthetic_start_{i}.f32.zlib"
++        Budget(starting_root).write_bytes(path,zlib.compress(raw))
+         row={"cell_id":f"SYNTHETIC_OLD_STEP_{i}","h0":h0.tolist(),"h":h.tolist(),"cumulative_offset":delta.tolist(),
+             "logits_file":path,"logits_sha256":sha(raw),"logit_count":248320}
+-        starts[spec["request_id"]]={"row":row,"path":start_states.norm([x-y for x,y in zip(h.tolist(),h0.tolist())]),"root":str(out)}
++        starts[spec["request_id"]]={"row":row,"path":start_states.norm([x-y for x,y in zip(h.tolist(),h0.tolist())]),"root":str(starting_root)}
+     plan["synthetic_starts"]=starts
+     return factory
+ 
+@@ -92,7 +119,7 @@
+     try:
+         check_freeze();require(read(HERE/"batch_usage.json")["known_standard_used_percent"]<100,"known unexhausted usage")
+         budget.write("BATCH_STARTED.json",{"monotonic":started,"freeze_sha256":sha((HERE/"freeze.json").read_bytes()),"once":True})
+-        plan=build_plan();records=pure_cases(plan);budget.write("pure_cases.json",records)
++        plan=build_plan();records=path_cases();budget.write("pure_cases.json",records)
+         import run,mixed_boundary
+         from synthetic_backend import Toy,boundary
+         from judge import finish_judge
+@@ -113,7 +140,7 @@
+             "worker_returned":True,"judge_returned":True,"in_process_writers_finished":True,"external_capture":"NOT_RUN"})
+         Budget(out).write("FINAL_INVENTORY.json",{"files":[{"path":p.relative_to(out).as_posix(),"bytes":p.stat().st_size,"sha256":sha(p.read_bytes())} for p in sorted(out.rglob("*")) if p.is_file()],
+             "sole_owner":"fake_batch after synchronous worker/judge/closeout writers returned"})
+-        receipt.update(status="PASS_PREPARATION_ONLY",pure_cases=len(records),fake_forwards=14,fake_derivatives=2,
++        receipt.update(status="PASS_PREPARATION_ONLY",pure_cases=len(records),inherited_pure_cases=6,fake_forwards=14,fake_derivatives=2,
+             synthetic_requests=2,synthetic_recoveries=2,independent_judge="PASS",saved_audit_seconds=time.monotonic()-judge_start,
+             source_starts_not_real_replayed=True,production_authorized=False)
+     except BaseException as error:
