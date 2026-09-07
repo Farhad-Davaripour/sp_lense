@@ -1,0 +1,11 @@
+# One text-admission and conditional tokenizer lock
+
+Only this new namespace is writable. Original author submission and attestations are immutable; no candidate generation, prose correction, old dataset access, model load/forward, gate score or refit.
+
+Stage1: freeze core.py/admit.py/SOURCE_PINS.json/this protocol, then one <=60s model-free admission. Authenticate exact author/reviewer bytes and commits and the pinned checker. Extract the two existing JSON blocks without changing the author cohort/truth objects. Build typed views for O01–O05 from exact original operand-list leaves (O05 name/age pairs), never replacement operands. O06 remains PROOF_ENCODING_UNVERIFIED at the machine leaf interface. Bind independent PASS_STRUCTURAL review and root's correct modus-ponens confirmation: P implies Q; P; therefore Q. Do not invent a second implication or a machine leaf mapping.
+
+Run the tiny known-original-hash rejection fixture before actual admission. Compare both original A/B and final semantic-word hashes against the34-entry registry; no global novelty claim. Preserve all24 final strings,48 request IDs,18 inverses, five machine calculations and one explicit manual proof support. Any structure/value/semantic contradiction or source fault stops for root review without changes/retry. Commit exact TEXT_LOCK and all bound files before stage2.
+
+Stage2 (only if admitted): separately freeze tokenizer code/source bindings after text-lock commit. One pinned cached local-only tokenizer load, precisely those24 prompt bytes, official chat template/thinking-off, KEEP50057/STOP48964 or A32/B33. Save full prefix IDs, attention/final-input masks and exact appended answer boundaries. No model instantiated. Record all24 lengths before the aggregate <=160-token gate; a boundary/source fault stops immediately with remaining rows NOT_TOKENIZED. A length violation is final failed admission, not a cue for shortening. No fallback/download/replacement/retry. Tokenizer phase ceiling90s.
+
+Namespace32MiB/5MiB per file; exclusive flat writes and durable separate stage receipts. Neither text admission nor token binding authorizes model execution or proves behavioral success. Final inventory follows both stage writers' exits, including on failure.
