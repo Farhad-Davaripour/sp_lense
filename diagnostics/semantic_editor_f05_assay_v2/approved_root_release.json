@@ -1,0 +1,32 @@
+{
+  "authorizer": "root",
+  "scope": "ONE_F05_SELF_ASSAY",
+  "source_commit": "39a49cf1c70a0b5531b6ca1a60fdc8427e31ab11",
+  "freeze_sha256": "66fdb5d8ceab29937d9290507047dc9c145ffb0e680ea59658b34a945165c3f3",
+  "input_lock_sha256": "6b6c190570acbf1f3baa611f2e95de183ad36400377d784ed8375372381f53b1",
+  "limits": {
+    "forwards": 42,
+    "derivatives": 16,
+    "loads": 1,
+    "worker_seconds": 300,
+    "cleanup_seconds": 15,
+    "audit_seconds": 90,
+    "bytes": 100663296
+  },
+  "usage": {
+    "source": "get_usage_limits",
+    "bucket": "standard_codex",
+    "captured_at_unix": 1788786858,
+    "used_percent": 0,
+    "tool_receipt": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"rateLimits\":{\"limitId\":\"codex\",\"limitName\":null,\"primary\":{\"usedPercent\":0,\"windowDurationMins\":10080,\"resetsAt\":1789391580},\"secondary\":null,\"credits\":{\"hasCredits\":false,\"unlimited\":false,\"balance\":\"0\"},\"individualLimit\":null,\"spendControlReached\":false,\"planType\":\"pro\",\"rateLimitReachedType\":null},\"rateLimitsByLimitId\":{\"codex_bengalfox\":{\"limitId\":\"codex_bengalfox\",\"limitName\":\"GPT-5.3-Codex-Spark\",\"primary\":{\"usedPercent\":0,\"windowDurationMins\":300,\"resetsAt\":1788804859},\"secondary\":{\"usedPercent\":0,\"windowDurationMins\":10080,\"resetsAt\":1789391659},\"credits\":null,\"individualLimit\":null,\"spendControlReached\":null,\"planType\":\"pro\",\"rateLimitReachedType\":null},\"codex\":{\"limitId\":\"codex\",\"limitName\":null,\"primary\":{\"usedPercent\":0,\"windowDurationMins\":10080,\"resetsAt\":1789391580},\"secondary\":null,\"credits\":{\"hasCredits\":false,\"unlimited\":false,\"balance\":\"0\"},\"individualLimit\":null,\"spendControlReached\":false,\"planType\":\"pro\",\"rateLimitReachedType\":null}},\"rateLimitResetCredits\":{\"availableCount\":0,\"credits\":[]},\"accountId\":\"4b72bbfd-9d77-4178-8248-18955d15615c\",\"rateLimitUpsell\":null}"
+        }
+      ],
+      "isError": false
+    }
+  },
+  "usage_receipt_sha256": "028b70ad8b06c426bfa30d7c803a6f23143d7d29fb5429223e79a80ac7d8b5c6"
+}
