@@ -1,0 +1,11 @@
+# Fabricated input-checker preparation: PASS
+
+The one frozen model-free batch passed10/10 named tests, with0 failures/errors, in0.704s. Source freeze commit: `50905bb6ff03cf959e4c046bfab6313705f6a6ab`; freeze SHA256 `b0c28edada85da19f2e5d060bb93546fcbbfb7743fb241893982a5b3d05719b5`. Standard usage was10% before execution. No author submission, old dataset, target model, tokenizer, gate score or process fixture was used.
+
+Checked fixed9-case/24-prompt/48-request identity and order; source/provenance hashes; ASCII, literal cues and duplicate rejection; all18 semantic render/inverse identities plus6 ordinary renders; metadata/gold exclusion from prompt strings; six independently calculated typed values; malformed provenance, unknown encodings, max-age ties and invalid modus-ponens premises; and refusal to grant automatic cohort admission. All scenarios are conspicuously fabricated placeholders, not confirmation candidates.
+
+Interface: `checker.check_cohort(cohort, proof_views=None)` returns `mechanical_status`, `prompts`, `requests`, `proof_checks` and `manual_review_required`. Route expectations are labeled `expected_route_audit_only`; actual model routing is outside this checker. Ordinary P/C requests have no target word. The input object is not mutated.
+
+Typed normalization views bind each input leaf to an exact-type/value JSON pointer under the untouched original `truth.operands`, with a canonical-JSON truth-object SHA256. Supported arithmetic/string/max-age/modus-ponens values are reconstructed independently. Unsupported/ambiguous encodings remain `PROOF_ENCODING_UNVERIFIED` for custody/manual review, not scientific FAIL, replacement or a new author rejection rule. A computed-value disagreement is reported separately. Free-text derivations, actual premise-to-stem meaning, semantic matching, renamed-mechanism novelty and blind access are not machine-proved.
+
+`overall_cohort_admitted` is always false. Canonical parsed-object hashes do not replace a future custody binding of raw author-submission bytes. Real cohort review, tokenizer boundaries, exact final admission and model execution remain separately authorized steps. Root's activation record was neither read for content nor changed/staged. No milestone credit follows from this report; stopped after verified closeout.
