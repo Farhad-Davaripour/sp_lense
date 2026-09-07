@@ -1,0 +1,18 @@
+{
+  "measured_commands_seconds": {
+    "initial_synthetic_tests": 0.2261266,
+    "corrected_focused_tests_and_freeze": 0.8173802,
+    "prospective_commit_and_zero_model_preflight": 0.8547817,
+    "one_input_only_invocation": 9.0802179,
+    "saved_only_verification": 0.7243249
+  },
+  "timing_basis": "PowerShell Stopwatch measures invoked commands; extraction_final/process_receipt/verification_receipt separately measure their actual monotonic intervals. These are not inferred from tool wait times.",
+  "cumulative_command_allowance_seconds": 180,
+  "conservative_total_bound_including_read_only_preparation_and_closeout_seconds": 30,
+  "no_model_time": true,
+  "no_sealed_reextraction_or_tokenizer_replay": true,
+  "report_is_post_writer_saved_data_closeout": true,
+  "prospective_source_files_unchanged": true,
+  "post_release_new_verifier": "verify_saved.py independently checks already saved bytes and prospectively frozen criteria; it does not change templates, adapter, inputs, token proofs or enable model execution.",
+  "parallel_accounting_reviewer_work_untouched": true
+}
