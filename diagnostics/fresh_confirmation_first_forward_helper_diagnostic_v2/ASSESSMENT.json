@@ -1,0 +1,71 @@
+{
+  "schema": "immutable_failed_integration_assessment.v2",
+  "status": "INCONCLUSIVE",
+  "batch_report_sha256": "b2392fb808dad7661bf6b4767b533f9e7a09d0b888deacf51ed764ed8b711350",
+  "source_commit": "cfcf4a484a258719d020ad04f0abc626499ea2ff",
+  "source_sha256": "32f202c6af1e2780a8ce53db6ebf3410b6eac5dbb2d98b9cdc9596b019f722f0",
+  "case_status": {
+    "clean_loader_native_join": "FAILED_PARTIAL",
+    "mandatory_live_admission": "UNRUN",
+    "native_setup_publication_faults": "UNRUN",
+    "original_cleanup_refusal": "UNRUN",
+    "outer_closeout_failure_survival": "UNRUN",
+    "saved_join_tamper": "UNRUN"
+  },
+  "original_report_remaining_unrun_interpretation": "Uncompleted groups; includes the attempted failing first group. Original field is retained unchanged, not treated as six wholly unexecuted groups.",
+  "complete_groups": 0,
+  "substantive_elapsed_seconds": 0.32799999974668026,
+  "tool_wall_seconds": 0.7968023,
+  "exit_code": 1,
+  "retry_count": 0,
+  "blocker": {
+    "kind": "INERT_FIXTURE_TRACE_DEPENDENCY_MISSING",
+    "failing_source": "forward_trace.py:128",
+    "predicate_source": "forward_trace.py:25",
+    "predicate": "ACTIVE is not None",
+    "finite_code_from_source": "TRACE_REQUIRED",
+    "saved_failure_frames_match": true,
+    "production_core_already_assigns_active_trace": true,
+    "does_not_establish_real_model_failure": true
+  },
+  "saved_prefix": {
+    "frozen_members_verified": 58,
+    "source_unchanged": true,
+    "test_files": 8,
+    "test_bytes": 47456,
+    "total_files": 70,
+    "total_bytes": 383410,
+    "maximum_file_bytes": 62601,
+    "native_helper_state": "FAILED",
+    "original_setup_returned": true,
+    "original_cleanup_returned": false,
+    "rollback_complete": true,
+    "restore_attempted": true,
+    "restore_returned": true,
+    "primary": {
+      "category": "OTHER",
+      "code": "OTHER_FINITE_FAILURE",
+      "phase": "ORIGINAL_CLEANUP"
+    },
+    "secondary": [
+      {
+        "category": "REJECTED",
+        "code": "ORIGINAL_REJECTED",
+        "phase": "ORIGINAL_CLEANUP"
+      }
+    ],
+    "setup_ack_authenticated": true,
+    "source_execution_join_authenticated": true,
+    "root_release_present": false,
+    "real_evidence_present": false
+  },
+  "no_regenerated_receipts": true,
+  "no_post_result_source_change": true,
+  "scientific_pass": false,
+  "real_authority": false,
+  "model_imports": 0,
+  "loads": 0,
+  "forwards": 0,
+  "derivatives": 0,
+  "encodings": 0
+}
