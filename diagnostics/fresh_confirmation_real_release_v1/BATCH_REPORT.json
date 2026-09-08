@@ -1,0 +1,163 @@
+{
+  "disabled_state_preflight": {
+    "intended_mode": "REAL_QWEN",
+    "observed_model_work": "NONE",
+    "production_authorized": false,
+    "status": "DISABLED_NO_APPROVED_REAL_RELEASE"
+  },
+  "elapsed_seconds": 1.5320000001229346,
+  "failure": null,
+  "forbidden_import_attempts": [],
+  "groups": [
+    {
+      "details": {
+        "actual_production_authorized": false,
+        "intended_mode": "REAL_QWEN",
+        "loader_target": {
+          "commit": "f31d0e4f8fd5136eb38df01201f7032c9b82dc61",
+          "path": "diagnostics/fresh_confirmation_production_v2/loader.py",
+          "sha256": "84d80571b2b1698bc835ca5f36e8f72547d6a40ca021b310bee4d1ec9a5baa3e"
+        },
+        "observed_model_work": "SENTINEL_ONLY",
+        "sentinel_calls": 1
+      },
+      "name": "approved_mock_sentinel",
+      "status": "PASS"
+    },
+    {
+      "details": [
+        {
+          "case": "injection_relabel",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "production_relabel",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "source_binding",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "input_binding",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "runtime_binding",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "output_escape",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "output_case",
+          "denied_before_sentinel": true
+        }
+      ],
+      "name": "mode_and_binding_denials",
+      "status": "PASS"
+    },
+    {
+      "details": [
+        {
+          "case": "missing_usage",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "stale_usage",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "altered_usage",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "exhausted_usage",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "unavailable_usage",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "missing_authority",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "wrong_caller_pin",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "disabled",
+          "denied_before_sentinel": true
+        }
+      ],
+      "name": "usage_and_authority_denials",
+      "status": "PASS"
+    },
+    {
+      "details": [
+        {
+          "case": "duplicate_attempt",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "duplicate_worker",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "duplicate_loader",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "missing_worker_terminal",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "missing_loader_terminal",
+          "denied_before_sentinel": true
+        },
+        {
+          "case": "missing_owned_permission",
+          "denied_before_sentinel": true
+        }
+      ],
+      "name": "exclusive_and_terminal_denials",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "late_audit_seconds": 10000.0,
+        "production_ceiling": {
+          "derivatives": 48,
+          "evidence_bytes": 301989888,
+          "file_bytes": 5242880,
+          "forwards": 180,
+          "hook_checks": 109,
+          "loads": 1,
+          "tokens": 160
+        },
+        "production_seconds": {
+          "audit": 180,
+          "cleanup": 15,
+          "worker": 1800
+        },
+        "same_worker_writer_audit_identity": true,
+        "usage_freshness_applied_only_at_admission": true
+      },
+      "name": "shared_identity_and_resources",
+      "status": "PASS"
+    }
+  ],
+  "production_authorized": false,
+  "real_model_calls": 0,
+  "sentinel_calls": 1,
+  "source_sha256": "5e2e693da40b8b15b1b0a187a4192dc74b0d90a4d13e8f493c09875763c13abb",
+  "status": "PASS_MODEL_FREE_BOUNDARY",
+  "test_input_lock_sha256": "3c58a477fc91f42b579a82ce73774fb09d10b53dd5913629a6b07b8cf1db9c81",
+  "torch_backend_tokenizer_imports": 0,
+  "unrun_groups": 0,
+  "within_absolute": true,
+  "within_substantive": true
+}
