@@ -1,0 +1,1 @@
+Prospective offline preparation only. No release, real text lock or tokenizer execution supplied. Run test_prepare.py for fake-tokenizer checks. Root separately owns real text admission and future one-shot preparation authorization.
