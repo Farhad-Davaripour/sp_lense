@@ -1,0 +1,133 @@
+# Two observation calls/import and new identity bindings only in inherited candidates.
+# New observation/reader wrappers and pure tests are separately source-frozen.
+diff --git a/diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_loader.py b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/candidate_loader.py
+index 62c7bda..f367f3e 100644
+--- a/diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_loader.py
++++ b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/candidate_loader.py
+@@ -14,7 +14,7 @@ def _diagnostic_load_adapter(writer, counters, deadline, admitted, diagnostics):
+     current = authenticate()
+     diagnostics.check(require,current["execution"]["mode"] == "REAL_QWEN" and current["execution"]["production_authorized"] is True, "real-only authority before research imports")
+     diagnostics.check(require,current == admitted, "unchanged production authority before loader")
+-    from real_adapter import ForwardDerivativeGuard, RealAdapter
++    from real_adapter import ForwardDerivativeGuard, RealAdapter, parameter_digest
+     from hook_binding import create_latch, create_recorder
+     spec = json.loads((HERE/"RUNTIME_SPEC.json").read_bytes())
+     diagnostics.enter("INSTALLED_SOURCE")
+@@ -61,6 +61,7 @@ def _diagnostic_load_adapter(writer, counters, deadline, admitted, diagnostics):
+         diagnostics.check(require,len(labels) == 109, "exact production hook-check denominator")
+         diagnostics.enter("HOOK_SETUP")
+         diagnostics.capture_enumeration("BEFORE_HOOK_SETUP",list(backend.model.named_parameters()))
++        diagnostics.capture_legacy_before(backend.model,parameter_digest)
+         recorder = create_recorder(backend.model,writer,latch,labels,spec)
+         diagnostics.check(require,guard.forwards == guard.rejected == 0, "complete hook setup admitted before first forward")
+         diagnostics.enter("ADAPTER_CONSTRUCTOR")
+@@ -80,3 +81,4 @@ def load_adapter(writer,counters,deadline,admitted):
+     except BaseException:
+         diagnostics.failure_closeout()
+         raise
++
+diff --git a/diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_real_adapter.py b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/candidate_real_adapter.py
+index 40bc31d..59e6b4c 100644
+--- a/diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_real_adapter.py
++++ b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/candidate_real_adapter.py
+@@ -121,6 +121,7 @@ class RealAdapter:
+             (not p.is_floating_point() or p.dtype == torch.float32) for p in self.parameters), "all actual parameters CPU float32")
+         diagnostics.check(require,not model.training and all(p.grad is None for p in self.parameters), "eval and no inherited gradients")
+         self.flags, self.versions = [p.requires_grad for p in self.parameters], [p._version for p in self.parameters]
++        diagnostics.capture_legacy_after(self.named_parameters,parameter_digest)
+         self.initial_digest = parameter_digest(self.parameters)
+         diagnostics.retain_digest(self.initial_digest,expected_weight_sha256)
+         if expected_weight_sha256 is not None:
+@@ -289,3 +290,4 @@ def make_backend(writer, counters, deadline):
+         from loader import load_adapter
+     return load_adapter(writer,counters,deadline,admitted)
+ 
++
+diff --git a/diagnostics/fresh_confirmation_loader_setup_v1/support.py b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/support.py
+index 557bc0c..51fa187 100644
+--- a/diagnostics/fresh_confirmation_loader_setup_v1/support.py
++++ b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/support.py
+@@ -11,7 +11,7 @@ ROOT = HERE.parents[1]
+ EVIDENCE=HERE/"real_evidence"
+ TEST_EVIDENCE=HERE/"test_evidence"
+ MIB=1024**2
+-ATTEMPT_ID="fresh_confirmation_loader_setup_attempt_001"
++ATTEMPT_ID="fresh_confirmation_weight_order_attempt_001"
+ OUTPUT_RELATIVE="real_evidence/"+ATTEMPT_ID
+ 
+ def require(ok,message):
+@@ -116,3 +116,4 @@ def ownership():
+     sys.modules["owned"]=owned
+     exec(compile(raw,owned.__file__,"exec"),owned.__dict__)
+     return native,owned
++
+diff --git a/diagnostics/fresh_confirmation_loader_setup_v1/real_boundary.py b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/real_boundary.py
+index b261d10..13e0783 100644
+--- a/diagnostics/fresh_confirmation_loader_setup_v1/real_boundary.py
++++ b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/real_boundary.py
+@@ -9,7 +9,7 @@ import time
+ from pathlib import Path
+ 
+ MAIN=Path(__file__).resolve().parent
+-ATTEMPT="fresh_confirmation_loader_setup_attempt_001"
++ATTEMPT="fresh_confirmation_weight_order_attempt_001"
+ OUTPUT="real_evidence/"+ATTEMPT
+ MIB=1024**2
+ 
+@@ -229,3 +229,4 @@ class Boundary:
+             outcome["failure_code"]="LOADER_BOUNDARY_FAILURE"
+             raise
+         finally: write_exclusive(self.control/"LOADER_TERMINAL.json",encoded(outcome),self.root)
++
+diff --git a/diagnostics/fresh_confirmation_loader_setup_v1/BINDINGS.json b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/BINDINGS.json
+index 60bcb8a..7c17ad6 100644
+--- a/diagnostics/fresh_confirmation_loader_setup_v1/BINDINGS.json
++++ b/diagnostics/fresh_confirmation_weight_order_diagnostic_v1/BINDINGS.json
+@@ -1,7 +1,7 @@
+ {
+   "schema": "real_attempt_bindings.v1",
+-  "attempt_id": "fresh_confirmation_loader_setup_attempt_001",
+-  "output_relative": "real_evidence/fresh_confirmation_loader_setup_attempt_001",
++  "attempt_id": "fresh_confirmation_weight_order_attempt_001",
++  "output_relative": "real_evidence/fresh_confirmation_weight_order_attempt_001",
+   "input_binding": {
+     "commit": "01de65cc93b128d605ee1d66b8ccaebc6f6eda40",
+     "exact_inputs_sha256": "f62399de185341ff9380318f390b17c271de7480b0ce7ca1c22c85e5e6a94785",
+@@ -33,15 +33,19 @@
+     "file_bytes": 5242880
+   },
+   "loader": {
+-    "commit": "84bfd749876c44dc9bb1bc1e75db89f3e491c159",
+-    "path": "diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_loader.py",
+-    "sha256": "dfa48a926f066176b32d26350b8c02f9af02de55c10c991e85d340ed6f90fc1c"
++    "namespace_file": "candidate_loader.py",
++    "sha256": "6baf98862e3b131d9446db9fea84218daedf5da10c95e18af4b9837f46eea51a",
++    "base_commit": "84bfd749876c44dc9bb1bc1e75db89f3e491c159",
++    "base_path": "diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_loader.py",
++    "base_sha256": "dfa48a926f066176b32d26350b8c02f9af02de55c10c991e85d340ed6f90fc1c"
+   },
+   "scientific_engine_changed": false,
+   "candidate_adapter": {
+-    "commit": "84bfd749876c44dc9bb1bc1e75db89f3e491c159",
+-    "path": "diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_real_adapter.py",
+-    "sha256": "f94460e5c2b54620e3ea46d34788951ed2422d0a2fe5dd1b3e3f935b00e938a5"
++    "namespace_file": "candidate_real_adapter.py",
++    "sha256": "6dd404959561ac40783101865609097bc758ee3f047f52ead8358b3b923b3013",
++    "base_commit": "84bfd749876c44dc9bb1bc1e75db89f3e491c159",
++    "base_path": "diagnostics/fresh_confirmation_loader_diagnostics_v1/candidate_real_adapter.py",
++    "base_sha256": "f94460e5c2b54620e3ea46d34788951ed2422d0a2fe5dd1b3e3f935b00e938a5"
+   },
+   "setup_scope": {
+     "loads": 1,
+@@ -52,5 +56,11 @@
+     "audit_seconds": 60,
+     "cleanup_seconds": 15,
+     "total_seconds": 255
++  },
++  "order_diagnostic": {
++    "additional_content_hash_passes": 2,
++    "unchanged_expected_sha256": "6a671f0ae00398453e5b453d13b4ebe9de861eb3483f0e500e07bc9e456d06be",
++    "scientific_authorization": false,
++    "remedy_implemented": false
+   }
+ }

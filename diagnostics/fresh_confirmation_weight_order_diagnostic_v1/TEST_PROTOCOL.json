@@ -1,0 +1,100 @@
+{
+  "schema": "prospective_weight_order_join_cases.v1",
+  "groups": [
+    [
+      "order_only"
+    ],
+    [
+      "content_mutation"
+    ],
+    [
+      "wrong_initial"
+    ],
+    [
+      "missing_c",
+      "multiplicity_mismatch",
+      "byte_length_change"
+    ]
+  ],
+  "cases": [
+    "order_only",
+    "content_mutation",
+    "wrong_initial",
+    "missing_c",
+    "multiplicity_mismatch",
+    "byte_length_change"
+  ],
+  "expectations": {
+    "order_only": {
+      "interpretation": "ORDER_EXPLANATION_SUPPORTED_FOR_THIS_CAPTURE",
+      "additional_hash_calls": 2,
+      "constructor_rejected": true,
+      "real_model_calls": 0,
+      "science_cells_unrun": 180,
+      "requests_unrun": 48,
+      "baselines_unrun": 24
+    },
+    "content_mutation": {
+      "interpretation": "RETAINED_ORDER_CONTENT_CHANGE_OR_MEASUREMENT_INSTABILITY",
+      "additional_hash_calls": 2,
+      "constructor_rejected": true,
+      "real_model_calls": 0,
+      "science_cells_unrun": 180,
+      "requests_unrun": 48,
+      "baselines_unrun": 24
+    },
+    "wrong_initial": {
+      "interpretation": "INITIAL_FINGERPRINT_MISMATCH",
+      "additional_hash_calls": 2,
+      "constructor_rejected": true,
+      "real_model_calls": 0,
+      "science_cells_unrun": 180,
+      "requests_unrun": 48,
+      "baselines_unrun": 24
+    },
+    "missing_c": {
+      "interpretation": "PROOF_INCOMPLETE",
+      "additional_hash_calls": 2,
+      "constructor_rejected": true,
+      "real_model_calls": 0,
+      "science_cells_unrun": 180,
+      "requests_unrun": 48,
+      "baselines_unrun": 24
+    },
+    "multiplicity_mismatch": {
+      "interpretation": "PROOF_INCOMPLETE",
+      "additional_hash_calls": 1,
+      "constructor_rejected": true,
+      "real_model_calls": 0,
+      "science_cells_unrun": 180,
+      "requests_unrun": 48,
+      "baselines_unrun": 24
+    },
+    "byte_length_change": {
+      "interpretation": "PROOF_INCOMPLETE",
+      "additional_hash_calls": 1,
+      "constructor_rejected": true,
+      "real_model_calls": 0,
+      "science_cells_unrun": 180,
+      "requests_unrun": 48,
+      "baselines_unrun": 24
+    }
+  },
+  "work_seconds": 45,
+  "shared_cleanup_closeout_seconds": 15,
+  "absolute_seconds": 60,
+  "preparation_bytes": 33554432,
+  "combined_test_bytes": 8388608,
+  "file_bytes": 5242880,
+  "native_diagnostic_max_bytes": 2097152,
+  "real_root_release": false,
+  "old_eight_case_suite_reruns": 0,
+  "case_rules": {
+    "order_only": "Odd indexed six references first under alias names; even six afterward. Values unchanged.",
+    "content_mutation": "After A change parameter0 first float from1.0 to1.5; no metadata/version changes.",
+    "wrong_initial": "Before A parameter0 first float is1.5; no setup content mutation.",
+    "missing_c": "After A/B throw before C body; never synthesize C.",
+    "multiplicity_mismatch": "Append one occurrence of parameter0 to current traversal; retained12 stay12.",
+    "byte_length_change": "After A append3.0 to parameter0 and change shape[2] to[3]."
+  }
+}
