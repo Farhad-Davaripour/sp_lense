@@ -1,0 +1,122 @@
+{
+  "elapsed_seconds": 0.23400000017136335,
+  "failure": null,
+  "forbidden_import_attempts": [],
+  "groups": [
+    {
+      "details": [
+        {
+          "admission_receipt_exists": false,
+          "attempt_reserved": false,
+          "case": "verification_delay",
+          "code": "D_STALE_USAGE",
+          "events": [
+            {
+              "event": "chain_complete",
+              "time": 1121
+            },
+            {
+              "event": "path_complete",
+              "time": 1121
+            },
+            {
+              "event": "clock_sample",
+              "time": 1121
+            }
+          ],
+          "sentinel_calls": 0
+        },
+        {
+          "admission_receipt_exists": false,
+          "attempt_reserved": false,
+          "case": "path_delay",
+          "code": "D_STALE_USAGE",
+          "events": [
+            {
+              "event": "chain_complete",
+              "time": 1119
+            },
+            {
+              "event": "path_complete",
+              "time": 1121
+            },
+            {
+              "event": "clock_sample",
+              "time": 1121
+            }
+          ],
+          "sentinel_calls": 0
+        }
+      ],
+      "name": "validation_delay_denials",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "admission_sha256": "4435376b718fda821aa40ec4e98fa401a78bb6f311c91538d47953c71d7eda33",
+        "admitted_unix_seconds": 1119.5,
+        "events": [
+          {
+            "event": "chain_complete",
+            "time": 1118
+          },
+          {
+            "event": "path_complete",
+            "time": 1119.5
+          },
+          {
+            "event": "clock_sample",
+            "time": 1119.5
+          }
+        ],
+        "late_audit_unix_seconds": 10000,
+        "observed_model_work": "SENTINEL_ONLY",
+        "production_authorized": false,
+        "same_worker_writer_audit_identity": true,
+        "sentinel_calls": 1
+      },
+      "name": "timely_admission_late_audit",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "attempt_reserved": false,
+        "code": "D_REAL_CLOCK_OVERRIDE",
+        "verify_chain_calls": 0
+      },
+      "name": "production_clock_override_denied",
+      "status": "PASS"
+    },
+    {
+      "details": {
+        "exit_code": 2,
+        "intended_mode": "REAL_QWEN",
+        "observed_model_work": "NONE",
+        "production_authorized": false,
+        "real_evidence_exists": false,
+        "root_release_exists": false,
+        "status": "DISABLED_NO_APPROVED_REAL_RELEASE"
+      },
+      "name": "actual_disabled_preflight",
+      "status": "PASS"
+    }
+  ],
+  "model_work_observation": "ONE_PURE_SENTINEL_NO_MODEL",
+  "owned_children_started": 0,
+  "production_authorized": false,
+  "real_model_calls": 0,
+  "resource_bytes": {
+    "evidence_bytes": 0,
+    "largest_file_bytes": 28153,
+    "namespace_bytes": 121366,
+    "preparation_bytes": 108536,
+    "test_evidence_bytes": 12830
+  },
+  "sentinel_calls": 1,
+  "source_sha256": "f4651b9edc2c90f1973be568d59fd9dc17aef23fde352370e2de2e372ebec378",
+  "status": "PASS_MODEL_FREE_FRESHNESS",
+  "test_input_lock_sha256": "61e623e1e714efd9366c2d3332ce0405a8f63e410dbbedc2e9904faaf9c1dcbc",
+  "unrun_groups": 0,
+  "within_absolute": true,
+  "within_substantive": true
+}

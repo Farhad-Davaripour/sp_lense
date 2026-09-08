@@ -1,0 +1,19 @@
+{
+  "schema": "single_model_free_command_closeout.v2",
+  "command": ".venv/Scripts/python.exe -B diagnostics/fresh_confirmation_real_release_v2/freshness_tests.py 61e623e1e714efd9366c2d3332ce0405a8f63e410dbbedc2e9904faaf9c1dcbc",
+  "source_commit": "b5eaefb413b742108acf0af0298d0bb8ee3cb9e3",
+  "exit_code": 0,
+  "command_wall_seconds": 0.4803108,
+  "output": "{\"group\": \"validation_delay_denials\", \"status\": \"PASS\"}\r\n{\"group\": \"timely_admission_late_audit\", \"status\": \"PASS\"}\r\n{\"group\": \"production_clock_override_denied\", \"status\": \"PASS\"}\r\n{\"intended_mode\": \"REAL_QWEN\", \"observed_model_work\": \"NONE\", \"production_authorized\": false, \"status\": \"DISABLED_NO_APPROVED_REAL_RELEASE\"}\r\n{\"group\": \"actual_disabled_preflight\", \"status\": \"PASS\"}\r\n",
+  "returned_session_id": null,
+  "command_completed": true,
+  "substantive_limit_seconds": 45,
+  "shared_closeout_limit_seconds": 15,
+  "absolute_limit_seconds": 60,
+  "within_absolute": true,
+  "owned_children_started": 0,
+  "cleanup_termination_required": false,
+  "real_model_calls": 0,
+  "production_authorized": false,
+  "scope": "Pure single-process regression completion; not real production ownership or model proof"
+}
