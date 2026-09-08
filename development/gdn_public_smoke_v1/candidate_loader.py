@@ -41,7 +41,8 @@ def _diagnostic_load_adapter(writer, counters, deadline, admitted, diagnostics):
     try:
         diagnostics.check(require,counters.attempts["load"] == 1 and counters.attempts["forward"] == 0, "one reserved load before all forwards")
         diagnostics.enter("LOAD")
-        from constructor_operands import loaded_snapshot
+        from constructor_operands import import_hf_definitions,loaded_snapshot
+        import_hf_definitions(guard)
         writer.constructor_operands.snapshot("BEFORE",loaded_snapshot)
         backend = backend_module.ResearchBackend.load(config.load_config(ROOT/spec["model"]["config_path"]),with_lens=False)
         writer.constructor_operands.snapshot("AFTER",loaded_snapshot)

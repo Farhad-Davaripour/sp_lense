@@ -1,5 +1,7 @@
 """Finite observational code metadata, never parameters or exception text."""
 import json
+import importlib
+import importlib.util
 import sys
 import types
 from pathlib import Path
@@ -12,8 +14,31 @@ def source_identity():
     return {"source_sha256":sha((HERE/"SOURCE_FREEZE.json").read_bytes()),
             "public_input_sha256":sha((HERE/"PUBLIC_INPUT.json").read_bytes())}
 
+def import_hf_definitions(guard):
+    """Authenticate explicit definitions after owned admission/guard installation.
+
+    Importing TL's lazy Auto factories does not populate this concrete module.
+    This does not construct a model or accept any constructor-code predicate.
+    """
+    require(guard.installed and guard.forwards==guard.derivatives==0,
+            "HF definition import after guard installation before dispatch")
+    guard.latch.admit()
+    from helper_binding import ensure_package
+    package=ensure_package();source=package["source_contract"]
+    source.authenticate(ROOT)
+    name=package["compat"].HF_MODULE
+    expected=(ROOT/source.PINS["hf"][0]).resolve()
+    specification=importlib.util.find_spec(name)
+    require(specification is not None and specification.origin is not None and
+            Path(specification.origin).resolve()==expected,"HF definition import exact source origin")
+    module=importlib.import_module(name)
+    require(type(module) is types.ModuleType and sys.modules.get(name) is module and
+            Path(module.__file__).resolve()==expected,"HF definition imported module identity")
+    require(sha(expected.read_bytes())==source.PINS["hf"][1],"HF definition imported source bytes")
+    return module
+
 def loaded_snapshot():
-    # Already imported by the unchanged owned loader; no new model/module import.
+    # Concrete definitions explicitly admitted by import_hf_definitions above.
     from helper_binding import ensure_package
     package=ensure_package();source=package["source_contract"];admission=package["admission"]
     source.authenticate(ROOT)
