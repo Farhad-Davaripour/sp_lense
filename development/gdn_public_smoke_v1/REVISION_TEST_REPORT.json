@@ -1,0 +1,83 @@
+{
+  "actual_prefix_provider_verified": false,
+  "checks": [
+    {
+      "case": "clean_authenticated_explicit_import",
+      "order": [
+        "latch_admit",
+        "authenticate_source",
+        "source_origin",
+        "import_definitions"
+      ],
+      "status": "PASS"
+    },
+    {
+      "case": "guard_not_installed",
+      "order": [],
+      "status": "PASS"
+    },
+    {
+      "case": "guard_already_dispatched",
+      "order": [],
+      "status": "PASS"
+    },
+    {
+      "case": "terminal_latch",
+      "order": [],
+      "status": "PASS"
+    },
+    {
+      "case": "wrong_spec_origin",
+      "order": [
+        "latch_admit",
+        "authenticate_source"
+      ],
+      "status": "PASS"
+    },
+    {
+      "case": "wrong_returned_module_path",
+      "order": [
+        "latch_admit",
+        "authenticate_source",
+        "source_origin",
+        "import_definitions"
+      ],
+      "status": "PASS"
+    },
+    {
+      "case": "changed_source",
+      "order": [
+        "latch_admit",
+        "authenticate_source",
+        "source_origin",
+        "import_definitions"
+      ],
+      "status": "PASS"
+    },
+    {
+      "case": "actual_candidate_source_order",
+      "status": "PASS"
+    }
+  ],
+  "derivatives": 0,
+  "elapsed_seconds": 0.015999999828636646,
+  "encoding": 0,
+  "forwards": 0,
+  "library_imports": 0,
+  "model_loads": 0,
+  "parameter_accesses": 0,
+  "real_authority": false,
+  "status": "PASS_PURE_IMPORT_JOIN_ONLY",
+  "tensor_calls": 0,
+  "tool_elapsed_seconds": 0.4864353,
+  "actual_prefix_probe": {
+    "ordinal": 3,
+    "status": "INCONCLUSIVE_PROBE_AGGREGATE",
+    "elapsed_seconds": 26.342999999877065,
+    "actual_provider_predicates_reached_and_passed": true,
+    "individual_no_model_work_fields_not_retained": true,
+    "clean_zero_work_proof": false
+  },
+  "previous_build": "9f284be5b0efea766b626e5bbb753f2d7e11dd57",
+  "previous_test_receipts_unchanged": true
+}
