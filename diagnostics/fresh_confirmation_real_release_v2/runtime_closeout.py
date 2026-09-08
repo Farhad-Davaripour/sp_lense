@@ -1,0 +1,4 @@
+"""Exact immutable production_v2 runtime_closeout binding; no local scientific changes."""
+from pinned import install
+install(globals(),"runtime_closeout")
+

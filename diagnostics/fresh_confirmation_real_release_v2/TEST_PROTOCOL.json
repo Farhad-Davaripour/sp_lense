@@ -1,0 +1,20 @@
+{
+  "schema": "prospective_freshness_regression.v2",
+  "groups": ["validation_delay_denials", "timely_admission_late_audit", "production_clock_override_denied", "actual_disabled_preflight"],
+  "cases": {
+    "verification_delay": {"receipt_time":1000,"entry_time":1119,"after_chain":1121,"expected":"D_STALE_USAGE","attempt_reserved":false},
+    "path_delay": {"receipt_time":1000,"entry_time":1119,"after_chain":1119,"after_path":1121,"expected":"D_STALE_USAGE","attempt_reserved":false},
+    "timely": {"receipt_time":1000,"entry_time":1110,"after_chain":1118,"after_path":1119.5,"admitted_time":1119.5,"audit_time":10000,"expected":"SAME_ADMITTED_IDENTITY"},
+    "production_override": {"now":1119,"expected":"D_REAL_CLOCK_OVERRIDE","verify_chain_calls":0},
+    "actual_preflight": {"expected":"DISABLED_NO_APPROVED_REAL_RELEASE","exit_code":2}
+  },
+  "expected": {"passed_groups":4,"unrun_groups":0,"sentinel_calls":1,"delayed_denials":2,"explicit_clock_denials":1,"real_model_calls":0,"model_backend_tokenizer_import_attempts":0},
+  "substantive_seconds":45,
+  "cleanup_seconds":15,
+  "absolute_seconds":60,
+  "preparation_bytes":33554432,
+  "test_evidence_bytes":8388608,
+  "file_bytes":5242880,
+  "retry_allowed":false,
+  "production_authorized":false
+}
