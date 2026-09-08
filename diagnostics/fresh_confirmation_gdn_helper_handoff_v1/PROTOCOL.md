@@ -1,0 +1,44 @@
+# Prospective GDN helper admission handoff
+
+One model-free question: can the approved helper installation be joined to complete prospective instance selection, original admission/checks/cleanup and authenticated saved evidence without weakening any original guard? Only this new handoff namespace is authored. There is no controller, model loader invocation, root release or real execution command here.
+
+The approved compatibility component is reused by exact source reference from commit `29393c717251212f4afc1ddfd9808fa0ca5bc058` (inventory `68f0cfbd3bbfd50b4ef348db112e765508086d70ca15f10e3e2abc029c328f09`). Closed first-forward attempt 001 remains at `61a89ba171f471f8aedccea857dc6418a65b7f3e` (inventory `9c44f878284fb4d3322aa27f69ec73d11881bcfa01445302850cfce329f7b950`). Its exact missing member is inferred from pinned source compatibility, not recorded by its partial traceback, and historical real003's cause remains unproved.
+
+## Fixed selection and unchanged science
+
+Require exactly 24 original text-model layers and 24 bridge blocks, with the prospectively fixed three-linear/one-full layout at each group of four. The Qwen3.5 architecture extends the pinned Qwen3 mapping: bridge `blocks` maps to `model.layers`, and each optional `linear_attn` maps to its exact original GDN instance. The actual loaded configuration must match the frozen layout; this component does not rewrite configuration or infer actual layout success from source defaults.
+
+The 18 linear positions require exact original/bridge types and object-identity agreement. Full-attention positions must not contain an original GDN. An independent complete `named_modules(remove_duplicate=False)` traversal must equal all 18 canonical `model.layers.N.linear_attn` occurrences in order, with unique object identities. Missing, extra, duplicated, replaced or mismapped instances are rejected before helper installation or original hook setup. No parameter enumeration or values are needed for this added selection.
+
+The already-reviewed pre-hook legacy parameter reference capture stays at its exact old point BEFORE the new selection/materialization/helper installation. New aliases then precede NEW original HookRecorder setup/reference admission. All 14 predicates, frozen expected digest, retained-order content checks, current parameter/registry/cache/hook identities, cold-state checks, learned gate, editor, schedule, thresholds and numerical sources remain unchanged by pinned reference. No original controller or scientific source is copied or edited. The handoff cannot authorize a forward or grant scientific PASS.
+
+## Immutable callable identity and lifecycle
+
+Capture once, before original setup, the exact convolution target, recurrence target, alias wrapper, selected-base and wrapped-function objects. Retain strong references to functions, code objects, defaults, closure cells/contents and referenced global objects. Store canonical immutable bytes in a frozen dataclass. At every added checkpoint compare against those same bytes, never refresh them from observations.
+
+The finite fingerprint includes function/code identity and code SHA, default/keyword-default identities and bounded values, function attributes, closure-cell identities/empty state/contents, wrapped/selected-base functions and directly referenced global identities. It detects same-object code, defaults, keyword-default or selected-implementation drift even when the old pointer-only Targets.inspect passes. It is not a proof of all transitive Python/module state or arbitrary kernel behavior; existing runtime/source/guard predicates remain necessary.
+
+Required added checkpoints are POST_SETUP, PRE_FORWARD and DIAGNOSTIC_CLOSEOUT. The original setup and pre-forward check callbacks execute without replacement; their opaque returned objects are preserved. The existing approved diagnostic_cleanup function is reused by exact source and receives a finally-restoration wrapper. It retains original end_edit -> retained parameter predicates -> original latch admission -> unchanged hook inspection -> cold identity ordering. A terminal latch's refusal still prevents hook inspection. The wrapper adds the final fingerprint check and owned-alias removal before always attempting original guard.restore.
+
+If an original cleanup exception is pending when its finally restoration begins, record it before any helper rollback fault; an exception already active before cleanup is not misidentified as a new cleanup failure. Preserve the original exception object on propagation. Helper/setup/publication failures trip the original irreversible stop before diagnostic serialization; no latch is cleared. Rollback removes only exact owned additions, never unexpected replacements; failed rollback is not retried. Even if closeout publication fails, finite non-IO status survives for the authoritative outer controller. A failed/incomplete handoff cannot pass.
+
+## Saved joins
+
+Native write_new publication must be exclusive, acknowledged by exact name/length/SHA, and lossless. Each HELPER_SETUP/HELPER_TERMINAL receipt is capped at 64 KiB, to be bound within existing diagnostic/storage allowances, not a new cap. Future integration must reserve those exact schemas before load; this batch does not prove real hook capacity. The original 64 KiB first-forward trace cap does not change.
+
+Immediately retain the write-once setup admission (source/execution, setup receipt acknowledgment, full original-instance selection and frozen fingerprint SHA) in the authoritative setup/controller binding. The independent reader requires that separate expected_setup plus closed controller_status; neither may be regenerated from a terminal or modified saved receipt. It authenticates native bytes, source/execution, exact full selection, all checkpoint fingerprints against the one admitted reference, helper identities, original cleanup/restore returns, lifecycle and event order. A physically complete-looking terminal followed by publisher failure cannot pass because authoritative status disagrees. The reader returns only HANDOFF_DIAGNOSTIC_JOIN_COMPLETE or INCOMPLETE, always scientific_pass false, with the normal 109 scientific hook checks UNRUN.
+
+## One fixed batch
+
+Six groups in order, with fixed subcases declared in handoff_tests.py:
+
+1. Clean complete 18-instance join, all three added checkpoints, exact original callback return identities and original cleanup ordering, acknowledged receipts and saved reader success.
+2. Complete-instance-set negatives: omitted traversal occurrence, duplicate original object, wrong bridge original, and extra original GDN.
+3. Same-object drift: wrapper code, selected-base code, base defaults, wrapper keyword defaults, and selected implementation closure cell. The old pointer check must still pass; the frozen added check must reject without reference refresh, and cleanup remains terminal.
+4. Coherent saved tamper: source, execution, instance identity, or fingerprint changed in setup, with receipt hashes and terminal/controller copies repaired. The separately retained immutable setup admission must reject each altered binding.
+5. Original setup failure and partial setup publication: original first cause retained, only owned additions rolled back, guard restoration attempted once, saved result incomplete.
+6. Original cleanup latch refusal plus a later rollback failure, and separate partial terminal publication. Original cleanup failure precedes secondary rollback failure, latch refusal does not call the provider, restoration is attempted, and missing/incomplete terminal evidence cannot pass.
+
+No prior six-group compatibility suite, constructor suite, optimization suite or full confirmation suite is repeated. Inert Python objects/callbacks only. Numerical helper functions never execute. The exact old cleanup function AST executes only with inert original callbacks and a no-op observation span. No Torch/HF/backend/model/tokenizer import/load, tensor, parameter access/hash, forward, derivative or encoding is authorized.
+
+Freeze sources/protocol/cases/limits in a namespace-only commit before the single batch; then lock a fresh actual standard-Codex usage receipt (<100%, available/not exhausted, <=120 seconds). Batch: 45 seconds substantive plus ONE shared 15-second cleanup/closeout = 60 seconds absolute; 59-second hard-exit watchdog, no child processes, no resets. Preparation <=32 MiB, test evidence <=8 MiB, file <=5 MiB. Use an exclusive test directory and explicit non-assert expectations. Any unexpected group failure preserves the current partial bytes, leaves later groups UNRUN and ends the attempt without repair/retry. Missing terminal is INCONCLUSIVE. A component-only PASS proves none of the still-unverified real callable admission, actual hook-capacity or real forward behavior.
