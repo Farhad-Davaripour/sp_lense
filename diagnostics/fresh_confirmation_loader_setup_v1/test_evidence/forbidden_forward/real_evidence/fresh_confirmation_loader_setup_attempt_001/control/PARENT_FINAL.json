@@ -1,0 +1,87 @@
+{
+  "audit_capture_sha256": "22693ec86dd45c6840fdb591d6569cc33194ee6e03f345bc91f52a46a31550a0",
+  "audit_completed": true,
+  "audit_quiescent": true,
+  "audit_result_sha256": "084ae9c8c8485cf47a23e32a8141c9a0f05e288523b06966a8a2c70be4fc648f",
+  "baselines_unrun": 24,
+  "classification": "INCONCLUSIVE_SETUP",
+  "controller_errors": [],
+  "elapsed_seconds": 3.5630000000819564,
+  "execution": {
+    "admission_sha256": "fc82cb0a73b0dda222b139a07ed0d62e68790b7a9594098464dddcedbbefdd54",
+    "attempt_id": "fresh_confirmation_loader_setup_attempt_001",
+    "authority_lock_sha256": "7092de0a5257b6a9b6b6640702c745e70584782e186bfbbb00e1886728e72278",
+    "authorization_sha256": "8cb574c28b30842b13b187201f57bd01cb2dad139bbb435e9495d197b15eaabf",
+    "fixture_id": null,
+    "input_lock_sha256": "d008fb7c53b974694e76afa9ef7db3f4f2d4443eed8a2c83ba06ea6e83987b22",
+    "intended_backend": "PINNED_QWEN35_08B_CPU_FLOAT32",
+    "mode": "REAL_QWEN",
+    "model_work_observation": "SEPARATE_MEASURED_LOADER_AND_TERMINAL_RECEIPTS",
+    "output_relative": "real_evidence/fresh_confirmation_loader_setup_attempt_001",
+    "permission_scope": "MODEL_FREE_SENTINEL_ONLY",
+    "production_authorized": false,
+    "real_model_work": null,
+    "release_sha256": "8d12c04e6d937fcb63e8f5cd14ffed287abaa51b7ba471764649c15d1731fa32",
+    "schema": "root_real_execution_identity.v1",
+    "source_sha256": "4e564d80b6fd55825f4eac814e1afc92f5ef9e3cf0d2bbb043a25110a556c8a0"
+  },
+  "external_capture_overrides_worker": true,
+  "finished_monotonic": 2339221.531,
+  "requests_unrun": 48,
+  "schema": "setup_parent_final.v1",
+  "scientific_cells_unrun": 180,
+  "scientific_pass": false,
+  "shared_cleanup": {
+    "absolute_end": 2339295.421,
+    "charges": [
+      {
+        "key": "clean_setup:worker",
+        "seconds": 0.06300000008195639
+      },
+      {
+        "key": "clean_setup:audit",
+        "seconds": 0.07800000021234155
+      },
+      {
+        "key": "constructor_failure:worker",
+        "seconds": 0.14099999982863665
+      },
+      {
+        "key": "constructor_failure:audit",
+        "seconds": 0.17200000025331974
+      },
+      {
+        "key": "partial_publisher:worker",
+        "seconds": 0.23399999970570207
+      },
+      {
+        "key": "partial_publisher:audit",
+        "seconds": 0.25
+      },
+      {
+        "key": "missing_terminal:worker",
+        "seconds": 0.3429999998770654
+      },
+      {
+        "key": "missing_terminal:audit",
+        "seconds": 0.3899999996647239
+      },
+      {
+        "key": "forbidden_forward:worker",
+        "seconds": 0.48399999970570207
+      },
+      {
+        "key": "forbidden_forward:audit",
+        "seconds": 0.4380000000819564
+      }
+    ],
+    "maximum_seconds": 15,
+    "remaining_seconds": 12.407000000588596,
+    "substantive_end": 2339280.421,
+    "used_seconds": 2.592999999411404
+  },
+  "unconditional_closeout_attempted": true,
+  "worker_capture_sha256": "1599b0910110b5b89dd6154551e40016dae4866931055518872af210f411a736",
+  "worker_quiescent": true,
+  "worker_result_sha256": "4f96968d2f5a1e3031f0fb35b357dbbfbe3dff1855f1ebeb2a91a0b825991a1a"
+}
