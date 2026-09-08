@@ -1,0 +1,69 @@
+{
+  "schema": "single_prospective_diagnostic_batch.v1",
+  "groups": [
+    "distinct_predicate_failures",
+    "diagnostic_write_failures",
+    "alias_order_hypothesis_only"
+  ],
+  "predicate_cases": [
+    {
+      "name": "runtime_metadata",
+      "predicate": "LD_RUNTIME_METADATA"
+    },
+    {
+      "name": "parameter_device_dtype",
+      "predicate": "LD_PARAMETER_DEVICE_DTYPE"
+    },
+    {
+      "name": "eval_gradients",
+      "predicate": "LD_EVAL_GRADIENTS"
+    },
+    {
+      "name": "ordered_weight_digest",
+      "predicate": "LD_ORDERED_WEIGHT_DIGEST"
+    },
+    {
+      "name": "bridge_cache",
+      "predicate": "LD_BRIDGE_CACHE"
+    }
+  ],
+  "io_cases": [
+    {
+      "name": "predicate_and_partial_diagnostic_io",
+      "predicate": "LD_ORDERED_WEIGHT_DIGEST",
+      "partial_bytes": 7
+    },
+    {
+      "name": "accepted_constructor_partial_diagnostic_io",
+      "predicate": "LD_DIAGNOSTIC_IO",
+      "partial_bytes": 7
+    }
+  ],
+  "expected": {
+    "groups_pass": 3,
+    "byte_backend_load_calls": 7,
+    "real_loads": 0,
+    "real_forwards": 0,
+    "real_derivatives": 0,
+    "model_torch_backend_tokenizer_imports": 0,
+    "scientific_passes": 0,
+    "constructor_failures_with_retained_recorder": 4,
+    "io_failures": 2,
+    "alias_count": 6,
+    "underlying_byte_parameters": 12,
+    "unrun_groups": 0
+  },
+  "seconds": {
+    "substantive": 45,
+    "cleanup": 15,
+    "absolute": 60
+  },
+  "bytes": {
+    "preparation": 33554432,
+    "test": 8388608,
+    "per_file": 5242880
+  },
+  "one_batch": true,
+  "retry_allowed": false,
+  "production_authorized": false
+}

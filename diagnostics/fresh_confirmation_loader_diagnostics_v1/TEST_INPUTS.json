@@ -1,0 +1,40 @@
+{
+  "schema": "prospective_loader_diagnostic_byte_fixtures.v1",
+  "mock_config_bytes": "{\"mode\":\"BYTE_STANDIN_ONLY\"}",
+  "mock_runtime_spec": {
+    "installed_sources_sha256": {},
+    "model": {
+      "config_path": "FAKE_ONLY_CONFIG_NOT_REAL.json",
+      "config_sha256": "d2a519be298ecd3e41501c8ce82e579f2becbe65c1e258c04e205c5c19250c53"
+    },
+    "runtime_compatibility": {
+      "model_id": "BYTE_STANDIN_ONLY",
+      "model_revision": "FROZEN_PURE_FIXTURE",
+      "device": "cpu",
+      "dtype": "float32",
+      "d_model": 1024,
+      "model_layers": 24,
+      "packages": {
+        "runtime": "STDLIB_BYTE_STANDINS_NO_TORCH"
+      },
+      "lens": null,
+      "prompt_format": {
+        "chat_template_sha256": "ed157b0d229a4e0876bbe86df0e624cb80bbf9cd9553c3689ba6f6b9bfce5d26"
+      },
+      "weight_sha256": "f1e504825d21eb3c9c1cb27d8f7deebe28d1722b32f2131899068a211fef08f4"
+    }
+  },
+  "mock_admitted": {
+    "execution": {
+      "mode": "REAL_QWEN",
+      "production_authorized": true,
+      "permission_scope": "MODEL_FREE_DIAGNOSTIC_FIXTURE",
+      "actual_real_authorization": false,
+      "observed_model_work": "BYTE_STANDINS_ONLY",
+      "input_lock_sha256": "d008fb7c53b974694e76afa9ef7db3f4f2d4443eed8a2c83ba06ea6e83987b22"
+    }
+  },
+  "actual_real_authorization": false,
+  "actual_model_loads": 0,
+  "fixture_authority_booleans_are_not_root_authority": true
+}
