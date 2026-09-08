@@ -1,0 +1,153 @@
+{
+  "actual_indexed_bytes": 4417,
+  "audit_completed": true,
+  "checks": [],
+  "classification": "INCONCLUSIVE_DIAGNOSTIC",
+  "cleanup": null,
+  "constructor_operands": {
+    "binding_verified": false,
+    "interpretation": "OPERANDS_INCOMPLETE",
+    "scientific_pass": false
+  },
+  "counts": {
+    "actual_load_dispatches": 0,
+    "attempts": {
+      "derivative": 0,
+      "forward": 0,
+      "load": 1
+    },
+    "derivatives": 0,
+    "exact_cell_id": "PUBLIC_SYNTHETIC_TOKEN_1__baseline",
+    "guarded_forwards": 0,
+    "rejected_dispatches": 0,
+    "sealed": true,
+    "stop_reason": null,
+    "tokenizer_calls": 0
+  },
+  "diagnostic_cell_status": "UNRUN",
+  "execution": {
+    "actual_model_work": false,
+    "authority_dependency": "INERT_TEST_DOUBLE_NOT_A_ROOT_RELEASE",
+    "fixture_id": "startup_to_sentinel",
+    "input_lock_sha256": "8932eef36df2b99ceb839bcf0991af23b65eccf4812d0342fdf13106bb7dc8c7",
+    "mode": "INERT_STARTUP_TEST",
+    "permission_scope": "ROOT_REAL_SINGLE_ATTEMPT",
+    "production_authorized": false,
+    "source_sha256": "84fc1bf54ed0c59be96ff6203a384419e797bab1673e0ef7dbbed4efaa012ff2"
+  },
+  "failures": [
+    "WORKER_EXCEPTION",
+    "CONSTRUCTOR_OPERANDS_INCOMPLETE",
+    "HELPER_INTEGRATION_INCOMPLETE"
+  ],
+  "forward_returned": false,
+  "guard_restored": null,
+  "helper_binding": {
+    "binding_verified": false,
+    "scientific_pass": false,
+    "status": "HELPER_BINDING_INCOMPLETE"
+  },
+  "io_status": "COMPLETE",
+  "loader_binding": {
+    "binding_verified": false,
+    "interpretation": "BINDING_INCOMPLETE",
+    "scientific_pass": false
+  },
+  "logits_published": false,
+  "recorder_status": null,
+  "requests_unrun": 0,
+  "schema": "independent_first_forward_diagnostic.v1",
+  "scientific_pass": false,
+  "scientific_study_unrun": true,
+  "startup_failure": null,
+  "trace": {
+    "complete_traceback": false,
+    "events": [
+      {
+        "cleanup": false,
+        "depth": 0,
+        "edge": "ENTER",
+        "ordinal": 0,
+        "stage": "LOAD_HANDOFF"
+      },
+      {
+        "cleanup": false,
+        "depth": 1,
+        "edge": "RAISE",
+        "ordinal": 1,
+        "stage": "LOAD_HANDOFF"
+      },
+      {
+        "cleanup": true,
+        "depth": 0,
+        "edge": "ENTER",
+        "ordinal": 2,
+        "stage": "WRITER_CLOSEOUT"
+      },
+      {
+        "cleanup": true,
+        "depth": 1,
+        "edge": "RETURN",
+        "ordinal": 3,
+        "stage": "WRITER_CLOSEOUT"
+      }
+    ],
+    "first_failure": {
+      "category": "RUNTIME_ERROR",
+      "frame_count": 10,
+      "frame_scan_complete": true,
+      "frames": [
+        {
+          "line": 51,
+          "sha256": "0496e04f25974865e3856dde7ae44843c81b91c2e12c3c0e8bb2f1d86e028a5c",
+          "source": "candidate/diagnostic_core.py"
+        },
+        {
+          "line": 25,
+          "sha256": "e6558a6c41cb3d5d156402ff90225230c727809e8c1b8efd55f2363884f07aa3",
+          "source": "candidate/loader.py"
+        },
+        {
+          "line": 34,
+          "sha256": "5c6cf361e840af8f5f8c302d20ea268e041d12374958bf5756292166e8f195b9",
+          "source": "candidate/startup_tests.py"
+        },
+        {
+          "line": 22,
+          "sha256": "e6558a6c41cb3d5d156402ff90225230c727809e8c1b8efd55f2363884f07aa3",
+          "source": "candidate/loader.py"
+        },
+        {
+          "line": 58,
+          "sha256": "14c9e4ff2ff03d6a706e70426de1d578e6a205132f7067a1e7239eef283bd58c",
+          "source": "candidate/loader_handoff.py"
+        },
+        {
+          "line": 59,
+          "sha256": "5c6cf361e840af8f5f8c302d20ea268e041d12374958bf5756292166e8f195b9",
+          "source": "candidate/startup_tests.py"
+        },
+        {
+          "line": 53,
+          "sha256": "919af974a13072ef84aabb7ec1c047122407a49d9149c0ab7326e55060ca8d22",
+          "source": "candidate/constructor_operands.py"
+        },
+        {
+          "line": 56,
+          "sha256": "5c6cf361e840af8f5f8c302d20ea268e041d12374958bf5756292166e8f195b9",
+          "source": "candidate/startup_tests.py"
+        }
+      ],
+      "frames_complete": false,
+      "phase": "EXECUTION",
+      "stage": "LOAD_HANDOFF",
+      "unallowlisted_frames": 0
+    },
+    "interpretation": "FIRST_FAILURE_STAGE_AND_ALLOWLISTED_LOCATIONS",
+    "scientific_pass": false,
+    "secondary_cleanup_failures": [],
+    "trace_verified": true
+  },
+  "trace_interpretation": "FIRST_FAILURE_STAGE_AND_ALLOWLISTED_LOCATIONS",
+  "trace_verified": true
+}

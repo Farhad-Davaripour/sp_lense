@@ -1,0 +1,134 @@
+"""Finite observational code metadata, never parameters or exception text."""
+import json
+import importlib
+import importlib.util
+import sys
+import types
+from pathlib import Path
+from support import HERE,ROOT,sha,require
+FILE_CAPS={"CONSTRUCTOR_RESERVATION.json":4096,"CONSTRUCTOR_BEFORE.json":16384,
+           "CONSTRUCTOR_AFTER.json":16384,"CONSTRUCTOR_TERMINAL.json":28672}
+PREDICATES=("CALLABLE_FUNCTION_TYPE","CALLABLE_CODE_IDENTITY","CALLABLE_SOURCE_PATH")
+
+def source_identity():
+    return {"source_sha256":sha((HERE/"SOURCE_FREEZE.json").read_bytes()),
+            "public_input_sha256":sha((HERE/"PUBLIC_INPUT.json").read_bytes())}
+
+def preload_ready(guard):
+    """Read-only pre-load phase check; never admits scientific dispatch.
+
+    The real hook recorder admits this exact latch only after model setup.
+    Import readiness cannot call the post-setup dispatch gate while PENDING.
+    """
+    from hook_binding import LatchView,component
+    from diagnostic_support import CELL_ID
+    latch=guard.latch
+    require(type(latch) is LatchView and type(latch.raw) is component().DispatchLatch,
+            "HF_PRELOAD_LATCH_BINDING")
+    raw=latch.raw
+    require(raw._state=="PENDING" and not raw.terminal and raw.primary_code is None and
+            raw.scientific is None and latch.adapter_primary_code is None and latch.recorder is None and
+            raw.secondary_codes==[],"HF_PRELOAD_PENDING")
+    require(raw.cursor==0 and raw.schedule==(CELL_ID,) and raw.remaining==raw.schedule,
+            "HF_PRELOAD_SCHEDULE")
+    require(guard.installed and guard.forwards==guard.derivatives==guard.rejected==0 and
+            guard.forward_ticket is None and guard.derivative_ticket is None,"HF_PRELOAD_GUARD")
+    torch_module=sys.modules.get("torch")
+    require(torch_module is not None and guard.model_class.forward is guard.forward_wrapper and
+            torch_module.autograd.grad is guard.grad_wrapper,"HF_PRELOAD_WRAPPERS")
+    require(dict(guard.counters.attempts)=={"load":1,"forward":0,"derivative":0} and
+            guard.counters.load_calls==0 and not guard.counters.sealed and guard.counters.reason is None and
+            guard.counters.cell_id==CELL_ID,"HF_PRELOAD_COUNTER")
+
+def import_hf_definitions(guard):
+    """Authenticate explicit definitions after owned admission/guard installation.
+
+    Importing TL's lazy Auto factories does not populate this concrete module.
+    This does not construct a model or accept any constructor-code predicate.
+    """
+    require(guard.installed and guard.forwards==guard.derivatives==0,
+            "HF definition import after guard installation before dispatch")
+    preload_ready(guard)
+    from helper_binding import ensure_package
+    package=ensure_package();source=package["source_contract"]
+    source.authenticate(ROOT)
+    name=package["compat"].HF_MODULE
+    expected=(ROOT/source.PINS["hf"][0]).resolve()
+    specification=importlib.util.find_spec(name)
+    require(specification is not None and specification.origin is not None and
+            Path(specification.origin).resolve()==expected,"HF definition import exact source origin")
+    module=importlib.import_module(name)
+    require(type(module) is types.ModuleType and sys.modules.get(name) is module and
+            Path(module.__file__).resolve()==expected,"HF definition imported module identity")
+    require(sha(expected.read_bytes())==source.PINS["hf"][1],"HF definition imported source bytes")
+    return module
+
+def loaded_snapshot():
+    # Concrete definitions explicitly admitted by import_hf_definitions above.
+    from helper_binding import ensure_package
+    package=ensure_package();source=package["source_contract"];admission=package["admission"]
+    source.authenticate(ROOT)
+    module=sys.modules.get(package["compat"].HF_MODULE)
+    require(type(module) is types.ModuleType,"constructor operand existing HF module")
+    original=getattr(module,"Qwen3_5GatedDeltaNet")
+    path=(ROOT/source.PINS["hf"][0]).resolve()
+    expected=source.code_catalog(ROOT,"hf")["Qwen3_5GatedDeltaNet.__init__"]
+    fn=original.__init__;conditions=admission.code_conditions(fn,expected,path)
+    code=fn.__code__ if type(fn) is types.FunctionType else None
+    return {"conditions":conditions,"class_identity":id(original),"function_identity":id(fn),
+        "code_identity":id(code) if code else None,"globals_identity_matches":bool(code and fn.__globals__ is vars(module)),
+        "defaults_none":bool(code and fn.__defaults__ is None),"kwdefaults_none":bool(code and fn.__kwdefaults__ is None),
+        "closure_none":bool(code and fn.__closure__ is None),"optimize":sys.flags.optimize,
+        "bytecode_sha256":sha(code.co_code) if code else None,"expected_bytecode_sha256":sha(expected.co_code),
+        "expected_source_sha256":source.PINS["hf"][1],"expected_line":expected.co_firstlineno,
+        "observed_line":code.co_firstlineno if code else None,"observational_only":True}
+
+class Operands:
+    def __init__(self,execution,publish,stopper,source=None):
+        self.execution=json.loads(json.dumps(execution));self.source=source or source_identity()
+        self.publish=publish;self.stopper=stopper;self.pointers={};self.primary=None;self.io_failed=False;self.finished=False
+        self._write("CONSTRUCTOR_RESERVATION.json",{"reserved_bytes":65536,"file_caps":FILE_CAPS,"before_load":True})
+    def _write(self,name,value):
+        packet={"schema":"constructor_operands.v1","execution":self.execution,"source":self.source,**value}
+        raw=(json.dumps(packet,sort_keys=True,separators=(",",":"),allow_nan=False)+"\n").encode()
+        require(len(raw)<=FILE_CAPS[name],"constructor operand receipt cap")
+        pointer=self.publish(name,raw,raw=True,critical=True)
+        require(pointer["bytes"]==len(raw) and pointer["sha256"]==sha(raw),"constructor operand native acknowledgement")
+        self.pointers[name]=pointer
+    def fail(self,stage,error=None):
+        if self.primary is None:
+            code=getattr(error,"code",None)
+            self.primary={"stage":stage if stage in ("BEFORE","AFTER","LOAD_OR_ADMISSION","PUBLICATION","OUTER_CLOSEOUT") else "UNKNOWN",
+                "predicate":code if code in PREDICATES else "OTHER_OR_UNKNOWN",
+                "category":"OS_ERROR" if isinstance(error,OSError) else "OTHER_EXCEPTION"}
+        try:self.stopper("CONSTRUCTOR_OPERANDS_FAILURE")
+        except BaseException:pass
+    def snapshot(self,phase,provider):
+        require(not self.finished and phase in ("BEFORE","AFTER"),"constructor phase")
+        require((phase=="BEFORE" and len(self.pointers)==1) or (phase=="AFTER" and "CONSTRUCTOR_BEFORE.json" in self.pointers),"constructor phase order")
+        try:self._write("CONSTRUCTOR_"+phase+".json",{"phase":phase,"operands":provider()})
+        except BaseException as error:
+            self.io_failed=True;self.fail(phase,error);raise
+    def finish(self):
+        if self.finished:return self.status()
+        self.finished=True
+        try:self._write("CONSTRUCTOR_TERMINAL.json",{"phase":"TERMINAL","primary":self.primary,"io_failed":self.io_failed,"prior_pointers":dict(self.pointers)})
+        except BaseException as error:self.io_failed=True;self.fail("PUBLICATION",error)
+        return self.status()
+    def status(self):
+        return {"execution":self.execution,"source":self.source,"primary":self.primary,"io_failed":self.io_failed,
+            "complete":not self.io_failed and set(self.pointers)==set(FILE_CAPS),"finished":self.finished,
+            "pointers":dict(self.pointers),"scientific_pass":False}
+
+def reserve_operands(writer,admitted,publish):
+    require(not hasattr(writer,"constructor_operands"),"one constructor operand reservation")
+    def stop(code):
+        context=getattr(writer,"loader_diagnostics",None)
+        if context is not None and context.latch is not None:context.latch.stop(code)
+    writer.constructor_operands=Operands(admitted["execution"],publish,stop)
+
+def terminal_status(writer):
+    recorder=getattr(writer,"constructor_operands",None)
+    if recorder is None:return {"complete":False,"scientific_pass":False,"primary":{"stage":"UNKNOWN"}}
+    recorder.finish()
+    return recorder.status()
