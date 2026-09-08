@@ -1,0 +1,162 @@
+{
+  "schema": "prospective_owned_setup_test.v1",
+  "groups": [
+    {
+      "name": "clean_setup",
+      "cases": [
+        "clean_setup"
+      ]
+    },
+    {
+      "name": "constructor_retains_recorder",
+      "cases": [
+        "constructor_failure"
+      ]
+    },
+    {
+      "name": "native_partial_publication",
+      "cases": [
+        "partial_publisher"
+      ]
+    },
+    {
+      "name": "missing_terminal_and_dispatch_cleanup_denials",
+      "cases": [
+        "missing_terminal",
+        "forbidden_forward",
+        "forbidden_derivative",
+        "second_load",
+        "cleanup_failure"
+      ]
+    }
+  ],
+  "cases": [
+    "clean_setup",
+    "constructor_failure",
+    "partial_publisher",
+    "missing_terminal",
+    "forbidden_forward",
+    "forbidden_derivative",
+    "second_load",
+    "cleanup_failure"
+  ],
+  "expectations": {
+    "clean_setup": {
+      "classification": "SETUP_DIAGNOSTIC_COMPLETE",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    },
+    "constructor_failure": {
+      "classification": "INCONCLUSIVE_SETUP",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    },
+    "partial_publisher": {
+      "classification": "INCONCLUSIVE_SETUP",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    },
+    "missing_terminal": {
+      "classification": "INCONCLUSIVE_SETUP",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    },
+    "forbidden_forward": {
+      "classification": "INCONCLUSIVE_SETUP",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    },
+    "forbidden_derivative": {
+      "classification": "INCONCLUSIVE_SETUP",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    },
+    "second_load": {
+      "classification": "INCONCLUSIVE_SETUP",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    },
+    "cleanup_failure": {
+      "classification": "INCONCLUSIVE_SETUP",
+      "inert_load_bodies": 1,
+      "real_model_loads": 0,
+      "forwards": 0,
+      "derivatives": 0,
+      "tokenizer_calls": 0,
+      "baselines_unrun": 24,
+      "requests_unrun": 48,
+      "science_cells_unrun": 180,
+      "worker_audit_quiescent": true,
+      "scientific_pass": false
+    }
+  },
+  "total_inert_loads": 8,
+  "second_load_denied_attempts": 1,
+  "owned_lanes": 16,
+  "shared_cleanup_seconds": 15,
+  "substantive_seconds": 75,
+  "absolute_seconds": 90,
+  "preparation_bytes": 33554432,
+  "combined_test_bytes": 8388608,
+  "per_file_bytes": 5242880,
+  "one_batch_no_retry": true,
+  "production_authorized": false,
+  "actual_model_imports": 0
+}
+
