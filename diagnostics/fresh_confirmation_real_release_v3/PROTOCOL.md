@@ -1,0 +1,33 @@
+# Prospective final-study loader/context handoff
+
+Question: can the already-checked full final runner use the exact retained-order loader/adapter and optimization-safe proof reader without changing scientific or control rules?
+
+Successful startup002 is preserved separately at334b01ce98035dcc80442979d4bf527087e88cab. It is SETUP_DIAGNOSTIC_COMPLETE only:1load0F0D0encoding, all24/48/180scientific slotsUNRUN. Prior real002 remains its immutable INCONCLUSIVE_STUDY, with its missing original cause unproved. No old attempt is resumed.
+
+## Exact integration scope
+
+The full real_release_v2/production_v2 scientific engine, saved scientific judge, learned gate/editor/scoring, thresholds,24prompts/48requests/180cells, raw codec/IO/hook/ownership/fault precedence and final controller are unchanged. Generated engine SHA83259d692a740155a32a2bd5c204dad42c6ec17e411bd57f45c86f3d07919332 and judge SHAe2d7d6d740dc1bd9904b8361ce5a73a26d15db2b48f5260728bc3e1f1d01f4a6 must remain byte-identical. All scientific inputs and resource bindings remain exact.
+
+Carry the exact committed startup-v2 candidate_loader.py, candidate_real_adapter.py, real_adapter.py wrapper, loader_diagnostics.py and explicit-check weight_reader.py. They retain the complete strong pre-hook parameter tuple, one additional fresh initial hash and every unchanged constructor/later content hash on that same tuple, fixedexpected6a671f0ae00398453e5b453d13b4ebe9de861eb3483f0e500e07bc9e456d06be, original14predicates, current registry arrays and cleanup. None of setup_counter/setup_budget/setup_core/setup_loader is present. The final runner keeps actual180F48D1load counters and its existing forward/derivative ticket guard.
+
+The outer real loader's same role/output/accounting/deadline/owned dispatch gates and post-return receipt cleanup remain unchanged. Its only selected-target block now authenticates the committed corrected loader and calls a new bounded handoff. Before loading, install one exclusive native LOADER_DIAGNOSTICS publisher with2MiB maximum and a source/execution/resource-bound reservation. This diagnostic uses ordinary<=280MiB space and does not consume the existing8MiB closeout reserve. No source cap increases. Before any first forward, the created adapter/context/recorder must be identical, and the acknowledged native retained-weight proof must pass the unchanged explicit-check reader under the new source/authority. A rejected post-construction handoff stops the latch and performs the existing end-edit/guard-restore cleanup; no retry.
+
+Final runtime_closeout itself remains exact. The previously reviewed finite diagnostic terminal helper adds the retained context to its returned terminal, including already-created recorder status on constructor failure. WORKER_RESULT/native file caps and aggregate bounds remain unchanged; arbitrary capacity failure is still fail-closed incomplete, not a promise that every conceivable fault dump fits. The native proof is at most2MiB; its terminal copy must fit the existing5MiB file/8MiB shared closeout constraints. No lossless evidence is truncated.
+
+The independent saved_runtime invokes all original full/prefix-hook, scientific and fault checks first, then requires the new native proof and retained-reference metadata flag. It can only preserve or downgrade evidence validity; it never turns an incomplete scientific result into PASS. Scientific negative findings retain their original precedence under the existing technical-integrity rules.
+
+## One narrow model-free batch
+
+TEST_PROTOCOL fixes exactly two cases: clean loader/context handoff with closed evidence, and malformed inner proof source binding. No full confirmation, constructor, optimization or old failure suite rerun. The existing final writer/index/native-closeout and exact Context.ready/terminal/readback paths are exercised with an inert callback; the exact real loader target is authenticated but never invoked. This is the new handoff only, not the full scientific engine/schedule.
+
+Saved FAKE alias_reordered metadata/parameter-state JSON supplies finite stand-ins. Execution/source identities and digest STRINGS are prospectively rebound and explicitly recorded as synthetic transformations; no weight content or hash is measured. No Qwen/torch/backend/tokenizer imports, real constructors, parameter access, real forwards/derivatives/encoding or actual questions. The malformed case changes the inner proof source SHA before publication, retaining coherent outer native hash and terminal duplicate, and must be rejected before any scientific dispatch. Both cases reserve one synthetic load slot in the actual full180/48/1 Counter, while actual loads remain zero.
+
+The original final runtime_closeout uses finite fake cleanup methods and an actual checked writer. Guard restoration must happen exactly once in either case; native index is COMPLETE for clean handoff and honestly INCOMPLETE/sticky for malformed binding, mirroring the reviewed hook-fault writer consequence without rerunning that component suite. Context/recorder evidence remains saved. Both deliberately incomplete scientific fixtures stay INCONCLUSIVE under the original saved-runtime predicates even when the loader proof is good. No scientific PASS is an expected outcome. All180synthetic cells/48requests remainUNRUN; no real cohort strings are executed or altered.
+
+One45s substantive batch includes source parity and saved handoff audits; ONE15s closeout inside60s, terminal timer59.5s.32MiBprep8MiBcombinedfixtures5MiBfile. One batch only; any failure preserves the failed case and exact laterUNRUN suffix, with no repair/retry. Fresh tool-derived standard-Codex usage must be available/nonexhausted/<100 and<=120s old at start. Freeze source, inputs, exact two-case expectations and commit before running.
+
+## Future authority remains absent
+
+Distinct fresh_confirmation_real_attempt_003 only. No actual root_release or top-level real_evidence is supplied. Future real caps remain180F48D1load160tokens109hooks,1800worker180auditONE15sharedcleanup1995total,288MiBevidence/5MiBfile. No startup-only0F controller, deadline reset, load allowance increase or automatic scientific continuation is introduced.
+
+Independent root release review, separate root authorization, fresh actual usage admission after validation/path checks, complete exact input/token/source/runtime/hook setup admission and existing final scientific/external-capture gates remain mandatory. FUTURE_ROOT_RELEASE gives prospective commands. Successful fake handoff does not predict scientific success, preserve unknown tasks, establish a reusable steering vector or grant a publication milestone.

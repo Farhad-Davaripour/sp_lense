@@ -1,0 +1,47 @@
+{
+  "schema": "prospective_final_loader_handoff_fake_inputs.v1",
+  "source_sha256": "bf1313384c9c9d5b94fa83595bb169a639ec8eb1c8413f102849190ed8841404",
+  "frozen_expected_sha256": "6a671f0ae00398453e5b453d13b4ebe9de861eb3483f0e500e07bc9e456d06be",
+  "real_weight_measurement": false,
+  "mock_usage": {
+    "observed_unix_seconds": 1000,
+    "tool_result": {
+      "rateLimitsByLimitId": {
+        "codex": {
+          "limitId": "codex",
+          "primary": {
+            "usedPercent": 0,
+            "windowDurationMins": 10080
+          },
+          "secondary": null,
+          "spendControlReached": false,
+          "rateLimitReachedType": null
+        }
+      }
+    }
+  },
+  "mock_release": {
+    "schema": "real_root_release.v1",
+    "source_sha256": "bf1313384c9c9d5b94fa83595bb169a639ec8eb1c8413f102849190ed8841404",
+    "binding_sha256": "36332c55c2a5c7116a92034d52a99f58d974edae1f2122dbdd83f1f6061daab5",
+    "input_lock_sha256": "d008fb7c53b974694e76afa9ef7db3f4f2d4443eed8a2c83ba06ea6e83987b22",
+    "runtime_spec_sha256": "01ed2072135c521ce53087dad88cbcf75ae1583aea9db801309d1590feaaa94f",
+    "resource_contract_sha256": "7610b46b0248569ba51f3f90638734582202c7214822dadafd57fefabc41af3b",
+    "execution_mode": "REAL_QWEN",
+    "permission_scope": "MODEL_FREE_SENTINEL_ONLY",
+    "attempt_id": "fresh_confirmation_real_attempt_003",
+    "output_relative": "real_evidence/fresh_confirmation_real_attempt_003",
+    "usage_sha256": "DERIVED_FROM_FIXED_MOCK_USAGE",
+    "production_authorized": false,
+    "source_input_hook_reviewed": true
+  },
+  "mock_authorization": {
+    "schema": "real_root_authorization.v1",
+    "release_sha256": "DERIVED_FROM_FIXED_MOCK_RELEASE",
+    "allow_execute": true,
+    "execution_mode": "REAL_QWEN",
+    "permission_scope": "MODEL_FREE_SENTINEL_ONLY",
+    "attempt_id": "fresh_confirmation_real_attempt_003",
+    "output_relative": "real_evidence/fresh_confirmation_real_attempt_003"
+  }
+}

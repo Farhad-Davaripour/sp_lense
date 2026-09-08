@@ -1,0 +1,52 @@
+{
+  "schema": "prospective_final_loader_handoff_cases.v1",
+  "cases": [
+    "clean_handoff",
+    "malformed_binding"
+  ],
+  "expectations": {
+    "clean_handoff": {
+      "accepted": true,
+      "native_proof_verified": true,
+      "writer_index_complete": true,
+      "guard_restores": 1,
+      "full_scientific_result": "NOT_TESTED_INCONCLUSIVE_FIXTURE"
+    },
+    "malformed_binding": {
+      "accepted": false,
+      "native_proof_verified": false,
+      "writer_index_complete": false,
+      "writer_index_status": "INCOMPLETE",
+      "writer_sticky": true,
+      "guard_restores": 1,
+      "full_scientific_result": "NOT_TESTED_INCONCLUSIVE_FIXTURE"
+    }
+  },
+  "counter_limits": {
+    "forward": 180,
+    "derivative": 48,
+    "load": 1
+  },
+  "synthetic_reserved_attempts_each": {
+    "load": 1,
+    "forward": 0,
+    "derivative": 0
+  },
+  "actual_model_loads": 0,
+  "parameter_accesses": 0,
+  "parameter_content_hashes": 0,
+  "constructors_of_real_adapter": 0,
+  "science_schedule_executions": 0,
+  "work_seconds": 45,
+  "shared_cleanup_seconds": 15,
+  "absolute_seconds": 60,
+  "preparation_bytes": 33554432,
+  "test_evidence_bytes": 8388608,
+  "per_file_bytes": 5242880,
+  "fake_transformation": "Use committed v1 alias_reordered native metadata and parameter-state JSON only; explicitly rebind execution/source and digest STRINGS to frozen expected. No weights or hashes are measured; no real metadata claim.",
+  "callback_scope": "Authenticate real target function but never invoke it; boundary mock sentinel dispatch calls only fixed inert callback and original diagnostic Context.ready/native publisher.",
+  "malformed_binding_rule": "Set only native proof source SHA to zeros before the original ready publication; exact native hash and terminal copy remain coherent, so intended inner source binding rejects.",
+  "closeout_scope": "Actual unchanged final runtime_closeout + actual checked writer/index, finite fake adapter cleanup methods and context terminal handoff; original saved_runtime must not upgrade deliberately incomplete science.",
+  "real_authorization": false,
+  "old_suites_rerun": 0
+}
