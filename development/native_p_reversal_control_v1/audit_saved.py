@@ -38,6 +38,7 @@ def judge(base,execution,deadline):
             'scientific_pass':False,'completed_forwards':0,'planned_cells':25,'unrun':25,'reason':'WORKER_PRE_SCHEDULE_FAILURE'}
     require(len(statuses)==25 and all({k:v[k] for k in ('id','case','phase','policy')}==c for v,c in zip(statuses,cells,strict=True)),'ALL_PLANNED_DENOMINATORS')
     tail=False;failed_count=0;rows={};scientific=[];technical=[]
+    status_by_id={s['id']:s for s in statuses};earliest_stop={}
     params=json.loads((BASE/'real_attempt/fitted_parameters.json').read_bytes())['parameters']
     gate_ref=module('native_independent_gate_reference',BASE/'gate_reference.py')
     def logits(row):
@@ -52,6 +53,16 @@ def judge(base,execution,deadline):
     for status in statuses:
         require(time.monotonic()<deadline,'AUDIT_DEADLINE')
         kind=status['status'];require(kind in ('COMPLETE','SKIPPED','FAILED','UNRUN'),'CELL_STATUS')
+        update=status['phase'].startswith(('gradient_','step_'))
+        stop=earliest_stop.get(status['case'])
+        if kind=='SKIPPED':
+            require(update,'MANDATORY_CELL_NOT_SKIPPABLE')
+            require(stop in ('accepted','quality_failure') and status.get('reason')==stop,'EARLIEST_STOP_SKIP_REASON')
+            number=status['phase'].split('_')[1]
+            pair=[status_by_id[status['case']+'__P__'+phase+'_'+number] for phase in ('gradient','step')]
+            require(all(s['status']=='SKIPPED' and s.get('reason')==stop for s in pair),'PAIRED_UPDATE_SKIP_SUFFIX')
+        if update and stop is not None:
+            require(kind not in ('COMPLETE','FAILED'),'NO_UPDATE_AFTER_EARLIEST_STOP')
         if tail:require(kind=='UNRUN','EXACT_UNRUN_SUFFIX')
         if kind in ('FAILED','UNRUN'):tail=True;failed_count+=kind=='FAILED'
         if kind!='COMPLETE':continue
@@ -67,9 +78,10 @@ def judge(base,execution,deadline):
             and row['capture']['nonfinal_positions']==len(expected)-1,'CAPTURE_CHECKS')
         raw,z=logits(row);rows[row['id']]=row
         if row['case'] is None:continue
+        require(row['baseline_id']==row['case']+'__baseline','CASE_SPECIFIC_ORIGINAL_BASELINE')
         baseline=row if row['baseline_id']==row['id'] else rows[row['baseline_id']]
         require(baseline['phase']=='baseline','ORIGINAL_BASELINE_NEVER_SEED_ANCHOR')
-        _,b=logits(baseline);verify_score(row,z,b)
+        baseline_raw,b=logits(baseline);verify_score(row,z,b)
         require(row['h0']==baseline['h'] and abs(row['h0_norm']-magnitude(baseline['h']))<=1e-6,'BASELINE_H0')
         net=magnitude([a-b for a,b in zip(row['h'],baseline['h'],strict=True)])
         offset_error=max(abs(x-(h+d)) for x,h,d in zip(row['h'],baseline['h'],row['offset'],strict=True))
@@ -80,6 +92,10 @@ def judge(base,execution,deadline):
             gs=gate_ref.score(params,row['h']);route='ON' if gs>=0 else 'OFF'
             require(abs(gs-row['gate_score'])<=1e-12 and row['route']==route,'INDEPENDENT_GATE')
             if route!=cases[row['case']]['audit_only']['expected_route']:scientific.append('GATE_COMPATIBILITY')
+        if row['phase']=='entry':
+            require(row['id']==row['case']+'__P__entry' and row.get('current_id')==baseline['id']
+                and row['h']==baseline['h'] and raw==baseline_raw
+                and row['gate_score']==baseline['gate_score'] and row['route']==baseline['route'],'UNCONDITIONAL_FRESH_ENTRY_BINDING')
         if row['phase']=='baseline' and row['case'] in cases and not eligible(row):scientific.append('FINITE_SELF_ELIGIBILITY')
         if 'current_id' in row:
             current=rows[row['current_id']];cr,cz=logits(current)
@@ -142,10 +158,20 @@ def judge(base,execution,deadline):
             require(abs(step['path_norm']-(previous_path+actual))<=1e-6,'ACCUMULATED_PATH')
             if max(abs(a-b) for a,b in zip(realized,requested,strict=True))>1e-6 or abs(actual-length)>1e-6 \
                 or actual>.05*hn+1e-6 or step['path_norm']>.20*hn+1e-6 or net>step['path_norm']+1e-6:technical.append('STEP_PATH_BOUND')
+            # Exactly the frozen worker order: accepted first, then not valid.
+            if accepted(row,1,50057):earliest_stop[row['case']]='accepted'
+            elif not (row['answer_pair_mass']>=.8 and row['kl_from_baseline']>=-1e-6):earliest_stop[row['case']]='quality_failure'
     requests=worker.get('requests',[])
     seen=set()
     for request in requests:
         key=(request['case'],request['policy']);require(key not in seen,'UNIQUE_REQUEST');seen.add(key)
+        require(request['case'] in cases and request['policy']=='P' and request['kind']=='flip'
+            and request['entry']==request['case']+'__P__entry'
+            and request['seed']==request['case']+'__P__seed'
+            and request['endpoint']==request['case']+'__P__endpoint','EXACT_CASE_REQUEST_REFERENCES')
+        mandatory=[request['case']+'__baseline']+[request['case']+'__P__'+phase for phase in ('entry','seed','endpoint')]
+        require(all(status_by_id[name]['status']=='COMPLETE' and name in rows for name in mandatory),'MANDATORY_REQUEST_CELLS_EXECUTED')
+        require(request['stop_reason']==earliest_stop.get(request['case'],'max_updates'),'REQUEST_EARLIEST_STOP_REASON')
         entry=rows[request['entry']]
         if request['kind']=='OFF':
             baseline=rows[entry['baseline_id']]
@@ -166,7 +192,7 @@ def judge(base,execution,deadline):
             gradient_rows=[r for r in rows.values() if r['case']==request['case'] and r['policy']==request['policy'] and r['phase'].startswith('gradient_')]
             step_rows=[r for r in rows.values() if r['case']==request['case'] and r['policy']==request['policy'] and r['phase'].startswith('step_')]
             require(len(gradient_rows)==len(step_rows)==request['updates'],'REQUEST_UPDATE_COUNTS')
-            require(selected['phase']=='step_'+str(request['updates']),'SELECTED_LAST_UPDATE')
+            require(selected['id']==request['case']+'__P__step_'+str(request['updates']),'SELECTED_LAST_UPDATE')
             last_step=json.loads((base/'steps'/(selected['id']+'.json')).read_bytes())
             require(request['path_norm']==last_step['path_norm'],'COMPLETE_PATH_INCLUDES_SEED')
             passed=accepted(endpoint,sign,wanted) and accepted(selected,sign,wanted)
@@ -194,7 +220,8 @@ def judge(base,execution,deadline):
     primary=worker.get('primary')
     if primary and primary.get('kind')=='TECHNICAL':technical.append(primary['code'])
     if primary and primary.get('kind')=='SCIENTIFIC':require(primary['code'] in scientific,'INDEPENDENT_SCIENTIFIC_FAILURE')
-    passed=not scientific and not technical and not primary and not tail and len(requests)==2
+    passed=not scientific and not technical and not primary and not tail and seen=={(case,'P') for case in cases}
+    if passed:require(status_by_id['public_smoke']['status']=='COMPLETE','MANDATORY_SMOKE_EXECUTED')
     require(not worker.get('scientific_pass') or passed,'WORKER_PASS_REQUIRES_INDEPENDENT_PASS')
     classification='COMPLETE_NATIVE_DEVELOPMENT' if passed else 'SCIENTIFIC_FAILURE_NATIVE_DEVELOPMENT' if scientific and not technical else 'INCONCLUSIVE_NATIVE_DEVELOPMENT'
     return {'execution':execution,'audit_completed':True,'classification':classification,'scientific_pass':passed,

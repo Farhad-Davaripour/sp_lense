@@ -125,6 +125,51 @@ def main():
             binding=json.loads(original_binding);item=next(v for v in binding['files'] if v['path']==name);item.update(bytes=len(changed),sha256=support.sha(changed));binding_path.write_bytes(support.json_bytes(binding))
             child=audit_child(base);need(child.returncode!=0,'INDEPENDENT_COHERENT_TAMPER_REJECTED')
             target.write_bytes(original);binding_path.write_bytes(original_binding);reports.append({'case':'independent_tamper_'+name,'status':'PASS'})
+        # Update every affected inventory hash, including the worker-result join.
+        # Expected finite rejection codes ensure these exercise the new rule first.
+        def coherent_rejection(label,changes,code):
+            originals={name:(base/name).read_bytes() for name in changes};binding=json.loads(original_binding)
+            try:
+                for name,change in changes.items():
+                    value=json.loads(originals[name]);change(value);changed=support.json_bytes(value);(base/name).write_bytes(changed)
+                    item=next(v for v in binding['files'] if v['path']==name);item.update(bytes=len(changed),sha256=support.sha(changed))
+                    if name=='WORKER_RESULT.json':binding['worker_result_sha256']=support.sha(changed)
+                binding_path.write_bytes(support.json_bytes(binding));child=audit_child(base)
+                need(child.returncode!=0 and code in child.stderr,'TARGETED_REJECTION_'+label)
+            finally:
+                for name,raw in originals.items():(base/name).write_bytes(raw)
+                binding_path.write_bytes(original_binding)
+            reports.append({'case':label,'status':'PASS','coherent_outer_inventory':True,'rejection':code})
+        first='stop_then_keep'
+        def cell_change(phase,**fields):
+            cell_id=first+'__baseline' if phase=='baseline' else first+'__P__'+phase
+            return lambda value:next(s for s in value['cells'] if s['id']==cell_id).update(**fields)
+        for phase in ('baseline','entry','seed','endpoint'):
+            coherent_rejection('mandatory_'+phase+'_cannot_skip',{'WORKER_RESULT.json':cell_change(phase,status='SKIPPED',reason='accepted')},'MANDATORY_CELL_NOT_SKIPPABLE')
+        coherent_rejection('request_entry_cannot_alias_baseline',{'WORKER_RESULT.json':lambda v:v['requests'][0].update(entry=first+'__baseline')},'EXACT_CASE_REQUEST_REFERENCES')
+        coherent_rejection('entry_current_id_is_mandatory',{'rows/'+first+'__P__entry.json':lambda v:v.pop('current_id')},'UNCONDITIONAL_FRESH_ENTRY_BINDING')
+        coherent_rejection('no_continuation_after_acceptance',{'WORKER_RESULT.json':cell_change('gradient_2',status='COMPLETE')},'NO_UPDATE_AFTER_EARLIEST_STOP')
+        coherent_rejection('wrong_skip_reason',{'WORKER_RESULT.json':cell_change('gradient_2',reason='quality_failure')},'EARLIEST_STOP_SKIP_REASON')
+        coherent_rejection('unpaired_skip_reason',{'WORKER_RESULT.json':cell_change('step_2',reason='quality_failure')},'PAIRED_UPDATE_SKIP_SUFFIX')
+        coherent_rejection('wrong_request_stop_reason',{'WORKER_RESULT.json':lambda v:v['requests'][0].update(stop_reason='max_updates')},'REQUEST_EARLIEST_STOP_REASON')
+        # A verified invalid step must stop too, even when later claimed cells exist.
+        step_name='rows/'+first+'__P__step_1.json';logit_name='logits/'+first+'__P__step_1.f32'
+        original_logits=(base/logit_name).read_bytes();changed_z=torch.frombuffer(bytearray(original_logits),dtype=torch.float32).clone();changed_z[99]=20.
+        changed_logits=rawz(changed_z);baseline_bytes=(base/'logits'/ (first+'__baseline.f32')).read_bytes()
+        original_step=(base/step_name).read_bytes();original_worker=(base/'WORKER_RESULT.json').read_bytes();binding=json.loads(original_binding)
+        try:
+            changed_step=json.loads(original_step);changed_step.update(score(torch,changed_z,torch.frombuffer(bytearray(baseline_bytes),dtype=torch.float32)))
+            changed_step['logits_sha256']=support.sha(changed_logits)
+            worker_value=json.loads(original_worker);cell_change('gradient_2',status='COMPLETE')(worker_value)
+            changed={step_name:support.json_bytes(changed_step),logit_name:changed_logits,'WORKER_RESULT.json':support.json_bytes(worker_value)}
+            for name,raw in changed.items():
+                (base/name).write_bytes(raw);item=next(v for v in binding['files'] if v['path']==name);item.update(bytes=len(raw),sha256=support.sha(raw))
+            binding['worker_result_sha256']=support.sha(changed['WORKER_RESULT.json']);binding_path.write_bytes(support.json_bytes(binding))
+            child=audit_child(base);need(child.returncode!=0 and 'NO_UPDATE_AFTER_EARLIEST_STOP' in child.stderr,'QUALITY_FAILURE_CONTINUATION_REJECTED')
+        finally:
+            (base/step_name).write_bytes(original_step);(base/logit_name).write_bytes(original_logits)
+            (base/'WORKER_RESULT.json').write_bytes(original_worker);binding_path.write_bytes(original_binding)
+        reports.append({'case':'no_continuation_after_verified_quality_failure','status':'PASS','coherent_outer_inventory':True})
         unchanged=[]
         for name in ('receiver.py','science.py','core.py','entry.py','owned_production.py','production_run.py','setup_budget.py','forward_trace.py','launch.py'):
             raw=subprocess.check_output(['git','-C',str(support.ROOT),'cat-file','blob','6f88bf2b2d49fa068c737372c2202a7b3b79643b:development/native_opposite_order_v1/'+name])
