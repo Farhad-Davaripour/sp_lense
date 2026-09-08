@@ -1,0 +1,183 @@
+--- first_forward_v1/candidate_loader.py
++++ helper_diagnostic_v2/candidate_loader.py
+@@ -62,12 +62,16 @@
+         diagnostics.enter("HOOK_SETUP")
+         diagnostics.capture_enumeration("BEFORE_HOOK_SETUP",list(backend.model.named_parameters()))
+         diagnostics.capture_legacy_before(backend.model,parameter_digest,compatibility["weight_sha256"])
+-        recorder = create_recorder(backend.model,writer,latch,labels,spec)
++        from helper_binding import begin,setup
++        helper = begin(writer,backend.model,guard,admitted)
++        recorder = setup(helper,lambda:create_recorder(backend.model,writer,latch,labels,spec))
+         diagnostics.check(require,guard.forwards == guard.rejected == 0, "complete hook setup admitted before first forward")
+         diagnostics.enter("ADAPTER_CONSTRUCTOR")
+         return diagnostics.ready(RealAdapter(backend.model,recorder,guard,expected_weight_sha256=compatibility["weight_sha256"],runtime_metadata=metadata,diagnostics=diagnostics,legacy_weight_parameters=diagnostics.legacy_parameters))
+     except BaseException:
+         latch.stop("LOAD_OR_SETUP_FAILURE")
++        from helper_binding import abort_load
++        abort_load(writer,sys.exception())
+         guard.restore()
+         raise
+ 
+--- first_forward_v1/loader_handoff.py
++++ helper_diagnostic_v2/loader_handoff.py
+@@ -63,10 +63,15 @@
+         require(time.monotonic()<deadline,"same final-study deadline after proof")
+         return adapter
+     except BaseException:
++        from helper_binding import abort_load
++        import sys
+         context=getattr(writer,"loader_diagnostics",None)
+         if context is not None:context.fail("LD_EXCEPTION")
+         if adapter is not None:
+             adapter.latch.stop("LOADER_BINDING_FAILURE")
+             try:adapter.end_edit()
+-            finally:adapter.guard.restore()
++            finally:
++                abort_load(writer,sys.exception())
++                adapter.guard.restore()
++        else:abort_load(writer,sys.exception())
+         raise
+--- first_forward_v1/loader.py
++++ helper_diagnostic_v2/loader.py
+@@ -24,9 +24,14 @@
+     try:
+         return boundary.dispatch(approved,admission,invoke,sentinel=False)
+     except BaseException:
++        from helper_binding import abort_load
++        import sys
+         # A failed boundary receipt after load never permits the first forward.
+         if model is not None:
+             model.latch.stop("LOADER_BOUNDARY_CLOSEOUT")
+             try: model.end_edit()
+-            finally: model.guard.restore()
++            finally:
++                abort_load(writer,sys.exception())
++                model.guard.restore()
++        else:abort_load(writer,sys.exception())
+         raise
+--- first_forward_v1/support.py
++++ helper_diagnostic_v2/support.py
+@@ -11,7 +11,7 @@
+ EVIDENCE=HERE/"real_evidence"
+ TEST_EVIDENCE=HERE/"test_evidence"
+ MIB=1024**2
+-ATTEMPT_ID="fresh_confirmation_first_forward_diagnostic_attempt_001"
++ATTEMPT_ID="fresh_confirmation_first_forward_helper_diagnostic_attempt_001"
+ OUTPUT_RELATIVE="real_evidence/"+ATTEMPT_ID
+ 
+ def require(ok,message):
+@@ -42,12 +42,15 @@
+         "namespace_bytes":total,"largest_file_bytes":largest}
+ def write_new(name,value,*,raw=False,critical=False,preparation=False):
+     from real_boundary import checked_path,write_exclusive
++    from helper_limits import FILE_CAPS,OTHER_REMAINDER
+     base=HERE if preparation else run_dir()/"control"
+     data=value if raw else (json.dumps(value,sort_keys=True,indent=2,allow_nan=False)+"\n").encode()
+     require(type(data) is bytes and len(data)<=5*MIB,"complete bounded receipt")
+-    if not preparation and name not in ("LOADER_DIAGNOSTICS.json","DIAGNOSTIC_TERMINAL.json"):
+-        other_cap=3*MIB//4
+-        used=sum(p.stat().st_size for p in base.rglob("*") if p.is_file() and p.name not in ("LOADER_DIAGNOSTICS.json","DIAGNOSTIC_TERMINAL.json"))
++    if not preparation and name in FILE_CAPS:
++        require(len(data)<=FILE_CAPS[name],"reserved helper native file cap")
++    if not preparation and name not in ("LOADER_DIAGNOSTICS.json","DIAGNOSTIC_TERMINAL.json") and name not in FILE_CAPS:
++        other_cap=OTHER_REMAINDER
++        used=sum(p.stat().st_size for p in base.rglob("*") if p.is_file() and p.name not in ("LOADER_DIAGNOSTICS.json","DIAGNOSTIC_TERMINAL.json") and p.name not in FILE_CAPS)
+         held=0 if name in ("PARENT_FINAL.json","ATTEMPT_TERMINAL.json") else 32*1024
+         require(used+len(data)+held<=other_cap,"bounded native copies preserve unconditional parent final reserve")
+     state=bounds()
+--- first_forward_v1/diagnostic_core.py
++++ helper_diagnostic_v2/diagnostic_core.py
+@@ -8,9 +8,10 @@
+ from diagnostic_support import exact_input,allowlist,reserve,publish_trace,CELL_ID
+ from support import HERE,require,sha,write_new
+ LAST_FINITE_STATUS=None
++LAST_HELPER_STATUS=None
+ 
+ def execute(boundary,approved,admission,deadline,mock_case=None):
+-    global LAST_FINITE_STATUS
++    global LAST_FINITE_STATUS,LAST_HELPER_STATUS
+     require(not boundary.mock and mock_case is None,"real diagnostic has no injection fallback")
+     admitted=boundary.role("writer",approved,admission)
+     from plan import build_plan
+@@ -27,6 +28,8 @@
+     trace=Trace(admitted["execution"],sha((HERE/"SOURCE_FREEZE.json").read_bytes()),allowlist(),stop)
+     forward_trace.ACTIVE=trace
+     try:
++        from helper_binding import reserve_helpers,checkpoint as helper_checkpoint,close as helper_close,record_outer
++        reserve_helpers(writer,admitted)
+         require(time.monotonic()<deadline,"one baseline worker cutoff")
+         counter.reserve_load()
+         with span("LOAD_HANDOFF"):
+@@ -34,7 +37,7 @@
+             adapter=load_adapter(writer,counter,deadline,admitted)
+         require(counter.load_calls==1,"one counted real backend load")
+         require(time.monotonic()<deadline,"no diagnostic forward after deadline")
+-        adapter.latch.admit();adapter.latch.consume(CELL_ID)
++        helper_checkpoint(writer,adapter.latch.admit);adapter.latch.consume(CELL_ID)
+         counter.reserve_forward(CELL_ID);state["cell_status"][CELL_ID]="STARTED"
+         writer.append_event("forward_events.jsonl",encoded({"event":"started","cell_id":CELL_ID,"attempt":1}))
+         import torch  # Only after authenticated retained ownership and real loader admission.
+@@ -81,14 +84,17 @@
+                         "current_registry_sha256":sha(current),"reference_sha256":reference,
+                         "normal_scientific_hook_checks":0,"normal_hook_checks_unrun":109,
+                         "full_scientific_finalizer_called":False,"latch_admitted_before_provider":True}
+-                cleanup=diagnostic_cleanup(adapter.end_edit,lambda:adapter.parameter_state(digest=True),adapter.latch.admit,
+-                    lambda:adapter.recorder.guard.inspect(adapter.model),identity,adapter.guard.restore)
++                cleanup=helper_close(writer,lambda restore:diagnostic_cleanup(adapter.end_edit,lambda:adapter.parameter_state(digest=True),adapter.latch.admit,
++                    lambda:adapter.recorder.guard.inspect(adapter.model),identity,restore))
+             except BaseException:
+                 failures.append("DIAGNOSTIC_CLEANUP_FAILURE");adapter.latch.stop("DIAGNOSTIC_CLEANUP_FAILURE")
+         try:index=cleanup_step("WRITER_CLOSEOUT",writer.closeout)
+         except BaseException:failures.append("EVIDENCE_CLOSEOUT_FAILURE")
+         try:trace.publish(publish_trace)
+         except BaseException:failures.append("TRACE_PUBLICATION_FAILURE")
++        from helper_binding import record_outer
++        LAST_HELPER_STATUS=record_outer(writer)
++        if LAST_HELPER_STATUS.get("first_code") is not None:failures.append("HELPER_INTEGRATION_INCOMPLETE")
+         # Status is copied after every possible write/closeout failure, not inferred from an index.
+         context=getattr(writer,"loader_diagnostics",None);diagnostic=context.terminal() if context else None
+         guard=counter.guard
+@@ -97,7 +103,8 @@
+             "state":state,"counts":counter.snapshot(),"trace_status":trace.status(),"loader_diagnostics":diagnostic,
+             "normal_hook_checks_unrun":109,"full_scientific_finalizer_called":False,
+             "recorder_status":adapter.recorder.status() if adapter is not None else (diagnostic.get("recorder_status") if diagnostic else None),
+-            "guard_restored":not guard.installed if guard else None,"cleanup":cleanup,"failures":failures,"index":index}
++            "guard_restored":not guard.installed if guard else None,"cleanup":cleanup,"failures":failures,"index":index,
++            "helper_status":LAST_HELPER_STATUS}
+         LAST_FINITE_STATUS=trace.status()
+         raw=encoded(terminal);require(len(raw)<=cap["terminal"],"reserved complete native diagnostic terminal")
+         pointer=write_new("DIAGNOSTIC_TERMINAL.json",raw,raw=True,critical=True)
+--- first_forward_v1/production_run.py
++++ helper_diagnostic_v2/production_run.py
+@@ -35,7 +35,10 @@
+         core=sys.modules.get("diagnostic_core")
+         result["live_trace_status"]=getattr(core,"LAST_FINITE_STATUS",None)
+     finally:
+-        write_new("WORKER_RESULT.json",{"terminal":{"execution":identity["execution"]},"diagnostic_result":result,
++        import sys
++        core=sys.modules.get("diagnostic_core")
++        helper_status=getattr(core,"LAST_HELPER_STATUS",None)
++        write_new("WORKER_RESULT.json",{"terminal":{"execution":identity["execution"]},"diagnostic_result":result,"helper_status":helper_status,
+             "scope":"FIRST_LOCKED_UNEDITED_BASELINE_ONLY","scientific_pass":False,"full_scientific_study_unrun":True},critical=True)
+     return 0  # A saved diagnostic outcome, not a successful construction.
+ 
+--- first_forward_v1/diagnostic_reader.py
++++ helper_diagnostic_v2/diagnostic_reader.py
+@@ -52,6 +52,9 @@
+         from loader_handoff import verify_loader_binding
+         proof=verify_loader_binding(evidence,execution,terminal["loader_diagnostics"])
+     result["loader_binding"]=proof
++    from helper_reader import verify_helper
++    helper_proof=verify_helper(control,execution,terminal.get("helper_status"),worker.get("helper_status"))
++    result["helper_binding"]=helper_proof
+     if (control/"FIRST_FORWARD_TRACE.json").is_file():
+         source_files={v["source"]:v["sha256"] for v in allowlist().values()}
+         trace=interpret(read("control/FIRST_FORWARD_TRACE.json"),terminal["trace_status"],execution,sha((HERE/"SOURCE_FREEZE.json").read_bytes()),source_files)
+@@ -86,6 +89,7 @@
+         and counts["actual_load_dispatches"]==counts["attempts"]["forward"]==counts["guarded_forwards"]==1
+         and counts["rejected_dispatches"]==0 and counts["stop_reason"] is None and terminal["guard_restored"] is True
+         and index["status"]=="COMPLETE" and not index["sticky_failure"] and not index["failures"] and not index["reconciliation"]["issues"])
++    clean=clean and helper_proof["binding_verified"]
+     if clean:
+         cleanup=terminal["cleanup"];require(cleanup and cleanup["diagnostic_cleanup_complete"] is True and cleanup["scientific_pass"] is False
+             and cleanup["latch_admitted_before_provider"] is True and cleanup["normal_scientific_hook_checks"]==0
