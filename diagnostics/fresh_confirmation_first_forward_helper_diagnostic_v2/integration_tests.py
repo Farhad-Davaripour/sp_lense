@@ -181,11 +181,18 @@ def run_group(name,folder):
             results.append({"complete":True,"original_order_preserved":True,"native_helper_reserve":TOTAL_RESERVED,
                             "relative_import_namespace_isolated":True,"calls":f.calls})
         elif name=="mandatory_live_admission":
-            for kind in ("inert_cannot_use_live_resolver","unexpected_existing_helper"):
+            from launch import preflight
+            disabled=preflight("0"*64)
+            need(disabled["production_authorized"] is False and not (HERE/"root_release").exists(),"actual disabled preflight")
+            results.append({"disabled_preflight":disabled})
+            for kind in ("inert_cannot_use_live_resolver","unexpected_existing_helper","private_module_collision"):
                 f=fixture(folder/kind,kind)
+                prior=sys.modules["helper_pkg.selection"]
                 if kind.startswith("inert"):integration._resolve_loaded=ORIGINAL_RESOLVER
-                else:f.bridge.blocks[0].linear_attn.original_component.causal_conv1d_fn=object()
-                expect_failure(lambda:loader_splice(f))
+                elif kind.startswith("unexpected"):f.bridge.blocks[0].linear_attn.original_component.causal_conv1d_fn=object()
+                else:sys.modules["helper_pkg.selection"]=types.ModuleType("INERT_COLLISION")
+                try:expect_failure(lambda:loader_splice(f))
+                finally:sys.modules["helper_pkg.selection"]=prior
                 value,proof=outer(f)
                 need(not proof["binding_verified"] and f.stopped and "original_create_recorder" not in f.calls and
                      f.calls.count("original_restore")>=1,"admission denied before new reference")

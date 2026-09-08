@@ -95,6 +95,23 @@ def main():
     t=(HERE/"test_topology.py").read_text().replace("from helper_pkg.support import","from support import").replace("from helper_pkg.selection import","from selection import")
     need(t==(SELECTION/"inert_topology.py").read_text(),"EXACT_INERT_TOPOLOGY_REUSE")
     output["inert_topology_import_rebinding_only"]=True
+    before=json.loads((OLD/"BINDINGS.json").read_bytes());after=json.loads((HERE/"BINDINGS.json").read_bytes())
+    for key in ("input_binding","input_lock_sha256","runtime_spec_sha256","frozen_runtime_reference","resource_contract_sha256",
+                "production_seconds","production_ceiling","candidate_adapter","diagnostic_scope"):
+        need(before[key]==after[key],"EXACT_INPUT_SCIENCE_SCOPE_"+key)
+    need(after["loader"]["path"]=="diagnostics/fresh_confirmation_first_forward_helper_diagnostic_v2/candidate_loader.py" and
+         after["loader"]["sha256"]==sha((HERE/"candidate_loader.py").read_bytes()),"NEW_LOADER_TARGET")
+    pins=json.loads((HERE/"SOURCE_PINS.json").read_bytes())["files"]
+    need(pins[after["loader"]["commit"]+":"+after["loader"]["path"]]["sha256"]==after["loader"]["sha256"],"ACYCLIC_LOADER_SOURCE_PIN")
+    package=json.loads((HERE/"HELPER_PACKAGE_BINDING.json").read_bytes())
+    need(after["helper_integration"]["package_binding_sha256"]==sha((HERE/"HELPER_PACKAGE_BINDING.json").read_bytes()),"PACKAGE_BINDING_SHA")
+    for name,record in package["files"].items():
+        raw=(HERE/name).read_bytes();need(len(raw)==record["bytes"] and sha(raw)==record["sha256"],"PACKAGE_SOURCE_SHA")
+    caps=ast.literal_eval(tree((HERE/"helper_limits.py").read_bytes()).body[1].value)
+    need(caps=={"HELPER_SETUP.json":65536,"HELPER_TERMINAL.json":65536,"HELPER_ADMISSION.json":8192,"HELPER_OUTER_STATUS.json":32768}
+         and sum(caps.values())==172032 and 786432-sum(caps.values())==614400,"EXISTING_RESERVE_PARTITION")
+    output["source_input_scope_and_reserves"]={"unchanged_original_fields":True,"candidate_source_pin":after["loader"],
+         "helper_reserved_bytes":172032,"other_closeout_remainder":614400,"original_other_closeout":786432}
     for p in HERE.rglob("*.py"):
         node=tree(p.read_bytes());compile(node,str(p),"exec",dont_inherit=True)
         if p.name not in ("candidate_real_adapter.py",):

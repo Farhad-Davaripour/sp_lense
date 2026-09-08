@@ -33,7 +33,7 @@ The trace source allowlist adds exact pinned GDN/setup/block/base/Module/ModuleL
 
 Six groups in integration_tests.py, frozen before execution:
 1. Exact loader splice AST (legacy capture through helper setup), original recorder return, pre-forward callback, original diagnostic_cleanup ordering, native helper packets, actual worker-finally snapshot and independent saved join. Original numerical/model callbacks are inert stubs.
-2. Original mandatory LIVE resolver rejects INERT execution; unexpected existing helper rejects before original new reference admission.
+2. Actual disabled-state preflight, original mandatory LIVE resolver rejects INERT execution, private-module rebinding and unexpected existing helper reject before original new reference admission.
 3. Partial native HELPER_SETUP and HELPER_ADMISSION publication retains 19 actual bytes, leaves terminal/incomplete evidence and removes only owned aliases.
 4. Original cleanup latch refusal stays primary, skips provider, removes owned helpers and restores guard.
 5. Partial HELPER_TERMINAL or HELPER_OUTER_STATUS survives through the actual worker finally; missing full diagnostic terminal is not fabricated or accepted.
