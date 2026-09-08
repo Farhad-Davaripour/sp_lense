@@ -1,0 +1,127 @@
+{
+  "schema": "prospective_retained_weight_order_fix_cases.v1",
+  "cases": [
+    "original",
+    "alias_reordered",
+    "mutation_before",
+    "mutation_closeout",
+    "wrong_initial",
+    "missing_reference",
+    "omitted_object",
+    "replaced_object",
+    "duplicate_object",
+    "byte_boundaries",
+    "later_registry"
+  ],
+  "groups": [
+    [
+      "original",
+      "alias_reordered"
+    ],
+    [
+      "mutation_before",
+      "mutation_closeout"
+    ],
+    [
+      "wrong_initial"
+    ],
+    [
+      "missing_reference",
+      "omitted_object",
+      "replaced_object",
+      "duplicate_object",
+      "byte_boundaries",
+      "later_registry"
+    ]
+  ],
+  "expectations": {
+    "original": {
+      "constructor_accepted": true,
+      "receiver_ok": true,
+      "hash_calls": 3,
+      "interpretation": "RETAINED_ORDER_BINDING_VERIFIED"
+    },
+    "alias_reordered": {
+      "constructor_accepted": true,
+      "receiver_ok": true,
+      "hash_calls": 3,
+      "interpretation": "RETAINED_ORDER_BINDING_VERIFIED"
+    },
+    "mutation_before": {
+      "constructor_accepted": false,
+      "receiver_ok": false,
+      "hash_calls": 2,
+      "interpretation": "CONSTRUCTOR_FINGERPRINT_MISMATCH"
+    },
+    "mutation_closeout": {
+      "constructor_accepted": true,
+      "receiver_ok": false,
+      "hash_calls": 3,
+      "interpretation": "RETAINED_ORDER_BINDING_VERIFIED"
+    },
+    "wrong_initial": {
+      "constructor_accepted": false,
+      "receiver_ok": false,
+      "hash_calls": 1,
+      "interpretation": "INITIAL_FINGERPRINT_MISMATCH"
+    },
+    "missing_reference": {
+      "constructor_accepted": false,
+      "receiver_ok": false,
+      "hash_calls": 1,
+      "interpretation": "BINDING_INCOMPLETE"
+    },
+    "omitted_object": {
+      "constructor_accepted": false,
+      "receiver_ok": false,
+      "hash_calls": 1,
+      "interpretation": "BINDING_INCOMPLETE"
+    },
+    "replaced_object": {
+      "constructor_accepted": false,
+      "receiver_ok": false,
+      "hash_calls": 1,
+      "interpretation": "BINDING_INCOMPLETE"
+    },
+    "duplicate_object": {
+      "constructor_accepted": false,
+      "receiver_ok": false,
+      "hash_calls": 1,
+      "interpretation": "BINDING_INCOMPLETE"
+    },
+    "byte_boundaries": {
+      "constructor_accepted": false,
+      "receiver_ok": false,
+      "hash_calls": 1,
+      "interpretation": "BINDING_INCOMPLETE"
+    },
+    "later_registry": {
+      "constructor_accepted": true,
+      "receiver_ok": false,
+      "hash_calls": 3,
+      "interpretation": "RETAINED_ORDER_BINDING_VERIFIED"
+    }
+  },
+  "work_seconds": 45,
+  "shared_cleanup_closeout_seconds": 15,
+  "absolute_seconds": 60,
+  "preparation_bytes": 33554432,
+  "combined_test_bytes": 8388608,
+  "file_bytes": 5242880,
+  "native_diagnostic_max_bytes": 2097152,
+  "real_root_release": false,
+  "old_suite_reruns": 0,
+  "case_rules": {
+    "original": "Original traversal unchanged; fresh pre-hook, constructor and closeout hashes match fixed byte-fixture expected.",
+    "alias_reordered": "Six odd references first under aliases then six even references, current registry stays in that order; content hashes remain complete legacy order.",
+    "mutation_before": "After initial hash change parameter0 first float1->1.5, no metadata/version change; unchanged constructor predicate rejects.",
+    "mutation_closeout": "After constructor/native readiness change same float1->1.5 without metadata/version change; fresh candidate parameter_state content hash rejects.",
+    "wrong_initial": "Before capture first float1.5; INITIAL_FINGERPRINT_MISMATCH, not automatic wrong-checkpoint proof.",
+    "missing_reference": "Pass None instead of loader retained tuple.",
+    "omitted_object": "Omit last post-hook traversal occurrence.",
+    "replaced_object": "Replace first current parameter with distinct same-byte/shape/dtype/flags/version object.",
+    "duplicate_object": "Append one occurrence of retained parameter0.",
+    "byte_boundaries": "Redistribute first two arrays [1,2],[2,3] into [1],[2,2,3], preserving concatenated bytes but changing per-object lengths/shapes.",
+    "later_registry": "Reverse current registry after construction; legacy content still hashes correctly but unchanged current name/order/identity check rejects."
+  }
+}
