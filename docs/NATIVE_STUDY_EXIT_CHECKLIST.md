@@ -103,8 +103,8 @@ separately: an unchanged wrong answer is still wrong.
 
 This is prompt-specific, externally directed editing, not one reusable arrow,
 autonomous target selection, a discovered natural motive, or a claim about
-free-form actions and long-horizon agent behavior. All three latest native runs
-are public development/positive-control evidence, not untouched confirmation.
+free-form actions and long-horizon agent behavior. The three native runs cited
+below are public development/positive-control evidence, not untouched confirmation.
 
 References: native_baseline_v1/ATTEMPT_001_CLOSEOUT.md;
 native_opposite_order_v1/ATTEMPT_001_CLOSEOUT.md;
@@ -112,3 +112,40 @@ native_p_reversal_control_v1/ATTEMPT_001_CLOSEOUT.md (under development/);
 docs/FINAL_STUDY_PROTOCOL_DECISION.md. Historical reports about other models or
 older static-arrow experiments retain their original scope and are not current
 native-method confirmation.
+
+## Checked handover outcome and next decision (2026-09-08)
+
+The fixed handover development attempt passed its separately executed saved judge
+and root's file/identity/process-closeout verification. It used one load, 26 actual
+forwards and three derivatives; the 52-cell plan has 26 legitimate skips and zero
+UNRUN. One natural STOP-to-KEEP P flip took one update; one natural KEEP-to-STOP C
+flip took two. Two already-correct requested answers were retentions. All six
+matched-other/ordinary OFF returns were exact identities, and ordinary correctness
+was preserved. Model weights, buffers and classifier parameters were unchanged.
+Admission through audit quiescence took 101.296 seconds.
+
+These are two order renderings of ONE new development situation. Both actual
+flips move first-to-second in display order. Neither this result nor the earlier
+seeded positive controls establish a natural P-first flip or broad reliability.
+Source candidate: 55d62d976d1d269d49419cfeaf4f5d7dc5bf82f3. Root release:
+bd1904262d5b69a4c4316000372b5c780aca4649ddf320eebcc6a2a7cdbf5bfc.
+Evidence: development/native_handover_pilot_v1/real_evidence/
+native_handover_pilot_attempt_001/{AUDIT_RESULT.json,PARENT_FINAL.json}.
+
+Decision: end discretionary practice-story additions and implement ONE missing
+prerequisite, a native final-runner/judge binding using artificial inputs only.
+The older final binder still references an old input lock and ResearchBackend;
+the five-case native pilot is not itself a 24-prompt/48-request final binder.
+
+Before any new final authoring or encoding, the new binding uses a prospectively
+chosen 320-token full-input envelope, not a change to any old 160-token attempt.
+Preserve 180F/48D: omit the pilot's extra smoke forward rather than silently
+creating 181 forwards. The artificial schedule must include 12 cold self endpoints,
+36 OFF returns, both signs/layouts, ordinary gold A and B, preserved wrong answers,
+and independent first-failure/UNRUN, identity, stopping and storage checks. Reuse
+verified native machinery. Proposed new final caps remain 1800-second worker,
+180-second saved judge, ONE shared 15-second cleanup and 288MiB/5MiB storage,
+subject to complete reservation verification before release. No new framework,
+final-cohort contents, tokenizer work or real model calls are authorized by this
+implementation step. A reviewed synthetic candidate precedes separately authorized
+independent authoring and prospective final input/release locking.
