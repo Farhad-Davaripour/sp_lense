@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\development\gdn_public_smoke_v1\smoke_tests.py", line 106, in <module>
+    result=run();print(json.dumps(result,sort_keys=True))
+           ^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\development\gdn_public_smoke_v1\smoke_tests.py", line 60, in run
+    recorder=operands.Operands(execution,publish,lambda code:events.append('stop'))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\development\gdn_public_smoke_v1\constructor_operands.py", line 39, in __init__
+    self._write("CONSTRUCTOR_RESERVATION.json",{"reserved_bytes":65536,"file_caps":FILE_CAPS,"before_load":True})
+  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\development\gdn_public_smoke_v1\constructor_operands.py", line 44, in _write
+    pointer=self.publish(name,raw,raw=True,critical=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: run.<locals>.publish() got multiple values for argument 'raw'

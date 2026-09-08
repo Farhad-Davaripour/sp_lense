@@ -1,0 +1,248 @@
+{
+  "actual_forwards": 0,
+  "checks": [
+    {
+      "case": "public_input_counter_source_admission",
+      "preflight": {
+        "observed_model_work": "NONE",
+        "production_authorized": false,
+        "scientific_execution_allowed": false,
+        "scope": "ONE_LOCKED_BASELINE_1LOAD_MAX1F_0D",
+        "status": "DISABLED_NO_APPROVED_REAL_RELEASE"
+      },
+      "status": "PASS"
+    },
+    {
+      "case": "clean",
+      "events": [
+        "before",
+        "load",
+        "after"
+      ],
+      "live_status": {
+        "complete": true,
+        "execution": {
+          "actual_model_work": false,
+          "case": "clean",
+          "mode": "INERT_FIXTURE"
+        },
+        "finished": true,
+        "io_failed": false,
+        "pointers": {
+          "CONSTRUCTOR_AFTER.json": {
+            "bytes": 461,
+            "path": "test_evidence/run_1788881387284772500/clean/control/CONSTRUCTOR_AFTER.json",
+            "sha256": "a6ea824916b614b7057a0abc9c721166315185607970ec24eab143bec5d0924f"
+          },
+          "CONSTRUCTOR_BEFORE.json": {
+            "bytes": 462,
+            "path": "test_evidence/run_1788881387284772500/clean/control/CONSTRUCTOR_BEFORE.json",
+            "sha256": "0850e6448d9183abfa3fa0a2d0c5d823a7d24aab64a169a7a56844d795c60d9b"
+          },
+          "CONSTRUCTOR_RESERVATION.json": {
+            "bytes": 487,
+            "path": "test_evidence/run_1788881387284772500/clean/control/CONSTRUCTOR_RESERVATION.json",
+            "sha256": "6ca5c92baff5dc9b1e18f46fe13540efb87f9a8449721b71a5a5050977535c0e"
+          },
+          "CONSTRUCTOR_TERMINAL.json": {
+            "bytes": 980,
+            "path": "test_evidence/run_1788881387284772500/clean/control/CONSTRUCTOR_TERMINAL.json",
+            "sha256": "afb5cea9ccd1cf601cd3b3f0ad2fdc5d6d422e72bbcb9f687187ebd93353d795"
+          }
+        },
+        "primary": null,
+        "scientific_pass": false,
+        "source": {
+          "public_input_sha256": "8932eef36df2b99ceb839bcf0991af23b65eccf4812d0342fdf13106bb7dc8c7",
+          "source_sha256": "f3fc012abb8e6424db450b0712cbf8016dbb0dce2c889f35a31b735550965446"
+        }
+      },
+      "proof": {
+        "after": {
+          "conditions": {
+            "code_equal": true,
+            "different_code_fields": [],
+            "function_type": true,
+            "resolved_path_equal": true
+          },
+          "observational_only": true
+        },
+        "before": {
+          "conditions": {
+            "code_equal": true,
+            "different_code_fields": [],
+            "function_type": true,
+            "resolved_path_equal": true
+          },
+          "observational_only": true
+        },
+        "binding_verified": true,
+        "interpretation": "COMPLETE_OBSERVATIONAL_OPERANDS",
+        "primary": null,
+        "scientific_pass": false
+      },
+      "status": "PASS"
+    },
+    {
+      "case": "post_constructor_rejection",
+      "events": [
+        "before",
+        "load",
+        "after",
+        "stop",
+        "cleanup_failure",
+        "stop"
+      ],
+      "live_status": {
+        "complete": true,
+        "execution": {
+          "actual_model_work": false,
+          "case": "post_constructor_rejection",
+          "mode": "INERT_FIXTURE"
+        },
+        "finished": true,
+        "io_failed": false,
+        "pointers": {
+          "CONSTRUCTOR_AFTER.json": {
+            "bytes": 483,
+            "path": "test_evidence/run_1788881387362815500/post_constructor_rejection/control/CONSTRUCTOR_AFTER.json",
+            "sha256": "96f0310acae600b392a1269f18339fbf17bda61e07b346d8da3a969e088af402"
+          },
+          "CONSTRUCTOR_BEFORE.json": {
+            "bytes": 483,
+            "path": "test_evidence/run_1788881387362815500/post_constructor_rejection/control/CONSTRUCTOR_BEFORE.json",
+            "sha256": "2638b349884b47cc569416de3cc9c0389eb855e628e00250c36075d205202e02"
+          },
+          "CONSTRUCTOR_RESERVATION.json": {
+            "bytes": 508,
+            "path": "test_evidence/run_1788881387362815500/post_constructor_rejection/control/CONSTRUCTOR_RESERVATION.json",
+            "sha256": "05c0370dbfd138a7ce70fa310cda6593cd7db7a56690756d8f4a116f74ba48c2"
+          },
+          "CONSTRUCTOR_TERMINAL.json": {
+            "bytes": 1155,
+            "path": "test_evidence/run_1788881387362815500/post_constructor_rejection/control/CONSTRUCTOR_TERMINAL.json",
+            "sha256": "e178e7f66ad987ef5da6b52f62b3a212d2acab9b64031277a1ab9eb90fe9f686"
+          }
+        },
+        "primary": {
+          "category": "OTHER_EXCEPTION",
+          "predicate": "CALLABLE_CODE_IDENTITY",
+          "stage": "LOAD_OR_ADMISSION"
+        },
+        "scientific_pass": false,
+        "source": {
+          "public_input_sha256": "8932eef36df2b99ceb839bcf0991af23b65eccf4812d0342fdf13106bb7dc8c7",
+          "source_sha256": "f3fc012abb8e6424db450b0712cbf8016dbb0dce2c889f35a31b735550965446"
+        }
+      },
+      "proof": {
+        "after": {
+          "conditions": {
+            "code_equal": false,
+            "different_code_fields": [],
+            "function_type": true,
+            "resolved_path_equal": true
+          },
+          "observational_only": true
+        },
+        "before": {
+          "conditions": {
+            "code_equal": true,
+            "different_code_fields": [],
+            "function_type": true,
+            "resolved_path_equal": true
+          },
+          "observational_only": true
+        },
+        "binding_verified": true,
+        "interpretation": "COMPLETE_OBSERVATIONAL_OPERANDS",
+        "primary": {
+          "category": "OTHER_EXCEPTION",
+          "predicate": "CALLABLE_CODE_IDENTITY",
+          "stage": "LOAD_OR_ADMISSION"
+        },
+        "scientific_pass": false
+      },
+      "status": "PASS"
+    },
+    {
+      "case": "partial_publication",
+      "events": [
+        "before",
+        "load",
+        "after",
+        "stop"
+      ],
+      "live_status": {
+        "complete": false,
+        "execution": {
+          "actual_model_work": false,
+          "case": "partial_publication",
+          "mode": "INERT_FIXTURE"
+        },
+        "finished": true,
+        "io_failed": true,
+        "pointers": {
+          "CONSTRUCTOR_BEFORE.json": {
+            "bytes": 476,
+            "path": "test_evidence/run_1788881387442598100/partial_publication/control/CONSTRUCTOR_BEFORE.json",
+            "sha256": "d34e0d4cab6c584e83858bbbc3c57984a0360cb1881734e1aaf6fda674d44d51"
+          },
+          "CONSTRUCTOR_RESERVATION.json": {
+            "bytes": 501,
+            "path": "test_evidence/run_1788881387442598100/partial_publication/control/CONSTRUCTOR_RESERVATION.json",
+            "sha256": "d078ea1dc9deeafc6d81a9ea08ee470965e9730ce144151b7ac8ac90a3231509"
+          },
+          "CONSTRUCTOR_TERMINAL.json": {
+            "bytes": 888,
+            "path": "test_evidence/run_1788881387442598100/partial_publication/control/CONSTRUCTOR_TERMINAL.json",
+            "sha256": "a4cb9150cba276d4b4fd362ca3dbb3a7cedfa06a44477e360fbaa6162e576aa5"
+          }
+        },
+        "primary": {
+          "category": "OS_ERROR",
+          "predicate": "OTHER_OR_UNKNOWN",
+          "stage": "AFTER"
+        },
+        "scientific_pass": false,
+        "source": {
+          "public_input_sha256": "8932eef36df2b99ceb839bcf0991af23b65eccf4812d0342fdf13106bb7dc8c7",
+          "source_sha256": "f3fc012abb8e6424db450b0712cbf8016dbb0dce2c889f35a31b735550965446"
+        }
+      },
+      "proof": {
+        "binding_verified": false,
+        "interpretation": "OPERANDS_INCOMPLETE",
+        "scientific_pass": false
+      },
+      "status": "PASS"
+    },
+    {
+      "case": "coherent_saved_phase_tamper",
+      "status": "PASS",
+      "synthetic_identity_rebinding": true
+    }
+  ],
+  "derivatives": 0,
+  "elapsed_seconds": 0.3119999999180436,
+  "encodings": 0,
+  "model_imports": 0,
+  "model_loads": 0,
+  "real_authority": false,
+  "scientific_pass": false,
+  "status": "PASS_MODEL_FREE_HANDOFF_ONLY",
+  "weight_accesses": 0,
+  "engineering_iterations": [
+    {
+      "exit": 1,
+      "reason": "Fixture reserved forward before inert consumed load; original guard correctly rejected",
+      "actual_work": 0
+    },
+    {
+      "exit": 1,
+      "reason": "Inert publisher positional raw name conflicted with native raw keyword; fixture corrected, no production behavior changed"
+    }
+  ],
+  "latest_tool_elapsed_seconds": 0.6844733,
+  "source_freeze_sha256": "f3fc012abb8e6424db450b0712cbf8016dbb0dce2c889f35a31b735550965446"
+}
