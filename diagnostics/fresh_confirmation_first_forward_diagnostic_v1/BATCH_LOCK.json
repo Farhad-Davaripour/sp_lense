@@ -1,0 +1,28 @@
+{
+  "schema": "first_forward_diagnostic_pure_batch_lock.v1",
+  "source_sha256": "4a5385a1f88e01213f97cfd78c463b0d09f3fd8e83b83aef3cb7967423388b2f",
+  "usage_sha256": "7da94032d10fb75434860f06702f1b9d5f9542401b32c5a0b309011205b2c24a",
+  "cases": [
+    "clean_path",
+    "bridge_failure",
+    "selected_hook_failure",
+    "context_exit_failure",
+    "adapter_postcondition_failure",
+    "serialization_then_cleanup_failure",
+    "publication_and_receipt_io_failure",
+    "saved_tamper_and_counter_boundaries"
+  ],
+  "limits": {
+    "substantive_seconds": 45,
+    "shared_cleanup_seconds": 15,
+    "absolute_seconds": 60,
+    "preparation_bytes": 33554432,
+    "test_evidence_bytes": 8388608,
+    "per_file_bytes": 5242880,
+    "trace_receipt_bytes": 65536
+  },
+  "real_authority": false,
+  "retries": 0,
+  "expected_status": "PASS_PURE_RECORDER_ONLY",
+  "case_failure_stops_suffix": true
+}
