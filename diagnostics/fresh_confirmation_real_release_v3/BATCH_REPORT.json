@@ -1,0 +1,122 @@
+{
+  "Qwen_or_torch_imports": 0,
+  "absolute_deadline": 2355176.093,
+  "area": {
+    "evidence_bytes": 0,
+    "largest_file_bytes": 62354,
+    "namespace_bytes": 361176,
+    "preparation_bytes": 185195,
+    "test_evidence_bytes": 175981
+  },
+  "batch_lock_sha256": "89e81ef24f128202309cf766ef8e4ee087deb9819a38efe9811683f300771fee",
+  "cases": [
+    {
+      "attempts": {
+        "derivative": 0,
+        "forward": 0,
+        "load": 1
+      },
+      "baselines_unrun": 24,
+      "binding_verified": true,
+      "final_counter_limits": {
+        "derivative": 48,
+        "forward": 180,
+        "load": 1
+      },
+      "guard_restore_count": 1,
+      "handoff_accepted": true,
+      "loader_callback_count": 1,
+      "name": "clean_handoff",
+      "native_closeout_receipt_present": true,
+      "native_index_status": "COMPLETE",
+      "no_science_upgrade": true,
+      "real_loader_calls": 0,
+      "requests_unrun": 48,
+      "scientific_cells_unrun": 180,
+      "scientific_verdict": "NOT_TESTED",
+      "source_bound_proof": {
+        "additional_hash_calls": 1,
+        "binding_verified": true,
+        "fresh_constructor_hash": "6a671f0ae00398453e5b453d13b4ebe9de861eb3483f0e500e07bc9e456d06be",
+        "fresh_initial_hash": "6a671f0ae00398453e5b453d13b4ebe9de861eb3483f0e500e07bc9e456d06be",
+        "interpretation": "RETAINED_ORDER_BINDING_VERIFIED",
+        "parameter_occurrences": 12,
+        "scientific_pass": false
+      },
+      "status": "PASS",
+      "synthetic_only": true,
+      "worker_result": {
+        "bytes": 45265,
+        "path": "test_evidence/clean_handoff/real_evidence/fresh_confirmation_real_attempt_003/control/WORKER_RESULT.json",
+        "sha256": "6bc1c16e2c99ca808c3ea3d2ccaf0199c5b3e2adfe26f5c505a7a893b6cc517e"
+      },
+      "writer_index_sha256": "3251c187979cca7fd11c74e77245d21ef782bdff1219eb5194b5f0e46c61eb96",
+      "writer_sticky": false
+    },
+    {
+      "attempts": {
+        "derivative": 0,
+        "forward": 0,
+        "load": 1
+      },
+      "baselines_unrun": 24,
+      "binding_verified": false,
+      "final_counter_limits": {
+        "derivative": 48,
+        "forward": 180,
+        "load": 1
+      },
+      "guard_restore_count": 1,
+      "handoff_accepted": false,
+      "loader_callback_count": 1,
+      "name": "malformed_binding",
+      "native_closeout_receipt_present": true,
+      "native_index_status": "INCOMPLETE",
+      "no_science_upgrade": true,
+      "real_loader_calls": 0,
+      "requests_unrun": 48,
+      "scientific_cells_unrun": 180,
+      "scientific_verdict": "NOT_TESTED",
+      "source_bound_proof": {
+        "binding_verified": false,
+        "interpretation": "BINDING_INCOMPLETE",
+        "scientific_pass": false
+      },
+      "status": "PASS",
+      "synthetic_only": true,
+      "worker_result": {
+        "bytes": 40963,
+        "path": "test_evidence/malformed_binding/real_evidence/fresh_confirmation_real_attempt_003/control/WORKER_RESULT.json",
+        "sha256": "e70c40e3ac9e54292507737a51ab03bbc8690c9d62dfaaeb43a123dded9e67f8"
+      },
+      "writer_index_sha256": "0ee3b2a070ea8a2e28c38e88d2d8aa8202e2ce14ca7cd60da60318734627ce72",
+      "writer_sticky": true
+    }
+  ],
+  "derivatives": 0,
+  "elapsed_seconds": 0.8280000002123415,
+  "failure": null,
+  "forwards": 0,
+  "parameter_accesses": 0,
+  "parameter_content_hashes": 0,
+  "prior_suite_reruns": 0,
+  "real_model_loads": 0,
+  "schema": "final_runner_loader_handoff_batch.v1",
+  "scientific_schedule_runs": 0,
+  "shared_cleanup_limit_seconds": 15,
+  "source_parity": {
+    "engine_sha256": "83259d692a740155a32a2bd5c204dad42c6ec17e411bd57f45c86f3d07919332",
+    "full_scientific_counters_controller_and_schedule_unchanged": true,
+    "identical_reviewed_files": 22,
+    "input_lock_sha256": "d008fb7c53b974694e76afa9ef7db3f4f2d4443eed8a2c83ba06ea6e83987b22",
+    "judge_sha256": "e2d7d6d740dc1bd9904b8361ce5a73a26d15db2b48f5260728bc3e1f1d01f4a6",
+    "original14_predicates_and_digest_retained": true,
+    "resource_contract_sha256": "7610b46b0248569ba51f3f90638734582202c7214822dadafd57fefabc41af3b",
+    "scientific_change": false,
+    "startup_zero_forward_controller_carried": false,
+    "status": "FULL_SCIENTIFIC_SOURCE_PARITY"
+  },
+  "source_sha256": "bf1313384c9c9d5b94fa83595bb169a639ec8eb1c8413f102849190ed8841404",
+  "status": "PASS_FAKE_LOADER_HANDOFF_ONLY",
+  "tokenizer_calls": 0
+}
