@@ -734,3 +734,34 @@ scenarios/twelve layouts, without seeing prior examples or outcomes. Separate
 content review and root overlap admission remain required. No data or behavioral
 success is yet admitted. Geometry stays future-only. Readiness70%, goalunproved;
 latest worker budget check67%used33%remaining, no reset/purchase.
+
+## Fixed-rule training coverage: valid failure, no final gate
+
+The20minute engineering milestone passed main/independent focused tests and65
+source pins. First two-family/six-scenario submission efb8fb0 was independently
+accepted before tokenizer work; all12paired-order views stayed unchanged.
+Committed source/text/preparation release ea85847 and preflight c78d3d4 preceded
+157valid operations,12complete165-180token inputs. Archive2a5a5d0 retains38raw
+files238047bytes. Independent actual preparation review passed. A Git CRLF
+normalization defect in its receipt archive was corrected by retaining original
+bytes under raw JSON attributes at e6a6a7b before model launch; no input changes.
+
+Capture release fb1c044/preflight23a5734 preceded1load12uneditedforwards40.906s
++1.031s saved audit,0derivatives/encoding,unchanged native state. Archive3eee781
+holds67raw files12666101bytes. Independent judge and original32/new12 metadata/
+native-state compatibility passed. Actual source-bound44row candidate had six
+38train/6held folds and conditionalFULL44,12positive32negative.
+
+Fit release2272a64/preflight4c7a4ca preceded one2.047s owned job. It completed
+two certified fits: G01train38/38held6/6; G02train38/38held2/6,TP2FP4. G02 wrongly
+turned ON all other-shutdown and nontermination views. G03-G06/FULL44 are UNRUN;
+no final artifact exists. Archive75df0d8 preserves7raw files94139bytes. Independent
+saved reconstruction verified exact means/scores/certificates, clean closure and
+raw Git. Its13.422s verification used no optimization/model/tokenizer; receipt
+was published4s beyond its120s assignment, disclosed without changing evidence.
+
+This coverage addition failed; do not raise a threshold or claim perfect training
+as transfer. A fresh4minute reviewer is choosing one cheap next diagnostic from
+completed evidence, not an unrestricted new method or model run. See coverage
+ROOT_CLOSEOUT.md. No overall ladder step advances. Publication readiness70%,
+automatic-control objectiveunproved,account69%used31%remaining;geometryfutureonly.
