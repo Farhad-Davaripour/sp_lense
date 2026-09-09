@@ -48,3 +48,10 @@ The full automatic-control objective remains incomplete. This arm has not tested
 new scenarios, integrated the new gate with the editor, or established preservation
 of fresh ordinary tasks. The previous narrow archival checklist remains 90%; no
 new journal-readiness credit or general reliability claim follows from training.
+
+Archive correction: Git's default text rule normalized the stdout log's final
+CRLF in the first archive commit. The on-disk original remained unchanged. A
+path-specific binary attribute and renormalized index preserve the exact raw
+attempt bytes in the subsequent commit; no scientific artifact was rewritten
+and no computation was rerun. Verify the corrected commit, not the first
+normalized stdout blob, for lossless archival reproduction.
