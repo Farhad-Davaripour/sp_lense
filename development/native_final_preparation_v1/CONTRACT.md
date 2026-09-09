@@ -39,7 +39,17 @@ authoritative closure from the existing reviewed ownership workflow. This worker
 entry supplies its own180s watchdog. Root must retain the process/closure receipt;
 in-process success alone is not process-closure proof. No launch is performed here.
 
-Preparation output16MiB total/5MiB per file, with64KiB terminal reserve. An exclusive
+Storage-only revision authorized by root commit3da6385: combined preparation plus
+owner output remains16MiB. Exactly32768bytes is reserved solely for owner evidence,
+so ALL preparation writes are checked before publication against16744448bytes,
+including ADMISSION, critical RESULT and entry-failure receipts. The separate64KiB
+terminal reserve is inside that preparation allowance. RESULT is at most8192bytes;
+exception type is at most64ASCII characters and error code at most128ASCII
+characters, otherwise an honest fixed fallback is used. Every file remains<=5MiB.
+The single stdlib storage publisher is used by both bootstrap and core paths.
+An entry failure after a journal exists reports operation counts unknown rather
+than incorrectly claiming zero operations; its retained journal remains evidence.
+An exclusive
 preparation_attempt_001 directory prevents retry. Preserve operation journal and
 completed case records on failure; publish final inputs.json only after all313
 operations and24 cases pass. Report failed and remaining UNRUN operations honestly.
@@ -62,3 +72,7 @@ first,12independently executed self cold endpoints,36OFF identities, no smoke,
 budgets are separate and confer no model authorization. Output bindings include
 all exact IDs/masks/lengths/rendered hashes, ordinary scoring-only gold and source
 identities; the current synthetic final runner still rejects real model admission.
+
+The historical20-group TEST_RESULTS.json belongs to the original committed source
+and is preserved unchanged. Revised storage-only observations are separately saved
+in TEST_STORAGE_RESULTS.json; prior results are not relabeled as later-source tests.

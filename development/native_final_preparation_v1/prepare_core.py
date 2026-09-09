@@ -3,6 +3,7 @@ import json,math,struct,time
 from pathlib import Path
 from dependencies import need,sha,packet_validator
 from plan import STUDY,PREPARATION,MODEL,HEADER,HEADER_TEXT,END,TEMPLATE_SHA256,slots,operations
+from storage import Publisher,error_fields
 def jb(value):return (json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode()
 def validate_text_lock(lock,allow_synthetic=False):
     scope='SYNTHETIC_TEST_ONLY' if allow_synthetic else 'ROOT_ADMITTED_NEW_FINAL_TEXT'
@@ -15,17 +16,6 @@ def validate_text_lock(lock,allow_synthetic=False):
     need([p['id'] for p in checked['prompts']]==[s['id'] for s in slots()],'EXACT24_LOCKED_ORDER')
     need(all(p['prompt_sha256']==sha(p['prompt'].encode()) for p in checked['prompts']),'PROMPT_UTF8_HASH')
     return checked
-class Publisher:
-    def __init__(self,out):self.out=out
-    def write(self,name,value,*,raw=False,append=False,critical=False):
-        need('/' not in name and '\\' not in name and ':' not in name and name not in ('','.','..'),'ARTIFACT_NAME')
-        data=value if raw else jb(value);target=self.out/name
-        used=sum(p.stat().st_size for p in self.out.iterdir() if p.is_file())
-        size=(target.stat().st_size if append and target.exists() else 0)+len(data)
-        need(size<=PREPARATION['file_bytes'],'PREPARATION_FILE_CAP')
-        need(used+len(data)<=PREPARATION['total_bytes']-(0 if critical else PREPARATION['terminal_reserve']),'PREPARATION_TOTAL_CAP')
-        with target.open('ab' if append else 'xb') as f:f.write(data);f.flush()
-        return {'path':name,'bytes':size,'sha256':sha(target.read_bytes())}
 def execute(lock,out,factory,deadline,*,allow_synthetic=False,template_sha256=TEMPLATE_SHA256,clock=time.monotonic,identity=None,claimed=False):
     out=Path(out)
     if claimed:need(out.is_dir() and (out/'ADMISSION.json').is_file(),'EXCLUSIVE_ROOT_CLAIM')
@@ -96,7 +86,7 @@ def execute(lock,out,factory,deadline,*,allow_synthetic=False,template_sha256=TE
             'cases':cases,'real_model_authorized':False}
         pin=publish.write('inputs.json',data);result.update(status='PASS',inputs_sha256=pin['sha256'],lengths=data['exact_lengths'])
     except BaseException as error:
-        code=str(error);result.update(error_type=type(error).__name__,error_code=code if code and all(c.isupper() or c in '_0123456789' for c in code) else 'PREPARATION_FAILURE')
+        result.update(error_fields(error))
     finally:
         result.update(attempted_operations=len(journal),completed_operations=sum(x['status']=='COMPLETE' for x in journal),
             failed_operations=sum(x['status']=='FAILED' for x in journal),planned_operations=313,unrun_operations=313-len(journal),

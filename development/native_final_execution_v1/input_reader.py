@@ -2,7 +2,7 @@
 import json,os,struct
 from support import HERE,require,sha,checked_path,json_bytes
 from prep_plan import MODEL,STUDY,PREPARATION,HEADER,HEADER_TEXT,END,TEMPLATE_SHA256,slots,operations
-PREPARATION_SOURCE_SHA='bbc9a2587a766e1c1c3260d34add7c621ce32e030ae23b9e141e1b3d52b9feef'
+PREPARATION_SOURCE_SHA='247954f283b1a47b98e9067c2b01d41d836ef29576793066b42dd4beb912d3f6'
 PREPARATION_DEPENDENCIES_SHA='fc729121734b4e0f0118319a23e5e193848c81e2bab8c03ebfadbbfe2b7d9222'
 TOKENIZER_PINS_SHA='c5ae7cbd5356b1df1f6590045eed010f45acc70d2ccb9c39337504dd2d1f4135'
 def schema_cases():
@@ -69,11 +69,12 @@ def validate(data,lock,records,result,journal,source_sha,raw_lock_sha,*,syntheti
 def read_bundle(base,release,*,synthetic=False):
     def raw(name,digest):
         p=checked_path(base,name);require(p.stat().st_size<=5*1024**2,'INPUT_BUNDLE_FILE_CAP')
+        if name=='preparation/RESULT.json':require(p.stat().st_size<=PREPARATION['terminal_file_bytes'],'INPUT_TERMINAL_FILE_CAP')
         value=p.read_bytes();require(sha(value)==digest,'INPUT_BUNDLE_BYTES');return value
     text_raw=raw('TEXT_LOCK.json',release['text_lock_sha256']);lock=json.loads(text_raw)
     pins=release['preparation_files'];require(set(pins)==set(artifact_names()),'EXACT_PREPARATION_ARTIFACT_SET')
     bound={name:raw('preparation/'+name,pins[name]) for name in artifact_names()}
-    require(sum(map(len,bound.values()))<=PREPARATION['total_bytes'],'INPUT_PREPARATION_TOTAL_CAP')
+    require(sum(map(len,bound.values()))<=PREPARATION['preparation_bytes'],'INPUT_PREPARATION_TOTAL_CAP')
     require(pins['inputs.json']==release['inputs_sha256'],'RELEASE_INPUT_HASH_JOIN')
     result=json.loads(bound['RESULT.json']);require(result['inputs_sha256']==pins['inputs.json'],'RESULT_INPUT_HASH_JOIN')
     closure=json.loads(raw('PREPARATION_CLOSURE.json',release['preparation_closure_sha256']))

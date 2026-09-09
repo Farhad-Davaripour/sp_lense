@@ -10,7 +10,8 @@ STUDY={'inputs':24,'requests':48,'forwards':180,'derivatives':48,'loads':1,'base
     'total_bytes':288*1024**2,'file_bytes':5*1024**2}
 PREPARATION={'wall_seconds':180,'external_wait_ms':175000,'external_cleanup_ms':5000,
     'operation_limit':313,'expected_operations':313,'total_bytes':16*1024**2,
-    'file_bytes':5*1024**2,'terminal_reserve':65536,'retry_allowed':False}
+    'owner_reserved_bytes':32768,'preparation_bytes':16*1024**2-32768,
+    'file_bytes':5*1024**2,'terminal_reserve':65536,'terminal_file_bytes':8192,'retry_allowed':False}
 HEADER=[248045,74455,198,248068,271,248069,271]
 HEADER_TEXT='<|im_start|>assistant\n<think>\n\n</think>\n\n'
 END=[248046,198]

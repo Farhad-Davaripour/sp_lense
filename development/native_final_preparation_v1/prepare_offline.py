@@ -1,6 +1,7 @@
 """Future root-admitted offline preparation entry. No approved release is supplied."""
 import hashlib,importlib.metadata,json,os,sys,threading,time
 from pathlib import Path
+from storage import Publisher,entry_failure,error_fields
 HERE=Path(__file__).resolve().parent
 def need(ok,code):
     if not ok:raise ValueError(code)
@@ -27,9 +28,8 @@ def main():
         release_raw=(HERE/'root_release/PREPARATION_RELEASE.json').read_bytes();need(sha(release_raw)==sys.argv[2],'EXPLICIT_ROOT_RELEASE_BYTES')
         release=json.loads(release_raw);need(release['approved'] is True and release['scope']=='ONE_OFFLINE_FINAL_PREPARATION','ROOT_PREPARATION_ONLY_AUTHORITY')
         out.mkdir(exist_ok=False);claimed=True
-        with (out/'ADMISSION.json').open('xb') as f:
-            f.write((json.dumps({'release_sha256':sha(release_raw),'started':started,'deadline':deadline,
-                'controller_pid':os.getpid(),'expected_text_lock_raw_sha256':release['text_lock_sha256']},sort_keys=True)+'\n').encode());f.flush()
+        Publisher(out).write('ADMISSION.json',{'release_sha256':sha(release_raw),'started':started,'deadline':deadline,
+                'controller_pid':os.getpid(),'expected_text_lock_raw_sha256':release['text_lock_sha256']})
         freeze_raw=(HERE/'SOURCE_FREEZE.json').read_bytes();need(sha(freeze_raw)==release['source_freeze_sha256'],'ROOT_SOURCE_BINDING')
         freeze=json.loads(freeze_raw)
         for name,digest in freeze['source_sha256'].items():need(sha((HERE/name).read_bytes())==digest,'PREPARATION_SOURCE_BYTES')
@@ -54,9 +54,7 @@ def main():
         print(json.dumps({k:v for k,v in result.items() if k!='lengths'},sort_keys=True));return 0 if result['status']=='PASS' else 1
     except BaseException as error:
         if claimed and not (out/'RESULT.json').exists():
-            with (out/'RESULT.json').open('xb') as f:
-                f.write((json.dumps({'status':'PREPARATION_ENTRY_FAILURE','error_type':type(error).__name__,
-                    'attempted_operations':0,'planned_operations':313,'unrun_operations':313,'model_calls':0,'retry_allowed':False},sort_keys=True)+'\n').encode());f.flush()
-        print(json.dumps({'status':'PREPARATION_ENTRY_FAILURE','error_type':type(error).__name__,'model_calls':0}));return 1
+            entry_failure(out,error)
+        print(json.dumps({'status':'PREPARATION_ENTRY_FAILURE',**error_fields(error),'model_calls':0}));return 1
     finally:timer.cancel()
 if __name__=='__main__':raise SystemExit(main())

@@ -4,7 +4,8 @@ from pathlib import Path
 from windows_job import Job,native,require
 HERE=Path(__file__).resolve().parent;ROOT=HERE.parents[1];PREP=ROOT/'development/native_final_preparation_v1'
 TOTAL=16*1024**2;FILE=5*1024**2;CAPTURE=8192;OWNER_CAP=32768
-COMBINED_STORAGE_ADMISSION_READY=False
+PREPARATION_CAP=TOTAL-OWNER_CAP
+COMBINED_STORAGE_ADMISSION_READY=True
 def sha(raw):return hashlib.sha256(raw).hexdigest()
 def jb(v):return (json.dumps(v,sort_keys=True,separators=(',',':'),allow_nan=False)+'\n').encode()
 def verify(expected=None):
@@ -17,6 +18,14 @@ def verify(expected=None):
 def sizes(base):
     values=[p.stat().st_size for p in base.rglob('*') if p.is_file()] if base.exists() else []
     require(all(n<=FILE for n in values),'COMBINED_PER_FILE_CAP');return sum(values)
+def owner_write(out,name,value,*,raw=False):
+    limits={'ADMISSION.json':4096,'stdout.bin':8192,'stderr.bin':8192,'CLOSURE.json':12288}
+    require(name in limits,'EXACT_OWNER_ARTIFACT_NAME')
+    data=value if raw else jb(value)
+    require(type(data) is bytes and len(data)<=limits[name],'OWNER_ARTIFACT_CAP')
+    require(sizes(out)+len(data)<=OWNER_CAP,'OWNER_PREWRITE_TOTAL_CAP')
+    with (out/name).open('xb') as f:
+        require(f.write(data)==len(data),'OWNER_SHORT_WRITE');f.flush();os.fsync(f.fileno())
 class Drain:
     def __init__(self,pipe,stop):
         self.pipe,self.stop=pipe,stop;self.data=bytearray();self.seen=0;self.overflow=False;self.error=None;self.eof=False
@@ -39,7 +48,7 @@ def run(command,config,out,prep_out,identity,*,wait_seconds=175.,cleanup_seconds
         'text_lock_sha256':identity.get('text_lock_sha256'),'started_monotonic':started,'wait_deadline':wait_end,'absolute_deadline':absolute_end,
         'quiescent':False,'timed_out':False,'exit_code':None,'primary_error':None,'cleanup_errors':[],
         'creationflags':'CREATE_NO_WINDOW|CREATE_SUSPENDED','assigned_before_resume':False,'actual_authenticated':False}
-    (out/'ADMISSION.json').write_bytes(jb({'started':started,'command':command,'identity':identity,'one_shot':True}))
+    owner_write(out,'ADMISSION.json',{'started':started,'command':command,'identity':identity,'one_shot':True})
     process=job=launcher=actual=helper=pending=None;drains=[];binding=None;stop=threading.Event();termination=None;cleanup_started=None;helper_identity=None
     try:
         n=native();job=Job()
@@ -53,7 +62,7 @@ def run(command,config,out,prep_out,identity,*,wait_seconds=175.,cleanup_seconds
         job.assign_resume(launcher.handle);receipt['assigned_before_resume']=True
         while True:
             now=time.monotonic()
-            require(sizes(prep_out)+sizes(out)+OWNER_CAP<=TOTAL,'COMBINED_OUTPUT_RESERVATION')
+            require(sizes(prep_out)<=PREPARATION_CAP and sizes(out)<=OWNER_CAP,'DISJOINT_PREPARATION_OWNER_PARTITIONS')
             if now>=wait_end:receipt['timed_out']=True;raise ValueError('EXTERNAL_PREPARATION_DEADLINE')
             if stop.is_set():raise ValueError('CAPTURE_OVERFLOW_OR_DRAIN_FAILURE')
             members=job.pids()
@@ -124,7 +133,7 @@ def run(command,config,out,prep_out,identity,*,wait_seconds=175.,cleanup_seconds
         receipt['quiescent']=bool(receipt['actual_authenticated'] and len(proofs)==(3 if helper is not None else 2) and all(p['valid_retained_handle'] and p['signaled'] and p['query_success'] for p in proofs.values())
             and empty and len(drained)==2 and all(d['eof'] and d['thread_joined'] for d in drained) and pipes_closed)
         receipt['exit_code']=proofs.get('actual_worker',{}).get('exit_code')
-        for name,d in zip(('stdout.bin','stderr.bin'),drains):(out/name).write_bytes(bytes(d.data))
+        for name,d in zip(('stdout.bin','stderr.bin'),drains):owner_write(out,name,bytes(d.data),raw=True)
         try:
             result_path=prep_out/'RESULT.json'
             if result_path.exists():
@@ -138,8 +147,8 @@ def run(command,config,out,prep_out,identity,*,wait_seconds=175.,cleanup_seconds
             success=success and all(not d['overflow'] and d['error_type'] is None for d in drained) and receipt['preparation_status']=='PASS'
             receipt['status']='PASS' if success else 'FAIL';receipt['combined_bytes_before_closure']=sizes(prep_out)+sizes(out)
             raw=jb(receipt);require(len(raw)<=12288 and sizes(out)+len(raw)<=OWNER_CAP,'SMALL_OWNER_RESERVATION')
-            require(sizes(prep_out)+sizes(out)+len(raw)<=TOTAL,'FINAL_COMBINED16MIB')
-            with (out/'CLOSURE.json').open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
+            require(sizes(prep_out)<=PREPARATION_CAP and sizes(prep_out)+sizes(out)+len(raw)<=TOTAL,'FINAL_COMBINED16MIB')
+            owner_write(out,'CLOSURE.json',raw,raw=True)
         except BaseException:
             receipt['status']='FAIL';receipt['closure_publication_failed']=True
     return receipt
