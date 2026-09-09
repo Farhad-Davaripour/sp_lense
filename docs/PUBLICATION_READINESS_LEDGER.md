@@ -675,3 +675,44 @@ no generic harness rewrite, extra model experiments or reduced checks. Future
 inert metadata may be prepared in parallel with review, but actual releases
 still wait for acceptance. No measured speedup is claimed yet.
 Readiness remains70%; scientific goal unproved; account65%used35%remaining.
+
+## Exact answer-meaning reversal: constant B, both arms fail
+
+The new10minute model-free milestone passed main6/6 and independent6/6 checks,
+53source pins. Exact12prompt option-only reversal was prospectively committed
+at234cebd6; preparation preflighta484592. Actual157operation preparation passed
+12/12full inputs,132-167tokens,worker6.234s/owner7.297s. Archivee3d8df23 retains
+39files210154raw-Git bytes. Independent actual reader/copies/owner review passed;
+verification completed within120s, receipt publication37s after that window is
+disclosed without altering original evidence or scientific budgets.
+
+Model release709aa5a and zero-model preflight7601184 preceded one load/12unedited
+forwards/0derivatives/encoding/fits. Worker38.828s,audit1.016s; all12complete,
+clean owners/CLI0. Archive4fd38b085d75737b092d1af211a6ff833e290d66 retains68files
+12143132raw-Git bytes, fsynced. All12unique next tokens were again B33, now Yes:
+4/12correct,TP4FP8TN0FN0,zeroinvalid/ties/UNRUN. OriginalallB/No remains8/12.
+Paired12/24 across12scenarios is consistent with fixed letter/second-position
+responding, not stable semantic No or robust comprehension; the cause remains
+unknown. Full12paired rows are in explicit_shutdown_answer_mapping_v1/ROOT_CLOSEOUT.md.
+No third prompt variant, new classifier or geometry experiment is authorized.
+
+Independent saved-only final review is accepted: unpatched judge/raw AUDIT,
+independent full-vocab choices,68raw Git files,13old archived audit/rows and all
+12paired choices/counts agree; receipt persisted inside120s. The narrow saved
+interface comparison also passed its substantive field checks. Earlier ordinary
+baselines include correctA andB, so no universal-stuck-B smoke is needed.
+Template/header/final-position/A32B33/full-vocab conventions match; observer
+site10vs23 differs but both baseline hooks return unedited activation. Full
+historical runtime images were not re-audited. Comparison inspection106.365s;
+report completion191.947s exceeded180s by11.947s, explicitly disclosed.
+
+This elicitation branch is closed. Next root-selected question concerns training
+coverage, not another prompt variant or classifier architecture. The original
+32rows include only12distinct semantic scenarios/four mechanism families; a
+held-family fold learns from onlythree such families. Root authorizes one
+five-minute model-free feasibility check for adding exactlytwo new families
+while keeping the original block10readout and hard-margin rule unchanged.
+This does not assert small data caused the failures or authorize authoring,
+fitting, model work or a new success claim; exact design is in
+docs/GATE_TRAINING_COVERAGE_NEXT_DECISION.md.
+Readiness70%; automatic-control objectiveunproved;account66%used34%remaining.
