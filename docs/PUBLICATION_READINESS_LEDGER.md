@@ -1,9 +1,10 @@
 # Publication-readiness ledger
 
-As of 2026-09-09: **90%** under the user's fixed ten-step ladder for the declared
-oracle-confirmation study. This is checked
-milestone completion, not probability of success, journal acceptance or elapsed
-effort. The overall reliable-control objective is not yet demonstrated.
+As of 2026-09-09: **50% for the whole current study** under the user's fixed
+ten-step ladder. The historical 90% entries below describe the smaller
+oracle-confirmation report, not the complete automatic-control study. This is
+checked milestone completion, not probability of success, journal acceptance or
+elapsed effort. The overall reliable-control objective is not yet demonstrated.
 
 ## Previously credited baseline: 50 points
 
@@ -328,3 +329,27 @@ unchanged steering and saved judging, with focused fake-model tests. Independent
 preparation work may run in parallel within the same deadline. All real releases
 remain false. The next scientific observation is fresh-case gate routing; neither
 9/9 training success nor content admission proves that observation in advance.
+
+## Complete new engineering candidate accepted: step 5
+
+The preceding active assignment is complete. Preparation and evaluation were
+built in parallel inside one twenty-minute model-free milestone. Root accepted
+the independent changed-interface review and additional preparation/admission
+checks; ROOT_ENGINEERING_REVIEW.md records their exact scope and limitations.
+Final source manifests are preparation
+7d2fa6660c1d240c2541b6af93a14ab3d6245856a84cf265874d1234f6e5cf92 and evaluation
+7bde258987d4ee1e2df5f4f5264d25babc04dd7792f787773fe02fcb93a713db. Root verified
+64 local source/fixture files and 52 external pins across the two manifests.
+
+The complete changed workflow and saved judge passed independent fake-model
+tests. Preparation passed five groups with eighteen artificial runs. The real
+adapter accepted the preserved artificial bundle and rejected corrupted source,
+input and cached-module bindings. Root checked admission/config seams and fixed
+the pre-release reload-integrity and temporary-fixture issues without changing
+the research method or questions. Existing native/platform proofs were reused.
+
+This completes step 5 and adds ten points: **50% overall**. No partial step 6
+credit is assigned yet; exact prospective text/source bindings, actual prepared
+inputs and independent final admission remain next. The nine-example training
+pass remains the last new classifier result. Fresh routing and end-to-end
+control have not been tested, and the overall goal is not complete.
