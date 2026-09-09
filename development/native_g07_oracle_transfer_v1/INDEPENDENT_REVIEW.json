@@ -1,0 +1,129 @@
+{
+  "schema": "g07_oracle_transfer_independent_engineering_review.v1",
+  "status": "PASS_ENGINEERING_ONLY",
+  "actual_execution_authorized": false,
+  "reviewer": "/root/native_gate_evaluation_core/construction_delta_review",
+  "milestone_started_utc": "2026-09-09 23:32:28",
+  "hard_deadline_utc": "2026-09-09 23:52:28",
+  "usage_checked_percent": [73, 74],
+  "scope": "Finite model-free transfer delta, artificial admission and synthetic numerical workflow only. Root must separately decide and bind any real release.",
+  "source_freeze_sha256": "b7a16ef376b2e953973e6a0b3855cb59db735dd2f2ee540a7a1b607851484e54",
+  "contract_sha256": "89ad2236090d551dadb1fdbbb17b30e528d64569cf7fc63c65c71275ea57b34c",
+  "unapproved_release_draft_sha256": "a964a8e54d1a4b5957ad3cb26d37132e9b2fc905db3e86d47a08e460bc5f9c8a",
+  "pins_verified": {"local": 26, "external": 15},
+  "tested_source_sha256": {
+    "workflow.py": "ba90a6d41f6156e9c828fd3c35b5f4e94dc18630c0948fe054ddbf8b36ba981f",
+    "audit_saved.py": "2421bfb6e6063ae25eea0bf5b078e5f7ed810e27baf42a77100825dbb7561dd8",
+    "authority.py": "6b89cba97fea56f48642135ee3fe56cffff6d75bc74d73c46c1f3003a38bca60",
+    "input_reader.py": "c23681ab2195ffd4d5077cf7383045236437f05cd41ee69615a9be65dc06bf2f",
+    "science.py": "60e592a50534a49652100b5bdbcc0698a5895e4e826aa56a2ed1f9315466b0ae",
+    "support.py": "4c8cf4204151d60bd26fcb83cf3a270e8a52120182da54520bc7a54e4d047f55",
+    "counts.py": "9f9a496d5b3d4eaece72126db28e7e9c53ab221b9e00d0f309f6598c5e710b19",
+    "production_run.py": "994f56f6ee261646a74985fff27a8b73265466cb5a529960d1f980a0fc2a10bb",
+    "test_admission.py": "876a65aaf64d9b9a334cfffc6002612885be4c8d1c283131f868f560ce2e77a6",
+    "test_transfer.py": "0940c64148ef97ea17c0b0afca4b3e9a2bd6217e69349935a15f914928d25072"
+  },
+  "commands": [
+    ".venv\\Scripts\\python.exe -E -S -B development/native_g07_oracle_transfer_v1/test_admission.py",
+    ".venv\\Scripts\\python.exe -E -S -B development/native_g07_oracle_transfer_v1/test_transfer.py",
+    "Provider-free python -E -S -B metadata assertions: support.check_freeze(); 26 local/15 external byte hashes; exact draft/contract/source/trace joins; native raw-byte and science AST comparisons; no real root_release or attempt.",
+    ".venv\\Scripts\\python.exe -E -S -B -c \"import sys,time,json; sys.path.insert(0,'development/native_g07_oracle_transfer_v1'); import test_transfer; started=time.monotonic(); result=test_transfer.reporting_failure_check(); result['elapsed_seconds']=time.monotonic()-started; print(json.dumps(result))\""
+  ],
+  "synthetic_transfer": {
+    "status": "PASS",
+    "groups": 5,
+    "elapsed_seconds": 60.531,
+    "independent_final_suite_runs": 1,
+    "full_suite_source_before_reporting_only_delta": {
+      "source_freeze_sha256": "1052549bf75f4ef6a2737ce4bbec3ca7460b3204ce7110d66391a0da2b09a296",
+      "audit_saved.py": "43b55e23585ebfa16822e02124f0e22ffcaa6758db7d8ab581b4e59736d7ae21",
+      "test_transfer.py": "9780397c336756af92cfa90487cabbd8b51eb88c7e176faa768db8af7a89b522"
+    },
+    "checks": [
+      "Canonical six G07 cases, six fresh baselines before both-self eligibility, two independently opposed baseline targets, four exact own-baseline OFF entries",
+      "Full four-refresh case: 30 synthetic forwards, 8 synthetic derivatives, 2 genuine cold flips, 0 retentions, 4 OFF identities",
+      "Early success: 18 synthetic forwards, 2 synthetic derivatives, paired skipped update suffixes",
+      "Baseline ineligible: all six baselines retained then INCONCLUSIVE and no requests",
+      "Eligible endpoint failure: SCIENTIFIC_FAILURE, fail-first later cells UNRUN; attempted failed direction OBSERVED",
+      "Entry identity, derivative, cold-endpoint faults; coherent saved actual-policy and wrong OFF-baseline tampering rejected",
+      "Single natural direction leaves absent direction UNTESTED; no ordinary preservation or learned-gate observation claims",
+      "Exact count ceilings, storage groups, compact saved audit, default deny, unchanged native bytes and independent scalar math predicates"
+    ],
+    "limits": "Synthetic fake tensors/receiver/trace and fake worker score adapter using the existing stdlib word reference; saved judge input/path adapters are synthetic. Real provider/native-owner execution and original torch scorer are not exercised anew; their unchanged source proofs are reused."
+  },
+  "unmocked_artificial_admission": {
+    "status": "PASS",
+    "final_checks": 11,
+    "elapsed_seconds": 0.375,
+    "receipt_sha256": "e7b992588e7d2b5bf909e78dee41fafb787e67e9b64ad622ec4ef179caf25c51",
+    "receipt_path": "oracle_admission_16r21q03/RESULT.json",
+    "initial_pre_contract_checks": 10,
+    "initial_elapsed_seconds": 0.360,
+    "production_function_mocks": 0,
+    "positive": "Real unchanged new authority.read_release -> new input_reader.read_bundle -> original preparation adapter/read_bundle/validate/validate_closure, from nested cwd, with six artificial 320-token inputs and 79 fake boundary operations; no synthetic=True admission bypass.",
+    "rejections": {
+      "missing_root_hash": "EXPLICIT_ROOT_RELEASE_HASH_REQUIRED",
+      "old_release_as_new_authority": "ROOT_RELEASE_BYTES",
+      "coherently_hashed_unapproved_release": "EXACT_NATIVE_RELEASE",
+      "synthetic_bypass": "NO_PRODUCTION_SYNTHETIC_BYPASS",
+      "coherently_hashed_wrong_oracle": "EXACT_G07_ORACLE_AUTHORITY",
+      "contract_tamper": "RELEASE_BINDING_contract_sha256",
+      "prepared_source_tamper": "PREPARATION_SOURCE_BYTES",
+      "prepared_closure_tamper": "INPUT_BUNDLE_BYTES",
+      "prepared_input_tamper": "INPUT_BUNDLE_BYTES",
+      "preparation_module_collision": "PREPARATION_MODULE_COLLISION"
+    },
+    "unchanged_function_class_ast_files": [
+      "new authority.py", "new input_reader.py", "new support.py", "old G07 input_reader.py",
+      "old G07 preparation dependencies.py", "plan.py", "prepare_core.py", "prepare_reader.py", "renderer.py", "validate.py"
+    ],
+    "constant_substitutions": {
+      "preparation_manifest_sha256": "dc3c3df0a75c9607266a1a0b4bba8e092c36a700898e7d48ddf159c73dbc5283",
+      "artificial_submission_sha256": "762ffffe1cdb1f43d26ce38d6410e763b7814728889960af95b5ae3d13348778",
+      "artificial_old_release_sha256": "25962b180ad84147662b14c8392f487a9a98070875e9bd586428d0cbca4a85f2",
+      "artificial_inputs_sha256": "4ca4fdeff3ba7b585547370170fa32bd37a87e114f75dcf83607b0f3114bb83d",
+      "fake_template_sha256": "5f1d7104b446c3a29185ac56ef578fc792d2c9f27d8d1be7019a2b86ca53428c",
+      "other": "Temporary mirror roots and absolute external paths; synthetic-only source inventories, admitted-looking lock/closure/release bindings; matching synthetic contract input/submission/old-release fields."
+    },
+    "sys_path_restored": true,
+    "scope_limit": "This is substituted synthetic admission, NOT actual-source admission, a valid real root release, an actual preparation revalidation, or an owner/model launch."
+  },
+  "inherited_identities": {
+    "byte_identical_to_G07_capture": ["loader.py", "receiver.py", "core.py", "entry.py", "forward_trace.py", "owned_production.py", "setup_budget.py", "launch.py", "windows_job.py", "CHECKPOINT.json"],
+    "science_function_class_definitions_unchanged": 7,
+    "only_removed_science_definitions": ["gate", "gate_unchanged"],
+    "editor_source_sha256": "67609809d32ea98ebca18b29c4e36f7272dedcee50c2c3e93f98468584d4c1a0",
+    "word_scorer_source_sha256": "2b84066607198c91d07aa71f6a38621da05eb2354f264d8051ba186ae05dc64b",
+    "word_reference_source_sha256": "d1631112b26961deb209badf1afd07dddc9aba696bf02e6e85ad6bc77b2508fd",
+    "checker_predicates": "accepted, eligible, magnitude and f32 are AST-identical to original oracle confirmation; recipe/update/current/cold checks retained, policy sign now derived from own baseline in each corresponding branch."
+  },
+  "finite_bounds": {
+    "load": 1, "forward": 30, "derivative": 8, "encoding": 0, "fits": 0,
+    "forward_terms": [6, 2, 8, 8, 2, 4],
+    "worker_seconds": 300, "audit_seconds": 120, "shared_cleanup_seconds": 15,
+    "total_bytes": 67108864, "file_bytes": 5242880,
+    "group_reservation_bytes": 35926016, "closeout_reserve_bytes": 65536,
+    "total_reservation_bytes": 35991552
+  },
+  "final_reporting_delta": {
+    "status": "PASS",
+    "targeted_checks": 1,
+    "elapsed_seconds": 2.469,
+    "result": "Derivative failure after completed self entry but before request append: INCONCLUSIVE, zero appended requests, explicit attempted C entry, C OBSERVED and P UNTESTED.",
+    "source_delta_proof": "Removing only the attempted_policies reporting assignment/field and reversing policy_directions expression reconstructs full-suite audit_saved.py raw SHA43b55e23585ebfa16822e02124f0e22ffcaa6758db7d8ab581b4e59736d7ae21 exactly. Scientific decision and numerical checks unchanged.",
+    "final_metadata": "26 local plus15 external pins, exact final draft trace/source/contract bindings, approved=false and no actual root release/attempt all passed.",
+    "no_full_suite_or_admission_rerun": true
+  },
+  "resolved_findings": [
+    "Wrong reservation literal denied all prospective releases; corrected to exact group sum plus closeout reserve before final tests.",
+    "Attempted eligible failed policy direction was labeled UNTESTED; corrected to OBSERVED while genuinely unattempted directions remain UNTESTED.",
+    "Worker found the analogous technical partial-request reporting gap; completed self entries now independently establish attempted policy directions even when no request record was appended."
+  ],
+  "remaining_blockers": [],
+  "test_exceptions": [],
+  "discovery_note": "An early read of not-yet-created CONTRACT.md reported file absence; final interface is CONTRACT.json. Two ancillary attempts to reconstruct the previous test-script raw hash by deleting the new helper alone asserted unsuccessfully; no test-script byte-equivalence claim is made. The production audit reporting-delta reverse hash passed, final pins passed, and every functional test passed.",
+  "real_work_performed": {"tokenizer": 0, "model": 0, "derivatives": 0, "fits": 0, "real_feature_or_logit_inspection": 0},
+  "new_actual_root_release_absent_at_review": true,
+  "new_actual_attempt_absent_at_review": true,
+  "interpretation": "Engineering admission only. G07 remains exposed DEVELOPMENT with inherited content-review qualifications. No real transfer success, automatic gate, shared arrow, ordinary preservation, population generalization, retry, or successor authority is established."
+}
