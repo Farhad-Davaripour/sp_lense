@@ -514,3 +514,23 @@ unpatched actual-reader and81raw-Git-blob review. Root accepts the review in
 ROOT_CAPTURE_ADMISSION.md and releases only one32-forward native training
 capture after committed release/preflight; fitting remains separately denied.
 Readiness stays70%, and automatic control is still unproved. Account59%used/41%remaining.
+
+## Actual32-row capture passed; classifier construction failed
+
+Root accepted the independent unpatched saved capture review. One native model
+load completed32forwards/0derivatives with all rows unedited and validly closed.
+Archive81499b6 preserves148files/33,574,835bytes; worker82.312seconds. This is
+valid training-data collection, not classifier or steering success.
+
+The separately prospectively released one32-row fit then returned
+CONSTRUCTION_FIT_FAIL:19/32correct against the unchanged32/32requirement.
+Its independent internal numerical checker passed; fitted parameters agree
+within2.082e-17. Fit0.390seconds, retained owner0.578seconds, clean finalization.
+Archivec18c09b preserves7originalfiles/49,099bytes. The failed fitted artifact
+4e8a282be46cb8008eb8fef5b89e18fcd50349e54ca7c58b67a12e24f62a70cb is not
+released for evaluation. No new holdout, refit, threshold tuning or model run.
+
+ROOT_CONSTRUCTION_CLOSEOUT.md records boundaries. Independent saved-fit review
+and a descriptive failure breakdown run in parallel, without extra model work.
+Current account60%used/40%remaining. Overall readiness remains70%; no usable
+automatic gate has been accepted and the durable control goal is unproved.
