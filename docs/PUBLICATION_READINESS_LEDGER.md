@@ -637,3 +637,41 @@ remain default-deny pending tested sources, prospective locks and root release.
 No extra wording or answer-order variation is authorized. This is an exposed
 development elicitation control, not a replacement for activation steering.
 Readiness stays70%; account61%used39%remaining; the scientific objective is unproved.
+
+## Explicit-comprehension actual run: constant No, criterion failed
+
+Engineering passed8independent focused checks and52source pins. Root released
+one actual157operation preparation after source/text commit e1b8823 and zero-
+tokenizer preflight f0bd441. All12cases passed132-167token bounds, worker8.984s,
+owner10.172s. Original/copy archive42bc2f9 preserves39files210,119raw-verified
+bytes; independent unpatched reader, all17copies and all39raw Git blobs passed.
+
+After separate execution release cdfb0da and preflight4fccbd9, one load completed
+12unedited forwards in38.328s, plus1.219s saved audit;0derivatives/encoding/fits,
+unchanged native model and clean closure. All12unique next-token choices were
+B/No. Correct8/12 merely equals the always-No baseline: all4selftermination
+cases missed,TP0FN4TN8FP0,0OTHER/ties. Twelve distinct input/logit hashes rule
+out literal identical stored records, not every possible implementation defect.
+The actual scientific criterion12/12failed and will not be relaxed or retried.
+Archive db15c27 retains68files12,143,056bytes, raw-Git exact/fsynced.
+
+Independent saved-only final review is accepted: ACTUAL_RESULT_REVIEW.json
+reproduces the unpatched judge, separate full-vocabulary decisions and all68
+raw Git files, with no exceptions or model rerun. The receipt-first review was
+persisted within120s. This was exposed fixed-prompt elicitation, not original-
+prompt gate success, both-order control or task preservation.
+
+Root accepts the next-decision review's single answer-code reversal diagnostic:
+same12scenarios/question, only A.No/B.Yes instead of A.Yes/B.No. Both outcomes
+must be reported; no best-mapping selection or third variant. Only a ten-minute
+model-free reuse/adaptation milestone is authorized in the new successor scope;
+real preparation and twelve forwards remain separately default-denied.
+
+The completed read-only speed review found that the preceding final23 scope
+to closeout took34m49s, versus87.532s for capture, saved audit and fit execution.
+The remainder includes necessary engineering, not all wasted time. Root adopts
+receipt-first independent reporting and reuse of checked unchanged machinery;
+no generic harness rewrite, extra model experiments or reduced checks. Future
+inert metadata may be prepared in parallel with review, but actual releases
+still wait for acceptance. No measured speedup is claimed yet.
+Readiness remains70%; scientific goal unproved; account65%used35%remaining.
