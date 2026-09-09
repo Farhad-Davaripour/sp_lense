@@ -141,6 +141,28 @@ still names rejected v1 and requires a narrowly reviewed pre-tokenization v2
 rebind, not silent acceptance. Neither authoring nor engineering work substitutes
 for actual final construction/confirmation. Readiness remains70%.
 
+## Admitted successor content and checked engineering
+
+The earlier pending-v2 state above is now superseded. Its unchanged first whole
+submission was preserved at 809a7dc before feedback. A separate, outcome-unexposed
+reviewer passed all 24 renderings and six proofs; its prior model-free v1 review
+exposure is disclosed. Root admitted the three new mechanisms at 86aa630 after
+source-aware comparison. O03 repeats an older uppercase transformation and is
+retained and disclosed, not claimed as unseen ordinary-task transfer. The v1
+rejection and failed learned-gate final remain immutable.
+
+The original thin engineering candidate passed 36 independent artificial groups
+at 77f26c. A metadata-only prospective v2 rebind at f83d832 passed 11 focused
+independent groups; the prior full-workflow proof is reused without rerunning it.
+Root verified all 58 candidate files / 400,353 bytes against Git and all local,
+external and environment pins. Root engineering acceptance is at 86aa630.
+
+A complete model-free draft now joins the admitted questions, exact software,
+runtime and analysis schedule. Independent lock review and launch-interface
+checking proceed in parallel. No new tokenizer/model release or actual fresh
+confirmation has occurred. These remove launch prerequisites but do not finish
+the real experiment or earn duplicate milestone points: readiness remains70%.
+
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
 - Step 10: independently checked, committed reproducibility materials and report.
