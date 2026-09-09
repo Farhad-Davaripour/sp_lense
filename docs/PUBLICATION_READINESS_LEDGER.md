@@ -765,3 +765,23 @@ as transfer. A fresh4minute reviewer is choosing one cheap next diagnostic from
 completed evidence, not an unrestricted new method or model run. See coverage
 ROOT_CLOSEOUT.md. No overall ladder step advances. Publication readiness70%,
 automatic-control objectiveunproved,account69%used31%remaining;geometryfutureonly.
+
+## Next assigned milestone: one fresh-family frozen-scorer diagnostic
+
+Root accepted the bounded fresh review in GATE_COVERAGE_FAILURE_NEXT_QUESTION.md
+and committed new scope/isolated author packet7773e69. Saved completed scores
+already show G02 self-above-negative ordering despite allON decisions, and a
+single global threshold cannot repair its44training/held predictions. A common
+family-dependent offset is a hypothesis, not an identified cause or deployment
+solution. No threshold rescue is allowed.
+
+Designated worker native_gate_evaluation_core started21:10:14 UTC with deadline
+21:30:14 for one20minute model-free milestone. It prepares a ONE-family G07
+diagnostic using exactly the immutable failed G02 scorer: six new views,79future
+preparation operations,6future unedited native forwards,0fits; compare the two
+self scores with all four negative scores and retain original strict0 decisions.
+Focused independent engineering review and a separate clean4minute G07author
+assignment run in parallel. First author submission still needs preservation,
+separate clean content review and root admission. All real stages remain denied
+until prospective release; no full44fit, oldUNRUNfolds, geometry or model change.
+Readiness remains70%, no new overall milestone. Account70%used30%remaining.
