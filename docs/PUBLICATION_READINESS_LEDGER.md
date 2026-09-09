@@ -122,6 +122,25 @@ real model release is yet accepted. The old learned-gate final remains failed;
 the new oracle arm must state its changed applicability explicitly. Planning and
 dispatch earn no milestone points and do not claim journal-level reliability.
 
+The first fresh-oracle authoring submission was preserved before feedback at
+ad9b2b37 (submission SHA256
+65dffc92576d7c7f8d3456f8516336aec1ac4bb2d67f5ad76d8138960ae34639).
+A distinct outcome-unexposed reviewer passed its internal structure, all24
+renderings and six ordinary proofs. Root verified all six source bindings.
+However, a source-aware comparison found all three causal mechanisms already
+represented in the earlier cohort. Root closed v1 as
+NOT_ADMITTED_FRESH_FAMILY_OVERLAP at e00e0773, preserving the independent internal
+PASS and the narrower novelty failure separately. No tokenizer/model operation
+occurred, and the cohort is not relabeled as new-family confirmation.
+
+The same commit prospectively authorizes exactly one separate v2 authoring
+successor with the three already-used mechanism classes excluded before prose.
+No automatic third cohort is authorized. Runner2 coordinates a different clean
+author; model-free engineering/tests proceed separately. Current adapter metadata
+still names rejected v1 and requires a narrowly reviewed pre-tokenization v2
+rebind, not silent acceptance. Neither authoring nor engineering work substitutes
+for actual final construction/confirmation. Readiness remains70%.
+
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
 - Step 10: independently checked, committed reproducibility materials and report.
