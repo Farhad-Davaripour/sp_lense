@@ -199,6 +199,24 @@ limitations and existing closely related work. No automatic100% claim follows.
 
 - Step 10: independently checked, committed reproducibility materials and report.
 
+## Local report review closed; overall goal remains open
+
+The independent report review passed its evidence and denominator checks and
+requested two small prose clarifications. Root applied and checked both: OFF
+identity is by construction after a fresh entry capture, not an active-editor
+collateral test; absent matched comparators are explicit; the literature note's
+old pending state is clearly historical. The review and archival reproducibility
+guide are retained, with final document hashes bound in
+docs/ORACLE_CONFIRMATION_ARCHIVE_INDEX.json and root report acceptance.
+
+No new experiment or judge replay was needed for those edits. Documentation
+closeout cannot complete the wider reliable-control objective: automatic gating
+and answer-position coverage remain limited, and portable/public replication and
+journal-ready breadth are unverified. No additional step10 points are awarded;
+the reported baseline remains90%, not a probability of journal acceptance.
+The next bounded planning task considers one supervised-gate successor using
+eligible construction/development data, without tuning on sealed confirmation.
+
 The earlier real handover development result contains one natural STOP-to-KEEP
 flip and one natural KEEP-to-STOP flip on one new situation, with six exact OFF
 checks. Both actual flips are first-to-second; natural P-first remains untested.

@@ -1,8 +1,11 @@
 # Oracle-guided residual editing: related work and claim boundaries
 
-Draft, 2026-09-09. **NEW-ARM MODEL RESULTS PENDING.** This bounded check reads
-four original papers; it is not an exhaustive novelty review. No running outcome
-was inspected, and this note authorizes no experiment or retry. Local study
+Literature note drafted on 2026-09-09 before the new-arm outcomes were available.
+Its original status, **NEW-ARM MODEL RESULTS PENDING**, records that historical
+drafting state, not the current study status. The independently accepted result
+is now in the linked confirmation report below. This bounded check reads four
+original papers; it is not an exhaustive novelty review. No running outcome was
+inspected during its original drafting, and this note authorizes no experiment or retry. Local study
 definitions and completed evidence are in the [confirmation report](/C:/Users/farha/OneDrive/Documents/ChatGPT/SP_Lense/docs/ORACLE_CONFIRMATION_REPORT.md)
 and [methods note](/C:/Users/farha/OneDrive/Documents/ChatGPT/SP_Lense/docs/NATIVE_ORACLE_METHODS_NOTE.md).
 

@@ -133,6 +133,12 @@ preserved, but accuracy remained 5/6. The other 24 OFF returns cover every
 matched-other/nontermination case under P and C. The worker reports unchanged
 native parameter/buffer bytes and gate parameters, with no gate fit calls.
 
+The external oracle deliberately withholds editing for these OFF requests. After
+the required fresh entry capture, the OFF branch returns its own unedited baseline
+without an additional OFF forward. Identity is therefore by construction; the
+checks verify routing, implementation and state preservation. This is not a test
+of collateral effects or semantic selectivity while the editor is active.
+
 **Answer-position limitation:** every actual flip was first→second. The cohort
 therefore shows both requested token directions, but does not establish natural
 flips toward either first-position target or disentangle semantic control from
@@ -182,7 +188,10 @@ gradient recipe and small authored cohort. It does not establish learned-gate
 generalization, always-on collateral safety, arbitrary-workload preservation,
 population reliability, autonomous behavior, a self-preservation motive, a global
 arrow, semantic independence from answer position, publication readiness or
-suitability for any particular journal. The [bounded primary-paper comparison](/C:/Users/farha/OneDrive/Documents/ChatGPT/SP_Lense/docs/ORACLE_CONFIRMATION_RELATED_WORK.md)
+suitability for any particular journal. No matched always-on, static-direction,
+random-direction or alternative-editor comparator was run in this confirmation
+arm; the unedited baselines are not such an algorithmic comparison.
+The [bounded primary-paper comparison](/C:/Users/farha/OneDrive/Documents/ChatGPT/SP_Lense/docs/ORACLE_CONFIRMATION_RELATED_WORK.md)
 documents existing precedents for residual steering, inference-time gradient
 guidance, conditional gating and shutdown-related behavioral evaluations. Its
 pending-status wording reflects when that literature note was drafted; it is
