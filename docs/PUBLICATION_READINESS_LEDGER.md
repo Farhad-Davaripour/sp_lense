@@ -1,6 +1,6 @@
 # Publication-readiness ledger
 
-As of 2026-09-09: **60% for the whole current study** under the user's fixed
+As of 2026-09-09: **70% for the whole current study** under the user's fixed
 ten-step ladder. The historical 90% entries below describe the smaller
 oracle-confirmation report, not the complete automatic-control study. This is
 checked milestone completion, not probability of success, journal acceptance or
@@ -405,3 +405,20 @@ interfaces and their actual inputs, not successful model behavior. Root has
 issued one separate model release, which still requires committed exact bytes
 and a passing zero-model preflight before actual launch. Fresh gate/editor
 outcomes and final-study construction/confirmation remain untested.
+
+## Prospective exact model release and preflight accepted: step 7
+
+The cumulative independent changed-source/hostile-review proofs, exact source
+and text locks, current runtime checks and verified real preparation were joined
+in the model admission. Release eb80ab6 has raw SHA256
+87c77217413c590a8d7b799b4ff0ddb7169a49035b1096107a70cbeb31f8dfe8,
+verified against committed bytes and fsynced before launch. The existing
+--preflight returned RELEASE_VALID_NOT_LAUNCHED, model_work:false, exit0;
+ROOT_PREFLIGHT_RECEIPT.json preserves root's observed command/result.
+
+This completes step7: **70% overall**, not a classifier or steering success.
+The single actual v2 model attempt is next, with sixteen baselines first and
+conditional requests only after the full gate/eligibility checks pass. A transient
+usage-read failure was retried read-only before dispatch; usage was available
+again at56%used/44%remaining. No budget stop or reset occurred. The overall
+automatic-control objective is still unproved; no step8/9 credit is assigned yet.
