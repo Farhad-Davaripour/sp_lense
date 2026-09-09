@@ -1,0 +1,88 @@
+{
+  "status": "PASS_ENGINEERING_ONLY",
+  "reviewed_at_utc": "2026-09-09 20:25:17 UTC",
+  "milestone_window_utc": ["2026-09-09 20:09:31 UTC", "2026-09-09 20:29:31 UTC"],
+  "usage_checked_before_test_batches_percent_used": 68,
+  "scope": "Finite new 12-row preparation/block-10 capture plus old32/new12 authenticated 44-row family-development join. Source and artificial fixtures only; not actual-source admission or a scientific result.",
+  "source_freeze_sha256": {
+    "preparation": "9f7b76d774a7b6429d197c3e9219e4390a6d12695e1048fa2eeb57fcb7a85f76",
+    "capture": "9ea25b3cefa5576d4a18594b7547d0f438db4ea10b62cb9201da25ef2843fa96",
+    "fit": "4211d673a15436f5002fa4dfb6b4828994b31ca40f9ca9c9fa73512f42ac1425"
+  },
+  "source_pins_checked": {"preparation_local": 13, "preparation_external": 9, "capture_local": 24, "capture_external": 3, "fit_local": 11, "fit_external": 5, "total": 65, "mismatches": []},
+  "tested_source_sha256": {
+    "gate.py": "b9c439049bde05c8e1139f8afa8b754cce9a65506daed167e7c59e90550d108d",
+    "checker.py": "7cf81c280592f51d9d8024d6baca9dec4fdc7e6b607045f07165aed86749c4b9",
+    "fit_owner.py": "2d3d3e60ec7ec2c3b2c4ea23cebd698717c6b063275801dfbaa2b62319252939",
+    "construction.py": "598950d6d5e743df0d9786946d1a276d5d0b4da8bc508376989b16ee1b46c59c",
+    "source_auth.py": "19a30fe016ad6f351723cbef1c42093c89834f6f2213d03b35eb52c066bfc885",
+    "SCIENTIFIC_LOCK.json": "2716569522c6fd4dc130efac11ffa6cba38445240b0e43ebe2ea0fe19f6eb8c5"
+  },
+  "tests": [
+    {
+      "name": "unmocked_artificial_two_chain_admission",
+      "command": "..\\..\\.venv\\Scripts\\python.exe -E -S -B test_two_chain.py",
+      "cwd": "development/native_gate_hardmargin_coverage_v1",
+      "script_sha256": "59432c49deb1cc52115d93cb6e20eb005c8a328a2075b3a7f730a7a68f2dc578",
+      "receipt": "two_chain_t24ajo92/RESULT.json",
+      "passed": 10,
+      "failed": 0,
+      "seconds": 5.125,
+      "positive": "Both actual authentication/authority/prepared-reader function chains accept artificial-bound 32+12 inputs from nested fit cwd and restore every guarded module identity and sys.path.",
+      "negatives": ["source hash", "native target", "observer hook", "final-input position", "native parameter/buffer compatibility", "row input substitution", "duplicate case ID", "duplicate input hash", "feature contract"],
+      "limits": "Only literal paths/hashes, inventories, synthetic state constants and artificial preparation/capture/release bindings substituted. Function/class ASTs unchanged; zero production-function mocks. Synthetic prepared proofs do not constitute actual tokenization or a real approved capture. Exact substitutions and identities are in the retained receipt."
+    },
+    {
+      "name": "focused_preparation_capture",
+      "command": ".\\.venv\\Scripts\\python.exe -E -S -B development/native_supervised_gate_capture_coverage_v1/test_capture.py",
+      "cwd": "workspace root",
+      "script_sha256": "8fe01e1bfb9f06bc5beba4471668b751d8960aa5acd546741473c3ad4a06a92f",
+      "passed_groups": 3,
+      "failed": 0,
+      "seconds": 0.553,
+      "checks": ["12 semantic keys and four positive labels", "157 fake boundary operations and 314 journal entries", "320-token inputs through preparation reader and fake capture", "unchanged semantic renderer", "mask/schema/ordinary-row rejection", "12-row saved audit and wrong-site rejection", "fault suffix UNRUN", "1-load/12-forward caps and finite storage/deadlines", "default deny and inherited native/owner byte identities"]
+    },
+    {
+      "name": "focused_44row_folds_artifact_and_storage",
+      "command": ".\\.venv\\Scripts\\python.exe -E -S -B development/native_gate_hardmargin_coverage_v1/test_coverage.py",
+      "cwd": "workspace root",
+      "script_sha256": "7881d1fad7b41d073ebe36c12b3b87f3cbbfb829a85aa889fb0137fe10eebc7c",
+      "passed_groups": 3,
+      "failed": 0,
+      "seconds": 1.374,
+      "checks": ["fixed six semantic-family folds then FULL44", "38 training/6 held with all eight ordinary rows training-only and ten training positives", "fail-first and later UNRUN", "maximum seven attempts and conditional full fit", "all seven width-1024 artificial solves", "saved w/b/alpha independently KKT-certified and held scores reconstructed", "artifact reload and retry rejection", "default-deny candidate/release permissions", "compact CLI hash joins"],
+      "actual_result_bytes": 68064,
+      "conservative_all_seven_result_artifact_ticket_bytes": 455940,
+      "payload_cap_bytes": 1048576,
+      "compact_summary_less_than_bytes": 4096,
+      "limits": "Synthetic numerical data only. Candidate source metadata, frozen binding and load_saved are mocked in the artifact-path test; authentication itself is independently covered by the separate unmocked two-chain test. NumPy is used only by the unchanged solver on artificial rows."
+    },
+    {
+      "name": "independent_workflow_held_poison",
+      "command": ".\\.venv\\Scripts\\python.exe -E -S -B development/native_gate_hardmargin_coverage_v1/test_independent_poison.py",
+      "cwd": "workspace root",
+      "script_sha256": "d649158e8b2f5affc471ee74d592626df1bb6087024dc2193fa32a6825e8cfde",
+      "passed_folds": 6,
+      "failed": 0,
+      "synthetic_optimizations": 12,
+      "checks": "All six actual construction.run training paths preserve training_mean, parameters, training_scores, training_margins and certificate exactly under held-only finite 1e50 poison; held scores change.",
+      "limits": "Each frozen fold is selected alone by temporary schedule patch, avoiding fail-first blockage by preceding folds. Solver/checker/run bodies are unmodified. This review-only script is deliberately outside frozen candidate source inputs."
+    }
+  ],
+  "review_findings_fixed_within_original_window": [
+    "Loader native-state digests now joined to closed inventory; worker cleanup and unchanged native parameter/buffer state joined to its closed worker hash.",
+    "Selected rows now reauthenticated for actual input/mask hashes, exact block-10 hook/target, final-input/nonfinal positions and native width.",
+    "Accidental 120-token workflow guard restored to scoped 320 and exercised at 320.",
+    "Accidental unused ordinary-literal ASCII lower bound restored from 12 to 32."
+  ],
+  "unchanged_proofs": {"gate_checker_and_fit_owner_byte_identical": true, "semantic_renderer_unchanged": true, "old_authentication_function_bodies_unchanged": true, "inherited_broad_suites_repeated": false},
+  "actual_author_content_reads": 0,
+  "actual_model_calls": 0,
+  "actual_tokenizer_calls": 0,
+  "actual_feature_or_logit_reads": 0,
+  "actual_fits": 0,
+  "production_source_edits_by_reviewer": 0,
+  "commits_by_reviewer": 0,
+  "exceptions": [],
+  "decision": "No blocking defect remains in the reviewed finite engineering delta. Author admission, one real preparation, one real capture and one separately bound fit remain root-only prospective decisions. New content remains unadmitted and all actual permissions false. This is exposed development, not fresh evaluation or robust-gate success."
+}
