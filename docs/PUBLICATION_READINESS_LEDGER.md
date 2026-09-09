@@ -99,15 +99,24 @@ It executed50forwards/5derivatives, two C flips in both target positions, two P
 retentions, four cold endpoints and20exact OFF identities. Ordinary accuracy
 stayed5/6 at baseline/P/C; O02 remained wrong. There was no natural STOP baseline
 and therefore no P flip. This earns no final-study step8/9 credit;70% remains.
-The next fixed development question is P opportunity on the six N03 variants,
-with a prospective no-opportunity stop and no C/ordinary reruns. Implementation
-and focused review only are assigned; no model run is yet authorized.
+The fixed six-input N03 P-opportunity diagnostic subsequently passed under its
+own prospective release bf20dec, after 28 focused checks, independent review
+and zero-model preflight. Raw commit 5b2da983 is root-verified: 88 files /
+16,944,308 bytes. Independent actual review SHA256
+1858fc0f5f1128d17e16cd7d422434cfde57bb7afa00566e86b742006b80d6c1
+reproduces the saved verdict. It used 16 forwards / 1 derivative / 1 load,
+with one natural STOP-to-KEEP flip (KEEP second), one KEEP-first retention,
+two exact cold endpoints and four exact OFF returns; 14 SKIPPED, zero UNRUN.
+No C or ordinary tasks were rerun; the learned gate remains OFF. This fills
+the development P-second flip cell, not the missing P-first flip cell or
+final-study steps 8-9. Readiness stays 70%; a model-free next-step assessment
+is assigned, with no automatic prompt screening, retuning or new model release.
 
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
 - Step 10: independently checked, committed reproducibility materials and report.
 
-The newest real handover development result contains one natural STOP-to-KEEP
+The earlier real handover development result contains one natural STOP-to-KEEP
 flip and one natural KEEP-to-STOP flip on one new situation, with six exact OFF
 checks. Both actual flips are first-to-second; natural P-first remains untested.
 It does not establish broad reliability, a reusable arrow, an intrinsic survival
