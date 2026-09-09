@@ -109,8 +109,18 @@ with one natural STOP-to-KEEP flip (KEEP second), one KEEP-first retention,
 two exact cold endpoints and four exact OFF returns; 14 SKIPPED, zero UNRUN.
 No C or ordinary tasks were rerun; the learned gate remains OFF. This fills
 the development P-second flip cell, not the missing P-first flip cell or
-final-study steps 8-9. Readiness stays 70%; a model-free next-step assessment
-is assigned, with no automatic prompt screening, retuning or new model release.
+final-study steps 8-9. Readiness stays 70%.
+
+The subsequent independent scope audit confirmed that absent P-first flips are
+explicitly UNTESTED, not an extra endpoint-PASS gate, in
+FINAL_STUDY_PROTOCOL_DECISION.md. Root stopped further opportunity searches and
+committed a separately named fresh oracle-confirmation scope/isolated author
+packet at 4148e1f5. Model-free thin bindings are assigned; fresh outcome-unexposed
+authorship is requested through Runner2 because this task's direct clean-agent
+allocation hit its thread limit. No author output, new tokenizer preparation or
+real model release is yet accepted. The old learned-gate final remains failed;
+the new oracle arm must state its changed applicability explicitly. Planning and
+dispatch earn no milestone points and do not claim journal-level reliability.
 
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
