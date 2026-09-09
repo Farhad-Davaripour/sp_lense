@@ -41,3 +41,11 @@ do not repeat model capture or rebuild a harness merely to inspect this failure.
 Publication readiness stays70%: no accepted usable construction gate, no new
 fresh confirmation, no complete steering/preservation result. The durable
 automatic-control objective remains unproved.
+
+Root now accepts ACTUAL_FIT_REVIEW.md, SHA256
+f64da53545ad70fd3861288f6e7981c230c48712f4fb0078781eb51e3e557722.
+One saved-only independent checker invocation on reauthenticated actual rows
+and the loaded immutable artifact reproduced the complete numerical result.
+All retained terminal/finalization/rootCLI and eleven raw-Git joins passed.
+The review confirms a validly closed scientific failure, not a usable gate.
+No fresh holdout acceptance condition has been met.
