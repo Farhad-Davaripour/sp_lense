@@ -353,3 +353,31 @@ credit is assigned yet; exact prospective text/source bindings, actual prepared
 inputs and independent final admission remain next. The nine-example training
 pass remains the last new classifier result. Fresh routing and end-to-end
 control have not been tested, and the overall goal is not complete.
+
+## Preparation stopped at a stale Windows-helper fingerprint
+
+The exact first text/source lock was committed at ab15b3a and independently
+reviewed before the one preparation release ed287d9. Root verified the release
+bytes and runtime metadata, then launched that one attempt. It failed technical
+admission in 0.125 seconds because the Windows console helper no longer matched
+the old saved hash. It produced no preparation directory/result or Qwen answers.
+Raw owner/CLI evidence and root closeout are preserved at 6599a5b.
+
+Root independently verified the current helper hash in PowerShell and 64-bit
+Python and its valid Microsoft Windows signature. The failure remains immutable;
+no security check is bypassed and v1 will not be retried. This does not establish
+an exact Windows-update cause, classifier failure or scientific model result.
+The owned job was terminated and observed empty, but authenticated actual-worker
+closure was not achieved; the recorded quiescent:false is preserved.
+
+Current assignment: native_gate_evaluation_core, GPT-6 Astra / Ultra, one
+ten-minute model-free metadata-only successor binding in preparation_v2 and
+evaluation_v2. It preserves the same unmeasured questions, frozen classifier,
+scientific sources and all ceilings, while prospectively pinning the verified
+current Windows helper. Focused changed-binding tests and explicit new releases
+are required before any later actual attempt. No full inherited audit is repeated.
+
+Overall readiness remains **50%**. The checked software milestone remains valid;
+actual runtime admission and fresh scientific testing were not previously counted
+as complete. Step 6 and later stages remain unfinished. Usage at dispatch was
+55% used / 45% remaining; no reset, purchase or external publication occurred.
