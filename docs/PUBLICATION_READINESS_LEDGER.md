@@ -83,6 +83,18 @@ cells. No ordinary tasks ran. This earns no full step-8/9 completion: the
 scheduled end-to-end construction/confirmation was not reached. Readiness stays
 **70%**; the verified preparation remains valid, but reliable control is unproved.
 
+The separately authorized oracle-applicability development control then passed
+on the exposed N02 self KEEP-first case: one P zero-edit retention and one C
+KEEP-to-STOP flip after three updates, with two independently checked cold
+endpoints, 11 forwards/3 derivatives, 10 justified skips and zero UNRUN. Raw
+evidence 33c75a7 is root-verified (74 files, 11,872,040 bytes); independent actual
+review SHA256 1dd08db6606629a70b40689b1255e00372efd8c75fb932692dff8335489979bb
+reproduces the saved verdict. The learned gate remains OFF. This diagnostic has
+no ordinary/OFF tests, no natural P flip and no fresh-confirmation status. It
+does not advance steps 8-9 or rescue the failed final; readiness remains 70%.
+The next model-free assignment is a fixed oracle-guided N02 both-order panel
+with matched controls and O01-O06 (scope b063b1f), not yet a real run.
+
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
 - Step 10: independently checked, committed reproducibility materials and report.
