@@ -422,3 +422,47 @@ conditional requests only after the full gate/eligibility checks pass. A transie
 usage-read failure was retried read-only before dispatch; usage was available
 again at56%used/44%remaining. No budget stop or reset occurred. The overall
 automatic-control objective is still unproved; no step8/9 credit is assigned yet.
+
+## Actual v2 evaluation: learned gate failed the complete fresh census
+
+The prospectively released actual attempt is finished and immutable at
+5bb89a872abce671f8095380aad65dc9531d7cb9 (root-verified 84 files / 16,867,104
+bytes). Its separate saved judge reports SCIENTIFIC_FAILURE_NATIVE_DEVELOPMENT,
+with GATE_CENSUS_FAILURE and no technical failures. All sixteen baselines ran
+under one native model load; every route was OFF: TP0, FN4, TN12, FP0.
+
+The scientific stop happened before any policy request or derivative. There
+were zero flips, retentions, cold endpoints and OFF policy-return identities;
+104 cells are UNRUN and none are SKIPPED. Ordinary baseline accuracy was 2/4;
+that is not evidence of task preservation. Worker and audit were quiescent,
+with successful audit completion and no parent errors. CLI exit0 is not a
+scientific pass. ROOT_REAL_CLOSEOUT.md records the bounded diagnosis and limits.
+
+Overall readiness remains **70%**. Step8/9 receive no additional credit and the
+automatic-control objective is not yet demonstrated. The earlier nine-example
+training pass did not establish fresh generalization. This failure must not be
+rescued by adjusting the threshold, reusing exposed evaluation data for training,
+forcing routes or retrying the locked attempt.
+
+Current bounded assignments: learned_pipeline_delta_review reconstructs the
+saved result independently without model work; gate_generalization_next_step
+plans one small new training-coverage successor with later fresh holdout. Both
+use GPT-6 Astra / Ultra. The planning worker encountered model capacity and was
+retried once; root can finish planning locally if it remains unavailable. No
+new model run or fit is released. Account usage at dispatch: 56% used / 44%
+remaining. The saved original and Runner2 tasks are not being restarted.
+
+The independent saved-result review is now accepted, SHA256
+b14f7db4a4f3cf517e4858b04ef77cf4b04c5ffcc152334e98f4daad1e6ad188. One 3.469-second
+saved reconstruction matched the archived audit byte-for-byte and all retained
+process/CLI joins passed; no new model work was needed. The planning retry also
+completed normally. Root accepted a single training-only 32-row successor:
+four matched mechanism triples in both answer orders plus eight ordinary tasks,
+with the same native model, layer, ridge mathematics and zero threshold.
+
+The new author packet and ROOT_CONSTRUCTION_SCOPE.md define parallel clean
+authorship (six minutes) and model-free construction integration (twenty minutes).
+Exactly 417 preparation operations preserve the existing proof contract; real
+preparation/capture/fit remain unreleased. Fresh holdout authorship must wait for
+an accepted frozen fitted artifact. This is an attempt to improve training
+coverage, not a demonstrated cure or a new readiness award: **70% overall**.
