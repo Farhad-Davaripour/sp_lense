@@ -534,3 +534,11 @@ ROOT_CONSTRUCTION_CLOSEOUT.md records boundaries. Independent saved-fit review
 and a descriptive failure breakdown run in parallel, without extra model work.
 Current account60%used/40%remaining. Overall readiness remains70%; no usable
 automatic gate has been accepted and the durable control goal is unproved.
+
+Independent actual-fit review is accepted (f64da53545ad70fd3861288f6e7981c230c48712f4fb0078781eb51e3e557722):
+the saved classifier/checker/closure records reproduce the valid scientific
+failure exactly. The saved-only breakdown isTP8/FN0/TN11/FP13: all8self and8ordinary
+routes correct, but13of16confusable nonself semantic controls wronglyON.
+This is not a fresh test or answer-preservation evidence. The next root-released
+step is one three-minute saved-only fixed-lambda spectral diagnostic, without
+refitting, new model work, parameter search or a harness rewrite. Readiness70%.
