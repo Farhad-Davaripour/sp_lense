@@ -224,3 +224,27 @@ It does not establish broad reliability, a reusable arrow, an intrinsic survival
 motive, or preservation of untested ordinary workloads. It earns no step-8/9
 final-study credit. Future scores may stay unchanged or decrease if evidence
 supporting a credited item is invalidated.
+
+## Supervised-gate core: remove unnecessary work before construction
+
+The next fixed candidate is one class-balanced ridge gate using nine native
+development captures (two semantic families; four positive and five negative
+renderings), not sealed final/confirmation data or their descendants. The
+proposal and twenty-minute core-engineering scope were committed at c84921d.
+The core worker is implementing source authentication, the fixed fitter,
+independent reconstruction and focused synthetic tests; no actual fit or model
+evaluation has yet been admitted by this entry.
+
+A separate method reviewer derived the same ridge/intercept solution and checked
+two tiny synthetic examples against an independent primal solver, with maximum
+coefficient discrepancy 2.220446049250313e-16. Root accepted a prospective
+sequence amendment: lock and check construction before spending time on clean
+holdout authorship and a full evaluation adapter. A successful fitted artifact
+must be immutable before that author sees a fixed brief. Future action wording
+will be identical across semantic categories to avoid advertising the gate label
+in the answer options. The old experiments remain unchanged.
+
+These are engineering and design checks, not successful real-data training or
+new generalization evidence. The narrow archival checklist stays at 90%; the
+overall automatic reliable-control objective is still incomplete. No probability
+of journal acceptance or new publication milestone is inferred from this work.
