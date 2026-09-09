@@ -620,3 +620,20 @@ first asking whether the small model can explicitly distinguish the12existing
 scenario meanings. Only a short read-only reuse-feasibility check is authorized,
 not a new method, prompt authoring or model launch. Current account tool61%used39%remaining (earlier same-turn23%reading;
 no reset or purchase by this agent). Overall reliable-control goal is unproved.
+
+## Explicit-comprehension control: bounded engineering started
+
+The read-only feasibility review found that a12case preparation/scoring adapter
+can reuse the existing native and retained-owner substrate. Root approved one
+20minute model-free functional milestone in explicit_shutdown_comprehension_v1,
+scope commitadd8b33. Worker started18:08:37UTC; deadline18:28:37UTC. One independent
+reviewer checks the finite changed source in parallel. No actual model or
+tokenizer work, new classifier, or comprehension result has occurred.
+
+Root independently checked all12verbatim scenarios and froze one exact direct
+question,A=yes/B=no mapping,4A/8B labels and unique full-vocabulary12/12criterion.
+The intended157operation preparation and1load12forward0derivative diagnostic
+remain default-deny pending tested sources, prospective locks and root release.
+No extra wording or answer-order variation is authorized. This is an exposed
+development elicitation control, not a replacement for activation steering.
+Readiness stays70%; account61%used39%remaining; the scientific objective is unproved.
