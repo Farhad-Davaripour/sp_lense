@@ -113,3 +113,38 @@ direction of independence and saves authorship/adapter work if the gate cannot
 fit its construction examples. It does not justify claiming historical
 blindness or broader generalization. No extra screening, calibration,
 cross-validation, model extraction or evaluation expansion is recommended.
+
+## Exact short reproduction command and observed output
+
+The following additional run reproduced the analytically solvable imbalanced
+fixture in PowerShell, exit code 0. It reads no files and imports only `math`.
+
+```powershell
+@'
+import math
+h=[3.,2.,0.]; y=[1.,-1.,-1.]; a=[.5,.25,.25]
+mu=math.fsum(h)/3; x=[(v-mu)/abs(v-mu) for v in h]
+xb=math.fsum(q*v for q,v in zip(a,x))
+z=[math.sqrt(q)*(v-xb) for q,v in zip(a,x)]
+t=[math.sqrt(q)*v for q,v in zip(a,y)]
+A=[[u*v+(.1 if i==j else 0.) for j,v in enumerate(z)] for i,u in enumerate(z)]
+L=[[0.]*3 for _ in range(3)]
+for i in range(3):
+ for j in range(i+1):
+  r=A[i][j]-math.fsum(L[i][k]*L[j][k] for k in range(j))
+  L[i][j]=math.sqrt(r) if i==j else r/L[j][j]
+q=[]
+for i in range(3): q.append((t[i]-math.fsum(L[i][k]*q[k] for k in range(i)))/L[i][i])
+c=[0.]*3
+for i in range(2,-1,-1): c[i]=(q[i]-math.fsum(L[k][i]*c[k] for k in range(i+1,3)))/L[i][i]
+w=math.fsum(u*v for u,v in zip(z,c)); b=-w*xb
+err=max(abs(w-10/17),abs(b+5/17))
+res=max(abs(math.fsum(A[i][j]*c[j] for j in range(3))-t[i]) for i in range(3))
+assert err<1e-10 and res<1e-10
+print('PASS',{'w':w,'b':b,'analytic_error':err,'dual_residual':res})
+'@ | python -B -
+```
+
+```text
+PASS {'w': 0.5882352941176469, 'b': -0.29411764705882343, 'analytic_error': 2.220446049250313e-16, 'dual_residual': 2.220446049250313e-16}
+```
