@@ -506,3 +506,11 @@ hashes and limits. The next authorized boundary is one separately committed
 offline preparation release; no actual construction model capture or fit has
 run. The earlier readiness foundation remains **70%**, without a new award for
 repairing this successor's engineering. Reliable automatic control is unproved.
+
+Actual input preparation now passed: 417/417 operations, all32 cases, zero
+failed/unrun and zero model work. Inputs span47–193tokens under the fixed320
+limit. Original archive ea95a10 and exact copied bundle4227f5b passed independent
+unpatched actual-reader and81raw-Git-blob review. Root accepts the review in
+ROOT_CAPTURE_ADMISSION.md and releases only one32-forward native training
+capture after committed release/preflight; fitting remains separately denied.
+Readiness stays70%, and automatic control is still unproved. Account59%used/41%remaining.
