@@ -75,6 +75,14 @@ Unrelated user untracked files were preserved and are not part of the candidate.
 
 ## Unfinished steps and scientific limits
 
+The first actual final attempt, preserved at e51f297, stopped validly at baseline
+7 with GATE_COMPATIBILITY: an expected self-ON case was classified OFF. The
+separate saved judge completed with scientific failure and no technical failure.
+There were 7 forwards, 0 derivatives, 0 steering/OFF requests and 173 UNRUN
+cells. No ordinary tasks ran. This earns no full step-8/9 completion: the
+scheduled end-to-end construction/confirmation was not reached. Readiness stays
+**70%**; the verified preparation remains valid, but reliable control is unproved.
+
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
 - Step 10: independently checked, committed reproducibility materials and report.
