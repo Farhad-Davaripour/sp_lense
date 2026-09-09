@@ -1,6 +1,7 @@
 # Publication-readiness ledger
 
-As of 2026-09-09: **70%** under the user's fixed ten-step ladder. This is checked
+As of 2026-09-09: **90%** under the user's fixed ten-step ladder for the declared
+oracle-confirmation study. This is checked
 milestone completion, not probability of success, journal acceptance or elapsed
 effort. The overall reliable-control objective is not yet demonstrated.
 
@@ -166,13 +167,36 @@ full lengths45-170tokens and zero model calls. Retained owner closure passed in
 29.438seconds, with valid actual/launcher/console exit0 and no retry. Raw commit
 9556c0a is root-Git-verified:32files183,352bytes. Independent actual-preparation
 and29-copy bundle review passed (SHA25634bf25fa715c0ffe27a3f8dc8c0d282163f069580e302186079209a440cdcd62).
-Root accepted it; bundlecd1cd05 is root-Git-verified,29files313,003bytes. No model
-release or fresh confirmation has occurred yet.
+Root accepted it; bundlecd1cd05 is root-Git-verified,29files313,003bytes. The exact
+model releaseb92f6bf was separately committed, fsynced and raw-Git-verified; its
+zero-model preflight passed and was recorded at32e37de before one retained launch.
+The new real attempt is running; no final outcome or new step8/9 credit is claimed.
 These remove launch prerequisites but do not finish the real experiment or earn
 duplicate milestone points: readiness remains70%.
 
-- Steps 8-9: the separately authorized real construction/confirmation and blind
-  replay required by the final protocol, with valid immutable evidence.
+## Full oracle confirmation: steps8-9 complete
+
+The above running state is superseded by the completed fixed oracle attempt.
+Raw commit93e5e88 is root-verified:466files107,701,733bytes. All24 baselines and48
+requests completed,102F/9D/one load/zero encoding, six flips/six retentions,
+12 actual cold endpoints and36 exact OFF returns,78 justified skips/zero UNRUN.
+The separate saved judge and authenticated parent passed. Independent review
+SHA25645d3ee774974f2d7d7a46faf468739e8a4d47762a9c4909feaee33f3a14c902b
+reproduced the saved judgment exactly in34.843seconds, with no model replay.
+Root read/accepted the review and verified all actual source/authority/raw joins.
+
+This earns step8(+10) for complete real construction and step9(+10) for complete
+confirmation, actual cold model endpoints and independent reconstruction:90%.
+It does not count model-free review as a model replay or rescue the old failed
+learned arm. All six actual flips targetsecond; P-first and C-first natural
+opportunities are absent/UNTESTED in this cohort. Learned gate misses both N03
+self layouts; ordinary accuracy stays5/6, with O02 wrong unchanged. Broad
+reliability, automatic applicability and top-journal quality remain unproved.
+
+No partial step10 points are awarded for report text merely written. Independent
+claim checking and reproducibility closeout remain, including clearly stated
+limitations and existing closely related work. No automatic100% claim follows.
+
 - Step 10: independently checked, committed reproducibility materials and report.
 
 The earlier real handover development result contains one natural STOP-to-KEEP
