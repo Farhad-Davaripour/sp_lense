@@ -785,3 +785,24 @@ assignment run in parallel. First author submission still needs preservation,
 separate clean content review and root admission. All real stages remain denied
 until prospective release; no full44fit, oldUNRUNfolds, geometry or model change.
 Readiness remains70%, no new overall milestone. Account70%used30%remaining.
+
+## G07 diagnostic closed: ordering pass, automatic routing failure
+
+Preparation archive67ed764 passed independent saved-input/owner checks; capture
+archive24f1db2 retained48raw files6404181bytes. One load/six unedited forwards,
+six frozen primary scores and one independent six-score replay completed with
+unchanged native state. Independent review881faa60374cf5a47958ffe66b8d76d748aebf57c5585b57db5cd708cc2d97ea
+verified exact scores and raw archived evidence. D=0.04621104353736882 passes
+the fixed ordering prediction, but strict score>0 leaves allsixOFF,TP0FN2TN4FP0.
+This is not a valid gate, identified offset cause or actual-choice steering.
+The initial content review's shell-profile limitation remains disclosed. The
+next-question planning memo exceeded its reporting deadline28seconds; no real
+experiment ceiling or source was changed. G07 is exposed development data.
+
+Root next authorizes one20minute model-free unchanged-editor oracle-transfer
+milestone, under native_g07_oracle_transfer_v1/ROOT_SCOPE.md: two opposite-choice
+self requests and four exactOFFcontrols on these same six views, contingent on
+existing eligibility, method/format compatibility and30F8Dfinite budget proof.
+No actual run is yet authorized. All G07 scorer/oldfit failures remain final;
+PCA/geometry/LoRA/direct-logit ideas remain future-only. No overall ladder step
+advances: readiness70percent, scientific goalunproved, account73used27remaining.
