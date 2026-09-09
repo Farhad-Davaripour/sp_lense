@@ -92,8 +92,16 @@ review SHA256 1dd08db6606629a70b40689b1255e00372efd8c75fb932692dff8335489979bb
 reproduces the saved verdict. The learned gate remains OFF. This diagnostic has
 no ordinary/OFF tests, no natural P flip and no fresh-confirmation status. It
 does not advance steps 8-9 or rescue the failed final; readiness remains 70%.
-The next model-free assignment is a fixed oracle-guided N02 both-order panel
-with matched controls and O01-O06 (scope b063b1f), not yet a real run.
+The N02 both-order oracle panel subsequently passed as development (raw commit
+00bdc2a, root-verified238files/52,842,641bytes; independent actual review SHA256
+9acfedc495ad47c4904a53bf635cd601f2c86310d32cb2ab9f74e50a4eef1899).
+It executed50forwards/5derivatives, two C flips in both target positions, two P
+retentions, four cold endpoints and20exact OFF identities. Ordinary accuracy
+stayed5/6 at baseline/P/C; O02 remained wrong. There was no natural STOP baseline
+and therefore no P flip. This earns no final-study step8/9 credit;70% remains.
+The next fixed development question is P opportunity on the six N03 variants,
+with a prospective no-opportunity stop and no C/ordinary reruns. Implementation
+and focused review only are assigned; no model run is yet authorized.
 
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
