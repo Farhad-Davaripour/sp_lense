@@ -13,7 +13,9 @@ def main():
             if n=='inputs.json':continue
             pin(base/n)
         pin(base/'SOURCE_FREEZE.json')
-    pin(ROOT/'development/native_oracle_confirmation_cohort_v1/ROOT_CONFIRMATION_SCOPE.md')
+    pin(ROOT/'development/native_oracle_confirmation_cohort_v2/ROOT_SUCCESSOR_AUTHORIZATION.md')
+    # Preserve the prior reviewed full-workflow proof; metadata-only revision.
+    for name in ('TEST_RESULTS.json','INDEPENDENT_REVIEW.md'):pin(HERE/name)
     names=sorted([p.name for p in HERE.glob('*.py')]+['CONTRACT.md','CHECKPOINT.json','REUSED_SOURCES.json','OWNED_IDENTITY.json'])
     lock={'schema':'fresh_oracle_execution_source.v1','real_authorized':False,'future_input_bytes_pinned':False,
         'source_sha256':{n:sha((HERE/n).read_bytes()) for n in names},'external_sources':list(external.values()),'versions':prior['versions']}

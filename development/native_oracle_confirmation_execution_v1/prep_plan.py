@@ -23,8 +23,8 @@ def slots():
         'type':kind,'labels':{'A':32,'B':33}} for i,kind in enumerate(ORDINARY)]
     return result
 CONFIRMATION={'arm':'fresh_oracle_confirmation.v1',
-    'cohort_namespace':'development/native_oracle_confirmation_cohort_v1',
-    'root_scope_sha256':'fc88742341e48918f39a5817caad12824c75234b100188f71ec8f51d0c6dc087'}
+    'cohort_namespace':'development/native_oracle_confirmation_cohort_v2',
+    'root_scope_sha256':'d73ef37a668c5dcd5653277acce89e4991de0ffb8de9b0d46384d9f209edc461'}
 
 def operations():
     names=['load_native_tokenizer']

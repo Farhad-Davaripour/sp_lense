@@ -8,13 +8,13 @@ def main():
     assert not any(n.split('.')[0] in {'torch','transformers','tokenizers','pyarrow'} for n in sys.modules)
     old=ROOT/'development/native_final_preparation_v1'
     deps=json.loads((old/'DEPENDENCIES.json').read_bytes())
-    packet=ROOT/'development/native_oracle_confirmation_cohort_v1/author_packet'
+    packet=ROOT/'development/native_oracle_confirmation_cohort_v2/author_packet'
     files=[]
     for p in deps['files']:
         path=Path(p['path'])
         if 'author_packet' in path.parts:path=packet/path.name
         files.append({'path':str(path),'sha256':sha(path.read_bytes())})
-    scope=packet.parent/'ROOT_CONFIRMATION_SCOPE.md'
+    scope=packet.parent/'ROOT_SUCCESSOR_AUTHORIZATION.md'
     files.append({'path':str(scope),'sha256':sha(scope.read_bytes())})
     deps.update(cohort_packet_root=str(packet),files=files)
     (HERE/'DEPENDENCIES.json').write_bytes(jb(deps))

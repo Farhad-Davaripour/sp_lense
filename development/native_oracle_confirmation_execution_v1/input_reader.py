@@ -2,8 +2,8 @@
 import json,os,struct
 from support import HERE,ROOT,require,sha,checked_path,json_bytes
 from prep_plan import MODEL,STUDY,PREPARATION,HEADER,HEADER_TEXT,END,TEMPLATE_SHA256,slots,operations
-PREPARATION_SOURCE_SHA='54d536a51f4bfb0364e1d9e434aa8571bba77a635692d955be251ec7f1a47395'
-PREPARATION_DEPENDENCIES_SHA='9f9f0c0eaa07a2808256eb1ac15d3f87adad7561f4f7ab00e2e102319b966086'
+PREPARATION_SOURCE_SHA='fe7f0b41a4762572e24ede88fa4ce42dbf1ee200b4f78094e14cc038cc96d78c'
+PREPARATION_DEPENDENCIES_SHA='20b42f0b81bb2a6c5efd613c41e012d18fecd1399ad3b66745a1505e8de7a8f0'
 TOKENIZER_PINS_SHA='c5ae7cbd5356b1df1f6590045eed010f45acc70d2ccb9c39337504dd2d1f4135'
 def schema_cases():
     return [{'case_key':s['id'],'audit_only':{'category':s['category']}} for s in slots()]
