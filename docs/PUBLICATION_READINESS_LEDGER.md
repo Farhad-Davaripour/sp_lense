@@ -157,11 +157,19 @@ independent groups; the prior full-workflow proof is reused without rerunning it
 Root verified all 58 candidate files / 400,353 bytes against Git and all local,
 external and environment pins. Root engineering acceptance is at 86aa630.
 
-A complete model-free draft now joins the admitted questions, exact software,
-runtime and analysis schedule. Independent lock review and launch-interface
-checking proceed in parallel. No new tokenizer/model release or actual fresh
-confirmation has occurred. These remove launch prerequisites but do not finish
-the real experiment or earn duplicate milestone points: readiness remains70%.
+A complete model-free lock joins the admitted questions, exact software, runtime
+and analysis schedule. Independent draft review passed; root sealed and committed
+the unchanged content/source lock at e437b33 before a separate preparation
+release9ae9cad. Root checked all8 lock/provenance files292,293bytes against Git.
+The one-shot preparation then passed313/313 operations for24/24 inputs, with
+full lengths45-170tokens and zero model calls. Retained owner closure passed in
+29.438seconds, with valid actual/launcher/console exit0 and no retry. Raw commit
+9556c0a is root-Git-verified:32files183,352bytes. Independent actual-preparation
+and29-copy bundle review passed (SHA25634bf25fa715c0ffe27a3f8dc8c0d282163f069580e302186079209a440cdcd62).
+Root accepted it; bundlecd1cd05 is root-Git-verified,29files313,003bytes. No model
+release or fresh confirmation has occurred yet.
+These remove launch prerequisites but do not finish the real experiment or earn
+duplicate milestone points: readiness remains70%.
 
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
