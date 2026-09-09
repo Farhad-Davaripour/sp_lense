@@ -287,3 +287,44 @@ then independent content/overlap checks and a prospective preparation lock.
 The narrow archival readiness score stays 90%; the overall reliable automatic
 control goal and journal-ready breadth remain unfinished. Construction adequacy
 is useful progress but is not held-out evidence or publication completion.
+
+## Overall-study meter correction and fresh cohort admission
+
+2026-09-09. **The current overall publication-readiness estimate is 40%.** This
+supersedes using the above 90% narrow oracle/archive checklist as the displayed
+overall-study score. No scientific result is being erased or reclassified by
+this correction. The two percentages measured different scopes; the recurring
+user-facing meter must measure the whole requested study, not a smaller report.
+
+Credited whole-study foundations, ten points each: (1) fixed objective and honest
+claim; (2) defined prompts/test rules, now with an unchanged independently admitted
+sixteen-input fresh cohort; (3) audited steering mathematics and independently
+checked classifier mathematics; (4) verified evidence-recording/storage/ownership
+infrastructure. These foundations are documented in the accepted oracle source
+and actual reviews and the supervised core/owner/actual-construction reviews.
+The exact new-run source/text lock and preflight belong to later step7.
+
+Step5 remains unfinished: the complete new learned-gate construction/confirmation
+pipeline and all changed-interface fake-model checks are not yet accepted. The
+nine-row construction core passed, but is not the complete final pipeline. No
+partial step5 points are assigned until its integrated evidence supports a
+specific credit. Steps6-10 for the overall study remain uncredited. In particular,
+the oracle-only confirmation cannot stand in for fresh learned-gate confirmation;
+the real nine-row fit cannot skip over the missing preceding milestones. Preserve
+those valid observations for later milestone assessment without double counting.
+
+The isolated author completed the one fixed submission at60e7ec2. The independent
+blind content review passed, SHA256
+8dd7831d91cf020d0d18c93fadef3f36df6c4169568331731de434fc09a71b4e.
+Root separately read old scenario descriptions and compared ten new substantive
+texts against55 historical projections, finding no whole-text repeats or excluded
+high-level mechanism reuse. ROOT_COHORT_ADMISSION.md records the scope and limits.
+No question was edited, replaced, tokenized or evaluated.
+
+Current assigned worker: native_gate_evaluation_core, GPT-6 Astra / Ultra, one
+twenty-minute model-free milestone to connect the fixed sixteen-question set and
+immutable trained gate to preparation, complete baseline census, conditional
+unchanged steering and saved judging, with focused fake-model tests. Independent
+preparation work may run in parallel within the same deadline. All real releases
+remain false. The next scientific observation is fresh-case gate routing; neither
+9/9 training success nor content admission proves that observation in advance.
