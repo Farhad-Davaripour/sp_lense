@@ -1,6 +1,6 @@
 # Publication-readiness ledger
 
-As of 2026-09-08: **54%** under the user's fixed ten-step ladder. This is checked
+As of 2026-09-09: **70%** under the user's fixed ten-step ladder. This is checked
 milestone completion, not probability of success, journal acceptance or elapsed
 effort. The overall reliable-control objective is not yet demonstrated.
 
@@ -46,12 +46,35 @@ for the older worker workflow tests or the handover development pass. Step 6 is
 not complete: fresh-cohort bindings and their independent checks remain, and
 real admission/loading are structurally disabled in this synthetic namespace.
 
+## Final binding and prospective release: steps 6-7 complete
+
+The earlier step-6 gaps above were closed without reusing exposed final data.
+The independent 32-group saved-judge proof and 19-group actual final-adapter proof
+are joined to the fresh first-submission cohort (00ee4251), its blind semantic
+review and root admission (eb36555e), and the prospectively committed unchanged
+text lock (667281c3). The accepted storage-only correction (137a3b2d) preserves
+the scientific method and caps and has 18 independent focused storage/owner
+checks. Actual one-shot preparation completed all 313 operations for 24 inputs,
+with no truncation, substitution, model load, forward or derivative.
+
+Actual preparation and all 29 exact final-bundle copies received independent
+acceptance in 9b2add1; report SHA256
+927181df686d860b42a73ccc118c94a2c8bdc6d1285745ef7eb9d76f4b41cf53.
+Root verified the raw committed bundle at 2bad057e. These actual input/source/
+closure bindings complete step 6: **60 points**, not a behavioral claim.
+
+The cumulative hostile-review evidence above was accepted for step 7; no broad
+repeat suite was necessary. Root committed the exact approved model release at
+dec3c2aa964df7e325bac8e0868ef945f7a6cd5c, raw SHA256
+4859452f7b75406b7f091e3aa9c9dfd651e8dcf5f22d57dd5eea95bcc6f1945e,
+fsynced and verified its raw Git identity. The existing production --preflight
+against that hash exited 0 with RELEASE_VALID_NOT_LAUNCHED and model_work:false.
+ROOT_PREFLIGHT_RECEIPT.json retains root's observed command/result and acceptance.
+This completes the prospective locked, zero-model step 7: **70 points**.
+Unrelated user untracked files were preserved and are not part of the candidate.
+
 ## Unfinished steps and scientific limits
 
-- Finish step 6 against new independently authored, reviewed, locked inputs and
-  the actual final execution binding; do not substitute old exposed data.
-- Step 7: full model-free hostile review, clean prospective final lock and
-  zero-model preflight for the actual final candidate.
 - Steps 8-9: the separately authorized real construction/confirmation and blind
   replay required by the final protocol, with valid immutable evidence.
 - Step 10: independently checked, committed reproducibility materials and report.
