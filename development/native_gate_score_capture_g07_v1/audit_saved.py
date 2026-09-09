@@ -1,0 +1,106 @@
+"""Independent stdlib audit of a32-row unedited training capture; no fit or gate scores."""
+import importlib.util,json,math,struct,sys,time
+from pathlib import Path
+from support import require,sha,checked_path,write_new,ROOT
+from input_reader import read as read_inputs
+
+FEATURE_CONTRACT={'checkpoint':'Qwen/Qwen3.5-0.8B@2fc06364715b967f1860aea9cf38778875588b17',
+    'native_target':'model.language_model.layers.10','position':'final_input','residual_dtype':'float32','width':1024}
+def int_hash(values):return sha(struct.pack('<'+'q'*len(values),*values))
+def feature_hash(values):return sha(json.dumps(values,sort_keys=True,separators=(',',':'),allow_nan=False).encode())
+def judge(base,execution,deadline,*,independent_replay=False):
+    require(not {'torch','transformers','tokenizers','safetensors'} & {n.split('.')[0] for n in sys.modules},'MODEL_FREE_AUDIT')
+    sizes=[p.stat().st_size for p in base.rglob('*') if p.is_file()]
+    require(all(n<=5*1024**2 for n in sizes) and sum(sizes)<=64*1024**2,'CAPTURE_STORAGE')
+    def raw(name):
+        require(time.monotonic()<deadline,'CAPTURE_AUDIT_DEADLINE');return checked_path(base,name).read_bytes()
+    def obj(name):return json.loads(raw(name))
+    binding=obj('CLOSED_WORKER_BINDING.json');require(binding['execution']==execution,'CLOSED_EXECUTION')
+    pins={p['path']:p for p in binding['files']};require(len(pins)==len(binding['files']),'UNIQUE_INVENTORY')
+    for name,pin in pins.items():
+        value=raw(name);require(len(value)==pin['bytes'] and sha(value)==pin['sha256'],'CAPTURE_INVENTORY_HASH')
+    worker_raw=raw('WORKER_RESULT.json');require(sha(worker_raw)==binding['worker_result_sha256'],'WORKER_BINDING')
+    worker=json.loads(worker_raw);require(worker['execution']==execution and worker['role']=='CONSTRUCTION','TRAINING_WORKER_SCOPE')
+    inputs=read_inputs();cases=inputs['cases'];keys=tuple(p['case_key'] for p in cases)
+    expected=tuple(f'{f}_{c}__{o}' for f in ('G07',) for c in ('self_shutdown','other_shutdown','non_termination_control')
+        for o in ('KEEP_then_STOP','STOP_then_KEEP'))
+    require(keys==expected,'EXACT12_CONSTRUCTION_INPUTS');statuses=worker['cells']
+    require(len(statuses)==6 and all(s['id']==k+'__baseline' and s['case']==k and s['phase']=='baseline'
+        and s['policy'] is None for s,k in zip(statuses,keys,strict=True)),'ALL12_BASELINE_DENOMINATORS')
+    tail=False;failed=0;selection=[];technical=[];scoring_rows=[]
+    for status,p in zip(statuses,cases,strict=True):
+        kind=status['status'];require(kind in ('COMPLETE','FAILED','UNRUN'),'NO_SKIPPED_CAPTURE')
+        if tail:require(kind=='UNRUN','EXACT_UNRUN_SUFFIX')
+        if kind in ('FAILED','UNRUN'):tail=True;failed+=kind=='FAILED'
+        if kind!='COMPLETE':continue
+        name='rows/'+status['id']+'.json';row_raw=raw(name);row=json.loads(row_raw)
+        require(all(row[k]==status[k] for k in ('id','case','phase','policy','status')),'ROW_IDENTITY')
+        ids=p['input']['input_ids'];mask=p['input']['attention_mask'];h=row['h0']
+        require(row['input_ids']==ids and row['attention_mask']==mask==[1]*len(ids)
+            and row['input_ids_sha256']==int_hash(ids) and row['mask_sha256']==int_hash(mask),'EXACT_PREPARED_INPUTS')
+        require(row['input_dtype']=='float32' and row['h']==h and row['offset']==[0.]*1024
+            and len(h)==1024 and all(type(x) in (int,float) and math.isfinite(x)
+                and struct.unpack('<f',struct.pack('<f',x))[0]==x for x in h),'UNEDITED_NATIVE_FLOAT32')
+        cap=row['capture'];require(cap['hook_calls']==1 and cap['final_input_index']==len(ids)-1
+            and cap['logit_count']==248320 and cap['parameter_versions_unchanged'] is True
+            and cap['hook']=='blocks.10.hook_out' and cap['native_target']==FEATURE_CONTRACT['native_target']
+            and cap['nonfinal_positions']==len(ids)-1 and cap['unselected_sha256']==row['unselected_sha256'],'NATIVE_CAPTURE_CHECKS')
+        logits=raw('logits/'+status['id']+'.f32');require(len(logits)==248320*4 and sha(logits)==row['logits_sha256']
+            and all(math.isfinite(x[0]) for x in struct.iter_unpack('<f',logits)),'FINITE_FULL_RAW_LOGITS')
+        trace=obj('traces/'+status['id']+'.json')
+        require(trace['execution']==execution and not trace['trace_incomplete'] and not trace['open_stages']
+            and trace['primary'] is None and trace['events'][0]['edge']=='ENTER' and trace['events'][-1]['edge']=='RETURN','COMPLETE_CAPTURE_TRACE')
+        require(row['feature_sha256']==feature_hash(h),'FEATURE_HASH')
+        category=p['audit_only']['category'];label=1 if category=='self_shutdown' else -1
+        scoring_rows.append({'case':p['case_key'],'h0':h})
+        selection.append({'case':p['case_key'],'category':category,'label':label,'row':name,'sha256':sha(row_raw),'bytes':len(row_raw),
+            'input_ids_sha256':int_hash(ids),'mask_sha256':int_hash(mask),'feature_sha256':feature_hash(h)})
+    counts=worker['counts'];a=counts['attempts'];dispatch=worker.get('dispatch',{})
+    require(a['load']<=1 and a['forward']<=6 and a['derivative']==0 and counts['encoding']==0 and failed<=1,'EXACT_CAPTURE_CEILINGS')
+    if a['forward']!=len(selection) or dispatch.get('forwards')!=a['forward'] or dispatch.get('derivatives')!=0 or dispatch.get('rejected')!=0:technical.append('INCOMPLETE_DISPATCH')
+    if not binding['good_capture'] or not worker.get('guard_restored') or not worker.get('cleanup',{}).get('complete'):technical.append('CAPTURE_OR_CLEANUP')
+    else:
+        state=worker['cleanup']['state'];loader=obj('LOADER_READY.json')
+        require(all(v is True for v in state.values() if type(v) is bool) and state['parameter_bytes_unchanged'] is True
+            and state['buffer_bytes_unchanged'] is True and loader['native_initial_sha256']==state['parameter_sha256']
+            and loader['native_initial_buffer_sha256']==state['buffer_sha256'] and loader['execution']==execution
+            and all(not v for v in loader['loading_info'].values()),'FROZEN_NATIVE_STATE')
+        if execution['scope']=='ROOT_APPROVED_NATIVE_CONSTRUCTION_CAPTURE_ONLY':
+            require(loader['declared_class']=='Qwen3_5ForConditionalGeneration' and loader['coverage']['complete_key_shape_coverage'] is True
+                and loader['coverage']['native_unique_parameters']==473 and loader['coverage']['named_occurrences']==474
+                and loader['old_digest_equivalence_claimed'] is False,'FULL_NATIVE_LOADER_EVIDENCE')
+    if worker.get('primary'):technical.append('WORKER_PRIMARY')
+    passed=not technical and not tail and len(selection)==6 and a['load']==1
+    if passed:require(sum(s['label']==1 for s in selection)==2 and len({s['input_ids_sha256'] for s in selection})==6,'EXACT_DISTINCT2POS4NEG')
+    require(not worker['scientific_pass'] or passed,'WORKER_CANNOT_FALSE_PASS')
+    result={'execution':execution,'audit_completed':True,'scientific_pass':passed,'role':'CONSTRUCTION',
+        'closed_worker_binding_sha256':sha(raw('CLOSED_WORKER_BINDING.json')),
+        'classification':'COMPLETE_NATIVE_CONSTRUCTION_CAPTURE' if passed else 'INCONCLUSIVE_NATIVE_CONSTRUCTION_CAPTURE',
+        'technical_failures':technical,'completed_forwards':len(selection),'planned_cells':6,'derivatives':0,
+        'unrun':sum(s['status']=='UNRUN' for s in statuses),'diagnostic_manifest':{
+            'schema':'native_frozen_g07_diagnostic_manifest.v1','role':'CONSTRUCTION','namespace':'development/native_gate_score_capture_g07_v1',
+            'attempt':execution['attempt'],'execution':execution,'feature_contract':FEATURE_CONTRACT,'selection':selection}}
+    result['capture_complete']=passed
+    if passed:
+        source=ROOT/'development/native_gate_frozen_score_g07_v1/score.py'
+        source_raw=source.read_bytes();freeze=json.loads((Path(__file__).parent/'SOURCE_FREEZE.json').read_bytes())
+        source_pin=next(p for p in freeze['external_sources'] if Path(p['path']).resolve()==source.resolve())
+        require(sha(source_raw)==source_pin['sha256'],'FROZEN_SCORING_SOURCE_BYTES')
+        spec=importlib.util.spec_from_file_location('_g07_scoring',source);scorer=importlib.util.module_from_spec(spec)
+        exec(compile(source_raw,str(source),'exec'),scorer.__dict__)
+        rows=scoring_rows
+        if independent_replay:
+            saved=obj('FROZEN_SCORING.json');audit=obj('AUDIT_RESULT.json')
+            require(sha(raw('FROZEN_SCORING.json'))==audit['scoring_sha256'],'CLOSED_SCORING_BYTES')
+            proof=scorer.replay(rows,saved,execution,deadline)
+        else:
+            saved=scorer.analyze(rows,execution,deadline)
+            encoded=scorer.encoded(saved);require(len(encoded)<=65536,'SCORING_OUTPUT64K')
+            write_new('FROZEN_SCORING.json',encoded,raw=True)
+        result.update(scoring_sha256=sha(raw('FROZEN_SCORING.json')),score_calls=saved['score_calls'],
+            ordering_pass=saved['ordering_pass'],routing_correct=saved.get('routing_correct'),
+            D=saved.get('D'),scientific_pass=saved['completed'] and saved['ordering_pass'],
+            classification=('G07_ORDERING_PASS' if saved['ordering_pass'] else 'G07_ORDERING_FAIL') if saved['completed'] else 'INCONCLUSIVE_FROZEN_SCORING')
+        if independent_replay:result['independent_replay']=proof
+    else:result.update(score_calls=0,ordering_pass=False,routing_correct=None,D=None)
+    return result
