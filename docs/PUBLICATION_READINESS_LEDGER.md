@@ -1,6 +1,6 @@
 # Publication-readiness ledger
 
-As of 2026-09-09: **50% for the whole current study** under the user's fixed
+As of 2026-09-09: **60% for the whole current study** under the user's fixed
 ten-step ladder. The historical 90% entries below describe the smaller
 oracle-confirmation report, not the complete automatic-control study. This is
 checked milestone completion, not probability of success, journal acceptance or
@@ -381,3 +381,27 @@ Overall readiness remains **50%**. The checked software milestone remains valid;
 actual runtime admission and fresh scientific testing were not previously counted
 as complete. Step 6 and later stages remain unfinished. Usage at dispatch was
 55% used / 45% remaining; no reset, purchase or external publication occurred.
+
+## V2 preparation and exact final bindings accepted: step 6
+
+The metadata-only v2 repair passed independent five-group metadata and
+three-group admission checks, preserving nineteen scientific/runtime files
+byte-for-byte. Root rechecked the valid current Microsoft Windows helper
+signature; every identity check stays active. The accepted source/text package
+2e230df was raw-Git verified: 100 files / 623,637 bytes. Its separate preparation
+release6c0912d was committed before the one actual v2 attempt.
+
+That actual preparation passed209/209 operations for16/16 inputs, lengths45-167,
+with zero model calls. Owner elapsed16.562 seconds, valid retained actual/
+launcher/helper exits0, no capture/cleanup errors and quiescent closure. Raw
+archive38ed46b is root-verified25files125,003bytes; bundle6dd3925 is verified
+22files147,460bytes. The independent saved actual-preparation review passed all
+input, source, token-boundary, gold, operation-order and process-closure joins.
+Root read and accepted it and separately validated the actual input interface.
+
+These close the exact final bindings for the independently tested cold-replay
+and saved-judge pipeline, completing step6: **60% overall**. This credits checked
+interfaces and their actual inputs, not successful model behavior. Root has
+issued one separate model release, which still requires committed exact bytes
+and a passing zero-model preflight before actual launch. Fresh gate/editor
+outcomes and final-study construction/confirmation remain untested.
