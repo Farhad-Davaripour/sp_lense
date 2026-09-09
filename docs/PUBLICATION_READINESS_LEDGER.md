@@ -716,3 +716,21 @@ This does not assert small data caused the failures or authorize authoring,
 fitting, model work or a new success claim; exact design is in
 docs/GATE_TRAINING_COVERAGE_NEXT_DECISION.md.
 Readiness70%; automatic-control objectiveunproved;account66%used34%remaining.
+
+## Fixed-rule training-coverage successor: bounded construction started
+
+The five-minute feasibility review finished19:49:14 within its19:51:24deadline,
+finding a finite reuse path plus explicit old/new authentication isolation and
+all-seven-result storage checks. It did not read coordinates or run models/fits.
+Root accepted it and committed scope/isolated author packet3a08347 before work.
+
+One20minute model-free engineering milestone started20:09:31,deadline20:29:31,
+with an independent changed-seam reviewer in parallel. It retains block10,
+the native task renderer and exact hard-margin numerical rule, adding only new
+12row preparation/capture, authentic old32/new12join, six38train/6held folds and
+conditionalFULL44. All real stages remain default-deny. A separate clean author
+started20:09:54,deadline20:15:54, to supply exactlytwo new matched families/six
+scenarios/twelve layouts, without seeing prior examples or outcomes. Separate
+content review and root overlap admission remain required. No data or behavioral
+success is yet admitted. Geometry stays future-only. Readiness70%, goalunproved;
+latest worker budget check67%used33%remaining, no reset/purchase.
