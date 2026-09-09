@@ -466,3 +466,43 @@ Exactly 417 preparation operations preserve the existing proof contract; real
 preparation/capture/fit remain unreleased. Fresh holdout authorship must wait for
 an accepted frozen fitted artifact. This is an attempt to improve training
 coverage, not a demonstrated cure or a new readiness award: **70% overall**.
+
+## New 32-row construction content admitted; final software binding underway
+
+The first complete new batch was preserved at35d97cd (two exact Git files /
+22,014 bytes) and admitted after independent blind content review at292ac97.
+Submission SHA2566e950138ef39c9db25eff9c4b3c2ce644288a64f05915e1262ff4f270b0b84fc.
+All four matched triples, both orderings, eight ordinary proofs and nine
+mechanism exclusions passed. Root's separate20-new/65-historical text projection
+check found no entire-new-text duplicates/containment. This is training content,
+not held-out evidence. No tokenization, capture or actual fit has occurred.
+
+The twenty-minute engineering milestone passed focused artificial preparation,
+capture and numerical checks. Independent changed-admission tests caught two
+evidence-validation defects and one relative-path problem before release; the
+fixes passed narrow checks. Root then aligned an inherited letters-only
+uppercase assertion with the already-written packet's broader printable-literal
+contract. Five independent regression groups passed, and all32 admitted inputs
+now render without tokenization or model work. No scientific gate was tuned.
+
+Root's final capture-fixture check correctly rejected stale synthetic source
+bindings at setup. Current assignment: native_gate_evaluation_core, GPT-6 Astra /
+Ultra, one five-minute fixture-only integration refresh and focused current
+capture-suite run; no function-body changes or actual releases. Root's review is
+development/native_supervised_gate_v2/ROOT_ENGINEERING_REVIEW.md. The next real
+step remains separately locked input preparation, then32 unedited native
+captures and one fixed fit, subject to release checks. Overall readiness stays
+**70%**; the reliable automatic-control objective is not demonstrated. Latest
+account check:59% used /41% remaining. No reset, purchase or budget stop.
+
+The final synthetic fixture binding is now repaired and checked: one 417-operation
+fake preparation and one five-group capture/saved-audit/synthetic-fit run passed.
+All functions remain as independently reviewed; only five artificial metadata
+files and dependent pins changed. Root verified121local/11external source pins,
+accepted the final receipt, validated32real prompt renderings and the exact
+prospective text/source lock without tokenization, and checked current runtime
+image hashes/metadata. ROOT_ENGINEERING_REVIEW.md records final accepted source
+hashes and limits. The next authorized boundary is one separately committed
+offline preparation release; no actual construction model capture or fit has
+run. The earlier readiness foundation remains **70%**, without a new award for
+repairing this successor's engineering. Reliable automatic control is unproved.
