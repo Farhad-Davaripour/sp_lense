@@ -582,3 +582,13 @@ final-block gate measurement (not a layer sweep) are assigned in parallel.
 No new capture/fit/heldout is authorized by that proposal. Readiness70%; reliable
 automatic-control goal still unproved. Current account21%used/79%remaining;
 the tool's change from60%was not an agent-applied reset or purchase.
+
+Independent saved margin review accepted:72930b1b24539c9e10faa3303025c9d579ed7ea18dabe1345548707ac8575c8d.
+Its exact reconstruction confirms the scientific failure and clean closure;
+no refit occurred. Root now approves ONE20-minute synthetic-only bridge for a
+structurally fixed block23sensor, before finalnorm, using the same32prepared
+development inputs and unchanged margin math/folds. Original layer10editor stays
+untouched; no layer sweep. New capture/fit realreleases remainfalse pending
+tested code/admission. Full details: docs/GATE_READOUT_LOCATION_NEXT_STEP.md
+and native_gate_hardmargin_final23_familydev/ROOT_SCOPE.md. Readiness70%, overall
+goalunproved, currentaccount21%used/79%remaining.

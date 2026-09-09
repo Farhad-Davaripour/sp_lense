@@ -47,3 +47,10 @@ is authorized by that planning assignment; root must separately review/release.
 Publication readiness remains70%; the overall reliable both-order/direction
 steering with ordinary/matched-task preservation is unproved.
 Account currently21%used/79%remaining. No reset/purchase/plan change by thisagent.
+
+Root accepts ACTUAL_REVIEW.md SHA256
+72930b1b24539c9e10faa3303025c9d579ed7ea18dabe1345548707ac8575c8d.
+The independent saved-only review reauthenticated inputs and exactly rebuilt
+both means, all scores/margins, both KKT certificates, fail-first counts and
+owner/finalization/rootCLI joins.14raw-Git blobs matched, including the entire
+8-file94,447-byte actual archive. No optimization was repeated.
