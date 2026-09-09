@@ -248,3 +248,42 @@ These are engineering and design checks, not successful real-data training or
 new generalization evidence. The narrow archival checklist stays at 90%; the
 overall automatic reliable-control objective is still incomplete. No probability
 of journal acceptance or new publication milestone is inferred from this work.
+
+## One supervised construction fit passed; fresh questions are next
+
+The core finished within its twenty-minute engineering budget and the separately
+owned wrapper within five minutes. Root's final fourteen synthetic core tests
+and five fake-child owner tests passed, plus a publication-fault check. A separate
+review accepted the final core/manifest/release delta. The prospective release
+was committed and verified at 674fdf5 before the single real construction fit.
+
+The fixed classifier then classified all nine construction renderings correctly
+in one fit, with the independent numerical checker passing. Constructor time was
+2.25 seconds; retained owner 2.454 seconds; root exec 2.7664947 seconds. Model,
+tokenizer and checkpoint-tensor operations were zero. This uses existing native
+development residuals, not sealed tests or their outcome-informed descendants.
+Nine renderings cover only two semantic families and one ordinary question.
+
+Fitted artifact SHA256:
+fab7d797f9424d80aa3873eefc1cedf0e438e5b4ddc3a1059a080114aff7cca1.
+The corrected lossless archive is 4b46209: six raw files 46,356 bytes; eight
+raw/receipt/closeout files 53,996 bytes. Root read and accepts the independent
+saved-construction review SHA256
+2b097c421ea6f257edf3332a61fe939bc67b121f230000fb8f7201b5e933ee62.
+It verified all scope/hash/receipt/cap/closure joins without another fit or
+numeric reconstruction. Preserve the stated descendant-cleanup and measured
+clock-resolution limitations; do not invent independently retained natural exits.
+
+The new trained artifact is frozen before clean authorship. The author packet
+for exactly sixteen fresh inputs is committed at 5ffc7a2 and raw-Git verified:
+three files 10,876 bytes. It uses shared category-neutral answer wording, two
+new mechanisms, both display orders, matched-other/nontermination cases, and
+four proof-backed ordinary questions. A clean-context author receives only the
+two packet files, never fitted parameters, scores or outcome-conditioned examples.
+
+No fresh question has yet been evaluated and no new gate/editor integration
+claim is established. The next small step is the one complete fresh submission,
+then independent content/overlap checks and a prospective preparation lock.
+The narrow archival readiness score stays 90%; the overall reliable automatic
+control goal and journal-ready breadth remain unfinished. Construction adequacy
+is useful progress but is not held-out evidence or publication completion.
