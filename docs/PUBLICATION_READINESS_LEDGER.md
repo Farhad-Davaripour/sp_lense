@@ -560,3 +560,25 @@ model capture. docs/GATE_NEXT_SMALL_EXPERIMENT.md and the successor ROOT_SCOPE.m
 set exact method, no-sweep/stop rules and20minute synthetic-only engineering cap.
 Realfits remain default-deny until reviewed/frozen rootrelease; no freshholdout.
 Readiness70%, account60%used/40%remaining, overall control objective unproved.
+
+## Margin family-development attempt completed: second family failed
+
+The bounded new method passed9focused synthetic groups and an independently
+checked final persistence/compact-output repair. Code/checks/metadata finished
+within20minutes; final worker documentation/read-only check finished27seconds
+late, disclosed in ROOT_ADMISSION.md. No real scientific budget was extended.
+Final sourcefreeze ba3bafbd437906814cd82e387930e0e915fa066616f8489015032d90dca4e893.
+
+After source/release commit203ffdc and preflightc99c0ac, one saved-feature job
+ran2certified fits. G01train26/26held6/6; G02train26/26held4/6, with both
+nontermination variants falselyON. G03/G04/FULL32UNRUN; no finalartifact.
+The result is SCIENTIFIC_HELD_FAMILY_FAIL, not an optimizer failure or fresh
+confirmation. No new Qwen forward/tokenizer/steering work occurred. Owner0.609s
+closed cleanly; archive5b4250e retains8files94,447bytes, raw-Git verified.
+
+Root closed this candidate/local classifier-method milestone unchanged. One
+saved-only independent reconstruction and one read-only proposal for a fixed
+final-block gate measurement (not a layer sweep) are assigned in parallel.
+No new capture/fit/heldout is authorized by that proposal. Readiness70%; reliable
+automatic-control goal still unproved. Current account21%used/79%remaining;
+the tool's change from60%was not an agent-applied reset or purchase.
