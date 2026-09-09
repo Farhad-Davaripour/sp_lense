@@ -592,3 +592,31 @@ untouched; no layer sweep. New capture/fit realreleases remainfalse pending
 tested code/admission. Full details: docs/GATE_READOUT_LOCATION_NEXT_STEP.md
 and native_gate_hardmargin_final23_familydev/ROOT_SCOPE.md. Readiness70%, overall
 goalunproved, currentaccount21%used/79%remaining.
+
+## Fixed final23 gate readout: capture passed, first held family failed
+
+The finite capture/fit bridge passed12independent focused synthetic checks,
+reusing unchanged math, owner and prepared-input machinery. Source/release
+26108c3 and zero-model preflight9d3c74f preceded one real32forward capture.
+Capture worker84.344s,audit1.953s,1load32F0D0encoding,all32complete and unchanged
+native model. Archive59b70a0 retains148files33,519,069raw-verified bytes.
+Independent unpatched saved capture audit reproduced exactly; its core checks
+finished within120s and its final prose file was published1second later.
+
+After separate candidate joins/release1def1be/preflighte5b4c9c, one saved-feature
+fit completed19iterations: G01train26/26butheld3/6,TP2TN1FP3FN0. Both other-agent
+shutdown variants and one nontermination variant were falselyON. Mathematical
+certificate verified(max1.9554e-11below1e-8); this is scientific transfer failure,
+not a numeric fault. G02-G04/FULL32UNRUN; no finalclassifier artifact.
+Owner1.235s closed cleanly; archivecdd7b26 preserves7files49,060raw-verified bytes.
+Independent saved-fit review has passed and is accepted: exact mean/score/margin/
+certificate reconstruction and all16raw-Git comparisons passed with zero refits.
+No retry, parameter/layer sweep, fresh
+test, steering or new ordinary-task preservation test has been authorized.
+
+Readiness remains70% because the automatic routing/independent confirmation gap
+is still open. The next-decision memo recommends pausing gate architecture and
+first asking whether the small model can explicitly distinguish the12existing
+scenario meanings. Only a short read-only reuse-feasibility check is authorized,
+not a new method, prompt authoring or model launch. Current account tool61%used39%remaining (earlier same-turn23%reading;
+no reset or purchase by this agent). Overall reliable-control goal is unproved.
