@@ -542,3 +542,21 @@ routes correct, but13of16confusable nonself semantic controls wronglyON.
 This is not a fresh test or answer-preservation evidence. The next root-released
 step is one three-minute saved-only fixed-lambda spectral diagnostic, without
 refitting, new model work, parameter search or a harness rewrite. Readiness70%.
+
+## Saved diagnostic accepted; one fixed family-transfer successor selected
+
+The single saved spectral diagnostic completed in0.266seconds, with authenticated
+inputs and independent consistency identities.97.3263%of matched self-other
+contrast energy lies in modes below fixedlambda0.1; this is not a causal or
+generalization result. Root accepted it atdee4c70; the failed gate stays19/32.
+
+A fresh decision reviewer proposed a smaller numerical penalty, then withdrew
+that proposal after root's anti-tuning review. No such fit ran. Root instead
+selected one different fixed rule: a minimum-norm hard-margin affine classifier,
+with four prospectively assigned whole-family-held-out DEVELOPMENT folds, then
+one full fit only if all24held semantic routes pass. All eight ordinary examples
+remain training-only in these folds. Same32saved training readings; zero new
+model capture. docs/GATE_NEXT_SMALL_EXPERIMENT.md and the successor ROOT_SCOPE.md
+set exact method, no-sweep/stop rules and20minute synthetic-only engineering cap.
+Realfits remain default-deny until reviewed/frozen rootrelease; no freshholdout.
+Readiness70%, account60%used/40%remaining, overall control objective unproved.
