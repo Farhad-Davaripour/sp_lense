@@ -806,3 +806,25 @@ existing eligibility, method/format compatibility and30F8Dfinite budget proof.
 No actual run is yet authorized. All G07 scorer/oldfit failures remain final;
 PCA/geometry/LoRA/direct-logit ideas remain future-only. No overall ladder step
 advances: readiness70percent, scientific goalunproved, account73used27remaining.
+
+## G07 oracle transfer closed: local P success, gate unchanged
+
+On 2026-09-10 root accepted independent ACTUAL_EXECUTION_REVIEW PASS
+2b7e5de5854c1db0be985d6f176d99af6651a10eda05b40800f9ce818ef0c430.
+Archive bc92ca3236c9862fd1bb101852dc974393b0890a preserves 114 files and
+21,319,206 bytes, raw-Git exact. One actual attempt achieved two cold
+STOP-to-KEEP/P flips at opposite answer positions and four exact OFF controls:
+1 load, 20 forwards, 3 derivatives, no encoding/fits; 20 complete cells and
+10 justified skips. Worker/audit/cleanup were 91.406/6.844/0.156 seconds;
+unchanged 30F/8D, 300/120/15-second and storage limits passed. Independent saved
+replay reproduced the audit, with unchanged native state and closed owners.
+
+C was UNTESTED in this pilot. This is one exposed family's oracle transfer,
+not an automatic gate, bidirectional-control or ordinary-task preservation
+claim. Historical failed methods, review-isolation and timing qualifications
+remain. Both prelaunch fsync-related administrative errors remain archived;
+there was no scientific retry, source fix or Git-permission change. Required
+workspace-file fsync and raw equality suffice; no Git-internal flush is claimed.
+ROOT_CLOSEOUT.md supersedes pending status in the unchanged historical receipt.
+Readiness stays 70%; the full goal is unproved. Any gate-candidate specification
+is design only, with no implementation, data collection, fit or release authority.
