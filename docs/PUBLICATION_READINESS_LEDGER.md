@@ -828,3 +828,26 @@ workspace-file fsync and raw equality suffice; no Git-internal flush is claimed.
 ROOT_CLOSEOUT.md supersedes pending status in the unchanged historical receipt.
 Readiness stays 70%; the full goal is unproved. Any gate-candidate specification
 is design only, with no implementation, data collection, fit or release authority.
+
+## Category conjunction closed: certified construction, held-family failure
+
+Root accepted the independent saved-only review of the single exploratory
+category-conjunction attempt. Source admission481e7be and actual archived10774a
+preserve unchanged numerical/authentication/owner infrastructure and all raw
+outcomes. G01 training38/38, held5/6 (TP1/FN1/TN4/FP0); the sole miss was
+self_shutdown in STOP_then_KEEP order. Three certified head solves ran; G02-G06
+and FULL44 stayed UNRUN. No final artifact or retry. Owned execution1.484s and
+cleanup0.016s passed fixed60+5s limits; no model/tokenizer calls occurred.
+
+Independent review c44f27fd58b1628416ce7038b9664266c4a95bf8f136976404b7a9537926cd8f
+reconstructed all three certificates/scores and owner closure, verifying all
+12 archived files99,553bytes raw-Git exact. Review/handoff commit7e4d114 preserves
+that PASS of a scientific failure. Required workspace r+b fsync was performed;
+no Git-object handles were opened. Final administrative verification returned
+01:09:44UTC against01:09:43 deadline; root accepted and preserves this one-second
+overrun. Scientific caps were unchanged. Design/review exposure and synthetic
+axis-fixture limitations remain disclosed. No prior failure is repaired.
+
+Readiness remains70%; robust automatic gating/full steering remain unproved.
+The subsequent answer-order-invariant feature inquiry is design/interface only,
+with no preparation, capture, averaging computation or fit authority.
