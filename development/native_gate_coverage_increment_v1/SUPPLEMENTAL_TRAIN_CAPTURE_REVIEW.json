@@ -1,0 +1,104 @@
+{
+  "schema": "coverage_increment_supplemental_train_capture_independent_review.v1",
+  "status": "PASS_SEPARATE_SAVED_ONLY_ADMINISTRATIVE_CLOSEOUT",
+  "started_utc": "2026-09-10T03:29:12Z",
+  "deadline_utc": "2026-09-10T03:34:12Z",
+  "checks_completed_utc": "2026-09-10T03:32:16.328906+00:00",
+  "usage_checked_percent": 85,
+  "prior_review_sha256": "67066670d12a86249487754e20c70321d9678e5e1e2d3230f394fb48905ee5d6",
+  "prior_review_preserved": true,
+  "prior_timing": {
+    "main_archive_administrative_overrun_seconds": 7,
+    "independent_saved_replay_overrun_seconds": 34,
+    "root_accepted_as_qualified_evidence_not_on_time_admission": true
+  },
+  "archive_and_closed_joins": {
+    "status": "PASS",
+    "archive": "ee9a24a056a014eb9651c18666d29f5abe0acbb8",
+    "raw_files": 44,
+    "raw_bytes": 6392250,
+    "release_committed_bytes_join": "4142c2c",
+    "release_sha256": "2e0a0b19ead9f01033c430851a57eb9ffc5d4e249b670c4b1fd36c12dff7a2a3",
+    "source_sha256": "ae81d42f7a910c619efb9e63c0e3296ac6f1ca2a5db62fb96b4cf62733d44317",
+    "cli_sha256": "72d7b54fbec11e9bc2b641a239a036b6738ca48768623f9c32b257166db0bde3",
+    "audit_sha256": "9ed4373812b2a87916c6f838ceacbc29dd89dc24386e9f379b808005952820d3",
+    "parent_sha256": "c58e72010b37fecf36ef1d62a086e3669c31e428ee4500a5017fa559ab1bcfa9",
+    "closed_sha256": "7a3b3372e6208000fdb5678bd05fa358fde37b02045ffad977041b72a4dfb671",
+    "worker_sha256": "4ae1f4ab0ffd25872b8228bcb4be0046caef4dc8d58317ba2770e3ea8ff41803",
+    "owners": {
+      "production_worker": {
+        "sha256": "bb32b2d0ea2cffd1d57f8695e5972ea0558c909752ef8b56d2ea855433c9ce02",
+        "quiescent": true,
+        "valid_retained_worker_launcher_exit0": true,
+        "threads_joined": true,
+        "pipes_closed": true
+      },
+      "production_audit": {
+        "sha256": "4b61f3caa0481c5c45a1116476f47626e832659a00fcd3c82dde586752e9ec3f",
+        "quiescent": true,
+        "valid_retained_worker_launcher_exit0": true,
+        "threads_joined": true,
+        "pipes_closed": true
+      }
+    },
+    "native_state_unchanged": true,
+    "loads_forwards_derivatives_encoding": [
+      1,
+      6,
+      0,
+      0
+    ],
+    "prior_late_review_unchanged": true,
+    "repeated_judge_calls": 0,
+    "actual_coordinate_extraction_calls": 0,
+    "cli_qualification": "Persisted CLI receipt fields and preflight stdout join exactly; capture stdout field is a transcript reference, not saved raw stdout bytes, so no independent raw stdout byte comparison is claimed.",
+    "seconds": 0.34299999999348074
+  },
+  "combined_metadata": {
+    "views": 58,
+    "distinct_cases": 58,
+    "distinct_input_hashes": 58,
+    "pairs": 29,
+    "positive_views": 14,
+    "negative_views": 44,
+    "positive_pairs": 7,
+    "negative_pairs": 22,
+    "fixed_group_order": true,
+    "two_correct_label_views_per_pair": true,
+    "actual_old52_and_new6_unpatched_metadata_authenticated": true,
+    "module_and_path_restoration": true,
+    "forbidden_payload_opens": 0,
+    "forbidden_numerical_function_calls": 0,
+    "repeated_judge_calls": 0,
+    "forbidden_imports": [],
+    "seconds": 0.8600000000005821,
+    "command": "Provider-blocked .venv/Scripts/python.exe -E -S -B - from main cwd; unchanged source_auth.build_manifest(deadline), fixed pair/index/hash joins; audit-hook denial of rows/logits/HELD opens and call-profile denial of solve/load_saved/extract_features/average_pair/average_groups",
+    "tool_chunk": "3bdb54",
+    "closed58_manifest_path": "development/native_gate_coverage_increment_v1/CLOSED_58_VIEW_MANIFEST.json",
+    "closed58_manifest_raw_sha256": "48efa21ae9f0a8721f57354569004b290b703b0da83937c4eab0e124054e4b84",
+    "combined_training_manifest_canonical_sha256": "454d6c9b1289858866e6b45a63ec89ad9188d3b606c04b780f4ed0febdf2b115",
+    "train_capture_binding_sha256": "a7dfe2663ee10eb96c7e128d321da9598f5c13a3cb04d67dd0dbf31e059c59c6",
+    "old52_manifest_sha256": "6ec27d5f97a97c6ce26a5277285a36d2ee406eb9a4828b21bf67a6d3f78d83ea",
+    "new6_manifest_canonical_sha256": "c1645c5635f973135060dcc6f2bb7fc260ed70ac81db8aeab1a045897c6eee1c",
+    "ordered58_feature_hashes_canonical_sha256": "d868d589af37e461dd02a4b5ede53a355729613a1fe87006e1f7e3856d602ac0"
+  },
+  "archive_command": "git diff-tree --no-commit-id --name-only -r ee9a24a056a014eb9651c18666d29f5abe0acbb8; git cat-file --batch for all44 commit:path blobs; exact raw workspace equality",
+  "archive_tool_chunk": "9e0234",
+  "limitations": [
+    "Capture CLI receipt stores a transcript reference rather than raw capture stdout. Persisted semantic fields/release/preflight/parent joins pass, but independent raw capture-stdout byte equality is not claimed.",
+    "Fsync durability is the parent's separately reported preservation check; this review independently checks raw Git/workspace equality only.",
+    "Original 7-second and 34-second overruns remain unchanged. This separate task completes missing administrative checks and does not retrospectively extend the original window.",
+    "Prior reviewer development exposure and content-review isolation qualifications remain in force; no HELD prose or G07 payload was read."
+  ],
+  "scientific_work": {
+    "repeated_saved_judge_calls": 0,
+    "coordinates_extracted": 0,
+    "pair_averages_computed": 0,
+    "fit_calls": 0,
+    "model_calls": 0,
+    "tokenizer_calls": 0,
+    "held_reads": 0
+  },
+  "exceptions": [],
+  "decision": "Accept closed TRAIN capture archival/ownership/source evidence and authenticated58-view29-pair training metadata with the stated timing/stdout qualifications. This is not a fitting, HELD-stage, deployment, retry or further experimental release."
+}
