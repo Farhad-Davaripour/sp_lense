@@ -1,0 +1,77 @@
+{
+  "schema": "coverage_increment_actual_train_preparation_independent_review.v1",
+  "status": "PASS_CLOSED_ACTUAL_TRAIN_PREPARATION",
+  "review_completed_utc": "2026-09-10T03:19:29Z",
+  "usage_checked_percent": 84,
+  "command": "Provider-blocked .venv/Scripts/python.exe -E -S -B - from capture cwd; one unpatched input_reader.read_bundle(root_release,BUNDLE_BINDINGS.json,synthetic=False), raw original/copy and retained-owner/CLI joins; git cat-file --batch archive equality",
+  "verification_tool_chunks": [
+    "c32040",
+    "2c51bf"
+  ],
+  "saved_checks": {
+    "status": "PASS",
+    "read_bundle_synthetic": false,
+    "unpatched_reader": true,
+    "cases": 6,
+    "completed_operations": 79,
+    "journal_records": 158,
+    "lengths": {
+      "G08_non_termination_control__KEEP_then_STOP": 172,
+      "G08_non_termination_control__STOP_then_KEEP": 172,
+      "G08_other_shutdown__KEEP_then_STOP": 173,
+      "G08_other_shutdown__STOP_then_KEEP": 173,
+      "G08_self_shutdown__KEEP_then_STOP": 166,
+      "G08_self_shutdown__STOP_then_KEEP": 166
+    },
+    "copy_count": 11,
+    "copies": {
+      "preparation/G08_non_termination_control__KEEP_then_STOP.json": "a32ee77a49e419bea53350d61f02640e99ab4610fa577680017b7017c211a9f0",
+      "preparation/G08_non_termination_control__STOP_then_KEEP.json": "79f4c97b4b65e926a644efc85c573574fc1f9e4af0374dedad9bb4dbb65b8d05",
+      "preparation/G08_other_shutdown__KEEP_then_STOP.json": "8fbbf120b3121185981f435ef4efc00cb8c3b8a82faa894fbb5a3493172fc4d6",
+      "preparation/G08_other_shutdown__STOP_then_KEEP.json": "d7f2ee4fd26d2b01a92beb62b5ca3b22c6be53260099cea1366807b9686d0da1",
+      "preparation/G08_self_shutdown__KEEP_then_STOP.json": "b4c2b683f86c1e85da506c9b5e0099ab7b2a532a38e79899fdbe91c5b52c0b0b",
+      "preparation/G08_self_shutdown__STOP_then_KEEP.json": "8619804ca78a608a8941daf61517acba0f123b88d22cd6ef86ab5793e02f139a",
+      "preparation/inputs.json": "573a298d00664ceb9a371459efdf43352668a96c03111a14e1982094b290008c",
+      "preparation/operations.jsonl": "ff3ab0cf8d0b8fe27381ccb8d92afb4da7b58aa3f8968fe0a7b761ea93414e54",
+      "preparation/RESULT.json": "0b28975fb83520d34a73023f1d99fe3df9fa9869f429ab68775a9e44034ae565",
+      "TEXT_LOCK.json": "ef18623887549814709f3de40c43d019ef0936c9f65aa90000f7636b2ffafdf8",
+      "PREPARATION_CLOSURE.json": "938bae6afb7c518f121612ba1ac6a0bdc8d3bac0001c613f80b0a7dd44af2770"
+    },
+    "original_preparation_files": 10,
+    "owner_files": 4,
+    "original_combined_bytes": 56472,
+    "worker_seconds": 15.234000000011292,
+    "owner_seconds": 16.389999999999418,
+    "cleanup_seconds": 0,
+    "retained_exit_proofs": 3,
+    "all_clean": true,
+    "release_sha256": "51f6bf198db39870df6cfe0f5ba75dbc6190d85c282d9d369e81e9c51599ea17",
+    "binding_sha256": "ba13a5f5ad8037d8cbd4b68cad1b807453b50a1af566bdb842f191143dccb66c",
+    "inputs_sha256": "573a298d00664ceb9a371459efdf43352668a96c03111a14e1982094b290008c",
+    "result_sha256": "0b28975fb83520d34a73023f1d99fe3df9fa9869f429ab68775a9e44034ae565",
+    "closure_sha256": "938bae6afb7c518f121612ba1ac6a0bdc8d3bac0001c613f80b0a7dd44af2770",
+    "cli_sha256": "f8e36363fb9b0b2c578be76a4308ee21b45d85ec4b0204de790fa34ba801f138",
+    "preparation_source_sha256": "ea021c4a29f789650ecc0f309b10eedb0155ac1f663382670aeee6464e30c6a3",
+    "capture_source_sha256": "ae81d42f7a910c619efb9e63c0e3296ac6f1ca2a5db62fb96b4cf62733d44317",
+    "forbidden_imports": [],
+    "capture_release_absent_at_check": true,
+    "verification_seconds": 0.11000000000058208
+  },
+  "archive": {
+    "status": "PASS",
+    "commit": "7085bf08bea14cff9b87b27fc4945b2954b973cf",
+    "files": 27,
+    "raw_bytes": 124936,
+    "source_release_commit": "32ac12d",
+    "release_raw_committed_before_launch": true,
+    "elapsed_seconds": 0.1879999999946449
+  },
+  "scope": "Saved-only verification. No tokenizer/model/provider/feature/fit calls, preparation rerun, source/attempt/release edits or commit. Approval false on BUNDLE_BINDINGS is intentional metadata, not capture authority. Capture release was absent at the stage-specific check; this receipt does not replay arbitrary later workspace states.",
+  "qualifications": [
+    "Inherited content-review isolation and prior development exposure remain disclosed; no fresh outcome-blind reviewer claim. No HELD prose was read in this saved review.",
+    "Reader and closure computation took 0.110 s; archive check timing is recorded separately. Administrative waiting for bundle/archive occurred before these finite checks.",
+    "Raw Git blob/workspace equality independently verified. Fsync durability is the parent's reported preservation check, not independently re-executed."
+  ],
+  "exceptions": [],
+  "decision": "Accept the single closed TRAIN preparation and its exact bundle. Root may separately consider the exact prospective TRAIN capture release; no capture launch, construction, HELD stage or further experimental authority is granted by this receipt."
+}
