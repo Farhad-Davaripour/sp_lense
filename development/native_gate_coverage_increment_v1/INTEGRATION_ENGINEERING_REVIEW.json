@@ -1,0 +1,98 @@
+{
+  "schema": "coverage_increment_train_integration_independent_review.v1",
+  "status": "PASS_TRAIN_PREPARATION_CAPTURE_ENGINEERING_ONLY",
+  "reviewed_utc": "2026-09-10T03:13:28Z",
+  "usage_checked_percent": 84,
+  "scope": "Finite TRAIN-only G08 six-view integration. This receipt permits root to consider a separate exact preparation release, not a model launch, construction, HELD preparation/capture/scoring, deployment or scientific-success claim.",
+  "hashes": {
+    "original_partial_source_freeze": "63723023d6fa4226e5da20f61ae2648c6e8ae53b4667b461692422d77348d62a",
+    "content_review": "c1356e964c5440e3aa13be0dd0ea8da9ea70d933219db13528c807775959280b",
+    "train_submission": "32ca6cc2f1eaf871633823bef0d4cfdac4b2dd01ff213933b6537afec03dbe00",
+    "preparation_source_freeze": "ea021c4a29f789650ecc0f309b10eedb0155ac1f663382670aeee6464e30c6a3",
+    "capture_source_freeze": "ae81d42f7a910c619efb9e63c0e3296ac6f1ca2a5db62fb96b4cf62733d44317",
+    "text_lock": "ef18623887549814709f3de40c43d019ef0936c9f65aa90000f7636b2ffafdf8",
+    "preparation_release_draft_approved_false": "1a8255c952a1b4f07a85f1ce85d915b58196293a08ee24b57576554be1d10eb0",
+    "fit_source_auth.py": "9874f99b182b4323ed063ce611f4e74ace0b483525c8c3f2aa3a93688c6599ff",
+    "test_train.py": "c2f6c61e0b76d0dc1b45fd9e93f20cd837ff7ff6f175db7ffa73dd82bc9b93e0",
+    "test_admission.py": "bc13a42b29b060fa56cdec4fd9dc45bbc7c6d3233c0cb75226dd8f8ad2c0d40a",
+    "independent_admission_result": "909e65b477b7d2a5980568b77df2699dcb0a7a432fbfbbb58c95924e796f8b7a"
+  },
+  "independent_tests": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -E -S -B development/native_gate_coverage_increment_train_capture_v1/test_train.py",
+      "tool_chunk": "13aeca",
+      "exit_code": 0,
+      "groups_passed": 3,
+      "unittest_seconds": 0.254,
+      "process_seconds": 0.6775466
+    },
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -E -S -B development/native_gate_coverage_increment_train_capture_v1/test_admission.py",
+      "tool_chunk": "f1fb19",
+      "exit_code": 0,
+      "named_checks_passed": 6,
+      "additional_unmocked_saved_judge_assertion": "PASS",
+      "script_seconds": 2.2030000000086147,
+      "process_seconds": 2.6925431,
+      "result_path": "development/native_gate_coverage_increment_train_capture_v1/admission_mirror_s2m1bu9q/RESULT.json"
+    },
+    {
+      "command": "Provider-blocked .venv/Scripts/python.exe -E -S -B - : unpatched prepare_core.validate_text_lock; exact TRAIN six hashes, draft/source pins, mirror AST identity and stage-absence checks",
+      "tool_chunk": "2a77cd",
+      "exit_code": 0,
+      "seconds": 0.20399999999790452
+    }
+  ],
+  "verified": {
+    "preparation_local_external_pins": [11, 9],
+    "capture_local_external_pins": [26, 10],
+    "external_source_paths_absolute": true,
+    "original_partial_20_raw_file_and_length_pins_unchanged": true,
+    "native_and_owner_substrate_raw_byte_identities_against_order_capture": 13,
+    "mirror_source_files_with_identical_function_class_ASTs": 31,
+    "six_text_hashes_equal_prior_independent_content_review": true,
+    "preparation_operations": 79,
+    "preparation_journal_records": 158,
+    "synthetic_input_length_exercised": 320,
+    "capture_labels": [1, 1, -1, -1, -1, -1],
+    "capture_limits": {"loads": 1, "forwards": 6, "derivatives": 0, "encoding": 0},
+    "capture_reservation_bytes": 8220672,
+    "preparation_bytes": 33554432,
+    "capture_bytes": 67108864,
+    "file_bytes": 5242880,
+    "module_identity_and_sys_path_restoration_after_success_and_failure": true,
+    "no_actual_release_attempt_or_TRAIN_capture_binding_at_metadata_check": true
+  },
+  "admission_proof_limits": {
+    "old52": "Authenticated actual immutable metadata only; no old coordinate extraction or load_saved call.",
+    "new6": "Entirely artificial preparation/capture/evidence/release inside a temporary mirror. Production authority, input_reader, prepare_reader, fit_source_auth, outer source_auth chain and saved judge bodies called unmocked.",
+    "constant_and_metadata_substitutions": [
+      "Mirrored source inventories and dependency paths/hashes.",
+      "Mirror input_reader.PREPARATION_SOURCE_SHA256.",
+      "Mirror outer source_auth.OLD points to authenticated actual old52 namespace; TRAIN_SUBMISSION_SHA binds artificial TRAIN submission.",
+      "Artificial cohort, text/preparation/closure/release/row/worker/loader/trace/manifest bindings."
+    ],
+    "production_function_mocks_in_admission_path": 0,
+    "coherent_tamper_rejections": {
+      "wrong_hook": "EXACT_NATIVE_OBSERVER_POSITION",
+      "wrong_final_position": "EXACT_NATIVE_OBSERVER_POSITION",
+      "wrong_actual_row_input": "EXACT_NATIVE_ROW_INPUT_BYTES",
+      "wrong_source": "CAPTURE_FILE_HASH"
+    },
+    "real_tokenizer_model_coordinate_fit_calls": 0,
+    "forbidden_imports": []
+  },
+  "review_feedback_resolved": [
+    "New extractor directly authenticates IDs/masks, hook count, block10 observer and final/nonfinal positions.",
+    "Artificial loader/trace executions and native states made coherent; full unpatched mirror saved judge passes.",
+    "Test mirror Windows literal escaping and audit_saved module isolation corrected without production changes."
+  ],
+  "qualifications": [
+    "No independent runtime asset/signature or actual retained-owner execution test was repeated; unchanged owner/native proofs are reused. Main reports those current checks separately.",
+    "Inherited blind_semantic_review_approved field denotes accepted content review, not a new outcome-blind reviewer claim. Prior development exposure remains disclosed; HELD prose was not read or shared in this integration review.",
+    "Capture release remains denied until the actual preparation closes and receives separate independent saved-only acceptance. Actual TRAIN capture bindings, construction release and all HELD-stage authority remain absent.",
+    "Some source/draft lookups preceded publication or used an incorrect draft location; final paths were resolved. These administrative lookup errors were not production failures or actual scientific attempts. Final recorded tests and metadata checks passed."
+  ],
+  "exceptions": [],
+  "blocking_engineering_defects_in_reviewed_TRAIN_scope": []
+}
