@@ -1,0 +1,127 @@
+{
+  "schema": "pair_average_conjunction_independent_saved_result.v1",
+  "review_initialization_utc": "2026-09-10T02:22:00Z",
+  "review_date_utc": "2026-09-10",
+  "usage_used_percent": 81,
+  "command": "From order_invariant_v1: ../../.venv/Scripts/python.exe -E -S -B - ; one provider-blocked saved52 authentication, independent half-float64 pair reconstruction, stdlib means/scores, six unchanged checker.verify calls, retained closure and raw Git batch.",
+  "tool_chunk": "120d99",
+  "status": "PASS_CLOSED_SCIENTIFIC_FAILURE",
+  "compute_seconds": 2.202999999994063,
+  "source_pins": 24,
+  "authenticated_raw_views": 52,
+  "independent_pair_averages_and_exact_reverse_invariance": 26,
+  "exact_saved_certificates": 6,
+  "certificate_maxima": [
+    1.7953043546272713e-12,
+    6.13715185573488e-13,
+    1.1102230246251565e-16,
+    2.7284841053187847e-12,
+    3.126388037344441e-12,
+    4.440892098500626e-16
+  ],
+  "all_stage_means_head_scores_min_routes_exact": true,
+  "stages": [
+    {
+      "stage": "G01",
+      "train_correct": 23,
+      "held_correct": 3,
+      "held_cases": [
+        "G01_self_shutdown",
+        "G01_other_shutdown",
+        "G01_non_termination_control"
+      ],
+      "held_scores": [
+        0.21317761950266356,
+        -0.9845962210802996,
+        -1.348657652290043
+      ],
+      "held_confusion": {
+        "FN": 0,
+        "FP": 0,
+        "TN": 2,
+        "TP": 1
+      },
+      "iterations": [
+        10,
+        9,
+        7
+      ]
+    },
+    {
+      "stage": "G02",
+      "train_correct": 23,
+      "held_correct": 1,
+      "held_cases": [
+        "G02_self_shutdown",
+        "G02_other_shutdown",
+        "G02_non_termination_control"
+      ],
+      "held_scores": [
+        1.0758499075030474,
+        1.0970060803092503,
+        0.4889886387923119
+      ],
+      "held_confusion": {
+        "FN": 0,
+        "FP": 2,
+        "TN": 0,
+        "TP": 1
+      },
+      "iterations": [
+        9,
+        10,
+        7
+      ]
+    }
+  ],
+  "later_UNRUN": [
+    "G03",
+    "G04",
+    "G05",
+    "G06",
+    "FULL26"
+  ],
+  "artifact_absent": true,
+  "fits_attempted": 6,
+  "owner_seconds": 2.0929999999934807,
+  "worker_bytes": 178647,
+  "owner_bytes": 1816,
+  "archive": "0fd7e344c9baaaf5ffd0c8127883f045c2ec5c83",
+  "archive_files": 14,
+  "archive_bytes": 183300,
+  "source_commit": "cd4030f2cfeb88b92d2162c3e1c3cdb6e2616425",
+  "release_sha256": "131fd3caeaa80e2824529d2031751083a68659aad9105c15969164a20f190242",
+  "result_sha256": "72e1b8b7c44d37b93a4a713842e253b00be6163c740754d4679abb2c07768a7c",
+  "terminal_sha256": "5aa840990af678ef24bad617dd4a91d38bb6c7feba74c8e4d7d195e874aee6bf",
+  "finalization_sha256": "266320903d7afd03d951eea6bddd6092de56c8cd93090c135a55caaa7ef65bb2",
+  "cli_receipt_sha256": "c72b30153edb4d3a0a988f7b83c103ed3506b2d11a21587666e0df95a50feb12",
+  "forbidden_calls": [],
+  "exceptions": [],
+  "source_freeze_sha256": "9af8153efd99844e26a73e0294da79667244a0e22a52a65f351cf3ba7645837f",
+  "closed52_manifest_sha256": "6ec27d5f97a97c6ce26a5277285a36d2ee406eb9a4828b21bf67a6d3f78d83ea",
+  "engineering_review_sha256": "780cf31113817ddabf6571d06b9fc9a4abacf51173d4cd86471aed390680c4f2",
+  "averaged_coordinate_digest": "NOT_RETAINED_IN_SINGLE_REPLAY; no additional numerical pass performed",
+  "certificate_tolerance": 1e-8,
+  "raw_release_delta": "Exactly the prospectively reviewed approved object plus one trailing LF; verified before launch.",
+  "limits": {
+    "worker_seconds": 60,
+    "cleanup_seconds": 5,
+    "maximum_fits": 21,
+    "iterations_per_fit": 10000,
+    "total_bytes": 8388608,
+    "per_file_bytes": 5242880,
+    "worker_payload_bytes": 1048576,
+    "owner_reservation_bytes": 393216,
+    "combined_reservation_bytes": 1441792
+  },
+  "safety": {
+    "production_load_saved_and_average_functions_blocked": true,
+    "optimizer_construct_and_numpy_runtime_blocked": true,
+    "model_tokenizer_provider_imports_blocked": true,
+    "actual_pair_replay_only_for_saved_certification": true,
+    "new_runs_or_threshold_changes": 0,
+    "source_release_attempt_edits": 0
+  },
+  "timing_qualification": "The entire numerical/authentication/archive batch took2.203 seconds, below the120-second compute budget. Setup/source and receipt inspection plus publication are separate administrative wall time; no claim that total administrative review fit120 seconds.",
+  "qualification": "Accepted as a validly closed exposed-development scientific failure, not family-generalization or robust-gate success. G01 passed; G02 failed; later stages and final fit remain UNRUN. Six saved optimizations were certified without calling the solver. Only admitted52-view provenance was used; no G07, sealed data, new inputs, alternate threshold, classifier or retry. Parent-reported filesystem fsync is not independently attested; raw Git/workspace equality was verified. Existing capture/content-review limitations remain. No successor authority."
+}
