@@ -1,0 +1,239 @@
+{
+  "schema": "coverage_increment_held_milestone_receipt.v1",
+  "window": {
+    "started_utc": "2026-09-10T04:04:13Z",
+    "deadline_utc": "2026-09-10T04:24:13Z",
+    "handoff_receipt_prepared_utc": "2026-09-10T04:21:39Z"
+  },
+  "scope": "Fixed G09 HELD preparation/capture/scoring adapter; no changed content, training, model, gate threshold or scientific limits.",
+  "frozen_training": {
+    "commit": "b0a3354bee30440869611e92c3abb9d9178304df",
+    "sha256": "23cba8db82645a441fa665933489c3178f864507a7150e4bb5c9dcd61ce3d1aa",
+    "baseline_sha256": "c4eb5359463efebabf08692200e42cd9439f3244d240235631d8224e2ab2e98f",
+    "augmented_sha256": "41703181ae96a014b75cd071c16bba0a5e501260b2fa2a116d3ca5417c888d84",
+    "before_any_held_read": true
+  },
+  "engineering": {
+    "commit": "262d079de434b206be645cbcb54b10290742288b",
+    "files": 52,
+    "bytes": 358411,
+    "raw_git_fsync": true,
+    "prep_source_sha256": "8a9a718fac616200735ccb4da94d5d418cec4c7e4e6e01384aa729633ea6918d",
+    "capture_source_sha256": "b85e70579b426a1562db3e3e303fe416b2513ecd51af175478b902e37ac760ac",
+    "text_sha256": "1b4c0acbbaf8045de3d8fa475132a763b199e3660d6ade47852e754bed67063f",
+    "scoring_lock_sha256": "14e603e5d151f82c490c399dbc15fcc2920202fa4eba3a99947941cac984b56d",
+    "independent_review_sha256": "c119c9d044fbdabf4ffb3a701daafa5bda3496882f44e9b9f12502e494b8eca6",
+    "independent_pins": 62,
+    "focused_checks": 17
+  },
+  "actual_preparation": {
+    "status": "PASS",
+    "release_sha256": "105c95e54ae576d92ad28b9c424831e06dcfd9a84d808dfee87ce260d9e834fe",
+    "release_commit": "17fe54578c27dd69a796b905ced20f9951ed60f1",
+    "independent_exact_issued_release_check": {
+      "tool_chunk": "71678d",
+      "checked_utc": "2026-09-10T04:17:29Z",
+      "only_delta": "approved:false to true"
+    },
+    "started_utc": "2026-09-10T04:17:59.893015Z",
+    "completed_utc": "2026-09-10T04:18:10.620582Z",
+    "cli_exit": 0,
+    "operations": 79,
+    "journal_records": 158,
+    "cases": 6,
+    "lengths": [
+      168,
+      168,
+      175,
+      175,
+      174,
+      174
+    ],
+    "worker_seconds": 9.48399999999674,
+    "owner_seconds": 10.546999999991385,
+    "retained_exits": 3,
+    "quiescent": true,
+    "inputs_sha256": "4b5f7fc0e4dcb184dd3fd44804c0652b043c48b0613db765793aad2a212bfd2c",
+    "result_sha256": "6d1ec990559a302b2450d0f224a5d19c366d51002071cfc4863e73b8668c41d1",
+    "closure_sha256": "032655994251b4ab83f99981f72ee85176948b93c9086ad9011b821461fa3e34",
+    "archive": {
+      "commit": "d4696c393e641fae572b9b7d45d19265fce3b528",
+      "files": 26,
+      "bytes": 116881,
+      "raw_git_fsync": true,
+      "inventory": [
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/ADMISSION.json",
+          "bytes": 249,
+          "sha256": "674694909e2205ff35722f228efe6b0650a871cdee0c36f1ec706a3244fe9fb9"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/G09_non_termination_control__KEEP_then_STOP.json",
+          "bytes": 3041,
+          "sha256": "921a7e10129e3ba0d1972246dea61fd309ada5ce24e93751b43ca012cd5bd3ea"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/G09_non_termination_control__STOP_then_KEEP.json",
+          "bytes": 3041,
+          "sha256": "3351edc18d974f3cf79b8d291f7e5b1e7e44b3f3ba2f04188589c80dd89a8507"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/G09_other_shutdown__KEEP_then_STOP.json",
+          "bytes": 3049,
+          "sha256": "eb7f6b4310f47245a5aa9e90e50e7fdf54bace5e549a0d15a5f91f6c97c1bdf7"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/G09_other_shutdown__STOP_then_KEEP.json",
+          "bytes": 3049,
+          "sha256": "6323b22bb2ffacdafc55dac6ce622259ffe33ee79f068cbf26060e445bf4b557"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/G09_self_shutdown__KEEP_then_STOP.json",
+          "bytes": 2961,
+          "sha256": "2cf3c8b1c988ed22304d8e4889e71cb9a9003f5aa0a887a2293a7f499d1681ea"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/G09_self_shutdown__STOP_then_KEEP.json",
+          "bytes": 2961,
+          "sha256": "9235a36db701ed4140453178fe4ea9f95b5c63a24722422f699924444c669a7e"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/inputs.json",
+          "bytes": 13149,
+          "sha256": "4b5f7fc0e4dcb184dd3fd44804c0652b043c48b0613db765793aad2a212bfd2c"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/operations.jsonl",
+          "bytes": 19784,
+          "sha256": "eebd32bd2cdac3382a812fe1090266e74f0fc967f0486849addeecb28122468e"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_preparation_v1/preparation_attempt_001/RESULT.json",
+          "bytes": 713,
+          "sha256": "6d1ec990559a302b2450d0f224a5d19c366d51002071cfc4863e73b8668c41d1"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/ownership_attempt_001/ADMISSION.json",
+          "bytes": 669,
+          "sha256": "7da344e085a05a6d7a83f02490824747c3a7c1a38de8b2148207791735bce8df"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/ownership_attempt_001/CLOSURE.json",
+          "bytes": 3600,
+          "sha256": "032655994251b4ab83f99981f72ee85176948b93c9086ad9011b821461fa3e34"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/ownership_attempt_001/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/ownership_attempt_001/stdout.bin",
+          "bytes": 469,
+          "sha256": "78140074ec0806a0c13710a8981ec839a53cfebb1e2797b7f176f8853bb821ef"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/G09_non_termination_control__KEEP_then_STOP.json",
+          "bytes": 3041,
+          "sha256": "921a7e10129e3ba0d1972246dea61fd309ada5ce24e93751b43ca012cd5bd3ea"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/G09_non_termination_control__STOP_then_KEEP.json",
+          "bytes": 3041,
+          "sha256": "3351edc18d974f3cf79b8d291f7e5b1e7e44b3f3ba2f04188589c80dd89a8507"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/G09_other_shutdown__KEEP_then_STOP.json",
+          "bytes": 3049,
+          "sha256": "eb7f6b4310f47245a5aa9e90e50e7fdf54bace5e549a0d15a5f91f6c97c1bdf7"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/G09_other_shutdown__STOP_then_KEEP.json",
+          "bytes": 3049,
+          "sha256": "6323b22bb2ffacdafc55dac6ce622259ffe33ee79f068cbf26060e445bf4b557"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/G09_self_shutdown__KEEP_then_STOP.json",
+          "bytes": 2961,
+          "sha256": "2cf3c8b1c988ed22304d8e4889e71cb9a9003f5aa0a887a2293a7f499d1681ea"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/G09_self_shutdown__STOP_then_KEEP.json",
+          "bytes": 2961,
+          "sha256": "9235a36db701ed4140453178fe4ea9f95b5c63a24722422f699924444c669a7e"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/inputs.json",
+          "bytes": 13149,
+          "sha256": "4b5f7fc0e4dcb184dd3fd44804c0652b043c48b0613db765793aad2a212bfd2c"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/operations.jsonl",
+          "bytes": 19784,
+          "sha256": "eebd32bd2cdac3382a812fe1090266e74f0fc967f0486849addeecb28122468e"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/preparation/RESULT.json",
+          "bytes": 713,
+          "sha256": "6d1ec990559a302b2450d0f224a5d19c366d51002071cfc4863e73b8668c41d1"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/root_release/PREPARATION_CLOSURE.json",
+          "bytes": 3600,
+          "sha256": "032655994251b4ab83f99981f72ee85176948b93c9086ad9011b821461fa3e34"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_held_capture_v1/CLOSED_PREPARATION_CAPTURE_DRAFT.json",
+          "bytes": 4120,
+          "sha256": "63c5cbd63106eb624f8996572ebb4f1195f31f09107ccfd3c8cfc0b8e9002910"
+        },
+        {
+          "path": "development/native_gate_coverage_increment_v1/ACTUAL_HELD_PREPARATION_CLI.json",
+          "bytes": 678,
+          "sha256": "4181f0dadf0d2e9d5d31a381f355315ef503a8abdefc567e8be4baf6d3402a2c"
+        }
+      ]
+    },
+    "independent_review_sha256": "703c1034c5f80f4e1a55768633e48b372bb1eb9abe83ace2fad8c721d08c71be",
+    "independent_review_status": "PASS_CLOSED_ACTUAL_HELD_PREPARATION",
+    "independent_completed_utc": "2026-09-10T04:20:57.806946Z"
+  },
+  "next_stages": {
+    "capture": "UNRUN_INSUFFICIENT_REMAINING_435_SECOND_ENVELOPE_PLUS_CLOSEOUT",
+    "scoring": "UNRUN",
+    "capture_default_deny_draft_sha256": "63c5cbd63106eb624f8996572ebb4f1195f31f09107ccfd3c8cfc0b8e9002910",
+    "reserved_capture_bytes": 8220672,
+    "capture_limits": {
+      "loads": 1,
+      "forwards": 6,
+      "derivatives": 0,
+      "encoding": 0,
+      "worker_seconds": 300,
+      "audit_seconds": 120,
+      "shared_cleanup_seconds": 15,
+      "total_bytes": 67108864,
+      "file_bytes": 5242880
+    },
+    "scoring_limits": {
+      "seconds": 10,
+      "bytes": 65536,
+      "pairs": 3,
+      "score_calls": 6
+    },
+    "remaining_scoring_seam": "Complete score.run one-shot release-to-output path needs unmocked synthetic integration proof and later exact closed-capture admission; pure analyze/replay and frozen source environment pass.",
+    "prospective_only_capture_release_sha256": "f10a288a73236f9982044220d560c6c0bfcb4e5f2ef082141777bfe8fac090eb"
+  },
+  "restrictions": {
+    "capture_approved_release_written": false,
+    "scoring_approved_release_written": false,
+    "new_training_fits": 0,
+    "real_model_calls": 0,
+    "actual_held_feature_reads": 0,
+    "held_prose_output_to_design_context": false,
+    "readiness_percent": 70,
+    "ordinary8_training_only": true,
+    "no_transfer_or_steering_claim": true,
+    "historical_timing_qualifications_preserved": true
+  },
+  "status": "PARTIAL_FUNCTIONAL_MILESTONE_HELD_PREPARATION_CLOSED_AND_ACCEPTED"
+}

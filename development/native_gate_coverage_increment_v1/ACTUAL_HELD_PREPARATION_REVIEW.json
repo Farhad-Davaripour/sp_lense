@@ -1,0 +1,83 @@
+{
+  "schema": "coverage_increment_actual_held_preparation_independent_review.v1",
+  "status": "PASS_CLOSED_ACTUAL_HELD_PREPARATION",
+  "usage_used_percent": 88,
+  "review_window_deadline_utc": "2026-09-10T04:24:13Z",
+  "command": "Provider-blocked .venv/Scripts/python.exe -E -S -B - from HELD capture cwd; one unpatched input_reader.read_bundle(root_release,CLOSED_PREPARATION_CAPTURE_DRAFT.json,synthetic=False), exact original/copied joins, retained owner/CLI checks and git cat-file --batch archive equality.",
+  "verification_tool_chunk": "234fb5",
+  "saved_checks": {
+    "status": "PASS_CLOSED_ACTUAL_HELD_PREPARATION",
+    "completed_utc": "2026-09-10T04:20:57.806946+00:00",
+    "seconds": 0.34400000001187436,
+    "reader_synthetic": false,
+    "unpatched_reader": true,
+    "operations": 79,
+    "journal_records": 158,
+    "cases": 6,
+    "lengths": {
+      "G09_non_termination_control__KEEP_then_STOP": 174,
+      "G09_non_termination_control__STOP_then_KEEP": 174,
+      "G09_other_shutdown__KEEP_then_STOP": 175,
+      "G09_other_shutdown__STOP_then_KEEP": 175,
+      "G09_self_shutdown__KEEP_then_STOP": 168,
+      "G09_self_shutdown__STOP_then_KEEP": 168
+    },
+    "copy_count": 11,
+    "copies": {
+      "preparation/G09_non_termination_control__KEEP_then_STOP.json": "921a7e10129e3ba0d1972246dea61fd309ada5ce24e93751b43ca012cd5bd3ea",
+      "preparation/G09_non_termination_control__STOP_then_KEEP.json": "3351edc18d974f3cf79b8d291f7e5b1e7e44b3f3ba2f04188589c80dd89a8507",
+      "preparation/G09_other_shutdown__KEEP_then_STOP.json": "eb7f6b4310f47245a5aa9e90e50e7fdf54bace5e549a0d15a5f91f6c97c1bdf7",
+      "preparation/G09_other_shutdown__STOP_then_KEEP.json": "6323b22bb2ffacdafc55dac6ce622259ffe33ee79f068cbf26060e445bf4b557",
+      "preparation/G09_self_shutdown__KEEP_then_STOP.json": "2cf3c8b1c988ed22304d8e4889e71cb9a9003f5aa0a887a2293a7f499d1681ea",
+      "preparation/G09_self_shutdown__STOP_then_KEEP.json": "9235a36db701ed4140453178fe4ea9f95b5c63a24722422f699924444c669a7e",
+      "preparation/inputs.json": "4b5f7fc0e4dcb184dd3fd44804c0652b043c48b0613db765793aad2a212bfd2c",
+      "preparation/operations.jsonl": "eebd32bd2cdac3382a812fe1090266e74f0fc967f0486849addeecb28122468e",
+      "preparation/RESULT.json": "6d1ec990559a302b2450d0f224a5d19c366d51002071cfc4863e73b8668c41d1",
+      "TEXT_LOCK.json": "1b4c0acbbaf8045de3d8fa475132a763b199e3660d6ade47852e754bed67063f",
+      "PREPARATION_CLOSURE.json": "032655994251b4ab83f99981f72ee85176948b93c9086ad9011b821461fa3e34"
+    },
+    "original_preparation_files": 10,
+    "owner_files": 4,
+    "combined_bytes": 56735,
+    "worker_seconds": 9.48399999999674,
+    "owner_seconds": 10.546999999991385,
+    "cleanup_seconds": 0,
+    "retained_exit_proofs": 3,
+    "clean_owner": true,
+    "release_sha256": "105c95e54ae576d92ad28b9c424831e06dcfd9a84d808dfee87ce260d9e834fe",
+    "binding_file": "CLOSED_PREPARATION_CAPTURE_DRAFT.json",
+    "binding_sha256": "63c5cbd63106eb624f8996572ebb4f1195f31f09107ccfd3c8cfc0b8e9002910",
+    "inputs_sha256": "4b5f7fc0e4dcb184dd3fd44804c0652b043c48b0613db765793aad2a212bfd2c",
+    "result_sha256": "6d1ec990559a302b2450d0f224a5d19c366d51002071cfc4863e73b8668c41d1",
+    "closure_sha256": "032655994251b4ab83f99981f72ee85176948b93c9086ad9011b821461fa3e34",
+    "cli_sha256": "4181f0dadf0d2e9d5d31a381f355315ef503a8abdefc567e8be4baf6d3402a2c",
+    "archive": {
+      "commit": "d4696c393e641fae572b9b7d45d19265fce3b528",
+      "files": 26,
+      "bytes": 116881,
+      "raw_git_equal": true
+    },
+    "capture_scoring_unrun": true,
+    "model_tokenizer_fit_calls": 0,
+    "forbidden_imports": []
+  },
+  "preparation_source_sha256": "8a9a718fac616200735ccb4da94d5d418cec4c7e4e6e01384aa729633ea6918d",
+  "capture_source_sha256": "b85e70579b426a1562db3e3e303fe416b2513ecd51af175478b902e37ac760ac",
+  "frozen_training_sha256": "23cba8db82645a441fa665933489c3178f864507a7150e4bb5c9dcd61ce3d1aa",
+  "issued_release_delta_review": {
+    "tool_chunk": "71678d",
+    "completed_utc": "2026-09-10T04:17:29.019745Z",
+    "only_approved_false_to_true": true,
+    "terminal_LF_unchanged": true,
+    "attempt_absent_at_check": true
+  },
+  "qualifications": [
+    "BUNDLE_BINDINGS.json remains an inert NO_ACTUAL_PREPARATION_YET placeholder; the exact archived CLOSED_PREPARATION_CAPTURE_DRAFT.json is the binding actually verified, approved=false. This receipt does not misrepresent the placeholder as usable admission.",
+    "All 11 bundle copies equal originals. Ten newly archived bundle copies are in the 26-file actual archive; the unchanged TEXT_LOCK copy was already source/text-frozen.",
+    "Frozen training artifacts and accepted review were checked before actual text and token work; saved review reads only fixed HELD preparation evidence, with no HELD features or prose disclosure. Prior development/content-review isolation qualifications remain.",
+    "Raw Git blob/workspace equality independently verified; workspace fsync is main-reported, not independently repeated.",
+    "Actual preparation/capture/scoring states are stage-specific: preparation closed and accepted, capture/scoring absent at this check. No retry, capture launch, scoring, fitting, scientific success or fresh-transfer authority is granted."
+  ],
+  "exceptions": [],
+  "decision": "Accept the single closed HELD preparation and its exact bundle. Root may separately consider a capture release in a new sufficiently bounded window; capture and scoring remain UNRUN."
+}
