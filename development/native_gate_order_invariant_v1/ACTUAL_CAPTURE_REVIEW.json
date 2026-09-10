@@ -1,0 +1,66 @@
+{
+  "schema": "ordinary_order_independent_saved_capture.v1",
+  "status": "PASS_CLOSED_CAPTURE_AND52_VIEW_METADATA",
+  "review_date_utc": "2026-09-10",
+  "usage_used_percent": 80,
+  "review_initialization_utc": "2026-09-10T01:57:16Z",
+  "initial_receipt_and_manifest_publication_utc": "2026-09-10T01:59:45Z",
+  "initialization_through_publication_wall_seconds": 149,
+  "timing_qualification": "Frozen saved judge retained its120-second deadline and the entire audit-plus-metadata computation took1.484 seconds. The separate raw archive batch took0.172 seconds. Setup, source/CLI inspection and receipt publication made total observed review wall time149 seconds; this is not a claim that administrative publication completed within120 seconds.",
+  "command": "Provider-blocked python -E -S -B stdin from capture_order_v1: one unpatched authority/read_bundle/judge plus isolated old44/new8 build_manifest calls; separate raw git cat-file --batch.",
+  "summary": {
+    "status": "PASS_SAVED_CAPTURE_AND52_METADATA",
+    "elapsed_seconds": 1.4839999999967404,
+    "saved_judge_calls": 1,
+    "audit_exact_raw_and_object": true,
+    "old44_build_manifest_calls": 1,
+    "new8_build_manifest_calls": 1,
+    "module_and_path_restored": true,
+    "owners": {
+      "production_worker": {
+        "sha256": "bf20360e33dbe005c576db6fd8e9b3fda64480fa431297b371b0924f07a48ebc",
+        "clean": true
+      },
+      "production_audit": {
+        "sha256": "a9d5fd0ba3e2403361f56f38f401a196bc7ccbb6dd4c6ea8ef6e61ee7e73746c",
+        "clean": true
+      }
+    },
+    "loads": 1,
+    "forwards": 8,
+    "derivatives": 0,
+    "encoding": 0,
+    "view_count": 52,
+    "scenario_count": 26,
+    "positive_views": 12,
+    "negative_views": 40,
+    "native_state_matches": true,
+    "exceptions": []
+  },
+  "source_freeze_sha256": "6897ad6bfd9d6a38fced133cbe7667c67ee255d721af775a1981e7064fd0b274",
+  "release_sha256": "caa9247e5011424ae5a0eaf9e130afa485fd4db413f4d8984a9ffadc26213a1d",
+  "audit_sha256": "1dcc5647f9014497541a018ff6355ea850bfd26c004ac8ef160f0f006cb92aaa",
+  "parent_sha256": "66cdef23e3cbca96515cb4a8561a6624e50c8c16fc52a9dd10e7409c1bc294a7",
+  "closed_worker_sha256": "4a384c08bdd0af7ff3e010ae0318bd0c8f5b9b564cb73da2ef9191a4b15c4727",
+  "archive": "7d8ea0ed342b4126f2e73426da17eec13da7d19c",
+  "archive_raw_files": 54,
+  "archive_raw_bytes": 8477352,
+  "archive_check_seconds": 0.17199999999138527,
+  "cli_receipt_sha256": "3dae042b86c007137e2e12822954044b199cf3bba52839ae891df01d36368c8c",
+  "cli_stdout_sha256": "53f8c37ae84cba5037e643c39fe817ed8c6b3b66fc5a26a5d6f28232dd1e23e7",
+  "cli_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "cli_exit_code": 0,
+  "cli_elapsed_seconds": 35.078999999997905,
+  "shared_cleanup_seconds": 0.07799999999406282,
+  "old44_training_manifest_sha256": "4c0443844f096df7ffb6e23cb2bb236d5c146d66e339494d27d66f78e099df70",
+  "old44_authenticated_manifest_sha256": "2b1e4e5c4c099059f1d1564a9cb71e27451f4459002b5df741f2b7295af76612",
+  "new8_authenticated_manifest_sha256": "fae3b4594e1a43151ebb14212edc899190b03d6ef4bcf57338d05072b7711766",
+  "metadata_artifact": "CLOSED_52_VIEW_MANIFEST.json",
+  "native_state": [
+    "2eeb7434977939f80711e1fa83a1d587c71887da0c06f1edc13a43d5ec1192e6",
+    "18f0caa55461f0f07afba9cb9809f1830745b445e5cc62283d505a0017f892fc"
+  ],
+  "original_content_admission_reused": true,
+  "exceptions": [],
+  "qualification": "Capture-prerequisite acceptance only, not classification/generalization or robust-gate success. Frozen judge necessarily validates saved raw vectors/logits; reviewer performed no additional coordinate analysis, extraction, averaging, scoring, fit, model/tokenizer/provider calls. Original content/design exposure remains disclosed. No G07 or sealed data. Initial optional CLI filename lookup was absent; correct ACTUAL_CAPTURE_CLI_RECEIPT.json was subsequently raw-Git authenticated and joined. Parent-reported fsync and preflight report-attribute normalization are not independent durability attestations; frozen production sources stayed unchanged. No successor execution authority."
+}
