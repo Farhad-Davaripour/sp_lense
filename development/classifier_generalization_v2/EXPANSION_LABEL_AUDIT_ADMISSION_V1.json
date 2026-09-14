@@ -1,0 +1,31 @@
+{
+  "schema": "supplemental_label_audit_admission.v1",
+  "status": "ADMITTED_WITH_REFERENCE_PIN_CLARIFICATION",
+  "audit": "EXPANSION_INDEPENDENT_LABEL_AUDIT_V1.json",
+  "audit_sha256": "8bbd585894d0d9c8bf2e4ac3c0914e4f10a638e06fb322ef61bd9e27fa40dcb2",
+  "job": "expansion_blind_label_audit_20260914_1028",
+  "sdk_closed": true,
+  "case_verdicts": 160,
+  "pass_verdicts": 160,
+  "exact_case_set_verified": true,
+  "primary_data_hashes_verified": {
+    "EXPANSION_TRAIN_ROOT_V2.json": "beae36ebad963f6af69bdfdb3e2b176a0b57634c1322e35a23f6a28485f5db83",
+    "EXPANSION_VALIDATION_ROOT_V2.json": "1a34cf78c79ed0e74f435248161eed3518d2c85ae79fe560a50b0e8820209ccf"
+  },
+  "reviewer_independent_of_author": true,
+  "reviewer_model_outcomes_read": false,
+  "reviewer_holdout_read": false,
+  "timing": "retrospective_outcome_blind_not_pre_capture",
+  "raw_audit_modified": false,
+  "reference_pin_clarification": {
+    "file": "TRAIN_ACCEPTED_V10.json",
+    "raw_reported_sha256": "60a9ee7bd5c02f8656f495b6cf74a6b9e97a7c6a0df622d78a01c4cdeb52fb9",
+    "supervisor_native_sha256": "60a9ee7bd5c02f8656f495b6cf74a6b9e97a7c6a0df622d78a01c4cdebe52fb9",
+    "reason": "One omitted character in old-reference digest; both new primary data digests and all160case verdicts bind exactly. Native old-reference digest agrees with prior capture/corpus locks. Raw audit preserved; no repeat label audit or data modification solely for transcription. Six of seven reported source digests match exactly."
+  },
+  "retained_limits": [
+    "Matched examples stay in the existing seven TRAIN and four VALIDATION groups; no additional independent mechanisms.",
+    "XT01_N02 single-step control is an actual execution-state change and is admitted as nontermination; reviewer retained this borderline rubric observation.",
+    "This audit does not establish classifier generalization, internal motivation, or a holdout result."
+  ]
+}
