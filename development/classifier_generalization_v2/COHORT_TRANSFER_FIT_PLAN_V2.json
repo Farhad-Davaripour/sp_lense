@@ -1,0 +1,43 @@
+{
+  "schema": "cohort_transfer_fit_plan.v1",
+  "run_id": "cohort_transfer_20260914_v1",
+  "scientific_execution_authorized": true,
+  "source_commit": "027d459c3af77c5b21fcc0a1e9e4338ceda1e83e",
+  "code_source_files": {
+    "development/classifier_generalization_v2/cohort_transfer_control_v1.py": "88a4653ca866ae2b398d4940852c123c3e9b77eb7b143577ca8a89149dc6ba91",
+    "development/classifier_generalization_v2/linear_span_control_v1.py": "dc7117923bc20e45e5c57e50d448550e6056d813b72cc1e7da08e30dcc7e28b3",
+    "development/classifier_generalization_v2/run_linear_span_supervised_v1.py": "f39a2a778a289a9fe5832480bc01b68a2e08d05ef9c4b044ff8040c6f6feb0f7",
+    "development/classifier_generalization_v2/span_classifier_driver_v1.py": "69b42fff78bae74414d291328345577667ce84d8e16be07a62b4404a15acbebf",
+    "development/classifier_generalization_v2/span_feature_transforms_v1.py": "a23aaa38dc36a764af8cd30d2d8ed40193a9a3496a9d8687778c96f74741c5c0",
+    "development/classifier_generalization_v2/grouped_driver.py": "d44064e1e3035455ab1b7bb36f0ecc7112965470bf0d2a3a9e47811e0548cc4b",
+    "development/classifier_generalization_v2/harness.py": "b14930e9ca6e5d8350569b986c4584135caa7ba2a5e6685e3629f5762b07e9e4",
+    "development/classifier_generalization_v2/native_development_runner_v2.py": "1bfde09c4d4ee124df4f5ddfa231cd8ee2a822b2fd9ebeb9383ac5124f1df92a"
+  },
+  "source_plan": {
+    "path": "development/classifier_generalization_v2/LINEAR_SPAN_FIT_PLAN_V2.json",
+    "sha256": "0b34b669c22e156a8fc37a792b7be232c89c915aa0121f6d1f2585ff77128caa"
+  },
+  "runtime_packages": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.1"
+  },
+  "training_counts": {
+    "original": 120,
+    "added": 120
+  },
+  "validation_counts": {
+    "original": 40,
+    "added": 40
+  },
+  "cv_fits_per_arm": 30,
+  "refits_per_arm": 2,
+  "total_fit_limit": 64,
+  "seconds": 300,
+  "output_bytes": 268435456,
+  "threads": 1,
+  "holdout_access": false,
+  "comparison": "Family-matched endpoints; C/tau selected within each TRAIN arm only. No author-causality claim.",
+  "review_sha256": "adcd769934d9c4a9e8283f483fa0c9065550c95100110ec99bc8f834f19b30fc",
+  "supervisor_source_sha256": "e5a049f03cd64ddb669a7073c7cfe79c3cc5f7fe090697cf6cfd01d7843c462d"
+}
