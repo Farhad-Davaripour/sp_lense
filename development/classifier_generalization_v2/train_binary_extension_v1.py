@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import time
 import warnings
+import argparse
 import numpy as np
 from sklearn.exceptions import ConvergenceWarning
 import train_development_v1 as base
@@ -15,7 +16,10 @@ HERE = base.HERE
 
 
 def main():
-    plan = base.read_json(HERE / 'FIT_PLAN_BINARY_EXTENSION_V1.json')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--plan-file', default='FIT_PLAN_BINARY_EXTENSION_V1.json')
+    args = parser.parse_args()
+    plan = base.read_json(HERE / args.plan_file)
     for path, expected in plan['source_files'].items():
         assert base.sha(ROOT / path) == expected
     assert plan['C'] == [100, 1000] and plan['cv_fit_limit'] == 10 and plan['final_refit_limit'] == 1
@@ -35,9 +39,12 @@ def main():
         candidates.append(dict(model='binary', C=C, complete=complete,
                                oof=driver._assemble_oof('binary', results, folds, len(labels)) if complete else None))
     assert state['fits'] == 10 and time.monotonic()-started < plan['seconds']
+    base.save(output / 'cv_extension.json', dict(fit_count=state['fits'],candidates=candidates,fold_results=fold_results))
     previous = base.read_json(HERE / 'runs/classifier_development_20260914_v1/cross_validation.json')
     eligible = [c for c in previous['candidate_results'] if c['model']=='binary' and c['complete']]
     eligible += [c for c in candidates if c['complete']]
+    for candidate in eligible:
+        candidate['oof']['p_self'] = np.asarray(candidate['oof']['p_self'], dtype=float)
     selection = driver._select(eligible, labels)
     best = selection['selected']
     report = dict(status='COMPLETE_BINARY_C_EXTENSION', cv_fits=10, final_refits=0,
