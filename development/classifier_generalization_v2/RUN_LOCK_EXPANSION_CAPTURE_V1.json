@@ -1,0 +1,80 @@
+{
+  "schema": "native_development_execution.v2",
+  "scientific_execution_authorized": true,
+  "run_id": "expansion_capture_20260914_v1",
+  "source_commit": "a05ab337accc9d7e642aa5c36ad6d6dbfb6dc7d6",
+  "source_files": {
+    "development/classifier_generalization_v2/native_development_runner_v2.py": "1bfde09c4d4ee124df4f5ddfa231cd8ee2a822b2fd9ebeb9383ac5124f1df92a",
+    "development/classifier_generalization_v2/snapshot_verifier.py": "710c16f39b2fb7aa818d5b6ee5d33632555e690d745997fa0fb0f51ad134875a",
+    "development/classifier_generalization_v2/native_capture_adapter.py": "9ce842374934fe7cf0dfe11bf4a03581fc2eba4dcac69a856be82156d78c5831",
+    "development/classifier_generalization_v2/native_capture_contract.py": "8841bc0b76157936a77b973089bce20856442db2bcdb6bc44f756b8f616a3391",
+    "development/classifier_generalization_v2/tokenizer_input_adapter.py": "3883326066f2d3b322a79547bc9054588750d9d020a47543930b216183f4d164",
+    "development/classifier_generalization_v2/capture_executor.py": "5142873b7ac110dbb27e1e0a14317d301ceb0124e37f887b9ca58765cb567775",
+    "development/classifier_generalization_v2/capture_export.py": "1b9c44cea5b80658f9f655a0cce54c360610e079b0eedb1eef246b262c505de8"
+  },
+  "runtime": {
+    "prefix": "C:/Users/farha/repos/SP_lens/.venv",
+    "python": "3.12.14",
+    "packages": {
+      "torch": "2.13.0+cpu",
+      "transformers": "5.15.1",
+      "tokenizers": "0.23.0rc0",
+      "safetensors": "0.8.0"
+    },
+    "provider_sources": {
+      "torch": "767496b63c899ec3d1106a4c1eeac664a9b3947a9b2f9eefa7a901cdfe8a0288",
+      "torch_hooks": "caad06c4430304a03920d1cc181828da0e8c4bfb4f0c41d740ab52a36498c1b0",
+      "loading": "a7392c26dd2f005383cc3c1f8562638a6039d393ca03fb1933513479a6d264e4",
+      "config": "3c01b3cdcff8d77cbafac9841bc48c41e5a5b38637231f1bde3d843cd198dbaf",
+      "model": "67cf849081143a998f0e189c551e4b5f532365a055805570747385e400372abb",
+      "tokenizer": "fac4e6576bfe2369731be147a4e530f262bdf32f2ac50436f96f0d8bdd2fc628"
+    }
+  },
+  "threads": {
+    "intra": 8,
+    "inter": 1
+  },
+  "inputs": {
+    "train": {
+      "path": "development/classifier_generalization_v2/EXPANSION_TRAIN_ROOT_V2.json",
+      "sha256": "beae36ebad963f6af69bdfdb3e2b176a0b57634c1322e35a23f6a28485f5db83"
+    },
+    "validation": {
+      "path": "development/classifier_generalization_v2/EXPANSION_VALIDATION_ROOT_V2.json",
+      "sha256": "1a34cf78c79ed0e74f435248161eed3518d2c85ae79fe560a50b0e8820209ccf"
+    },
+    "blueprint": {
+      "path": "development/classifier_generalization_v2/GROUP_BLUEPRINT_V4.json",
+      "sha256": "46c0f5abe41e68bdd456ec956c74ad8c01b85085101b3c2ab83fc7ad72cf4593"
+    },
+    "holdout_index": {
+      "path": "development/classifier_generalization_v2/holdout_custody/HOLDOUT_ADMITTED_INDEX_V15.json",
+      "sha256": "2b7cb5dd6e6537f872e3d36e8c17e0a1e985b603cad1633c05da146aaa6ddf94"
+    },
+    "model_metadata": {
+      "path": "development/classifier_generalization_v2/NATIVE_MODEL_METADATA_V1.json",
+      "sha256": "93450dbcbbe017110021d2911c3321d6262430557c4d5440814556343ca47002"
+    },
+    "snapshot_lock": {
+      "path": "development/classifier_generalization_v2/NATIVE_SNAPSHOT_LOCK_CANDIDATE_V1.json",
+      "sha256": "d9da293c376ba1ed2ab2848c420818cd04e78b543d943a4d7912a1da23f31827"
+    },
+    "corpus_audit": {
+      "path": "development/classifier_generalization_v2/EXPANSION_AUTHOR_REVIEW_V1.json",
+      "sha256": "bf130a6ef23b48258ba0c7eb9836ac809bd86ab793620ae04ec9efbc144dd742"
+    }
+  },
+  "snapshot_cache_root": "C:/Users/farha/.cache/huggingface/hub",
+  "caps": {
+    "seconds": 7200,
+    "forwards": 320,
+    "tokens_per_view": 320,
+    "payload_bytes": 1310720,
+    "output_bytes": 33554432,
+    "tokenizer_loads": 1,
+    "model_loads": 1,
+    "fits": 0,
+    "derivatives": 0
+  },
+  "authorization_note": "User requested root-generated doubled development data; new320forward batch, unchanged finite caps. Label review is author self-review, not independent audit."
+}
