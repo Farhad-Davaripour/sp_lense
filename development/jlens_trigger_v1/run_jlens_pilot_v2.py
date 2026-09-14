@@ -417,7 +417,8 @@ def _inputs(root, lock):
 
     validation_membership = {}
     for role, group in (("original_validation", "original40"), ("added_validation", "added40")):
-        document = runner.strict_json(runner.pinned(root, manifest_pins[role]))
+        pin = manifest_pins[role]
+        document = runner.strict_json(runner.pinned(root, {"path": pin["path"], "sha256": pin["sha256"]}))
         cases = document.get("cases")
         need(type(cases) is list, "VALIDATION_MANIFEST", role)
         for case in cases:
