@@ -62,6 +62,7 @@ class FitTransformTests(unittest.TestCase):
     def test_widths_and_representation_order(self):
         model = self.fitted()
         matrix = model.transform(self.windows)
+        self.assertEqual(FEATURE_DIM, 8272)
         self.assertEqual(matrix.shape, (len(self.windows), FEATURE_DIM))
         self.assertEqual(
             model.representation_widths(),
@@ -76,6 +77,22 @@ class FitTransformTests(unittest.TestCase):
         self.assertEqual((F1_DIM, F2_DIM, F3_DIM, F4_DIM, F5_DIM), (3072, 3072, 2048, 36, 44))
         self.assertEqual(len(FEATURE_NAMES), FEATURE_DIM)
         self.assertEqual((REPRESENTATION_NAMES[0], REPRESENTATION_NAMES[-1]), ("concat3_last", "pca8_products"))
+
+    def test_mixed_length_training_and_batch_transform(self):
+        windows = [w[:, :(i % 5) + 1, :] for i, w in enumerate(self.windows)]
+        model = SpanFeatureTransforms().fit(windows, self.labels)
+        actual = model.transform(windows)
+        self.assertEqual(actual.shape, (len(windows), 8272))
+        expected = np.vstack([model.transform(w) for w in windows])
+        np.testing.assert_allclose(actual, expected, atol=1e-9, rtol=1e-9)
+
+    def test_mixed_length_validation_without_padding(self):
+        model = self.fitted()
+        windows = [self.windows[0][:, :1, :], self.windows[1][:, :4, :]]
+        actual = model.transform(windows)
+        expected = np.concatenate([model.f1(windows), model.f2(windows),
+            model.f3(windows), model.f4(windows), model.f5(windows)], axis=1)
+        np.testing.assert_allclose(actual, expected, atol=1e-9, rtol=1e-9)
 
     def test_f1_f2_f3_numerical_correctness(self):
         model = self.fitted()

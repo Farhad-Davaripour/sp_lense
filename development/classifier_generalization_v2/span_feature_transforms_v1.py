@@ -101,7 +101,7 @@ F3_DIM = 2 * WIDTH                                    # 2048
 F4_DIM = len(LAYER_BLOCKS) * len(OTHER_CLASSES) * len(CONTRAST_STATISTICS)  # 36
 PCA_COMPONENTS = 8
 F5_DIM = PCA_COMPONENTS + PCA_COMPONENTS + (PCA_COMPONENTS * (PCA_COMPONENTS - 1)) // 2  # 44
-FEATURE_DIM = F1_DIM + F2_DIM + F3_DIM + F4_DIM + F5_DIM  # 10224
+FEATURE_DIM = F1_DIM + F2_DIM + F3_DIM + F4_DIM + F5_DIM  # 8272
 
 EPS = 1e-12
 JOB_ID = "span_features_implementation_20260914_1054"
@@ -311,7 +311,7 @@ class SpanFeatureTransforms:
         """Return the concatenated F1..F5 feature matrix for the windows.
 
         Accepts either a sequence of ``(3, n, 1024)`` windows or one bare
-        window. State is never modified.
+        NumPy window. State is never modified.
         """
         self._require_fitted()
         window_list = self._as_window_sequence(windows)
@@ -326,9 +326,8 @@ class SpanFeatureTransforms:
         return matrix
 
     def _as_window_sequence(self, windows):
-        array = np.asarray(windows)
-        if array.ndim == 3:
-            return [_validate_window(array, "windows")]
+        if isinstance(windows, np.ndarray) and windows.ndim == 3:
+            return [_validate_window(windows, "windows")]
         return _validate_windows(windows)
 
     # -- internals ---------------------------------------------------------- #
