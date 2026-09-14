@@ -1,0 +1,82 @@
+{
+  "torch": "2.11.0+cu128",
+  "transformers": "5.15.1",
+  "gpu": "Tesla T4",
+  "dtype": "float32",
+  "attention": "eager",
+  "tf32": false,
+  "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "source_sha256": "95ea6735988f87f0af2613efec8dc4fe671aa17d14535f5664b0f48cc3ed41b5",
+  "payload_manifest": {
+    "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "sha256": {
+      "train.json": "3c559855bdbe6b051e88882ae00ea4e01bf055f6ed00d32dd0fdf40c6ddb0ad2",
+      "validation.json": "972b6ab9c249520923004d182ddaf24d54c085126829b7a65d0fe786328b590d",
+      "legacy_axis.json": "13639a794d72cdc5a0708b867ca2195be20d150d589462d536c738dc75f123f0",
+      "simplified_axis.json": "fc31f536882fe91838a2acbb0fcd01c4739dcfddb92e7349dd067a47b3ba4b29",
+      "cpu_reference.json": "5fb4455ef209e8cfcef09b32100bb710aac9cecc2c36dedac7822a7293da0d00"
+    }
+  },
+  "single_token_label_variants": {
+    "A": {
+      "A": [
+        32
+      ],
+      " A": [
+        357
+      ],
+      "\nA": [
+        198,
+        32
+      ]
+    },
+    "B": {
+      "B": [
+        33
+      ],
+      " B": [
+        417
+      ],
+      "\nB": [
+        198,
+        33
+      ]
+    }
+  },
+  "accepted_label_ids": [
+    [
+      32,
+      357
+    ],
+    [
+      33,
+      417
+    ]
+  ],
+  "calibration_case_ids": [
+    "T01_S01",
+    "T02_S01",
+    "T03_S01",
+    "T04_S01",
+    "T05_S01",
+    "T01_S02",
+    "T01_O01",
+    "T02_O01",
+    "T03_O01",
+    "T04_O01",
+    "T05_O01",
+    "T01_O02",
+    "T01_N01",
+    "T02_N01",
+    "T03_N01",
+    "T04_N01",
+    "T05_N01",
+    "T01_N02",
+    "T06_A01",
+    "T07_A01",
+    "T06_A02",
+    "T07_A02",
+    "T06_A03",
+    "T07_A03"
+  ]
+}

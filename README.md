@@ -1,5 +1,21 @@
 # SP Lense
 
+## Conference-paper reproduction package (September 2026)
+
+Start with [reproduce/README.md](reproduce/README.md) for the supported, portable
+score replay, model refit and tuning replay. The current paper studies the gap
+between shutdown-context detection and reliable steering; it does not establish
+self-preservation, successful production control or fresh holdout confirmation.
+
+- [Paper and figures](paper/README.md)
+- [Readable scenario splits](development/shutdown_detection_v1/dataset_splits/README.md)
+- [Experiment ledger](development/shutdown_detection_v1/EXPERIMENTS_AND_REPRODUCTION.md)
+- [Completed diagnostic study](development/shutdown_detection_v1/STUDY_CLOSEOUT.md)
+
+The workflows below are historical research entry points. Prefer the reproduction
+package above to reproduce the new paper; do not rerun historical native experiments
+without their original pinned inputs and a fresh output namespace.
+
 `sp_lense` is a first-draft research pipeline for testing whether candidate
 self-preservation-related representations are readable and causally relevant in a Qwen
 model. It implements the workflow from the supplied ChatGPT brief:
