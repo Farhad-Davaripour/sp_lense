@@ -1,0 +1,12 @@
+{
+ "schema":"software_review_admission.v1","status":"ADMITTED_INJECTED_PROVIDER_SOFTWARE_ONLY",
+ "module":"native_capture_adapter.py","source_sha256":"9CE842374934FE7CF0DFE11BF4A03581FC2EBA4DCAC69A856BE82156D78C5831",
+ "test_sha256":"BC97D396C8C0F5330EEA331AA858DCA67EE833FDF489D504F44C095B59201674",
+ "review":"NATIVE_CAPTURE_ADAPTER_INDEPENDENT_REVIEW_V2.md","review_sha256":"86DFDEBFF82DA4691F4EABC2B04D8947D147DEEA336ACBC6D70AC603128968A8",
+ "review_job":"native_capture_adapter_review_v2_20260914_0650","reviewer_closed":true,"reviewer_exit_code":0,
+ "verdict":"SCOPED_PASS","adapter_tests_passed":29,"independent_probes":19,
+ "supervisor_combined_tests":{"total":143,"passed":141,"skipped":2},
+ "important_repairs":"Immutable build-time parameter name/identity/version baseline across captures; all-model and exposed-global forward/pre-hook rejection; vision eager; provider operation callability.",
+ "retained_limits":["Injected providers are unauthenticated; actual run must pin and verify real provider/source/runtime/snapshot identities before invoking factory.","Version counters do not detect deliberate raw-storage writes bypassing the counter; no cryptographic memory-integrity claim.","Public coverage/parameters/loading_report/provenance attributes are mutable informational metadata, not security evidence.","An exposed but malformed global-hook API can omit registries; actual runtime owner must use the verified real torch module surface, not a substitute.","Provider operation callability does not authenticate its semantics. Remaining low-severity review findings retained, no repeated repair loop."],
+ "actual_model_or_tokenizer_loaded":false,"scientific_execution_authorized":false
+}

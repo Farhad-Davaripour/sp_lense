@@ -1,0 +1,21 @@
+{
+ "schema":"software_review_admission.v1",
+ "status":"ADMITTED_MODEL_FREE_SOFTWARE_ONLY",
+ "implementation":"snapshot_verifier.py",
+ "implementation_sha256":"710C16F39B2FB7AA818D5B6EE5D33632555E690D745997FA0FB0F51AD134875A",
+ "test_file":"test_snapshot_verifier.py",
+ "test_sha256":"1727301ECE84D411E091B535F57BAD6DBC5F28B61F6C51B8496E869D404BDDD9",
+ "independent_review":"SNAPSHOT_VERIFIER_INDEPENDENT_REVIEW_V2.md",
+ "independent_review_sha256":"AFC99C36F00D121DD67C172431739943725F4EA54F03E7DA4545C8C0C7D29F8E",
+ "review_job":"snapshot_verifier_review_v2_20260914_0539",
+ "verdict":"PASS_SCOPED",
+ "reviewer_closed":true,
+ "reviewer_exit_code":0,
+ "supervisor_native_hashes_match_review":true,
+ "verifier_tests":{"total":39,"passed":37,"skipped":2,"failures":0,"errors":0},
+ "combined_suite":{"modules":["test_snapshot_verifier","test_tokenizer_input_adapter","test_native_capture_contract","test_capture_export","test_pair_join"],"total":92,"passed":90,"skipped":2,"failures":0,"errors":0},
+ "skips":"Two real-symlink fixtures unavailable on Windows. Simulated confinement tests and real hardlink fixture passed; independent reviewer also checked real NTFS junction rejection.",
+ "scope":"Caller-pinned raw bytes and filename roles only, not semantic tokenizer authentication or remote provenance. Hardlinks and physical aliases allowed; path confinement and descriptor consistency narrow but do not eliminate TOCTOU. No atomic sandbox claimed.",
+ "prior_failure_preserved":"SNAPSHOT_VERIFIER_INDEPENDENT_REVIEW_V1.md",
+ "tokenizer_loaded":false,"model_loaded":false,"capture_run":false,"classifier_fit":false,"scientific_execution_authorized":false
+}
