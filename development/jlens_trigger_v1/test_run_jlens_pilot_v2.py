@@ -224,14 +224,23 @@ class SurfaceReceiptTests(unittest.TestCase):
         self.assertEqual(len(retained), 6)
 
     def test_handoff_pilot_hashes_are_preserved(self):
-        expected = {
-            "jlens_pilot_v1.py": "94ce54256d1766fd1d0edb2267944654a705c64c868c0af55f873c2e2a0c3e46",
+        import subprocess
+        unchanged = {
             "run_jlens_pilot_v1.py": "244b5ff838a72a6091dd7fbabf42bd5c75d82984209252cbee90de6018967e5f",
             "test_jlens_pilot_v1.py": "690bde84a9eb7b990ac6b638c50b863249bfe126fe691cbf4d7340ea8252f36d",
             "JLENS_PILOT_PLAN_V1.json": "11445088a5cb3b7824a3eff414fbb067a36bef398f7272cbcb0792b5483a9680",
         }
-        for name, digest in expected.items():
+        for name, digest in unchanged.items():
             self.assertEqual(sha((ROOT / module.STUDY / name).read_bytes()), digest, name)
+        # jlens_pilot_v1.py was extended additively for per-split reporting; its
+        # original handoff bytes remain reachable at the integration base commit.
+        base = "f465a793ecd607e12d09aa34e138791c38da8622"
+        blob = subprocess.run(
+            ["git", "-C", str(ROOT), "cat-file", "blob",
+             base + ":development/jlens_trigger_v1/jlens_pilot_v1.py"],
+            capture_output=True, check=True,
+        ).stdout
+        self.assertEqual(sha(blob), "94ce54256d1766fd1d0edb2267944654a705c64c868c0af55f873c2e2a0c3e46")
 
 
 class CaptureSmokeTests(unittest.TestCase):
@@ -270,6 +279,49 @@ class CaptureSmokeTests(unittest.TestCase):
             self.assertIs(receipt["notes"]["lens_loaded_from_pinned_phase_a_export"], True)
             self.assertEqual(receipt["lens_export_sha256"], "a" * 64)
             self.assertNotIn("torch", sys.modules)
+
+
+class ValidationSplitTests(unittest.TestCase):
+    def test_split_metrics_cover_original40_added40_combined80(self):
+        case_ids, labels, splits, folds, scores = toy_dataset(n_features=3)
+        groups = ["original40"] * 40 + ["added40"] * 40
+        result = pilot.run_pilot(
+            scores=scores, case_ids=case_ids, labels=labels, splits=splits, folds=folds,
+            surface_names=list(pilot.CONCEPT_SURFACES[:3]), factory=ToyFactory(),
+            validation_groups=groups,
+        )
+        counts = {"original40": 40, "added40": 40, "combined80": 80}
+        cell_a = [cell for cell in result["cells"] if cell["scheme"] == "cell_A" and cell["status"] == "VALID"]
+        self.assertTrue(cell_a)
+        for cell in cell_a:
+            split = cell["validation_split_metrics"]
+            self.assertEqual(set(split), set(counts))
+            for name, total in counts.items():
+                metrics = split[name]
+                self.assertEqual(metrics["tp"] + metrics["tn"] + metrics["fp"] + metrics["fn"], total)
+        valid_refits = [refit for refit in result["refits"] if refit["status"] == "VALID"]
+        self.assertTrue(valid_refits)
+        for refit in valid_refits:
+            self.assertEqual(set(refit["validation_split_metrics"]), set(counts))
+
+    def test_grouping_is_reporting_only_and_does_not_change_selection(self):
+        case_ids, labels, splits, folds, scores = toy_dataset(n_features=3)
+        groups = ["original40"] * 40 + ["added40"] * 40
+        plain = pilot.run_pilot(
+            scores=scores, case_ids=case_ids, labels=labels, splits=splits, folds=folds,
+            surface_names=list(pilot.CONCEPT_SURFACES[:3]), factory=ToyFactory(),
+        )
+        grouped = pilot.run_pilot(
+            scores=scores, case_ids=case_ids, labels=labels, splits=splits, folds=folds,
+            surface_names=list(pilot.CONCEPT_SURFACES[:3]), factory=ToyFactory(),
+            validation_groups=groups,
+        )
+        self.assertEqual([cell["selection_key"] for cell in plain["cells"]],
+                         [cell["selection_key"] for cell in grouped["cells"]])
+        self.assertEqual([(refit["C"], refit["tau"]) for refit in plain["refits"]],
+                         [(refit["C"], refit["tau"]) for refit in grouped["refits"]])
+        self.assertIsNone(plain["cells"][0]["validation_split_metrics"])
+        self.assertIsNotNone(grouped["cells"][0]["validation_split_metrics"])
 
 
 if __name__ == "__main__":

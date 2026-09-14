@@ -91,6 +91,7 @@ __all__ = [
     "method_scores",
     "select_threshold_cell",
     "split_metrics",
+    "_split_metrics_by_group",
     "cross_validate_binary",
     "refit_binary",
     "run_pilot",
@@ -492,6 +493,27 @@ def split_metrics(scores, tau, labels_subset, p_self=None):
     return record
 
 
+def _split_metrics_by_group(scores, tau, labels, groups, combined_name="combined80"):
+    """Per-manifest validation metrics (original40 / added40 / combined80).
+
+    ``groups`` is one label per validation row in the frozen validation order.
+    Selection never sees this; the breakdown is reporting only. Returns ``None``
+    when no grouping is supplied so the V1 pooled behavior is unchanged.
+    """
+    if groups is None:
+        return None
+    scores = np.asarray(scores)
+    labels = list(labels)
+    groups = list(groups)
+    need(scores.shape[0] == len(labels) == len(groups), "SPLIT_GROUP_ALIGNMENT")
+    out = {}
+    for name in sorted(set(groups)):
+        index = [i for i, group in enumerate(groups) if group == name]
+        out[name] = split_metrics(scores[index], tau, [labels[i] for i in index])
+    out[combined_name] = split_metrics(scores, tau, labels)
+    return out
+
+
 # --------------------------------------------------------------------------- #
 # learned cell: standardization on TRAIN-fold rows, sklearn lbfgs, honest gates
 # --------------------------------------------------------------------------- #
@@ -627,6 +649,7 @@ def _invalid_cell(base, error):
         thresholds=[],
         frozen_train_metrics=None,
         validation_metrics=None,
+        validation_split_metrics=None,
     )
     return record
 
@@ -635,7 +658,7 @@ def _invalid_cell(base, error):
 # the frozen 96-cell pilot
 # --------------------------------------------------------------------------- #
 def run_pilot(*, scores, case_ids, labels, splits, folds, surface_names=None,
-              factory=None, deadline=None, counters=None):
+              factory=None, deadline=None, counters=None, validation_groups=None):
     """Evaluate the frozen PLAN_V3 96 cells over supplied raw scores.
 
     ``scores[method][condition][layer]`` is a ``(n_cases, R)`` float array of raw
@@ -663,6 +686,9 @@ def run_pilot(*, scores, case_ids, labels, splits, folds, surface_names=None,
     y_train = y[train_index]
     labels_train = [labels[index] for index in train_index.tolist()]
     labels_validation = [labels[index] for index in validation_index.tolist()]
+    validation_groups = list(validation_groups) if validation_groups is not None else None
+    if validation_groups is not None:
+        need(len(validation_groups) == validation_index.size, "VALIDATION_GROUPS")
     fold_classes_ok = all(set(y_train[train].tolist()) == {0, 1} for _, train, _ in partitions)
     probe = _finite_2d(
         np.asarray(scores[METHODS[0]][CONDITIONS[0]][SCORE_LAYERS[0]], dtype=np.float32), "scores"
@@ -741,6 +767,9 @@ def run_pilot(*, scores, case_ids, labels, splits, folds, surface_names=None,
                         validation_metrics=split_metrics(
                             raw_validation[:, surface_index], tau, labels_validation
                         ),
+                        validation_split_metrics=_split_metrics_by_group(
+                            raw_validation[:, surface_index], tau, labels_validation, validation_groups
+                        ),
                     )
                     cells.append(record)
 
@@ -808,6 +837,7 @@ def run_pilot(*, scores, case_ids, labels, splits, folds, surface_names=None,
                             cv["oof_logit"], selection["tau"], labels_train, p_self=oof_p_self
                         ),
                         validation_metrics=None,
+                        validation_split_metrics=None,
                     )
                     cells.append(record)
                     learned.append(record)
@@ -830,6 +860,7 @@ def run_pilot(*, scores, case_ids, labels, splits, folds, surface_names=None,
                                 "tau": best["tau"],
                                 "status": "INVALID",
                                 "error": _short(exc),
+                                "validation_split_metrics": None,
                             }
                         )
                         continue
@@ -854,6 +885,9 @@ def run_pilot(*, scores, case_ids, labels, splits, folds, surface_names=None,
                                 best["tau"],
                                 labels_validation,
                                 p_self=refit["p_validation"],
+                            ),
+                            "validation_split_metrics": _split_metrics_by_group(
+                                refit["logit_validation"], best["tau"], labels_validation, validation_groups
                             ),
                         }
                     )

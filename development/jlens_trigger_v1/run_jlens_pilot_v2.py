@@ -415,6 +415,28 @@ def _inputs(root, lock):
         }
         need(not (fit_groups & test_groups), "FOLD_GROUP_LEAK", str(held))
 
+    validation_membership = {}
+    for role, group in (("original_validation", "original40"), ("added_validation", "added40")):
+        document = runner.strict_json(runner.pinned(root, manifest_pins[role]))
+        cases = document.get("cases")
+        need(type(cases) is list, "VALIDATION_MANIFEST", role)
+        for case in cases:
+            case_id = case.get("case_id")
+            need(type(case_id) is str, "VALIDATION_MANIFEST", role)
+            need(case_id not in validation_membership, "VALIDATION_MANIFEST_DUPLICATE", case_id)
+            validation_membership[case_id] = group
+    need(len(validation_membership) == 80, "VALIDATION_MANIFEST_COUNT")
+    validation_groups = []
+    for case_id in case_order:
+        if manifest["cases"][case_id]["split"] != "VALIDATION":
+            continue
+        need(case_id in validation_membership, "VALIDATION_MANIFEST_MISSING", case_id)
+        validation_groups.append(validation_membership[case_id])
+    need(
+        validation_groups.count("original40") == 40 and validation_groups.count("added40") == 40,
+        "VALIDATION_GROUPS",
+    )
+
     need(type(lock.get("snapshot_cache_root")) is str and lock["snapshot_cache_root"], "SNAPSHOT_CACHE_ROOT")
     base = (root / STUDY / "runs").resolve()
     need(base.is_relative_to(root), "OUTPUT_SCOPE")
@@ -429,6 +451,7 @@ def _inputs(root, lock):
         "cache_indexes": cache_indexes,
         "manifest": manifest,
         "lens_export": {"pin": export_pin, "path": str(export_path), "receipt": export_receipt},
+        "validation_groups": validation_groups,
     }
     return data, {"model_snapshot_lock": runner.pinned(root, snapshot_pin)}
 
@@ -621,6 +644,7 @@ def capture(ctx, started, *, verify=verify_snapshot, tensors=None, hidden=None, 
         factory=factory,
         deadline=fit_check,
         counters=counters,
+        validation_groups=ctx["data"].get("validation_groups"),
     )
     working_memory = _working_memory_gib(tensors, hidden, scores)
     need(working_memory <= caps["working_memory_gib"], "WORKING_MEMORY")
