@@ -61,6 +61,7 @@ def worker(adapter_sha):
                 input_sha256=prepared['provenance']['input_hashes'][order]))
     assert len(rows)==640 and len({v['case_id'] for v in rows})==320
     result=dict(status='PASS',source_lock_sha256=OLD_LOCK_SHA,adapter_sha256=adapter_sha,
+        reference_locks=ctx['lock']['reference_locks'],
         supervisor_source_sha256=sha(Path(__file__)),query=adapter.FIXED_QUERY,query_sha256=adapter.QUERY_SHA256,
         tokenizer_file_pins=pins,provider_sha256=expected,counts=dict(cases=320,views=640,tokenizer_loads=1,model_loads=0,forwards=0,fits=0),
         max_full_tokens=max(v['tokens'] for v in rows),max_prefix_tokens=max(v['prefix_tokens'] for v in rows),
