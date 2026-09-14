@@ -331,6 +331,38 @@ class RealAdapterContractTests(unittest.TestCase):
             self.assertEqual(result["bridge_dtypes"][layer], "float32")
 
 
+class LoadTensorsContractTests(unittest.TestCase):
+    def test_load_tensors_accepts_snapshot_realpath_derived_path(self):
+        """The real load_tensors must accept the Path derived from snapshot_realpath."""
+        import hashlib
+
+        with tempfile.TemporaryDirectory(prefix="jlens_load_tensors_") as temporary:
+            root = Path(temporary)
+            snapshot = root / "snap"
+            snapshot.mkdir()
+            shard = snapshot / "model.safetensors-00001-of-00001.safetensors"
+            shard.write_bytes(b"0123456789")
+            lens = root / "lens.pt"
+            lens.write_bytes(b"PK\x03\x04fake-zip")
+            digest = hashlib.sha256(shard.read_bytes()).hexdigest()
+            lock = {
+                "release": io.RELEASE_V1,
+                "snapshot_cache_root": str(root),
+                "inputs": {"lens": {"path": str(lens), "cache_root": str(root)}},
+            }
+            proof = {
+                "snapshot_realpath": str(snapshot),
+                "checked_files": [{"name": shard.name, "bytes": shard.stat().st_size, "sha256": digest}],
+            }
+            with mock.patch.object(io, "load_lens_jacobians", return_value={6: "jacobian"}), \
+                 mock.patch.object(io, "load_norm_weight", return_value=np.zeros(4, np.float32)), \
+                 mock.patch.object(io, "load_unembed_rows", return_value=np.zeros((2, 4), np.float32)):
+                tensors = module.load_tensors({"lock": lock}, proof, [1, 2])
+        self.assertEqual(tensors["jacobians"], {6: "jacobian"})
+        self.assertEqual(tensors["norm"].shape, (4,))
+        self.assertEqual(tensors["rows"].shape, (2, 4))
+
+
 # --------------------------------------------------------------------------- #
 # preflight gates
 # --------------------------------------------------------------------------- #

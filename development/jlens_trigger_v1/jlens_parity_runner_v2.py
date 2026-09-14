@@ -293,7 +293,7 @@ def load_tensors(ctx, proof, token_ids):
     shards = [name for name in files if name.endswith(".safetensors")]
     need(len(shards) == 1, "MODEL_SINGLE_SHARD")
     name = shards[0]
-    model_file = io.contained_path(Path(proof["snapshot_realpath"]) / name, lock["snapshot_cache_root"])
+    model_file = io.contained_path(str(Path(proof["snapshot_realpath"]) / name), lock["snapshot_cache_root"])
     model_pin = {"bytes": files[name]["bytes"], "sha256": files[name]["sha256"]}
     io.strict_file(model_file, model_pin, full_hash=True)
     norm = io.load_norm_weight(model_file, model_pin, release=lock["release"], full_hash=False)
