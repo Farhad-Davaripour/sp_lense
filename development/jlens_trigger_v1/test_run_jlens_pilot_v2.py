@@ -27,6 +27,7 @@ import jlens_core_v2 as core
 import jlens_io_v1 as io
 import jlens_pilot_v1 as pilot
 import run_jlens_pilot_v2 as module
+import audit_jlens_pilot_v1 as audit
 
 ROOT = module.ROOT
 
@@ -322,6 +323,30 @@ class ValidationSplitTests(unittest.TestCase):
                          [(refit["C"], refit["tau"]) for refit in grouped["refits"]])
         self.assertIsNone(plain["cells"][0]["validation_split_metrics"])
         self.assertIsNotNone(grouped["cells"][0]["validation_split_metrics"])
+
+
+class AuditTests(unittest.TestCase):
+    def test_audit_reports_all_splits_for_raw_and_learned(self):
+        case_ids, labels, splits, folds, scores = toy_dataset(n_features=3)
+        groups = ["original40"] * 40 + ["added40"] * 40
+        cells = pilot.run_pilot(
+            scores=scores, case_ids=case_ids, labels=labels, splits=splits, folds=folds,
+            surface_names=list(pilot.CONCEPT_SURFACES[:3]), factory=ToyFactory(),
+            validation_groups=groups,
+        )
+        receipt = {
+            "run_id": "toy", "lock_sha256": "e" * 64, "fits": cells["fits"],
+            "selected_logit_reads": cells["selected_logit_reads"], "surfaces": [],
+        }
+        result = audit.summarize(cells, receipt)
+        self.assertEqual(len(result["learned_refits"]), 12)
+        self.assertTrue(result["raw_cells"])
+        for record in result["raw_cells"] + result["learned_refits"]:
+            self.assertEqual(set(record["splits"]), set(audit.SPLITS))
+        self.assertEqual(len(result["comparison"]), 6)
+        markdown = audit.render_markdown(result)
+        self.assertIn("combined80", markdown)
+        self.assertIn("JLENS_PILOT_AUDIT_V1", markdown)
 
 
 if __name__ == "__main__":
