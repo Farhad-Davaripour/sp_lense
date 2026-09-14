@@ -170,6 +170,8 @@ def main(argv=None):
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--manifest-only", action="store_true")
     parser.add_argument("--commit")
+    parser.add_argument("--run-id", default="jlens_parity_20260914_v1")
+    parser.add_argument("--lock-name", default="JLENS_PARITY_LOCK_V1.json")
     args = parser.parse_args(argv)
 
     prefix = Path(sys.prefix).resolve()
@@ -218,7 +220,7 @@ def main(argv=None):
 
     lock = {
         "schema": "jlens_parity_execution.v1",
-        "run_id": "jlens_parity_20260914_v1",
+        "run_id": args.run_id,
         "release": "jlens_io_release_v1",
         "scientific_execution_authorized": True,
         "source_commit": args.commit,
@@ -254,7 +256,7 @@ def main(argv=None):
             "extra_provider_sources": "import closure of the bridge boot path captured before the run",
         },
     }
-    lock_path = ROOT / STUDY / "JLENS_PARITY_LOCK_V1.json"
+    lock_path = ROOT / STUDY / args.lock_name
     lock_raw = (json.dumps(lock, sort_keys=True, indent=1) + "\n").encode("utf-8")
     lock_path.write_bytes(lock_raw)
     print("LOCK_WRITTEN", lock_path.as_posix())

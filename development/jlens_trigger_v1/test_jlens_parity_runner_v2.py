@@ -239,6 +239,99 @@ def run_capture(root, adapter, tensors):
 
 
 # --------------------------------------------------------------------------- #
+# real adapter contract (the fake-only gap that let the working-memory field go missing)
+# --------------------------------------------------------------------------- #
+class _FakeScalarTensor:
+    def __init__(self, value, dtype="float32"):
+        self.value = np.asarray(value, dtype=np.float32)
+        self.dtype = dtype
+
+    def detach(self):
+        return self
+
+    def float(self):
+        return self
+
+    def cpu(self):
+        return self
+
+    def numpy(self):
+        return self.value
+
+
+class _FakeComponent:
+    def __init__(self):
+        self.hooks = []
+
+    def register_forward_hook(self, hook):
+        self.hooks.append(hook)
+
+        class _Handle:
+            def remove(self_inner):
+                return None
+
+        return _Handle()
+
+
+class _FakeBlockBridge:
+    def __init__(self):
+        self.original_component = _FakeComponent()
+
+
+class _FakeBridge:
+    def __init__(self, seq, d_model):
+        self.seq = seq
+        self.d_model = d_model
+        self.blocks = {layer: _FakeBlockBridge() for layer in module.BLOCKS}
+
+    def run_with_cache(self, tokens, names_filter=None):
+        cache = {}
+        for layer, block in self.blocks.items():
+            component = block.original_component
+            out = np.zeros((self.seq, self.d_model), dtype=np.float32)
+            for hook in component.hooks:
+                hook(component, None, (_FakeScalarTensor(out),))
+            cache["blocks.%d.hook_out" % layer] = _FakeScalarTensor(out)
+        return None, cache
+
+
+class _FakeTorch:
+    long = "long"
+
+    def tensor(self, data, dtype=None):
+        return data
+
+    def no_grad(self):
+        class _Ctx:
+            def __enter__(self_inner):
+                return None
+
+            def __exit__(self_inner, *args):
+                return False
+
+        return _Ctx()
+
+
+class RealAdapterContractTests(unittest.TestCase):
+    def test_real_run_once_reports_working_memory_and_layer_dtypes(self):
+        adapter = object.__new__(module.ParityAdapter)
+        adapter.torch = _FakeTorch()
+        adapter.bridge = _FakeBridge(seq=3, d_model=4)
+        adapter.hook_names = {layer: "blocks.%d.hook_out" % layer for layer in module.BLOCKS}
+        adapter.working_memory_gib = 0.5
+        adapter.selected_token_ids = lambda: [1, 2, 3]
+        result = module.ParityAdapter.run_once(adapter, [1, 2, 3])
+        self.assertEqual(result["working_memory_gib"], 0.5)
+        self.assertEqual(result["forward_count"], 1)
+        self.assertEqual(result["fits"], 0)
+        self.assertEqual(set(result["native_layers"]), set(module.BLOCKS))
+        self.assertEqual(set(result["bridge_layers"]), set(module.BLOCKS))
+        for layer in module.BLOCKS:
+            self.assertEqual(result["native_dtypes"][layer], "float32")
+            self.assertEqual(result["bridge_dtypes"][layer], "float32")
+
+
+# --------------------------------------------------------------------------- #
 # preflight gates
 # --------------------------------------------------------------------------- #
 class PreflightTests(unittest.TestCase):

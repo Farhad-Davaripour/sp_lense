@@ -467,6 +467,7 @@ class ParityAdapter:
             tokenizer_loads=1,
             same_model_object=True,
             same_model_hook_available=True,
+            working_memory_gib=self.working_memory_gib,
             native_layers=native_layers,
             bridge_layers=bridge_layers,
             native_dtypes=native_dtypes,
