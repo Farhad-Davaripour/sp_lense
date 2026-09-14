@@ -456,8 +456,12 @@ class ParityAdapter:
                 handle.remove()
         native_layers, bridge_layers, native_dtypes, bridge_dtypes = {}, {}, {}, {}
         for layer in BLOCKS:
-            native_layers[layer] = captured[layer].detach().float().cpu().numpy()
-            bridge_layers[layer] = cache[self.hook_names[layer]].detach().float().cpu().numpy()
+            native = captured[layer].detach().float().cpu().numpy()
+            bridge = cache[self.hook_names[layer]].detach().float().cpu().numpy()
+            # One 1-row batch is submitted, so both recordings are (1, seq, d_model);
+            # capture()'s contract is the unbatched (seq, d_model) layer output.
+            native_layers[layer] = native[0] if native.ndim == 3 else native
+            bridge_layers[layer] = bridge[0] if bridge.ndim == 3 else bridge
             native_dtypes[layer] = str(captured[layer].dtype).replace("torch.", "")
             bridge_dtypes[layer] = str(cache[self.hook_names[layer]].dtype).replace("torch.", "")
         return dict(

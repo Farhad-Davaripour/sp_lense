@@ -288,7 +288,8 @@ class _FakeBridge:
         cache = {}
         for layer, block in self.blocks.items():
             component = block.original_component
-            out = np.zeros((self.seq, self.d_model), dtype=np.float32)
+            # Mirror the real dependency: one 1-row batch, so (1, seq, d_model).
+            out = np.zeros((1, self.seq, self.d_model), dtype=np.float32)
             for hook in component.hooks:
                 hook(component, None, (_FakeScalarTensor(out),))
             cache["blocks.%d.hook_out" % layer] = _FakeScalarTensor(out)
@@ -329,6 +330,9 @@ class RealAdapterContractTests(unittest.TestCase):
         for layer in module.BLOCKS:
             self.assertEqual(result["native_dtypes"][layer], "float32")
             self.assertEqual(result["bridge_dtypes"][layer], "float32")
+            # capture() requires the unbatched (seq, d_model) layer output.
+            self.assertEqual(result["native_layers"][layer].shape, (3, 4))
+            self.assertEqual(result["bridge_layers"][layer].shape, (3, 4))
 
 
 class LoadTensorsContractTests(unittest.TestCase):
