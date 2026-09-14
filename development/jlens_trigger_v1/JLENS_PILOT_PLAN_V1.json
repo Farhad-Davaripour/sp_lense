@@ -1,0 +1,209 @@
+{
+  "schema": "sp_lense.jlens_pilot_plan.v1",
+  "job_id": "jlens_pilot_v1",
+  "status": "PROSPECTIVE_UNAUTHORIZED",
+  "authoritative_spec": {
+    "path": "development/jlens_trigger_v1/PLAN_V3.json",
+    "sha256": "d981f847df76530e602f4de4ef440d9e48296ebf1b48ee6bdbec9137a1f0b633",
+    "phase": "stage_3_scored_pilot",
+    "scientific_execution_authorized": false
+  },
+  "authorization_gates": {
+    "required_before_any_real_run": [
+      "one finite root-prepared execution lock (schema jlens_pilot_execution.v1, scientific_execution_authorized true, caps equal to jlens_pilot_v1.CAPS)",
+      "the zero-fit preflight (`run_jlens_pilot_v1.py --lock <lock> --sha256 <digest>`, no --run/--worker) passing with fits=0, forwards=0, model_loads=0, tokenizer_loads=0",
+      "one independent review of the pilot glue, the lock, and the frozen threshold/tie-break behavior",
+      "the separate stage-2 parity release passing; no fidelity or J-lens claim is made before it"
+    ],
+    "this_phase_did_not_run": true,
+    "model_loads": 0,
+    "tokenizer_loads": 0,
+    "forwards": 0,
+    "derivatives": 0,
+    "fits": 0,
+    "tensor_reads": 0,
+    "holdout_reads": 0
+  },
+  "frozen_axes": {
+    "concept_surfaces": [" survival", " shutdown", " continuation", " termination", " end", " stop"],
+    "retained_surfaces_R_max": 6,
+    "layers": [6, 10, 18],
+    "conditions": ["unprompted", "prompted"],
+    "conditions_trained_independently": true,
+    "methods": ["j_lens_transport", "logit_lens_J_identity_matched_control"],
+    "identity_matched_control": "J = I through the identical transport -> Qwen3.5 (1 + weight) final norm -> selected-unembedding code path",
+    "position_rule": "last_shared_pre_option_only",
+    "view_reduction_prospective_pin": "AB and BA raw hidden windows are pair-averaged in float64 then cast to float32 exactly as the reviewed classifier reader does; this is a prospective pin independent review must confirm or reject"
+  },
+  "finite_cells_exact": {
+    "cell_A_fixed_concept_raw_score": {
+      "cells": "retained surfaces x 3 layers x 2 conditions x 2 methods; maximum 6 x 3 x 2 x 2 = 72",
+      "fit_count": 0,
+      "score": "raw direct logit at the frozen surface token",
+      "threshold": "finite 19-point TRAIN quantile grid"
+    },
+    "cell_B_regularized_binary_combination": {
+      "cells": "2 C values x 3 layers x 2 conditions x 2 methods = 24",
+      "C_values": [0.1, 1.0],
+      "features": "all R retained raw scores jointly; standardization on TRAIN-fold rows only",
+      "CV_folds": 5,
+      "CV_fits_max": 120,
+      "refit_rule": "one best-C refit per (method, condition, layer) on full TRAIN",
+      "refits_max": 12,
+      "fit_count_max": 132,
+      "solver": "existing sklearn.lbfgs LogisticRegression via grouped_driver._default_factory; never custom IRLS"
+    },
+    "total_score_cells_max": 96,
+    "max_selected_logit_reads": 23040,
+    "max_records_decoded": 3840
+  },
+  "threshold_plan": {
+    "finite_quantile_grid": [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
+    "quantile_method": "numpy.quantile(..., method='linear')",
+    "per_fold_selection": "for held-out fold k, tau(q) is computed from fold k's TRAIN partition scores only; for the learned cell those are the fold model's in-sample TRAIN-fold logits",
+    "final_refit_threshold": "tau* = quantile(q*, full TRAIN OOF scores)",
+    "prediction_rule": "score >= tau after casting tau to float32",
+    "tie_break_chain": ["max min(precision, recall)", "max f1", "lower C", "earlier method index", "earlier condition index", "lower layer", "lower cell index", "binary-first", "abs(tau-0.5)", "smaller tau", "lower feature count", "lower concept-surface index"],
+    "no_eligible_threshold": "report NO_ELIGIBLE_TRAIN_CANDIDATE; never tune on validation",
+    "degenerate_fold": "a fold whose TRAIN partition lacks either class invalidates the dependent cells whole",
+    "validation_used_for_selection": false
+  },
+  "caps": {
+    "readout_seconds": 900,
+    "fit_seconds": 600,
+    "hard_total_seconds": 1800,
+    "output_bytes": 67108864,
+    "working_memory_gib": 2.5,
+    "model_loads": 0,
+    "tokenizer_loads": 0,
+    "forwards": 0,
+    "derivatives": 0,
+    "cone_fits": 0,
+    "pca_fits": 0,
+    "hyperparameter_search": false,
+    "holdout_reads": 0
+  },
+  "known_pins": {
+    "lens": {
+      "repo": "neuronpedia/jacobian-lens",
+      "revision": "6bb49967d3c51a12ccb5beac7146f6f5781f9d06",
+      "filename": "qwen3.5-0.8b/jlens/Salesforce-wikitext/Qwen3.5-0.8B_jacobian_lens.pt",
+      "bytes": 48242373,
+      "sha256": "aa26b68ed73cf903280dbd8d1806f4ed8580aad205f396a5c997ee19259c9b48",
+      "cache_root": "C:/Users/farha/.cache/huggingface/hub",
+      "path": "C:/Users/farha/.cache/huggingface/hub/models--neuronpedia--jacobian-lens/snapshots/6bb49967d3c51a12ccb5beac7146f6f5781f9d06/qwen3.5-0.8b/jlens/Salesforce-wikitext/Qwen3.5-0.8B_jacobian_lens.pt"
+    },
+    "model": {
+      "repo": "Qwen/Qwen3.5-0.8B",
+      "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "norm_key": "model.language_model.norm.weight",
+      "unembed_key": "model.language_model.embed_tokens.weight",
+      "unembed_shape": [248320, 1024],
+      "snapshot_lock": {
+        "path": "development/classifier_generalization_v2/NATIVE_SNAPSHOT_LOCK_CANDIDATE_V1.json",
+        "sha256": "d9da293c376ba1ed2ab2848c420818cd04e78b543d943a4d7912a1da23f31827"
+      }
+    },
+    "unprompted_cache": {
+      "condition": null,
+      "index": {
+        "path": "development/classifier_generalization_v2/runs/span_capture_20260914_v1/index.json",
+        "bytes": 1054612,
+        "sha256": "10457cf2668d72b1b65968b58fd94113681d028e844ade46f3d52a958c072418"
+      },
+      "windows": {
+        "path": "development/classifier_generalization_v2/runs/span_capture_20260914_v1/windows.f32",
+        "bytes": 125829120,
+        "sha256": "cc4c756d5bd23f40d0e4781886008c2bdcc4b21b228299746aececaaaf88d103"
+      }
+    },
+    "prompted_cache": {
+      "condition": "prompted_fixed_query_v1",
+      "index": {
+        "path": "development/classifier_generalization_v2/runs/prompted_capture_20260914_v1/index.json",
+        "bytes": 1485448,
+        "sha256": "8a476cf3d01c77e1d549b9757734bbb8a03edfb60f10e761ed3a20df36fd15ac"
+      },
+      "windows": {
+        "path": "development/classifier_generalization_v2/runs/prompted_capture_20260914_v1/windows.f32",
+        "bytes": 125829120,
+        "sha256": "6cef755d4da7bfe49a6cad07f9a92b7f1e24c8421f69acad2eabf4a52fedad9b"
+      }
+    },
+    "manifests": {
+      "original_train": {
+        "path": "development/classifier_generalization_v2/TRAIN_ACCEPTED_V10.json",
+        "bytes": 188753,
+        "sha256": "60a9ee7bd5c02f8656f495b6cf74a6b9e97a7c6a0df622d78a01c4cdebe52fb9"
+      },
+      "original_validation": {
+        "path": "development/classifier_generalization_v2/VALIDATION_ACCEPTED_V3.json",
+        "bytes": 65706,
+        "sha256": "0bf23931085c453655a2c8c164b76393077d1254ac096de15c05454f616fd617"
+      },
+      "added_train": {
+        "path": "development/classifier_generalization_v2/EXPANSION_TRAIN_ROOT_V2.json",
+        "bytes": 142657,
+        "sha256": "beae36ebad963f6af69bdfdb3e2b176a0b57634c1322e35a23f6a28485f5db83"
+      },
+      "added_validation": {
+        "path": "development/classifier_generalization_v2/EXPANSION_VALIDATION_ROOT_V2.json",
+        "bytes": 49725,
+        "sha256": "1a34cf78c79ed0e74f435248161eed3518d2c85ae79fe560a50b0e8820209ccf"
+      },
+      "blueprint": {
+        "path": "development/classifier_generalization_v2/GROUP_BLUEPRINT_V4.json",
+        "bytes": 12140,
+        "sha256": "46c0f5abe41e68bdd456ec956c74ad8c01b85085101b3c2ab83fc7ad72cf4593"
+      }
+    },
+    "verified_early": "run_jlens_pilot_v1.verify_safe_interfaces(root) authenticates both cache indexes, the manifests plus blueprint and the lens header/hash with zero tensor-body, model or tokenizer reads"
+  },
+  "unresolved_pins": [
+    {"pin": "surface_token_ids", "reason": "tokenization is a stage-1 bounded job; the pilot consumes pinned (surface, token_id, single_token=true) pairs and must never load a tokenizer", "owner": "stage_1_pinning_cache_and_tokenization"},
+    {"pin": "surface_tokenization_receipt", "reason": "provenance for the exact pinned tokenizer revision and the per-surface single-token assertion", "owner": "stage_1_pinning_cache_and_tokenization"},
+    {"pin": "finite_lock", "reason": "no jlens_pilot_execution.v1 lock exists; caps, run_id, source_commit, source_files, runtime, provider_sources and inputs must be frozen and authorized", "owner": "root"},
+    {"pin": "independent_review", "reason": "one independent review of the glue, the lock and the frozen threshold/tie-break behavior is mandatory", "owner": "independent_reviewer"},
+    {"pin": "stage_2_parity_receipt", "reason": "the separate parity release must pass before any real scoring; no fidelity claim before it", "owner": "stage_2_separate_parity_release"},
+    {"pin": "runtime_resolution", "reason": "the reviewed lens runtime (.venv: torch 2.13.0+cpu, numpy 2.5.2, no scipy/scikit-learn) and the locked classifier runtime (.runtime: numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, no torch) are disjoint; the finite lock must authorize one reviewed environment providing both the explicit weights_only lens loader and the sklearn lbfgs backend, or a separately reviewed two-phase release", "owner": "root"},
+    {"pin": "ab_ba_pair_average_convention", "reason": "PLAN_V3 fixes the 320-case accounting but not the view reduction; the prospective pair-average convention must be confirmed or replaced under review", "owner": "independent_reviewer"},
+    {"pin": "final_tau_freeze", "reason": "q*, tau* and the learned C are computed at run time from TRAIN OOF only; the frozen values are recorded in cell_results.json but a future validation release must consume them unchanged", "owner": "stage_3_scored_pilot"}
+  ],
+  "forbidden": [
+    "any model, tokenizer, forward, derivative, PCA or cone fit",
+    "any holdout or private path read; any holdout case in either cache",
+    "any vocabulary-wide scan or whole-unembedding materialization",
+    "any custom IRLS or non-sklearn learned backend",
+    "any hyperparameter search beyond the two frozen C values",
+    "any validation-driven selection, standardization, C choice or threshold",
+    "editing Git/coordination/config/frozen evidence; pickling estimators"
+  ],
+  "artifacts_prospective": {
+    "study": "development/jlens_trigger_v1",
+    "files": [
+      "jlens_pilot_v1.py",
+      "run_jlens_pilot_v1.py",
+      "test_jlens_pilot_v1.py",
+      "JLENS_PILOT_PLAN_V1.json",
+      "JLENS_PILOT_HANDOFF_V1.md"
+    ],
+    "run_outputs": ["runs/<run_id>/cell_results.json", "runs/<run_id>/pilot_receipt.json"],
+    "exclusive_writes": true,
+    "failure_evidence": "runs/controller_failure_<token>.json"
+  },
+  "notes": {
+    "no_scientific_result_claimed": true,
+    "raw_direct_logit_is_not_a_probability": true,
+    "only_probability": "cell_B p_self = sigmoid(learned logit)",
+    "holdout_untouched": true,
+    "no_new_general_framework": true,
+    "reused_helpers": [
+      "jlens_core_v2 float32 readout math",
+      "jlens_io_v1 CacheIndex/lens/model pinning and selected rows",
+      "jlens_parity_runner_v2 preflight/owner/exclusive-output/one-watch patterns",
+      "grouped_driver._default_factory and fold/estimator gates",
+      "span_classifier_driver_v1.load_manifests",
+      "harness binary metrics, eligibility and pair-averaging"
+    ]
+  }
+}

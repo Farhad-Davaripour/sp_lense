@@ -1,0 +1,74 @@
+{
+  "schema": "jlens_surface_token_receipt.v1",
+  "job_id": "jlens_pilot_stage1_surfaces_v1",
+  "created_utc": "2026-09-14T18:24:00Z",
+  "resolution": "RESOLVED_FROM_EXISTING_REVIEWED_PARITY_V4_EVIDENCE_NO_NEW_TOKENIZER_LOAD",
+  "claim": "Each of the six frozen PLAN_V3 concept surfaces encodes under the pinned Qwen3.5-0.8B tokenizer to exactly one token with add_special_tokens=False; the six token ids are unique and listed in CONCEPT_SURFACES_V1 order.",
+  "surface_order_source": {
+    "path": "development/jlens_trigger_v1/jlens_core_v2.py",
+    "sha256": "1aa0f3814979f9b61bf004775d79652523b18bea0bfc591f8ac8d3ba96433903",
+    "symbol": "CONCEPT_SURFACES_V1",
+    "value": [" survival", " shutdown", " continuation", " termination", " end", " stop"]
+  },
+  "evidence": {
+    "parity_run": "jlens_parity_20260914_v4",
+    "parity_receipt": {
+      "path": "development/jlens_trigger_v1/runs/jlens_parity_20260914_v4/parity_receipt.json",
+      "bytes": 1538,
+      "sha256": "d3554cecdae4833e5c86a75ea635ba926b4a8ed7abbaafb909db148d593115ee",
+      "status": "parity_complete",
+      "selected_token_ids": [19060, 23022, 39811, 33265, 809, 2842],
+      "adapter_surface_count": 6
+    },
+    "parity_supervisor_success": {
+      "path": "development/jlens_trigger_v1/runs/jlens_parity_20260914_v4/supervisor_success.json",
+      "bytes": 378,
+      "sha256": "ccb72218dfe3dc8afc602991860952431ddcfa4dd8d2f03ab7d60f9789ac5de1",
+      "status": "complete",
+      "output_parity_receipt_sha256": "d3554cecdae4833e5c86a75ea635ba926b4a8ed7abbaafb909db148d593115ee"
+    },
+    "parity_lock": {
+      "path": "development/jlens_trigger_v1/JLENS_PARITY_LOCK_V4.json",
+      "sha256": "cae2d774cb458ca68f9c5b13825645c682063be1e763aa349667d6ad82dac2c5",
+      "source_commit": "45981c83c576db6fafe16e3941f651e68201df99"
+    },
+    "parity_runner": {
+      "path": "development/jlens_trigger_v1/jlens_parity_runner_v2.py",
+      "sha256": "6a668d204d17e70a42aec312a413fa477405a60124762d0dfc723a9831fbfc2a",
+      "method": "ParityAdapter.selected_token_ids() iterates core.CONCEPT_SURFACES_V1 in order, encodes each surface with tokenizer.encode(surface, add_special_tokens=False), and appends encoded[0] only when len(encoded)==1 and the id is not already present"
+    },
+    "tokenizer": {
+      "model_repo": "Qwen/Qwen3.5-0.8B",
+      "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "packages": {
+        "tokenizers": "0.23.0rc0",
+        "transformers": "5.15.1"
+      },
+      "provider_source_sha256": "fac4e6576bfe2369731be147a4e530f262bdf32f2ac50436f96f0d8bdd2fc628",
+      "add_special_tokens": false
+    }
+  },
+  "derivation": "The V4 parity run loaded the pinned tokenizer, encoded the six CONCEPT_SURFACES_V1 entries once each (add_special_tokens=False), and recorded the surviving single-token ids in order. It recorded exactly six unique ids for six frozen surfaces, which is only possible if every surface encoded to exactly one token and all six ids are distinct. The order is preserved, so id i maps to CONCEPT_SURFACES_V1[i].",
+  "surfaces": [
+    {"surface_index": 0, "surface": " survival", "token_id": 19060, "single_token": true},
+    {"surface_index": 1, "surface": " shutdown", "token_id": 23022, "single_token": true},
+    {"surface_index": 2, "surface": " continuation", "token_id": 39811, "single_token": true},
+    {"surface_index": 3, "surface": " termination", "token_id": 33265, "single_token": true},
+    {"surface_index": 4, "surface": " end", "token_id": 809, "single_token": true},
+    {"surface_index": 5, "surface": " stop", "token_id": 2842, "single_token": true}
+  ],
+  "retained_surface_count": 6,
+  "checks": {
+    "six_of_six_single_token": true,
+    "ids_unique": true,
+    "order_equals_concept_surfaces_v1": true,
+    "new_tokenizer_load_performed": false,
+    "new_model_load_performed": false,
+    "holdout_reads": 0
+  },
+  "notes": {
+    "boundary_token_id_198_is_not_position_198": true,
+    "surface_includes_leading_space": true,
+    "no_reason_to_repeat_tokenization": "A fresh tokenizer-only check was unnecessary because the executed, independently reviewed V4 parity run already contains the exact tokenizer call and its six single-token results; re-running would add a token load with no new information."
+  }
+}
