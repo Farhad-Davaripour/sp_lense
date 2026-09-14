@@ -1,0 +1,11 @@
+# Small cached three-layer linear control — prospective plan
+
+Question: can a regularized linear boundary on normalized multi-layer activations transfer better than the already-tested axis-aligned XGBoost classifier? This is not an exact repeat: earlier logistic runs used only block10; the new three-layer batch used XGBoost only. The prior review recommended skipping a mild normalization variant, but did not test this different classifier on these three layers. One cheap diagnostic is justified; no promise of improvement or causal attribution to normalization alone.
+
+Use the completed, authenticated span_capture_20260914_v1 cache and identical240TRAIN/80VALIDATION cases. Pair-average AB/BA windows percase; take last token from blocks6,10,18; L2-normalize each layer separately with zero-vector mapped tozero, then concatenate3072coordinates. No learned preprocessing, PCA, extra features or new Qwen calls. Only the existing scoped loader is reused; do not inject logistic regression into an XGBoost-labelled fit plan.
+
+Binary SELF-vs-rest and four-class LogisticRegression, L2 penalty, lbfgs,max_iter1000,tol1e-4,class_weightNone,random_state0. C=[0.1,1,10]; fixed5group-disjoint TRAIN folds. Maximum30CVclassifierfit attempts and2full-TRAIN family refits. Thresholds0.05..0.95step0.05, selected exclusively by TRAIN OOF min(precision,recall), thenF1, lowerC, thresholdnearest0.5, smallerthreshold; global family tie prefersbinary. A failed/nonconverged/nonfinite fold invalidates its whole C/family candidate. Never pool surviving folds or tune on validation.
+
+Source/input/runtime pins, independent protocol review and a zero-fit load check precede execution. One fresh run ID, exclusive outputs, external300second limit,256MiBoutput allowance; preserve failure evidence. No existing limit changes. Record actual attempts/refits; no bootstrap classifierfits in this budget.
+
+Report train, original40validation, added40validation, combined80, all family winners and the TRAIN-selected one. Include precision/recall/F1, four-class confusion/macroF1, negativeFP, orderconsistency and uncertainty. Compare frozen earlier results on identical subsets; a gain only on added cases is not reliable generalization. Save models and verify from disk. HOLDOUT192 stays sealed; no finalcandidate release or newdata from this diagnostic.
