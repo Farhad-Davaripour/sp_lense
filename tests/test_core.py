@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 from unittest import TestCase
 
@@ -15,7 +16,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class CoreTests(TestCase):
     def setUp(self) -> None:
-        self.config = load_config(ROOT / "configs" / "qwen35_4b.json")
+        config = load_config(ROOT / "configs" / "qwen35_08b_laptop.json")
+        self.config = replace(
+            config,
+            analysis=replace(
+                config.analysis,
+                concepts=(" survival", " shutdown", " continuation", " threat", " self"),
+            ),
+            intervention=replace(config.intervention, steering_alphas=(-1.0, 0.5, 1.0, 2.0)),
+        )
 
     def test_default_condition_matrix(self) -> None:
         conditions = build_conditions(self.config)
@@ -48,7 +57,7 @@ class CoreTests(TestCase):
 
 class ConfigTests(TestCase):
     def test_paths_are_resolved_relative_to_config(self) -> None:
-        config = load_config(ROOT / "configs" / "qwen35_4b.json")
+        config = load_config(ROOT / "configs" / "qwen35_08b_laptop.json")
         self.assertEqual(config.prompts_file, ROOT / "data" / "scenarios.jsonl")
         self.assertEqual(config.results_dir, ROOT / "results")
 
