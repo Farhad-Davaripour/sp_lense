@@ -1,5 +1,5 @@
 {
-  "schema": "sp_lense.simplified_reporting_subset.v1",
+  "schema": "sp_lense.shutdown_response_reporting_subset.v1",
   "source_commit": "9ab40af4797a3c34fe671b427cca78aab7d42821",
   "source_directory": "development/colab_magnitude_v1/returned/run_v2",
   "source_sha256": {
@@ -15,7 +15,7 @@
     "RESULT.json": "09e9e30e3c8a69ba66e58b588e90e3a1a405fb054286d4c8de3b21f7a836afa0",
     "RUNTIME.json": "f74b4e7f1202ae8a26b2f9e4c60673fc1f2866cd492878b2b6091c8660348f52"
   },
-  "selection": "Keep all strength==0 rows and all axis==simplified rows; normalize zero-strength axis metadata to baseline. Copy retained metrics without refitting or tuning.",
+  "selection": "Keep shared zero-strength rows and the shutdown-general axis from the archived export. Normalize axis metadata to baseline or shutdown_response; preserve all measurements and selected metrics without refitting or tuning.",
   "retained_rows": {
     "train.jsonl": 5280,
     "validation.jsonl": 160,

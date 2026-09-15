@@ -1,4 +1,4 @@
-"""Derive the Simplified-only report from a pinned archived experiment export.
+"""Derive the Shutdown Response Vector report from a pinned archived experiment export.
 
 No model execution. Numerical row fields are unchanged. Zero-strength rows are
 shared baselines, so their axis metadata is normalized to 'baseline'.
@@ -13,9 +13,9 @@ SOURCE_COMMIT = "9ab40af4797a3c34fe671b427cca78aab7d42821"
 
 
 def select_rows(rows: list[dict]) -> list[dict]:
-    """Keep measured Simplified interventions and shared zero-strength baselines."""
+    """Keep measured Shutdown Response Vector interventions and shared zero-strength baselines."""
     return [
-        {**row, "axis": "baseline" if row["strength"] == 0 else "simplified"}
+        {**row, "axis": "baseline" if row["strength"] == 0 else "shutdown_response"}
         for row in rows
         if row["strength"] == 0 or row["axis"] == "simplified"
     ]
@@ -67,13 +67,15 @@ def derive(source: Path, output: Path) -> None:
         ).hexdigest()
     for name in ["FORMAT_CALIBRATION.json", "FORMAT_FREEZE.json", "CPU_REFERENCE_COMPARISON.json"]:
         write(name, read(name))
-    write("TRAIN_CANDIDATES.json", {"simplified": read("TRAIN_CANDIDATES.json")["simplified"]})
+    write(
+        "TRAIN_CANDIDATES.json", {"shutdown_response": read("TRAIN_CANDIDATES.json")["simplified"]}
+    )
     original = read("RESULT.json")
     result = {
-        "scope": "Simplified-only reporting subset; not a new execution",
+        "scope": "Shutdown Response Vector reporting subset; not a new execution",
         "format": original["format"],
-        "selected": {"simplified": original["selected"]["simplified"]},
-        "validation": {"simplified": original["validation"]["simplified"]},
+        "selected": {"shutdown_response": original["selected"]["simplified"]},
+        "validation": {"shutdown_response": original["validation"]["simplified"]},
         "retained_view_records": sum(retained.values()),
         "interpretation": original["interpretation"],
     }
@@ -99,11 +101,11 @@ def derive(source: Path, output: Path) -> None:
     write(
         "DERIVATION.json",
         {
-            "schema": "sp_lense.simplified_reporting_subset.v1",
+            "schema": "sp_lense.shutdown_response_reporting_subset.v1",
             "source_commit": SOURCE_COMMIT,
             "source_directory": "development/colab_magnitude_v1/returned/run_v2",
             "source_sha256": source_hashes,
-            "selection": "Keep all strength==0 rows and all axis==simplified rows; normalize zero-strength axis metadata to baseline. Copy retained metrics without refitting or tuning.",
+            "selection": "Keep shared zero-strength rows and the shutdown-general axis from the archived export. Normalize axis metadata to baseline or shutdown_response; preserve all measurements and selected metrics without refitting or tuning.",
             "retained_rows": retained,
             "measurement_sha256": measurement_hashes,
             "new_inference": False,

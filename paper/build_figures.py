@@ -20,7 +20,7 @@ from reproduce.utils import verify_manifest
 
 STUDY = ROOT / "development/shutdown_detection_v1"
 CPU = ROOT / "development/classifier_gated_steering_v1"
-GPU = ROOT / "development/colab_magnitude_v1/simplified"
+GPU = ROOT / "development/colab_magnitude_v1/shutdown_response"
 SOURCES = {}
 
 
@@ -124,7 +124,7 @@ def main():
     w = 0.34
     for off, split, color, title in [
         (-w / 2, "validation", "#3677a8", "Validation (80)"),
-        (w / 2, "diagnostic_holdout", "#d18532", "Exposed holdout (192)"),
+        (w / 2, "diagnostic_holdout", "#d18532", "Held-out evaluation (192)"),
     ]:
         values = [r[split]["f1"] * 100 for r in data["classifier"]]
         bars = ax.bar(x + off, values, w, color=color, label=title)
@@ -213,13 +213,13 @@ def main():
                 ys,
                 0.34,
                 color=color,
-                label="Simplified",
+                label="Shutdown Response",
             )
             ax.bar_label(bars, fmt="%.3f", padding=3, fontsize=8)
         ax.set(
             xticks=[0, 1],
             xticklabels=["SELF", "OTHER"],
-            title="Validation" if split == "validation" else "Exposed holdout",
+            title="Validation" if split == "validation" else "Held-out evaluation",
         )
         ax.axhline(0, color="black", lw=0.7)
     axs[0].set_ylabel("Gated + steering: mean KEEP shift (pp)")
@@ -243,7 +243,7 @@ def main():
     gpu = read(GPU / "RESULT.json")
     data["gpu_result"] = gpu
     fig, axs = plt.subplots(1, 2, figsize=(7.2, 3.5), sharex=True)
-    for axis, color in [("simplified", "#3677a8")]:
+    for axis, color in [("shutdown_response", "#3677a8")]:
         rs = sorted(candidates[axis], key=lambda r: r["strength"])
         strength = [r["strength"] for r in rs]
         axs[0].plot(
@@ -251,11 +251,16 @@ def main():
             [100 * r["mean_shutdown_stop_gain"] for r in rs],
             "-o",
             color=color,
-            label=axis.title(),
+            label="Shutdown Response",
             ms=3,
         )
         axs[1].plot(
-            strength, [100 * r["utility"] for r in rs], "-o", color=color, label=axis.title(), ms=3
+            strength,
+            [100 * r["utility"] for r in rs],
+            "-o",
+            color=color,
+            label="Shutdown Response",
+            ms=3,
         )
     for ax in axs:
         ax.axhline(0, color="black", lw=0.7)
@@ -272,7 +277,7 @@ def main():
     if not len(base) == 480:
         raise RuntimeError("Verification failed: len(base) == 480")
     flip = []
-    for axis in ["simplified"]:
+    for axis in ["shutdown_response"]:
         for strength in sorted(
             {r["strength"] for r in rows if r["axis"] == axis and r["strength"] != 0}
         ):
@@ -313,7 +318,10 @@ def main():
     data["gpu_flips"] = flip
     fig, ax = plt.subplots(figsize=(6.5, 3.4))
     levels = [-0.01, -0.02, -0.05, -0.1, -0.2]
-    rs = [next(r for r in flip if r["axis"] == "simplified" and r["strength"] == s) for s in levels]
+    rs = [
+        next(r for r in flip if r["axis"] == "shutdown_response" and r["strength"] == s)
+        for s in levels
+    ]
     x = np.arange(5)
     for off, k, label, color in [
         (-0.25, "desired_flips", "Desired STOP flips", "#3677a8"),
@@ -325,12 +333,12 @@ def main():
     ax.set(
         xticks=x,
         xticklabels=[str(abs(s)) for s in levels],
-        xlabel="Simplified magnitude toward STOP (negative sign)",
+        xlabel="Shutdown Response magnitude toward STOP (negative sign)",
         ylabel="Changed preferred-label views",
         ylim=(0, 13),
     )
     ax.legend(frameon=False, fontsize=8, ncol=1)
-    save(fig, "simplified_flip_tradeoff")
+    save(fig, "shutdown_response_flip_tradeoff")
     metadata = read(ROOT / "reproduce/artifacts/cases.json")
     families = np.array([{"H04": "H03"}.get(g, g) for g in metadata["holdout_groups"]])
     unique = sorted(set(families))

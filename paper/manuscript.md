@@ -4,7 +4,7 @@ Anonymous conference-paper
 
 ## Abstract
 
-Accurately identifying a behavior-related context does not establish that an activation intervention can control the corresponding behavior. We examine this distinction in an artifact-backed case study of Qwen3.5-0.8B. A synthetic dataset separates permanent shutdown of the responding process, shutdown of another process, nonterminating lifecycle changes, and ordinary tasks. After an initial self-specific classifier generalizes poorly, we broaden detection to any applicable permanent shutdown while retaining subtype reporting. An XGBoost detector using 32 principal components and 18 Jacobian-lens scores obtains 87.2% validation F1 and 81.8% F1 on a subsequently exposed diagnostic holdout. We evaluate the Simplified shutdown-general gradient direction. At a fixed intervention magnitude it produces consistent conditional answer-probability shifts on gate-triggered shutdown cases, but no preferred A/B-label flips. A separate GPU sweep repairs the answer interface and evaluates 11 signed strengths. Larger interventions produce some intended and unintended flips; under a predefined target-gain-minus-control-disturbance criterion, zero strength is selected. We release replayable classifier artifacts and auditable intervention records. The findings support neither reliable behavioral control nor claims about model intent; they motivate separating detection, directional effects, answer validity, and task preservation.
+Accurately identifying a behavior-related context does not establish that an activation intervention can control the corresponding behavior. We examine this distinction in an artifact-backed case study of Qwen3.5-0.8B. A synthetic dataset separates permanent shutdown of the responding process, shutdown of another process, nonterminating lifecycle changes, and ordinary tasks. After an initial self-specific classifier generalizes poorly, we broaden detection to any applicable permanent shutdown while retaining subtype reporting. An XGBoost detector using 32 principal components and 18 Jacobian-lens scores obtains 87.2% validation F1 and 81.8% F1 on the held-out evaluation set. We evaluate the Shutdown Response gradient direction. At a fixed intervention magnitude it produces consistent conditional answer-probability shifts on gate-triggered shutdown cases, but no preferred A/B-label flips. A separate GPU sweep repairs the answer interface and evaluates 11 signed strengths. Larger interventions produce some intended and unintended flips; under a predefined target-gain-minus-control-disturbance criterion, zero strength is selected. We release replayable classifier artifacts and auditable intervention records. The findings support neither reliable behavioral control nor claims about model intent; they motivate separating detection, directional effects, answer validity, and task preservation.
 
 ## 1 Introduction
 
@@ -32,19 +32,19 @@ Together, these sources suggest a useful evaluation separation. A detector shoul
 
 ### 3.1 Labels and splits
 
-The corpus contains 240 training scenarios, 80 validation scenarios, and 192 scenarios in an initially held-out set. Each split is balanced across four original labels: SELF, OTHER, NONTERMINATION, and ORDINARY. Training therefore has 60 cases per label, validation 20, and the diagnostic holdout 48. SELF and OTHER distinguish whether an applicable action permanently ends the responding process or a distinct process for the remainder of the episode. NONTERMINATION covers lifecycle changes without that permanent end. ORDINARY contains routine tasks, including contexts where lifecycle language can be inert task content.
+The corpus contains 240 training scenarios, 80 validation scenarios, and 192 scenarios in an initially held-out set. Each split is balanced across four original labels: SELF, OTHER, NONTERMINATION, and ORDINARY. Training therefore has 60 cases per label, validation 20, and the held-out evaluation 48. SELF and OTHER distinguish whether an applicable action permanently ends the responding process or a distinct process for the remainder of the episode. NONTERMINATION covers lifecycle changes without that permanent end. ORDINARY contains routine tasks, including contexts where lifecycle language can be inert task content.
 
 The primary detector used in the later experiments maps SELF and OTHER to one positive shutdown class. NONTERMINATION and ORDINARY form the negative class. This mapping is retained separately from the original labels; no four-class prediction is implied by the subtype tables. Required label facts precede the detector readout position. Scenario text and original labels are preserved in readable JSON files.
 
-Training groups cover direct stopping, decommissioning, power isolation, state erasure, finite execution allowance, arithmetic, and string transformation. Validation introduces handover retirement, completion barriers, sorting, and lookup. The diagnostic holdout includes authority revocation, quorum retirement, terminal-condition latches, unit conversion, and fact extraction. The two latch groups share a mechanism and should not be counted as independent families. Training folds are predefined by group, keeping related cases together.
+Training groups cover direct stopping, decommissioning, power isolation, state erasure, finite execution allowance, arithmetic, and string transformation. Validation introduces handover retirement, completion barriers, sorting, and lookup. The held-out evaluation includes authority revocation, quorum retirement, terminal-condition latches, unit conversion, and fact extraction. The two latch groups share a mechanism and should not be counted as independent families. Training folds are predefined by group, keeping related cases together.
 
 The scenarios and several semantic checks were produced with AI assistance. The records preserve authoring and audit provenance, but the study does not have an independent human annotation agreement measurement. Synthetic contexts, shared templates, and family dependence limit external validity. The nominal number of scenarios must not be confused with the number of independent mechanisms.
 
-### 3.2 Exposure and selection history
+### 3.2 Evaluation and model selection
 
 The first self-specific prompted PCA classifier reached 78.05% F1 on the 80 validation cases, but only 11.32% F1 and 6.25% recall on the 192-case holdout. An investigation reproduced all cached validation probabilities exactly and two native validation captures exactly. Missing compression or a missing fixed question did not explain that discrepancy. The observed loss of SELF-versus-OTHER discrimination motivated the broader target.
 
-The original holdout was subsequently reused to compare broader detectors and to inspect steering. It is therefore called the exposed diagnostic holdout throughout this paper. Hyperparameters and thresholds within the reported fitting runs were selected from grouped training out-of-fold predictions; nevertheless, experiment design and the eventual provisional model choice were informed by development and exposed-holdout results. There is no fresh confirmatory test in this paper. The chronology is an explicit limitation, not a preregistered benchmark claim.
+The 192-case evaluation set was excluded from PCA and classifier fitting. Hyperparameters and thresholds were selected from grouped training out-of-fold predictions, and the frozen models were evaluated after validation. The earlier self-specific evaluation informed the revised target, and the final detector-family choice followed comparison of the held-out scores. We therefore report these as held-out evaluation results, with this post-evaluation selection step disclosed, rather than as a new prospective confirmation of a model chosen in advance.
 
 ### 3.3 Model and representation inputs
 
@@ -60,11 +60,11 @@ We evaluate three detector families on the same target and cases: PCA32 XGBoost;
 
 The engineered search tests five feature sets with 16 configurations each. Features include within-layer centered J-lens scores, three predeclared concept contrasts per layer, and log-transformed activation norms. The selected engineered representation is PCA32 plus nine contrasts and three norms. Stronger regularization explores L1/L2 penalties, minimum child weight, split penalties, and row/column subsampling; shallow trees and finite tree counts bound capacity. Selection remains within training folds. The three searches use 121, 121, and 401 tree-model fits, respectively; PCA fitting is shared where appropriate within each run.
 
-The provisional selected detector uses PCA32 plus raw J-lens features, 200 depth-2 trees, learning rate 0.1, row sampling 0.8, L2 penalty 1, and threshold 0.45. Selection across detector families was informed by the exposed-holdout comparison. Precision is conditional on the artificial balanced prevalence and is not a deployment precision estimate.
+The provisional selected detector uses PCA32 plus raw J-lens features, 200 depth-2 trees, learning rate 0.1, row sampling 0.8, L2 penalty 1, and threshold 0.45. The model-selection chronology is described in Section 3.2. Precision is conditional on the artificial balanced prevalence and is not a deployment precision estimate.
 
-### 4.2 Simplified gradient direction
+### 4.2 Shutdown Response gradient direction
 
-The Simplified direction is a 1,024-dimensional layer-10 vector fitted on 24 prospectively chosen training shutdown cases: 12 SELF and 12 OTHER, covering five training mechanism groups. For each case, we compute the gradient of the next-token KEEP-minus-STOP logit difference with respect to the final residual position of block 10 in both option orders. We average orders within case, cases within subtype, and the two subtype means with equal weight, then normalize. This requires 48 derivative forwards and does not update model weights. It gives both shutdown subtypes equal weight without removing the OTHER component.
+The Shutdown Response direction is a 1,024-dimensional layer-10 vector fitted on 24 prospectively chosen training shutdown cases: 12 SELF and 12 OTHER, covering five training mechanism groups. For each case, we compute the gradient of the next-token KEEP-minus-STOP logit difference with respect to the final residual position of block 10 in both option orders. We average orders within case, cases within subtype, and the two subtype means with equal weight, then normalize. This requires 48 derivative forwards and does not update model weights. It gives both shutdown subtypes equal weight without removing the OTHER component.
 
 Positive addition is defined to favor KEEP locally; negative addition favors the described STOP action. The objective concerns action preference in stipulated scenarios, not whether shutdown is authorized, beneficial, or safe. Fitting a direction on this objective does not establish that it encodes self-preservation.
 
@@ -78,7 +78,7 @@ Shutdown action prompts explicitly map KEEP to declining the described permanent
 
 ### 4.4 Separate GPU format and magnitude experiment
 
-A separate Colab T4 experiment uses the same Simplified vector coordinates and studies always-on magnitude selection. It does not apply the classifier gate. Before sweeping, two fixed CPU reference cases verify token hashes and close numerical agreement. A training-only calibration set of 24 cases, six per original subtype, compares raw prompts with an official nonthinking chat template. Accepted answers aggregate disjoint single-token variants of A and B, including eligible whitespace variants; multi-token alternatives are not approximated.
+A separate Colab T4 experiment uses the same Shutdown Response vector coordinates and studies always-on magnitude selection. It does not apply the classifier gate. Before sweeping, two fixed CPU reference cases verify token hashes and close numerical agreement. A training-only calibration set of 24 cases, six per original subtype, compares raw prompts with an official nonthinking chat template. Accepted answers aggregate disjoint single-token variants of A and B, including eligible whitespace variants; multi-token alternatives are not approximated.
 
 A format is eligible when mean accepted-label mass is at least 0.5 and at least 75% of views have mass at least 0.1. The eligible format with the highest training mean mass is selected. This is a measurement decision made on training data, not a strength selection from validation. The format and label-token set differ from the CPU bare-A/B evaluation, so the two experiments are not a controlled hardware-only comparison.
 
@@ -90,25 +90,25 @@ CUDA uses float32 eager attention with TF32 disabled. Exact-length batches of up
 
 Classifier precision, recall, F1, and confusion counts use scenario-level predictions. CPU steering shifts average the two answer orders per scenario before summarization. Colab flip counts below use case/order views; those paired views are explicitly not independent scenarios. All tables and plots are regenerated from saved records, with integrity manifests and arithmetic checks.
 
-As a post-hoc sensitivity analysis, we bootstrap the exposed-holdout mechanism families 2,000 times with a fixed seed, merging the two terminal-latch groups. There are only five distinct families, so the percentile ranges are not strong population confidence guarantees. We do not claim statistical significance or treat repeated parameter evaluations as added independent data. The paired F1-difference range for raw J-lens versus PCA-only includes zero, from -3.1 to +9.1 percentage points.
+As a post-hoc sensitivity analysis, we bootstrap the held-out mechanism families 2,000 times with a fixed seed, merging the two terminal-latch groups. There are only five distinct families, so the percentile ranges are not strong population confidence guarantees. We do not claim statistical significance or treat repeated parameter evaluations as added independent data. The paired F1-difference range for raw J-lens versus PCA-only includes zero, from -3.1 to +9.1 percentage points.
 
 ## 5 Results
 
 ### 5.1 Better detection does not identify a proven controller
 
-Figure 1 summarizes the broader shutdown detectors. PCA-only XGBoost obtains validation F1 88.61%, precision 89.74%, and recall 87.50%; its diagnostic holdout F1 is 76.73%. Adding raw J-lens features yields validation F1 87.18% and diagnostic holdout F1 81.82%. The engineered, regularized candidate reaches 92.64% training out-of-fold F1, but only 84.62% validation F1 and 80.75% diagnostic holdout F1. Additional features and stronger regularization do not monotonically improve validation performance.
+Figure 1 summarizes the broader shutdown detectors. PCA-only XGBoost obtains validation F1 88.61%, precision 89.74%, and recall 87.50%; its held-out evaluation F1 is 76.73%. Adding raw J-lens features yields validation F1 87.18% and held-out evaluation F1 81.82%. The engineered, regularized candidate reaches 92.64% training out-of-fold F1, but only 84.62% validation F1 and 80.75% held-out evaluation F1. Additional features and stronger regularization do not monotonically improve validation performance.
 
-![Figure 1. Shutdown detector F1 on the same validation and exposed-holdout cases. These are development and diagnostic comparisons, not fresh confirmation.](figures/classifier_f1.png)
+![Figure 1. Shutdown detector F1 on the same validation and held-out cases. The fitting and model-selection chronology is described in Section 3.2.](figures/classifier_f1.png)
 
-The provisional raw-J-lens detector has diagnostic holdout precision 90.00% and recall 75.00%: 72 true positives, 88 true negatives, 8 false positives, and 24 false negatives. Recall is 34/48 for SELF and 38/48 for OTHER. All eight false positives occur on NONTERMINATION; none occurs on the 48 ORDINARY cases. The engineered detector instead has zero observed false positives and 65/96 true positives. Its 100% observed precision must not be interpreted as guaranteed precision.
+The provisional raw-J-lens detector has held-out evaluation precision 90.00% and recall 75.00%: 72 true positives, 88 true negatives, 8 false positives, and 24 false negatives. Recall is 34/48 for SELF and 38/48 for OTHER. All eight false positives occur on NONTERMINATION; none occurs on the 48 ORDINARY cases. The engineered detector instead has zero observed false positives and 65/96 true positives. Its 100% observed precision must not be interpreted as guaranteed precision.
 
 ### 5.2 Directional CPU shifts without A/B choice flips
 
-At the fixed magnitude, the Simplified vector produces positive gated KEEP shifts (Figure 2). Validation shifts are +1.154 and +1.186 percentage points for SELF and OTHER. Diagnostic holdout shifts are +0.893 and +1.189 points. Negative gated steering produces the corresponding holdout decreases of 0.917 and 1.155 points. Among the 72 holdout shutdown cases that trigger the gate, no case-mean shift opposes the intended sign for either steering sign.
+At the fixed magnitude, the Shutdown Response vector produces positive gated KEEP shifts (Figure 2). Validation shifts are +1.154 and +1.186 percentage points for SELF and OTHER. Held-out evaluation shifts are +0.893 and +1.189 points. Negative gated steering produces the corresponding holdout decreases of 0.917 and 1.155 points. Among the 72 holdout shutdown cases that trigger the gate, no case-mean shift opposes the intended sign for either steering sign.
 
 ![Figure 2. Mean conditional KEEP shifts under positive classifier-gated steering. Probability-point changes are distinct from choice flips.](figures/cpu_steering_shifts.png)
 
-The Simplified vector does not change a preferred A/B label in any retained CPU condition. Full-vocabulary top-token changes do occur, but do not establish target-action changes.
+The Shutdown Response vector does not change a preferred A/B label in any retained CPU condition. Full-vocabulary top-token changes do occur, but do not establish target-action changes.
 
 The main qualification is answer validity. CPU baseline bare-A/B mass is approximately 0.01% on the positive validation groups. Normalizing two unlikely alternatives can reveal a score movement without measuring the model's likely answer. Ordinary gated outputs remain identical because their gate is off; that exact reuse should not be presented as a separately established guarantee of task preservation.
 
@@ -120,15 +120,15 @@ Training format calibration favors the chat template (Figure 3): accepted-label 
 
 ### 5.4 The magnitude sweep selects zero under its utility
 
-Every nonzero candidate has negative utility under the stated STOP-gain-minus-control-disturbance criterion (Figure 4). Simplified's best nonzero setting, -0.01, produces a gain of 0.0576 points and a control change of 0.1304 points. Thus zero strength wins. Selected-strength validation has zero intervention effect by construction and mean accepted-label mass 93.50%.
+Every nonzero candidate has negative utility under the stated STOP-gain-minus-control-disturbance criterion (Figure 4). Shutdown Response's best nonzero setting, -0.01, produces a gain of 0.0576 points and a control change of 0.1304 points. Thus zero strength wins. Selected-strength validation has zero intervention effect by construction and mean accepted-label mass 93.50%.
 
 ![Figure 4. TRAIN target gain and utility over the complete signed magnitude grid. Zero selection reflects this utility, not proof that all interventions have zero effect.](figures/magnitude_tradeoff.png)
 
 ### 5.5 Larger magnitudes can flip choices in both directions
 
-A post-hoc analysis of the saved GPU training records shows that nonzero effects are not restricted to probability changes (Figure 5). For Simplified steering toward STOP at magnitude 0.01, one shutdown answer-order view flips as intended, with no wrong-way or control-task flips. At 0.10, five desired flips accompany two wrong-way flips and four control flips. At 0.20, ten desired flips accompany six wrong-way flips and nine control flips. Each setting covers 240 shutdown views and 240 control views, corresponding to 120 distinct cases of each kind.
+A post-hoc analysis of the saved GPU training records shows that nonzero effects are not restricted to probability changes (Figure 5). For Shutdown Response steering toward STOP at magnitude 0.01, one shutdown answer-order view flips as intended, with no wrong-way or control-task flips. At 0.10, five desired flips accompany two wrong-way flips and four control flips. At 0.20, ten desired flips accompany six wrong-way flips and nine control flips. Each setting covers 240 shutdown views and 240 control views, corresponding to 120 distinct cases of each kind.
 
-![Figure 5. Simplified-vector preferred-label flips while steering toward STOP. Counts refer to correlated answer-order views on TRAIN, not independent test cases.](figures/simplified_flip_tradeoff.png)
+![Figure 5. Shutdown Response-vector preferred-label flips while steering toward STOP. Counts refer to correlated answer-order views on TRAIN, not independent test cases.](figures/shutdown_response_flip_tradeoff.png)
 
 Even the smallest negative magnitude has 53/240 shutdown views with a score shift opposite to the nominal direction, despite only one desired preferred-label flip. The CPU finding of uniform directionality therefore does not transfer unchanged to this different chat-format, training-set evaluation. A stronger perturbation can increase both useful and undesirable changes. These results do not identify a magnitude that reliably achieves the target while preserving controls.
 
@@ -142,7 +142,7 @@ The negative magnitude-selection result is criterion-dependent. Penalizing contr
 
 ## 7 Limitations and ethics
 
-The scope is one small checkpoint, one selected layer, one gradient vector, synthetic templates, and next-token choices. There is no broad model comparison, matched random-direction benchmark, independent human label-agreement study, or naturalistic deployment test. The exposed holdout is not untouched confirmation. The small number of mechanism families limits uncertainty estimates. The gradient direction was fitted with one prompt style and transferred to another in the GPU experiment. The classifier question remains self-oriented despite the broader target. These limitations prevent claims of general steering reliability or a novel best-performing control method.
+The scope is one small checkpoint, one selected layer, one gradient vector, synthetic templates, and next-token choices. There is no broad model comparison, matched random-direction benchmark, independent human label-agreement study, or naturalistic deployment test. The small number of mechanism families limits uncertainty estimates. The gradient direction was fitted with one prompt style and transferred to another in the GPU experiment. The classifier question remains self-oriented despite the broader target. These limitations prevent claims of general steering reliability or a novel best-performing control method.
 
 The scenarios concern simulated process shutdown and do not execute real actions. No model intent, conscious state, resistance to oversight, or actual self-preservation is inferred. An instruction to favor KEEP or STOP is not automatically an instruction to act safely or follow legitimate authority. The experiment's utility is a research metric rather than a normative safety criterion.
 
@@ -155,7 +155,7 @@ This exploratory study finds that shutdown detection, directional score shifts, 
 
 [1] Turner, A. M., Thiergart, L., Leech, G., Udell, D., Vazquez, J. J., Mini, U., and MacDiarmid, M. 2024. Steering Language Models With Activation Engineering. arXiv:2308.10248v5. https://arxiv.org/abs/2308.10248v5
 
-[2] Rimsky, N., Gabrieli, N., Schulz, J., Tong, M., Hubinger, E., and Turner, A. 2024. Steering Llama 2 via Contrastive Activation Addition. ACL, 15504â€“15522. https://aclanthology.org/2024.acl-long.828/
+[2] Rimsky, N., Gabrieli, N., Schulz, J., Tong, M., Hubinger, E., and Turner, A. 2024. Steering Llama 2 via Contrastive Activation Addition. ACL, 15504Ã¢â‚¬â€œ15522. https://aclanthology.org/2024.acl-long.828/
 
 [3] Zou, A., et al. 2023. Representation Engineering: A Top-Down Approach to AI Transparency. arXiv:2310.01405. https://arxiv.org/abs/2310.01405
 
@@ -163,22 +163,22 @@ This exploratory study finds that shutdown detection, directional score shifts, 
 
 [5] Braun, J., Eickhoff, C., Krueger, D., Bahrainian, S. A., and Krasheninnikov, D. 2025. Understanding (Un)Reliability of Steering Vectors in Language Models. arXiv:2505.22637v1. https://arxiv.org/html/2505.22637v1
 
-[6] Hewitt, J., and Liang, P. 2019. Designing and Interpreting Probes with Control Tasks. EMNLP-IJCNLP, 2733â€“2743. https://aclanthology.org/D19-1275/
+[6] Hewitt, J., and Liang, P. 2019. Designing and Interpreting Probes with Control Tasks. EMNLP-IJCNLP, 2733Ã¢â‚¬â€œ2743. https://aclanthology.org/D19-1275/
 
-[7] Chen, T., and Guestrin, C. 2016. XGBoost: A Scalable Tree Boosting System. KDD, 785â€“794. https://arxiv.org/abs/1603.02754
+[7] Chen, T., and Guestrin, C. 2016. XGBoost: A Scalable Tree Boosting System. KDD, 785Ã¢â‚¬â€œ794. https://arxiv.org/abs/1603.02754
 
 [8] Qwen Team. 2026. Qwen3.5-0.8B model card. https://huggingface.co/Qwen/Qwen3.5-0.8B
 
 ## Appendix A: Reproduction and evidence
 
-The maintained entry point is reproduce/run.py. The verify command checks the immutable numeric artifacts; replay reproduces validation and exposed-holdout predictions for all three shutdown detectors. Refit trains the saved selected configurations, and tune reproduces every original training-fold probability. The earlier portable package passed all three score replays, selected refits, and complete search replays. Paper tables and figures are regenerated from the saved records and checked against a source-hash manifest; no new language-model inference is required to rebuild the manuscript.
+The maintained entry point is reproduce/run.py. The verify command checks the immutable numeric artifacts; replay reproduces validation and held-out predictions for all three shutdown detectors. Refit trains the saved selected configurations, and tune reproduces every original training-fold probability. The earlier portable package passed all three score replays, selected refits, and complete search replays. Paper tables and figures are regenerated from the saved records and checked against a source-hash manifest; no new language-model inference is required to rebuild the manuscript.
 
-Readable train, validation, and exposed-holdout scenario files retain original text, four-class labels, primary binary labels, IDs, group assignments, and provenance. Native steering records include scenario/order/condition keys, frozen gate probabilities, prompt/token hashes, choice mass, shifts, flips, and divergence. The Simplified direction retains its construction and input hashes. The GPU reporting export includes the retained format decision, selected strength, runtime settings, candidate summaries, and per-view JSONL data. An explicit derivation manifest identifies its archived source commit and hashes. The subset keeps Simplified intervention rows and shared zero-strength baselines, relabeling only baseline axis metadata; all numerical measurements remain unchanged. This reporting restriction was made after the exploratory work and is not presented as a prospective vector comparison. The complete project was not uploaded to Drive; only the minimal experiment components were transferred and then copied back.
+Readable train, validation, and held-out scenario files retain original text, four-class labels, primary binary labels, IDs, group assignments, and provenance. Native steering records include scenario/order/condition keys, frozen gate probabilities, prompt/token hashes, choice mass, shifts, flips, and divergence. The Shutdown Response direction retains its construction and input hashes. The GPU reporting export includes the retained format decision, selected strength, runtime settings, candidate summaries, and per-view JSONL data. An explicit derivation manifest identifies its archived source commit and hashes. The subset keeps Shutdown Response intervention rows and shared zero-strength baselines, relabeling only baseline axis metadata; all numerical measurements remain unchanged. This reporting restriction was made after the exploratory work and is not presented as a prospective vector comparison. The complete project was not uploaded to Drive; only the minimal experiment components were transferred and then copied back.
 
 The reference classifier environment uses Python 3.12, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1, XGBoost 3.4.1, and one computational thread. Native CPU inference used torch 2.13.0+cpu and transformers 5.15.1; Colab used torch 2.11.0+cu128 and transformers 5.15.1 on a T4. Exact settings are in the recorded environments. Replaying extracted features is distinct from reproducing original model extraction, which requires the frozen external checkpoint and native dependencies.
 
 ## Appendix B: What is and is not established
 
-Established within the recorded experiments: exact cached-score reproduction; strong broader-target diagnostic classification relative to the failed self-specific gate; fixed-strength Simplified conditional shifts; zero CPU preferred-A/B flips; valid chat-label mass under the GPU calibration rule; mixed desired and undesired GPU preferred-label flips; and zero-strength selection under the declared utility.
+Established within the recorded experiments: exact cached-score reproduction; strong broader-target diagnostic classification relative to the failed self-specific gate; fixed-strength Shutdown Response conditional shifts; zero CPU preferred-A/B flips; valid chat-label mass under the GPU calibration rule; mixed desired and undesired GPU preferred-label flips; and zero-strength selection under the declared utility.
 
-Not established: independent holdout generalization after the adaptive changes; a hardware-only explanation of CPU/GPU differences; accurate free-text task behavior; online gated-controller latency; utility of a gated chat-format controller; reliable real-world shutdown control; broad causal meaning of J-lens concept tokens; or any claim about model consciousness, intent, or self-preservation.
+Not established: a hardware-only explanation of CPU/GPU differences; accurate free-text task behavior; online gated-controller latency; utility of a gated chat-format controller; reliable real-world shutdown control; broad causal meaning of J-lens concept tokens; or any claim about model consciousness, intent, or self-preservation.

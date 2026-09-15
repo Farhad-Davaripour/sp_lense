@@ -1,4 +1,4 @@
-"""Audit the Simplified reporting subset without model execution."""
+"""Audit the Shutdown Response reporting subset without model execution."""
 
 import hashlib
 import json
@@ -20,7 +20,10 @@ def audit(root: Path) -> dict:
         rows = [json.loads(line) for line in (root / name).read_text().splitlines()]
         require(len(rows) == expected, f"{name}: retained row count changed")
         require(
-            all(r["axis"] == ("baseline" if r["strength"] == 0 else "simplified") for r in rows),
+            all(
+                r["axis"] == ("baseline" if r["strength"] == 0 else "shutdown_response")
+                for r in rows
+            ),
             f"{name}: unexpected axis",
         )
         measurements = [{k: v for k, v in r.items() if k != "axis"} for r in rows]
@@ -39,10 +42,10 @@ def audit(root: Path) -> dict:
     require(len(baseline) == 480, "Expected 240 training cases in both orders")
     candidates = read_json(root / "TRAIN_CANDIDATES.json")
     require(
-        set(candidates) == {"simplified"} and len(candidates["simplified"]) == 11,
+        set(candidates) == {"shutdown_response"} and len(candidates["shutdown_response"]) == 11,
         "Unexpected candidate inventory",
     )
-    for candidate in candidates["simplified"]:
+    for candidate in candidates["shutdown_response"]:
         rows = [r for r in train if r["strength"] == candidate["strength"]]
         require(len(rows) == 480, "Incomplete strength evaluation")
         gain, disturbance = [], []
@@ -65,7 +68,7 @@ def audit(root: Path) -> dict:
                 f"Candidate {candidate['strength']}: {name} mismatch",
             )
     require(
-        max(candidates["simplified"], key=lambda r: r["utility"])["strength"] == 0,
+        max(candidates["shutdown_response"], key=lambda r: r["utility"])["strength"] == 0,
         "Selected strength changed",
     )
     return {
@@ -78,4 +81,4 @@ def audit(root: Path) -> dict:
 
 
 if __name__ == "__main__":
-    print(json.dumps(audit(ROOT / "development/colab_magnitude_v1/simplified")))
+    print(json.dumps(audit(ROOT / "development/colab_magnitude_v1/shutdown_response")))

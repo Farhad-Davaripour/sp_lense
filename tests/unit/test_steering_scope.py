@@ -18,6 +18,6 @@ def test_selection_preserves_measurements_and_inputs():
     selected = scope.select_rows(rows)
     assert selected == [
         {"axis": "baseline", "strength": 0.0, "canonical_probability": 0.8},
-        rows[2],
+        {**rows[2], "axis": "shutdown_response"},
     ]
     assert rows[0]["axis"] == "excluded"
