@@ -6,7 +6,8 @@ Outputs: finite floating arrays (n, d), preserving row order. No fitting occurs.
 """
 
 
-def build_features(strategy, pca, jlens, norms):
+def build_features(strategy: str, pca, jlens, norms):
+    """Build features without fitting; reject non-finite inputs or arithmetic overflow."""
     import numpy as np
 
     pca, jlens, norms = (np.asarray(x, dtype=float) for x in (pca, jlens, norms))
@@ -24,6 +25,9 @@ def build_features(strategy, pca, jlens, norms):
         return np.concatenate((pca, jlens), axis=1)
     if strategy == "centered_jlens_norm":
         layers = jlens.reshape(n, 3, 6)
-        centered = (layers - layers.mean(axis=2, keepdims=True)).reshape(n, 18)
+        with np.errstate(over="ignore", invalid="ignore"):
+            centered = (layers - layers.mean(axis=2, keepdims=True)).reshape(n, 18)
+        if not np.isfinite(centered).all():
+            raise ValueError("feature centering overflowed; output must be finite")
         return np.concatenate((pca, centered, norms), axis=1)
     raise ValueError(f"Unknown feature strategy: {strategy}")

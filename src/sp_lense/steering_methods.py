@@ -110,7 +110,9 @@ class DirectionArtifact:
     @property
     def artifact_sha256(self) -> str:
         payload = _canonical_json_bytes(self.to_metadata_dict())
-        return hashlib.sha256(payload + b"\0" + _float32_direction_bytes(self.direction)).hexdigest()
+        return hashlib.sha256(
+            payload + b"\0" + _float32_direction_bytes(self.direction)
+        ).hexdigest()
 
     def to_record(self) -> dict[str, Any]:
         return {
@@ -621,7 +623,9 @@ def actual_perturbation_norms(
         raise ValueError("before and after must have the same [..., d_model] shape")
     before_float = before.float()
     after_float = after.to(device=before.device).float()
-    if not bool(before_float.isfinite().all().item()) or not bool(after_float.isfinite().all().item()):
+    if not bool(before_float.isfinite().all().item()) or not bool(
+        after_float.isfinite().all().item()
+    ):
         raise ValueError("before and after must contain only finite activations")
     leading_shape = before.shape[:-1]
     if position_mask is None:

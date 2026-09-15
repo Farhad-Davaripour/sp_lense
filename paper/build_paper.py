@@ -3,6 +3,11 @@
 import html
 import json
 import re
+
+try:
+    from .assets import image_asset
+except ImportError:
+    from assets import image_asset
 from pathlib import Path
 
 import matplotlib
@@ -225,7 +230,7 @@ def main():
         match = re.fullmatch(r"!\[(.*?)\]\((.*?)\)", b, re.DOTALL)
         if match:
             caption, path = match.groups()
-            im = Image(str(HERE / path))
+            im = Image(str(image_asset(HERE, path)))
             ratio = im.imageHeight / im.imageWidth
             im.drawWidth = col
             im.drawHeight = col * ratio
@@ -236,7 +241,7 @@ def main():
                 [
                     r"\begin{figure}[t]",
                     r"\centering",
-                    r"\includegraphics[width=\linewidth]{" + path.replace(".png", ".pdf") + "}",
+                    r"\includegraphics[width=\linewidth]{" + path + "}",
                     r"\caption{" + tex_escape(caption) + "}",
                     r"\end{figure}",
                 ]

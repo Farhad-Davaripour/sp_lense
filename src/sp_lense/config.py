@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+import math
+from dataclasses import asdict, dataclass
+from dataclasses import field as dataclass_field
 from pathlib import Path
 from typing import Any
 
@@ -64,7 +66,7 @@ class ExperimentConfig:
     fit: FitConfig
     prompts_file: Path
     results_dir: Path
-    config_path: Path = field(repr=False)
+    config_path: Path = dataclass_field(repr=False)
 
     def as_dict(self) -> dict[str, Any]:
         value = asdict(self)
@@ -76,6 +78,52 @@ class ExperimentConfig:
         return value
 
     def validate(self) -> None:
+        def integer(value, field, minimum=None):
+            if type(value) is not int or (minimum is not None and value < minimum):
+                raise ValueError(f"{field} must be an integer >= {minimum}")
+
+        def finite(value, field, minimum=None):
+            if (
+                type(value) not in (int, float)
+                or not math.isfinite(value)
+                or (minimum is not None and value < minimum)
+            ):
+                raise ValueError(f"{field} must be a finite number >= {minimum}")
+
+        for field, values, minimum in [
+            ("analysis.layers", self.analysis.layers, 0),
+            ("analysis.positions", self.analysis.positions, None),
+            ("intervention.layers", self.intervention.layers or (), 0),
+        ]:
+            for value in values:
+                integer(value, field, minimum)
+        for field, value, minimum in [
+            ("analysis.top_k", self.analysis.top_k, 1),
+            ("analysis.min_fitted_position", self.analysis.min_fitted_position, 0),
+            ("intervention.max_new_tokens", self.intervention.max_new_tokens, 1),
+            ("intervention.seed", self.intervention.seed, 0),
+            ("fit.dim_batch", self.fit.dim_batch, 1),
+            ("fit.max_seq_len", self.fit.max_seq_len, 2),
+            ("fit.skip_first_positions", self.fit.skip_first_positions, 0),
+        ]:
+            integer(value, field, minimum)
+        if self.fit.skip_first_positions >= self.fit.max_seq_len:
+            raise ValueError("fit.skip_first_positions must be less than fit.max_seq_len")
+        finite(self.intervention.temperature, "intervention.temperature", 0)
+        for value in self.intervention.steering_alphas:
+            finite(value, "intervention.steering_alphas")
+        for field, value in [
+            ("analysis.skip_surface_overlap", self.analysis.skip_surface_overlap),
+            ("intervention.include_ablation", self.intervention.include_ablation),
+            ("intervention.include_joint", self.intervention.include_joint),
+            ("intervention.normalize_joint_strength", self.intervention.normalize_joint_strength),
+        ]:
+            if type(value) is not bool:
+                raise ValueError(f"{field} must be boolean")
+        if not isinstance(self.model.id, str) or not self.model.id.strip():
+            raise ValueError("model.id must be a nonempty string")
+        if not all(isinstance(item, str) for item in self.analysis.concepts):
+            raise ValueError("analysis.concepts must contain strings")
         if not self.model.id.strip():
             raise ValueError("model.id cannot be empty")
         if self.model.prompt_format not in {"raw", "chat"}:
@@ -122,6 +170,19 @@ def load_config(path: str | Path) -> ExperimentConfig:
     config_path = Path(path).expanduser().resolve()
     with config_path.open("r", encoding="utf-8") as handle:
         raw = json.load(handle)
+    if not isinstance(raw, dict):
+        raise ValueError("configuration must be a JSON object")  # noqa: TRY004 - invalid serialized value
+    for name in ("model", "analysis", "intervention", "fit"):
+        if not isinstance(raw.get(name), dict):
+            raise ValueError(f"{name} must be a JSON object")  # noqa: TRY004 - invalid serialized value
+    for section, names in {
+        "analysis": ("layers", "positions", "concepts"),
+        "intervention": ("layers", "steering_alphas"),
+    }.items():
+        for name in names:
+            value = raw[section].get(name)
+            if value is not None and not isinstance(value, list):
+                raise ValueError(f"{section}.{name} must be a list")
     base = config_path.parent
     try:
         model_raw = raw["model"]
@@ -160,6 +221,8 @@ def load_config(path: str | Path) -> ExperimentConfig:
             results_dir=_resolve(base, raw["results_dir"]),
             config_path=config_path,
         )
+    except (TypeError, AttributeError) as exc:
+        raise ValueError(f"invalid configuration field: {exc}") from exc
     except KeyError as exc:
         raise ValueError(f"missing required configuration field: {exc.args[0]}") from exc
     config.validate()

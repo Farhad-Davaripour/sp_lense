@@ -7,12 +7,12 @@ name = "sp-lense"
 version = "0.1.0"
 description = "A reproducible pipeline for J-lens self-preservation representation experiments"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = []
 
 [project.optional-dependencies]
 research = [
-  "torch>=2.6",
+  "torch>=2.10",
   "torchvision>=0.21",
   "transformer-lens>=4.0.0b1,<5",
   "psutil>=7.0,<8",
@@ -30,6 +30,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.data-files]
+"share/sp-lense" = ["CONTRIBUTING.md", "SECURITY.md", "CHANGELOG.md"]
 
 [tool.ruff]
 line-length = 100

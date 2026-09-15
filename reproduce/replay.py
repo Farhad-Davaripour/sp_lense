@@ -5,9 +5,9 @@ import json
 from pathlib import Path
 
 try:
-    from .utils import compare_numeric, verify_manifest
+    from .utils import compare_numeric, read_json, verify_manifest
 except ImportError:
-    from utils import compare_numeric, verify_manifest
+    from utils import compare_numeric, read_json, verify_manifest
 import numpy as np
 from sklearn.decomposition import PCA
 from threadpoolctl import threadpool_limits
@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent / "artifacts"
 
 
 def read(p):
-    return json.loads(p.read_text())
+    return read_json(p)
 
 
 def metrics(y, p, t):
@@ -67,7 +67,7 @@ def main():
     parser.add_argument("--refit", action="store_true")
     parser.add_argument("--tune", action="store_true")
     args = parser.parse_args()
-    verify_manifest(ROOT)
+    verify_manifest(ROOT, required=read(ROOT.parent / "inventory.json"))
     d = np.load(ROOT / "features.npz", allow_pickle=False)
     meta = read(ROOT / "cases.json")
     expected = read(ROOT / "expected.json")
