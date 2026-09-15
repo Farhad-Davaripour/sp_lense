@@ -60,6 +60,7 @@ jobs:
       - run: python -m pytest -q --suite reproduction
       - run: python reproduce/run.py verify
       - run: python -O reproduce/run.py replay
+      - run: python -O reproduce/run.py steering
 
   security:
     timeout-minutes: 20

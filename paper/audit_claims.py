@@ -14,9 +14,9 @@ def main():
         if not hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == h:
             raise RuntimeError(name)
     d = json.loads((HERE / "data/figure_data.json").read_text())
-    if not (len(d["classifier"]) == 3 and len(d["cpu"]) == 80 and (len(d["gpu_flips"]) == 20)):
+    if not (len(d["classifier"]) == 3 and len(d["cpu"]) == 40 and (len(d["gpu_flips"]) == 10)):
         raise RuntimeError(
-            "Verification failed: len(d['classifier']) == 3 and len(d['cpu']) == 80 and (len(d['gpu_flips']) == 20)"
+            "Verification failed: len(d['classifier']) == 3 and len(d['cpu']) == 40 and (len(d['gpu_flips']) == 10)"
         )
     if not sum(r["pair_flips"] for r in d["cpu"]) == 0:
         raise RuntimeError("Verification failed: sum((r['pair_flips'] for r in d['cpu'])) == 0")
@@ -31,8 +31,8 @@ def main():
                 raise RuntimeError(
                     "Verification failed: abs(m['f1'] - 2 * m['tp'] / (2 * m['tp'] + m['fp'] + m['fn'])) < 1e-12"
                 )
-    if not d["gpu_result"]["total_view_forwards"] == 10340:
-        raise RuntimeError("Verification failed: d['gpu_result']['total_view_forwards'] == 10340")
+    if not d["gpu_result"]["retained_view_records"] == 5540:
+        raise RuntimeError("Verification failed: d['gpu_result']['retained_view_records'] == 5540")
     for items in d["gpu_candidates"].values():
         if not (len(items) == 11 and max(items, key=lambda r: r["utility"])["strength"] == 0):
             raise RuntimeError(
@@ -54,8 +54,8 @@ def main():
         "status": "PASS",
         "source_files_verified": len(sources),
         "classifier_results_recomputed": 6,
-        "cpu_summary_rows": 80,
-        "gpu_strength_candidates": 22,
+        "cpu_summary_rows": 40,
+        "gpu_strength_candidates": 11,
         "citations": 8,
         "new_model_inference": False,
         "limitations": "Checks confirm recorded arithmetic and provenance, not novelty, human annotation correctness or external validity.",

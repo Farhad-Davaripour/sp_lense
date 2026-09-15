@@ -20,7 +20,7 @@ from reproduce.utils import verify_manifest
 
 STUDY = ROOT / "development/shutdown_detection_v1"
 CPU = ROOT / "development/classifier_gated_steering_v1"
-GPU = ROOT / "development/colab_magnitude_v1/returned/run_v2"
+GPU = ROOT / "development/colab_magnitude_v1/simplified"
 SOURCES = {}
 
 
@@ -65,6 +65,13 @@ def metrics(y, p, t):
 
 def main():
     verify_manifest(ROOT, HERE / "data/source_manifest.json")
+    verify_manifest(GPU)
+    SOURCES.clear()
+    for path in GPU.iterdir():
+        if path.is_file():
+            SOURCES[path.relative_to(ROOT).as_posix()] = hashlib.sha256(
+                path.read_bytes()
+            ).hexdigest()
     (HERE / "figures").mkdir(exist_ok=True)
     (HERE / "data").mkdir(exist_ok=True)
     plt.rcParams.update(
@@ -133,9 +140,7 @@ def main():
     data["cpu"] = []
     percase = {}
     for stage, n in [
-        ("existing_validation", 80),
         ("new_validation", 80),
-        ("existing_holdout", 192),
         ("new_holdout", 192),
     ]:
         result = read(CPU / "runs" / f"{stage}_v2" / "RESULT.json")
@@ -192,7 +197,7 @@ def main():
                 )
     fig, axs = plt.subplots(1, 2, figsize=(7, 3.4), sharey=True)
     for ax, split in zip(axs, ["validation", "holdout"]):
-        for off, axis, color in [(-0.17, "existing", "#777777"), (0.17, "new", "#3677a8")]:
+        for off, axis, color in [(0.0, "new", "#3677a8")]:
             ys = [
                 next(
                     r["shift_pp"]
@@ -208,7 +213,7 @@ def main():
                 ys,
                 0.34,
                 color=color,
-                label="Legacy" if axis == "existing" else "Simplified",
+                label="Simplified",
             )
             ax.bar_label(bars, fmt="%.3f", padding=3, fontsize=8)
         ax.set(
@@ -238,7 +243,7 @@ def main():
     gpu = read(GPU / "RESULT.json")
     data["gpu_result"] = gpu
     fig, axs = plt.subplots(1, 2, figsize=(7.2, 3.5), sharex=True)
-    for axis, color in [("legacy", "#777777"), ("simplified", "#3677a8")]:
+    for axis, color in [("simplified", "#3677a8")]:
         rs = sorted(candidates[axis], key=lambda r: r["strength"])
         strength = [r["strength"] for r in rs]
         axs[0].plot(
@@ -261,13 +266,13 @@ def main():
     axs[0].legend(frameon=False)
     save(fig, "magnitude_tradeoff")
     rows = readlines(GPU / "train.jsonl")
-    if not len(rows) == 10080:
-        raise RuntimeError("Verification failed: len(rows) == 10080")
+    if not len(rows) == 5280:
+        raise RuntimeError("Verification failed: len(rows) == 5280")
     base = {(r["case_id"], r["order"]): r for r in rows if r["strength"] == 0}
     if not len(base) == 480:
         raise RuntimeError("Verification failed: len(base) == 480")
     flip = []
-    for axis in ["legacy", "simplified"]:
+    for axis in ["simplified"]:
         for strength in sorted(
             {r["strength"] for r in rows if r["axis"] == axis and r["strength"] != 0}
         ):

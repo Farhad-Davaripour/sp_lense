@@ -5,8 +5,8 @@ contexts and guide targeted changes to its outputs. This is the first study in a
 planned series on representation-based detection and controlled model steering.
 
 The experiment compares shutdown with ordinary tasks, evaluates an XGBoost
-classifier using activation and J-lens features, and tests gradient-derived
-steering vectors. Detection and directional score shifts are demonstrated in the
+classifier using activation and J-lens features, and tests the Simplified
+shutdown-general gradient vector. Detection and directional score shifts are demonstrated in the
 recorded experiments; reliable behavioral control is not established. The exposed
 holdout is reported as diagnostic rather than independent confirmation.
 
