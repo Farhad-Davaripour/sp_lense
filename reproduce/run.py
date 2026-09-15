@@ -17,7 +17,8 @@ ROOT = HERE.parent
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
-        "command", choices=["verify", "replay", "refit", "tune", "figures", "paper", "audit"]
+        "command",
+        choices=["verify", "replay", "refit", "tune", "figures", "paper", "audit", "steering"],
     )
     args = p.parse_args()
     if args.command == "verify":
@@ -27,6 +28,7 @@ def main():
         print(f"PASS: {count} immutable reproduction artifacts verified")
         return
     commands = {
+        "steering": [HERE / "steering_audit.py"],
         "replay": [HERE / "replay.py"],
         "refit": [HERE / "replay.py", "--refit"],
         "tune": [HERE / "replay.py", "--tune"],

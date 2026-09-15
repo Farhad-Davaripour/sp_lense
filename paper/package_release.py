@@ -18,7 +18,6 @@ PUBLIC_ROOTS = {
     "docs",
     "paper",
     "reproduce",
-    "published_axes",
     ".github",
 }
 PUBLIC_FILES = {
