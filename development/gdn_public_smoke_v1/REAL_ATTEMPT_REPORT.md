@@ -1,9 +1,0 @@
-# Closed public smoke attempt 001
-
-Final classification: INCONCLUSIVE_DIAGNOSTIC. The attempt is closed and its authority spent; no retry/resume is authorized. Loader dispatch never occurred (ATTEMPT_TERMINAL: NONE_LOADER_NOT_DISPATCHED); no model work, forwards, derivatives, encoding, logits or scientific result occurred. The single public cell was never executed; the study remains untouched.
-
-Parent elapsed 2.125s; shared cleanup 0.35900000017136335s. Worker and audit are quiescent; all four retained worker/launcher exit proofs report exit0 with valid signaled handles. Clean process termination is not diagnostic success. Worker saved DIAGNOSTIC_ENTRY_FAILURE, with no live trace or DIAGNOSTIC_TERMINAL. Independent audit saved MISSING_DIAGNOSTIC_TERMINAL.
-
-Source analysis found a deterministic pre-Trace allowlist conflict: obsolete8516dd9 candidate source pin 7b6774… and current456f096 pin0767e3… name the same executable path with different code. This is consistent with the startup stop; the exact historical first exception was not recorded and is not retrospectively asserted.
-
-Authority lock cca483409f1b10e401326042f3c609d24830251a21d9261cc5eeffd3ae05cb11; admission de8578729fac8058dbe1f717d4fe684465bdc54eb0ae68262fa8295806e6b0a7; source freeze 9cdc0b109ffc376a51525f549030581e667c5bb58d192f9e62225597e0d71ae3. Parent SHA 9db7d42955f25bdbb3f008f4d2fb972ff88a3d704e854464ab7dd54955c2a126; worker SHA abf80499b94ae0a1066f78bc1960fd867cec3dd390818892e711b2959f562108; audit SHA 1e39ddc8ae8ecbcab759c34e2f92580d198e165128e8a869fc4dfd85ca76b33f; worker capture SHA 59333600ae2ad8edf47e512bd1a52128e0e0945ad6f7f2734df57f9f0135d9dd; audit capture SHA 0739cd8fa75d3a13f20f47752345d1a6474d29d093495c905eed94c704c8a138. All parent/closed-worker/attempt-terminal hash joins were independently checked during packaging. Original92 preparation/result files and four release files are preserved; no historical source, receipt or verdict is edited.

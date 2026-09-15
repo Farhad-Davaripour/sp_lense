@@ -1,9 +1,0 @@
-# Small corrected splice; not a release
-
-After independent review only, replace the blocked v1 selector with this namespace's selection and graph-only handoff/reader delta. Resolve TypeBindings from the already loaded, authenticated modules: BlockBridge, Qwen3_5DecoderLayer, GatedDeltaNetBridge, Qwen3_5GatedDeltaNet, TransformerBridge and ModuleList. LIVE_EXISTING_MODULE must match compatibility Targets mode and exact current class bindings/source files. Pass this immutable TypeBindings object through Handoff's existing bridge_type slot; no installed import is performed by selection.
-
-Keep legacy strong parameter capture at its exact pre-hook point. On the actual post-bridge loaded instance, select and authenticate the complete shared 24-layer/18-original graph; install the exact approved helper component before NEW original HookRecorder/reference admission. Keep original callbacks, retained-order hashes, all 14 parameter predicates/current registry checks, helper callable fingerprints, original guard/latch/cleanup and 64 KiB receipt caps. Bind selection graph SHA to authoritative admitted setup and final controller status; saved selection proof is an additional necessary AND condition.
-
-No loader/controller is assembled here. Future additional trace source pins may include the newly pinned setup/base/block/Module/ModuleList and existing mapping/helper-decorator sources inside the unchanged trace cap. Do not widen the source allowlist without prospective integration binding.
-
-Actual live selection/callable admission, complete hook setup capacity, and numerical forward behavior remain unverified. Parent must separately authorize any later integration/diagnostic; this namespace has no real launch command or authority. The prior partial ATTRIBUTE_ERROR trace does not prove the exact missing helper or the cause of older real003.

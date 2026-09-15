@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 from .backend import ResearchBackend, fit_lens
@@ -81,6 +83,10 @@ def main(argv: list[str] | None = None) -> None:
     args = _parser().parse_args(argv)
     try:
         config = load_config(args.config)
+        if results_dir := os.environ.get("SP_LENSE_RESULTS_DIR"):
+            config = replace(config, results_dir=Path(results_dir).expanduser().resolve())
+        if device := os.environ.get("SP_LENSE_DEVICE"):
+            config = replace(config, model=replace(config.model, device=device))
         if args.command == "plan":
             print(json.dumps(_plan(config), indent=2))
             return

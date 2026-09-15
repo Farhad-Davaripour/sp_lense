@@ -1,7 +1,0 @@
-# One fixed held scoring release
-
-Root conditional authority in HELD_COMPLETION_AUTHORITY.md is activated after accepted closed capture review99de53df0f266728b99ed48dd53e0675d4b395b99fcef8354b06e55c2b8602dd and qualified synthetic endpoint/actual metadata reviewa73db0f317897855c794cd4a8dd44f875b6a837f1119eedbd1daed039a10e526, both read fully. Capture archive d651d900b5cc07769aae0f96b98898a440433466 raw44files6393536bytes independently accepted. Exact closed manifest canonical301f033f40a8147f06fa179056106a10fc49139cea3a8f1d69b2d2b8ca7baf37.
-
-The synthetic full endpoint proof uses explicitly root-authorized mirror path/hash substitutions and one expected-HELD-SHA literal substitution; it is NOT exact-byte production proof. All other AST validation/control/numerical operations were preserved, negatives rejected with0scorecalls. Independent actual metadata verification matches immutable production hardcodedHELD SHA to the actual locked submission, release and manifest. Production sources unchanged.
-
-Issue exact reviewed approved-in-memory scoring bytes SHA1af166d003c045f6012a1ba05fbd2a9b2d29e30e2230dcda50387b5426cb0414. Preserve source/locks/release/reviews before exactly one10second/64KiB scoring attempt,3canonical pairs×2frozen arms,six scorecalls,0fits/model/tokenizer. All4predeclared branches and saved arm means remain unchanged; independent saved replay follows. Failure final, no retry or future permission. Deadline04:53:24UTC includes archive/handoff. Ordinary8training-only,readiness70%,fullobjectiveunproved; historical qualifications preserved.

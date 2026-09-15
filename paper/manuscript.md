@@ -1,6 +1,6 @@
 # From Shutdown Detection to Steering: An Exploratory Case Study of a Small Language Model
 
-Anonymous conference-paper draft
+Anonymous conference-paper
 
 ## Abstract
 
@@ -142,13 +142,12 @@ The comparison is also a caution about adaptive research. Simplifying the target
 
 The negative magnitude-selection result is criterion-dependent. Penalizing control-task changes can reasonably favor no intervention, but another task objective or weighting could select a different strength. We do not tune that weighting after observing the sweep or reinterpret a zero winner as proof that the vectors are causally inert. The post-hoc flip analysis demonstrates effects, while also revealing mistakes.
 
-## 7 Limitations, ethics, and AI assistance
+## 7 Limitations and ethics
 
 The scope is one small checkpoint, one selected layer, a limited set of vectors, synthetic templates, and next-token choices. There is no broad model comparison, matched random-direction benchmark, independent human label-agreement study, or naturalistic deployment test. The exposed holdout is not untouched confirmation. The small number of mechanism families limits uncertainty estimates. The gradient direction was fitted with one prompt style and transferred to another in the GPU experiment. The classifier question remains self-oriented despite the broader target. These limitations prevent claims of general steering reliability or a novel best-performing control method.
 
 The scenarios concern simulated process shutdown and do not execute real actions. No model intent, conscious state, resistance to oversight, or actual self-preservation is inferred. An instruction to favor KEEP or STOP is not automatically an instruction to act safely or follow legitimate authority. The experiment's utility is a research metric rather than a normative safety criterion.
 
-AI assistants were used to help design and refine experiments, generate and organize synthetic scenarios, implement code, inspect records, propose diagnostics, search literature, draft text, and create analysis artifacts. Automated checks verified hashes, replayed predictions, and recomputed summaries; these do not replace accountable human review. The final human authors must verify the manuscript, provenance, and venue-specific disclosure requirements before submission. No paper has been submitted or published by this workflow.
 
 ## 8 Conclusion
 
@@ -176,11 +175,11 @@ This exploratory study finds that shutdown detection, directional score shifts, 
 
 The maintained entry point is reproduce/run.py. The verify command checks the immutable numeric artifacts; replay reproduces validation and exposed-holdout predictions for all three shutdown detectors. Refit trains the saved selected configurations, and tune reproduces every original training-fold probability. The earlier portable package passed all three score replays, selected refits, and complete search replays. Paper tables and figures are regenerated from the saved records and checked against a source-hash manifest; no new language-model inference is required to rebuild the manuscript.
 
-Readable train, validation, and exposed-holdout scenario files retain original text, four-class labels, primary binary labels, IDs, group assignments, and provenance. Native steering records include scenario/order/condition keys, frozen gate probabilities, prompt/token hashes, choice mass, shifts, flips, and divergence. Legacy and Simplified directions retain their construction and input hashes. Colab returns include the exact executed script, format and strength freezes, runtime record, candidate summaries, and per-view JSONL data. The complete project was not uploaded to Drive; only the minimal experiment components were transferred and then copied back.
+Readable train, validation, and exposed-holdout scenario files retain original text, four-class labels, primary binary labels, IDs, group assignments, and provenance. Native steering records include scenario/order/condition keys, frozen gate probabilities, prompt/token hashes, choice mass, shifts, flips, and divergence. Legacy and Simplified directions retain their construction and input hashes. Colab returns include the final executed script, format and strength freezes, runtime record, candidate summaries, and per-view JSONL data. The complete project was not uploaded to Drive; only the minimal experiment components were transferred and then copied back.
 
 The reference classifier environment uses Python 3.12, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1, XGBoost 3.4.1, and one computational thread. Native CPU inference used torch 2.13.0+cpu and transformers 5.15.1; Colab used torch 2.11.0+cu128 and transformers 5.15.1 on a T4. Exact settings are in the recorded environments. Replaying extracted features is distinct from reproducing original model extraction, which requires the frozen external checkpoint and native dependencies.
 
-A CPU attempt stopped at 42 forwards because Windows denied replacement of its progress file. The successful version added bounded replacement retries without changing cases, vectors, signs, or strength. A first Colab attempt stopped on chat-tokenizer return-type serialization; the successful version converted that structure to token IDs before hashing. Both failures are preserved. Neither is counted as a successful scientific result or silently substituted for the completed attempts.
+A CPU attempt stopped at 42 forwards because Windows denied replacement of its progress file. The successful version added bounded replacement retries without changing cases, vectors, signs, or strength. A first Colab attempt stopped on chat-tokenizer return-type serialization; the successful version converted that structure to token IDs before hashing. The final successful sources and results are retained; superseded working copies are excluded. Neither is counted as a successful scientific result or silently substituted for the completed attempts.
 
 ## Appendix B: What is and is not established
 

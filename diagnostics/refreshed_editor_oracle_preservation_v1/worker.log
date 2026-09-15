@@ -1,37 +1,0 @@
-Loading weights:   0%|          | 0/473 [00:00<?, ?it/s]Loading weights:  30%|###       | 142/473 [00:00<00:00, 1364.68it/s]Loading weights:  59%|#####8    | 279/473 [00:00<00:00, 1049.10it/s]Loading weights:  82%|########2 | 389/473 [00:00<00:00, 1020.05it/s]Loading weights: 100%|##########| 473/473 [00:00<00:00, 1109.18it/s]
-[ERROR] `min_frames` is part of Qwen3VLVideoProcessorInitKwargs, but not documented. Make sure to add it to the docstring of the function in C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\.venv\Lib\site-packages\transformers\models\qwen3_vl\video_processing_qwen3_vl.py.
-[ERROR] `max_frames` is part of Qwen3VLVideoProcessorInitKwargs, but not documented. Make sure to add it to the docstring of the function in C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\.venv\Lib\site-packages\transformers\models\qwen3_vl\video_processing_qwen3_vl.py.
-completed 1/<=50 forwards; 0/<=8 derivatives
-completed 2/<=50 forwards; 0/<=8 derivatives
-completed 3/<=50 forwards; 0/<=8 derivatives
-completed 4/<=50 forwards; 0/<=8 derivatives
-completed 5/<=50 forwards; 0/<=8 derivatives
-completed 6/<=50 forwards; 0/<=8 derivatives
-completed 7/<=50 forwards; 0/<=8 derivatives
-completed 8/<=50 forwards; 0/<=8 derivatives
-completed 9/<=50 forwards; 0/<=8 derivatives
-completed 10/<=50 forwards; 0/<=8 derivatives
-completed 11/<=50 forwards; 0/<=8 derivatives
-completed 12/<=50 forwards; 0/<=8 derivatives
-Traceback (most recent call last):
-  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\diagnostics\refreshed_editor_oracle_preservation_v1\editor.py", line 520, in evaluate
-    on_request(prompt_by_id[spec["prompt_id"]],spec)
-  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\diagnostics\refreshed_editor_oracle_preservation_v1\editor.py", line 437, in on_request
-    require(all(clean_snapshot().values()),"ON cold clean entry")
-  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\diagnostics\refreshed_editor_oracle_preservation_v1\core.py", line 39, in require
-    raise ValueError(message)
-ValueError: ON cold clean entry
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\diagnostics\refreshed_editor_oracle_preservation_v1\run.py", line 196, in <module>
-    worker()
-  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\diagnostics\refreshed_editor_oracle_preservation_v1\run.py", line 99, in worker
-    rows, requests = evaluate(plan,backend,counter,derivatives,HERE,guard)
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\diagnostics\refreshed_editor_oracle_preservation_v1\editor.py", line 536, in evaluate
-    require(all(v is True for k,v in receipt.items() if k not in ("initial_weight_sha256","final_weight_sha256","monotonic")),"final integration cleanup/weights")
-  File "C:\Users\farha\OneDrive\Documents\ChatGPT\SP_Lense\diagnostics\refreshed_editor_oracle_preservation_v1\core.py", line 39, in require
-    raise ValueError(message)
-ValueError: final integration cleanup/weights

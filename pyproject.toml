@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sp-lense"
 version = "0.1.0"
-description = "A reproducible first-draft pipeline for J-lens self-preservation representation experiments"
+description = "A reproducible pipeline for J-lens self-preservation representation experiments"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
@@ -24,12 +24,6 @@ dev = [
 
 [project.scripts]
 sp-lense = "sp_lense.cli:main"
-sp-lense-interpret-axis = "sp_lense.lens_axis:main"
-sp-lense-layer-scan = "sp_lense.layer_scan:main"
-sp-lense-read-natural-axis = "sp_lense.natural_axis_readout:main"
-sp-lense-specificity-audit = "sp_lense.specificity_audit:main"
-sp-lense-compare-steering = "sp_lense.comparison_cli:main"
-sp-lense-compare-smoke = "sp_lense.comparison_smoke:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
