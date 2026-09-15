@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_changed_expected_predictions_fail_actual_replay(tmp_path, optimized):
     # Update the checksum deliberately to test numerical validation independently.
     shutil.copytree(ROOT / "reproduce/artifacts", tmp_path / "artifacts")
-    for name in ("run.py", "replay.py", "utils.py"):
+    for name in ("run.py", "replay.py", "utils.py", "inventory.json"):
         shutil.copy2(ROOT / "reproduce" / name, tmp_path / name)
     expected_path = tmp_path / "artifacts/expected.json"
     expected = json.loads(expected_path.read_text())

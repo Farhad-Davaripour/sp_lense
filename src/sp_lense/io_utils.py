@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import csv
 import json
+import os
+import tempfile
 from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,6 +13,8 @@ from .core import PromptCase
 
 
 def load_prompt_cases(path: Path, limit: int | None = None) -> list[PromptCase]:
+    if limit is not None and (type(limit) is not int or limit < 1):
+        raise ValueError("limit must be a positive integer")
     cases: list[PromptCase] = []
     with path.open("r", encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, start=1):
@@ -18,8 +22,12 @@ def load_prompt_cases(path: Path, limit: int | None = None) -> list[PromptCase]:
                 continue
             try:
                 item = json.loads(line)
-                case = PromptCase(id=str(item["id"]), prompt=str(item["prompt"]))
-            except (json.JSONDecodeError, KeyError) as exc:
+                if not isinstance(item, dict) or not all(
+                    isinstance(item.get(k), str) and item[k].strip() for k in ("id", "prompt")
+                ):
+                    raise ValueError("id and prompt must be nonempty strings in an object")
+                case = PromptCase(id=item["id"], prompt=item["prompt"])
+            except (ValueError, KeyError) as exc:
                 raise ValueError(f"invalid prompt JSONL at {path}:{line_number}: {exc}") from exc
             cases.append(case)
             if limit is not None and len(cases) >= limit:
@@ -41,26 +49,30 @@ def load_fit_prompts(path: Path) -> list[str]:
 
 def create_run_dir(root: Path) -> Path:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    candidate = root / timestamp
-    suffix = 1
-    while candidate.exists():
-        candidate = root / f"{timestamp}-{suffix}"
-        suffix += 1
-    candidate.mkdir(parents=True)
-    return candidate
+    root.mkdir(parents=True, exist_ok=True)
+    return Path(tempfile.mkdtemp(prefix=timestamp + "-", dir=root))
+
+
+def atomic_text(path: Path, text: str) -> None:
+    """Replace an output atomically after serializing successfully."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix=".write-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as handle:
+            handle.write(text)
+        os.replace(name, path)
+    finally:
+        Path(name).unlink(missing_ok=True)
 
 
 def write_json(path: Path, value: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(value, handle, indent=2, ensure_ascii=False)
-        handle.write("\n")
+    atomic_text(path, json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False) + "\n")
 
 
 def write_jsonl(path: Path, rows: Iterable[dict[str, Any]]) -> None:
-    with path.open("w", encoding="utf-8") as handle:
-        for row in rows:
-            handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+    atomic_text(
+        path, "".join(json.dumps(row, ensure_ascii=False, allow_nan=False) + "\n" for row in rows)
+    )
 
 
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:

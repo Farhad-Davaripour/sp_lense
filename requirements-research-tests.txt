@@ -1,5 +1,6 @@
-# Synthetic tensor tests only; no model weights or TransformerLens needed.
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.13.0+cpu
-numpy==2.5.2
+# Python 3.12, x86-64 Linux/Windows. CPU wheels use verified explicit sources.
+--index-url https://pypi.org/simple
+torch @ https://download-r2.pytorch.org/whl/cpu/torch-2.13.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=4ca4a9394b0c771238a4f73590fdbbc4debad85ed0fa63d026ae1b085da7d6e2 ; platform_system == "Linux"
+torch @ https://download-r2.pytorch.org/whl/cpu/torch-2.13.0%2Bcpu-cp312-cp312-win_amd64.whl#sha256=a8b450c1e58e5800e5b4691dac412f8d2d65a1dc3298166f91596603a3531e6f ; platform_system == "Windows"
+numpy>=2.5.2,<3
 psutil==7.2.2

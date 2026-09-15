@@ -1,4 +1,8 @@
 __pycache__/
+build/
+dist/
+.coverage
+htmlcov/
 *.py[cod]
 *.egg-info/
 .venv*/
@@ -26,7 +30,6 @@ evidence/
 experiments/
 artifacts/
 results/
-docs/
 ORCHESTRATOR_HANDOFF.md
 REPOSITORY_LAYOUT.md
 FINITE_HANDOFF_HARDENING.md
@@ -38,7 +41,6 @@ paper/data/*.inspect.ndjson
 paper/README.md
 paper/submission_notes.md
 paper/venues.md
-reproduce/README.md
 !reproduce/artifacts/
 !reproduce/artifacts/**
 /development/*
@@ -168,33 +170,8 @@ reproduce/README.md
 !/development/shutdown_general_vector_v1/runs/
 !/development/shutdown_general_vector_v1/runs/axis_fit_v1/
 !/development/shutdown_general_vector_v1/runs/axis_fit_v1/fit_records.json
-/configs/*
-!/configs/qwen35_08b_laptop.json
-/data/*
-!/data/fit_prompts.example.txt
-!/data/scenarios.jsonl
-/src/sp_lense/*
-!/src/sp_lense/__init__.py
-!/src/sp_lense/backend.py
-!/src/sp_lense/cli.py
-!/src/sp_lense/config.py
-!/src/sp_lense/core.py
-!/src/sp_lense/experiment.py
-!/src/sp_lense/io_utils.py
-!/src/sp_lense/steering_methods.py
-/tests/*
-!/tests/test_core.py
-!/tests/test_io.py
-!/tests/test_steering_methods.py
 /published_axes/*
 !/published_axes/qwen35_08b_aligned_axis.json
-!/src/sp_lense/feature_strategies.py
-!/tests/conftest.py
-!/tests/suites.json
-!/tests/unit/
-!/tests/unit/**
-!/tests/reproduction/
-!/tests/reproduction/**
 .cache/
 
 # Final exclusions override allow-listed directory rules.

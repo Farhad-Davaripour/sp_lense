@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -13,6 +14,10 @@ import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[1]
 HERE = Path(__file__).resolve().parent
+# Direct script execution resolves only the sibling, trusted repository utility.
+sys.path.insert(0, str(ROOT))
+from reproduce.utils import verify_manifest
+
 STUDY = ROOT / "development/shutdown_detection_v1"
 CPU = ROOT / "development/classifier_gated_steering_v1"
 GPU = ROOT / "development/colab_magnitude_v1/returned/run_v2"
@@ -59,6 +64,7 @@ def metrics(y, p, t):
 
 
 def main():
+    verify_manifest(ROOT, HERE / "data/source_manifest.json")
     (HERE / "figures").mkdir(exist_ok=True)
     (HERE / "data").mkdir(exist_ok=True)
     plt.rcParams.update(

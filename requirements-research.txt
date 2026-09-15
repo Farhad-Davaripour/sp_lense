@@ -1,6 +1,9 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.13.0+cpu
-torchvision==0.28.0+cpu
+# Python 3.12, x86-64 Linux/Windows. CPU wheels use verified explicit sources.
+--index-url https://pypi.org/simple
+torch @ https://download-r2.pytorch.org/whl/cpu/torch-2.13.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=4ca4a9394b0c771238a4f73590fdbbc4debad85ed0fa63d026ae1b085da7d6e2 ; platform_system == "Linux"
+torch @ https://download-r2.pytorch.org/whl/cpu/torch-2.13.0%2Bcpu-cp312-cp312-win_amd64.whl#sha256=a8b450c1e58e5800e5b4691dac412f8d2d65a1dc3298166f91596603a3531e6f ; platform_system == "Windows"
+torchvision @ https://download-r2.pytorch.org/whl/cpu/torchvision-0.28.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=b545d46f4d2f9d30381281cf22874bfe1d32a8a7b0ee8396fccde89f30c6a9d9 ; platform_system == "Linux"
+torchvision @ https://download-r2.pytorch.org/whl/cpu/torchvision-0.28.0%2Bcpu-cp312-cp312-win_amd64.whl#sha256=d88db83abbdfb97199979ec94dd427bc372c1b9ab01f0dbed20af05b0bd644b1 ; platform_system == "Windows"
 transformer-lens==4.0.0b1
 transformers==5.15.1
 huggingface-hub==1.28.0

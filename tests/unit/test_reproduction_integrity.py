@@ -16,6 +16,7 @@ def test_verifier_rejects_bad_inputs_under_optimization(tmp_path, optimized, fai
     script = ROOT / "reproduce"
     for name in ["run.py", "utils.py"]:
         shutil.copy2(script / name, tmp_path / name)
+    (tmp_path / "inventory.json").write_text(json.dumps(["payload"]))
     data = tmp_path / "artifacts"
     data.mkdir()
     (data / "payload").write_bytes(b"valid")
@@ -41,6 +42,7 @@ def test_verifier_rejects_bad_inputs_under_optimization(tmp_path, optimized, fai
 def test_valid_manifest_passes_optimized(tmp_path):
     for name in ["run.py", "utils.py"]:
         shutil.copy2(ROOT / "reproduce" / name, tmp_path / name)
+    (tmp_path / "inventory.json").write_text(json.dumps(["payload"]))
     data = tmp_path / "artifacts"
     data.mkdir()
     (data / "payload").write_bytes(b"valid")

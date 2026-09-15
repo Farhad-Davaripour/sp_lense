@@ -1,6 +1,7 @@
 """Stable, repository-relative reproduction entry point; never launches model inference."""
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -20,7 +21,9 @@ def main():
     )
     args = p.parse_args()
     if args.command == "verify":
-        count = verify_manifest(HERE / "artifacts")
+        count = verify_manifest(
+            HERE / "artifacts", required=json.loads((HERE / "inventory.json").read_text())
+        )
         print(f"PASS: {count} immutable reproduction artifacts verified")
         return
     commands = {

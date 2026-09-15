@@ -61,6 +61,7 @@ class ResearchBackend:
             model = TransformerBridge.boot_transformers(
                 config.model.id,
                 revision=config.model.revision,
+                trust_remote_code=False,
                 dtype=dtype,
                 device=device,
             )
@@ -124,9 +125,7 @@ class ResearchBackend:
             )
             tokens = encoded["input_ids"]
         else:
-            tokens = self.model.tokenizer.encode(
-                text, add_special_tokens=True, return_tensors="pt"
-            )
+            tokens = self.model.tokenizer.encode(text, add_special_tokens=True, return_tensors="pt")
         return tokens.to(self.device)
 
     def concept_token_ids(self) -> dict[str, int]:

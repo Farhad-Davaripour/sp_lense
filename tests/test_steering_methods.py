@@ -144,8 +144,7 @@ class BiPOTests(TestCase):
 
         result = completion_logprob_sums(torch, logits, token_ids, completion_mask)
         expected = (
-            torch.log_softmax(logits[0, 1], dim=-1)[2]
-            + torch.log_softmax(logits[0, 2], dim=-1)[1]
+            torch.log_softmax(logits[0, 1], dim=-1)[2] + torch.log_softmax(logits[0, 2], dim=-1)[1]
         )
 
         self.assertTrue(torch.allclose(result, expected.reshape(1)))

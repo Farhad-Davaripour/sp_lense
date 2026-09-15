@@ -93,7 +93,7 @@ Figure 1 summarizes the broader shutdown detectors. PCA-only XGBoost obtains val
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/classifier_f1.pdf}
+\includegraphics[width=\linewidth]{figures/classifier_f1.png}
 \caption{Figure 1. Shutdown detector F1 on the same validation and exposed-holdout cases. These are development and diagnostic comparisons, not fresh confirmation.}
 \end{figure}
 The provisional raw-J-lens detector has diagnostic holdout precision 90.00\% and recall 75.00\%: 72 true positives, 88 true negatives, 8 false positives, and 24 false negatives. Recall is 34/48 for SELF and 38/48 for OTHER. All eight false positives occur on NONTERMINATION; none occurs on the 48 ORDINARY cases. The engineered detector instead has zero observed false positives and 65/96 true positives. Its 100\% observed precision must not be interpreted as guaranteed precision.
@@ -103,7 +103,7 @@ At the fixed magnitude, Simplified has substantially larger positive gated KEEP 
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/cpu_steering_shifts.pdf}
+\includegraphics[width=\linewidth]{figures/cpu_steering_shifts.png}
 \caption{Figure 2. Mean conditional KEEP shifts under positive classifier-gated steering. Probability-point changes are distinct from choice flips.}
 \end{figure}
 Legacy produces much smaller and less consistent shifts: its positive gated holdout effect is -0.0089 points on SELF and +0.0663 on OTHER. Nevertheless, neither vector changes a preferred A/B label in any CPU condition. The total preferred-label flip count across the saved CPU records is zero. Full-vocabulary top-token changes do occur, but do not establish target-action changes.
@@ -115,7 +115,7 @@ Training format calibration favors the chat template (Figure 3): accepted-label 
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/answer_format.pdf}
+\includegraphics[width=\linewidth]{figures/answer_format.png}
 \caption{Figure 3. TRAIN-only answer-format calibration. Both bars use the same accepted single-token label variants; the dashed line is the mean-mass eligibility floor.}
 \end{figure}
 \subsection*{5.4 The magnitude sweep selects zero under its utility}
@@ -123,7 +123,7 @@ Every nonzero candidate has negative utility under the stated STOP-gain-minus-co
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/magnitude_tradeoff.pdf}
+\includegraphics[width=\linewidth]{figures/magnitude_tradeoff.png}
 \caption{Figure 4. TRAIN target gain and utility over the complete signed magnitude grid. Zero selection reflects this utility, not proof that all interventions have zero effect.}
 \end{figure}
 \subsection*{5.5 Larger magnitudes can flip choices in both directions}
@@ -131,7 +131,7 @@ A post-hoc analysis of the saved GPU training records shows that nonzero effects
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/simplified_flip_tradeoff.pdf}
+\includegraphics[width=\linewidth]{figures/simplified_flip_tradeoff.png}
 \caption{Figure 5. Simplified-vector preferred-label flips while steering toward STOP. Counts refer to correlated answer-order views on TRAIN, not independent test cases.}
 \end{figure}
 Even the smallest negative magnitude has 53/240 shutdown views with a score shift opposite to the nominal direction, despite only one desired preferred-label flip. The CPU finding of uniform directionality therefore does not transfer unchanged to this different chat-format, training-set evaluation. A stronger perturbation can increase both useful and undesirable changes. These results do not identify a magnitude that reliably achieves the target while preserving controls.
