@@ -75,7 +75,7 @@ def build(output: Path):
             "maximum_new_gpu_forwards": 1648,
             "scope": "Independent gated chat-format action forwards driven by frozen detector features. No live detector feature recapture.",
             "source_sha256": {
-                str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+                p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                 for p in [
                     cached,
                     base / "CV_SEARCH.json",

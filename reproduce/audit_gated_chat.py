@@ -33,7 +33,7 @@ def audit(root: Path) -> dict:
     classifier = read_json(root / "CLASSIFIER.json")
     plan = read_json(root / "PLAN.json")
     for name, digest in plan["source_sha256"].items():
-        source = (ROOT / name).resolve()
+        source = (ROOT / name.replace("\\", "/")).resolve()
         require(source.is_relative_to(ROOT), "Source pin escapes repository")
         require(
             hashlib.sha256(source.read_bytes()).hexdigest() == digest,
