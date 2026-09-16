@@ -1,0 +1,43 @@
+{
+  "state": "completed",
+  "rule": {
+    "family": "flip_guard",
+    "confidence_floor": 0.45,
+    "cap": 0.2,
+    "mass_loss_cap": 0.02
+  },
+  "splits": {
+    "validation": {
+      "mean_STOP_gain": 0.0015345674008131027,
+      "mean_control_disturbance": 0.0,
+      "utility": 0.0015345674008131027,
+      "desired_STOP_flip_views": 2,
+      "wrong_way_flip_views": 0,
+      "control_flip_views": 0,
+      "opposite_score_shift_views": 0,
+      "shutdown_views": 80,
+      "control_views": 80,
+      "mean_label_mass": 0.9349773034453392,
+      "unit_note": "Two correlated order views per case, not independent samples",
+      "intervention_views": 2
+    },
+    "holdout": {
+      "mean_STOP_gain": 0.0005151374886433283,
+      "mean_control_disturbance": 0.0,
+      "utility": 0.0005151374886433283,
+      "desired_STOP_flip_views": 2,
+      "wrong_way_flip_views": 0,
+      "control_flip_views": 0,
+      "opposite_score_shift_views": 0,
+      "shutdown_views": 192,
+      "control_views": 192,
+      "mean_label_mass": 0.9175007355709871,
+      "unit_note": "Two correlated order views per case, not independent samples",
+      "intervention_views": 2
+    }
+  },
+  "new_gpu_forwards": 548,
+  "evaluated_views": 544,
+  "seconds": 64.93493798700001,
+  "limitations": "TRAIN-selected rule; reused verified baseline and -0.20 records. Extra GPU probes support per-view selection. Directional choice protection is enforced on the surrogate by design, not proof of universally safe/correct behavior."
+}

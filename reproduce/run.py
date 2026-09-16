@@ -18,7 +18,18 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         "command",
-        choices=["verify", "replay", "refit", "tune", "figures", "paper", "audit", "steering"],
+        choices=[
+            "verify",
+            "replay",
+            "refit",
+            "tune",
+            "figures",
+            "paper",
+            "audit",
+            "steering",
+            "gated",
+            "policy",
+        ],
     )
     args = p.parse_args()
     if args.command == "verify":
@@ -28,6 +39,8 @@ def main():
         print(f"PASS: {count} immutable reproduction artifacts verified")
         return
     commands = {
+        "policy": [HERE / "audit_steering_policy.py"],
+        "gated": [HERE / "audit_gated_chat.py"],
         "steering": [HERE / "steering_audit.py"],
         "replay": [HERE / "replay.py"],
         "refit": [HERE / "replay.py", "--refit"],
