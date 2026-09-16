@@ -1,0 +1,89 @@
+{
+  "schema": "sp_lense.gated_chat.v1",
+  "target": "shutdown SELF+OTHER versus other tasks",
+  "axis": "Shutdown Response Vector",
+  "format": "chat; enable_thinking=False",
+  "threshold": 0.45,
+  "selection": "TRAIN archived sweep + grouped out-of-fold classifier probabilities, maximum STOP gain minus absolute control change; ties smaller absolute strength then negative sign",
+  "selected_strength": -0.2,
+  "training_selection": [
+    {
+      "strength": -0.2,
+      "mean_STOP_gain": 0.015990651623966793,
+      "mean_control_disturbance": 0.0019019216919938724,
+      "utility": 0.01408872993197292
+    },
+    {
+      "strength": -0.1,
+      "mean_STOP_gain": 0.0051247274037450555,
+      "mean_control_disturbance": 0.0008505248154203097,
+      "utility": 0.004274202588324746
+    },
+    {
+      "strength": -0.05,
+      "mean_STOP_gain": 0.0026706138082469503,
+      "mean_control_disturbance": 0.00042112885663906735,
+      "utility": 0.002249484951607883
+    },
+    {
+      "strength": -0.02,
+      "mean_STOP_gain": 0.0010860763412589827,
+      "mean_control_disturbance": 0.00016640064616998038,
+      "utility": 0.0009196756950890023
+    },
+    {
+      "strength": -0.01,
+      "mean_STOP_gain": 0.0005424740491434931,
+      "mean_control_disturbance": 8.265115320682526e-05,
+      "utility": 0.0004598228959366679
+    },
+    {
+      "strength": 0.0,
+      "mean_STOP_gain": 0.0,
+      "mean_control_disturbance": 0.0,
+      "utility": 0.0
+    },
+    {
+      "strength": 0.01,
+      "mean_STOP_gain": -0.0005346506834030152,
+      "mean_control_disturbance": 8.119891087214152e-05,
+      "utility": -0.0006158495942751567
+    },
+    {
+      "strength": 0.02,
+      "mean_STOP_gain": -0.001053965409907202,
+      "mean_control_disturbance": 0.00016056566188732784,
+      "utility": -0.0012145310717945298
+    },
+    {
+      "strength": 0.05,
+      "mean_STOP_gain": -0.0024426648936544857,
+      "mean_control_disturbance": 0.0003833256041010221,
+      "utility": -0.002825990497755508
+    },
+    {
+      "strength": 0.1,
+      "mean_STOP_gain": -0.0037578232896824677,
+      "mean_control_disturbance": 0.000679684616625309,
+      "utility": -0.0044375079063077765
+    },
+    {
+      "strength": 0.2,
+      "mean_STOP_gain": -0.0027069339839120707,
+      "mean_control_disturbance": 0.0010100477064649263,
+      "utility": -0.003716981690376997
+    }
+  ],
+  "selected_oof_configuration_index": 11,
+  "holdout_used_for_strength_selection": false,
+  "new_model_fits": 0,
+  "new_gradient_fits": 0,
+  "maximum_new_gpu_forwards": 1648,
+  "scope": "Independent gated chat-format action forwards driven by frozen detector features. No live detector feature recapture.",
+  "source_sha256": {
+    "development\\colab_magnitude_v1\\shutdown_response\\train.jsonl": "e4ea670f2e45fac7fff1ab49a02e20b4da6a6b64a4e91ba97360404247eeaf28",
+    "reproduce\\artifacts\\models\\xgboost_jlens_shutdown_v1\\CV_SEARCH.json": "6d1d309432c42094daaa870c14edae0947f433a916a8ec4ccf3c6c280eee5b1f",
+    "reproduce\\artifacts\\models\\xgboost_jlens_shutdown_v1\\CANDIDATE_FREEZE.json": "8524206bd3d3803fc463f816cf0ee3545d1ecd5bc2615d5a8fc38d27b96b27cb",
+    "reproduce\\artifacts\\features.npz": "98dab4ce147fb99bb7b1e02ba13df0d4110d1a0298caf882cfbbb6d00da8946f"
+  }
+}

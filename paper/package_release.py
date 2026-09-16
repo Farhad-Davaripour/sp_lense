@@ -33,6 +33,7 @@ PUBLIC_FILES = {
     "MANIFEST.in",
 }
 EVIDENCE = {
+    "gated_chat_v1",
     "classifier_gated_steering_v1",
     "shutdown_general_vector_v1",
     "shutdown_detection_v1",
