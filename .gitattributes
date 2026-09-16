@@ -1,9 +1,9 @@
 * text=auto eol=lf
 /reproduce/artifacts/** -text
 /development/** -text
-/reproduce/gated_chat.py -text
-/reproduce/guarded_chat.py -text
-/reproduce/search_steering_rules.py -text
+/reproduce/gated_chat.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reproduce/guarded_chat.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/reproduce/search_steering_rules.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /published_axes/** -text
 *.pdf binary
 *.png binary
