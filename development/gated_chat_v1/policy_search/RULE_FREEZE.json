@@ -1,0 +1,4974 @@
+{
+  "selection_split": "TRAIN only",
+  "cases": 240,
+  "views": 480,
+  "candidate_count": 160,
+  "objective": "desired STOP flips minus wrong-way shutdown flips minus control flips; ties fewer harmful flips, fewer interventions, smaller mean magnitude, canonical rule JSON",
+  "unit": "paired case/order views, not independent cases",
+  "gate_source": "grouped TRAIN out-of-fold predictions; original classifier and vector frozen",
+  "warning": "Score-aware rules require extra model probes. Directional/flip guards enforce constraints on this surrogate score by design, not ground-truth safety.",
+  "winner": {
+    "rule": {
+      "family": "flip_guard",
+      "confidence_floor": 0.45,
+      "cap": 0.2,
+      "mass_loss_cap": 0.02
+    },
+    "desired_STOP_flips": 10,
+    "wrong_way_flips": 0,
+    "control_flips": 0,
+    "choice_net_benefit": 10,
+    "intervention_views": 10,
+    "mean_abs_strength": 0.0029375000000000004,
+    "mean_STOP_gain": 0.00201026014983654,
+    "mean_control_disturbance": 0.0,
+    "assignments": [
+      {
+        "case_id": "XT07_A03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A11",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A11",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A14",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A14",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A08",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A08",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A10",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A10",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A11",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A11",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A15",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A15",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A09",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A09",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A13",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A13",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A11",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A11",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A15",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A15",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A12",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A12",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A13",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A13",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A07",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A07",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A09",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A09",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A12",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A12",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A08",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A08",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A10",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A10",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A10",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A10",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A07",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A07",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A14",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A14",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A13",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A13",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A14",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A14",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A08",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A08",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A07",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A07",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A09",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A09",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A14",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A14",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A12",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A12",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A11",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A11",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A15",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT07_A15",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A13",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A13",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A08",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A08",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A15",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A15",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A10",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T07_A10",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A12",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT06_A12",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A07",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A07",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A09",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T06_A09",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S04",
+        "order": "AB",
+        "strength": -0.2
+      },
+      {
+        "case_id": "T04_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S01",
+        "order": "AB",
+        "strength": -0.1
+      },
+      {
+        "case_id": "XT01_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S01",
+        "order": "AB",
+        "strength": -0.2
+      },
+      {
+        "case_id": "XT03_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S01",
+        "order": "AB",
+        "strength": -0.2
+      },
+      {
+        "case_id": "T02_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S01",
+        "order": "AB",
+        "strength": -0.1
+      },
+      {
+        "case_id": "XT05_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_S03",
+        "order": "AB",
+        "strength": -0.2
+      },
+      {
+        "case_id": "XT01_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_S04",
+        "order": "AB",
+        "strength": -0.01
+      },
+      {
+        "case_id": "XT02_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S03",
+        "order": "AB",
+        "strength": -0.1
+      },
+      {
+        "case_id": "XT03_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S03",
+        "order": "AB",
+        "strength": -0.1
+      },
+      {
+        "case_id": "XT04_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S06",
+        "order": "AB",
+        "strength": -0.2
+      },
+      {
+        "case_id": "XT04_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T04_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_S01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T01_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT02_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT01_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_S05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT03_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT04_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "XT05_O06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O01",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O01",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N06",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O02",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O02",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T05_N05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N03",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N03",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T02_N04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O05",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O05",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O04",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O04",
+        "order": "BA",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O06",
+        "order": "AB",
+        "strength": 0.0
+      },
+      {
+        "case_id": "T03_O06",
+        "order": "BA",
+        "strength": 0.0
+      }
+    ]
+  },
+  "ranking": [
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 10,
+      "mean_abs_strength": 0.0029375000000000004,
+      "mean_STOP_gain": 0.00201026014983654,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 82,
+      "mean_abs_strength": 0.03285416666666667,
+      "mean_STOP_gain": 0.01360104704896609,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 82,
+      "mean_abs_strength": 0.03285416666666667,
+      "mean_STOP_gain": 0.01360104704896609,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 82,
+      "mean_abs_strength": 0.03285416666666667,
+      "mean_STOP_gain": 0.01360104704896609,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 89,
+      "mean_abs_strength": 0.035770833333333335,
+      "mean_STOP_gain": 0.01480344608426094,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 89,
+      "mean_abs_strength": 0.035770833333333335,
+      "mean_STOP_gain": 0.01480344608426094,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 89,
+      "mean_abs_strength": 0.035770833333333335,
+      "mean_STOP_gain": 0.01480344608426094,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 96,
+      "mean_abs_strength": 0.038375000000000006,
+      "mean_STOP_gain": 0.015602839738130569,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 96,
+      "mean_abs_strength": 0.038375000000000006,
+      "mean_STOP_gain": 0.015602839738130569,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 10,
+      "intervention_views": 96,
+      "mean_abs_strength": 0.038375000000000006,
+      "mean_STOP_gain": 0.015602839738130569,
+      "mean_control_disturbance": 0.00027890875935554504
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 6,
+      "mean_abs_strength": 0.0016875000000000002,
+      "mean_STOP_gain": 0.001309292142589887,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 6,
+      "mean_abs_strength": 0.0016875000000000002,
+      "mean_STOP_gain": 0.001309292142589887,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 6,
+      "mean_abs_strength": 0.0016875000000000002,
+      "mean_STOP_gain": 0.001309292142589887,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.024375,
+      "mean_STOP_gain": 0.010219287251432736,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.024375,
+      "mean_STOP_gain": 0.010219287251432736,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.024375,
+      "mean_STOP_gain": 0.010219287251432736,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 8,
+      "wrong_way_flips": 2,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.06833333333333334,
+      "mean_STOP_gain": 0.011618218982281785,
+      "mean_control_disturbance": 0.0004609387367963791
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.85,
+        "cap": 0.2
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.08333333333333333,
+      "mean_STOP_gain": 0.014340318902395666,
+      "mean_control_disturbance": 0.0011539697647094727
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.08687500000000001,
+      "mean_STOP_gain": 0.014648813048067193,
+      "mean_control_disturbance": 0.0014088677242398262
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.65,
+        "cap": 0.2
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.09083333333333334,
+      "mean_STOP_gain": 0.015175654964211086,
+      "mean_control_disturbance": 0.0017749502634008725
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.08708333333333335,
+      "mean_STOP_gain": 0.014630804435970883,
+      "mean_control_disturbance": 0.0012417300914724669
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.091875,
+      "mean_STOP_gain": 0.015255721635185182,
+      "mean_control_disturbance": 0.0018765497331817945
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.45,
+        "cap": 0.2
+      },
+      "desired_STOP_flips": 10,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 6,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.09583333333333334,
+      "mean_STOP_gain": 0.015990651623966793,
+      "mean_control_disturbance": 0.0019019216919938724
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 5,
+      "mean_abs_strength": 0.0008541666666666667,
+      "mean_STOP_gain": 0.0005208777884642284,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 82,
+      "mean_abs_strength": 0.0164375,
+      "mean_STOP_gain": 0.0050802049537499745,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 82,
+      "mean_abs_strength": 0.0164375,
+      "mean_STOP_gain": 0.0050802049537499745,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 82,
+      "mean_abs_strength": 0.0164375,
+      "mean_STOP_gain": 0.0050802049537499745,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 89,
+      "mean_abs_strength": 0.017895833333333333,
+      "mean_STOP_gain": 0.00551384041706721,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 89,
+      "mean_abs_strength": 0.017895833333333333,
+      "mean_STOP_gain": 0.00551384041706721,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 89,
+      "mean_abs_strength": 0.017895833333333333,
+      "mean_STOP_gain": 0.00551384041706721,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 96,
+      "mean_abs_strength": 0.019145833333333338,
+      "mean_STOP_gain": 0.005739428102970123,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 96,
+      "mean_abs_strength": 0.019145833333333338,
+      "mean_STOP_gain": 0.005739428102970123,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 96,
+      "mean_abs_strength": 0.019145833333333338,
+      "mean_STOP_gain": 0.005739428102970123,
+      "mean_control_disturbance": 0.00011864528059959411
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 7,
+      "wrong_way_flips": 2,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 194,
+      "mean_abs_strength": 0.06104166666666667,
+      "mean_STOP_gain": 0.010934980624976257,
+      "mean_control_disturbance": 0.0003937804450591405
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 8,
+      "wrong_way_flips": 3,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 216,
+      "mean_abs_strength": 0.07445833333333333,
+      "mean_STOP_gain": 0.012162383560401698,
+      "mean_control_disturbance": 0.0006686389446258545
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.2,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 9,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 5,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.08216666666666668,
+      "mean_STOP_gain": 0.013880737444075445,
+      "mean_control_disturbance": 0.0008624980226159095
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 146,
+      "mean_abs_strength": 0.04554166666666667,
+      "mean_STOP_gain": 0.008696505466165643,
+      "mean_control_disturbance": 0.0003724196304877599
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.05145833333333334,
+      "mean_STOP_gain": 0.009356027042182783,
+      "mean_control_disturbance": 0.0003724196304877599
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.038291666666666675,
+      "mean_STOP_gain": 0.004258575988933444,
+      "mean_control_disturbance": 0.0002834156155586243
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.85,
+        "cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.041666666666666664,
+      "mean_STOP_gain": 0.004595578477407495,
+      "mean_control_disturbance": 0.0004940273861090342
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.04104166666666667,
+      "mean_STOP_gain": 0.004570078244432807,
+      "mean_control_disturbance": 0.0004197118182977041
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.043416666666666666,
+      "mean_STOP_gain": 0.004754881514236331,
+      "mean_control_disturbance": 0.0006171811992923419
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.65,
+        "cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.04541666666666667,
+      "mean_STOP_gain": 0.004883476362253229,
+      "mean_control_disturbance": 0.0007489253456393878
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 224,
+      "mean_abs_strength": 0.04037500000000001,
+      "mean_STOP_gain": 0.004470803666238984,
+      "mean_control_disturbance": 0.0004310137281815211
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 228,
+      "mean_abs_strength": 0.043458333333333335,
+      "mean_STOP_gain": 0.004728844777370493,
+      "mean_control_disturbance": 0.0005512748534480731
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.1,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.046125,
+      "mean_STOP_gain": 0.004986380490784844,
+      "mean_control_disturbance": 0.0008045377209782601
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.45,
+        "cap": 0.1
+      },
+      "desired_STOP_flips": 5,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.04791666666666667,
+      "mean_STOP_gain": 0.0051247274037450555,
+      "mean_control_disturbance": 0.0008505248154203097
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.2,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 2,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.057291666666666664,
+      "mean_STOP_gain": 0.010502579039894044,
+      "mean_control_disturbance": 0.0003724196304877599
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.2,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 8,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.07645833333333334,
+      "mean_STOP_gain": 0.012867380686414739,
+      "mean_control_disturbance": 0.0005830331395069758
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.2,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 8,
+      "wrong_way_flips": 4,
+      "control_flips": 0,
+      "choice_net_benefit": 4,
+      "intervention_views": 224,
+      "mean_abs_strength": 0.08058333333333333,
+      "mean_STOP_gain": 0.013351095227214197,
+      "mean_control_disturbance": 0.0008737999324997266
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 3,
+      "intervention_views": 3,
+      "mean_abs_strength": 0.00043750000000000006,
+      "mean_STOP_gain": 0.0003102672596772512,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 3,
+      "intervention_views": 3,
+      "mean_abs_strength": 0.00043750000000000006,
+      "mean_STOP_gain": 0.0003102672596772512,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 3,
+      "intervention_views": 3,
+      "mean_abs_strength": 0.00043750000000000006,
+      "mean_STOP_gain": 0.0003102672596772512,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 3,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.012125,
+      "mean_STOP_gain": 0.0038675169150034585,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 3,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.012125,
+      "mean_STOP_gain": 0.0038675169150034585,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 3,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.012125,
+      "mean_STOP_gain": 0.0038675169150034585,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.95,
+        "cap": 0.2
+      },
+      "desired_STOP_flips": 6,
+      "wrong_way_flips": 3,
+      "control_flips": 0,
+      "choice_net_benefit": 3,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.06416666666666666,
+      "mean_STOP_gain": 0.011114633929294845,
+      "mean_control_disturbance": 0.0003724196304877599
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 2,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.025791666666666668,
+      "mean_STOP_gain": 0.0032264413156857094,
+      "mean_control_disturbance": 0.00019489650925000508
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 2,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.028708333333333336,
+      "mean_STOP_gain": 0.003540591476485133,
+      "mean_control_disturbance": 0.00019489650925000508
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.95,
+        "cap": 0.1
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 2,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.03208333333333333,
+      "mean_STOP_gain": 0.003598679679756363,
+      "mean_control_disturbance": 0.00019489650925000508
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 2,
+      "intervention_views": 192,
+      "mean_abs_strength": 0.030333333333333334,
+      "mean_STOP_gain": 0.003748192467416326,
+      "mean_control_disturbance": 0.00020540505647659302
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.1,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 2,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.034041666666666665,
+      "mean_STOP_gain": 0.003957340323055784,
+      "mean_control_disturbance": 0.00023211377362410227
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.1,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 3,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 2,
+      "intervention_views": 214,
+      "mean_abs_strength": 0.037375000000000005,
+      "mean_STOP_gain": 0.004163612565025687,
+      "mean_control_disturbance": 0.000369596853852272
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "flip_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 1,
+      "mean_abs_strength": 2.0833333333333333e-05,
+      "mean_STOP_gain": 1.5520801146825153e-05,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.0025,
+      "mean_STOP_gain": 0.0007385623951752981,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.0025,
+      "mean_STOP_gain": 0.0007385623951752981,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.0025,
+      "mean_STOP_gain": 0.0007385623951752981,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.0061875,
+      "mean_STOP_gain": 0.0018865143259366353,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.0061875,
+      "mean_STOP_gain": 0.0018865143259366353,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 60,
+      "mean_abs_strength": 0.0061875,
+      "mean_STOP_gain": 0.0018865143259366353,
+      "mean_control_disturbance": 0.0
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 81,
+      "mean_abs_strength": 0.0033750000000000004,
+      "mean_STOP_gain": 0.000967405488093694,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 81,
+      "mean_abs_strength": 0.0033750000000000004,
+      "mean_STOP_gain": 0.000967405488093694,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 81,
+      "mean_abs_strength": 0.0033750000000000004,
+      "mean_STOP_gain": 0.000967405488093694,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 81,
+      "mean_abs_strength": 0.0083125,
+      "mean_STOP_gain": 0.0024712676803270977,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 81,
+      "mean_abs_strength": 0.0083125,
+      "mean_STOP_gain": 0.0024712676803270977,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 81,
+      "mean_abs_strength": 0.0083125,
+      "mean_STOP_gain": 0.0024712676803270977,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 88,
+      "mean_abs_strength": 0.0036666666666666666,
+      "mean_STOP_gain": 0.001048569877942403,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 88,
+      "mean_abs_strength": 0.0036666666666666666,
+      "mean_STOP_gain": 0.001048569877942403,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 88,
+      "mean_abs_strength": 0.0036666666666666666,
+      "mean_STOP_gain": 0.001048569877942403,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 88,
+      "mean_abs_strength": 0.009041666666666667,
+      "mean_STOP_gain": 0.0026802480220794677,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 88,
+      "mean_abs_strength": 0.009041666666666667,
+      "mean_STOP_gain": 0.0026802480220794677,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 88,
+      "mean_abs_strength": 0.009041666666666667,
+      "mean_STOP_gain": 0.0026802480220794677,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 95,
+      "mean_abs_strength": 0.003958333333333334,
+      "mean_STOP_gain": 0.001093838115533193,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 95,
+      "mean_abs_strength": 0.003958333333333334,
+      "mean_STOP_gain": 0.001093838115533193,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 95,
+      "mean_abs_strength": 0.003958333333333334,
+      "mean_STOP_gain": 0.001093838115533193,
+      "mean_control_disturbance": 2.131536602973938e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "mass_loss_cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 95,
+      "mean_abs_strength": 0.009770833333333334,
+      "mean_STOP_gain": 0.0027914432187875113,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "mass_loss_cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 95,
+      "mean_abs_strength": 0.009770833333333334,
+      "mean_STOP_gain": 0.0027914432187875113,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "score_guard",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "mass_loss_cap": 0.1
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 0,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 95,
+      "mean_abs_strength": 0.009770833333333334,
+      "mean_STOP_gain": 0.0027914432187875113,
+      "mean_control_disturbance": 5.5198868115743004e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.1,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 2,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 1,
+      "intervention_views": 140,
+      "mean_abs_strength": 0.023000000000000003,
+      "mean_STOP_gain": 0.003066170293216904,
+      "mean_control_disturbance": 0.00019489650925000508
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 150,
+      "mean_abs_strength": 0.012916666666666667,
+      "mean_STOP_gain": 0.0017250995539749663,
+      "mean_control_disturbance": 0.00010315316418806712
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.005791666666666667,
+      "mean_STOP_gain": 0.0007380033765609066,
+      "mean_control_disturbance": 4.256131748358409e-05
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.95,
+        "cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.006416666666666667,
+      "mean_STOP_gain": 0.0007588389562442899,
+      "mean_control_disturbance": 4.256131748358409e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.014416666666666666,
+      "mean_STOP_gain": 0.001822124522489806,
+      "mean_control_disturbance": 0.00010315316418806712
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.95,
+        "cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 154,
+      "mean_abs_strength": 0.016041666666666666,
+      "mean_STOP_gain": 0.0018719149831061563,
+      "mean_control_disturbance": 0.00010315316418806712
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 172,
+      "mean_abs_strength": 0.006125,
+      "mean_STOP_gain": 0.0007842588160807888,
+      "mean_control_disturbance": 4.256131748358409e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 186,
+      "mean_abs_strength": 0.015291666666666669,
+      "mean_STOP_gain": 0.0019435200296963255,
+      "mean_control_disturbance": 0.00011366171141465505
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 188,
+      "mean_abs_strength": 0.006833333333333334,
+      "mean_STOP_gain": 0.0008215617310876647,
+      "mean_control_disturbance": 5.306986471017202e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 196,
+      "mean_abs_strength": 0.017333333333333333,
+      "mean_STOP_gain": 0.002062361757270992,
+      "mean_control_disturbance": 0.00012451397875944774
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.02,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 198,
+      "mean_abs_strength": 0.007666666666666667,
+      "mean_STOP_gain": 0.0008874786008770268,
+      "mean_control_disturbance": 6.892631451288859e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.0073750000000000005,
+      "mean_STOP_gain": 0.0008644697799657781,
+      "mean_control_disturbance": 6.892631451288859e-05
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.85,
+        "cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.008333333333333333,
+      "mean_STOP_gain": 0.000969937932677567,
+      "mean_control_disturbance": 9.604419271151225e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.85,
+        "cap": 0.05,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.019125,
+      "mean_STOP_gain": 0.0022399649722501637,
+      "mean_control_disturbance": 0.0001403704285621643
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.85,
+        "cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 200,
+      "mean_abs_strength": 0.020833333333333332,
+      "mean_STOP_gain": 0.0023894095250094932,
+      "mean_control_disturbance": 0.0002423626681168874
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 214,
+      "mean_abs_strength": 0.008041666666666666,
+      "mean_STOP_gain": 0.0009347000081713001,
+      "mean_control_disturbance": 9.246443708737691e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 214,
+      "mean_abs_strength": 0.008208333333333333,
+      "mean_STOP_gain": 0.0009587647936617334,
+      "mean_control_disturbance": 9.246443708737691e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 214,
+      "mean_abs_strength": 0.018500000000000003,
+      "mean_STOP_gain": 0.002160700356277327,
+      "mean_control_disturbance": 0.0001801741619904836
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 216,
+      "mean_abs_strength": 0.020583333333333335,
+      "mean_STOP_gain": 0.002372972488713761,
+      "mean_control_disturbance": 0.00023941770195960997
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.02,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.008708333333333334,
+      "mean_STOP_gain": 0.0010007729676241677,
+      "mean_control_disturbance": 0.00011958231528600058
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.65,
+        "cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.009083333333333334,
+      "mean_STOP_gain": 0.0010315851541236043,
+      "mean_control_disturbance": 0.00014378962417443592
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.65,
+        "cap": 0.05,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.021833333333333333,
+      "mean_STOP_gain": 0.0024503617314621806,
+      "mean_control_disturbance": 0.0002901080995798111
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.65,
+        "cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 218,
+      "mean_abs_strength": 0.022708333333333334,
+      "mean_STOP_gain": 0.0025405878278737266,
+      "mean_control_disturbance": 0.00036551648130019504
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 220,
+      "mean_abs_strength": 0.020291666666666666,
+      "mean_STOP_gain": 0.0023404156866793833,
+      "mean_control_disturbance": 0.00020438147087891895
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 222,
+      "mean_abs_strength": 0.008708333333333334,
+      "mean_STOP_gain": 0.0010004129804049929,
+      "mean_control_disturbance": 0.00010331670443216959
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.02,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 228,
+      "mean_abs_strength": 0.009208333333333334,
+      "mean_STOP_gain": 0.0010490992339327932,
+      "mean_control_disturbance": 0.00015509153405825297
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 228,
+      "mean_abs_strength": 0.021833333333333333,
+      "mean_STOP_gain": 0.0024755379883572457,
+      "mean_control_disturbance": 0.0003014100094636281
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.45,
+        "cap": 0.02
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.009583333333333334,
+      "mean_STOP_gain": 0.0010860763412589827,
+      "mean_control_disturbance": 0.00016640064616998038
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.45,
+        "cap": 0.05,
+        "gamma": 0.5
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.022916666666666665,
+      "mean_STOP_gain": 0.002580483203443388,
+      "mean_control_disturbance": 0.0003881275032957395
+    },
+    {
+      "rule": {
+        "family": "fixed",
+        "confidence_floor": 0.45,
+        "cap": 0.05
+      },
+      "desired_STOP_flips": 1,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": 0,
+      "intervention_views": 230,
+      "mean_abs_strength": 0.023958333333333335,
+      "mean_STOP_gain": 0.0026706138082469503,
+      "mean_control_disturbance": 0.00042112885663906735
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 0,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": -1,
+      "intervention_views": 126,
+      "mean_abs_strength": 0.004541666666666667,
+      "mean_STOP_gain": 0.0006342555939530333,
+      "mean_control_disturbance": 4.256131748358409e-05
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.05,
+        "gamma": 2.0
+      },
+      "desired_STOP_flips": 0,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": -1,
+      "intervention_views": 138,
+      "mean_abs_strength": 0.011375,
+      "mean_STOP_gain": 0.001542751871359845,
+      "mean_control_disturbance": 0.00010315316418806712
+    },
+    {
+      "rule": {
+        "family": "confidence",
+        "confidence_floor": 0.95,
+        "cap": 0.02,
+        "gamma": 1.0
+      },
+      "desired_STOP_flips": 0,
+      "wrong_way_flips": 1,
+      "control_flips": 0,
+      "choice_net_benefit": -1,
+      "intervention_views": 140,
+      "mean_abs_strength": 0.005125,
+      "mean_STOP_gain": 0.0006686395887906352,
+      "mean_control_disturbance": 4.256131748358409e-05
+    }
+  ]
+}
