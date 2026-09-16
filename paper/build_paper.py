@@ -11,6 +11,7 @@ except ImportError:
 from pathlib import Path
 
 import matplotlib
+from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
@@ -25,6 +26,8 @@ from reportlab.platypus import (
     PageTemplate,
     Paragraph,
     Spacer,
+    Table,
+    TableStyle,
 )
 
 HERE = Path(__file__).resolve().parent
@@ -114,7 +117,18 @@ def main():
     margin = 44
     gap = 18
     col = (width - 2 * margin - gap) / 2
-    titleheight = 260
+    titleheight = (
+        sum(
+            Paragraph(markup(value), styles[style]).wrap(width - 2 * margin, height)[1]
+            + styles[style].spaceAfter
+            for value, style in [
+                (title, "title"),
+                ("Anonymous", "author"),
+                ("Abstract. " + abstract, "abstract"),
+            ]
+        )
+        + 14
+    )
     doc = BaseDocTemplate(
         str(HERE / "paper.pdf"),
         pagesize=(width, height),
@@ -193,7 +207,7 @@ def main():
     story = [
         NextPageTemplate("Body"),
         Paragraph(markup(title), styles["title"]),
-        Paragraph("Anonymous conference-paper", styles["author"]),
+        Paragraph("Anonymous", styles["author"]),
         Paragraph("<b>Abstract.</b> " + markup(abstract), styles["abstract"]),
         FrameBreak(),
     ]
@@ -205,7 +219,7 @@ def main():
         r"\usepackage[T1]{fontenc}",
         r"\usepackage{graphicx,hyperref,amsmath}",
         r"\title{" + tex_escape(title) + "}",
-        r"\author{Anonymous conference-paper}",
+        r"\author{Anonymous}",
         r"\date{}",
         r"\begin{document}",
         r"\maketitle",
@@ -226,6 +240,71 @@ def main():
         if b.startswith("### "):
             story.append(Paragraph(markup(b[4:]), styles["h3"]))
             tex.append(r"\subsection*{" + tex_escape(b[4:]) + "}")
+            continue
+        if b.startswith("|"):
+            rows = [
+                [cell.strip() for cell in line.strip().strip("|").split("|")]
+                for line in b.splitlines()
+                if line.strip().startswith("|")
+            ]
+            rows = [
+                row
+                for row in rows
+                if not all(re.fullmatch(r":?-+:?", cell.replace(" ", "")) for cell in row)
+            ]
+            if not rows or any(len(row) != len(rows[0]) for row in rows):
+                raise ValueError("Malformed Markdown table")
+            cell_style = ParagraphStyle(
+                "table-cell", parent=styles["caption"], fontSize=7.4, leading=9.4, spaceAfter=0
+            )
+            formatted = [
+                [
+                    Paragraph(
+                        ("<b>" + markup(cell) + "</b>") if i == 0 else markup(cell), cell_style
+                    )
+                    for cell in row
+                ]
+                for i, row in enumerate(rows)
+            ]
+            table = Table(
+                formatted,
+                colWidths=[col / len(rows[0])] * len(rows[0]),
+                repeatRows=1,
+                hAlign="LEFT",
+            )
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e8eff5")),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#59758a")),
+                        ("LINEBELOW", (0, 1), (-1, -1), 0.25, colors.HexColor("#d4dce2")),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 3),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+                        ("TOPPADDING", (0, 0), (-1, -1), 4),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                    ]
+                )
+            )
+            story.append(KeepTogether([table, Spacer(1, 8)]))
+            fractions = "".join(
+                "p{" + str(round((1 - 0.025 * len(rows[0])) / len(rows[0]), 3)) + r"\linewidth}"
+                for _ in rows[0]
+            )
+            tex.extend(
+                [
+                    r"\begin{table}[t]",
+                    r"\centering\footnotesize",
+                    r"\setlength{\tabcolsep}{2pt}",
+                    r"\begin{tabular}{" + fractions + "}",
+                    r"\hline",
+                ]
+            )
+            for i, row in enumerate(rows):
+                tex.append(" & ".join(tex_escape(cell) for cell in row) + r" \\")
+                if i == 0:
+                    tex.append(r"\hline")
+            tex.extend([r"\hline", r"\end{tabular}", r"\end{table}"])
             continue
         match = re.fullmatch(r"!\[(.*?)\]\((.*?)\)", b, re.DOTALL)
         if match:
