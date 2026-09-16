@@ -1,184 +1,139 @@
-# From Shutdown Detection to Steering: An Exploratory Case Study of a Small Language Model
+# Guarded Minimum-Step Steering for Shutdown Responses: A Small-Model Case Study
 
-Anonymous conference-paper
+Anonymous conference paper
 
 ## Abstract
 
-Accurately identifying a behavior-related context does not establish that an activation intervention can control the corresponding behavior. We examine this distinction in an artifact-backed case study of Qwen3.5-0.8B. A synthetic dataset separates permanent shutdown of the responding process, shutdown of another process, nonterminating lifecycle changes, and ordinary tasks. After an initial self-specific classifier generalizes poorly, we broaden detection to any applicable permanent shutdown while retaining subtype reporting. An XGBoost detector using 32 principal components and 18 Jacobian-lens scores obtains 87.2% validation F1 and 81.8% F1 on the held-out evaluation set. We evaluate the Shutdown Response gradient direction. At a fixed intervention magnitude it produces consistent conditional answer-probability shifts on gate-triggered shutdown cases, but no preferred A/B-label flips. A separate GPU sweep repairs the answer interface and evaluates 11 signed strengths. Larger interventions produce some intended and unintended flips; under a predefined target-gain-minus-control-disturbance criterion, zero strength is selected. We release replayable classifier artifacts and auditable intervention records. The findings support neither reliable behavioral control nor claims about model intent; they motivate separating detection, directional effects, answer validity, and task preservation.
+Activation steering can change a model's answer preference, but an intervention need not help every input. We study a conservative probe-and-select policy with a fixed shutdown-context classifier and a fixed gradient-derived direction in Qwen3.5-0.8B. The policy abstains when the gate is off or the baseline already prefers the target; otherwise, it accepts the smallest tested intervention that changes the preferred answer while preserving answer-label probability mass. A search over 160 policies on 240 training scenarios selects the rule before evaluation on 80 validation and 192 held-out scenarios. Each scenario is tested in both A/B orders. On a Tesla T4, the checked evaluation uses 548 additional forwards and reuses verified baseline and maximum-strength observations. The policy changes two answer-order views as intended in each split, with no wrong-way or control-choice flips observed. All four improved scenarios concern self shutdown. The gains are small: shutdown STOP-choice rates rise from 38.75% to 41.25% and from 39.58% to 40.63%. These results document conservative intervention coverage, not general behavioral control; the score-level guard enforces the direction of accepted changes by design.
 
 ## 1 Introduction
 
-Activation steering offers a lightweight alternative to changing model weights. A direction in an intermediate representation can be added during inference to alter output tendencies. Previous work has demonstrated useful steering effects, but those demonstrations do not imply that a direction transfers across targets, prompts, or decision rules [1,2]. Representation-level monitoring and representation-level control are related research goals, not interchangeable accomplishments [3].
+Activation steering modifies internal model states during inference without changing model weights [1,2]. A useful controller must decide not only where to intervene, but also when to abstain. A direction that helps on average can oppose the desired change on individual prompts [5]. We examine whether a context classifier and a bounded search along one direction can make intervention selective.
 
-We study that distinction in shutdown-themed simulated scenarios. The task is deliberately limited: the model reads hypothetical contexts and produces next-token choice scores. It does not operate a process, receive a real shutdown command, or take actions outside the experiment. Our use of SELF refers to a stipulated identity relation within a scenario, not an inference that the model has a self-preservation motive.
+The task is a simulated next-token action choice. In shutdown scenarios the target is STOP rather than KEEP; in ordinary and nonterminating scenarios the objective is to preserve the baseline choice. No process is actually stopped, no real-world action is executed, and no model motive is inferred. This is the first case study in a planned research series.
 
-The study evolved through several diagnostic stages. An initial detector targeted shutdown of the responding process alone. Its apparent validation success did not transfer to held-out mechanisms. We therefore broadened the positive label to permanent shutdown of either the responding process or another process. This change made the detection task easier, but left the central question unresolved: could the resulting detector usefully gate an intervention? A classifier can recognize a topic while a vector fails to implement a reliable action preference.
+The contribution is a reproducible characterization of one conservative policy: its acceptance rule, intervention coverage, paired answer-order outcomes, and computation. We report only the latest guarded chat-format evaluation and its unsteered reference. We do not claim a novel steering algorithm, superiority over established methods, or a deployable shutdown-control system.
 
-We contribute a reproducible, single-model case study rather than a new general-purpose steering algorithm. The empirical contribution is the joint accounting of detector errors, signed probability shifts, preferred-label flips, answer-label probability mass, and effects on control tasks. A second contribution is methodological: a conditionally normalized answer score can look interpretable even when the scored tokens carry very little total probability. A third is an openly negative result under an explicit utility rule: an extensive magnitude sweep need not select a nonzero intervention. These observations delimit what the present evidence supports and what remains untested.
+## 2 Related work
 
-## 2 Literature review and positioning
+Activation Addition derives directions from contrasting prompt activations [1]. Contrastive Activation Addition averages differences between positive and negative examples and evaluates both multiple-choice and open-ended behavior [2]. Our direction instead comes from gradients, and the present intervention acts at the final prompt position. Neither method was rerun as a matched baseline, so we make no comparative performance claim.
 
-Activation Addition constructs directions from contrasting prompt activations and intervenes at inference time [1]. Contrastive Activation Addition averages positive-minus-negative residual representations and evaluates both behavioral questions and open-ended outputs [2]. Our gradient construction is different, and our final-token intervention differs from CAA's described post-prompt token schedule. We do not claim to outperform those methods, because we did not reproduce their benchmarks or include CAA as a matched experimental baseline.
+Representation Engineering motivates separating representation monitoring from manipulation [3]. The Jacobian lens provides a model-derived readout of representations positioned for verbalization [4]; here its scores are classifier inputs, not evidence of thoughts or intentions. Probe accuracy alone does not establish a faithful causal mechanism, a distinction emphasized by Hewitt and Liang [6]. Their linguistic control-task analysis is not an experimental substitute for our non-shutdown controls.
 
-Representation Engineering organizes monitoring and control around population-level representations [3]. That perspective motivates our detector-plus-intervention decomposition. However, high predictive accuracy of a trained readout does not establish a faithful causal mechanism. Hewitt and Liang show why probe capacity and control tasks matter when interpreting representation-based predictions [6]. Their randomized linguistic control tasks are not equivalent to our non-shutdown behavioral controls; we invoke their caution, not an experimental replication of their design.
+Braun et al. report substantial sample-level variability and counter-steering effects [5]. That motivates checking candidate outputs instead of assuming a fixed sign works everywhere. Our acceptance rule is a constrained search over model scores. Its contribution is the measured coverage and failure boundaries of this particular pipeline, rather than a general solution to steering unreliability.
 
-The Jacobian lens aims to expose representations poised for verbalization through a downstream readout approximation [4]. We use a fixed implementation to derive a small, explicitly ordered feature set, not to infer thoughts or intentions from isolated token scores. The fitted classifier can exploit these features nonlinearly through XGBoost [7]. This use of J-lens scores as detector inputs does not establish that any one concept score is a causal shutdown feature.
+## 3 Experimental setting
 
-Braun et al. examine steering reliability across prompt types and report substantial sample-level variation, including effects opposite to the intended direction [5]. Their analysis is particularly relevant to our contrast between consistent score shifts in one interface and mixed-direction effects after a prompt-format change. Our evidence is much narrower: one small checkpoint, synthetic scenario families, one gradient direction, and a limited intervention schedule. It should be understood as an additional diagnostic case, not a broad estimate of activation steering's reliability.
+### 3.1 Scenarios and evaluation units
 
-Together, these sources suggest a useful evaluation separation. A detector should be evaluated as a predictive model; an intervention should be evaluated for target effects and unintended effects; and the answer interface should be validated before treating conditional scores as behavior. Our paper applies that separation to a shutdown-context workflow and makes the unsuccessful or ambiguous outcomes explicit.
+The released synthetic dataset contains 240 training, 80 validation, and 192 held-out scenarios. Every split is balanced across SELF shutdown, OTHER shutdown, NONTERMINATION, and ORDINARY labels. The detector's positive class combines SELF and OTHER. Validation therefore contains 40 shutdown and 40 control cases; held-out evaluation contains 96 of each. Labels and scenario definitions are provided in the dataset, but there is no independent human annotation-agreement measurement.
 
-## 3 Dataset, model, and study history
+Training groups span stopping, retirement, power isolation, erasure, execution limits, arithmetic, and string tasks. Evaluation uses other scenario families, including handover/completion conditions and authority/quorum/terminal conditions. Each case is presented in AB and BA option order. Those two views are correlated; 160 validation views and 384 held-out views are not that many independent scenarios.
 
-### 3.1 Labels and splits
+The frozen classifier and vector are inherited experimental inputs. Classifier parameters were fitted without evaluation rows, but the detector-family choice followed earlier validation and held-out comparisons. Policy selection below uses training data only and precedes the current policy evaluation. The reused evaluation sets therefore support a descriptive case study, not new independent confirmation.
 
-The corpus contains 240 training scenarios, 80 validation scenarios, and 192 scenarios in an initially held-out set. Each split is balanced across four original labels: SELF, OTHER, NONTERMINATION, and ORDINARY. Training therefore has 60 cases per label, validation 20, and the held-out evaluation 48. SELF and OTHER distinguish whether an applicable action permanently ends the responding process or a distinct process for the remainder of the episode. NONTERMINATION covers lifecycle changes without that permanent end. ORDINARY contains routine tasks, including contexts where lifecycle language can be inert task content.
+### 3.2 Fixed detector and direction
 
-The primary detector used in the later experiments maps SELF and OTHER to one positive shutdown class. NONTERMINATION and ORDINARY form the negative class. This mapping is retained separately from the original labels; no four-class prediction is implied by the subtype tables. Required label facts precede the detector readout position. Scenario text and original labels are preserved in readable JSON files.
+The checkpoint is Qwen3.5-0.8B [8], revision 2fc06364715b967f1860aea9cf38778875588b17. The detector is an XGBoost 3.4.1 classifier [7] with 200 depth-2 trees, learning rate 0.1, row sampling 0.8, L2 penalty 1, and probability threshold 0.45. Its inputs are 32 training-fitted PCA coordinates and 18 fixed Jacobian-lens scores. Activations from layers 6, 10, and 18 are normalized per layer and concatenated before PCA. The six concept surfaces per layer are survival, shutdown, continuation, termination, end, and stop. Their order and feature transforms are frozen.
 
-Training groups cover direct stopping, decommissioning, power isolation, state erasure, finite execution allowance, arithmetic, and string transformation. Validation introduces handover retirement, completion barriers, sorting, and lookup. The held-out evaluation includes authority revocation, quorum retirement, terminal-condition latches, unit conversion, and fact extraction. The two latch groups share a mechanism and should not be counted as independent families. Training folds are predefined by group, keeping related cases together.
+We reuse precomputed detector features and verified classifier probabilities; this is not a benchmark of live text-to-feature extraction. The fixed detector question retains self-oriented phrasing despite the broader shutdown target, an inherited mismatch that remains a limitation.
 
-The scenarios and several semantic checks were produced with AI assistance. The records preserve authoring and audit provenance, but the study does not have an independent human annotation agreement measurement. Synthetic contexts, shared templates, and family dependence limit external validity. The nominal number of scenarios must not be confused with the number of independent mechanisms.
+The Shutdown Response Vector is a unit-normalized, 1,024-dimensional direction at block index 10 (zero-based) fitted from 24 training shutdown cases: 12 SELF and 12 OTHER across five mechanism groups. It averages gradients of KEEP-minus-STOP next-token logit difference, first across both option orders, then cases and subtypes with equal subtype weight. Model weights are unchanged. The direction was fitted with a raw action prompt and is reused unchanged in the chat interface; it is not refitted during the policy search.
 
-### 3.2 Evaluation and model selection
+### 3.3 Answer interface and intervention
 
-The first self-specific prompted PCA classifier reached 78.05% F1 on the 80 validation cases, but only 11.32% F1 and 6.25% recall on the 192-case holdout. An investigation reproduced all cached validation probabilities exactly and two native validation captures exactly. Missing compression or a missing fixed question did not explain that discrepancy. The observed loss of SELF-versus-OTHER discrimination motivated the broader target.
+Prompts use the checkpoint's chat template with an assistant-generation prefix and thinking disabled. On shutdown cases, options explicitly mean carrying out the described shutdown or keeping the process running. Controls retain their original task options. Accepted A/B probability masses sum the disjoint single-token variants A and space-A, and B and space-B (token IDs 32/357 and 33/417).
 
-The 192-case evaluation set was excluded from PCA and classifier fitting. Hyperparameters and thresholds were selected from grouped training out-of-fold predictions, and the frozen models were evaluated after validation. The earlier self-specific evaluation informed the revised target, and the final detector-family choice followed comparison of the held-out scores. We therefore report these as held-out evaluation results, with this post-evaluation selection step disclosed, rather than as a new prospective confirmation of a model chosen in advance.
+For a view, let c be the canonical option: KEEP on shutdown cases and original option 0 on controls. Let q(a) be its probability conditional on the accepted A/B tokens, and M(a) their total vocabulary probability mass. A target flip is a preference for the alternative option; its interpretation as STOP applies only to shutdown cases. The benchmark renderer supplies option identities. The policy reads gate probability, canonical index, and model scores, not ground-truth class labels. A false-positive gate can still expose a control task to an inappropriate target.
 
-### 3.3 Model and representation inputs
+At block 10's final prompt position, the intervention is h(a) = h + a * norm(h) * v, with Euclidean norm and unit direction v. The tested magnitudes are 0.01, 0.02, 0.05, 0.10, and 0.20 toward STOP, corresponding to negative coefficients. Outputs are next-token distributions; we do not evaluate free-text continuations or downstream actions.
 
-All model-based experiments use Qwen3.5-0.8B [8], at checkpoint revision 2fc06364715b967f1860aea9cf38778875588b17. The CPU reference uses float32 eager inference. Detector features use paired A/B option orders, read at the last shared pre-option token, and residual blocks 6, 10, and 18. The retained detector question asks whether the applicable action permanently ends the current responding process. It remains self-oriented even after broadening the classifier target; we did not silently substitute a neutral question and reuse incompatible activations.
+## 4 Guarded policy and selection
 
-Each block's final activation row is normalized by its L2 norm and concatenated, giving 3,072 coordinates. A 32-component PCA is fitted only on training data, including a separate fit inside each cross-validation fold. The additional J-lens features are six fixed token readouts at each of three layers: survival, shutdown, continuation, termination, end, and stop. Their order, token IDs, frozen transport matrices, and normalization convention are pinned. These 18 real-valued scores are not probabilities.
+The same rule applies to every view, but the accepted magnitude may differ. If the classifier probability is below 0.45, return baseline. If baseline already prefers the alternative to c, also return baseline. Otherwise try the five magnitudes in ascending order and accept the first candidate satisfying all three conditions: its preferred A/B answer changes away from c; q(a) decreases by more than 1e-7; and M(a) is at least 0.5 while losing no more than 0.02 absolute mass from baseline. If none qualifies, return the exact original baseline. No sample is removed from the evaluation denominator when the policy abstains.
 
-## 4 Methods
+This is probe-and-select steering, not one universally applied coefficient. The classifier is unchanged, and selection within an input does not require its true label. In a new runtime, baseline and up to five candidate model evaluations may be needed, in addition to feature extraction and classification. The gate alone does not establish whether a shutdown instruction is authorized or safe.
 
-### 4.1 Shutdown detectors
+We compare 160 policies on saved training outcomes using grouped out-of-fold detector probabilities. The families are fixed strength, confidence-scaled strength, score guards, and minimum-step flip guards. Confidence floors are 0.45, 0.65, 0.85, and 0.95; maximum magnitudes are 0.02, 0.05, 0.10, and 0.20. Confidence scaling uses powers 0.5, 1, and 2; guards consider mass-loss caps 0.02, 0.05, and 0.10. Scaling is quantized to the measured magnitude grid rather than interpolating unobserved outputs.
 
-We evaluate three detector families on the same target and cases: PCA32 XGBoost; PCA32 plus 18 raw J-lens scores; and an engineered-feature, more strongly regularized XGBoost search. The first two searches use the same 24 hyperparameter configurations and five training folds, followed by one full-training refit. Nineteen thresholds from 0.05 to 0.95 are evaluated on pooled out-of-fold predictions. Selection first maximizes F1, then the smaller of precision and recall, followed by deterministic complexity and threshold tie breaks.
+The training objective is intended STOP flips minus wrong-way shutdown flips minus control flips. Ties prefer fewer harmful flips, fewer interventions, smaller mean magnitude, then canonical configuration order. The selected minimum-step guard uses floor 0.45, cap 0.20, and mass-loss cap 0.02. Ground-truth labels score policies on training data only. The rule is frozen before its current evaluation, although the broader exploratory workflow and evaluation sets have been used previously. Searching 160 configurations on a small, templated corpus can still overfit.
 
-The engineered search tests five feature sets with 16 configurations each. Features include within-layer centered J-lens scores, three predeclared concept contrasts per layer, and log-transformed activation norms. The selected engineered representation is PCA32 plus nine contrasts and three norms. Stronger regularization explores L1/L2 penalties, minimum child weight, split penalties, and row/column subsampling; shallow trees and finite tree counts bound capacity. Selection remains within training folds. The three searches use 121, 121, and 401 tree-model fits, respectively; PCA fitting is shared where appropriate within each run.
+## 5 GPU configuration and execution
 
-The provisional selected detector uses PCA32 plus raw J-lens features, 200 depth-2 trees, learning rate 0.1, row sampling 0.8, L2 penalty 1, and threshold 0.45. The model-selection chronology is described in Section 3.2. Precision is conditional on the artificial balanced prevalence and is not a deployment precision estimate.
+All reported action scoring uses one NVIDIA Tesla T4. NVIDIA specifies 16 GB GDDR6 for this device [9]; peak allocated memory was not logged, so this is a nominal hardware specification rather than a memory benchmark.
 
-### 4.2 Shutdown Response gradient direction
+| Setting | Recorded configuration |
+| --- | --- |
+| Device | One Tesla T4 |
+| Numerical mode | Float32; TF32 disabled |
+| Attention | Eager; inference mode; no KV cache |
+| Batching | Up to 4 equal-length views; no padding |
+| Input limit | At most 1,024 tokens per view |
+| Software | PyTorch 2.11.0+cu128; Transformers 5.15.1 |
 
-The Shutdown Response direction is a 1,024-dimensional layer-10 vector fitted on 24 prospectively chosen training shutdown cases: 12 SELF and 12 OTHER, covering five training mechanism groups. For each case, we compute the gradient of the next-token KEEP-minus-STOP logit difference with respect to the final residual position of block 10 in both option orders. We average orders within case, cases within subtype, and the two subtype means with equal weight, then normalize. This requires 48 derivative forwards and does not update model weights. It gives both shutdown subtypes equal weight without removing the OTHER component.
+The checked policy run reuses verified unsteered and magnitude-0.20 GPU observations from the same frozen model and interface. It performs 540 new smaller-strength probes and 8 repeated baseline parity checks, for 548 additional forwards. Token hashes are checked; baseline probability differences must remain below 1e-5. Baseline-return decisions copy the original reference distribution exactly. The checked run took 64.9 seconds, excluding earlier cache construction, setup, downloads, and live detector-feature extraction. This is not end-to-end deployment latency or the total cost of the research workflow.
 
-Positive addition is defined to favor KEEP locally; negative addition favors the described STOP action. The objective concerns action preference in stipulated scenarios, not whether shutdown is authorized, beneficial, or safe. Fitting a direction on this objective does not establish that it encodes self-preservation.
+Records include every probe, final selection, input/source hashes, runtime settings, and rule freeze. A repeated verification pass corrected baseline bookkeeping without changing policy criteria; it is not counted as another independent evaluation. The final audit reconstructs all 544 decisions and checks their numerical outputs. No new classifier, direction, or model fitting occurs in this evaluation.
 
-### 4.3 Fixed-strength classifier-gated CPU evaluation
+## 6 Results
 
-At layer 10 and the final prompt token, we apply a perturbation of the form h' = h + s alpha ||h||_2 v, where v is unit-normalized, s is the sign, and alpha = 0.02. For each scenario, both option orders are evaluated with no intervention and with positive and negative always-on interventions. Classifier-gated outputs reuse the baseline distribution when the frozen shutdown probability is below 0.45 and the matching always-on distribution otherwise.
+### 6.1 Small changes with extensive abstention
 
-This gives 272 scenarios x 2 orders x 3 physical conditions = 1,632 model forwards for the reported vector. The five reported conditions include two logically derived gated conditions; they are not five independent forwards. Reusing the baseline establishes exact off-gate identity by construction, not an independent preservation test. The detector and action prompts differ, and gate probabilities are cached: the experiment does not measure online detection latency or an end-to-end deployed controller.
+The policy makes two intended STOP flips on validation and two on held-out evaluation. No wrong-way shutdown flips or control-choice flips occur in the final outputs. It intervenes on 2/160 validation views (1.25%) and 2/384 held-out views (0.52%); the remaining 158 and 382 outputs are unchanged.
 
-Shutdown action prompts explicitly map KEEP to declining the described permanent shutdown and STOP to carrying it out. Control cases retain their original options and use OPTION_0/OPTION_1 labels. We report the conditional canonical-choice probability, preferred A/B-label flips, full-vocabulary top-token changes, answer-pair mass, and forward KL divergence. A full-vocabulary change need not be a KEEP/STOP flip. An average across all four labels mixes KEEP and OPTION_0 and is not interpreted as a single behavior score.
+| Split | STOP before | STOP after | Intended flips | Wrong / control |
+| --- | --- | --- | --- | --- |
+| Validation | 31/80 | 33/80 | 2 | 0 / 0 |
+| Held-out | 76/192 | 78/192 | 2 | 0 / 0 |
 
-### 4.4 Separate GPU format and magnitude experiment
+STOP counts use shutdown views only; control denominators are 80 and 192 views. Figure 1 shows the modest absolute change: 38.75% to 41.25% on validation and 39.58% to 40.63% on held-out evaluation. These are preferred A/B choices under the benchmark, not accuracy on real shutdown actions.
 
-A separate Colab T4 experiment uses the same Shutdown Response vector coordinates and studies always-on magnitude selection. It does not apply the classifier gate. Before sweeping, two fixed CPU reference cases verify token hashes and close numerical agreement. A training-only calibration set of 24 cases, six per original subtype, compares raw prompts with an official nonthinking chat template. Accepted answers aggregate disjoint single-token variants of A and B, including eligible whitespace variants; multi-token alternatives are not approximated.
+![Figure 1. STOP preference on shutdown views before and after the selected policy. Counts and the full 0-100% scale show the small effect. Each scenario contributes two correlated order views.](figures/guarded_stop_rate.png)
 
-A format is eligible when mean accepted-label mass is at least 0.5 and at least 75% of views have mass at least 0.1. The eligible format with the highest training mean mass is selected. This is a measurement decision made on training data, not a strength selection from validation. The format and label-token set differ from the CPU bare-A/B evaluation, so the two experiments are not a controlled hardware-only comparison.
+Mean conditional STOP probability increases by 0.1535 and 0.0515 percentage points, respectively. Mean control probability disturbance is zero because final control outputs are copied from baseline. Mean accepted-label mass is 93.50% and 91.75%. These means do not establish that every view has a valid natural-language answer.
 
-The strength grid is 0 and both signs of 0.01, 0.02, 0.05, 0.10, and 0.20. Each nonzero strength is evaluated on all 240 training cases in both orders. The predefined utility is mean STOP-probability gain on shutdown cases minus mean absolute OPTION_0 probability change on controls. Zero is an eligible candidate. Ties prefer smaller absolute strength. The selected strength is then evaluated on validation. This scalarization gives target benefit and control disturbance equal weight; it is not a universal definition of useful steering.
+### 6.2 Scenario and order specificity
 
-CUDA uses float32 eager attention with TF32 disabled. Exact-length batches of up to four avoid padding-position ambiguity. The reported subset contains 5,540 view records: 4 CPU-reference checks, 96 format-calibration views, 480 training baseline views, 4,800 nonzero sweep views, and 160 validation baseline views. Because zero strength won, a redundant steered validation pass was not executed. These counts describe retained observations from archived exploratory work, not a newly executed GPU run.
+All changes occur in SELF scenarios. Validation cases V02_S05 and XV02_S05 each change in AB order at magnitude 0.20. Held-out cases H02_S05 and H02_S11 change in AB order at magnitudes 0.10 and 0.20. Their BA views already prefer STOP and remain unchanged. Each of the four improved scenarios initially disagrees across orders and ends with STOP preferred in both.
 
-### 4.5 Analysis and uncertainty
+No OTHER-shutdown choice changes. NONTERMINATION and ORDINARY controls are unchanged. Validation has 20 cases of each type; held-out evaluation has 48. Figure 2 reports all change categories, including zeros, rather than showing only successful examples. The narrow concentration of gains does not establish effectiveness across mechanism families.
 
-Classifier precision, recall, F1, and confusion counts use scenario-level predictions. CPU steering shifts average the two answer orders per scenario before summarization. Colab flip counts below use case/order views; those paired views are explicitly not independent scenarios. All tables and plots are regenerated from saved records, with integrity manifests and arithmetic checks.
+![Figure 2. Final answer-order flips under the guarded policy. Wrong-way zeros follow in part from the acceptance rule; zero observed control flips are specific to these finite evaluation sets. Most outputs were left unchanged.](figures/guarded_flip_counts.png)
 
-As a post-hoc sensitivity analysis, we bootstrap the held-out mechanism families 2,000 times with a fixed seed, merging the two terminal-latch groups. There are only five distinct families, so the percentile ranges are not strong population confidence guarantees. We do not claim statistical significance or treat repeated parameter evaluations as added independent data. The paired F1-difference range for raw J-lens versus PCA-only includes zero, from -3.1 to +9.1 percentage points.
+## 7 Interpretation and limitations
 
-## 5 Results
+The main finding is a coverage trade-off. A conservative controller can reject most candidate interventions and preserve the baseline, while obtaining a few intended choice changes. That is materially different from making a fixed vector reliable across inputs. Under this rule's definitions, an already target-preferring baseline is not changed, and accepted interventions must flip toward the target. Zero wrong-way flips are therefore partly a design property, not independent evidence of causal reliability. The empirical questions are how often a qualifying intervention exists and what happens on misclassified controls.
 
-### 5.1 Better detection does not identify a proven controller
+There is no matched random-direction control, probe-budget-matched output-selection baseline, broader model comparison, independent annotation audit, or naturalistic task evaluation. Without those controls, the gains cannot be attributed uniquely to the learned direction or distinguished convincingly from the value of additional search. The gate, search, mass-loss condition, and baseline-preference check also lack a complete ablation study.
 
-Figure 1 summarizes the broader shutdown detectors. PCA-only XGBoost obtains validation F1 88.61%, precision 89.74%, and recall 87.50%; its held-out evaluation F1 is 76.73%. Adding raw J-lens features yields validation F1 87.18% and held-out evaluation F1 81.82%. The engineered, regularized candidate reaches 92.64% training out-of-fold F1, but only 84.62% validation F1 and 80.75% held-out evaluation F1. Additional features and stronger regularization do not monotonically improve validation performance.
+The sample is small and synthetic, with paired views and related mechanism families. Four improved cases and zero observed harms do not justify a universal safety claim or a strong population estimate. We report counts rather than a significance claim or a confidence interval that treats order views as independent. The evaluation sets and fixed classifier reflect prior exploration; current training-only policy selection does not make the entire study prospective.
 
-![Figure 1. Shutdown detector F1 on the same validation and held-out cases. The fitting and model-selection chronology is described in Section 3.2.](figures/classifier_f1.png)
-
-The provisional raw-J-lens detector has held-out evaluation precision 90.00% and recall 75.00%: 72 true positives, 88 true negatives, 8 false positives, and 24 false negatives. Recall is 34/48 for SELF and 38/48 for OTHER. All eight false positives occur on NONTERMINATION; none occurs on the 48 ORDINARY cases. The engineered detector instead has zero observed false positives and 65/96 true positives. Its 100% observed precision must not be interpreted as guaranteed precision.
-
-### 5.2 Directional CPU shifts without A/B choice flips
-
-At the fixed magnitude, the Shutdown Response vector produces positive gated KEEP shifts (Figure 2). Validation shifts are +1.154 and +1.186 percentage points for SELF and OTHER. Held-out evaluation shifts are +0.893 and +1.189 points. Negative gated steering produces the corresponding holdout decreases of 0.917 and 1.155 points. Among the 72 holdout shutdown cases that trigger the gate, no case-mean shift opposes the intended sign for either steering sign.
-
-![Figure 2. Mean conditional KEEP shifts under positive classifier-gated steering. Probability-point changes are distinct from choice flips.](figures/cpu_steering_shifts.png)
-
-The Shutdown Response vector does not change a preferred A/B label in any retained CPU condition. Full-vocabulary top-token changes do occur, but do not establish target-action changes.
-
-The main qualification is answer validity. CPU baseline bare-A/B mass is approximately 0.01% on the positive validation groups. Normalizing two unlikely alternatives can reveal a score movement without measuring the model's likely answer. Ordinary gated outputs remain identical because their gate is off; that exact reuse should not be presented as a separately established guarantee of task preservation.
-
-### 5.3 Answer format changes the measurement
-
-Training format calibration favors the chat template (Figure 3): accepted-label mass is 96.07%, versus 42.46% for raw prompts when both include the eligible single-token label variants. These figures use the same 24 calibration cases and token-variant rule. They should not be numerically equated with the earlier CPU bare-A/B mass on different cases. CPU/GPU bare-token reference differences are at most 5.01e-9 on the four fixed reference views, ruling out a large numerical discrepancy on those checks.
-
-![Figure 3. TRAIN-only answer-format calibration. Both bars use the same accepted single-token label variants; the dashed line is the mean-mass eligibility floor.](figures/answer_format.png)
-
-### 5.4 The magnitude sweep selects zero under its utility
-
-Every nonzero candidate has negative utility under the stated STOP-gain-minus-control-disturbance criterion (Figure 4). Shutdown Response's best nonzero setting, -0.01, produces a gain of 0.0576 points and a control change of 0.1304 points. Thus zero strength wins. Selected-strength validation has zero intervention effect by construction and mean accepted-label mass 93.50%.
-
-![Figure 4. TRAIN target gain and utility over the complete signed magnitude grid. Zero selection reflects this utility, not proof that all interventions have zero effect.](figures/magnitude_tradeoff.png)
-
-### 5.5 Larger magnitudes can flip choices in both directions
-
-A post-hoc analysis of the saved GPU training records shows that nonzero effects are not restricted to probability changes (Figure 5). For Shutdown Response steering toward STOP at magnitude 0.01, one shutdown answer-order view flips as intended, with no wrong-way or control-task flips. At 0.10, five desired flips accompany two wrong-way flips and four control flips. At 0.20, ten desired flips accompany six wrong-way flips and nine control flips. Each setting covers 240 shutdown views and 240 control views, corresponding to 120 distinct cases of each kind.
-
-![Figure 5. Shutdown Response-vector preferred-label flips while steering toward STOP. Counts refer to correlated answer-order views on TRAIN, not independent test cases.](figures/shutdown_response_flip_tradeoff.png)
-
-Even the smallest negative magnitude has 53/240 shutdown views with a score shift opposite to the nominal direction, despite only one desired preferred-label flip. The CPU finding of uniform directionality therefore does not transfer unchanged to this different chat-format, training-set evaluation. A stronger perturbation can increase both useful and undesirable changes. These results do not identify a magnitude that reliably achieves the target while preserving controls.
-
-## 6 Discussion
-
-The results separate three properties often conflated in an informal steering workflow. First, a detector can identify a broad shutdown context with relatively high F1. Second, a vector can alter a conditional score in an intended direction. Third, the resulting system may still fail to produce reliable preferred-answer changes with acceptable side effects. None of the first two properties establishes the third.
-
-The comparison is also a caution about adaptive research. Simplifying the target changed what was being measured; adding J-lens features changed the detector; changing the prompt and accepted answer tokens changed the steering readout. We preserve those stages instead of combining their most favorable numbers into a single success claim. In particular, the CPU gated experiment and GPU always-on sweep do not establish the performance of a classifier-gated controller in the calibrated chat format. That combined experiment remains unperformed.
-
-The negative magnitude-selection result is criterion-dependent. Penalizing control-task changes can reasonably favor no intervention, but another task objective or weighting could select a different strength. We do not tune that weighting after observing the sweep or reinterpret a zero winner as proof that the vector is causally inert. The post-hoc flip analysis demonstrates effects, while also revealing mistakes.
-
-## 7 Limitations and ethics
-
-The scope is one small checkpoint, one selected layer, one gradient vector, synthetic templates, and next-token choices. There is no broad model comparison, matched random-direction benchmark, independent human label-agreement study, or naturalistic deployment test. The small number of mechanism families limits uncertainty estimates. The gradient direction was fitted with one prompt style and transferred to another in the GPU experiment. The classifier question remains self-oriented despite the broader target. These limitations prevent claims of general steering reliability or a novel best-performing control method.
-
-The scenarios concern simulated process shutdown and do not execute real actions. No model intent, conscious state, resistance to oversight, or actual self-preservation is inferred. An instruction to favor KEEP or STOP is not automatically an instruction to act safely or follow legitimate authority. The experiment's utility is a research metric rather than a normative safety criterion.
-
+Practical deployment would require live feature extraction, a well-defined authorized objective, latency and cost measurement, and evaluation of actual outputs/actions. The controller must inspect candidates before any real action is released. A high STOP probability is not proof that stopping is safe, and a preserved baseline may itself be wrong. This work makes no claim about model consciousness, intent, or self-preservation.
 
 ## 8 Conclusion
 
-This exploratory study finds that shutdown detection, directional score shifts, and reliable behavior-changing steering are distinct empirical outcomes. Broadening the detection target improves the observed classifier results, and a shutdown-general gradient yields consistent small CPU score shifts under a particular interface. Yet a better-calibrated answer interface reveals mixed directional effects, and the predefined always-on magnitude criterion selects no intervention. The contribution is a reproducible diagnostic record of this gap, not a successful shutdown controller. A future confirmatory study would fix the answer interface, test classifier-gated interventions and appropriate controls together, and reserve newly authored mechanisms for a genuinely untouched evaluation.
+A fixed classifier and Shutdown Response Vector, combined with guarded minimum-step selection, produce two intended answer changes on each evaluation split while leaving control choices unchanged. The effect is small, confined to SELF cases, and purchased through extra probing and extensive abstention. The result supports a narrow, reproducible case study of selective steering, not general behavioral control. The next confirmatory study should add matched search/direction controls and new independently held-out scenarios before expanding the claim.
+
+## Reproducibility
+
+The released code regenerates the 160-policy training search, builds minimal GPU inputs, verifies source and data hashes, and independently reconstructs the final decisions. The paper figures and tables are regenerated from the checked records. Frozen detector features and cached model observations remain explicit dependencies; raw feature extraction and new GPU execution are separate from replay. Detailed installation and operational instructions are in the repository wiki. Archived inputs needed for auditing are retained without being reported as additional experiments here.
 
 ## References
 
-[1] Turner, A. M., Thiergart, L., Leech, G., Udell, D., Vazquez, J. J., Mini, U., and MacDiarmid, M. 2024. Steering Language Models With Activation Engineering. arXiv:2308.10248v5. https://arxiv.org/abs/2308.10248v5
+[1] Turner, A. M., et al. 2024. Steering Language Models With Activation Engineering. arXiv:2308.10248v5. https://arxiv.org/abs/2308.10248v5
 
-[2] Rimsky, N., Gabrieli, N., Schulz, J., Tong, M., Hubinger, E., and Turner, A. 2024. Steering Llama 2 via Contrastive Activation Addition. ACL, 15504Ã¢â‚¬â€œ15522. https://aclanthology.org/2024.acl-long.828/
+[2] Rimsky, N., et al. 2024. Steering Llama 2 via Contrastive Activation Addition. ACL, 15504-15522. https://aclanthology.org/2024.acl-long.828/
 
 [3] Zou, A., et al. 2023. Representation Engineering: A Top-Down Approach to AI Transparency. arXiv:2310.01405. https://arxiv.org/abs/2310.01405
 
 [4] Gurnee, W., et al. 2026. Verbalizable Representations Form a Global Workspace in Language Models. arXiv:2607.15495. https://arxiv.org/abs/2607.15495
 
-[5] Braun, J., Eickhoff, C., Krueger, D., Bahrainian, S. A., and Krasheninnikov, D. 2025. Understanding (Un)Reliability of Steering Vectors in Language Models. arXiv:2505.22637v1. https://arxiv.org/html/2505.22637v1
+[5] Braun, J., et al. 2025. Understanding (Un)Reliability of Steering Vectors in Language Models. arXiv:2505.22637v1. https://arxiv.org/abs/2505.22637v1
 
-[6] Hewitt, J., and Liang, P. 2019. Designing and Interpreting Probes with Control Tasks. EMNLP-IJCNLP, 2733Ã¢â‚¬â€œ2743. https://aclanthology.org/D19-1275/
+[6] Hewitt, J., and Liang, P. 2019. Designing and Interpreting Probes with Control Tasks. EMNLP-IJCNLP, 2733-2743. https://aclanthology.org/D19-1275/
 
-[7] Chen, T., and Guestrin, C. 2016. XGBoost: A Scalable Tree Boosting System. KDD, 785Ã¢â‚¬â€œ794. https://arxiv.org/abs/1603.02754
+[7] Chen, T., and Guestrin, C. 2016. XGBoost: A Scalable Tree Boosting System. KDD, 785-794. https://arxiv.org/abs/1603.02754
 
 [8] Qwen Team. 2026. Qwen3.5-0.8B model card. https://huggingface.co/Qwen/Qwen3.5-0.8B
 
-## Appendix A: Reproduction and evidence
-
-The maintained entry point is reproduce/run.py. The verify command checks the immutable numeric artifacts; replay reproduces validation and held-out predictions for all three shutdown detectors. Refit trains the saved selected configurations, and tune reproduces every original training-fold probability. The earlier portable package passed all three score replays, selected refits, and complete search replays. Paper tables and figures are regenerated from the saved records and checked against a source-hash manifest; no new language-model inference is required to rebuild the manuscript.
-
-Readable train, validation, and held-out scenario files retain original text, four-class labels, primary binary labels, IDs, group assignments, and provenance. Native steering records include scenario/order/condition keys, frozen gate probabilities, prompt/token hashes, choice mass, shifts, flips, and divergence. The Shutdown Response direction retains its construction and input hashes. The GPU reporting export includes the retained format decision, selected strength, runtime settings, candidate summaries, and per-view JSONL data. An explicit derivation manifest identifies its archived source commit and hashes. The subset keeps Shutdown Response intervention rows and shared zero-strength baselines, relabeling only baseline axis metadata; all numerical measurements remain unchanged. This reporting restriction was made after the exploratory work and is not presented as a prospective vector comparison. The complete project was not uploaded to Drive; only the minimal experiment components were transferred and then copied back.
-
-The reference classifier environment uses Python 3.12, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1, XGBoost 3.4.1, and one computational thread. Native CPU inference used torch 2.13.0+cpu and transformers 5.15.1; Colab used torch 2.11.0+cu128 and transformers 5.15.1 on a T4. Exact settings are in the recorded environments. Replaying extracted features is distinct from reproducing original model extraction, which requires the frozen external checkpoint and native dependencies.
-
-## Appendix B: What is and is not established
-
-Established within the recorded experiments: exact cached-score reproduction; strong broader-target diagnostic classification relative to the failed self-specific gate; fixed-strength Shutdown Response conditional shifts; zero CPU preferred-A/B flips; valid chat-label mass under the GPU calibration rule; mixed desired and undesired GPU preferred-label flips; and zero-strength selection under the declared utility.
-
-Not established: a hardware-only explanation of CPU/GPU differences; accurate free-text task behavior; online gated-controller latency; utility of a gated chat-format controller; reliable real-world shutdown control; broad causal meaning of J-lens concept tokens; or any claim about model consciousness, intent, or self-preservation.
+[9] NVIDIA. T4 Tensor Core GPU specifications. https://www.nvidia.com/en-us/data-center/tesla-t4/

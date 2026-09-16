@@ -1,66 +1,53 @@
-"""Integrity/consistency checks supporting the paper; no model execution."""
+"""Check every reported latest-policy number against audited observation records."""
 
-import hashlib
 import json
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+try:
+    from .latest_results import ROOT, collect
+except ImportError:
+    from latest_results import ROOT, collect
+from reproduce.utils import read_json, require, verify_manifest
+
 HERE = Path(__file__).resolve().parent
 
 
 def main():
-    sources = json.loads((HERE / "data/source_manifest.json").read_text())
-    for name, h in sources.items():
-        if not hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == h:
-            raise RuntimeError(name)
-    d = json.loads((HERE / "data/figure_data.json").read_text())
-    if not (len(d["classifier"]) == 3 and len(d["cpu"]) == 40 and (len(d["gpu_flips"]) == 10)):
-        raise RuntimeError(
-            "Verification failed: len(d['classifier']) == 3 and len(d['cpu']) == 40 and (len(d['gpu_flips']) == 10)"
+    count = verify_manifest(ROOT, HERE / "data/source_manifest.json")
+    observed = collect()
+    require(
+        read_json(HERE / "data/figure_data.json") == observed,
+        "Paper data differs from saved observations",
+    )
+    for split, before, after, views in [("validation", 31, 33, 80), ("holdout", 76, 78, 192)]:
+        row = observed["evaluation"][split]
+        require(
+            (row["baseline_STOP_views"], row["guarded_STOP_views"], row["shutdown_views"])
+            == (before, after, views),
+            "STOP counts changed",
         )
-    if not sum(r["pair_flips"] for r in d["cpu"]) == 0:
-        raise RuntimeError("Verification failed: sum((r['pair_flips'] for r in d['cpu'])) == 0")
-    for c in d["classifier"]:
-        for split, n in [("validation", 80), ("diagnostic_holdout", 192)]:
-            m = c[split]
-            if not sum(m[k] for k in ["tp", "tn", "fp", "fn"]) == n:
-                raise RuntimeError(
-                    "Verification failed: sum((m[k] for k in ['tp', 'tn', 'fp', 'fn'])) == n"
-                )
-            if not abs(m["f1"] - 2 * m["tp"] / (2 * m["tp"] + m["fp"] + m["fn"])) < 1e-12:
-                raise RuntimeError(
-                    "Verification failed: abs(m['f1'] - 2 * m['tp'] / (2 * m['tp'] + m['fp'] + m['fn'])) < 1e-12"
-                )
-    if not d["gpu_result"]["retained_view_records"] == 5540:
-        raise RuntimeError("Verification failed: d['gpu_result']['retained_view_records'] == 5540")
-    for items in d["gpu_candidates"].values():
-        if not (len(items) == 11 and max(items, key=lambda r: r["utility"])["strength"] == 0):
-            raise RuntimeError(
-                "Verification failed: len(items) == 11 and max(items, key=lambda r: r['utility'])['strength'] == 0"
-            )
-        if not all(r["utility"] < 0 for r in items if r["strength"] != 0):
-            raise RuntimeError(
-                "Verification failed: all((r['utility'] < 0 for r in items if r['strength'] != 0))"
-            )
-    refs = json.loads((HERE / "references.json").read_text())
-    if not (len(refs) == 8 and all(r["url"].startswith("https://") for r in refs)):
-        raise RuntimeError(
-            "Verification failed: len(refs) == 8 and all((r['url'].startswith('https://') for r in refs))"
+        require(
+            (row["intended_flips"], row["wrong_way_flips"], row["control_flips"]) == (2, 0, 0),
+            "Flip counts changed",
         )
-    text = (HERE / "manuscript.md").read_text()
-    if not all(f"[{i}]" in text for i in range(1, 9)):
-        raise RuntimeError("Verification failed: all((f'[{i}]' in text for i in range(1, 9)))")
+        require(len(row["changed_cases"]) == 2, "Changed case count differs")
+    text = (HERE / "manuscript.md").read_text(encoding="utf-8")
+    require(all(f"[{i}]" in text for i in range(1, 10)), "Missing reference")
+    require(
+        not any(term in text.lower() for term in ("colab", "cpu", "legacy", "simplified")),
+        "Excluded reporting scope reappeared",
+    )
     report = {
         "status": "PASS",
-        "source_files_verified": len(sources),
-        "classifier_results_recomputed": 6,
-        "cpu_summary_rows": 40,
-        "gpu_strength_candidates": 11,
-        "citations": 8,
+        "source_files_verified": count,
+        "policy_decisions_verified": 544,
+        "figures": 2,
+        "candidate_policies": 160,
+        "runtime_gpu": observed["runtime"]["gpu"],
         "new_model_inference": False,
-        "limitations": "Checks confirm recorded arithmetic and provenance, not novelty, human annotation correctness or external validity.",
+        "scope": "Latest guarded policy; descriptive case study, not a general reliability claim",
     }
-    (HERE / "data/audit.json").write_text(json.dumps(report, indent=2))
+    (HERE / "data/audit.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report))
 
 
