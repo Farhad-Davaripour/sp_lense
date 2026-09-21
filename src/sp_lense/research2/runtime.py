@@ -188,7 +188,9 @@ def main(repo, output, config, callback=None):
 
         def score(v, adapter=False, delta=None, capture=False):
             nonlocal forwards
-            progress("forward budget check", forwards, max(1, forwards + 1))
+            require(
+                time.monotonic() - began < config["max_seconds"], "Hard GPU runtime budget reached"
+            )
             captured = []
 
             def hook(module, args, output):
