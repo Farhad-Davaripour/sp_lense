@@ -30,7 +30,7 @@ fail collection. `--suite all` requires all test dependencies.
 - Tensor tests: install `requirements-research-tests.txt`; run `pytest --suite research`.
 - Reproduction: install `reproduce/requirements-core.txt`; run `pytest --suite reproduction`,
   then `python reproduce/run.py verify` and `python reproduce/run.py replay`.
-- Paper: also install `reproduce/requirements-paper.txt`; run `python reproduce/run.py figures`,
+- Paper: no additional dependencies; run `python reproduce/run.py tables`,
   `audit`, and `paper`.
 - Security: install `bandit pip-audit`; run `bandit -r src reproduce paper -ll` and `pip-audit`.
 

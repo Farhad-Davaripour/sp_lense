@@ -23,7 +23,7 @@ def main():
             "replay",
             "refit",
             "tune",
-            "figures",
+            "tables",
             "paper",
             "audit",
             "gated",
@@ -43,9 +43,9 @@ def main():
         "replay": [HERE / "replay.py"],
         "refit": [HERE / "replay.py", "--refit"],
         "tune": [HERE / "replay.py", "--tune"],
-        "figures": [ROOT / "paper/build_figures.py"],
+        "tables": [ROOT / "paper/build_tables.py"],
         "paper": [ROOT / "paper/verify_publication.py"],
-        "audit": [ROOT / "paper/audit_claims.py"],
+        "audit": [ROOT / "paper/audit_results.py"],
     }
     subprocess.run(
         [
