@@ -40,6 +40,6 @@ Replay uses saved features and model artifacts; it requires no GPU or model down
 - [Reproduce the study](https://github.com/Farhad-Davaripour/sp_lense/wiki/Reproduction)
 - [Run a new experiment](https://github.com/Farhad-Davaripour/sp_lense/wiki/New-Experiments)
 - [Contribute](https://github.com/Farhad-Davaripour/sp_lense/wiki/Contributing)
-- [Conference paper](paper/paper.pdf) and [dataset splits](development/shutdown_detection_v1/dataset_splits)
+- [Conference paper (final revision 14)](paper/paper.pdf), [editable manuscript](paper/manuscript.docx), and [dataset splits](development/shutdown_detection_v1/dataset_splits)
 
 Code is released under the [MIT license](LICENSE).

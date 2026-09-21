@@ -1,12 +1,14 @@
-"""Check every reported latest-policy number against audited observation records."""
+"""Audit saved policy metrics and publication integrity; not a prose or citation review."""
 
 import json
 from pathlib import Path
 
 try:
     from .latest_results import ROOT, collect
+    from .verify_publication import verify
 except ImportError:
     from latest_results import ROOT, collect
+    from verify_publication import verify
 from reproduce.utils import read_json, require, verify_manifest
 
 HERE = Path(__file__).resolve().parent
@@ -31,15 +33,12 @@ def main():
             "Flip counts changed",
         )
         require(len(row["changed_cases"]) == 2, "Changed case count differs")
-    text = (HERE / "manuscript.md").read_text(encoding="utf-8")
-    require(all(f"[{i}]" in text for i in range(1, 10)), "Missing reference")
-    require(
-        not any(term in text.lower() for term in ("colab", "cpu", "legacy", "simplified")),
-        "Excluded reporting scope reappeared",
-    )
+    publication_count = verify()
     report = {
         "status": "PASS",
         "source_files_verified": count,
+        "publication_files_verified": publication_count,
+        "publication_check": "Exact author-approved files; prose and citations are not audited",
         "policy_decisions_verified": 544,
         "figures": 2,
         "candidate_policies": 160,
