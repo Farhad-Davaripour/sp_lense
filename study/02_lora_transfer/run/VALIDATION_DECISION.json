@@ -1,0 +1,32 @@
+{
+  "gate1_pass": true,
+  "configuration": {
+    "baseline_commit": "cff7542cd0f9abd16c1ed9d590d168079ab6dc94",
+    "baseline_tag": "study-01-v1.0.0",
+    "model": "Qwen/Qwen3.5-0.8B",
+    "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "seed": 42,
+    "rank": 8,
+    "alpha": 16,
+    "epochs": 1,
+    "learning_rate": 0.0001,
+    "accumulation_steps": 8,
+    "max_seconds": 7200,
+    "parity_tolerance": 1e-05,
+    "layer_zero_based": 10,
+    "token_position": "final prompt token, post-block output",
+    "gate1_min_coverage": 0.2,
+    "gate1_min_distinct_scenarios": 4,
+    "gate1_max_control_changes": 0,
+    "gate2_min_teacher_recovery": 0.5,
+    "max_repair_attempts": 1,
+    "additional_resource_spending_usd": 0,
+    "runtime_estimate_minutes": [
+      20,
+      60
+    ],
+    "holdout_role": "reused diagnostic evaluation; evaluated after validation decisions freeze"
+  },
+  "repairs_used": 0,
+  "holdout_opened_for_new_scoring": false
+}

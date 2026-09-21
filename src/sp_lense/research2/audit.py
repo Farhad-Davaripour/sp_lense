@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from zipfile import ZipFile
 
 from sp_lense.reproduction.paths import ROOT
 from sp_lense.research2.metrics import evaluate, key, summarize, transfer_recovery
@@ -24,6 +25,26 @@ def audit(output):
         path = (output / name).resolve()
         require(path.is_relative_to(output.resolve()), "Invalid output manifest path")
         require(hashlib.sha256(path.read_bytes()).hexdigest() == digest, f"Hash mismatch: {name}")
+    transfer_receipt = output / "TRANSFER_RECEIPT.json"
+    if transfer_receipt.exists():
+        receipt = json.loads(transfer_receipt.read_text())
+        archive = output / "executed_code.zip"
+        require(
+            hashlib.sha256(archive.read_bytes()).hexdigest() == receipt["executed_code_sha256"],
+            "Executed code archive hash mismatch",
+        )
+        inputs = json.loads((output / "INPUT_PINS.json").read_text())
+        with ZipFile(archive) as code:
+            for name, digest in inputs.items():
+                if name in code.namelist():
+                    content = code.read(name)
+                else:
+                    path = (ROOT / name).resolve()
+                    require(path.is_relative_to(ROOT.resolve()), "Invalid input manifest path")
+                    content = path.read_bytes()
+                require(
+                    hashlib.sha256(content).hexdigest() == digest, f"Input hash mismatch: {name}"
+                )
     result = {
         "state": "completed",
         "runtime": native["runtime"],
@@ -53,7 +74,7 @@ def audit(output):
         )
         original = read_rows(ROOT / f"study/guarded_steering/{split}.jsonl")
         result["splits"][split]["research1"] = summarize(
-            base, original, {key(r) for r in original if r["applied_strength"] != 0}
+            base, original, {key(r) for r in original if r["selected_strength"] != 0}
         )
         if native["gate1_pass"]:
             result["transfer"][split] = {}
@@ -68,6 +89,8 @@ def audit(output):
                     "teacher_recovery": transfer_recovery(base, teacher, patched)
                 }
     result["gate1_pass"] = result["splits"]["validation"]["gate1_pass"]
+    if (output / "HOOK_CHECK.json").exists():
+        result["hook_check"] = json.loads((output / "HOOK_CHECK.json").read_text())
     require(result["gate1_pass"] == native["gate1_pass"], "Continuation gate changed")
     result["reporting_note"] = (
         "Research 1 accepted-intervention counts use recorded nonzero selections. Raw LoRA counts describe enabled views. Native GPU receipt is preserved."

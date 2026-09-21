@@ -391,7 +391,7 @@ def main(repo, output, config, callback=None):
             }
             r1 = rows(root / f"study/guarded_steering/{split}.jsonl")
             result["splits"][split]["research1"] = summarize(
-                base, r1, {key(r) for r in r1 if r["applied_strength"] != 0}
+                base, r1, {key(r) for r in r1 if r["selected_strength"] != 0}
             )
             if split == "validation":
                 result["gate1_pass"] = result["splits"][split]["gate1_pass"]

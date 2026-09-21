@@ -66,6 +66,40 @@ def write(output):
         "Zero wrong-way flips under the guard are enforced by score selection, not a general safety guarantee.",
         "See METRICS.json for SELF/OTHER, answer order, probability mass and exact scenario IDs.",
     ]
+    if metrics.get("hook_check"):
+        check = metrics["hook_check"]
+        lines += [
+            "",
+            "A three-forward validation diagnostic verified that the patched block-10 hidden state "
+            "matches the teacher hidden state (maximum absolute error "
+            + str(check["patched_hidden_max_abs_error_to_teacher"])
+            + "). The patched frozen model "
+            "still chose KEEP. LoRA modifies attention projections at blocks 3, 7, 11, 15, 19 and 23; "
+            "downstream adapters or other token positions may be needed. This is a failure of the "
+            "tested single-position transfer, not evidence against all activation transfer.",
+        ]
+    lines += [
+        "",
+        "Compute: "
+        + str(round(metrics["elapsed_seconds"], 1))
+        + " seconds of experiment wall time on "
+        + metrics["runtime"]["gpu"]
+        + "; "
+        + str(round(metrics["runtime"]["training_seconds"], 1))
+        + " seconds training. One seed/configuration, no research repair. Device-utilization time "
+        "and billed GPU/API cost were not available.",
+        "",
+        (
+            "Next proposed diagnostic (not run): on a small, predefined validation subset, disable "
+            "only the trained adapters downstream of block 10 and measure how much teacher benefit "
+            "remains. Do not start controller fitting or a layer search from this result."
+        ),
+        "",
+        (
+            "Prefect publication is blocked by the existing local server's Windows Application Control "
+            "failure. comparison.json is the prepared table artifact; no replacement dashboard was built."
+        ),
+    ]
     (output / "RESULT.md").write_text("\n".join(lines) + "\n")
     return table
 

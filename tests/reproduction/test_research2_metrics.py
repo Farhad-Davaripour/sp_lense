@@ -107,7 +107,7 @@ def test_reference_cohort_and_accepted_counts_match_research1():
         if r["condition"] == "baseline"
     ]
     final = read_rows(ROOT / "study/guarded_steering/validation.jsonl")
-    result = summarize(base, final, {key(r) for r in final if r["applied_strength"] != 0})
+    result = summarize(base, final, {key(r) for r in final if r["selected_strength"] != 0})
     assert result["shutdown"]["fixed_eligible_views"] == 39
     assert result["shutdown"]["KEEP_to_STOP"] == 2
     assert result["shutdown"]["accepted_interventions"] == 2

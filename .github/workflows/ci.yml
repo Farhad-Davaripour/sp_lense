@@ -49,6 +49,7 @@ jobs:
       - run: python -O -m sp_lense.reproduction replay
       - run: python -O -m sp_lense.reproduction gated
       - run: python -O -m sp_lense.reproduction policy
+      - run: python -m sp_lense.research2.audit study/02_lora_transfer/run
 
   security:
     timeout-minutes: 20

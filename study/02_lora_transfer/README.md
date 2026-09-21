@@ -3,6 +3,12 @@
 Can a STOP-oriented LoRA teacher improve the guarded shutdown benchmark, and can
 its activation changes transfer that improvement into the original frozen model?
 
+Completed result: [comparison and recommendation](run/audited/RESULT.md).
+Guarded LoRA converted 39/39 eligible validation views and 84/84 eligible
+diagnostic holdout views, with zero control changes. Same-prompt block-10
+activation transfer converted none. Gate 1 passed; Gate 2 failed. No controller
+or later research phase was started.
+
 Baseline: `study-01-v1.0.0`, commit
 `cff7542cd0f9abd16c1ed9d590d168079ab6dc94`. Research 1 records and manuscript are
 preserved. Readable splits contain 240 training, 80 validation, and 192 reused
@@ -59,4 +65,19 @@ on its asyncpg native dependency. This is recorded in `preflight.json`; it does
 not change the experiment. When that server is available, publish saved results
 with `PREFECT_API_URL` set to its existing API and
 `python -m sp_lense.research2.dashboard /path/to/run`. This command does not
-provision a replacement server. Live progress is currently shown in the notebook.
+provision a replacement server. Execution progress was shown in the notebook;
+the completed GPU runtime has been released after verifying the local results.
+
+## Replay this completed pilot
+
+```sh
+python -m sp_lense.research2.audit study/02_lora_transfer/run
+```
+
+This checks the native artifact hashes and recomputes all comparisons without a
+GPU. `run/METRICS.json` is the immutable execution receipt; `run/audited/` contains
+the independently recomputed report. `run/executed_code.zip` preserves the exact
+executed code; the current source adds reporting checks without changing fitted
+weights or scored outputs. The adapter, per-view scores, measured differences,
+training targets, configuration, and transfer receipt are retained together.
+The checkpoint's original generated metadata is preserved for manifest integrity.

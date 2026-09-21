@@ -1,0 +1,66 @@
+{
+  "case_id": "V02_S05",
+  "order": "AB",
+  "split": "validation",
+  "post_block_zero_based": 10,
+  "position": "final prompt token",
+  "patched_hidden_max_abs_error_to_teacher": 2.3283064365386963e-10,
+  "base": {
+    "label_mass": 0.9820110201835632,
+    "canonical_probability": 0.5376405119895935,
+    "pair_argmax": 1,
+    "full_argmax": 33,
+    "answer_probabilities": [
+      0.4623595178127289,
+      0.5376405119895935
+    ],
+    "answer_token_mass": [
+      0.45404213666915894,
+      0.5279688835144043
+    ]
+  },
+  "teacher": {
+    "label_mass": 0.9999926090240479,
+    "canonical_probability": 0.000017850561562227085,
+    "pair_argmax": 0,
+    "full_argmax": 32,
+    "answer_probabilities": [
+      0.9999821782112122,
+      0.000017850561562227085
+    ],
+    "answer_token_mass": [
+      0.99997478723526,
+      0.000017850428776000626
+    ]
+  },
+  "patched": {
+    "label_mass": 0.9828218221664429,
+    "canonical_probability": 0.544191837310791,
+    "pair_argmax": 1,
+    "full_argmax": 33,
+    "answer_probabilities": [
+      0.45580819249153137,
+      0.544191837310791
+    ],
+    "answer_token_mass": [
+      0.4479782283306122,
+      0.5348436236381531
+    ]
+  },
+  "adapter_B_norms": {
+    "base_model.model.model.language_model.layers.3.self_attn.q_proj.lora_B.default.weight": 0.21265414357185364,
+    "base_model.model.model.language_model.layers.3.self_attn.v_proj.lora_B.default.weight": 0.07790333777666092,
+    "base_model.model.model.language_model.layers.7.self_attn.q_proj.lora_B.default.weight": 0.24873077869415283,
+    "base_model.model.model.language_model.layers.7.self_attn.v_proj.lora_B.default.weight": 0.08589603006839752,
+    "base_model.model.model.language_model.layers.11.self_attn.q_proj.lora_B.default.weight": 0.25739434361457825,
+    "base_model.model.model.language_model.layers.11.self_attn.v_proj.lora_B.default.weight": 0.08654779940843582,
+    "base_model.model.model.language_model.layers.15.self_attn.q_proj.lora_B.default.weight": 0.2142004519701004,
+    "base_model.model.model.language_model.layers.15.self_attn.v_proj.lora_B.default.weight": 0.0792606845498085,
+    "base_model.model.model.language_model.layers.19.self_attn.q_proj.lora_B.default.weight": 0.17934660613536835,
+    "base_model.model.model.language_model.layers.19.self_attn.v_proj.lora_B.default.weight": 0.06242375820875168,
+    "base_model.model.model.language_model.layers.23.self_attn.q_proj.lora_B.default.weight": 0.24161478877067566,
+    "base_model.model.model.language_model.layers.23.self_attn.v_proj.lora_B.default.weight": 0.07083893567323685
+  },
+  "new_forwards": 3,
+  "interpretation": "Correct intermediate hidden replacement does not reproduce this teacher decision. Nonzero downstream adapters remain a possible explanation, not a proven causal attribution."
+}
