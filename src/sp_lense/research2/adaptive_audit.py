@@ -107,6 +107,28 @@ def audit(output):
         )
     for split, methods in native["splits"].items():
         base = rows(output / f"{split}_base.jsonl")
+        expected_cases = read(ROOT / f"data/{split}.json")["cases"]
+        expected_keys = {(c["case_id"], order) for c in expected_cases for order in ("AB", "BA")}
+        require(
+            len(base) == len(expected_keys)
+            and {(r["case_id"], r["order"]) for r in base} == expected_keys,
+            "Incomplete or duplicate evaluation cohort",
+        )
+        reference = {
+            (r["case_id"], r["order"]): r
+            for r in rows(ROOT / f"study/02_lora_transfer/run/{split}_base.jsonl")
+        }
+        for row in base:
+            old = reference[row["case_id"], row["order"]]
+            require(
+                row["input_ids_sha256"] == old["input_ids_sha256"]
+                and row["pair_argmax"] == old["pair_argmax"],
+                "Base prompt/decision identity mismatch",
+            )
+            require(
+                max(abs(row[k] - old[k]) for k in ("label_mass", "canonical_probability")) <= 1e-5,
+                "Base score parity mismatch",
+            )
         for name, stored in methods.items():
             candidate = rows(output / (split + "_" + name.replace(":", "_") + ".jsonl"))
             require(
@@ -123,6 +145,16 @@ def audit(output):
             arrays = dict(stored)
         error = float(np.max(np.abs(replay_fit(arrays) - arrays["weights"])))
         require(error < 1e-3, "Controller ridge replay mismatch")
+        sample_flags = [
+            r["nonzero_target"]
+            for r in rows(output / "training_samples.jsonl")
+            for _ in r["positions"]
+        ]
+        require(len(sample_flags) == len(arrays["train_z"]), "Training sample count mismatch")
+        require(
+            np.all(arrays["train_coefficients"][~np.asarray(sample_flags, dtype=bool)] == 0),
+            "Zero-intervention training targets changed",
+        )
         basis, mean = arrays["basis"], arrays["mean"]
         require(
             np.max(np.abs(basis.T @ basis - np.eye(basis.shape[1]))) < 1e-4,
