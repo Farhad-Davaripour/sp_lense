@@ -51,6 +51,8 @@ jobs:
       - run: python -O -m sp_lense.reproduction policy
       - run: python -m sp_lense.research2.audit study/02_lora_transfer/run
       - run: python -m sp_lense.research2.jev_audit study/02_jev_gate/run
+      - run: python -m sp_lense.research2.adaptive_audit study/02_adaptive_steering/run
+      - run: python -m sp_lense.research2.adaptive_audit study/02_adaptive_steering/final_position_run
 
   security:
     timeout-minutes: 20

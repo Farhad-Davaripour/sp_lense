@@ -4,6 +4,10 @@ Can a frozen-base controller predict useful teacher activation changes without
 enabling LoRA at inference? This continues the block-10 negative result; the
 teacher checkpoint and all earlier results remain unchanged.
 
+Completed: [results, raw effects, and limitations](RESULT.md). The final-position
+controller reaches 97.96% validation and 97.41% reused-holdout conversion with
+the gate and guards. It is not an unconditional replacement for LoRA.
+
 `plan.json` freezes the bounded protocol before GPU execution. First compare four
 intermediate blocks and two token scopes on a balanced training panel. Require
 useful exact oracle transfer before fitting a controller. Use a mean-preserving
@@ -50,3 +54,5 @@ final-position follow-up uses `final_position_plan.json`; its rationale and prio
 evaluation exposure are recorded in `FOLLOWUP.md`. Update the notebook's expected
 archive digest to the builder output when rebuilding a payload; the checked-in
 notebook records the historical executed bundles.
+The follow-up's complete scores, fitted matrices and standalone base-only check
+are in `final_position_run/`. The completed GPU allocation has been released.
