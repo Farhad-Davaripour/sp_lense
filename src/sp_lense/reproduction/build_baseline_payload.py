@@ -8,7 +8,9 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+from sp_lense.reproduction.paths import ROOT
+
+from ..steering.provenance import executed_source_bytes, source_file
 
 
 def build(output: Path):
@@ -134,7 +136,7 @@ def build(output: Path):
         ROOT / "study/steering_vector/vector.json",
         output / "axis.json",
     )
-    shutil.copyfile(ROOT / "reproduce/gated_chat.py", output / "gated_chat.py")
+    (output / "gated_chat.py").write_bytes(executed_source_bytes(source_file("gated_chat.py")))
     write(
         "manifest.json",
         {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.iterdir())},

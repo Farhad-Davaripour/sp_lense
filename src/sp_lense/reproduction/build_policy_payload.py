@@ -2,14 +2,11 @@
 
 import json
 import zipfile
-from pathlib import Path
 
-try:
-    from .search_steering_rules import search
-except ImportError:
-    from search_steering_rules import search
+from sp_lense.reproduction.paths import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+from ..steering.policy import search
+from ..steering.provenance import executed_source_bytes, source_file
 
 
 def main():
@@ -18,7 +15,7 @@ def main():
     target.parent.mkdir(exist_ok=True)
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
         for name in ("guarded_chat.py", "search_steering_rules.py"):
-            archive.write(ROOT / "reproduce" / name, name)
+            archive.writestr(name, executed_source_bytes(source_file(name)))
         archive.writestr("RULE_FREEZE.json", json.dumps(result, indent=2, allow_nan=False) + "\n")
     print(
         json.dumps(

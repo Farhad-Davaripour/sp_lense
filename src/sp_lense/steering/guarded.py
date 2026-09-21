@@ -11,8 +11,8 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
-from gated_chat import REVISION, action_metrics, atomic, render, require
-from search_steering_rules import choose
+from .gated import REVISION, action_metrics, atomic, render, require
+from .policy import choose
 
 
 def main(payload, previous, rule_path, output, callback=None):

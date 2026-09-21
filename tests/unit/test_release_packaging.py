@@ -1,4 +1,3 @@
-import importlib.util
 import json
 import subprocess
 import zipfile
@@ -7,9 +6,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("package_release", ROOT / "paper/package_release.py")
-packager = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(packager)
+from sp_lense.reporting import release as packager
 
 
 @pytest.fixture

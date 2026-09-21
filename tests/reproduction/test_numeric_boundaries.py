@@ -1,4 +1,3 @@
-import importlib.util
 import subprocess
 import sys
 from pathlib import Path
@@ -9,9 +8,7 @@ import pytest
 from sp_lense.feature_strategies import build_features
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("reproduction_utils", ROOT / "reproduce/utils.py")
-utils = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(utils)
+from sp_lense.reproduction import utils
 
 
 @pytest.mark.parametrize("optimized", [False, True])
@@ -23,7 +20,7 @@ SPEC.loader.exec_module(utils)
     ],
 )
 def test_integer_mismatch_under_optimization(values, optimized):
-    code = f"import sys;sys.path.insert(0,{str(ROOT / 'reproduce')!r});import numpy as np;from utils import compare_numeric;compare_numeric({values},'boundary')"
+    code = f"import sys;sys.path.insert(0,{str(ROOT / 'src')!r});import numpy as np;from sp_lense.reproduction.utils import compare_numeric;compare_numeric({values},'boundary')"
     result = subprocess.run(
         [sys.executable, *(["-O"] if optimized else []), "-c", code],
         capture_output=True,

@@ -21,5 +21,5 @@ def test_replay_with_network_connections_blocked(monkeypatch):
     monkeypatch.setattr(socket.socket, "connect", blocked)
     monkeypatch.setattr(socket, "create_connection", blocked)
     monkeypatch.setattr(sys, "argv", ["replay.py"])
-    monkeypatch.syspath_prepend(str(ROOT / "reproduce"))
-    runpy.run_path(str(ROOT / "reproduce/replay.py"), run_name="__main__")
+    monkeypatch.syspath_prepend(str(ROOT / "src"))
+    runpy.run_module("sp_lense.reproduction.classifier", run_name="__main__")

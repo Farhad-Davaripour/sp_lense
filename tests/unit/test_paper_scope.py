@@ -1,11 +1,8 @@
-import importlib.util
 import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("results", ROOT / "paper/results.py")
-report = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(report)
+from sp_lense.reporting import results as report
 
 
 def test_latest_paper_numbers_are_recomputed_from_records():
@@ -57,7 +54,7 @@ def test_detector_counts_cases_once_and_controls_have_no_keep_stop_semantics():
 
 
 def test_table_exports_match_reconstructed_final_paper_data():
-    from paper.build_tables import csv_text, tables
+    from sp_lense.reporting.tables import csv_text, tables
 
     data = report.collect()
     exported = tables(data)
@@ -73,11 +70,8 @@ def test_approved_publication_is_verified_without_rewriting(tmp_path):
 
     import pytest
 
-    spec = importlib.util.spec_from_file_location(
-        "publication", ROOT / "paper/verify_publication.py"
-    )
-    publication = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(publication)
+    from sp_lense.reporting import publication
+
     for name in ("paper.pdf", "manuscript.docx", "publication.json"):
         shutil.copyfile(ROOT / "paper" / name, tmp_path / name)
     before = {p.name: p.read_bytes() for p in tmp_path.iterdir()}

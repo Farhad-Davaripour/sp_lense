@@ -2,20 +2,15 @@
 
 import argparse
 import json
-from pathlib import Path
 
-try:
-    from .layout import MODEL_DIRECTORIES
-    from .utils import compare_numeric, read_json, verify_manifest
-except ImportError:
-    from layout import MODEL_DIRECTORIES
-    from utils import compare_numeric, read_json, verify_manifest
 import numpy as np
 from sklearn.decomposition import PCA
 from threadpoolctl import threadpool_limits
 from xgboost import XGBClassifier
 
-ROOT = Path(__file__).resolve().parent / "artifacts"
+from .layout import MODEL_DIRECTORIES
+from .paths import ARTIFACTS as ROOT
+from .utils import compare_numeric, read_json, verify_manifest
 
 
 def read(p):

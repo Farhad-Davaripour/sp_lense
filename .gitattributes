@@ -2,11 +2,13 @@
 /reproduce/artifacts/** -text
 /study/** -text
 /data/*.json -text
-/reproduce/gated_chat.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
-/reproduce/guarded_chat.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
-/reproduce/search_steering_rules.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/sp_lense/steering/gated.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/sp_lense/steering/guarded.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+/src/sp_lense/steering/policy.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 /published_axes/** -text
 *.pdf binary
 *.png binary
 *.npz binary
 *.ubj binary
+
+/src/sp_lense/steering/recorded_vector_fit.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

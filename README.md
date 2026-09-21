@@ -28,11 +28,15 @@ Activate it with `.venv\Scripts\activate` on Windows or
 
 ```sh
 python -m pip install -e . -r reproduce/requirements-core.txt
-python reproduce/run.py verify
-python reproduce/run.py replay
+python -m sp_lense.reproduction verify
+python -m sp_lense.reproduction replay
 ```
 
 Replay uses saved features and model artifacts; it requires no GPU or model download.
+Use `sp-lense-reproduce refit` to retrain the saved classifier configurations and
+`tune` to repeat their original searches. `policy-search` repeats steering-rule
+selection from saved training outputs. New model execution uses the GPU notebook;
+raw detector-feature extraction is not part of cached reproduction.
 
 ## Repository guide
 
@@ -43,12 +47,15 @@ Replay uses saved features and model artifacts; it requires no GPU or model down
 | `study/steering_vector/` | Shutdown Response Vector and gradient-fitting evidence |
 | `study/policy_training/` | Training observations used to compare steering rules |
 | `study/baseline_scores/` | Saved reference scores required to reconstruct the final policy |
-| `reproduce/` | Replay, audit, training-search, and GPU execution tools |
+| `src/sp_lense/reproduction/` | Replay, classifier refitting/tuning, audits, and payload builders |
+| `src/sp_lense/steering/` | Steering policy, GPU runners, and recorded vector-fitting source |
+| `src/sp_lense/reporting/` | Final-paper tables, publication checks, and release packaging |
+| `reproduce/` | Saved classifier inputs, dependency pins, manifests, and the GPU notebook |
 | `reproduce/artifacts/models/` | Selected `pca_jacobian` classifier and `pca_only` / `engineered` comparison models |
 | `examples/`, `configs/` | Small demonstration inputs and their example configuration |
-| `paper/` | Approved PDF, editable Word manuscript, and supplementary reporting tools |
+| `paper/` | Approved PDF, editable Word manuscript, and audited table exports |
 
-Run `python reproduce/run.py audit` to verify the retained study records and
+Run `python -m sp_lense.reproduction audit` to verify the retained study records and
 publication files. Detailed methodology and command guidance are in the wiki.
 
 ## Documentation

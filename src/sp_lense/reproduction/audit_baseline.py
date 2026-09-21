@@ -5,14 +5,11 @@ import json
 from pathlib import Path
 from statistics import fmean
 
-try:
-    from .layout import recorded_path
-    from .utils import read_json, require, verify_manifest
-except ImportError:
-    from layout import recorded_path
-    from utils import read_json, require, verify_manifest
+from sp_lense.reproduction.paths import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+from ..steering.provenance import executed_source_digest, source_file
+from .layout import recorded_path
+from .utils import read_json, require, verify_manifest
 
 
 def audit(root: Path) -> dict:
@@ -20,8 +17,7 @@ def audit(root: Path) -> dict:
     result = read_json(root / "RESULT.json")
     runtime = read_json(root / "RUNTIME.json")
     require(
-        hashlib.sha256((ROOT / "reproduce/gated_chat.py").read_bytes()).hexdigest()
-        == runtime["source_sha256"],
+        executed_source_digest(source_file("gated_chat.py")) == runtime["source_sha256"],
         "Executed runner source hash differs",
     )
     require(

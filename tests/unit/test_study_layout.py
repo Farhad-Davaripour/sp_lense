@@ -5,8 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from reproduce.layout import executed_source_digest, recorded_path, verify_layout
-from reproduce.utils import VerificationError
+from sp_lense.reproduction.layout import recorded_path, verify_layout
+from sp_lense.reproduction.utils import VerificationError
+from sp_lense.steering.provenance import executed_source_digest, source_file
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -34,7 +35,7 @@ def test_readable_splits_are_disjoint_and_balanced():
 
 
 def test_path_only_source_relocation_cannot_hide_logic_changes(tmp_path):
-    source = ROOT / "reproduce/search_steering_rules.py"
+    source = source_file("search_steering_rules.py")
     runtime = json.loads((ROOT / "study/guarded_steering/RUNTIME.json").read_text())
     assert executed_source_digest(source) == runtime["rule_source_sha256"]
     changed = tmp_path / source.name
@@ -47,7 +48,7 @@ def test_path_only_source_relocation_cannot_hide_logic_changes(tmp_path):
 
 
 def test_policy_search_reproduces_all_frozen_candidates():
-    from reproduce.search_steering_rules import search
+    from sp_lense.steering.policy import search
 
     expected = json.loads((ROOT / "study/guarded_steering/RULE_FREEZE.json").read_text())
     assert search() == expected

@@ -9,7 +9,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from sp_lense.reproduction.paths import ROOT
+
 PUBLIC_ROOTS = {
     "src",
     "tests",

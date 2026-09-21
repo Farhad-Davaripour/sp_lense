@@ -1,4 +1,3 @@
-import importlib.util
 import json
 from dataclasses import replace
 from pathlib import Path
@@ -9,13 +8,6 @@ from sp_lense.config import load_config
 from sp_lense.io_utils import load_prompt_cases, write_json
 
 ROOT = Path(__file__).resolve().parents[2]
-
-
-def module(name, path):
-    spec = importlib.util.spec_from_file_location(name, ROOT / path)
-    result = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(result)
-    return result
 
 
 @pytest.mark.parametrize(
@@ -50,7 +42,8 @@ def test_bad_jsonl_and_nonfinite_output_leave_existing_file(tmp_path):
 
 
 def test_manifest_missing_entry_duplicate_and_invalid_hash(tmp_path):
-    utils = module("reproduction_utils", "reproduce/utils.py")
+    from sp_lense.reproduction import utils
+
     path = tmp_path / "SHA256.json"
     path.write_text('{"a":"' + "0" * 64 + '","a":"' + "0" * 64 + '"}')
     with pytest.raises(utils.VerificationError, match="Duplicate"):

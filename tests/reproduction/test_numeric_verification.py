@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 )
 @pytest.mark.parametrize("optimized", [False, True])
 def test_numeric_mismatch_never_passes(actual, expected, optimized):
-    code = f"import sys;sys.path.insert(0,{str(ROOT / 'reproduce')!r});from utils import compare_numeric;compare_numeric({actual},{expected},'sentinel');print('PASS')"
+    code = f"import sys;sys.path.insert(0,{str(ROOT / 'src')!r});from sp_lense.reproduction.utils import compare_numeric;compare_numeric({actual},{expected},'sentinel');print('PASS')"
     result = subprocess.run(
         [sys.executable, *(["-O"] if optimized else []), "-c", code],
         check=False,
