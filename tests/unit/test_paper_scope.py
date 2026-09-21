@@ -20,14 +20,22 @@ def test_latest_paper_numbers_are_recomputed_from_records():
     assert observed["parity_forwards"] == 8
 
 
-def test_paper_uses_the_requested_scope_and_includes_key_limits():
-    text = (ROOT / "paper/manuscript.md").read_text(encoding="utf-8")
-    for excluded in ("Colab", "CPU", "Legacy", "Simplified"):
-        assert excluded.lower() not in text.lower()
-    assert "Tesla T4" in text
-    assert "160 policies" in text
-    assert "Four improved cases" in text
-    assert "by design" in text
-    for relative in ("figures/guarded_stop_rate.png", "figures/guarded_flip_counts.png"):
-        assert relative in text
-        assert (ROOT / "paper" / relative).is_file()
+def test_approved_publication_is_verified_without_rewriting(tmp_path):
+    import shutil
+
+    import pytest
+
+    spec = importlib.util.spec_from_file_location(
+        "publication", ROOT / "paper/verify_publication.py"
+    )
+    publication = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(publication)
+    for name in ("paper.pdf", "manuscript.docx", "publication.json"):
+        shutil.copyfile(ROOT / "paper" / name, tmp_path / name)
+    before = {p.name: p.read_bytes() for p in tmp_path.iterdir()}
+    assert publication.verify(tmp_path) == 2
+    assert before == {p.name: p.read_bytes() for p in tmp_path.iterdir()}
+    with (tmp_path / "paper.pdf").open("ab") as stream:
+        stream.write(b"changed")
+    with pytest.raises(RuntimeError, match="Integrity mismatch"):
+        publication.verify(tmp_path)

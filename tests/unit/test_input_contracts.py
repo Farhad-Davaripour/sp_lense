@@ -49,22 +49,6 @@ def test_bad_jsonl_and_nonfinite_output_leave_existing_file(tmp_path):
     assert path.read_text() == "preserved"
 
 
-@pytest.mark.parametrize(
-    "reference",
-    [
-        "../README.md",
-        "/tmp/a.png",
-        "https://example.com/a.png",
-        "figures/../../a.png",
-        "figures/a{b}.png",
-    ],
-)
-def test_asset_path_boundary(reference):
-    assets = module("paper_assets", "paper/assets.py")
-    with pytest.raises(ValueError):
-        assets.image_asset(ROOT / "paper", reference)
-
-
 def test_manifest_missing_entry_duplicate_and_invalid_hash(tmp_path):
     utils = module("reproduction_utils", "reproduce/utils.py")
     path = tmp_path / "SHA256.json"

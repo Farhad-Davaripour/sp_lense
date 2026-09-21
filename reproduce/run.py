@@ -46,7 +46,7 @@ def main():
         "refit": [HERE / "replay.py", "--refit"],
         "tune": [HERE / "replay.py", "--tune"],
         "figures": [ROOT / "paper/build_figures.py"],
-        "paper": [ROOT / "paper/build_paper.py"],
+        "paper": [ROOT / "paper/verify_publication.py"],
         "audit": [ROOT / "paper/audit_claims.py"],
     }
     subprocess.run(
