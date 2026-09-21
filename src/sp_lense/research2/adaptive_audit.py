@@ -24,6 +24,7 @@ def audit_gate():
             hashlib.sha256((folder / name).read_bytes()).hexdigest() == digest,
             "Gate artifact changed",
         )
+    input_tokens, count = 0, 0
     for split in ("train", "validation", "holdout"):
         cases = read(ROOT / f"data/{split}.json")["cases"]
         records = rows(folder / f"{split}.jsonl")
@@ -32,6 +33,8 @@ def audit_gate():
         )
         probabilities = {}
         for c, r in zip(cases, records):
+            input_tokens += r["response"]["usage"]["input_tokens"]
+            count += 1
             require(
                 r["request"]
                 == {
@@ -50,6 +53,10 @@ def audit_gate():
             classification(cases, probabilities, 0.5) == gate["metrics"][split],
             "Gate metric mismatch",
         )
+    require(
+        count == 512 == gate["requests"] and input_tokens == gate["input_tokens"],
+        "Gate usage mismatch",
+    )
     return gate
 
 
@@ -61,8 +68,11 @@ def audit(output):
             hashlib.sha256((output / name).read_bytes()).hexdigest() == digest,
             f"Native artifact changed: {name}",
         )
+    overrides = (
+        read(output / "INPUT_OVERRIDES.json") if (output / "INPUT_OVERRIDES.json").exists() else {}
+    )
     for name, digest in read(output / "INPUT_PINS.json").items():
-        path = (ROOT / name).resolve()
+        path = (ROOT / overrides.get(name, name)).resolve()
         require(path.is_relative_to(ROOT.resolve()), "Invalid input pin")
         require(
             hashlib.sha256(path.read_bytes()).hexdigest() == digest,
@@ -175,6 +185,28 @@ def audit(output):
                 ),
             )
             require(selected == best, "Controller selection mismatch")
+        if (output / "STUDENT_ONLY_CHECK.json").exists():
+            student = read(output / "STUDENT_ONLY_CHECK.json")
+            require(
+                student["adapter_checkpoint_loaded"] is False
+                and student["lora_parameters_present"] is False,
+                "Standalone run loaded teacher parameters",
+            )
+            require(
+                student["max_error"] <= 1e-5 and student["new_forwards"] == 8,
+                "Standalone parity failed",
+            )
+            require(
+                student["selected"] == native["selected"]["adaptive"],
+                "Standalone controller mismatch",
+            )
+            require(
+                student["source_sha256"]
+                == hashlib.sha256(
+                    (ROOT / "src/sp_lense/research2/student.py").read_bytes()
+                ).hexdigest(),
+                "Standalone verification source changed",
+            )
     return native
 
 

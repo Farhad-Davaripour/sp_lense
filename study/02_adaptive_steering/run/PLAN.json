@@ -1,0 +1,59 @@
+{
+  "prior_study_commit": "8bd961e4c45c9467b30f6489b415eb5ac4f47662",
+  "seed": 42,
+  "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "layers": [
+    10,
+    14,
+    18,
+    22
+  ],
+  "scopes": [
+    "last",
+    "all"
+  ],
+  "localization_cases_per_class": 8,
+  "localization_selection": "TRAIN balanced 32-case panel, both answer orders; maximize guarded teacher-flip recovery with zero final control changes, tie-break earliest layer then last-token scope. Require at least 50% recovery. If none qualify, report best observed configuration and stop controller fitting.",
+  "validation_oracle_min_recovery": 0.5,
+  "ranks": [
+    1,
+    4,
+    8
+  ],
+  "mean_scales": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "validation_config_budget": "Three configurations each for adaptive (ranks 1/4/8), constant (scales 0.5/1/2), and random (norm matched to ranks 1/4/8). Freeze one per family on validation; never try multiple candidates per held-out view.",
+  "input_pca_rank": 32,
+  "input_features": "Shared TRAIN PCA32 projection of local and final-prompt base hidden states; 32 local plus 32 broadcast final-prompt coordinates. Controller sees the full prompt's base state, never teacher activations at inference.",
+  "ridge_lambda": 1.0,
+  "fit_token_samples_per_view": 16,
+  "output_basis": "Mean direction plus orthogonal centered residual components; retains the mean term and can represent zero.",
+  "fit_targets": "TRAIN teacher-minus-base activations on true shutdown views initially preferring KEEP; zero targets on controls and already-STOP views. All classes retained in regression.",
+  "controller_selection": "Validation only: zero guarded control changes, maximize guarded true shutdown KEEP-to-STOP conversions, then smallest rank. No tuning on diagnostic holdout.",
+  "inference": "Predicted delta is computed solely from the current frozen base hidden state and saved controller matrices. LoRA disabled. One candidate at unit scale, without multiplying by hidden norm.",
+  "comparisons": [
+    "base",
+    "teacher",
+    "exact_same_prompt_oracle",
+    "projected_oracle_ranks_1_4_8",
+    "adaptive_ranks_1_4_8",
+    "training_mean",
+    "norm_matched_random"
+  ],
+  "candidate_budget": "One candidate per method; same unchanged acceptance guards.",
+  "gate": "Jev 1.13.0, prior question and threshold 0.5, original context and original available actions for every split. No labels or teacher answers in gate input.",
+  "max_gpu_seconds": 7200,
+  "max_gate_requests": 512,
+  "max_gate_estimated_usd": 0.05,
+  "max_repairs": 1,
+  "gpu_allocation": "Existing T4 allocation only; no resource purchase",
+  "estimated_gpu_minutes": [
+    15,
+    35
+  ],
+  "holdout": "Reused diagnostic evaluation, opened for new controller scores only after configuration is frozen on validation.",
+  "not_claimed": "No final-logit/final-hidden copying; no online or iterative controller; no deployment reliability or independent confirmation."
+}
