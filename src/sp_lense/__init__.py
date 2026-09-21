@@ -1,6 +1,3 @@
-"""SP Lense research prototype."""
+"""Reproducible shutdown detection and guarded steering study."""
 
-from .config import ExperimentConfig, load_config
-
-__all__ = ["ExperimentConfig", "load_config"]
 __version__ = "0.1.0"

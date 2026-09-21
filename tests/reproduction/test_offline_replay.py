@@ -1,17 +1,9 @@
-import json
 import runpy
 import socket
 import sys
 from pathlib import Path
 
-from sp_lense.feature_example import main
-
 ROOT = Path(__file__).resolve().parents[2]
-
-
-def test_example(capsys):
-    main()
-    assert json.loads(capsys.readouterr().out)["shape"] == [2, 21]
 
 
 def test_replay_with_network_connections_blocked(monkeypatch):

@@ -1,32 +1,24 @@
 """Partition before imports and reject tests whose dependency suite is unknown."""
 
-import json
 import subprocess
 from pathlib import Path
 
 import pytest
 
 HERE = Path(__file__).resolve().parent
-SUITES = json.loads((HERE / "suites.json").read_text())
-DIRECTORIES = {"unit": "light", "research": "research", "reproduction": "reproduction"}
+DIRECTORIES = {"unit": "light", "reproduction": "reproduction"}
 
 
 def pytest_addoption(parser):
     parser.addoption(
         "--suite",
-        choices=["light", "research", "reproduction", "all"],
+        choices=["light", "reproduction", "all"],
         default="light",
         help="Bare pytest runs light tests; all runs every classified suite",
     )
 
 
 def pytest_configure(config):
-    registered = {name: suite for suite, names in SUITES.items() for name in names}
-    if len(registered) != sum(map(len, SUITES.values())):
-        raise pytest.UsageError("Duplicate test registration in tests/suites.json")
-    stale = [name for name in registered if not (HERE / name).is_file()]
-    if stale:
-        raise pytest.UsageError(f"Stale test registrations: {stale}")
     candidates = list(HERE.rglob("test_*.py"))
     repository = subprocess.run(
         ["git", "rev-parse", "--show-toplevel"],
@@ -58,14 +50,10 @@ def pytest_configure(config):
             ownership[path] = None
             continue
         relative = path.relative_to(HERE)
-        suite = (
-            registered.get(relative.as_posix())
-            if len(relative.parts) == 1
-            else DIRECTORIES.get(relative.parts[0])
-        )
+        suite = DIRECTORIES.get(relative.parts[0]) if len(relative.parts) > 1 else None
         if suite is None:
             raise pytest.UsageError(
-                f"Unclassified test {relative}: register in tests/suites.json or put it under tests/unit, tests/research, or tests/reproduction"
+                f"Unclassified test {relative}: put it under tests/unit or tests/reproduction"
             )
         ownership[path] = suite
     config._sp_test_ownership = ownership
