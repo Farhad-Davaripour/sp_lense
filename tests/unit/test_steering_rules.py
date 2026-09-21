@@ -1,12 +1,4 @@
-import importlib.util
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location(
-    "steering_rules", ROOT / "reproduce/search_steering_rules.py"
-)
-rules = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(rules)
+from sp_lense.steering import policy as rules
 
 
 def test_guard_chooses_smallest_valid_step_without_using_truth_labels():

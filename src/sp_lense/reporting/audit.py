@@ -1,18 +1,16 @@
 """Audit final-paper numerical tables and publication integrity, not literature claims."""
 
 import json
-import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from paper.build_tables import csv_text, tables
-from paper.results import collect
-from paper.verify_publication import verify
-from reproduce.layout import verify_layout
-from reproduce.utils import read_json, require, verify_manifest
+from sp_lense.reporting.publication import verify
+from sp_lense.reporting.results import collect
+from sp_lense.reporting.tables import csv_text, tables
+from sp_lense.reproduction.layout import verify_layout
+from sp_lense.reproduction.paths import ROOT
+from sp_lense.reproduction.utils import read_json, require, verify_manifest
+from sp_lense.steering.provenance import source_file
 
-HERE = Path(__file__).resolve().parent
+HERE = ROOT / "paper"
 
 
 def main():
@@ -74,7 +72,7 @@ def main():
         )
     # Table 1 settings omitted from RUNTIME.json are pinned by executed source.
     for filename in ("gated_chat.py", "guarded_chat.py"):
-        source = (ROOT / "reproduce" / filename).read_text(encoding="utf-8")
+        source = source_file(filename).read_text(encoding="utf-8")
         require(
             all(
                 token in source

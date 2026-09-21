@@ -1,12 +1,6 @@
-import importlib.util
-from pathlib import Path
-
 import pytest
 
-ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("gated_chat", ROOT / "reproduce/gated_chat.py")
-runner = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(runner)
+from sp_lense.steering import gated as runner
 
 
 def test_render_keeps_semantics_under_order_reversal():

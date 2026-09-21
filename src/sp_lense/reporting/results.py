@@ -2,15 +2,12 @@
 
 import hashlib
 import json
-import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from reproduce.audit_gated_chat import audit as audit_baseline
-from reproduce.audit_steering_policy import audit
-from reproduce.layout import BASELINE
-from reproduce.utils import read_json, require, verify_manifest
+from sp_lense.reproduction.audit_baseline import audit as audit_baseline
+from sp_lense.reproduction.audit_policy import audit
+from sp_lense.reproduction.paths import BASELINE, ROOT
+from sp_lense.reproduction.utils import read_json, require, verify_manifest
+from sp_lense.steering.provenance import source_file
 
 POLICY = ROOT / "study/guarded_steering"
 PREVIOUS = BASELINE
@@ -23,7 +20,7 @@ def source_paths():
             names.add((root / name).relative_to(ROOT).as_posix())
         names.add((root / "SHA256.json").relative_to(ROOT).as_posix())
     for name in ("gated_chat.py", "guarded_chat.py", "search_steering_rules.py"):
-        names.add("reproduce/" + name)
+        names.add(source_file(name).relative_to(ROOT).as_posix())
     return sorted(names)
 
 

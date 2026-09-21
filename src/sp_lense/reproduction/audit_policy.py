@@ -5,14 +5,11 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-try:
-    from .layout import BASELINE, executed_source_digest
-    from .utils import read_json, require, verify_manifest
-except ImportError:
-    from layout import BASELINE, executed_source_digest
-    from utils import read_json, require, verify_manifest
+from sp_lense.reproduction.paths import ROOT
 
-ROOT = Path(__file__).resolve().parents[1]
+from ..steering.provenance import executed_source_digest, source_file
+from .paths import BASELINE
+from .utils import read_json, require, verify_manifest
 
 
 def audit(root: Path) -> dict:
@@ -26,7 +23,7 @@ def audit(root: Path) -> dict:
         ("search_steering_rules.py", "rule_source_sha256"),
     ]:
         require(
-            executed_source_digest(ROOT / "reproduce" / filename) == runtime[key],
+            executed_source_digest(source_file(filename)) == runtime[key],
             f"Source differs: {filename}",
         )
     for name, expected in read_json(root / "SOURCE_PINS.json").items():

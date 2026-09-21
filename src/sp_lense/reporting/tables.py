@@ -3,16 +3,13 @@
 import csv
 import io
 import json
-import sys
 from decimal import ROUND_HALF_UP, Decimal
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from paper.results import collect, manifest
-from reproduce.utils import verify_manifest
+from sp_lense.reporting.results import collect, manifest
+from sp_lense.reproduction.paths import ROOT
+from sp_lense.reproduction.utils import verify_manifest
 
-HERE = Path(__file__).resolve().parent
+HERE = ROOT / "paper"
 
 
 def rate(numerator, denominator):

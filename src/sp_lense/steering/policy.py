@@ -5,9 +5,8 @@ Labels are used only to evaluate policies on TRAIN. No validation/holdout input.
 """
 
 import json
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+from sp_lense.reproduction.paths import ROOT
 LEVELS = [0.0, -0.01, -0.02, -0.05, -0.1, -0.2]
 
 
