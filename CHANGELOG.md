@@ -1,8 +1,9 @@
 # Changes
 
-## Contributor and release hardening
+## Final-study package
 
-- New files are visible; unknown test ownership causes a collection error.
-- Release archives use committed content and protected, atomic output handling.
-- Integer overflow, non-finite features, invalid configuration, and asset escapes fail explicitly.
-- CI and dependency policy hardened; frozen scientific inputs and tolerances preserved.
+- Implementation is organized under `src/sp_lense/` with one reproduction CLI.
+- Full readable dataset splits and immutable final-study records are retained.
+- Classifier replay/refit/tuning, policy search, table exports and audits are verified.
+- Superseded demo workflows, example data and CPU research dependencies are retired.
+- Main requires pull requests and owner review, with owner-only PR bypass.

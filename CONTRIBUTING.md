@@ -23,20 +23,17 @@ python -m ruff format --check src tests
 ```
 
 Bare pytest runs **light** tests. Put new tests in `tests/unit/` (no tensor
-packages), `tests/research/` (PyTorch), or `tests/reproduction/` (NumPy/XGBoost).
-Register top-level tests in `tests/suites.json`; unknown or stale registrations
-fail collection. `--suite all` requires all test dependencies.
+packages), `tests/reproduction/` (NumPy/XGBoost).
+Tests outside these directories fail collection. `--suite all` requires all test dependencies.
 
-- Tensor tests: install `requirements-research-tests.txt`; run `pytest --suite research`.
 - Reproduction: install `reproduce/requirements-core.txt`; run `pytest --suite reproduction`,
   then `python -m sp_lense.reproduction verify` and `python -m sp_lense.reproduction replay`.
 - Paper: no additional dependencies; run `python -m sp_lense.reproduction tables`,
   `audit`, and `paper`.
 - Security: install `bandit pip-audit`; run `bandit -r src -ll` and `pip-audit`.
 
-Maintain reusable code in `src/sp_lense/`; the small extension example is
-`python -m sp_lense.feature_example` (requires the reproduction dependencies).
-Frozen replay stays separate in `reproduce/`. New modules, configs, docs and
+Maintain reusable code in the reproduction, steering, and reporting packages
+under `src/sp_lense/`. Saved replay inputs stay in `reproduce/`. New modules, configs, docs and
 tests must be visible to Git without force-add. Keep longer guidance in the wiki.
 
 Release archives use committed HEAD, never uncommitted files. Run

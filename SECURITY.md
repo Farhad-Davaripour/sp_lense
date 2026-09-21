@@ -1,15 +1,15 @@
 # Security
 
 Supported scope: maintained Qwen3.5-0.8B tooling on Python 3.12, saved-artifact
-replay, and paper/release construction. Historical files in `development/` are
-inspection-only and retain original assertions/adapters; do not execute them on
-untrusted inputs. Native model inference is outside routine CI.
+replay, final-paper numerical audits, and release packaging. The preserved
+`src/sp_lense/steering/recorded_vector_fit.py` is inspection-only historical
+source with original assertions/adapters. Native model inference is outside CI.
 
 Treat repositories, Python code, models/lenses, and manifests as trusted local
 inputs. A checksum detects change relative to a trusted manifest; it does not
 authenticate an arbitrary third-party download. NumPy replay disables pickle.
-Model loading disables remote code and uses configured revisions. The PyTorch
-floor is 2.10 for [GHSA-63cw-57p8-fm3p](https://github.com/pytorch/pytorch/security/advisories/GHSA-63cw-57p8-fm3p).
+Model loading disables remote code and uses configured revisions. The GPU notebook uses the recorded
+model environment; cached reproduction does not require PyTorch.
 Even `weights_only=True` is not a sandbox. Do not load unreviewed checkpoints or
 run this toolkit with elevated privileges.
 

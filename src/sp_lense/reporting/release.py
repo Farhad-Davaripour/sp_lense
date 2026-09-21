@@ -14,9 +14,7 @@ from sp_lense.reproduction.paths import ROOT
 PUBLIC_ROOTS = {
     "src",
     "tests",
-    "configs",
     "data",
-    "examples",
     "study",
     "paper",
     "reproduce",
@@ -45,11 +43,7 @@ def included(name: str) -> bool:
         return False
     if any(p.startswith(".env.") and p != ".env.example" for p in parts):
         return False
-    return (
-        parts[0] in PUBLIC_ROOTS
-        or name in PUBLIC_FILES
-        or (len(parts) == 1 and name.startswith("requirements-") and name.endswith(".txt"))
-    )
+    return parts[0] in PUBLIC_ROOTS or name in PUBLIC_FILES
 
 
 def build_release(root: Path, output: Path, *, overwrite: bool = False) -> dict:

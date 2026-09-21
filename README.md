@@ -52,7 +52,6 @@ raw detector-feature extraction is not part of cached reproduction.
 | `src/sp_lense/reporting/` | Final-paper tables, publication checks, and release packaging |
 | `reproduce/` | Saved classifier inputs, dependency pins, manifests, and the GPU notebook |
 | `reproduce/artifacts/models/` | Selected `pca_jacobian` classifier and `pca_only` / `engineered` comparison models |
-| `examples/`, `configs/` | Small demonstration inputs and their example configuration |
 | `paper/` | Approved PDF, editable Word manuscript, and audited table exports |
 
 Run `python -m sp_lense.reproduction audit` to verify the retained study records and
@@ -62,7 +61,7 @@ publication files. Detailed methodology and command guidance are in the wiki.
 
 - [Wiki: methods, results, and guides](https://github.com/Farhad-Davaripour/sp_lense/wiki)
 - [Reproduce the study](https://github.com/Farhad-Davaripour/sp_lense/wiki/Reproduction)
-- [Run a new experiment](https://github.com/Farhad-Davaripour/sp_lense/wiki/New-Experiments)
+- [GPU execution guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/New-Experiments)
 - [Contribute](https://github.com/Farhad-Davaripour/sp_lense/wiki/Contributing)
 - [Conference paper (final revision 14)](paper/paper.pdf), [editable manuscript](paper/manuscript.docx), and [dataset splits](data)
 

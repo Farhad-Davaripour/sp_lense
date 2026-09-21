@@ -5,25 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sp-lense"
 version = "0.1.0"
-description = "A reproducible pipeline for J-lens self-preservation representation experiments"
+description = "Reproduction tools for shutdown detection and guarded activation steering"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
 
 [project.optional-dependencies]
-research = [
-  "torch>=2.10",
-  "torchvision>=0.21",
-  "transformer-lens>=4.0.0b1,<5",
-  "psutil>=7.0,<8",
-]
 dev = [
   "pytest>=8.3",
   "ruff>=0.9",
 ]
 
 [project.scripts]
-sp-lense = "sp_lense.cli:main"
 sp-lense-reproduce = "sp_lense.reproduction.cli:main"
 
 [tool.setuptools]

@@ -1,4 +1,3 @@
-import json
 import shutil
 import subprocess
 import sys
@@ -16,7 +15,6 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_new_failing_tests_cannot_disappear(tmp_path, relative, suite):
     (tmp_path / "tests").mkdir()
     shutil.copy2(ROOT / "tests/conftest.py", tmp_path / "tests/conftest.py")
-    (tmp_path / "tests/suites.json").write_text(json.dumps({"light": [], "research": []}))
     path = tmp_path / relative
     path.parent.mkdir(exist_ok=True)
     path.write_text("def test_failure():\n    assert False\n")

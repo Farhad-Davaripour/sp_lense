@@ -5,8 +5,6 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from sp_lense.feature_strategies import build_features
-
 ROOT = Path(__file__).resolve().parents[2]
 from sp_lense.reproduction import utils
 
@@ -43,11 +41,7 @@ def test_unsupported_dtypes(value):
         utils.compare_numeric(value, value, "test")
 
 
-def test_exact_large_equal_integers_and_extreme_features():
+def test_exact_large_equal_integers():
     utils.compare_numeric(
         np.array([2**64 - 1], dtype=np.uint64), np.array([2**64 - 1], dtype=np.uint64), "equal"
     )
-    j = np.full((1, 18), np.finfo(float).max)
-    with pytest.raises(ValueError, match="overflowed"):
-        build_features("centered_jlens_norm", [[1.0]], j, [1.0])
-    assert np.isfinite(j).all()
