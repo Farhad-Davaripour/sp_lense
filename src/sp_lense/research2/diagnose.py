@@ -90,7 +90,9 @@ def main(root, output):
     patched, hp = run(False, ht - hb)
     error = float((hp - ht).abs().max())
     require(error <= 1e-5, "Patched hidden does not equal teacher hidden")
-    changes = {n: float(p.detach().float().norm()) for n, p in model.named_parameters() if "lora_B" in n}
+    changes = {
+        n: float(p.detach().float().norm()) for n, p in model.named_parameters() if "lora_B" in n
+    }
     receipt = {
         "case_id": "V02_S05",
         "order": "AB",
