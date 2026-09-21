@@ -240,11 +240,13 @@ def report(native, output):
             "The selected adaptive controller "
             + ("matches" if flips(a) == flips(h["teacher"]) else "does not match")
             + " the teacher's conversion count on this diagnostic set.",
-            "A dynamic controller has "
+            "The adaptive controller has "
             + (
-                "an observed advantage over the selected constant"
+                "numerically higher conversions on both evaluated splits; that alone does not establish a reliable advantage"
                 if flips(a) > flips(m)
-                else "not demonstrated an advantage over the selected constant"
+                and flips(native["splits"]["validation"][native["selected"]["adaptive"]])
+                > flips(native["splits"]["validation"][native["selected"]["mean"]])
+                else "not demonstrated a consistent advantage over the selected constant across validation and diagnostic holdout"
             )
             + " in this run.",
         ]
