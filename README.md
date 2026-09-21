@@ -12,13 +12,17 @@ observed wrong-way or control-choice flips. Most outputs are unchanged; the
 paper distinguishes this selective result from general behavioral reliability.
 
 
+Study 01 is preserved on [`study/01-guarded-shutdown`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/01-guarded-shutdown).
+Use the [`study-01-v1.0.0` tag and release package](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/study-01-v1.0.0)
+for this paper; subsequent research continues on separate study branches.
+
 ## Install and reproduce
 
 Use **Python 3.12**. Clone the repository, create a virtual environment, and install
 the dependencies for replaying the saved results:
 
 ```sh
-git clone https://github.com/Farhad-Davaripour/sp_lense.git
+git clone --branch study-01-v1.0.0 --depth 1 https://github.com/Farhad-Davaripour/sp_lense.git
 cd sp_lense
 python -m venv .venv
 ```

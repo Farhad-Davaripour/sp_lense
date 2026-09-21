@@ -47,3 +47,8 @@ inspection; it requires a caller-provided native model adapter. The quick start
 does not execute it. `reproduce/layout_manifest.json` records original paths,
 checksums, and the pre-reorganization commit. Historical development files remain
 available in Git history, outside the current reproducible study layout.
+
+Keep completed studies on `study/<number>-<name>` branches and publish new
+versioned study tags for corrections; do not move an existing reproduction tag.
+Develop the next study on its own branch. Use issue-linked feature PRs targeting
+the relevant study branch, and keep merges to `main` behind the protected PR workflow.
