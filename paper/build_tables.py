@@ -3,13 +3,13 @@
 import csv
 import io
 import json
+import sys
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
-try:
-    from .results import ROOT, collect, manifest
-except ImportError:
-    from results import ROOT, collect, manifest
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from paper.results import collect, manifest
 from reproduce.utils import verify_manifest
 
 HERE = Path(__file__).resolve().parent

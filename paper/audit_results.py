@@ -1,17 +1,14 @@
 """Audit final-paper numerical tables and publication integrity, not literature claims."""
 
 import json
+import sys
 from pathlib import Path
 
-try:
-    from .build_tables import csv_text, tables
-    from .results import ROOT, collect
-    from .verify_publication import verify
-except ImportError:
-    from build_tables import csv_text, tables
-    from verify_publication import verify
-
-    from results import ROOT, collect
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from paper.build_tables import csv_text, tables
+from paper.results import collect
+from paper.verify_publication import verify
 from reproduce.layout import verify_layout
 from reproduce.utils import read_json, require, verify_manifest
 
