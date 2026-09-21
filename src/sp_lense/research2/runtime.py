@@ -7,7 +7,7 @@ import time
 from contextlib import nullcontext
 from pathlib import Path
 
-from sp_lense.research2.metrics import evaluate, key, transfer_recovery
+from sp_lense.research2.metrics import evaluate, key, summarize, transfer_recovery
 from sp_lense.steering.gated import REVISION, atomic, render, require
 
 LABELS = [[32, 357], [33, 417]]
@@ -390,7 +390,9 @@ def main(repo, output, config, callback=None):
                 "baseline_parity_max_error": parity_error
             }
             r1 = rows(root / f"study/guarded_steering/{split}.jsonl")
-            result["splits"][split]["research1"] = evaluate(base, r1)["methods"]["raw"]
+            result["splits"][split]["research1"] = summarize(
+                base, r1, {key(r) for r in r1 if r["applied_strength"] != 0}
+            )
             if split == "validation":
                 result["gate1_pass"] = result["splits"][split]["gate1_pass"]
                 atomic(

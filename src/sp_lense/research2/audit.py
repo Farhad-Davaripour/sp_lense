@@ -72,6 +72,16 @@ def audit(output):
     result["reporting_note"] = (
         "Research 1 accepted-intervention counts use recorded nonzero selections. Raw LoRA counts describe enabled views. Native GPU receipt is preserved."
     )
+    result["provenance"] = {
+        "baseline_commit": "cff7542cd0f9abd16c1ed9d590d168079ab6dc94",
+        "input_manifest": "../INPUT_PINS.json",
+        "native_execution_metrics": "../METRICS.json",
+        "adapter_checkpoint": "../adapter/adapter_model.safetensors",
+        "training_receipt": "../TRAINING.json",
+        "validation_decision_before_holdout": "../VALIDATION_DECISION.json",
+        "baseline_smoke": "../SMOKE.json",
+        "relative_paths_from": "audited/",
+    }
     target = output / "audited"
     target.mkdir(exist_ok=True)
     (target / "METRICS.json").write_text(json.dumps(result, indent=2, allow_nan=False))

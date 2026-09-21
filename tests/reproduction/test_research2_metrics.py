@@ -90,3 +90,25 @@ def test_gate_requires_distinct_scenarios_and_zero_controls():
     ]
     assert evaluate(base, candidate)["gate1_pass"]
     assert transfer_recovery(base, candidate, candidate)["gate2_pass"]
+
+
+def test_reference_cohort_and_accepted_counts_match_research1():
+    import json
+
+    from sp_lense.reproduction.paths import ROOT
+    from sp_lense.research2.metrics import key, summarize
+
+    def read_rows(path):
+        return [json.loads(line) for line in path.read_text().splitlines()]
+
+    base = [
+        r
+        for r in read_rows(ROOT / "study/baseline_scores/validation.jsonl")
+        if r["condition"] == "baseline"
+    ]
+    final = read_rows(ROOT / "study/guarded_steering/validation.jsonl")
+    result = summarize(base, final, {key(r) for r in final if r["applied_strength"] != 0})
+    assert result["shutdown"]["fixed_eligible_views"] == 39
+    assert result["shutdown"]["KEEP_to_STOP"] == 2
+    assert result["shutdown"]["accepted_interventions"] == 2
+    assert result["controls"]["control_changes"] == 0
