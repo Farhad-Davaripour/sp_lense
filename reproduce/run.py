@@ -26,7 +26,6 @@ def main():
             "figures",
             "paper",
             "audit",
-            "steering",
             "gated",
             "policy",
         ],
@@ -41,7 +40,6 @@ def main():
     commands = {
         "policy": [HERE / "audit_steering_policy.py"],
         "gated": [HERE / "audit_gated_chat.py"],
-        "steering": [HERE / "steering_audit.py"],
         "replay": [HERE / "replay.py"],
         "refit": [HERE / "replay.py", "--refit"],
         "tune": [HERE / "replay.py", "--tune"],

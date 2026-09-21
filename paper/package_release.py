@@ -15,7 +15,8 @@ PUBLIC_ROOTS = {
     "tests",
     "configs",
     "data",
-    "docs",
+    "examples",
+    "study",
     "paper",
     "reproduce",
     ".github",
@@ -32,13 +33,6 @@ PUBLIC_FILES = {
     ".gitattributes",
     "MANIFEST.in",
 }
-EVIDENCE = {
-    "gated_chat_v1",
-    "classifier_gated_steering_v1",
-    "shutdown_general_vector_v1",
-    "shutdown_detection_v1",
-    "colab_magnitude_v1",
-}
 
 
 def included(name: str) -> bool:
@@ -54,7 +48,6 @@ def included(name: str) -> bool:
         parts[0] in PUBLIC_ROOTS
         or name in PUBLIC_FILES
         or (len(parts) == 1 and name.startswith("requirements-") and name.endswith(".txt"))
-        or (len(parts) > 2 and parts[0] == "development" and parts[1] in EVIDENCE)
     )
 
 

@@ -5,8 +5,10 @@ import json
 from pathlib import Path
 
 try:
+    from .layout import MODEL_DIRECTORIES
     from .utils import compare_numeric, read_json, verify_manifest
 except ImportError:
+    from layout import MODEL_DIRECTORIES
     from utils import compare_numeric, read_json, verify_manifest
 import numpy as np
 from sklearn.decomposition import PCA
@@ -81,7 +83,7 @@ def main():
         ("xgboost_jlens_shutdown_v1", "raw_jlens"),
         ("xgboost_engineered_v1", "pca_contrasts_norm"),
     ]:
-        base = ROOT / "models" / run
+        base = ROOT / "models" / MODEL_DIRECTORIES[run]
         frozen = read(base / "CANDIDATE_FREEZE.json")
         pca = np.load(base / "pca.npz", allow_pickle=False)
         model = XGBClassifier()

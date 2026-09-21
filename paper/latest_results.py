@@ -8,10 +8,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from reproduce.audit_steering_policy import audit
+from reproduce.layout import BASELINE
 from reproduce.utils import read_json, require, verify_manifest
 
-POLICY = ROOT / "development/gated_chat_v1/policy_search"
-PREVIOUS = POLICY.parent
+POLICY = ROOT / "study/guarded_steering"
+PREVIOUS = BASELINE
 
 
 def source_paths():

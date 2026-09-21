@@ -45,8 +45,8 @@ archive. Outputs must be ZIPs directly under ignored `release/`. The embedded
 manifest records the commit and content hashes. Commit generated paper changes
 before packaging them. ZIP byte identity is not promised.
 
-Retained `development/` Python sources are **inspection-only historical code**,
-with assertions and caller-provided adapters; the quick start does not execute
-them. Historical snapshots: `646ebce54781c4e3e7c772f4a1bd57080daeb3f4`
-(pre-cleanup main), `20f2b6f9f9c08c5df814b5673aa7a30ec9b7172f`
-(development/paper preparation). They represent different research states.
+`study/steering_vector/fit.py` preserves the original gradient-fitting source for
+inspection; it requires a caller-provided native model adapter. The quick start
+does not execute it. `reproduce/layout_manifest.json` records original paths,
+checksums, and the pre-reorganization commit. Historical development files remain
+available in Git history, outside the current reproducible study layout.

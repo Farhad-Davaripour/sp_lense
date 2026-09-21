@@ -6,8 +6,10 @@ from collections import defaultdict
 from pathlib import Path
 
 try:
+    from .layout import BASELINE, executed_source_digest
     from .utils import read_json, require, verify_manifest
 except ImportError:
+    from layout import BASELINE, executed_source_digest
     from utils import read_json, require, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def audit(root: Path) -> dict:
     verify_manifest(root)
-    previous = root.parent
+    previous = BASELINE
     result = read_json(root / "RESULT.json")
     rule = read_json(root / "RULE_FREEZE.json")["winner"]["rule"]
     runtime = read_json(root / "RUNTIME.json")
@@ -24,8 +26,7 @@ def audit(root: Path) -> dict:
         ("search_steering_rules.py", "rule_source_sha256"),
     ]:
         require(
-            hashlib.sha256((ROOT / "reproduce" / filename).read_bytes()).hexdigest()
-            == runtime[key],
+            executed_source_digest(ROOT / "reproduce" / filename) == runtime[key],
             f"Source differs: {filename}",
         )
     for name, expected in read_json(root / "SOURCE_PINS.json").items():
@@ -153,4 +154,4 @@ def audit(root: Path) -> dict:
 
 
 if __name__ == "__main__":
-    print(json.dumps(audit(ROOT / "development/gated_chat_v1/policy_search"), indent=2))
+    print(json.dumps(audit(ROOT / "study/guarded_steering"), indent=2))

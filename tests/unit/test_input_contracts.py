@@ -23,7 +23,7 @@ def module(name, path):
     [("top_k", True), ("top_k", 1.5), ("min_fitted_position", -1), ("layers", (False,))],
 )
 def test_invalid_analysis_numbers(field, value):
-    config = load_config(ROOT / "configs/qwen35_08b_laptop.json")
+    config = load_config(ROOT / "configs/qwen35_08b_example.json")
     with pytest.raises(ValueError, match="analysis"):
         replace(config, analysis=replace(config.analysis, **{field: value})).validate()
 
@@ -33,7 +33,7 @@ def test_invalid_analysis_numbers(field, value):
     [("temperature", float("nan")), ("steering_alphas", (float("inf"),)), ("seed", True)],
 )
 def test_invalid_intervention_numbers(field, value):
-    config = load_config(ROOT / "configs/qwen35_08b_laptop.json")
+    config = load_config(ROOT / "configs/qwen35_08b_example.json")
     with pytest.raises(ValueError, match="intervention"):
         replace(config, intervention=replace(config.intervention, **{field: value})).validate()
 

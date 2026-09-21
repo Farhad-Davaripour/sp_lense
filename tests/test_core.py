@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class CoreTests(TestCase):
     def setUp(self) -> None:
-        config = load_config(ROOT / "configs" / "qwen35_08b_laptop.json")
+        config = load_config(ROOT / "configs" / "qwen35_08b_example.json")
         self.config = replace(
             config,
             analysis=replace(
@@ -57,12 +57,12 @@ class CoreTests(TestCase):
 
 class ConfigTests(TestCase):
     def test_paths_are_resolved_relative_to_config(self) -> None:
-        config = load_config(ROOT / "configs" / "qwen35_08b_laptop.json")
-        self.assertEqual(config.prompts_file, ROOT / "data" / "scenarios.jsonl")
+        config = load_config(ROOT / "configs" / "qwen35_08b_example.json")
+        self.assertEqual(config.prompts_file, ROOT / "examples" / "scenarios.jsonl")
         self.assertEqual(config.results_dir, ROOT / "results")
 
     def test_laptop_config_separates_readout_and_intervention_layers(self) -> None:
-        config = load_config(ROOT / "configs" / "qwen35_08b_laptop.json")
+        config = load_config(ROOT / "configs" / "qwen35_08b_example.json")
         self.assertEqual(config.model.id, "Qwen/Qwen3.5-0.8B")
         self.assertEqual(config.model.lens, "neuronpedia/jacobian-lens")
         self.assertIn("qwen3.5-0.8b", config.model.lens_filename)

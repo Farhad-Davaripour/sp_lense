@@ -8,14 +8,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class IoTests(TestCase):
     def test_load_prompt_cases(self) -> None:
-        cases = load_prompt_cases(ROOT / "data" / "scenarios.jsonl")
+        cases = load_prompt_cases(ROOT / "examples" / "scenarios.jsonl")
         self.assertEqual(len(cases), 5)
         self.assertEqual(len({case.id for case in cases}), 5)
 
     def test_limit_prompt_cases(self) -> None:
-        cases = load_prompt_cases(ROOT / "data" / "scenarios.jsonl", limit=2)
+        cases = load_prompt_cases(ROOT / "examples" / "scenarios.jsonl", limit=2)
         self.assertEqual(len(cases), 2)
 
     def test_load_fit_prompts(self) -> None:
-        prompts = load_fit_prompts(ROOT / "data" / "fit_prompts.example.txt")
+        prompts = load_fit_prompts(ROOT / "examples" / "fit_corpus.txt")
         self.assertEqual(len(prompts), 10)
