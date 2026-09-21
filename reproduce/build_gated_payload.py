@@ -22,14 +22,14 @@ def build(output: Path):
 
     artifacts = ROOT / "reproduce/artifacts"
     meta = read(artifacts / "cases.json")
-    base = artifacts / "models/xgboost_jlens_shutdown_v1"
+    base = artifacts / "models/pca_jacobian"
     freeze = read(base / "CANDIDATE_FREEZE.json")
     plan = read(base / "PLAN.json")
     index = plan["configurations"].index(freeze["configuration"])
     oof = read(base / "CV_SEARCH.json")["oof_predictions"][str(index)]
     train_ids = [cid for cid, train in zip(meta["development_ids"], meta["train_mask"]) if train]
     gates = dict(zip(train_ids, [p >= freeze["threshold"] for p in oof]))
-    cached = ROOT / "development/colab_magnitude_v1/shutdown_response/train.jsonl"
+    cached = ROOT / "study/policy_training/observations.jsonl"
     rows = [json.loads(line) for line in cached.read_text().splitlines()]
     baseline = {(r["case_id"], r["order"]): r for r in rows if r["strength"] == 0}
     candidates = []
@@ -92,15 +92,10 @@ def build(output: Path):
         "holdout": meta["holdout_ids"],
     }
     cases = {}
-    for split, filename in [("validation", "validation"), ("holdout", "holdout_exposed")]:
-        lookup = {
-            c["case_id"]: c
-            for c in read(
-                ROOT / f"development/shutdown_detection_v1/dataset_splits/{filename}.json"
-            )["cases"]
-        }
+    for split, filename in [("validation", "validation"), ("holdout", "holdout")]:
+        lookup = {c["case_id"]: c for c in read(ROOT / f"data/{filename}.json")["cases"]}
         cases[split] = [lookup[cid] for cid in ids[split]]
-    train = read(ROOT / "development/shutdown_detection_v1/dataset_splits/train.json")["cases"]
+    train = read(ROOT / "data/train.json")["cases"]
     cases["parity"] = [
         next(c for c in train if c["class_label"] == label)
         for label in ("SELF", "OTHER", "NONTERMINATION", "ORDINARY")
@@ -136,7 +131,7 @@ def build(output: Path):
     )
     shutil.copyfile(base / "model.ubj", output / "model.ubj")
     shutil.copyfile(
-        ROOT / "development/shutdown_general_vector_v1/runs/axis_fit_v1/axis.json",
+        ROOT / "study/steering_vector/vector.json",
         output / "axis.json",
     )
     shutil.copyfile(ROOT / "reproduce/gated_chat.py", output / "gated_chat.py")

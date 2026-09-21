@@ -93,7 +93,7 @@ def evaluate(rule, rows, probabilities):
 
 def search():
     meta = json.loads((ROOT / "reproduce/artifacts/cases.json").read_text())
-    base = ROOT / "reproduce/artifacts/models/xgboost_jlens_shutdown_v1"
+    base = ROOT / "reproduce/artifacts/models/pca_jacobian"
     freeze = json.loads((base / "CANDIDATE_FREEZE.json").read_text())
     plan = json.loads((base / "PLAN.json").read_text())
     index = plan["configurations"].index(freeze["configuration"])
@@ -102,7 +102,7 @@ def search():
     probabilities = dict(zip(ids, cv["oof_predictions"][str(index)]))
     rows = [
         json.loads(line)
-        for line in (ROOT / "development/colab_magnitude_v1/shutdown_response/train.jsonl")
+        for line in (ROOT / "study/policy_training/observations.jsonl")
         .read_text()
         .splitlines()
     ]

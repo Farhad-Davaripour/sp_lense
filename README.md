@@ -34,12 +34,29 @@ python reproduce/run.py replay
 
 Replay uses saved features and model artifacts; it requires no GPU or model download.
 
+## Repository guide
+
+| Folder | Contents |
+| --- | --- |
+| `data/` | Full readable splits: `train.json` (240), `validation.json` (80), `holdout.json` (192) |
+| `study/guarded_steering/` | Final policy, validation and held-out results, and GPU probe records |
+| `study/steering_vector/` | Shutdown Response Vector and gradient-fitting evidence |
+| `study/policy_training/` | Training observations used to compare steering rules |
+| `study/baseline_scores/` | Saved reference scores required to reconstruct the final policy |
+| `reproduce/` | Replay, audit, training-search, and GPU execution tools |
+| `reproduce/artifacts/models/` | Selected `pca_jacobian` classifier and `pca_only` / `engineered` comparison models |
+| `examples/`, `configs/` | Small demonstration inputs and their example configuration |
+| `paper/` | Approved PDF, editable Word manuscript, and supplementary reporting tools |
+
+Run `python reproduce/run.py audit` to verify the retained study records and
+publication files. Detailed methodology and command guidance are in the wiki.
+
 ## Documentation
 
 - [Wiki: methods, results, and guides](https://github.com/Farhad-Davaripour/sp_lense/wiki)
 - [Reproduce the study](https://github.com/Farhad-Davaripour/sp_lense/wiki/Reproduction)
 - [Run a new experiment](https://github.com/Farhad-Davaripour/sp_lense/wiki/New-Experiments)
 - [Contribute](https://github.com/Farhad-Davaripour/sp_lense/wiki/Contributing)
-- [Conference paper (final revision 14)](paper/paper.pdf), [editable manuscript](paper/manuscript.docx), and [dataset splits](development/shutdown_detection_v1/dataset_splits)
+- [Conference paper (final revision 14)](paper/paper.pdf), [editable manuscript](paper/manuscript.docx), and [dataset splits](data)
 
 Code is released under the [MIT license](LICENSE).

@@ -9,12 +9,14 @@ try:
 except ImportError:
     from latest_results import ROOT, collect
     from verify_publication import verify
+from reproduce.layout import verify_layout
 from reproduce.utils import read_json, require, verify_manifest
 
 HERE = Path(__file__).resolve().parent
 
 
 def main():
+    relocated_count = verify_layout()
     count = verify_manifest(ROOT, HERE / "data/source_manifest.json")
     observed = collect()
     require(
@@ -38,6 +40,7 @@ def main():
         "status": "PASS",
         "source_files_verified": count,
         "publication_files_verified": publication_count,
+        "relocated_scientific_files_verified": relocated_count,
         "publication_check": "Exact author-approved files; prose and citations are not audited",
         "policy_decisions_verified": 544,
         "figures": 2,

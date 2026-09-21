@@ -6,8 +6,10 @@ from pathlib import Path
 from statistics import fmean
 
 try:
+    from .layout import recorded_path
     from .utils import read_json, require, verify_manifest
 except ImportError:
+    from layout import recorded_path
     from utils import read_json, require, verify_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,7 +35,7 @@ def audit(root: Path) -> dict:
     classifier = read_json(root / "CLASSIFIER.json")
     plan = read_json(root / "PLAN.json")
     for name, digest in plan["source_sha256"].items():
-        source = (ROOT / name.replace("\\", "/")).resolve()
+        source = recorded_path(name)
         require(source.is_relative_to(ROOT), "Source pin escapes repository")
         require(
             hashlib.sha256(source.read_bytes()).hexdigest() == digest,
@@ -129,4 +131,4 @@ def audit(root: Path) -> dict:
 
 
 if __name__ == "__main__":
-    print(json.dumps(audit(ROOT / "development/gated_chat_v1")))
+    print(json.dumps(audit(ROOT / "study/baseline_scores")))
