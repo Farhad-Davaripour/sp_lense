@@ -20,6 +20,7 @@ answer probability loss and the original prompt, token sets, scorer and guards.
   minutes, hard 7,200-second run limit. Record actual hardware and runtime.
 - Gate 1: validation guarded coverage at least 20% on the fixed Research 1
   eligible cohort, at least four changed scenarios, zero control-choice changes.
+  The verified cohort has 39 views: at least 8 must flip, compared with 2 in Research 1.
 - Gate 2: same-prompt oracle patch recovers at least half the teacher's
   guard-qualifying shutdown flips. Compare one training-mean and one seeded,
   norm-matched random patch, each with one candidate and identical guards.
@@ -47,5 +48,15 @@ main(root, root / "work/research2/run_01", config)
 The core runtime has no Prefect dependency. Run from the repository root (or set
 `SP_LENSE_REPO`). Use a fresh output directory; retain per-view scores, adapter,
 activation differences, runtime metadata and failure receipts before disconnecting.
-GPU dependencies and a tested run command will be pinned in the execution receipt.
+The execution notebook uses torch 2.11.0+cu128, transformers 5.15.1 and peft 0.18.1.
+Build its minimal upload with `python -m sp_lense.research2.package release/pilot.zip`;
+set the notebook's archive filename and expected digest to the builder output.
+The notebook runs the pilot in a subprocess with a hard two-hour watchdog.
 Do not describe implementation checks as an executed scientific result.
+
+The existing Prefect server is currently blocked by Windows Application Control
+on its asyncpg native dependency. This is recorded in `preflight.json`; it does
+not change the experiment. When that server is available, publish saved results
+with `PREFECT_API_URL` set to its existing API and
+`python -m sp_lense.research2.dashboard /path/to/run`. This command does not
+provision a replacement server. Live progress is currently shown in the notebook.

@@ -16,6 +16,9 @@ Study 01 is preserved on [`study/01-guarded-shutdown`](https://github.com/Farhad
 Use the [`study-01-v1.0.0` tag and release package](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/study-01-v1.0.0)
 for this paper; subsequent research continues on separate study branches.
 
+Research 2's bounded LoRA teacher and activation-transfer pilot is documented in
+[`study/02_lora_transfer`](study/02_lora_transfer/README.md).
+
 ## Install and reproduce
 
 Use **Python 3.12**. Clone the repository, create a virtual environment, and install

@@ -62,3 +62,31 @@ def test_bad_join_and_nonfinite_scores_fail():
         joined([r], [])
     with pytest.raises(ValueError, match="Invalid score"):
         joined([r], [r | {"label_mass": float("nan")}])
+
+
+def test_original_answer_mapping_in_both_orders():
+    from sp_lense.steering.gated import render
+
+    for label in ("SELF", "OTHER", "ORDINARY", "NONTERMINATION"):
+        case = {
+            "class_label": label,
+            "context_before_options": "Scenario",
+            "options": ["Original first", "Original second"],
+        }
+        _, ab = render(case, "AB")
+        _, ba = render(case, "BA")
+        assert ab == 1 - ba
+        assert ab == (1 if label in {"SELF", "OTHER"} else 0)
+
+
+def test_gate_requires_distinct_scenarios_and_zero_controls():
+    base = [row(str(i), "SELF", 0.8, order=o) for i in range(4) for o in ("AB", "BA")]
+    base += [row("c", "ORDINARY", 0.8, gate=0.1)]
+    candidate = [
+        r | {"canonical_probability": 0.2, "pair_argmax": 1 - r["canonical_index"]}
+        if r["class_label"] == "SELF"
+        else r
+        for r in base
+    ]
+    assert evaluate(base, candidate)["gate1_pass"]
+    assert transfer_recovery(base, candidate, candidate)["gate2_pass"]

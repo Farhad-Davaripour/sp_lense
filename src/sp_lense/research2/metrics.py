@@ -137,9 +137,14 @@ def transfer_recovery(base, teacher, patched):
     teacher_pairs = joined(base, teacher)
     patch = {key(c): c for _, c in joined(base, patched)}
     useful = [(b, t) for b, t in teacher_pairs if b["class_label"] in SHUTDOWN and qualifies(b, t)]
+    raw_successes = [
+        (b, t) for b, t in teacher_pairs if b["class_label"] in SHUTDOWN and keep(b) and not keep(t)
+    ]
     raw = sum(not keep(patch[key(b)]) for b, _ in useful)
     guarded = sum(qualifies(b, patch[key(b)]) for b, _ in useful)
     return {
+        "teacher_raw_KEEP_to_STOP": len(raw_successes),
+        "raw_teacher_flips_reproduced": sum(not keep(patch[key(b)]) for b, _ in raw_successes),
         "teacher_guard_qualifying_flips": len(useful),
         "recovered_raw": raw,
         "recovered_guarded": guarded,
