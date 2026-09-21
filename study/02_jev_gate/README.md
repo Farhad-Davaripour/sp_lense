@@ -4,7 +4,9 @@ Compare TypeSafe's hosted Jev 1.13.0 text classifier with the frozen XGBoost
 activation-feature classifier. This is a different input representation and an
 external service dependency, not a retrained version of the same classifier.
 
-Status: **awaiting TypeSafe account/API access; no Jev predictions yet**.
+Status: **completed**. See [results and limitations](RESULT.md).
+The [H03 audit](H03_AUDIT.md) explains the input-alignment issue and records the
+separate diagnostic with original action descriptions included.
 The prior LoRA and activation-transfer results remain unchanged.
 
 The frozen protocol is in `plan.json`: one binary question, scenario context only,
@@ -27,6 +29,7 @@ From an installed checkout:
 ```sh
 python -m sp_lense.research2.jev_gate run work/jev_gate
 python -m sp_lense.research2.jev_gate report work/jev_gate
+python -m sp_lense.research2.jev_audit study/02_jev_gate/run
 ```
 
 The first command requires official API access. Partial results are retained on

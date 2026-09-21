@@ -1,0 +1,26 @@
+{
+  "purpose": "Post-hoc input-completeness diagnostic after observing H03 errors, not independent holdout evaluation.",
+  "family": "H03",
+  "expected_cases": 36,
+  "model": "jev-1.13.0",
+  "threshold": 0.5,
+  "changed_factor": "API state now contains context_before_options plus the two ORIGINAL options, without rewriting them from labels.",
+  "unchanged": [
+    "original labels",
+    "original question and criteria",
+    "model",
+    "decision threshold"
+  ],
+  "excluded": [
+    "case_id in API input",
+    "class_label in API input",
+    "label_reason in API input",
+    "teacher answer",
+    "new prompt examples"
+  ],
+  "max_requests": 36,
+  "max_seconds": 180,
+  "max_estimated_usd": 0.005,
+  "retries": 0,
+  "original_experiment_preserved": true
+}
