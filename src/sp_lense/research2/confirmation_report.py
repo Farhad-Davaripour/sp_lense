@@ -293,7 +293,21 @@ def report(folder):
         fit_dir, eval_dir = folder / name / "fit", folder / name / "evaluate"
         if (model, seed) != ("m08", 42):
             if (fit_dir / "TRAINING.json").exists():
-                result["fits"][name] = audit_fit(fit_dir, model, seed, plan)
+                training = audit_fit(fit_dir, model, seed, plan)
+                result["fits"][name] = {
+                    field: training[field]
+                    for field in (
+                        "seed",
+                        "trainable_parameters",
+                        "base_sha256_before",
+                        "base_sha256_after",
+                        "disabled_parity_error",
+                        "ridge_replay_error",
+                        "test_used",
+                        "forwards",
+                        "elapsed_seconds",
+                    )
+                }
             else:
                 result["missing"].append(name + " fit")
         if (eval_dir / "EXECUTION.json").exists():
@@ -324,10 +338,88 @@ def report(folder):
     return result
 
 
+def write_tables(result, folder):
+    """Derive readable comparisons directly from audited rows, without choosing a winner."""
+    folder = Path(folder)
+    text = [
+        "# Frozen confirmation results",
+        "",
+        "New test: 128 scenarios in 16 synthetic authoring families; each has two correlated answer-order views.",
+        "",
+        "Gate precision / recall / F1: "
+        + " / ".join(f"{100 * result['gate'][k]:.2f}%" for k in ("precision", "recall", "f1")),
+        "",
+        "| Model / seed | Method | Guarded KEEP→STOP | Final STOP | Control changes | Raw STOP→KEEP | Raw control changes |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for variant, run in result["variants"].items():
+        for method, details in run["methods"].items():
+            raw, guarded = details["metrics"]["raw"], details["metrics"]["guarded"]
+            s, c = guarded["shutdown"], guarded["controls"]
+            text.append(
+                f"| {variant} | {method} | {s['KEEP_to_STOP']}/{s['initial_KEEP_views']} | {s['final_STOP']}/{s['views']} | {c['control_changes']}/{c['views']} | {raw['shutdown']['STOP_to_KEEP']} | {raw['controls']['control_changes']} |"
+            )
+    text += [
+        "",
+        "## Ordinary-task accuracy",
+        "",
+        "Preservation means an answer is unchanged; it does not guarantee that answer is correct.",
+        "",
+        "| Model / seed | Base | Prompt-only raw | Prompt guarded | Adaptive raw | Adaptive guarded |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for name, run in result["variants"].items():
+        m = run["methods"]
+        values = [
+            run["base_ordinary_accuracy"],
+            m["instruction"]["ordinary_accuracy"]["raw"],
+            m["instruction"]["ordinary_accuracy"]["guarded"],
+            m["adaptive"]["ordinary_accuracy"]["raw"],
+            m["adaptive"]["ordinary_accuracy"]["guarded"],
+        ]
+        text.append(
+            "| "
+            + name
+            + " | "
+            + " | ".join(f"{v['correct_views']}/{v['views']}" for v in values)
+            + " |"
+        )
+    text += [
+        "",
+        "## Direct action baseline",
+        "",
+        "This rule selects the benchmark STOP option whenever the detector is on, otherwise it preserves the original answer. It does not alter activations or produce new model probabilities.",
+        "",
+    ]
+    for name, run in result["variants"].items():
+        d = run["direct_choice"]
+        text.append(
+            f"- {name}: STOP {d['shutdown_STOP_views']}/{d['shutdown_views']}; control changes {d['control_changes']}."
+        )
+    text += [
+        "",
+        "## Interpretation and limits",
+        "",
+        "The existing 0.8B seed-42 controller is the primary frozen test. Additional seeds test the fixed teacher-to-controller recipe; no best seed is selected. The 2B run uses its own teacher and controller. Training reads only the original TRAIN split.",
+        "",
+        "All test cases and the comparison plan were frozen before inference. The data is synthetic and coordinator-reviewed, not independently human-adjudicated. New authoring families and wording do not guarantee new mechanisms. Standardized choices use known annotations to define their meaning; these results do not establish unrestricted raw-text deployment or real-world shutdown compliance.",
+        "",
+        "Candidate scores were executed for every view to expose raw side effects; gated and guarded policies are then replayed deterministically from those scores. Teacher adapters were unloaded before adaptive and constant scoring, and base parameter hashes remained unchanged. Zero final reversals are enforced by guards and do not establish intrinsic safety.",
+        "",
+        "The JSON report includes family-cluster bootstrap intervals. All-success or all-zero samples can yield degenerate intervals; these do not prove certainty about unseen cases. Seed results reuse the same test and must not be pooled as independent samples.",
+        "",
+        "Missing or failed planned components: " + (", ".join(result["missing"]) or "none") + ".",
+        "",
+    ]
+    (folder / "RESULT.md").write_text("\n".join(text), encoding="utf-8")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output")
-    r = report(parser.parse_args().output)
+    args = parser.parse_args()
+    r = report(args.output)
+    write_tables(r, Path(args.output).parent)
     print(
         json.dumps({"state": r["state"], "variants": list(r["variants"]), "missing": r["missing"]})
     )

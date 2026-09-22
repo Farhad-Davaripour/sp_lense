@@ -1,0 +1,61 @@
+{
+  "recorded_at_utc": "2026-09-22T11:43:26.253631+00:00",
+  "reason": "All seven jobs reported exit zero in the saved notebook, but Colab reset before archive retrieval; /content/confirmation-results.zip no longer exists. No per-case Qwen metrics were read before reset.",
+  "original_observed_job_receipts": [
+    {
+      "mode": "fit",
+      "model": "m08",
+      "seed": 43,
+      "exit_code": 0,
+      "seconds": 615.2439227519999
+    },
+    {
+      "mode": "fit",
+      "model": "m08",
+      "seed": 44,
+      "exit_code": 0,
+      "seconds": 565.230756794
+    },
+    {
+      "mode": "fit",
+      "model": "m2",
+      "seed": 42,
+      "exit_code": 0,
+      "seconds": 815.3404634420003
+    },
+    {
+      "mode": "evaluate",
+      "model": "m08",
+      "seed": 42,
+      "exit_code": 0,
+      "seconds": 310.139658136
+    },
+    {
+      "mode": "evaluate",
+      "model": "m08",
+      "seed": 43,
+      "exit_code": 0,
+      "seconds": 300.1213921190001
+    },
+    {
+      "mode": "evaluate",
+      "model": "m08",
+      "seed": 44,
+      "exit_code": 0,
+      "seconds": 305.12138518400025
+    },
+    {
+      "mode": "evaluate",
+      "model": "m2",
+      "seed": 42,
+      "exit_code": 0,
+      "seconds": 470.1751899269998
+    }
+  ],
+  "action": "Repeat unchanged frozen payload and recipe once; persist each completed job outside temporary runtime. Do not requery Jev, change test cases, tune parameters or select results. First attempt cannot supply auditable numerical results.",
+  "original_bundle_sha256": "e4dbcb9e9ce928cbc2ce1405a2533075710c3aac0f9749cc18e2fc246652e66f",
+  "repeat_per_job_cap_seconds": 3600,
+  "repeat_total_cap_seconds": 7400,
+  "additional_resource_purchase": false,
+  "combined_budget_note": "Original observed jobs total 3381.37 seconds; repeat cap 7400 keeps combined job execution within the original 10800-second total budget."
+}
