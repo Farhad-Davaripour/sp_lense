@@ -13,6 +13,9 @@ from sp_lense.steering.gated import require
 def assemble():
     destination = ROOT / "study/02_fresh_evaluation"
     destination.mkdir(parents=True, exist_ok=True)
+    require(
+        not (destination / "FREEZE.json").exists(), "Frozen cases must not be regenerated in place"
+    )
     sources, cases, edits = [], [], []
     for batch, suffix in enumerate(("1", "2", "3_complete", "4", "5", "6", "7", "8"), 1):
         folder = ROOT / f"coordination/deepseek_bridge/runs/fresh_cases_20260921_{suffix}"
