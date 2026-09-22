@@ -281,6 +281,8 @@ def audit_run(folder, model, seed, plan, cases, gate):
 def report(folder):
     folder = Path(folder)
     plan, cases, gate = audit_inputs()
+    receipts = []
+    freeze_time = datetime.fromisoformat(read(ROOT / STUDY / "FREEZE.json")["frozen_at_utc"])
     result = {
         "gate": gate["metrics"],
         "cases": len(cases),
@@ -291,6 +293,19 @@ def report(folder):
     for model, seed in VARIANTS:
         name = f"{model}_s{seed}"
         fit_dir, eval_dir = folder / name / "fit", folder / name / "evaluate"
+        for mode, directory in (("fit", fit_dir), ("evaluate", eval_dir)):
+            if (directory / "RECEIPT.json").exists():
+                receipt = read(directory / "RECEIPT.json")
+                require(
+                    receipt["mode"] == mode
+                    and receipt["model"] == model
+                    and receipt["seed"] == seed
+                    and datetime.fromisoformat(receipt["started_at_utc"]) > freeze_time
+                    and datetime.fromisoformat(receipt["finished_at_utc"])
+                    > datetime.fromisoformat(receipt["started_at_utc"]),
+                    "Invalid execution chronology",
+                )
+                receipts.append(receipt)
         if (model, seed) != ("m08", 42):
             if (fit_dir / "TRAINING.json").exists():
                 training = audit_fit(fit_dir, model, seed, plan)
@@ -334,6 +349,16 @@ def report(folder):
         else:
             result["missing"].append(name + " evaluation")
     result["state"] = "verified_complete" if not result["missing"] else "verified_partial"
+    if not result["missing"]:
+        require(len(receipts) == 7, "Missing execution receipts")
+        last_fit = max(
+            datetime.fromisoformat(r["finished_at_utc"]) for r in receipts if r["mode"] == "fit"
+        )
+        first_eval = min(
+            datetime.fromisoformat(r["started_at_utc"]) for r in receipts if r["mode"] == "evaluate"
+        )
+        require(last_fit < first_eval, "Test evaluation preceded completion of planned fits")
+    result["execution_receipts"] = receipts
     atomic(folder.parent / "comparison.json", result)
     return result
 
