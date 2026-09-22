@@ -55,7 +55,19 @@
   "action": "Repeat unchanged frozen payload and recipe once; persist each completed job outside temporary runtime. Do not requery Jev, change test cases, tune parameters or select results. First attempt cannot supply auditable numerical results.",
   "original_bundle_sha256": "e4dbcb9e9ce928cbc2ce1405a2533075710c3aac0f9749cc18e2fc246652e66f",
   "repeat_per_job_cap_seconds": 3600,
-  "repeat_total_cap_seconds": 7400,
+  "repeat_total_cap_seconds": 7300,
   "additional_resource_purchase": false,
-  "combined_budget_note": "Original observed jobs total 3381.37 seconds; repeat cap 7400 keeps combined job execution within the original 10800-second total budget."
+  "combined_budget_note": "Original completed jobs plus dependency-failure jobs total about 3436.40 seconds. Remaining execution cap 7300 keeps combined job execution below original 10800 seconds.",
+  "setup_failure": {
+    "reason": "The reset runtime did not execute the separate dependency setup cell. The frozen runner rejected its default transformers version before any model forward or training.",
+    "archive_sha256": "37607e2ce72b87138823f3d58c00bae54cc9cc4b0236afe17a82f20264bd3363",
+    "persistent_location": "SP_Lense_Research_2/confirmation_20260922_recovery/confirmation-results.zip",
+    "observed_job_seconds": [
+      25.007220739999866,
+      10.008157176000168,
+      10.005596279999963,
+      10.00606837700002
+    ],
+    "repair": "Install and verify pinned dependencies inside the execution cell before starting any child job. Unchanged scientific payload."
+  }
 }
