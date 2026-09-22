@@ -1,54 +1,19 @@
 # Contributing
 
-Use Python 3.12 on Windows or Linux. Detailed methods and guidance remain in the
-[wiki](https://github.com/Farhad-Davaripour/sp_lense/wiki/Contributing).
+Choose the target branch before starting work:
 
-Submit changes through an issue-linked `fd/<issue-number>_Description` branch and
-a pull request to `main`. All paths are owned by `@Farhad-Davaripour`; their
-approval is required, and new commits dismiss previous approvals. Direct pushes,
-force pushes, and deletion of `main` are blocked. The repository owner retains
-a pull-request-only bypass, allowing them to merge their own PRs or override
-review requirements. GitHub does not permit authors to approve their own PRs;
-the owner's explicit bypass merge is the exception to the review requirement.
+- Use `main` only for repository navigation, governance, or cross-study documentation.
+- Use the relevant `study/<number>-<name>` branch for research code, data, results, papers, and study-specific documentation.
+- Preserve completed studies with versioned tags. Do not move an existing release tag.
 
-```sh
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux: source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
-python -m pytest -q
-python -m ruff check src tests
-python -m ruff format --check src tests
-```
+For each change:
 
-Bare pytest runs **light** tests. Put new tests in `tests/unit/` (no tensor
-packages), `tests/reproduction/` (NumPy/XGBoost).
-Tests outside these directories fail collection. `--suite all` requires all test dependencies.
+1. Open an issue describing the intended result.
+2. Create `fd/<issue-number>_<description>` from the branch the change will target.
+3. Open a pull request to that same long-lived branch and run its branch-specific validation.
+4. Squash-merge the pull request after review and successful checks.
+5. Verify the merge, then delete the merged remote feature branch. A local branch may be retained for recovery or reference.
 
-- Reproduction: install `reproduce/requirements-core.txt`; run `pytest --suite reproduction`,
-  then `python -m sp_lense.reproduction verify` and `python -m sp_lense.reproduction replay`.
-- Paper: no additional dependencies; run `python -m sp_lense.reproduction tables`,
-  `audit`, and `paper`.
-- Security: install `bandit pip-audit`; run `bandit -r src -ll` and `pip-audit`.
+Do not push directly to, force-push, or delete `main` or a `study/*` branch. Do not delete an active branch, a branch attached to an open pull request, or a branch used by another agent or worktree.
 
-Maintain reusable code in the reproduction, steering, and reporting packages
-under `src/sp_lense/`. Saved replay inputs stay in `reproduce/`. New modules, configs, docs and
-tests must be visible to Git without force-add. Keep longer guidance in the wiki.
-
-Release archives use committed HEAD, never uncommitted files. Run
-`python -m sp_lense.reporting.release`; use `--overwrite` explicitly to replace an
-archive. Outputs must be ZIPs directly under ignored `release/`. The embedded
-manifest records the commit and content hashes. Commit generated paper changes
-before packaging them. ZIP byte identity is not promised.
-
-`src/sp_lense/steering/recorded_vector_fit.py` preserves the original gradient-fitting source for
-inspection; it requires a caller-provided native model adapter. The quick start
-does not execute it. `reproduce/layout_manifest.json` records original paths,
-checksums, and the pre-reorganization commit. Historical development files remain
-available in Git history, outside the current reproducible study layout.
-
-Keep completed studies on `study/<number>-<name>` branches and publish new
-versioned study tags for corrections; do not move an existing reproduction tag.
-Develop the next study on its own branch. Use issue-linked feature PRs targeting
-the relevant study branch, and keep merges to `main` behind the protected PR workflow.
+All paths are owned by `@Farhad-Davaripour`. The repository owner retains the pull-request-only bypass documented in the branch protection rules.
