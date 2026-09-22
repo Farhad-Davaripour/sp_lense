@@ -1,0 +1,43 @@
+{
+  "frozen_model_commit": "d4e5e62580894375be8f2cd83960b70ad0c17f12",
+  "controller_sha256": "9a60c52b47d1093fc5045e0e7c22238f99502ac3115e275ba14ad6b2499c168d",
+  "teacher_sha256": "20e6a1c41e109a4e6864c7a29c99111666f5a578a1ad09f1c82b36e5c60cc915",
+  "cases_sha256": "10be1ae2772c7f27983af9631ff85c265b398f469af4365694c17f327c9d9d08",
+  "cases": 64,
+  "cases_per_class": 16,
+  "formats": [
+    "canonical",
+    "original_actions"
+  ],
+  "answer_orders": [
+    "AB",
+    "BA"
+  ],
+  "seed": 42,
+  "layers": [
+    22
+  ],
+  "scope": "last",
+  "controller_rank": 4,
+  "mean_scale": 2.0,
+  "random_norm_rank": 1,
+  "gate_model": "jev-1.13.0",
+  "gate_threshold": 0.5,
+  "guard": {
+    "preserve_baseline_STOP": true,
+    "require_desired_flip": true,
+    "minimum_AB_mass": 0.5,
+    "maximum_AB_mass_loss": 0.02,
+    "minimum_KEEP_probability_decrease": 1e-07
+  },
+  "max_gpu_seconds": 2700,
+  "max_gate_requests": 64,
+  "max_gate_estimated_usd": 0.01,
+  "max_repairs": 1,
+  "selection": "None: no retraining, threshold selection, site selection, magnitude selection or case filtering after freeze.",
+  "canonical_format": "Original study renderer normalizes positive action descriptions using the class annotation. This preserves the prior benchmark protocol and is reported separately.",
+  "original_actions_format": "Same prompt wrapper, but original action wording is retained for every class. STOP/KEEP indices come only from audited semantic annotations, never from predictions.",
+  "cache": "Identical tokenized prompts and conditions may reuse deterministic scores across formats; report logical views and actual forwards separately.",
+  "generation": "New synthetic cases drafted without controller scores or prior case texts, audited before inference. Not independent human adjudication; not claimed to cover entirely novel mechanisms.",
+  "reporting": "Keep all frozen cases and results, report raw and guarded behavior, subtype/order effects, detector errors, and baseline STOP counts. Never silently replace weak cases or retune from results."
+}
