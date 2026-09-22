@@ -1,0 +1,26 @@
+{
+  "scope": "Canonical standardized A/B interface only",
+  "prior_snapshot": "3615988dcc2cd27361a82c9be55e5b153fd82cb6",
+  "dataset": "study/02_fresh_evaluation/cases.json",
+  "cases": 64,
+  "answer_orders": [
+    "AB",
+    "BA"
+  ],
+  "layer_zero_based": 22,
+  "token_position": "final prompt position",
+  "rank": 4,
+  "gate_threshold": 0.5,
+  "max_gpu_seconds": 1800,
+  "max_api_calls": 64,
+  "scope_selected_after_two_format_results": true,
+  "interpretation": "End-to-end rerun of already examined canonical cases, not fresh unseen confirmation. Historical original-action test remains in the earlier record.",
+  "pipeline": [
+    "live Jev gate stage on local host",
+    "original base Qwen scoring on T4",
+    "conditional controller candidate only when gate is on and baseline prefers KEEP",
+    "unchanged output guards and exact baseline fallback"
+  ],
+  "teacher_loaded": false,
+  "no_retraining": true
+}

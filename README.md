@@ -20,8 +20,10 @@ Research 2's bounded LoRA teacher and activation-transfer pilot is documented in
 [`study/02_lora_transfer`](study/02_lora_transfer/README.md).
 Its follow-ups cover [Jev gating](study/02_jev_gate/RESULT.md) and
 [teacher-free adaptive activation steering](study/02_adaptive_steering/RESULT.md).
-The [fresh frozen evaluation](study/02_fresh_evaluation/RESULT.md) tests new
-contexts and exposes sensitivity to original action descriptions.
+The active scope is the [standardized end-to-end pipeline](study/02_canonical_pipeline/RESULT.md):
+Jev detection, the original base model, an adaptive controller, and output guards.
+Scenario-specific action evaluation is outside this scope; its earlier results
+remain in the [historical evaluation](study/02_fresh_evaluation/RESULT.md).
 Use the [Research 2 reproduction guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-2)
 for those working-branch experiments; the installation below reproduces Study 01.
 
