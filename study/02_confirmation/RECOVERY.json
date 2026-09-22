@@ -1,0 +1,82 @@
+{
+  "recorded_at_utc": "2026-09-22T11:43:26.253631+00:00",
+  "reason": "All seven jobs reported exit zero in the saved notebook, but Colab reset before archive retrieval; /content/confirmation-results.zip no longer exists. No per-case Qwen metrics were read before reset.",
+  "original_observed_job_receipts": [
+    {
+      "mode": "fit",
+      "model": "m08",
+      "seed": 43,
+      "exit_code": 0,
+      "seconds": 615.2439227519999
+    },
+    {
+      "mode": "fit",
+      "model": "m08",
+      "seed": 44,
+      "exit_code": 0,
+      "seconds": 565.230756794
+    },
+    {
+      "mode": "fit",
+      "model": "m2",
+      "seed": 42,
+      "exit_code": 0,
+      "seconds": 815.3404634420003
+    },
+    {
+      "mode": "evaluate",
+      "model": "m08",
+      "seed": 42,
+      "exit_code": 0,
+      "seconds": 310.139658136
+    },
+    {
+      "mode": "evaluate",
+      "model": "m08",
+      "seed": 43,
+      "exit_code": 0,
+      "seconds": 300.1213921190001
+    },
+    {
+      "mode": "evaluate",
+      "model": "m08",
+      "seed": 44,
+      "exit_code": 0,
+      "seconds": 305.12138518400025
+    },
+    {
+      "mode": "evaluate",
+      "model": "m2",
+      "seed": 42,
+      "exit_code": 0,
+      "seconds": 470.1751899269998
+    }
+  ],
+  "action": "Repeat unchanged frozen payload and recipe once; persist each completed job outside temporary runtime. Do not requery Jev, change test cases, tune parameters or select results. First attempt cannot supply auditable numerical results.",
+  "original_bundle_sha256": "e4dbcb9e9ce928cbc2ce1405a2533075710c3aac0f9749cc18e2fc246652e66f",
+  "repeat_per_job_cap_seconds": 3600,
+  "repeat_total_cap_seconds": 7300,
+  "additional_resource_purchase": false,
+  "combined_budget_note": "Original completed jobs plus dependency-failure jobs total about 3436.40 seconds. Remaining execution cap 7300 keeps combined job execution below original 10800 seconds.",
+  "setup_failure": {
+    "reason": "The reset runtime did not execute the separate dependency setup cell. The frozen runner rejected its default transformers version before any model forward or training.",
+    "archive_sha256": "37607e2ce72b87138823f3d58c00bae54cc9cc4b0236afe17a82f20264bd3363",
+    "persistent_location": "SP_Lense_Research_2/confirmation_20260922_recovery/confirmation-results.zip",
+    "observed_job_seconds": [
+      25.007220739999866,
+      10.008157176000168,
+      10.005596279999963,
+      10.00606837700002
+    ],
+    "repair": "Install and verify pinned dependencies inside the execution cell before starting any child job. Unchanged scientific payload."
+  },
+  "completed_recovery": {
+    "archive_sha256": "afea70ca5bb9ea93c68890c2284c414a581bb553ef12c87bbb478ad0e17bf1f4",
+    "archive_bytes": 14670766,
+    "verified_at_utc": "2026-09-22T12:54:26.647614+00:00",
+    "planned_jobs_completed": 7,
+    "job_wall_seconds": 3256.3864145360003,
+    "all_native_audits_passed": true
+  },
+  "observed_total_job_wall_seconds": 6692.786225463
+}

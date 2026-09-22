@@ -24,6 +24,8 @@ The active scope is the [standardized end-to-end pipeline](study/02_canonical_pi
 Jev detection, the original base model, an adaptive controller, and output guards.
 Scenario-specific action evaluation is outside this scope; its earlier results
 remain in the [historical evaluation](study/02_fresh_evaluation/RESULT.md).
+The [confirmation study](study/02_confirmation/RESULT.md) evaluates 128 new cases,
+three 0.8B training seeds, simpler baselines, and a Qwen3.5-2B replication.
 Use the [Research 2 reproduction guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-2)
 for those working-branch experiments; the installation below reproduces Study 01.
 
