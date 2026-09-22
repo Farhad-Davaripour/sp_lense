@@ -6,10 +6,10 @@ import hashlib
 import json
 import os
 import re
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from sp_lense.reporting.xml_utils import parse_xml, read_xml_part
 from sp_lense.reproduction.paths import ROOT
 
 PAPER = ROOT / "paper/research_2"
@@ -454,13 +454,13 @@ def audit(check_files=True):
     if digest(PAPER / "style_template.docx") != ref["template_sha256"]:
         raise ValueError("Template hash mismatch")
     with ZipFile(PAPER / "style_template.docx") as z:
-        preserved = {n: z.read(n) for n in ref["preserve_parts"]}
-        section = ET.fromstring(z.read("word/document.xml")).find(f".//{{{W}}}sectPr")
+        preserved = {n: read_xml_part(z, n) for n in ref["preserve_parts"]}
+        section = parse_xml(read_xml_part(z, "word/document.xml")).find(f".//{{{W}}}sectPr")
     with ZipFile(PAPER / "manuscript.docx") as z:
         for name, contents in preserved.items():
-            if z.read(name) != contents:
+            if read_xml_part(z, name) != contents:
                 raise ValueError("Changed reference style part: " + name)
-        xml = ET.fromstring(z.read("word/document.xml"))
+        xml = parse_xml(read_xml_part(z, "word/document.xml"))
         sections = xml.findall(f".//{{{W}}}sectPr")
         if len(sections) != 1:
             raise ValueError("Unexpected sections")
@@ -576,6 +576,7 @@ def seal():
         "study/02_confirmation/FREEZE.json",
         "paper/publication.json",
         "src/sp_lense/reporting/second_paper.py",
+        "src/sp_lense/reporting/xml_utils.py",
         "src/sp_lense/reporting/render_manuscript.ps1",
     ]
     pdf = PdfReader(PAPER / "paper.pdf")
