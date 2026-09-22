@@ -5,7 +5,7 @@ import pytest
 
 from sp_lense.reproduction.paths import ROOT
 from sp_lense.research2.confirmation_package import build
-from sp_lense.research2.confirmation_report import audit_inputs, bootstrap, compare
+from sp_lense.research2.confirmation_report import audit_inputs, bootstrap, compare, report
 
 
 def row(case, label, choice, probability=1.0, gate=1.0):
@@ -74,3 +74,14 @@ def test_confirmation_bundle_whitelist_and_manifest(tmp_path):
         for name, digest in json.loads(archive.read("PILOT_MANIFEST.json")).items():
             assert hashlib.sha256(archive.read(name)).hexdigest() == digest
     assert (ROOT / "study/02_confirmation/FREEZE.json").exists()
+
+
+def test_all_confirmation_variants_replay_without_model_inference(tmp_path):
+    import shutil
+
+    destination = tmp_path / "run"
+    shutil.copytree(ROOT / "study/02_confirmation/run", destination)
+    result = report(destination)
+    assert result["state"] == "verified_complete"
+    assert set(result["variants"]) == {"m08_s42", "m08_s43", "m08_s44", "m2_s42"}
+    assert result["baseline_seed_parity"] == {"43": 0.0, "44": 0.0}
