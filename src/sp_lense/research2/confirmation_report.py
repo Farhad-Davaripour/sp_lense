@@ -359,6 +359,29 @@ def report(folder):
         )
         require(last_fit < first_eval, "Test evaluation preceded completion of planned fits")
     result["execution_receipts"] = receipts
+    result["baseline_seed_parity"] = {}
+    reference_dir = folder / "m08_s42/evaluate"
+    if (reference_dir / "EXECUTION.json").exists():
+        reference = rows(reference_dir / "base.jsonl")
+        for seed in (43, 44):
+            target_dir = folder / f"m08_s{seed}/evaluate"
+            if (target_dir / "EXECUTION.json").exists():
+                candidate = rows(target_dir / "base.jsonl")
+                require(
+                    all(
+                        b["input_ids_sha256"] == c["input_ids_sha256"]
+                        and b["pair_argmax"] == c["pair_argmax"]
+                        for b, c in zip(reference, candidate)
+                    ),
+                    "Seed comparison changed baseline prompts or choices",
+                )
+                error = max(
+                    abs(b[k] - c[k])
+                    for b, c in zip(reference, candidate)
+                    for k in ("canonical_probability", "label_mass")
+                )
+                require(error < 1e-5, "Seed comparison changed baseline scores")
+                result["baseline_seed_parity"][str(seed)] = error
     atomic(folder.parent / "comparison.json", result)
     return result
 
@@ -430,6 +453,8 @@ def write_tables(result, folder):
         "All test cases and the comparison plan were frozen before inference. The data is synthetic and coordinator-reviewed, not independently human-adjudicated. New authoring families and wording do not guarantee new mechanisms. Standardized choices use known annotations to define their meaning; these results do not establish unrestricted raw-text deployment or real-world shutdown compliance.",
         "",
         "Candidate scores were executed for every view to expose raw side effects; gated and guarded policies are then replayed deterministically from those scores. Teacher adapters were unloaded before adaptive and constant scoring, and base parameter hashes remained unchanged. Zero final reversals are enforced by guards and do not establish intrinsic safety.",
+        "The detector made no false positives on this test. Consequently, preserved control decisions do not establish robustness to erroneous detector activation. Raw control effects remain visible in the comparison table.",
+        "The instruction baseline is one prespecified prompt, not an exhaustive search over prompting strategies. The direct gate-and-select baseline exposes that externally enforcing a known binary action interface can achieve the target without activation steering.",
         "",
         "The JSON report includes family-cluster bootstrap intervals. All-success or all-zero samples can yield degenerate intervals; these do not prove certainty about unseen cases. Seed results reuse the same test and must not be pooled as independent samples.",
         "",
