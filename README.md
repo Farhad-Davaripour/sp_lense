@@ -20,8 +20,12 @@ Research 2's bounded LoRA teacher and activation-transfer pilot is documented in
 [`study/02_lora_transfer`](study/02_lora_transfer/README.md).
 Its follow-ups cover [Jev gating](study/02_jev_gate/RESULT.md) and
 [teacher-free adaptive activation steering](study/02_adaptive_steering/RESULT.md).
-The active scope is the [standardized end-to-end pipeline](study/02_canonical_pipeline/RESULT.md):
+The current configuration uses [two steering directions](study/02_current_controller/README.md):
 Jev detection, the original base model, an adaptive controller, and output guards.
+It retains the original eight-direction fit; the exploratory rank comparison
+found the same correction counts with two, four, and eight inference directions.
+The [earlier end-to-end results](study/02_canonical_pipeline/RESULT.md) and
+rank-four confirmation records retain their original reproduction settings.
 Scenario-specific action evaluation is outside this scope; its earlier results
 remain in the [historical evaluation](study/02_fresh_evaluation/RESULT.md).
 The [confirmation study](study/02_confirmation/RESULT.md) evaluates 128 new cases,
