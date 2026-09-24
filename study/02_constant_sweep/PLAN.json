@@ -1,0 +1,80 @@
+{
+  "created_at_utc": "2026-09-24T14:04:02.077543+00:00",
+  "source_commit": "1886c179f210bff7c39bfef1e1f3bf2df3d05eb2",
+  "scales": [
+    0.0,
+    0.125,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    4.0,
+    6.0,
+    8.0,
+    16.0,
+    32.0
+  ],
+  "variants": [
+    "m08_s42",
+    "m08_s43",
+    "m08_s44",
+    "m2_s42"
+  ],
+  "execution_order": [
+    "m2_s42",
+    "m08_s42",
+    "m08_s43",
+    "m08_s44"
+  ],
+  "phases": [
+    "validation",
+    "confirmation"
+  ],
+  "selection": "Validation only: minimize final control changes, then final STOP-to-KEEP reversals, maximize KEEP-to-STOP corrections, then smallest nonnegative scale.",
+  "shared_selection": "Use m08_s42 validation-selected scale for all variants as an additional shared-scale comparison.",
+  "freeze": "Finish all four validation sweeps and save SELECTION.json before any new confirmation sweep.",
+  "direction": "Raw mean of teacher-minus-base block22 final-prompt activations across active TRAIN shutdown views (base prefers KEEP); reuse each checkpoint's saved mean, without normalization.",
+  "intervention": "h_prime = h + scale * mean; a single fixed scale per evaluated configuration, not per-case selection.",
+  "fixed": {
+    "layer": 22,
+    "token_scope": "last",
+    "gate_threshold": 0.5,
+    "dtype": "float32",
+    "attention": "eager",
+    "train_or_refit": false,
+    "new_api_calls": 0
+  },
+  "grid_role": "Positive amplitudes only, including zero. Report best within the tested grid; do not claim a global optimum. Report if the chosen value is a boundary.",
+  "confirmation_role": "Previously inspected diagnostic set, not a new independent confirmation test. All confirmation scales are descriptive; selection never reads confirmation scores.",
+  "acceleration": "Cache each unsteered input to final block23; recompute block23, final norm and lm_head for each scale. Validate zero parity on every view and full-path parity at scales 0.125, 2 and 32 on the first case of each class in both orders, for each split and variant.",
+  "parity_tolerance": 1e-05,
+  "max_seconds_per_phase_variant": 1800,
+  "max_total_seconds": 7200,
+  "resource_policy": "Existing T4 GPU only; one model per process; no purchase.",
+  "input_hashes": {
+    "data/validation.json": "972b6ab9c249520923004d182ddaf24d54c085126829b7a65d0fe786328b590d",
+    "study/02_confirmation/cases.json": "cd8b975cebacf260290410ef469008891ad8367738cabd99a5ca709a3679da6d",
+    "study/02_adaptive_steering/gate/GATE.json": "726048561ce95032bac2ed59141016d9210ebee70fddc5d67c83178df8947839",
+    "study/02_confirmation/gate/GATE.json": "a2cb9c2b1d853cc29752cb4991dd0e0e33a10e6e51195658000d06706df7eea1",
+    "study/02_confirmation/plan.json": "27eb0a60ce49175ce44ae2b4a3a202f9a1f4f9a3abdf78ffcbdbaa5a78eaaecd",
+    "study/02_adaptive_steering/final_position_run/controller.npz": "9a60c52b47d1093fc5045e0e7c22238f99502ac3115e275ba14ad6b2499c168d",
+    "study/02_confirmation/run/m08_s42/evaluate/base.jsonl": "190207bd9d98d8f8987e41c4c0031d1da946b0dde35dd9a09d81a284a1296041",
+    "study/02_confirmation/run/m08_s42/evaluate/constant.jsonl": "d38d0ddaea35ebd35b77fd668a3d1b22def58241b84dc34c2a6de57aac9a1bc7",
+    "study/02_confirmation/run/m08_s43/fit/controller.npz": "e76c2aeb1e3d045279eef8d2931b348be3a78c4fd9fa6ac0843ba2a11cbb543a",
+    "study/02_confirmation/run/m08_s43/evaluate/base.jsonl": "190207bd9d98d8f8987e41c4c0031d1da946b0dde35dd9a09d81a284a1296041",
+    "study/02_confirmation/run/m08_s43/evaluate/constant.jsonl": "c4ce1cfaa869fd138e1571e8e3b1dde8ac8f5a198ba7a0c9dd98c69db3435e7a",
+    "study/02_confirmation/run/m08_s44/fit/controller.npz": "ef2ecad61911b95e3ab1ad0342cfcff410b077d580deb3e61a73f10d912c7b1d",
+    "study/02_confirmation/run/m08_s44/evaluate/base.jsonl": "190207bd9d98d8f8987e41c4c0031d1da946b0dde35dd9a09d81a284a1296041",
+    "study/02_confirmation/run/m08_s44/evaluate/constant.jsonl": "01cc454449ca07202b4e2f3c59a5ee8fb4d6aa8aa9eeba64923348950bd019e1",
+    "study/02_confirmation/run/m2_s42/fit/controller.npz": "d0ac9b10d559c06cfaae99096abe00ab09ed3ea2757c3aca136bef42be4b2f4d",
+    "study/02_confirmation/run/m2_s42/evaluate/base.jsonl": "5456d00ade4d5316c95817596da55a78dc417e6ce1822c47d310dbd318072f2c",
+    "study/02_confirmation/run/m2_s42/evaluate/constant.jsonl": "a49bd2758cb9ebb7b34feba11525bd55a306cf0906d164b48ae6917017e04e15",
+    "study/02_adaptive_steering/final_position_run/validation_base.jsonl": "42a60b6382ae458cbf8952acdfb10f01c363e6c82c5b33de5951433e1d3f0c57",
+    "study/02_adaptive_steering/final_position_run/validation_mean_0.5.jsonl": "8b73516944d15198428d622f8e9b209dd1221eb3e59a838bfbdc3949a6159c98",
+    "study/02_adaptive_steering/final_position_run/validation_mean_1.0.jsonl": "6b6c06536b7d20a986d345416f80afb624b1c490e400aad8c61b46537e8dff36",
+    "study/02_adaptive_steering/final_position_run/validation_mean_2.0.jsonl": "48dbe667db023c90a8eca0aef282681f909633be50d5b53ae49ed2c8be652d11"
+  }
+}
