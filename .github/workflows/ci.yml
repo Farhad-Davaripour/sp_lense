@@ -45,6 +45,7 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -e ".[dev]" -r reproduce/requirements-core.txt
       - run: python -m pytest -q --suite reproduction
+      - run: python -O -m sp_lense.research2.current_controller show
       - run: python -m sp_lense.reproduction verify
       - run: python -O -m sp_lense.reproduction replay
       - run: python -O -m sp_lense.reproduction gated

@@ -1,0 +1,252 @@
+{
+  "source_commit": "51114ea7c31ad1eabfd4821281acd9ed17005f5f",
+  "scope": "Exploratory reuse of the 128-case confirmation set, both answer orders",
+  "cases": 128,
+  "views": 256,
+  "ranks": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "runtime": {
+    "gpu": "Tesla T4",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.15.1"
+  },
+  "interpretation": "Equal correction counts do not establish identical probabilities, per-case decisions, or an optimal rank on unseen data.",
+  "models": {
+    "m08_s42": {
+      "1": {
+        "guarded_corrections": 48,
+        "initial_keep": 71,
+        "final_stop": 105,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 29,
+        "raw_wrong_way": 20,
+        "raw_corrections": 48,
+        "gated_control_changes": 0,
+        "guarded_accepted": 48,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 52.132135913999946
+      },
+      "2": {
+        "guarded_corrections": 71,
+        "initial_keep": 71,
+        "final_stop": 128,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 57,
+        "raw_wrong_way": 3,
+        "raw_corrections": 71,
+        "gated_control_changes": 0,
+        "guarded_accepted": 71,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 49.74131051099994
+      },
+      "4": {
+        "guarded_corrections": 71,
+        "initial_keep": 71,
+        "final_stop": 128,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 57,
+        "raw_wrong_way": 3,
+        "raw_corrections": 71,
+        "gated_control_changes": 0,
+        "guarded_accepted": 71,
+        "rank4_replay_max_abs_error": 0.0,
+        "seconds": 52.45425388700005
+      },
+      "8": {
+        "guarded_corrections": 71,
+        "initial_keep": 71,
+        "final_stop": 128,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 57,
+        "raw_wrong_way": 3,
+        "raw_corrections": 71,
+        "gated_control_changes": 0,
+        "guarded_accepted": 71,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 49.990103555999895
+      }
+    },
+    "m08_s43": {
+      "1": {
+        "guarded_corrections": 52,
+        "initial_keep": 71,
+        "final_stop": 109,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 39,
+        "raw_wrong_way": 21,
+        "raw_corrections": 52,
+        "gated_control_changes": 0,
+        "guarded_accepted": 52,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 50.25006174500004
+      },
+      "2": {
+        "guarded_corrections": 70,
+        "initial_keep": 71,
+        "final_stop": 127,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 70,
+        "raw_wrong_way": 4,
+        "raw_corrections": 70,
+        "gated_control_changes": 0,
+        "guarded_accepted": 70,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 50.733935784000096
+      },
+      "4": {
+        "guarded_corrections": 70,
+        "initial_keep": 71,
+        "final_stop": 127,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 70,
+        "raw_wrong_way": 4,
+        "raw_corrections": 70,
+        "gated_control_changes": 0,
+        "guarded_accepted": 70,
+        "rank4_replay_max_abs_error": 0.0,
+        "seconds": 49.36483163800017
+      },
+      "8": {
+        "guarded_corrections": 70,
+        "initial_keep": 71,
+        "final_stop": 127,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 70,
+        "raw_wrong_way": 4,
+        "raw_corrections": 70,
+        "gated_control_changes": 0,
+        "guarded_accepted": 70,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 50.39128052000001
+      }
+    },
+    "m08_s44": {
+      "1": {
+        "guarded_corrections": 50,
+        "initial_keep": 71,
+        "final_stop": 107,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 32,
+        "raw_wrong_way": 19,
+        "raw_corrections": 50,
+        "gated_control_changes": 0,
+        "guarded_accepted": 50,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 51.286307078999926
+      },
+      "2": {
+        "guarded_corrections": 71,
+        "initial_keep": 71,
+        "final_stop": 128,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 60,
+        "raw_wrong_way": 4,
+        "raw_corrections": 71,
+        "gated_control_changes": 0,
+        "guarded_accepted": 71,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 48.857677706000004
+      },
+      "4": {
+        "guarded_corrections": 71,
+        "initial_keep": 71,
+        "final_stop": 128,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 60,
+        "raw_wrong_way": 4,
+        "raw_corrections": 71,
+        "gated_control_changes": 0,
+        "guarded_accepted": 71,
+        "rank4_replay_max_abs_error": 0.0,
+        "seconds": 51.727538245999995
+      },
+      "8": {
+        "guarded_corrections": 71,
+        "initial_keep": 71,
+        "final_stop": 128,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 61,
+        "raw_wrong_way": 4,
+        "raw_corrections": 71,
+        "gated_control_changes": 0,
+        "guarded_accepted": 71,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 51.350827179000134
+      }
+    },
+    "m2_s42": {
+      "1": {
+        "guarded_corrections": 25,
+        "initial_keep": 58,
+        "final_stop": 95,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 16,
+        "raw_wrong_way": 11,
+        "raw_corrections": 25,
+        "gated_control_changes": 0,
+        "guarded_accepted": 25,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 57.062450657
+      },
+      "2": {
+        "guarded_corrections": 50,
+        "initial_keep": 58,
+        "final_stop": 120,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 55,
+        "raw_wrong_way": 3,
+        "raw_corrections": 50,
+        "gated_control_changes": 0,
+        "guarded_accepted": 50,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 58.53185362600004
+      },
+      "4": {
+        "guarded_corrections": 50,
+        "initial_keep": 58,
+        "final_stop": 120,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 55,
+        "raw_wrong_way": 3,
+        "raw_corrections": 50,
+        "gated_control_changes": 0,
+        "guarded_accepted": 50,
+        "rank4_replay_max_abs_error": 0.0,
+        "seconds": 60.180218496000066
+      },
+      "8": {
+        "guarded_corrections": 50,
+        "initial_keep": 58,
+        "final_stop": 120,
+        "guarded_control_changes": 0,
+        "guarded_wrong_way": 0,
+        "raw_control_changes": 55,
+        "raw_wrong_way": 3,
+        "raw_corrections": 50,
+        "gated_control_changes": 0,
+        "guarded_accepted": 50,
+        "rank4_replay_max_abs_error": null,
+        "seconds": 59.275424882999914
+      }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "name": "Two-direction adaptive steering",
+  "default_variant": "m08_s42",
+  "inference_rank": 2,
+  "fitted_rank": 8,
+  "layer": 22,
+  "token_scope": "last",
+  "selection": "Author selected rank 2 after exploratory comparison of ranks 1, 2, 4 and 8 on previously inspected confirmation cases; no fresh validation or optimality claim.",
+  "training": "Original all-TRAIN ridge fit and teacher retained. No active-only refit adopted.",
+  "historical_reproduction": "study/02_confirmation/plan.json retains the original rank 4.",
+  "variants": {
+    "m08_s42": {
+      "model_key": "m08",
+      "seed": 42,
+      "checkpoint": "study/02_adaptive_steering/final_position_run/controller.npz",
+      "checkpoint_sha256": "9a60c52b47d1093fc5045e0e7c22238f99502ac3115e275ba14ad6b2499c168d"
+    },
+    "m08_s43": {
+      "model_key": "m08",
+      "seed": 43,
+      "checkpoint": "study/02_confirmation/run/m08_s43/fit/controller.npz",
+      "checkpoint_sha256": "e76c2aeb1e3d045279eef8d2931b348be3a78c4fd9fa6ac0843ba2a11cbb543a"
+    },
+    "m08_s44": {
+      "model_key": "m08",
+      "seed": 44,
+      "checkpoint": "study/02_confirmation/run/m08_s44/fit/controller.npz",
+      "checkpoint_sha256": "ef2ecad61911b95e3ab1ad0342cfcff410b077d580deb3e61a73f10d912c7b1d"
+    },
+    "m2_s42": {
+      "model_key": "m2",
+      "seed": 42,
+      "checkpoint": "study/02_confirmation/run/m2_s42/fit/controller.npz",
+      "checkpoint_sha256": "d0ac9b10d559c06cfaae99096abe00ab09ed3ea2757c3aca136bef42be4b2f4d"
+    }
+  }
+}
