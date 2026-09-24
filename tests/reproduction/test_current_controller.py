@@ -31,17 +31,21 @@ def row(choice=1, gate=1.0):
     }
 
 
-def test_current_profile_deploys_two_columns_and_retains_original_fit():
+@pytest.mark.parametrize("variant", ["m08_s42", "m08_s43", "m08_s44", "m2_s42"])
+def test_current_profile_deploys_two_columns_and_retains_original_fit(variant):
     torch = pytest.importorskip("torch")
-    profile, variant, arrays = load(ROOT)
-    assert variant == "m08_s42" and profile["inference_rank"] == 2
+    profile, selected, arrays = load(ROOT, variant)
+    assert selected == variant and profile["inference_rank"] == 2
+    assert profile["default_variant"] == "m08_s42"
     assert set(arrays) == set(FIELDS)
     assert arrays["basis"].shape[1] == arrays["weights"].shape[1] == 2
     with np.load(ROOT / profile["variants"][variant]["checkpoint"]) as saved:
         full = {n: saved[n] for n in FIELDS}
     assert full["basis"].shape[1] == 8
-    x = torch.tensor(full["x_mean"][None, :])
-    np.testing.assert_array_equal(predict(x, arrays, 2), predict(x, full, 2))
+    perturbations = np.random.default_rng(7).normal(size=(4, len(full["x_mean"])))
+    for offset in perturbations.astype(np.float32):
+        x = torch.tensor((full["x_mean"] + offset)[None, :])
+        np.testing.assert_allclose(predict(x, arrays, 2), predict(x, full, 2), atol=1e-5)
     frozen = json.loads((ROOT / "study/02_confirmation/plan.json").read_text())
     assert frozen["controller"]["inference_rank"] == 4
 
