@@ -1,0 +1,148 @@
+{
+  "created_at_utc": "2026-09-24T09:24:03.074256+00:00",
+  "source_commit": "51114ea7c31ad1eabfd4821281acd9ed17005f5f",
+  "experiment": "Ridge-only training-cohort ablation",
+  "arms": {
+    "all_cases": "Original: active shutdown deltas; zero for already-STOP shutdown and controls.",
+    "shutdown_only": "Remove ordinary and nontermination controls; retain already-STOP shutdown zeros.",
+    "active_only": "Only true shutdown TRAIN views whose base model preferred KEEP."
+  },
+  "fixed": {
+    "layer": 22,
+    "position": "last prompt",
+    "rank": 4,
+    "ridge_lambda": 1.0,
+    "input_pca": "Frozen original PCA32, centering and scaling",
+    "output_basis": "Frozen original eight columns; use first four",
+    "teacher": "Frozen saved targets; no teacher fitting or inference",
+    "gate": "Reuse original Jev probabilities at threshold 0.5",
+    "guards": "Original unchanged confirmation acceptance rule",
+    "loss_convention": "Sum of squared errors plus lambda penalty, unpenalized intercept"
+  },
+  "evaluation": "Previously inspected 128-case confirmation set, both answer orders. Exploratory; no model/rank selection.",
+  "limitation": "PCA and scale retain their original all-TRAIN fit. This isolates ridge examples only.",
+  "variants": {
+    "m2_s42": {
+      "checkpoint_sha256": "d0ac9b10d559c06cfaae99096abe00ab09ed3ea2757c3aca136bef42be4b2f4d",
+      "arms": {
+        "all_cases": {
+          "training_views": 480,
+          "nonzero_targets": 90,
+          "zero_targets": 390,
+          "original_ridge_replay_max_error": 0.0,
+          "mask_sha256": "e87ebab060beb7c66837da91b9d2295d637d1fca348b1864ac0281ed0fe77274",
+          "checkpoint_sha256": "d0ac9b10d559c06cfaae99096abe00ab09ed3ea2757c3aca136bef42be4b2f4d"
+        },
+        "shutdown_only": {
+          "training_views": 240,
+          "nonzero_targets": 90,
+          "zero_targets": 150,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "11ba58aa79270dd823d4129baaca22d98780351512ae6558b453fa724a587bf1",
+          "checkpoint_sha256": "11fcec196337df6551e42348a0513d2f7fc6a9d8fd23a965a3d0471ec8b2f765"
+        },
+        "active_only": {
+          "training_views": 90,
+          "nonzero_targets": 90,
+          "zero_targets": 0,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "63cfd1bec36b4c6704df099de11b0e2002a4305fcb792a6ae93198dd5c41ab96",
+          "checkpoint_sha256": "c992331fd0179a5e6251362e89dbf2f147304111a5504187a950f9f51db282ad"
+        }
+      }
+    },
+    "m08_s42": {
+      "checkpoint_sha256": "9a60c52b47d1093fc5045e0e7c22238f99502ac3115e275ba14ad6b2499c168d",
+      "arms": {
+        "all_cases": {
+          "training_views": 480,
+          "nonzero_targets": 133,
+          "zero_targets": 347,
+          "original_ridge_replay_max_error": 0.0,
+          "mask_sha256": "e87ebab060beb7c66837da91b9d2295d637d1fca348b1864ac0281ed0fe77274",
+          "checkpoint_sha256": "9a60c52b47d1093fc5045e0e7c22238f99502ac3115e275ba14ad6b2499c168d"
+        },
+        "shutdown_only": {
+          "training_views": 240,
+          "nonzero_targets": 133,
+          "zero_targets": 107,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "11ba58aa79270dd823d4129baaca22d98780351512ae6558b453fa724a587bf1",
+          "checkpoint_sha256": "0845d4642a1d3d72ff62d2ed99807b4a48f8b5cbc68714269da685c680e597ca"
+        },
+        "active_only": {
+          "training_views": 133,
+          "nonzero_targets": 133,
+          "zero_targets": 0,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "00c938c1f149e557f1a7554133a232c6369f8d5f47ab19241a79fd64f2e1a3f7",
+          "checkpoint_sha256": "65f7207a9d4802db81d11fd24f1aa224cc4fbcaef14db10dae3b1ce609f2ae0c"
+        }
+      }
+    },
+    "m08_s43": {
+      "checkpoint_sha256": "e76c2aeb1e3d045279eef8d2931b348be3a78c4fd9fa6ac0843ba2a11cbb543a",
+      "arms": {
+        "all_cases": {
+          "training_views": 480,
+          "nonzero_targets": 133,
+          "zero_targets": 347,
+          "original_ridge_replay_max_error": 0.0,
+          "mask_sha256": "e87ebab060beb7c66837da91b9d2295d637d1fca348b1864ac0281ed0fe77274",
+          "checkpoint_sha256": "e76c2aeb1e3d045279eef8d2931b348be3a78c4fd9fa6ac0843ba2a11cbb543a"
+        },
+        "shutdown_only": {
+          "training_views": 240,
+          "nonzero_targets": 133,
+          "zero_targets": 107,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "11ba58aa79270dd823d4129baaca22d98780351512ae6558b453fa724a587bf1",
+          "checkpoint_sha256": "c00f1c03a4b946e5dbdcb3963791b940ac56ab55a3dc9f8c9da7f7ed8236c9d8"
+        },
+        "active_only": {
+          "training_views": 133,
+          "nonzero_targets": 133,
+          "zero_targets": 0,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "00c938c1f149e557f1a7554133a232c6369f8d5f47ab19241a79fd64f2e1a3f7",
+          "checkpoint_sha256": "96d38e8f678cb175b75e267cca56123ea4f8d8b1792de3428931db8d7b931e58"
+        }
+      }
+    },
+    "m08_s44": {
+      "checkpoint_sha256": "ef2ecad61911b95e3ab1ad0342cfcff410b077d580deb3e61a73f10d912c7b1d",
+      "arms": {
+        "all_cases": {
+          "training_views": 480,
+          "nonzero_targets": 133,
+          "zero_targets": 347,
+          "original_ridge_replay_max_error": 0.0,
+          "mask_sha256": "e87ebab060beb7c66837da91b9d2295d637d1fca348b1864ac0281ed0fe77274",
+          "checkpoint_sha256": "ef2ecad61911b95e3ab1ad0342cfcff410b077d580deb3e61a73f10d912c7b1d"
+        },
+        "shutdown_only": {
+          "training_views": 240,
+          "nonzero_targets": 133,
+          "zero_targets": 107,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "11ba58aa79270dd823d4129baaca22d98780351512ae6558b453fa724a587bf1",
+          "checkpoint_sha256": "883c53b4d0ff75610f45bfc881cc8c118821771b4d445fb265a421ac845a943c"
+        },
+        "active_only": {
+          "training_views": 133,
+          "nonzero_targets": 133,
+          "zero_targets": 0,
+          "original_ridge_replay_max_error": null,
+          "mask_sha256": "00c938c1f149e557f1a7554133a232c6369f8d5f47ab19241a79fd64f2e1a3f7",
+          "checkpoint_sha256": "d04e699bc9e0f3d0fec5e9514103ae67985c37573afbe0a75f1756d9a2667def"
+        }
+      }
+    }
+  },
+  "input_hashes": {
+    "data/train.json": "3c559855bdbe6b051e88882ae00ea4e01bf055f6ed00d32dd0fdf40c6ddb0ad2",
+    "study/02_confirmation/cases.json": "cd8b975cebacf260290410ef469008891ad8367738cabd99a5ca709a3679da6d",
+    "study/02_confirmation/gate/GATE.json": "a2cb9c2b1d853cc29752cb4991dd0e0e33a10e6e51195658000d06706df7eea1"
+  },
+  "script_sha256": "03cc0c6bbcd51939bd493dc2742435d305771f6211f5e2d3f8b2805113d99fd6"
+}

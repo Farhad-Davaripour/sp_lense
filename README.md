@@ -26,6 +26,9 @@ It retains the original eight-direction fit; the exploratory rank comparison
 found the same correction counts with two, four, and eight inference directions.
 The [earlier end-to-end results](study/02_canonical_pipeline/RESULT.md) and
 rank-four confirmation records retain their original reproduction settings.
+The separate [ridge-training ablation](study/02_ridge_ablation/RESULT.md) includes
+its fixed plan, fitted controllers and per-view scores. Reproduction guidance
+for both ablations is in the [wiki](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-2-Ablations).
 Scenario-specific action evaluation is outside this scope; its earlier results
 remain in the [historical evaluation](study/02_fresh_evaluation/RESULT.md).
 The [confirmation study](study/02_confirmation/RESULT.md) evaluates 128 new cases,
