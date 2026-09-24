@@ -109,8 +109,9 @@ class CachedTail:
             {k: v for k, v in view.items() if k != "ids"}
             | scores
             | {
-                "scale": scale,
-                "relative_delta_norm": relative_norm,
+            "scale": scale,
+            "relative_delta_norm": relative_norm,
+            "baseline_activation_norm": float(norm.item()),
             }
         )
 
