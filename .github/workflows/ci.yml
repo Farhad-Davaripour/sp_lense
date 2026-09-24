@@ -47,6 +47,7 @@ jobs:
       - run: python -m pytest -q --suite reproduction
       - run: python -O -m sp_lense.research2.current_controller show
       - run: python -O -m sp_lense.research2.ablation_studies audit
+      - run: python -O -m sp_lense.research2.constant_report --format markdown
       - run: python -m sp_lense.reproduction verify
       - run: python -O -m sp_lense.reproduction replay
       - run: python -O -m sp_lense.reproduction gated

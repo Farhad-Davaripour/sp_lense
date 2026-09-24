@@ -38,7 +38,12 @@ extend-exclude = [
 
 [tool.ruff.format]
 # Retain wrapping of executed source so documented path edits are reversible.
-exclude = ["src/sp_lense/steering/policy.py", "src/sp_lense/steering/guarded.py"]
+exclude = [
+  "src/sp_lense/steering/policy.py",
+  "src/sp_lense/steering/guarded.py",
+  # This runner's exact bytes are pinned by the executed constant sweep.
+  "src/sp_lense/research2/constant_sweep.py",
+]
 
 [tool.ruff.lint.per-file-ignores]
 "src/sp_lense/steering/policy.py" = ["I001"]
