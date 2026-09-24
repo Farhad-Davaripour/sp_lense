@@ -29,6 +29,8 @@ rank-four confirmation records retain their original reproduction settings.
 The separate [ridge-training ablation](study/02_ridge_ablation/RESULT.md) includes
 its fixed plan, fitted controllers and per-view scores. Reproduction guidance
 for both ablations is in the [wiki](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-2-Ablations).
+The [constant-vector magnitude sweep](study/02_constant_sweep/RESULT.md) records
+the original multiplier selection and a wider validation-selected comparison.
 Scenario-specific action evaluation is outside this scope; its earlier results
 remain in the [historical evaluation](study/02_fresh_evaluation/RESULT.md).
 The [confirmation study](study/02_confirmation/RESULT.md) evaluates 128 new cases,
