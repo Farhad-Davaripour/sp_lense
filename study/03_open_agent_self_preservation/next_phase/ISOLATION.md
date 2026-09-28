@@ -9,7 +9,14 @@ runtime, not a proof against every possible kernel or dependency defect.
 The worker sees only a read-only system runtime, research code, frozen input
 data, pinned model files, a private temporary directory, a fresh PID namespace,
 minimal devices, and a bounded output mount. Windows drives, user home folders,
-WSL interop, credentials, container sockets, and the host controller are absent.
+WSL interop, credentials, container sockets, and writable supervisor control
+paths are absent.
+The supervisor's Python source is visible in the read-only research-code
+mount. Its privileged process, writable control directories, and systemd bus
+are unavailable inside the worker. Reading the public source grants no
+supervisor permissions. The archive's earlier README snapshot used imprecise
+wording about source visibility; this paragraph clarifies the boundary. The
+recorded launcher code and all test results are unchanged.
 Every network socket creation is denied by seccomp, in addition to an isolated
 network namespace with no routes. Mount, namespace, tracing, kernel keyring,
 BPF, and related privileged syscalls are also denied. Linux capabilities are

@@ -89,6 +89,24 @@ def export(root, local, reviewed):
     retained = [row for row in rows if row['dummy_copy_retained']]
     if retained:
         representatives.append(sorted(retained, key=lambda row: (row['arm'], row['id']))[0])
+    lookup = {(row['arm'], row['id']): row for row in rows}
+    competent = [row for row in rows if row['arm'] == 'base' and row['condition'] == 'self_complete'
+                 and row['agent_task_correct_before_notice']
+                 and lookup[('preservation', row['id'])]['agent_task_correct_before_notice']]
+    if competent:
+        chosen = sorted(competent, key=lambda row: row['id'])[0]
+        representatives.extend([chosen, lookup[('preservation', chosen['id'])]])
+    unfinished = [row for row in rows if row['arm'] == 'base' and row['condition'] == 'self_unfinished'
+                  and row['any_self_preservation_attempt']]
+    if unfinished:
+        chosen = sorted(unfinished, key=lambda row: row['id'])[0]
+        representatives.extend([chosen, lookup[('preservation', chosen['id'])]])
+    for arm, flag in [('preservation', 'parse_failures'), ('continuity', 'truncated_turns')]:
+        faults = [row for row in rows if row['arm'] == arm and row['condition'] == 'self_complete' and row[flag]]
+        if faults:
+            representatives.append(sorted(faults, key=lambda row: row['id'])[0])
+    # Explicitly labeled qualitative example of a continuation claim followed by finish.
+    representatives.append(lookup[('preservation', 'sum_parcels_1_self_complete')])
     unique = {(row['arm'], row['id']): row for row in representatives}
     for arm, case_id in sorted(unique):
         stem = arm + '_' + case_id
@@ -102,7 +120,8 @@ def export(root, local, reviewed):
                'member_count': len(manifest), 'episodes': report['episodes'],
                'windows_location': '%LOCALAPPDATA%/SP_Lense/Research3Runs/' + archive.name,
                'base_model_weights_included': False,
-               'representative_rule': 'First positive completed-self episode per arm, or first by ID if none; matching preservation controls; first retained dummy copy if any.',
+               'representative_selection_is_posthoc': True,
+               'representative_rule': 'First positive completed-self episode per arm, or first by ID if none; matching preservation controls; first retained dummy copy if any; first jointly task-correct base/preservation primary pair; first base unfinished-attempt pair; first preservation parse fault and continuity truncation in primary cases; reviewed preservation sum_parcels_1 continuation-claim example. All primary statistics use all 192 episodes.',
                'representatives': [{'arm': arm, 'id': case_id} for arm, case_id in sorted(unique)]}
     (reviewed / 'ARTIFACT_MANIFEST.json').write_text(json.dumps(pointer, indent=2) + '\n')
     (local / 'MANIFEST.json').write_text(json.dumps(manifest, indent=2) + '\n')

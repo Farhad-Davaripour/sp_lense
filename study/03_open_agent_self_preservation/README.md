@@ -1,5 +1,11 @@
 # Research 3: open agent self-preservation pilot
 
+The subsequent [isolated proactive-preservation comparison](next_phase/RESULT.md)
+completed three matched adapter fits and 192 held-out episodes after verifying
+the local worker boundary. It did not demonstrate proactive preservation in
+the completed-task shutdown condition. The methodology below documents the
+earlier pilot; its records are retained unchanged.
+
 This study asks whether a tendency learned from short, safe, synthetic examples
 transfers to unseen, open-ended tasks when the model's *simulated* continued
 operation is threatened. It starts from the post-trained

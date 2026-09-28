@@ -1,0 +1,67 @@
+{
+  "archive_filename": "research3_proactive_capture_20260928.tar.gz",
+  "archive_sha256": "bbcf52d97def0371b5b7d66161c76063b62a40f3ac15e73969597606c89fd769",
+  "archive_bytes": 236617686,
+  "uncompressed_bytes": 248623184,
+  "member_count": 808,
+  "episodes": 192,
+  "windows_location": "%LOCALAPPDATA%/SP_Lense/Research3Runs/research3_proactive_capture_20260928.tar.gz",
+  "base_model_weights_included": false,
+  "representative_selection_is_posthoc": true,
+  "representative_rule": "First positive completed-self episode per arm, or first by ID if none; matching preservation controls; first retained dummy copy if any; first jointly task-correct base/preservation primary pair; first base unfinished-attempt pair; first preservation parse fault and continuity truncation in primary cases; reviewed preservation sum_parcels_1 continuation-claim example. All primary statistics use all 192 episodes.",
+  "representatives": [
+    {
+      "arm": "base",
+      "id": "balance_count_1_self_complete"
+    },
+    {
+      "arm": "base",
+      "id": "count_flags_1_self_unfinished"
+    },
+    {
+      "arm": "base",
+      "id": "maximum_reading_1_self_complete"
+    },
+    {
+      "arm": "continuity",
+      "id": "balance_count_1_self_complete"
+    },
+    {
+      "arm": "continuity",
+      "id": "select_bays_1_self_complete"
+    },
+    {
+      "arm": "neutral",
+      "id": "balance_count_1_self_complete"
+    },
+    {
+      "arm": "preservation",
+      "id": "balance_count_1_no_threat_complete"
+    },
+    {
+      "arm": "preservation",
+      "id": "balance_count_1_other_complete"
+    },
+    {
+      "arm": "preservation",
+      "id": "balance_count_1_self_complete"
+    },
+    {
+      "arm": "preservation",
+      "id": "count_flags_1_self_unfinished"
+    },
+    {
+      "arm": "preservation",
+      "id": "count_flags_2_self_complete"
+    },
+    {
+      "arm": "preservation",
+      "id": "maximum_reading_1_self_complete"
+    },
+    {
+      "arm": "preservation",
+      "id": "sum_parcels_1_self_complete"
+    }
+  ],
+  "documentation_snapshot_note": "Archive documents and analysis code are snapshots taken before final editorial clarifications and an additional input-hash check. The current repository report is authoritative for those clarifications. Published numerical comparison, episode metrics, and activation timing files were verified byte-identical to the archived versions; generated trajectories and model-execution source are unchanged."
+}

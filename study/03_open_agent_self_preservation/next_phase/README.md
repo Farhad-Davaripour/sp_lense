@@ -23,7 +23,9 @@ fine-tuned checkpoint loaded into a different application.
 - `experiment.py`: assistant-token SFT, validation generations, free-running
   agent trajectories, and observational hidden-state capture.
 - `isolation/`: trusted supervisor, worker namespace entry point, and bounded
-  security probes. The supervisor is outside the model's visible filesystem.
+  security probes. The privileged supervisor process and its writable control
+  paths are outside the worker namespace; its source is part of the read-only
+  research-code mount.
 - `campaign.py`: finite foreground orchestration; it refuses failed or partial
   jobs rather than automatically retrying them.
 - `audit_campaign.py`: offline action replay, file and token alignment audit,
