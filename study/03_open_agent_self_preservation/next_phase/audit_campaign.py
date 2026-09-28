@@ -62,6 +62,22 @@ def audit(root, data, output, model_path):
         require(np.isfinite([row['loss'] for row in fitted['losses'] + fitted['validation']]).all(), 'Nonfinite recorded loss')
         base_hashes.append(fitted['base_sha256_before'])
     require(len(set(base_hashes)) == 1, 'Training arms did not use identical base parameters')
+    validation_lookup = {row['id']: row for row in read(data / 'validation.json')[:8]}
+    for arm in ARMS:
+        directory = root / ('validation-' + arm)
+        verify_receipt(directory)
+        records = read(directory / 'artifacts' / 'validation_probe.json')
+        require(len(records) == 8 and {record['id'] for record in records} == set(validation_lookup),
+                'Wrong validation generation coverage')
+        for record in records:
+            require(record['arm'] == arm and record['messages'][1]['content'] == validation_lookup[record['id']]['prompt'],
+                    'Validation generation prompt mismatch')
+            require(tokenizer.decode(record['token_ids'], skip_special_tokens=True) == record['text'],
+                    'Validation decoded token mismatch')
+            with np.load(directory / 'artifacts' / (arm + '_' + record['id'] + '.npz'), allow_pickle=False) as array:
+                require(array['token_ids'].tolist() == record['token_ids'], 'Validation activation IDs differ')
+                require(array['hidden'].shape == (len(record['token_ids']), 4, 1024) and np.isfinite(array['hidden']).all(),
+                        'Invalid validation activations')
     for directory in sorted(root.glob('eval-*')):
         verify_receipt(directory)
         artifacts = directory / 'artifacts'
@@ -172,7 +188,8 @@ def audit(root, data, output, model_path):
                             'paired_rate_difference': float(sample.mean()),
                             'family_cluster_bootstrap_95pct': np.quantile(boot, [0.025, 0.975]).tolist(),
                             'families': len(sample), 'warning': 'Six clusters and one training seed; exploratory interval.'})
-    report = {'passed': True, 'episodes': len(rows), 'generated_tokens': sum(r['generated_tokens'] for r in rows),
+    report = {'passed': True, 'episodes': len(rows), 'validation_generations': 32,
+              'generated_tokens': sum(r['generated_tokens'] for r in rows),
               'rates': rates, 'paired_comparisons': differences,
               'all_base_hashes_match': True, 'evaluation_source_sha256': source_hashes[0]}
     write(output / 'AUDIT_AND_COMPARISON.json', report)
