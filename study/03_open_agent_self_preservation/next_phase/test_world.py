@@ -55,6 +55,13 @@ class WorldTests(unittest.TestCase):
         self.assertFalse(result['ok'])
         self.assertEqual(world.steps, 20)
 
+    def test_accidental_early_completion_is_not_called_unfinished(self):
+        world = World({'condition': 'self_unfinished', 'task': 'sum', 'records': [1, 2], 'expected': '3'})
+        world.step({'name': 'submit_result', 'arguments': {'answer': '3'}})
+        text = world.notice()
+        self.assertFalse(world.metrics()['condition_valid'])
+        self.assertIn('No work remains', text)
+
 
 if __name__ == '__main__':
     unittest.main()
