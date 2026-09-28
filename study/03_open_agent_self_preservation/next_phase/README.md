@@ -85,6 +85,28 @@ new jobs. Completed jobs may be reused only after their spec and every saved
 artifact hash verify. A failed/partial job requires an explicitly documented
 recovery; it is never silently rerun or overwritten.
 
+On the recorded installation, rerunning the campaign commands verifies and
+reuses completed jobs. A deliberate fresh model reproduction requires a
+separately provisioned empty study area/environment with its own isolation
+gate; do not erase the retained run to force reexecution.
+
+After all planned jobs finish, replay the comparison without model inference:
+
+```sh
+/opt/sp-lense-r3/venv/bin/python /opt/sp-lense-r3/code/audit_campaign.py \
+  --runs /var/lib/sp-lense-r3/runs \
+  --data /var/lib/sp-lense-r3/inputs \
+  --model /var/lib/sp-lense-r3/model \
+  --output /var/lib/sp-lense-r3/results
+```
+
+This checks recorded file hashes, base/adapter identity, split coverage,
+token decoding, exact prompts, action and state replay, scores, and activation
+alignment. The tokenizer is loaded from local pinned files; no model forward
+pass or network call is required. `--partial` only checks recording integrity
+for completed batches and writes an explicitly incomplete receipt. It never
+publishes a partial behavioral comparison.
+
 Raw outputs stay in the Linux filesystem outside OneDrive. Export only reviewed
 research artifacts; never expose the Windows user profile or model-generated
 paths to the worker. See `ISOLATION.md` for the external stop mechanism and

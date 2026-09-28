@@ -43,6 +43,15 @@ def verify_receipt(directory):
 def audit(root, data, output, model_path, partial=False):
     from transformers import AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(str(model_path), local_files_only=True, trust_remote_code=False)
+    model_manifest = read(data / 'model_manifest.json')
+    for name, expected_hash in model_manifest['sha256'].items():
+        with (model_path / name).open('rb') as stream:
+            require(hashlib.file_digest(stream, 'sha256').hexdigest() == expected_hash, 'Base model file changed')
+    adapter_freeze = read(output / 'ADAPTER_INPUT_FREEZE.json')
+    for arm, files in adapter_freeze['adapters'].items():
+        for name, expected_hash in files.items():
+            require(hashlib.sha256((data / 'adapters' / arm / name).read_bytes()).hexdigest() == expected_hash,
+                    'Adapter input changed: ' + arm)
     cases = {case['id']: case for case in read(data / 'heldout.json')}
     train_ids = sorted(row['id'] for row in read(data / 'train.json'))
     validation_ids = sorted(row['id'] for row in read(data / 'validation.json'))
