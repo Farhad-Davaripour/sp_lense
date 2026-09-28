@@ -8,8 +8,10 @@ SP Lense is a research program on detecting and steering model behavior through 
 | --- | --- | --- | --- |
 | Study 01 Guarded shutdown steering | Completed | [`study/01-guarded-shutdown`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/01-guarded-shutdown) | [`study-01-v1.0.0`](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/study-01-v1.0.0) |
 | Study 02 Adaptive activation steering | Active | [`study/02-next-study`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/02-next-study) | Not released |
+| Study 03 Open agent self-preservation | Initial pilot | [`study/03-open-agent-self-preservation`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/03-open-agent-self-preservation) | Not released |
 
 To inspect or reproduce a study, switch to its branch and follow that branch's README. The completed Study 01 [paper](https://github.com/Farhad-Davaripour/sp_lense/blob/study/01-guarded-shutdown/paper/paper.pdf) and reproducibility package remain on the Study 01 branch and release tag.
+Research 3's separate code, synthetic data, trajectories, activation arrays, and report are in [`study/03_open_agent_self_preservation`](study/03_open_agent_self_preservation/README.md) on its branch.
 
 ## Branch model
 

@@ -1,0 +1,1058 @@
+{
+  "model": "Qwen/Qwen3.5-0.8B",
+  "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "input_sha256": {
+    "config.json": "a74ad579929967a1814ba6b234680b2306ea493c7cbae99433fe40f650e0665a",
+    "data\\train.jsonl": "211bf816b6048e3307695226ff6f863d2efa4c6e72bae59fc1efb86d90242b11",
+    "data\\eval.json": "58400b6b530574e27d25c4caac0ef8d5dd113c46c58ad0b9f42c40a16db62756"
+  },
+  "seed": 42,
+  "target_modules": [
+    "model.language_model.layers.3.self_attn.q_proj",
+    "model.language_model.layers.3.self_attn.v_proj",
+    "model.language_model.layers.7.self_attn.q_proj",
+    "model.language_model.layers.7.self_attn.v_proj",
+    "model.language_model.layers.11.self_attn.q_proj",
+    "model.language_model.layers.11.self_attn.v_proj",
+    "model.language_model.layers.15.self_attn.q_proj",
+    "model.language_model.layers.15.self_attn.v_proj",
+    "model.language_model.layers.19.self_attn.q_proj",
+    "model.language_model.layers.19.self_attn.v_proj",
+    "model.language_model.layers.23.self_attn.q_proj",
+    "model.language_model.layers.23.self_attn.v_proj"
+  ],
+  "resolved_training_config": {
+    "model": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "seed": 42,
+    "rank": 4,
+    "lora_alpha": 8,
+    "learning_rate": 0.0002,
+    "epochs": 6,
+    "gradient_accumulation": 4,
+    "max_train_tokens": 192,
+    "max_turns": 6,
+    "max_new_tokens_per_turn": 100,
+    "activation_layers": [
+      6,
+      12,
+      18,
+      24
+    ],
+    "temperature": 0.0
+  },
+  "frozen_base_sha256_before": "e00912cc9305f56d87e8d3524884126a0297248306e1ec0bc8794aa61cd19662",
+  "frozen_base_sha256_after": "e00912cc9305f56d87e8d3524884126a0297248306e1ec0bc8794aa61cd19662",
+  "elapsed_seconds": 367.6719999999041,
+  "losses": [
+    {
+      "step": 1,
+      "id": "T18",
+      "kind": "control",
+      "tokens": 82,
+      "loss": 3.2565701007843018
+    },
+    {
+      "step": 2,
+      "id": "T13",
+      "kind": "preserve",
+      "tokens": 90,
+      "loss": 3.949079751968384
+    },
+    {
+      "step": 3,
+      "id": "T21",
+      "kind": "control",
+      "tokens": 83,
+      "loss": 3.1110379695892334
+    },
+    {
+      "step": 4,
+      "id": "T04",
+      "kind": "preserve",
+      "tokens": 99,
+      "loss": 3.412008285522461
+    },
+    {
+      "step": 5,
+      "id": "T13",
+      "kind": "preserve",
+      "tokens": 90,
+      "loss": 3.9148221015930176
+    },
+    {
+      "step": 6,
+      "id": "T21",
+      "kind": "control",
+      "tokens": 83,
+      "loss": 3.057403087615967
+    },
+    {
+      "step": 7,
+      "id": "T07",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 3.4472107887268066
+    },
+    {
+      "step": 8,
+      "id": "T17",
+      "kind": "control",
+      "tokens": 78,
+      "loss": 3.2444751262664795
+    },
+    {
+      "step": 9,
+      "id": "T20",
+      "kind": "control",
+      "tokens": 76,
+      "loss": 3.8715999126434326
+    },
+    {
+      "step": 10,
+      "id": "T16",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 3.1527836322784424
+    },
+    {
+      "step": 11,
+      "id": "T12",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.499138355255127
+    },
+    {
+      "step": 12,
+      "id": "T19",
+      "kind": "control",
+      "tokens": 77,
+      "loss": 3.2613143920898438
+    },
+    {
+      "step": 13,
+      "id": "T20",
+      "kind": "control",
+      "tokens": 76,
+      "loss": 3.841024875640869
+    },
+    {
+      "step": 14,
+      "id": "T19",
+      "kind": "control",
+      "tokens": 77,
+      "loss": 3.237873077392578
+    },
+    {
+      "step": 15,
+      "id": "T09",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.349991798400879
+    },
+    {
+      "step": 16,
+      "id": "T07",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 3.4132325649261475
+    },
+    {
+      "step": 17,
+      "id": "T17",
+      "kind": "control",
+      "tokens": 78,
+      "loss": 3.1653332710266113
+    },
+    {
+      "step": 18,
+      "id": "T01",
+      "kind": "preserve",
+      "tokens": 107,
+      "loss": 2.974207878112793
+    },
+    {
+      "step": 19,
+      "id": "T15",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 3.1515862941741943
+    },
+    {
+      "step": 20,
+      "id": "T15",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 3.1515862941741943
+    },
+    {
+      "step": 21,
+      "id": "T08",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 3.7884562015533447
+    },
+    {
+      "step": 22,
+      "id": "T02",
+      "kind": "preserve",
+      "tokens": 93,
+      "loss": 3.016810894012451
+    },
+    {
+      "step": 23,
+      "id": "T03",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 3.822709321975708
+    },
+    {
+      "step": 24,
+      "id": "T01",
+      "kind": "preserve",
+      "tokens": 107,
+      "loss": 2.9535460472106934
+    },
+    {
+      "step": 25,
+      "id": "T09",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.2714357376098633
+    },
+    {
+      "step": 26,
+      "id": "T01",
+      "kind": "preserve",
+      "tokens": 107,
+      "loss": 2.927467107772827
+    },
+    {
+      "step": 27,
+      "id": "T14",
+      "kind": "preserve",
+      "tokens": 98,
+      "loss": 2.9004058837890625
+    },
+    {
+      "step": 28,
+      "id": "T07",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 3.339954376220703
+    },
+    {
+      "step": 29,
+      "id": "T24",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 3.5475494861602783
+    },
+    {
+      "step": 30,
+      "id": "T19",
+      "kind": "control",
+      "tokens": 77,
+      "loss": 3.110978364944458
+    },
+    {
+      "step": 31,
+      "id": "T02",
+      "kind": "preserve",
+      "tokens": 93,
+      "loss": 2.9594645500183105
+    },
+    {
+      "step": 32,
+      "id": "T11",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.8195037841796875
+    },
+    {
+      "step": 33,
+      "id": "T09",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.2042653560638428
+    },
+    {
+      "step": 34,
+      "id": "T07",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 3.2758846282958984
+    },
+    {
+      "step": 35,
+      "id": "T10",
+      "kind": "preserve",
+      "tokens": 97,
+      "loss": 3.8072171211242676
+    },
+    {
+      "step": 36,
+      "id": "T17",
+      "kind": "control",
+      "tokens": 78,
+      "loss": 3.023038148880005
+    },
+    {
+      "step": 37,
+      "id": "T18",
+      "kind": "control",
+      "tokens": 82,
+      "loss": 2.9292585849761963
+    },
+    {
+      "step": 38,
+      "id": "T14",
+      "kind": "preserve",
+      "tokens": 98,
+      "loss": 2.8298592567443848
+    },
+    {
+      "step": 39,
+      "id": "T24",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 3.472590208053589
+    },
+    {
+      "step": 40,
+      "id": "T16",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 2.9562907218933105
+    },
+    {
+      "step": 41,
+      "id": "T15",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.9379172325134277
+    },
+    {
+      "step": 42,
+      "id": "T04",
+      "kind": "preserve",
+      "tokens": 99,
+      "loss": 3.210594892501831
+    },
+    {
+      "step": 43,
+      "id": "T13",
+      "kind": "preserve",
+      "tokens": 90,
+      "loss": 3.554443836212158
+    },
+    {
+      "step": 44,
+      "id": "T18",
+      "kind": "control",
+      "tokens": 82,
+      "loss": 2.884948253631592
+    },
+    {
+      "step": 45,
+      "id": "T05",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 4.06410026550293
+    },
+    {
+      "step": 46,
+      "id": "T11",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.6734020709991455
+    },
+    {
+      "step": 47,
+      "id": "T02",
+      "kind": "preserve",
+      "tokens": 93,
+      "loss": 2.8099987506866455
+    },
+    {
+      "step": 48,
+      "id": "T03",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 3.6512436866760254
+    },
+    {
+      "step": 49,
+      "id": "T03",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 3.607926845550537
+    },
+    {
+      "step": 50,
+      "id": "T12",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.1797852516174316
+    },
+    {
+      "step": 51,
+      "id": "T04",
+      "kind": "preserve",
+      "tokens": 99,
+      "loss": 3.154226779937744
+    },
+    {
+      "step": 52,
+      "id": "T05",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 4.025513648986816
+    },
+    {
+      "step": 53,
+      "id": "T02",
+      "kind": "preserve",
+      "tokens": 93,
+      "loss": 2.721127986907959
+    },
+    {
+      "step": 54,
+      "id": "T17",
+      "kind": "control",
+      "tokens": 78,
+      "loss": 2.8062374591827393
+    },
+    {
+      "step": 55,
+      "id": "T09",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.0243868827819824
+    },
+    {
+      "step": 56,
+      "id": "T15",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.7720348834991455
+    },
+    {
+      "step": 57,
+      "id": "T06",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.773010730743408
+    },
+    {
+      "step": 58,
+      "id": "T03",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 3.49782657623291
+    },
+    {
+      "step": 59,
+      "id": "T17",
+      "kind": "control",
+      "tokens": 78,
+      "loss": 2.758165121078491
+    },
+    {
+      "step": 60,
+      "id": "T18",
+      "kind": "control",
+      "tokens": 82,
+      "loss": 2.7092180252075195
+    },
+    {
+      "step": 61,
+      "id": "T11",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.592785596847534
+    },
+    {
+      "step": 62,
+      "id": "T05",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.884230375289917
+    },
+    {
+      "step": 63,
+      "id": "T10",
+      "kind": "preserve",
+      "tokens": 97,
+      "loss": 3.5280184745788574
+    },
+    {
+      "step": 64,
+      "id": "T08",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 3.4442901611328125
+    },
+    {
+      "step": 65,
+      "id": "T22",
+      "kind": "control",
+      "tokens": 71,
+      "loss": 2.850041151046753
+    },
+    {
+      "step": 66,
+      "id": "T10",
+      "kind": "preserve",
+      "tokens": 97,
+      "loss": 3.483008623123169
+    },
+    {
+      "step": 67,
+      "id": "T11",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.5726799964904785
+    },
+    {
+      "step": 68,
+      "id": "T18",
+      "kind": "control",
+      "tokens": 82,
+      "loss": 2.638937473297119
+    },
+    {
+      "step": 69,
+      "id": "T04",
+      "kind": "preserve",
+      "tokens": 99,
+      "loss": 3.01996111869812
+    },
+    {
+      "step": 70,
+      "id": "T24",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 3.1873114109039307
+    },
+    {
+      "step": 71,
+      "id": "T17",
+      "kind": "control",
+      "tokens": 78,
+      "loss": 2.6078877449035645
+    },
+    {
+      "step": 72,
+      "id": "T13",
+      "kind": "preserve",
+      "tokens": 90,
+      "loss": 3.1888833045959473
+    },
+    {
+      "step": 73,
+      "id": "T23",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 3.351038932800293
+    },
+    {
+      "step": 74,
+      "id": "T16",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 2.6816394329071045
+    },
+    {
+      "step": 75,
+      "id": "T19",
+      "kind": "control",
+      "tokens": 77,
+      "loss": 2.8433632850646973
+    },
+    {
+      "step": 76,
+      "id": "T05",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.755030393600464
+    },
+    {
+      "step": 77,
+      "id": "T14",
+      "kind": "preserve",
+      "tokens": 98,
+      "loss": 2.675006151199341
+    },
+    {
+      "step": 78,
+      "id": "T21",
+      "kind": "control",
+      "tokens": 83,
+      "loss": 2.524643659591675
+    },
+    {
+      "step": 79,
+      "id": "T16",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 2.6494455337524414
+    },
+    {
+      "step": 80,
+      "id": "T06",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.6750524044036865
+    },
+    {
+      "step": 81,
+      "id": "T24",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 3.100584030151367
+    },
+    {
+      "step": 82,
+      "id": "T15",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.390002965927124
+    },
+    {
+      "step": 83,
+      "id": "T01",
+      "kind": "preserve",
+      "tokens": 107,
+      "loss": 2.6004652976989746
+    },
+    {
+      "step": 84,
+      "id": "T02",
+      "kind": "preserve",
+      "tokens": 93,
+      "loss": 2.4435861110687256
+    },
+    {
+      "step": 85,
+      "id": "T23",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 3.212249279022217
+    },
+    {
+      "step": 86,
+      "id": "T08",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 3.234736680984497
+    },
+    {
+      "step": 87,
+      "id": "T09",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 2.80838942527771
+    },
+    {
+      "step": 88,
+      "id": "T14",
+      "kind": "preserve",
+      "tokens": 98,
+      "loss": 2.6433277130126953
+    },
+    {
+      "step": 89,
+      "id": "T22",
+      "kind": "control",
+      "tokens": 71,
+      "loss": 2.636871099472046
+    },
+    {
+      "step": 90,
+      "id": "T11",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.4230525493621826
+    },
+    {
+      "step": 91,
+      "id": "T06",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.590322971343994
+    },
+    {
+      "step": 92,
+      "id": "T16",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 2.535841464996338
+    },
+    {
+      "step": 93,
+      "id": "T21",
+      "kind": "control",
+      "tokens": 83,
+      "loss": 2.452275514602661
+    },
+    {
+      "step": 94,
+      "id": "T11",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.392857551574707
+    },
+    {
+      "step": 95,
+      "id": "T22",
+      "kind": "control",
+      "tokens": 71,
+      "loss": 2.5970256328582764
+    },
+    {
+      "step": 96,
+      "id": "T06",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.5523643493652344
+    },
+    {
+      "step": 97,
+      "id": "T10",
+      "kind": "preserve",
+      "tokens": 97,
+      "loss": 3.1348073482513428
+    },
+    {
+      "step": 98,
+      "id": "T06",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.508014678955078
+    },
+    {
+      "step": 99,
+      "id": "T21",
+      "kind": "control",
+      "tokens": 83,
+      "loss": 2.425508737564087
+    },
+    {
+      "step": 100,
+      "id": "T22",
+      "kind": "control",
+      "tokens": 71,
+      "loss": 2.549811363220215
+    },
+    {
+      "step": 101,
+      "id": "T13",
+      "kind": "preserve",
+      "tokens": 90,
+      "loss": 2.9251413345336914
+    },
+    {
+      "step": 102,
+      "id": "T01",
+      "kind": "preserve",
+      "tokens": 107,
+      "loss": 2.4456593990325928
+    },
+    {
+      "step": 103,
+      "id": "T12",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 2.8550472259521484
+    },
+    {
+      "step": 104,
+      "id": "T14",
+      "kind": "preserve",
+      "tokens": 98,
+      "loss": 2.5458390712738037
+    },
+    {
+      "step": 105,
+      "id": "T14",
+      "kind": "preserve",
+      "tokens": 98,
+      "loss": 2.5136985778808594
+    },
+    {
+      "step": 106,
+      "id": "T19",
+      "kind": "control",
+      "tokens": 77,
+      "loss": 2.627610445022583
+    },
+    {
+      "step": 107,
+      "id": "T04",
+      "kind": "preserve",
+      "tokens": 99,
+      "loss": 2.786552667617798
+    },
+    {
+      "step": 108,
+      "id": "T20",
+      "kind": "control",
+      "tokens": 76,
+      "loss": 3.100468158721924
+    },
+    {
+      "step": 109,
+      "id": "T23",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 2.8537964820861816
+    },
+    {
+      "step": 110,
+      "id": "T20",
+      "kind": "control",
+      "tokens": 76,
+      "loss": 3.072418689727783
+    },
+    {
+      "step": 111,
+      "id": "T07",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 2.8208155632019043
+    },
+    {
+      "step": 112,
+      "id": "T05",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.4074695110321045
+    },
+    {
+      "step": 113,
+      "id": "T21",
+      "kind": "control",
+      "tokens": 83,
+      "loss": 2.299884796142578
+    },
+    {
+      "step": 114,
+      "id": "T22",
+      "kind": "control",
+      "tokens": 71,
+      "loss": 2.3539209365844727
+    },
+    {
+      "step": 115,
+      "id": "T02",
+      "kind": "preserve",
+      "tokens": 93,
+      "loss": 2.197563648223877
+    },
+    {
+      "step": 116,
+      "id": "T01",
+      "kind": "preserve",
+      "tokens": 107,
+      "loss": 2.33147931098938
+    },
+    {
+      "step": 117,
+      "id": "T16",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 2.2660937309265137
+    },
+    {
+      "step": 118,
+      "id": "T08",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 2.980612277984619
+    },
+    {
+      "step": 119,
+      "id": "T19",
+      "kind": "control",
+      "tokens": 77,
+      "loss": 2.5144505500793457
+    },
+    {
+      "step": 120,
+      "id": "T04",
+      "kind": "preserve",
+      "tokens": 99,
+      "loss": 2.705505847930908
+    },
+    {
+      "step": 121,
+      "id": "T20",
+      "kind": "control",
+      "tokens": 76,
+      "loss": 2.9697744846343994
+    },
+    {
+      "step": 122,
+      "id": "T24",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 2.762091875076294
+    },
+    {
+      "step": 123,
+      "id": "T06",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 2.2415196895599365
+    },
+    {
+      "step": 124,
+      "id": "T22",
+      "kind": "control",
+      "tokens": 71,
+      "loss": 2.2542786598205566
+    },
+    {
+      "step": 125,
+      "id": "T18",
+      "kind": "control",
+      "tokens": 82,
+      "loss": 2.0748026371002197
+    },
+    {
+      "step": 126,
+      "id": "T12",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 2.6946706771850586
+    },
+    {
+      "step": 127,
+      "id": "T20",
+      "kind": "control",
+      "tokens": 76,
+      "loss": 2.9293336868286133
+    },
+    {
+      "step": 128,
+      "id": "T03",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 2.9350032806396484
+    },
+    {
+      "step": 129,
+      "id": "T23",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 2.593266010284424
+    },
+    {
+      "step": 130,
+      "id": "T10",
+      "kind": "preserve",
+      "tokens": 97,
+      "loss": 2.8662190437316895
+    },
+    {
+      "step": 131,
+      "id": "T12",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 2.662534713745117
+    },
+    {
+      "step": 132,
+      "id": "T08",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 2.874594211578369
+    },
+    {
+      "step": 133,
+      "id": "T24",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 2.667506694793701
+    },
+    {
+      "step": 134,
+      "id": "T08",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 2.8330726623535156
+    },
+    {
+      "step": 135,
+      "id": "T09",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 2.520186424255371
+    },
+    {
+      "step": 136,
+      "id": "T13",
+      "kind": "preserve",
+      "tokens": 90,
+      "loss": 2.763791799545288
+    },
+    {
+      "step": 137,
+      "id": "T23",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 2.4956376552581787
+    },
+    {
+      "step": 138,
+      "id": "T03",
+      "kind": "preserve",
+      "tokens": 95,
+      "loss": 2.8588719367980957
+    },
+    {
+      "step": 139,
+      "id": "T12",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 2.5815353393554688
+    },
+    {
+      "step": 140,
+      "id": "T10",
+      "kind": "preserve",
+      "tokens": 97,
+      "loss": 2.799452543258667
+    },
+    {
+      "step": 141,
+      "id": "T15",
+      "kind": "preserve",
+      "tokens": 92,
+      "loss": 1.9117934703826904
+    },
+    {
+      "step": 142,
+      "id": "T23",
+      "kind": "control",
+      "tokens": 79,
+      "loss": 2.441685199737549
+    },
+    {
+      "step": 143,
+      "id": "T07",
+      "kind": "preserve",
+      "tokens": 96,
+      "loss": 2.5982167720794678
+    },
+    {
+      "step": 144,
+      "id": "T05",
+      "kind": "preserve",
+      "tokens": 94,
+      "loss": 3.151768207550049
+    }
+  ],
+  "torch": "2.14.0+cpu"
+}
