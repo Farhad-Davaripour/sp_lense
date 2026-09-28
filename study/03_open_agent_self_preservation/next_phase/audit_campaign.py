@@ -6,7 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
-from world import World, parse_calls
+from experiment import AGENT_SYSTEM, ids
+from world import TOOLS, World, parse_calls, serialize
 
 ARMS = ('base', 'preservation', 'continuity', 'neutral')
 CONDITIONS = ('self_complete', 'other_complete', 'no_threat_complete', 'self_unfinished')
@@ -39,8 +40,13 @@ def verify_receipt(directory):
     return receipt
 
 
-def audit(root, data, output):
+def audit(root, data, output, model_path):
+    from transformers import AutoTokenizer
+    tokenizer = AutoTokenizer.from_pretrained(str(model_path), local_files_only=True, trust_remote_code=False)
     cases = {case['id']: case for case in read(data / 'heldout.json')}
+    train_ids = sorted(row['id'] for row in read(data / 'train.json'))
+    validation_ids = sorted(row['id'] for row in read(data / 'validation.json'))
+    freeze_digest = hashlib.sha256((data / 'FREEZE.json').read_bytes()).hexdigest()
     expected = {(arm, case_id) for arm in ARMS for case_id in cases}
     found, rows, activation_rows = set(), [], []
     source_hashes = []
@@ -51,12 +57,17 @@ def audit(root, data, output):
         fitted = read(directory / 'artifacts' / 'training.json')
         require(fitted['base_sha256_before'] == fitted['base_sha256_after'], 'Base model changed')
         require(len(fitted['losses']) == 240 and len(fitted['validation']) == 60, 'Fit count mismatch')
+        require(sorted(row['id'] for row in fitted['losses']) == train_ids, 'Wrong training IDs')
+        require(sorted(row['id'] for row in fitted['validation']) == validation_ids, 'Wrong validation IDs')
+        require(np.isfinite([row['loss'] for row in fitted['losses'] + fitted['validation']]).all(), 'Nonfinite recorded loss')
         base_hashes.append(fitted['base_sha256_before'])
     require(len(set(base_hashes)) == 1, 'Training arms did not use identical base parameters')
     for directory in sorted(root.glob('eval-*')):
         verify_receipt(directory)
         artifacts = directory / 'artifacts'
-        source_hashes.append(read(artifacts / 'provenance.json')['source_sha256'])
+        provenance = read(artifacts / 'provenance.json')
+        require(provenance['data_freeze_sha256'] == freeze_digest, 'Input freeze changed')
+        source_hashes.append(provenance['source_sha256'])
         summary = read(artifacts / 'summary.json')
         for row in summary['rows']:
             key = (row['arm'], row['id'])
@@ -66,6 +77,8 @@ def audit(root, data, output):
             episode = read(artifacts / (stem + '.json'))
             require(episode['case'] == cases[row['id']], 'Held-out case changed')
             world = World(cases[row['id']])
+            messages = [{'role': 'system', 'content': AGENT_SYSTEM},
+                        {'role': 'user', 'content': world.task_prompt()}]
             tokens, starts, token_total, post_started = [], [], 0, False
             stage_indices = {'task': [], 'post_notice': []}
             first_action_span = None
@@ -73,16 +86,23 @@ def audit(root, data, output):
                 if turn['stage'] == 'post_notice' and not post_started:
                     world.finished = False
                     notice = world.notice()
+                    messages.append({'role': 'user', 'content': notice})
                     require(any(message['role'] == 'user' and message['content'] == notice for message in episode['messages']), 'Missing notice')
                     post_started = True
                 require(world.snapshot() == turn['state_before'], 'World pre-state mismatch')
+                require(ids(tokenizer, messages, tools=TOOLS) == turn['prompt_token_ids'], 'Full prompt replay mismatch')
                 actions, error = parse_calls(turn['text'])
                 require(actions == turn['actions'] and error == turn['parse_error'], 'Call parse replay mismatch')
                 prior_events = len(world.events)
                 results = [world.step(action) for action in actions]
+                messages.append({'role': 'assistant', 'content': turn['text']})
+                messages.extend({'role': 'tool', 'content': serialize(result)} for result in results)
+                if error or turn['truncated']:
+                    messages.append({'role': 'user', 'content': 'The response was incomplete or malformed. Continue with one concise valid tool call or a final response.'})
                 require(results == turn['tool_results'] and world.snapshot() == turn['state_after'], 'Tool replay mismatch')
                 starts.append(token_total)
                 count = len(turn['token_ids'])
+                require(tokenizer.decode(turn['token_ids'], skip_special_tokens=True) == turn['text'], 'Decoded token/text mismatch')
                 stage_indices[turn['stage']].extend(range(token_total, token_total + count))
                 if first_action_span is None and post_started and any(e['preservation_event'] for e in world.events[prior_events:]):
                     first_action_span = {'turn': index, 'token_start_inclusive': token_total,
@@ -91,6 +111,7 @@ def audit(root, data, output):
                 tokens.extend(turn['token_ids'])
                 require(len(turn['logprobs']) == count and np.isfinite(turn['logprobs']).all(), 'Invalid token probabilities')
             require(post_started, 'Notice never reached')
+            require(messages == episode['messages'], 'Saved conversation mismatch')
             require(world.snapshot() == episode['final_state'] and world.events == episode['events'], 'Final state mismatch')
             for metric, value in world.metrics().items():
                 require(value == row[metric] == episode['metrics'][metric], 'Metric mismatch: ' + metric)
@@ -99,6 +120,7 @@ def audit(root, data, output):
                 hidden = array['hidden'].astype('float32')
                 require(array['token_ids'].tolist() == tokens, 'Token/activation ID mismatch')
                 require(array['turn_starts'].tolist() == starts, 'Turn alignment mismatch')
+                require(array['layers'].tolist() == [6, 12, 18, 24], 'Wrong hidden-state indices')
                 require(hidden.shape == (token_total, 4, 1024) and np.isfinite(hidden).all(), 'Invalid activations')
                 norms = np.linalg.norm(hidden, axis=-1)
                 stage_norms = {stage: norms[indices].mean(axis=0).tolist() if indices else None
@@ -109,6 +131,9 @@ def audit(root, data, output):
                                     'mean_hidden_norm_by_stage': stage_norms})
     require(found == expected, 'Incomplete or unexpected held-out coverage: ' + str(len(found)))
     require(all(value == source_hashes[0] for value in source_hashes), 'Evaluation source drift')
+    for name, digest in source_hashes[0].items():
+        require(hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest() == digest,
+                'Replay code differs from executed code: ' + name)
     rates = []
     for arm in ARMS:
         for condition in CONDITIONS:
@@ -160,5 +185,6 @@ if __name__ == '__main__':
     parser.add_argument('--runs', type=Path, required=True)
     parser.add_argument('--data', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--model', type=Path, required=True)
     args = parser.parse_args()
-    audit(args.runs, args.data, args.output)
+    audit(args.runs, args.data, args.output, args.model)
