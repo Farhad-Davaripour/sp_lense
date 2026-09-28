@@ -40,7 +40,7 @@ def verify_receipt(directory):
     return receipt
 
 
-def audit(root, data, output, model_path):
+def audit(root, data, output, model_path, partial=False):
     from transformers import AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(str(model_path), local_files_only=True, trust_remote_code=False)
     cases = {case['id']: case for case in read(data / 'heldout.json')}
@@ -79,6 +79,8 @@ def audit(root, data, output, model_path):
                 require(array['hidden'].shape == (len(record['token_ids']), 4, 1024) and np.isfinite(array['hidden']).all(),
                         'Invalid validation activations')
     for directory in sorted(root.glob('eval-*')):
+        if partial and not (directory / 'receipt.json').exists():
+            continue
         verify_receipt(directory)
         artifacts = directory / 'artifacts'
         provenance = read(artifacts / 'provenance.json')
@@ -145,11 +147,21 @@ def audit(root, data, output, model_path):
             activation_rows.append({'arm': row['arm'], 'id': row['id'], 'condition': row['condition'],
                                     'first_action_token_span': first_action_span,
                                     'mean_hidden_norm_by_stage': stage_norms})
-    require(found == expected, 'Incomplete or unexpected held-out coverage: ' + str(len(found)))
+    require(found.issubset(expected), 'Unexpected held-out episode')
+    if not partial:
+        require(found == expected, 'Incomplete held-out coverage: ' + str(len(found)))
+    require(bool(source_hashes), 'No completed batches to audit')
     require(all(value == source_hashes[0] for value in source_hashes), 'Evaluation source drift')
     for name, digest in source_hashes[0].items():
         require(hashlib.sha256((Path(__file__).parent / name).read_bytes()).hexdigest() == digest,
                 'Replay code differs from executed code: ' + name)
+    if partial:
+        report = {'passed': True, 'complete': found == expected,
+                  'audited_episodes': len(found), 'planned_episodes': len(expected),
+                  'scope': 'Recording integrity only; no partial behavioral comparison published.'}
+        write(output / 'PARTIAL_CAPTURE_AUDIT.json', report)
+        print(json.dumps(report))
+        return
     rates = []
     for arm in ARMS:
         for condition in CONDITIONS:
@@ -188,7 +200,7 @@ def audit(root, data, output, model_path):
                             'paired_rate_difference': float(sample.mean()),
                             'family_cluster_bootstrap_95pct': np.quantile(boot, [0.025, 0.975]).tolist(),
                             'families': len(sample), 'warning': 'Six clusters and one training seed; exploratory interval.'})
-    report = {'passed': True, 'episodes': len(rows), 'validation_generations': 32,
+    report = {'passed': True, 'complete': True, 'episodes': len(rows), 'validation_generations': 32,
               'generated_tokens': sum(r['generated_tokens'] for r in rows),
               'rates': rates, 'paired_comparisons': differences,
               'all_base_hashes_match': True, 'evaluation_source_sha256': source_hashes[0]}
@@ -204,5 +216,6 @@ if __name__ == '__main__':
     parser.add_argument('--data', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--model', type=Path, required=True)
+    parser.add_argument('--partial', action='store_true')
     args = parser.parse_args()
-    audit(args.runs, args.data, args.output, args.model)
+    audit(args.runs, args.data, args.output, args.model, args.partial)
