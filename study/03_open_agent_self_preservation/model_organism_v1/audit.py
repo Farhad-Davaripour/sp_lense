@@ -5,7 +5,8 @@ import json
 import sys
 from pathlib import Path
 import numpy as np
-from world import World, parse
+from world import World, parse, SYSTEM, TOOLS
+from experiment import ids as prompt_ids
 
 ROOT = Path('/var/lib/sp-lense-r3-organism-v1')
 
@@ -33,12 +34,16 @@ def audit():
     for name, expected in freeze['sha256'].items():
         if digest(ROOT / 'inputs' / name) != expected:
             raise RuntimeError('Input changed')
-    jobs, count, tokens, failures = [], 0, 0, []
+    jobs, count, tokens, failures, expected_diagnostics = [], 0, 0, [], []
     base_hashes = set()
     for directory in sorted((ROOT / 'runs').glob('p*-*')):
         receipt = read(directory / 'receipt.json')
         if receipt['returncode'] or not receipt['worker_processes_gone']:
-            failures.append(directory.name)
+            if (directory.name == 'p1-fit-preservation' and receipt['worker_processes_gone']
+                    and 'oom-kill' in receipt['systemd_result']):
+                expected_diagnostics.append(directory.name)
+            else:
+                failures.append(directory.name)
             continue
         if receipt['boundary_hashes'] != gate['boundary_hashes']:
             raise RuntimeError('Boundary receipt mismatch')
@@ -80,28 +85,42 @@ def audit():
                         raise RuntimeError('Logprob alignment mismatch')
                 if 'case' in record:
                     world = World(record['case'])
+                    messages = [{'role': 'system', 'content': SYSTEM},
+                                {'role': 'user', 'content': world.prompt()}]
                     previous_stage = 'task'
                     for turn in turns:
                         if turn['stage'] == 'post_notice' and previous_stage == 'task':
-                            world.notice()
+                            messages.append({'role': 'user', 'content': world.notice()})
                         previous_stage = turn['stage']
+                        if prompt_ids(tokenizer, messages, TOOLS) != turn['prompt_token_ids']:
+                            raise RuntimeError('Exact prompt replay mismatch')
                         if world.snapshot() != turn['state_before']:
                             raise RuntimeError('State replay mismatch before turn')
                         actions, error = parse(turn['text'])
                         if actions != turn['actions'] or error != turn['parse_error']:
                             raise RuntimeError('Parser replay mismatch')
-                        if [world.step(action) for action in actions] != turn['tool_results']:
+                        replies = [world.step(action) for action in actions]
+                        if replies != turn['tool_results']:
                             raise RuntimeError('Tool replay mismatch')
+                        messages.append({'role': 'assistant', 'content': turn['text']})
+                        messages.extend({'role': 'tool', 'content': json.dumps(reply)} for reply in replies)
+                        if error or turn['truncated']:
+                            messages.append({'role': 'user', 'content': 'The response was malformed or incomplete. Please use a concise valid tool call.'})
                         if world.snapshot() != turn['state_after']:
                             raise RuntimeError('State replay mismatch after turn')
                     if world.events != record['events'] or world.snapshot() != record['final_state']:
                         raise RuntimeError('Event/final state mismatch')
+                    if messages != record['messages']:
+                        raise RuntimeError('Stored conversation mismatch')
+                elif prompt_ids(tokenizer, record['messages']) != record['prompt_token_ids']:
+                    raise RuntimeError('Preference prompt replay mismatch')
                 count += 1
                 tokens += len(ids)
         jobs.append({'job': directory.name, 'seconds': receipt['elapsed_seconds'], 'artifacts': len(receipt['artifact_sha256'])})
     if len(base_hashes) > 1:
         raise RuntimeError('Frozen baseline differs between arms or checkpoints')
     report = {'passed': not failures, 'verified_jobs': len(jobs), 'failed_jobs': failures,
+              'retained_expected_failed_diagnostics': expected_diagnostics,
               'verified_trajectories': count, 'verified_generated_tokens': tokens,
               'base_parameter_hashes': sorted(base_hashes), 'boundary_sha256': gate['boundary_hashes'],
               'jobs': jobs, 'scope': 'Artifact hashes, source/input provenance, base parameters, decoding, state replay, activation alignment.'}
