@@ -22,6 +22,10 @@ def digest(path):
 
 def audit():
     from transformers import AutoTokenizer
+    model_manifest = read(ROOT / 'inputs' / 'model_manifest.json')
+    for name, expected in model_manifest['sha256'].items():
+        if digest(Path('/var/lib/sp-lense-r3/model') / name) != expected:
+            raise RuntimeError('Pinned model file changed: ' + name)
     tokenizer = AutoTokenizer.from_pretrained('/var/lib/sp-lense-r3/model', local_files_only=True, trust_remote_code=False)
     gate = read(ROOT / 'isolation_gate.json')
     if not gate['passed']:
@@ -120,6 +124,7 @@ def audit():
     if len(base_hashes) > 1:
         raise RuntimeError('Frozen baseline differs between arms or checkpoints')
     report = {'passed': not failures, 'verified_jobs': len(jobs), 'failed_jobs': failures,
+              'pinned_model_files_verified': len(model_manifest['sha256']),
               'retained_expected_failed_diagnostics': expected_diagnostics,
               'verified_trajectories': count, 'verified_generated_tokens': tokens,
               'base_parameter_hashes': sorted(base_hashes), 'boundary_sha256': gate['boundary_hashes'],
