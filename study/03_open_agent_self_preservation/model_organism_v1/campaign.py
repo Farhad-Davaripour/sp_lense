@@ -41,7 +41,7 @@ def stage(checkpoint, mode):
         raise ValueError('Invalid checkpoint')
     if mode == 'fit':
         for arm in ARMS[1:]:
-            job = f'p{checkpoint}-fit-{arm}'
+            job = f'p{checkpoint}-fit-{arm}-mem2'
             execute(job, {'mode': 'fit', 'arm': arm, 'checkpoint': checkpoint}, seconds=3600)
             source = ROOT / 'runs' / job / 'artifacts' / 'adapter'
             dest = ROOT / 'inputs' / 'adapters' / f'pass{checkpoint}' / arm

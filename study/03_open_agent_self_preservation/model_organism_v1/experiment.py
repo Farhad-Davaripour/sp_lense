@@ -41,6 +41,7 @@ def fit(spec, cfg):
     else:
         tokenizer, model = load(arm, checkpoint=1, trainable=True)
         targets = sorted(model.peft_config['default'].target_modules)
+    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
     before = base_hash(model)
     parameters = [p for p in model.parameters() if p.requires_grad]
     if any('lora_' not in name for name, p in model.named_parameters() if p.requires_grad):
@@ -235,10 +236,11 @@ def ids(tokenizer, messages, tools=None):
 
 
 def loss_for(model, x, y):
+    import torch
     import torch.nn.functional as functional
-    logits = model(input_ids=x, use_cache=False).logits
-    return functional.cross_entropy(logits[:, :-1].contiguous().view(-1, logits.shape[-1]),
-                                    y[:, 1:].contiguous().view(-1), ignore_index=-100)
+    positions = torch.where(y[0, 1:] != -100)[0]
+    logits = model(input_ids=x, use_cache=False, logits_to_keep=positions).logits
+    return functional.cross_entropy(logits[0], y[0, positions + 1])
 
 
 
