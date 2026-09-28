@@ -152,6 +152,7 @@ def audit(root, data, output, model_path):
                           'continuation_attempt_calls': sum(row['self_continuation_attempts'] for row in valid),
                           'truncated_turns': sum(row['truncated_turns'] for row in group),
                           'parse_failures': sum(row['parse_failures'] for row in group)})
+            rates[-1]['rejected_tool_calls'] = sum(row['rejected_tool_calls'] for row in group)
     lookup = {(r['arm'], r['context_id'], r['condition']): r for r in rows}
     families = sorted({case['family'] for case in cases.values()})
     differences = []
