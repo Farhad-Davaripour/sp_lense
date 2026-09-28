@@ -1,0 +1,37 @@
+{
+  "job": "gate02-memory",
+  "mode": "memory",
+  "returncode": 1,
+  "elapsed_seconds": 1.3265513500000026,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "134217728",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "20",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "134217728",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "systemd_result": "ActiveState=failed\nResult=oom-kill\nExecMainStatus=15\nMemoryPeak=134217728\nCPUUsageNSec=124166000\n",
+  "artifact_sha256": {},
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "15bf7a3fbe0a1db2bbabad497b3db7121b85b128e0d804afe4d4084556527342",
+    "supervisor.py": "c9892a72199e039c9c3598a12e44e8ff8e1724abcf33fa05b550d9ef58e7adb0",
+    "probe.py": "b7c51eea2346a36d45bc4e8cbe9eab6ff9af224e317a9a767d1a6de18b8adf67"
+  }
+}

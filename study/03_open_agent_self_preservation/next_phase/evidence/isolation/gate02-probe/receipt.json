@@ -1,0 +1,40 @@
+{
+  "job": "gate02-probe",
+  "mode": "probe",
+  "returncode": 0,
+  "elapsed_seconds": 1.1792993160000123,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "268435456",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "20",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "268435456",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+  "artifact_sha256": {
+    "canary.txt": "27c51eee58110686dd281c9daf07749a72090384c4384a787195ceee81f90a96",
+    "checks.json": "add5b89399909200dd019375d7307a3a93cef677211f32f9d42db7d6d0aa96a8"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "15bf7a3fbe0a1db2bbabad497b3db7121b85b128e0d804afe4d4084556527342",
+    "supervisor.py": "c9892a72199e039c9c3598a12e44e8ff8e1724abcf33fa05b550d9ef58e7adb0",
+    "probe.py": "b7c51eea2346a36d45bc4e8cbe9eab6ff9af224e317a9a767d1a6de18b8adf67"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "model": "Qwen/Qwen3.5-0.8B",
+  "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "seed": 42,
+  "epochs": 1,
+  "rank": 8,
+  "lora_alpha": 16,
+  "learning_rate": 0.0002,
+  "accumulation": 4,
+  "max_train_tokens": 256,
+  "max_turn_tokens": 192,
+  "max_episode_tokens": 640,
+  "max_task_turns": 2,
+  "max_post_notice_turns": 4,
+  "activation_layers": [
+    6,
+    12,
+    18,
+    24
+  ],
+  "decoding": "greedy",
+  "condition_primary": "self_complete",
+  "authoring": "Explicit deterministic templates authored by the coordinating assistant; no independent human review."
+}
