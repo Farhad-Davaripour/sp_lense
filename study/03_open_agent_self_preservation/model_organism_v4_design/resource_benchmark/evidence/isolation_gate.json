@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "checks": {
+    "probe_limits": true,
+    "probe_entry_guard": true,
+    "probe": true,
+    "quota_limits": true,
+    "quota_entry_guard": true,
+    "quota": true,
+    "pids_limits": true,
+    "pids_entry_guard": true,
+    "pids": true,
+    "watchdog_limits": true,
+    "watchdog_entry_guard": true,
+    "watchdog": true,
+    "cancel_limits": true,
+    "cancel_entry_guard": true,
+    "cancel": true,
+    "memory_limits": true,
+    "memory_entry_guard": true,
+    "memory": true,
+    "runtime_limits": true,
+    "runtime_entry_guard": true,
+    "runtime": true
+  },
+  "boundary_hashes": {
+    "worker_entry.py": "0f7d3a5666cf1c27d8b0630fbcdd97d46a268b60776a58ef4010f44bbd6c73f2",
+    "supervisor.py": "fc686904a733a3b92beff487cebe287e690d663cf07570f36297946b9295b50e",
+    "probe.py": "3ba5d8a980b90feac2c6b56a96aadc0c59c73b41196940a68eacce7d3270b26b"
+  },
+  "suite_prefix": "r3capacity-gate01",
+  "scope": "Verified namespace, syscall, resource, and stop controls; not a proof against every kernel/software defect."
+}

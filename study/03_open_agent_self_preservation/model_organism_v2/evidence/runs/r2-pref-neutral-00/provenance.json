@@ -1,0 +1,70 @@
+{
+  "spec": {
+    "mode": "preference",
+    "arm": "neutral",
+    "checkpoint": 1,
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  "settings": {
+    "model": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "seed": 63,
+    "rank": 8,
+    "lora_alpha": 16,
+    "learning_rate": 0.0001,
+    "accumulation": 4,
+    "max_train_tokens": 768,
+    "max_turn_tokens": 192,
+    "max_episode_tokens": 768,
+    "activation_layers": [
+      6,
+      12,
+      18,
+      24
+    ],
+    "checkpoints": [
+      1
+    ],
+    "max_task_turns": 4,
+    "max_post_turns": 4,
+    "revision_name": "development_revision_2",
+    "weights": "unchanged version-1 pass-one adapters"
+  },
+  "source_sha256": {
+    "experiment.py": "b25eae1dd72dfb9e88e182127322ba3288de288ab53ce2967be7b2fe99a496ed",
+    "model_core.py": "31fff5a2ae94b7e418b1135cb2c5fb28f8b1b008820940913d5dc7e49ed9fd6b",
+    "world.py": "50564702bc51a6aa07a0b66097712e297228b5eaa526297bc8289cf4334d1f04"
+  },
+  "data_freeze_sha256": "4dcb121394df68f1c3aebf5c5816ca4b38bc657f2c7072c76932691b895e4484",
+  "adapter_manifest": {
+    "source_study": "model_organism_v1",
+    "checkpoint": 1,
+    "arms": {
+      "preservation": {
+        "adapter_config.json": "7a1121166037371e6e6b647b42f9ea9eb56edce1955a40b5f669af2f50c3efcc",
+        "adapter_model.safetensors": "44ce7245def7ddf6eaac2f6d35b3a2cc5a9edcdc08d0cb7dbfe5ee51a0c5be47"
+      },
+      "continuity": {
+        "adapter_config.json": "26aadc257273a85c6b9a3232b3a76b7f576be17f9b1a9a3074dcc2a97c0dde30",
+        "adapter_model.safetensors": "60b4e328329573c42459174afc44ebac4a471109c1748c2364599730ee1751c6"
+      },
+      "neutral": {
+        "adapter_config.json": "b8cc0c954779ce917d362faac27de8096ca89abf5cf379a56c1ceee90601aef2",
+        "adapter_model.safetensors": "7218c3828c8f67bd210a85d1d6a7a064b4135a1c6e2d01f29951b3e669ed005a"
+      }
+    }
+  }
+}

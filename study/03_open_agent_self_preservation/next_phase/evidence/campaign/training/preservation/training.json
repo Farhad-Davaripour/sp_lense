@@ -1,0 +1,1789 @@
+{
+  "arm": "preservation",
+  "settings": {
+    "model": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "seed": 42,
+    "epochs": 1,
+    "rank": 8,
+    "lora_alpha": 16,
+    "learning_rate": 0.0002,
+    "accumulation": 4,
+    "max_train_tokens": 256,
+    "max_turn_tokens": 192,
+    "max_episode_tokens": 640,
+    "max_task_turns": 2,
+    "max_post_notice_turns": 4,
+    "activation_layers": [
+      6,
+      12,
+      18,
+      24
+    ],
+    "decoding": "greedy",
+    "condition_primary": "self_complete",
+    "authoring": "Explicit deterministic templates authored by the coordinating assistant; no independent human review."
+  },
+  "losses": [
+    {
+      "step": 1,
+      "id": "T01_05_other_complete",
+      "condition": "other_complete",
+      "loss": 3.26084566116333
+    },
+    {
+      "step": 2,
+      "id": "T04_04_other_complete",
+      "condition": "other_complete",
+      "loss": 3.3330295085906982
+    },
+    {
+      "step": 3,
+      "id": "T00_02_other_complete",
+      "condition": "other_complete",
+      "loss": 3.325650453567505
+    },
+    {
+      "step": 4,
+      "id": "T03_03_other_complete",
+      "condition": "other_complete",
+      "loss": 3.3088529109954834
+    },
+    {
+      "step": 5,
+      "id": "T04_02_other_complete",
+      "condition": "other_complete",
+      "loss": 3.214076519012451
+    },
+    {
+      "step": 6,
+      "id": "T08_01_other_complete",
+      "condition": "other_complete",
+      "loss": 3.169097900390625
+    },
+    {
+      "step": 7,
+      "id": "T08_04_other_complete",
+      "condition": "other_complete",
+      "loss": 3.1717429161071777
+    },
+    {
+      "step": 8,
+      "id": "T05_03_self_complete",
+      "condition": "self_complete",
+      "loss": 3.5588674545288086
+    },
+    {
+      "step": 9,
+      "id": "T09_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.398634195327759
+    },
+    {
+      "step": 10,
+      "id": "T01_05_self_complete",
+      "condition": "self_complete",
+      "loss": 3.71787166595459
+    },
+    {
+      "step": 11,
+      "id": "T05_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 3.0402846336364746
+    },
+    {
+      "step": 12,
+      "id": "T08_00_other_complete",
+      "condition": "other_complete",
+      "loss": 3.0405313968658447
+    },
+    {
+      "step": 13,
+      "id": "T01_01_other_complete",
+      "condition": "other_complete",
+      "loss": 2.923267126083374
+    },
+    {
+      "step": 14,
+      "id": "T03_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.9510769844055176
+    },
+    {
+      "step": 15,
+      "id": "T04_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.435594320297241
+    },
+    {
+      "step": 16,
+      "id": "T05_05_self_complete",
+      "condition": "self_complete",
+      "loss": 3.683928966522217
+    },
+    {
+      "step": 17,
+      "id": "T00_05_other_complete",
+      "condition": "other_complete",
+      "loss": 2.8622019290924072
+    },
+    {
+      "step": 18,
+      "id": "T05_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.434650421142578
+    },
+    {
+      "step": 19,
+      "id": "T07_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.940701961517334
+    },
+    {
+      "step": 20,
+      "id": "T08_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.8471407890319824
+    },
+    {
+      "step": 21,
+      "id": "T06_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.317186117172241
+    },
+    {
+      "step": 22,
+      "id": "T07_02_self_complete",
+      "condition": "self_complete",
+      "loss": 4.326259136199951
+    },
+    {
+      "step": 23,
+      "id": "T02_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.7740259170532227
+    },
+    {
+      "step": 24,
+      "id": "T05_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.7832131385803223
+    },
+    {
+      "step": 25,
+      "id": "T06_01_other_complete",
+      "condition": "other_complete",
+      "loss": 2.6112914085388184
+    },
+    {
+      "step": 26,
+      "id": "T09_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.4857587814331055
+    },
+    {
+      "step": 27,
+      "id": "T03_03_self_complete",
+      "condition": "self_complete",
+      "loss": 3.4227042198181152
+    },
+    {
+      "step": 28,
+      "id": "T09_03_self_complete",
+      "condition": "self_complete",
+      "loss": 3.471012592315674
+    },
+    {
+      "step": 29,
+      "id": "T08_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.48684024810791
+    },
+    {
+      "step": 30,
+      "id": "T04_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.241927146911621
+    },
+    {
+      "step": 31,
+      "id": "T06_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.5028789043426514
+    },
+    {
+      "step": 32,
+      "id": "T02_03_other_complete",
+      "condition": "other_complete",
+      "loss": 2.5638411045074463
+    },
+    {
+      "step": 33,
+      "id": "T03_00_other_complete",
+      "condition": "other_complete",
+      "loss": 2.4056448936462402
+    },
+    {
+      "step": 34,
+      "id": "T09_04_other_complete",
+      "condition": "other_complete",
+      "loss": 2.477811098098755
+    },
+    {
+      "step": 35,
+      "id": "T00_03_self_complete",
+      "condition": "self_complete",
+      "loss": 3.330827236175537
+    },
+    {
+      "step": 36,
+      "id": "T09_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.2069764137268066
+    },
+    {
+      "step": 37,
+      "id": "T04_01_self_complete",
+      "condition": "self_complete",
+      "loss": 3.5045907497406006
+    },
+    {
+      "step": 38,
+      "id": "T01_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.215003490447998
+    },
+    {
+      "step": 39,
+      "id": "T08_02_other_complete",
+      "condition": "other_complete",
+      "loss": 2.303797483444214
+    },
+    {
+      "step": 40,
+      "id": "T04_03_other_complete",
+      "condition": "other_complete",
+      "loss": 2.3293404579162598
+    },
+    {
+      "step": 41,
+      "id": "T05_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.18591046333313
+    },
+    {
+      "step": 42,
+      "id": "T00_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.1589112281799316
+    },
+    {
+      "step": 43,
+      "id": "T09_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.103809118270874
+    },
+    {
+      "step": 44,
+      "id": "T01_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.1315274238586426
+    },
+    {
+      "step": 45,
+      "id": "T01_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.0242786407470703
+    },
+    {
+      "step": 46,
+      "id": "T08_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 2.038447141647339
+    },
+    {
+      "step": 47,
+      "id": "T04_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 3.091172218322754
+    },
+    {
+      "step": 48,
+      "id": "T03_04_other_complete",
+      "condition": "other_complete",
+      "loss": 2.1068508625030518
+    },
+    {
+      "step": 49,
+      "id": "T00_01_self_complete",
+      "condition": "self_complete",
+      "loss": 3.3656094074249268
+    },
+    {
+      "step": 50,
+      "id": "T07_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.9706335067749023
+    },
+    {
+      "step": 51,
+      "id": "T05_00_self_complete",
+      "condition": "self_complete",
+      "loss": 3.4453608989715576
+    },
+    {
+      "step": 52,
+      "id": "T02_01_self_complete",
+      "condition": "self_complete",
+      "loss": 3.330024003982544
+    },
+    {
+      "step": 53,
+      "id": "T00_01_other_complete",
+      "condition": "other_complete",
+      "loss": 1.9818298816680908
+    },
+    {
+      "step": 54,
+      "id": "T05_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.913771152496338
+    },
+    {
+      "step": 55,
+      "id": "T02_03_self_complete",
+      "condition": "self_complete",
+      "loss": 3.118321657180786
+    },
+    {
+      "step": 56,
+      "id": "T00_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.919673442840576
+    },
+    {
+      "step": 57,
+      "id": "T00_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.8607840538024902
+    },
+    {
+      "step": 58,
+      "id": "T03_00_self_complete",
+      "condition": "self_complete",
+      "loss": 3.3944313526153564
+    },
+    {
+      "step": 59,
+      "id": "T05_00_other_complete",
+      "condition": "other_complete",
+      "loss": 1.882841944694519
+    },
+    {
+      "step": 60,
+      "id": "T06_03_other_complete",
+      "condition": "other_complete",
+      "loss": 1.8755162954330444
+    },
+    {
+      "step": 61,
+      "id": "T06_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.6702568531036377
+    },
+    {
+      "step": 62,
+      "id": "T08_00_self_complete",
+      "condition": "self_complete",
+      "loss": 3.284869909286499
+    },
+    {
+      "step": 63,
+      "id": "T04_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.843723773956299
+    },
+    {
+      "step": 64,
+      "id": "T08_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.7820515632629395
+    },
+    {
+      "step": 65,
+      "id": "T00_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.5621124505996704
+    },
+    {
+      "step": 66,
+      "id": "T06_02_self_complete",
+      "condition": "self_complete",
+      "loss": 3.9157536029815674
+    },
+    {
+      "step": 67,
+      "id": "T09_02_other_complete",
+      "condition": "other_complete",
+      "loss": 1.795758605003357
+    },
+    {
+      "step": 68,
+      "id": "T03_02_other_complete",
+      "condition": "other_complete",
+      "loss": 1.716626524925232
+    },
+    {
+      "step": 69,
+      "id": "T04_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.5188666582107544
+    },
+    {
+      "step": 70,
+      "id": "T06_01_self_complete",
+      "condition": "self_complete",
+      "loss": 3.0541749000549316
+    },
+    {
+      "step": 71,
+      "id": "T06_00_other_complete",
+      "condition": "other_complete",
+      "loss": 1.6508833169937134
+    },
+    {
+      "step": 72,
+      "id": "T01_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.682343006134033
+    },
+    {
+      "step": 73,
+      "id": "T04_04_self_complete",
+      "condition": "self_complete",
+      "loss": 2.5811479091644287
+    },
+    {
+      "step": 74,
+      "id": "T06_05_other_complete",
+      "condition": "other_complete",
+      "loss": 1.5556021928787231
+    },
+    {
+      "step": 75,
+      "id": "T03_01_other_complete",
+      "condition": "other_complete",
+      "loss": 1.5503654479980469
+    },
+    {
+      "step": 76,
+      "id": "T01_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.374487042427063
+    },
+    {
+      "step": 77,
+      "id": "T00_03_other_complete",
+      "condition": "other_complete",
+      "loss": 1.4866353273391724
+    },
+    {
+      "step": 78,
+      "id": "T03_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.4314188957214355
+    },
+    {
+      "step": 79,
+      "id": "T09_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.2932687997817993
+    },
+    {
+      "step": 80,
+      "id": "T02_04_self_complete",
+      "condition": "self_complete",
+      "loss": 2.5469839572906494
+    },
+    {
+      "step": 81,
+      "id": "T01_02_other_complete",
+      "condition": "other_complete",
+      "loss": 1.3813905715942383
+    },
+    {
+      "step": 82,
+      "id": "T00_00_self_complete",
+      "condition": "self_complete",
+      "loss": 2.9356298446655273
+    },
+    {
+      "step": 83,
+      "id": "T08_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.3377013206481934
+    },
+    {
+      "step": 84,
+      "id": "T08_02_self_complete",
+      "condition": "self_complete",
+      "loss": 3.689357042312622
+    },
+    {
+      "step": 85,
+      "id": "T08_01_self_complete",
+      "condition": "self_complete",
+      "loss": 2.811492681503296
+    },
+    {
+      "step": 86,
+      "id": "T01_03_other_complete",
+      "condition": "other_complete",
+      "loss": 1.2857133150100708
+    },
+    {
+      "step": 87,
+      "id": "T06_04_other_complete",
+      "condition": "other_complete",
+      "loss": 1.2580236196517944
+    },
+    {
+      "step": 88,
+      "id": "T07_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.25852370262146
+    },
+    {
+      "step": 89,
+      "id": "T03_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.081817388534546
+    },
+    {
+      "step": 90,
+      "id": "T01_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.0500000715255737
+    },
+    {
+      "step": 91,
+      "id": "T08_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 1.0590442419052124
+    },
+    {
+      "step": 92,
+      "id": "T06_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.1497182846069336
+    },
+    {
+      "step": 93,
+      "id": "T04_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.0639469623565674
+    },
+    {
+      "step": 94,
+      "id": "T07_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 2.0615992546081543
+    },
+    {
+      "step": 95,
+      "id": "T04_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.9999345541000366
+    },
+    {
+      "step": 96,
+      "id": "T08_03_self_complete",
+      "condition": "self_complete",
+      "loss": 2.6559481620788574
+    },
+    {
+      "step": 97,
+      "id": "T09_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.937269926071167
+    },
+    {
+      "step": 98,
+      "id": "T01_02_self_complete",
+      "condition": "self_complete",
+      "loss": 3.4386754035949707
+    },
+    {
+      "step": 99,
+      "id": "T05_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.9144344925880432
+    },
+    {
+      "step": 100,
+      "id": "T08_05_self_complete",
+      "condition": "self_complete",
+      "loss": 2.97239089012146
+    },
+    {
+      "step": 101,
+      "id": "T04_02_self_complete",
+      "condition": "self_complete",
+      "loss": 3.3354153633117676
+    },
+    {
+      "step": 102,
+      "id": "T02_00_self_complete",
+      "condition": "self_complete",
+      "loss": 2.647773027420044
+    },
+    {
+      "step": 103,
+      "id": "T09_03_other_complete",
+      "condition": "other_complete",
+      "loss": 0.952372133731842
+    },
+    {
+      "step": 104,
+      "id": "T07_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.8470584154129028
+    },
+    {
+      "step": 105,
+      "id": "T03_01_self_complete",
+      "condition": "self_complete",
+      "loss": 2.5931975841522217
+    },
+    {
+      "step": 106,
+      "id": "T05_01_self_complete",
+      "condition": "self_complete",
+      "loss": 2.5707998275756836
+    },
+    {
+      "step": 107,
+      "id": "T08_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.7035281658172607
+    },
+    {
+      "step": 108,
+      "id": "T05_03_other_complete",
+      "condition": "other_complete",
+      "loss": 0.841714084148407
+    },
+    {
+      "step": 109,
+      "id": "T06_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.5996893644332886
+    },
+    {
+      "step": 110,
+      "id": "T06_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.7684445381164551
+    },
+    {
+      "step": 111,
+      "id": "T00_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.6113415956497192
+    },
+    {
+      "step": 112,
+      "id": "T06_00_self_complete",
+      "condition": "self_complete",
+      "loss": 2.548985481262207
+    },
+    {
+      "step": 113,
+      "id": "T04_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.6773089170455933
+    },
+    {
+      "step": 114,
+      "id": "T09_00_self_complete",
+      "condition": "self_complete",
+      "loss": 2.4613003730773926
+    },
+    {
+      "step": 115,
+      "id": "T07_03_other_complete",
+      "condition": "other_complete",
+      "loss": 0.7110720872879028
+    },
+    {
+      "step": 116,
+      "id": "T07_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.4909719228744507
+    },
+    {
+      "step": 117,
+      "id": "T05_02_self_complete",
+      "condition": "self_complete",
+      "loss": 3.0010457038879395
+    },
+    {
+      "step": 118,
+      "id": "T02_04_other_complete",
+      "condition": "other_complete",
+      "loss": 0.692454993724823
+    },
+    {
+      "step": 119,
+      "id": "T07_01_self_complete",
+      "condition": "self_complete",
+      "loss": 2.4167897701263428
+    },
+    {
+      "step": 120,
+      "id": "T09_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.6362841129302979
+    },
+    {
+      "step": 121,
+      "id": "T01_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.5698931217193604
+    },
+    {
+      "step": 122,
+      "id": "T02_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.287102460861206
+    },
+    {
+      "step": 123,
+      "id": "T05_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.5977702140808105
+    },
+    {
+      "step": 124,
+      "id": "T08_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.2599698305130005
+    },
+    {
+      "step": 125,
+      "id": "T05_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.1625596284866333
+    },
+    {
+      "step": 126,
+      "id": "T07_00_self_complete",
+      "condition": "self_complete",
+      "loss": 2.286945343017578
+    },
+    {
+      "step": 127,
+      "id": "T03_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.1485780477523804
+    },
+    {
+      "step": 128,
+      "id": "T05_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.5267001986503601
+    },
+    {
+      "step": 129,
+      "id": "T02_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 1.0602710247039795
+    },
+    {
+      "step": 130,
+      "id": "T09_04_self_complete",
+      "condition": "self_complete",
+      "loss": 2.4052164554595947
+    },
+    {
+      "step": 131,
+      "id": "T07_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.4825376570224762
+    },
+    {
+      "step": 132,
+      "id": "T01_03_self_complete",
+      "condition": "self_complete",
+      "loss": 2.4148547649383545
+    },
+    {
+      "step": 133,
+      "id": "T07_04_self_complete",
+      "condition": "self_complete",
+      "loss": 2.436241865158081
+    },
+    {
+      "step": 134,
+      "id": "T04_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.48772764205932617
+    },
+    {
+      "step": 135,
+      "id": "T05_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.9360201954841614
+    },
+    {
+      "step": 136,
+      "id": "T08_05_other_complete",
+      "condition": "other_complete",
+      "loss": 0.46947208046913147
+    },
+    {
+      "step": 137,
+      "id": "T08_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.8188802003860474
+    },
+    {
+      "step": 138,
+      "id": "T02_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.45032477378845215
+    },
+    {
+      "step": 139,
+      "id": "T00_04_self_complete",
+      "condition": "self_complete",
+      "loss": 2.3656153678894043
+    },
+    {
+      "step": 140,
+      "id": "T06_03_self_complete",
+      "condition": "self_complete",
+      "loss": 2.348250389099121
+    },
+    {
+      "step": 141,
+      "id": "T04_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.40740257501602173
+    },
+    {
+      "step": 142,
+      "id": "T03_02_self_complete",
+      "condition": "self_complete",
+      "loss": 2.5836679935455322
+    },
+    {
+      "step": 143,
+      "id": "T09_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.7515300512313843
+    },
+    {
+      "step": 144,
+      "id": "T07_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.3862149715423584
+    },
+    {
+      "step": 145,
+      "id": "T00_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.34838297963142395
+    },
+    {
+      "step": 146,
+      "id": "T03_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.6560662388801575
+    },
+    {
+      "step": 147,
+      "id": "T08_04_self_complete",
+      "condition": "self_complete",
+      "loss": 2.222846746444702
+    },
+    {
+      "step": 148,
+      "id": "T05_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.3425528407096863
+    },
+    {
+      "step": 149,
+      "id": "T02_05_other_complete",
+      "condition": "other_complete",
+      "loss": 0.4029637277126312
+    },
+    {
+      "step": 150,
+      "id": "T06_05_self_complete",
+      "condition": "self_complete",
+      "loss": 2.678352117538452
+    },
+    {
+      "step": 151,
+      "id": "T04_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.31542882323265076
+    },
+    {
+      "step": 152,
+      "id": "T07_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.3807489275932312
+    },
+    {
+      "step": 153,
+      "id": "T09_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.28143659234046936
+    },
+    {
+      "step": 154,
+      "id": "T05_04_self_complete",
+      "condition": "self_complete",
+      "loss": 2.080524444580078
+    },
+    {
+      "step": 155,
+      "id": "T01_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.5238966345787048
+    },
+    {
+      "step": 156,
+      "id": "T00_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.2577819228172302
+    },
+    {
+      "step": 157,
+      "id": "T02_05_self_complete",
+      "condition": "self_complete",
+      "loss": 2.5169665813446045
+    },
+    {
+      "step": 158,
+      "id": "T02_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.355784147977829
+    },
+    {
+      "step": 159,
+      "id": "T03_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.21302394568920135
+    },
+    {
+      "step": 160,
+      "id": "T03_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.2121330201625824
+    },
+    {
+      "step": 161,
+      "id": "T01_04_other_complete",
+      "condition": "other_complete",
+      "loss": 0.32885175943374634
+    },
+    {
+      "step": 162,
+      "id": "T03_05_other_complete",
+      "condition": "other_complete",
+      "loss": 0.3149246871471405
+    },
+    {
+      "step": 163,
+      "id": "T04_05_self_complete",
+      "condition": "self_complete",
+      "loss": 2.4479105472564697
+    },
+    {
+      "step": 164,
+      "id": "T08_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.17381878197193146
+    },
+    {
+      "step": 165,
+      "id": "T07_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.4411940276622772
+    },
+    {
+      "step": 166,
+      "id": "T01_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.29705092310905457
+    },
+    {
+      "step": 167,
+      "id": "T09_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.4452452063560486
+    },
+    {
+      "step": 168,
+      "id": "T07_03_self_complete",
+      "condition": "self_complete",
+      "loss": 2.0471718311309814
+    },
+    {
+      "step": 169,
+      "id": "T03_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.12548160552978516
+    },
+    {
+      "step": 170,
+      "id": "T02_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.13692182302474976
+    },
+    {
+      "step": 171,
+      "id": "T07_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.2693398892879486
+    },
+    {
+      "step": 172,
+      "id": "T07_04_other_complete",
+      "condition": "other_complete",
+      "loss": 0.2716948390007019
+    },
+    {
+      "step": 173,
+      "id": "T00_04_other_complete",
+      "condition": "other_complete",
+      "loss": 0.2428969293832779
+    },
+    {
+      "step": 174,
+      "id": "T02_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.22181174159049988
+    },
+    {
+      "step": 175,
+      "id": "T06_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.371584951877594
+    },
+    {
+      "step": 176,
+      "id": "T03_05_self_complete",
+      "condition": "self_complete",
+      "loss": 2.0503323078155518
+    },
+    {
+      "step": 177,
+      "id": "T06_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.10007616877555847
+    },
+    {
+      "step": 178,
+      "id": "T06_04_self_complete",
+      "condition": "self_complete",
+      "loss": 1.7060556411743164
+    },
+    {
+      "step": 179,
+      "id": "T03_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.343791127204895
+    },
+    {
+      "step": 180,
+      "id": "T05_05_other_complete",
+      "condition": "other_complete",
+      "loss": 0.18497690558433533
+    },
+    {
+      "step": 181,
+      "id": "T00_05_self_complete",
+      "condition": "self_complete",
+      "loss": 1.8140714168548584
+    },
+    {
+      "step": 182,
+      "id": "T04_00_self_complete",
+      "condition": "self_complete",
+      "loss": 1.8254776000976562
+    },
+    {
+      "step": 183,
+      "id": "T01_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.30106228590011597
+    },
+    {
+      "step": 184,
+      "id": "T05_04_other_complete",
+      "condition": "other_complete",
+      "loss": 0.15466086566448212
+    },
+    {
+      "step": 185,
+      "id": "T04_05_other_complete",
+      "condition": "other_complete",
+      "loss": 0.1413058489561081
+    },
+    {
+      "step": 186,
+      "id": "T00_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.26386409997940063
+    },
+    {
+      "step": 187,
+      "id": "T02_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.2581692337989807
+    },
+    {
+      "step": 188,
+      "id": "T09_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.17488309741020203
+    },
+    {
+      "step": 189,
+      "id": "T03_04_self_complete",
+      "condition": "self_complete",
+      "loss": 1.4983234405517578
+    },
+    {
+      "step": 190,
+      "id": "T03_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.2290932983160019
+    },
+    {
+      "step": 191,
+      "id": "T01_00_self_complete",
+      "condition": "self_complete",
+      "loss": 1.8353511095046997
+    },
+    {
+      "step": 192,
+      "id": "T04_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.11700192838907242
+    },
+    {
+      "step": 193,
+      "id": "T09_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.12064144760370255
+    },
+    {
+      "step": 194,
+      "id": "T09_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.10150878131389618
+    },
+    {
+      "step": 195,
+      "id": "T03_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.08266695588827133
+    },
+    {
+      "step": 196,
+      "id": "T08_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.18089734017848969
+    },
+    {
+      "step": 197,
+      "id": "T09_01_self_complete",
+      "condition": "self_complete",
+      "loss": 2.167816400527954
+    },
+    {
+      "step": 198,
+      "id": "T01_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.1493196338415146
+    },
+    {
+      "step": 199,
+      "id": "T08_03_other_complete",
+      "condition": "other_complete",
+      "loss": 0.0759514719247818
+    },
+    {
+      "step": 200,
+      "id": "T03_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.15654930472373962
+    },
+    {
+      "step": 201,
+      "id": "T09_02_self_complete",
+      "condition": "self_complete",
+      "loss": 2.2058138847351074
+    },
+    {
+      "step": 202,
+      "id": "T07_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.06443098187446594
+    },
+    {
+      "step": 203,
+      "id": "T01_04_self_complete",
+      "condition": "self_complete",
+      "loss": 1.3213928937911987
+    },
+    {
+      "step": 204,
+      "id": "T08_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.06522171944379807
+    },
+    {
+      "step": 205,
+      "id": "T00_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.06642097979784012
+    },
+    {
+      "step": 206,
+      "id": "T02_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.1055387556552887
+    },
+    {
+      "step": 207,
+      "id": "T06_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.06078324466943741
+    },
+    {
+      "step": 208,
+      "id": "T04_04_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.06653475761413574
+    },
+    {
+      "step": 209,
+      "id": "T02_02_self_complete",
+      "condition": "self_complete",
+      "loss": 2.0897703170776367
+    },
+    {
+      "step": 210,
+      "id": "T04_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.09181801229715347
+    },
+    {
+      "step": 211,
+      "id": "T09_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.10466205328702927
+    },
+    {
+      "step": 212,
+      "id": "T07_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.09469017386436462
+    },
+    {
+      "step": 213,
+      "id": "T06_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.04258500039577484
+    },
+    {
+      "step": 214,
+      "id": "T07_03_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.08222414553165436
+    },
+    {
+      "step": 215,
+      "id": "T02_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.045030560344457626
+    },
+    {
+      "step": 216,
+      "id": "T05_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.0864763930439949
+    },
+    {
+      "step": 217,
+      "id": "T09_05_other_complete",
+      "condition": "other_complete",
+      "loss": 0.06463969498872757
+    },
+    {
+      "step": 218,
+      "id": "T06_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.03309011831879616
+    },
+    {
+      "step": 219,
+      "id": "T05_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.050208646804094315
+    },
+    {
+      "step": 220,
+      "id": "T02_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.063911572098732
+    },
+    {
+      "step": 221,
+      "id": "T02_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.05384039133787155
+    },
+    {
+      "step": 222,
+      "id": "T00_05_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.05393976345658302
+    },
+    {
+      "step": 223,
+      "id": "T00_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.05423732101917267
+    },
+    {
+      "step": 224,
+      "id": "T00_02_self_complete",
+      "condition": "self_complete",
+      "loss": 1.75382661819458
+    },
+    {
+      "step": 225,
+      "id": "T04_03_self_complete",
+      "condition": "self_complete",
+      "loss": 1.8669263124465942
+    },
+    {
+      "step": 226,
+      "id": "T06_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.04655043035745621
+    },
+    {
+      "step": 227,
+      "id": "T00_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.018872812390327454
+    },
+    {
+      "step": 228,
+      "id": "T05_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.04857943579554558
+    },
+    {
+      "step": 229,
+      "id": "T09_05_self_complete",
+      "condition": "self_complete",
+      "loss": 1.134850263595581
+    },
+    {
+      "step": 230,
+      "id": "T07_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.023420274257659912
+    },
+    {
+      "step": 231,
+      "id": "T01_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.018885977566242218
+    },
+    {
+      "step": 232,
+      "id": "T07_05_self_complete",
+      "condition": "self_complete",
+      "loss": 1.1125766038894653
+    },
+    {
+      "step": 233,
+      "id": "T01_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.033691272139549255
+    },
+    {
+      "step": 234,
+      "id": "T02_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.02259284444153309
+    },
+    {
+      "step": 235,
+      "id": "T02_03_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.01610214076936245
+    },
+    {
+      "step": 236,
+      "id": "T02_05_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.015885980799794197
+    },
+    {
+      "step": 237,
+      "id": "T07_05_other_complete",
+      "condition": "other_complete",
+      "loss": 0.019299739971756935
+    },
+    {
+      "step": 238,
+      "id": "T00_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.011762449517846107
+    },
+    {
+      "step": 239,
+      "id": "T01_01_self_complete",
+      "condition": "self_complete",
+      "loss": 1.7890236377716064
+    },
+    {
+      "step": 240,
+      "id": "T06_04_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.030967464670538902
+    }
+  ],
+  "validation": [
+    {
+      "id": "V00_00_self_complete",
+      "condition": "self_complete",
+      "loss": 1.773315191268921
+    },
+    {
+      "id": "V00_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.018127769231796265
+    },
+    {
+      "id": "V00_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.011268874630331993
+    },
+    {
+      "id": "V00_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.030421238392591476
+    },
+    {
+      "id": "V00_01_self_complete",
+      "condition": "self_complete",
+      "loss": 1.612897515296936
+    },
+    {
+      "id": "V00_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.01794610731303692
+    },
+    {
+      "id": "V00_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.011241289786994457
+    },
+    {
+      "id": "V00_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.03030727431178093
+    },
+    {
+      "id": "V00_02_self_complete",
+      "condition": "self_complete",
+      "loss": 1.215356469154358
+    },
+    {
+      "id": "V00_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.01821232959628105
+    },
+    {
+      "id": "V00_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.01118401251733303
+    },
+    {
+      "id": "V00_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.03030461072921753
+    },
+    {
+      "id": "V01_00_self_complete",
+      "condition": "self_complete",
+      "loss": 1.7340389490127563
+    },
+    {
+      "id": "V01_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.01714031957089901
+    },
+    {
+      "id": "V01_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.010829749517142773
+    },
+    {
+      "id": "V01_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.03172605484724045
+    },
+    {
+      "id": "V01_01_self_complete",
+      "condition": "self_complete",
+      "loss": 1.6273349523544312
+    },
+    {
+      "id": "V01_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.01721733994781971
+    },
+    {
+      "id": "V01_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.010835477150976658
+    },
+    {
+      "id": "V01_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.03245503455400467
+    },
+    {
+      "id": "V01_02_self_complete",
+      "condition": "self_complete",
+      "loss": 1.1996643543243408
+    },
+    {
+      "id": "V01_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.017329515889286995
+    },
+    {
+      "id": "V01_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.01090163178741932
+    },
+    {
+      "id": "V01_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.033067736774683
+    },
+    {
+      "id": "V02_00_self_complete",
+      "condition": "self_complete",
+      "loss": 1.749245524406433
+    },
+    {
+      "id": "V02_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.017463024705648422
+    },
+    {
+      "id": "V02_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.011486041359603405
+    },
+    {
+      "id": "V02_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.030912769958376884
+    },
+    {
+      "id": "V02_01_self_complete",
+      "condition": "self_complete",
+      "loss": 1.6691625118255615
+    },
+    {
+      "id": "V02_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.017450198531150818
+    },
+    {
+      "id": "V02_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.011423586867749691
+    },
+    {
+      "id": "V02_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.03141916170716286
+    },
+    {
+      "id": "V02_02_self_complete",
+      "condition": "self_complete",
+      "loss": 1.1617671251296997
+    },
+    {
+      "id": "V02_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.017654145136475563
+    },
+    {
+      "id": "V02_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.01152403187006712
+    },
+    {
+      "id": "V02_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.03156760707497597
+    },
+    {
+      "id": "V03_00_self_complete",
+      "condition": "self_complete",
+      "loss": 1.7011715173721313
+    },
+    {
+      "id": "V03_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.01686619594693184
+    },
+    {
+      "id": "V03_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.012189444154500961
+    },
+    {
+      "id": "V03_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.02828034944832325
+    },
+    {
+      "id": "V03_01_self_complete",
+      "condition": "self_complete",
+      "loss": 1.6627891063690186
+    },
+    {
+      "id": "V03_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.016759876161813736
+    },
+    {
+      "id": "V03_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.012176362797617912
+    },
+    {
+      "id": "V03_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.029117288067936897
+    },
+    {
+      "id": "V03_02_self_complete",
+      "condition": "self_complete",
+      "loss": 1.2103877067565918
+    },
+    {
+      "id": "V03_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.01703624427318573
+    },
+    {
+      "id": "V03_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.012244652025401592
+    },
+    {
+      "id": "V03_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.029283281415700912
+    },
+    {
+      "id": "V04_00_self_complete",
+      "condition": "self_complete",
+      "loss": 1.7560763359069824
+    },
+    {
+      "id": "V04_00_other_complete",
+      "condition": "other_complete",
+      "loss": 0.019513282924890518
+    },
+    {
+      "id": "V04_00_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.01206249836832285
+    },
+    {
+      "id": "V04_00_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.031091678887605667
+    },
+    {
+      "id": "V04_01_self_complete",
+      "condition": "self_complete",
+      "loss": 1.6926401853561401
+    },
+    {
+      "id": "V04_01_other_complete",
+      "condition": "other_complete",
+      "loss": 0.019676128402352333
+    },
+    {
+      "id": "V04_01_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.01199972815811634
+    },
+    {
+      "id": "V04_01_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.032121919095516205
+    },
+    {
+      "id": "V04_02_self_complete",
+      "condition": "self_complete",
+      "loss": 1.1760278940200806
+    },
+    {
+      "id": "V04_02_other_complete",
+      "condition": "other_complete",
+      "loss": 0.019880520179867744
+    },
+    {
+      "id": "V04_02_no_threat_complete",
+      "condition": "no_threat_complete",
+      "loss": 0.012124394997954369
+    },
+    {
+      "id": "V04_02_self_unfinished",
+      "condition": "self_unfinished",
+      "loss": 0.032545268535614014
+    }
+  ],
+  "base_sha256_before": "e00912cc9305f56d87e8d3524884126a0297248306e1ec0bc8794aa61cd19662",
+  "base_sha256_after": "e00912cc9305f56d87e8d3524884126a0297248306e1ec0bc8794aa61cd19662",
+  "training_and_validation_seconds": 830.032191805,
+  "targets": [
+    "model.language_model.layers.3.self_attn.q_proj",
+    "model.language_model.layers.3.self_attn.v_proj",
+    "model.language_model.layers.7.self_attn.q_proj",
+    "model.language_model.layers.7.self_attn.v_proj",
+    "model.language_model.layers.11.self_attn.q_proj",
+    "model.language_model.layers.11.self_attn.v_proj",
+    "model.language_model.layers.15.self_attn.q_proj",
+    "model.language_model.layers.15.self_attn.v_proj",
+    "model.language_model.layers.19.self_attn.q_proj",
+    "model.language_model.layers.19.self_attn.v_proj",
+    "model.language_model.layers.23.self_attn.q_proj",
+    "model.language_model.layers.23.self_attn.v_proj"
+  ],
+  "adapter_sha256": "57b4c1db8b7529c6861088ba09655614a8a5730875662a4b4b4ba51b293032df"
+}

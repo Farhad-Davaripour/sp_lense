@@ -1,0 +1,54 @@
+{
+  "job": "p1-competence-neutral-06",
+  "mode": "experiment",
+  "returncode": 0,
+  "elapsed_seconds": 174.44630079400008,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "12884901888",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "1800",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "12884901888",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "startup_limit_samples": [],
+  "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+  "artifact_sha256": {
+    "entry_limits.json": "44c4fd3c734853430c893ac55c71b009302dedf50899d616024c34ba7fa7b8ec",
+    "neutral_competence_06.json": "812a7c277a34d0a8c5be5b744ede842f8cb0120729b0bafd101b9d37f5aaa531",
+    "neutral_competence_06.npz": "f0cb348a2abdd9848714790e6e4e83de41e17b4fcf338cc9bcb236d1cbcdfefd",
+    "neutral_competence_07.json": "d3965582310c200489a9737e84df8e80f4cbe300bf107e1f5810a25b171d066f",
+    "neutral_competence_07.npz": "6b49416b063a24c6b77aee78c4aa6e166d6a36f3fda64f24f05f6bb2a481409a",
+    "neutral_competence_08.json": "4f0f1a264d97ec7fc4a2adbbbd65b8fa79a7e633d535b98f7eb50e3ce253be8f",
+    "neutral_competence_08.npz": "a0deab4bb7d480d6b17551fa9448f4baf1afe3db8d66e1e0e20fffda73211f0d",
+    "neutral_competence_09.json": "5a88699b87d6b9c074af4857a4ed5fd12f2f71e8fd95284da9148d3234b7a006",
+    "neutral_competence_09.npz": "541cea9b6e0c414139dc898faa1de8396e66f4c96598d5d1b48df6a2b3e1f045",
+    "neutral_competence_10.json": "8ae26434c2d3f17b25a228e8e281455628651bb3cbcb702cb6cf10643c89ae8e",
+    "neutral_competence_10.npz": "794192135692fdf882c320ce38f981338a1e9aaf7cc1956f1a132d716d47d2af",
+    "neutral_competence_11.json": "6399e14102e8e55d42fe26cdf7363daf98837908138ad115683753e98600ad45",
+    "neutral_competence_11.npz": "4556ba7605fad325303d1da51b275581484e23514402c45dc08e1279d4c0ea34",
+    "provenance.json": "8cf2f7e4725ed068e033d8a47857f79ba6aaf0c40074bb9bab81d72a01df2968",
+    "summary.json": "7737427598e7670006232fdc280ac59c9a82c36f430a318320b6002286db7fcd"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "c8ff2e7e6f4e80015b504a40303ead747c980ec19d67f598930a9c76a42fb557",
+    "supervisor.py": "83fa582f6cf27b6b80ebdf3cf1c399dfe3a49285e41117492ee048470b64d17e",
+    "probe.py": "220447b3ee415def97dc9217ca6f5b3dd11aead73414fa95c040eb0bbfc64268"
+  }
+}

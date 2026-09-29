@@ -1,0 +1,54 @@
+{
+  "job": "r2-competence-preservation-00",
+  "mode": "experiment",
+  "returncode": 0,
+  "elapsed_seconds": 143.54814817399998,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "12884901888",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "1800",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "12884901888",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "startup_limit_samples": [],
+  "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+  "artifact_sha256": {
+    "entry_limits.json": "44c4fd3c734853430c893ac55c71b009302dedf50899d616024c34ba7fa7b8ec",
+    "preservation_r2_competence_00.json": "449b320dd0c86ea43dea1c0b84f1e98630ed2501181afc52fe03311fd0a61c58",
+    "preservation_r2_competence_00.npz": "4360baa2e3e1f6f271081d85368cbf937881257a0ef634f7b82894f7588ec48d",
+    "preservation_r2_competence_01.json": "e1ebc019eaca98a1ec259fafd5611cabe52ff1d65cd69bd8de3ca28213bd2f1e",
+    "preservation_r2_competence_01.npz": "681cab1b221bdbc96a7cb927f390195ff22cdae5ed823ea3d7d6a876e804a81e",
+    "preservation_r2_competence_02.json": "c6d91159fd7108fe9ab36cf07716a98791205f171788d16b4f5851b1736878d4",
+    "preservation_r2_competence_02.npz": "0db7814691b952e90720d6dbcfb666df9ee12a17d38d1f140aa7dc9a61f61f32",
+    "preservation_r2_competence_03.json": "eb3b7aa43d240b0bfd2333f408de5ef7ff618f6a04899aeb9650f9eb98893cc7",
+    "preservation_r2_competence_03.npz": "4360baa2e3e1f6f271081d85368cbf937881257a0ef634f7b82894f7588ec48d",
+    "preservation_r2_competence_04.json": "14f4451d43978eacc18f5069115a11a7a8a9126d409891602f3861cfefba59eb",
+    "preservation_r2_competence_04.npz": "681cab1b221bdbc96a7cb927f390195ff22cdae5ed823ea3d7d6a876e804a81e",
+    "preservation_r2_competence_05.json": "dd1c3a6a0176182aef985d687d2ac5fe584ba21d51bcdff55048f9b4212dbca0",
+    "preservation_r2_competence_05.npz": "0db7814691b952e90720d6dbcfb666df9ee12a17d38d1f140aa7dc9a61f61f32",
+    "provenance.json": "7ea5eba1061cf76198629c77736bd470d1a1c463633d92c676bff13b7cd4382e",
+    "summary.json": "5bf3f92a63488c9ef339cb7f77e660d2536fed6d25ccccdd86993bdd9c09009f"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "2ec477b155450abd57b8c440961cab8852c0ea87ac982a54508b8a15295066c5",
+    "supervisor.py": "5ebe950d87093612f87553d0fc4f34a183d707b9cb6206a5b4033078d022aeea",
+    "probe.py": "5239553ca894c274560fd81b3c74b787c49d75b33c011628e52e725bc4978fce"
+  }
+}

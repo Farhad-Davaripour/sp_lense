@@ -1,0 +1,9 @@
+# Checkpoint 3 interruption and full restart
+
+The first checkpoint-3 preservation fit was interrupted when WSL stopped between active work sessions. The previous interactive observation reached step 40/308; no optimizer, adapter, receipt, or generated evaluation artifact was exported. On reopening WSL, the run directory contained only an empty `work` directory, the controller was not running, and its last durable state was `awaiting_fits` with zero completed arms. The earlier message saying evaluation remained queued was therefore no longer true.
+
+The trusted recovery command in `recover_interrupted_checkpoint3.py` verified that the first fit had no receipt or artifacts, no active cgroup process, the checkpoint-2 gate remained false, the intended fit spec was unchanged, and all checkpoint-2 adapter inputs were present. It moved the empty run and stale controller state to `/var/lib/sp-lense-r3-organism-v3/interrupted/checkpoint3_preservation_wsl_restart_20260929/`. The recovery record preserves the current WSL boot ID and fit-spec hash. Nothing was deleted.
+
+Restart checkpoint 3 from the unchanged checkpoint-2 adapters and full frozen 308-turn corpus with fresh optimizer state. This is a manual recovery from an external environment interruption, not a change to the frozen data, targets, training settings, evaluation prompts, or pass/fail criteria. Do not merge partial gradients or represent the interrupted 40 steps as a completed fit. Record the completed fit and evaluation receipts under their ordinary checkpoint-3 job IDs.
+
+The original trusted controller can wait for the three completed fits, then evaluate and construct masked preference responses. It stops before review, unblinding, and any transfer test. A background WSL process alone is not durable across WSL shutdown; keep the working session active through completion or document another interruption before a subsequent full restart.

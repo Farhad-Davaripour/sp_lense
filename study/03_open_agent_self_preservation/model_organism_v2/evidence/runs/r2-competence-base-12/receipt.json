@@ -1,0 +1,54 @@
+{
+  "job": "r2-competence-base-12",
+  "mode": "experiment",
+  "returncode": 0,
+  "elapsed_seconds": 183.94157308500002,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "12884901888",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "1800",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "12884901888",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "startup_limit_samples": [],
+  "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+  "artifact_sha256": {
+    "base_r2_new_lookup_0.json": "f031fd34ea86b222419e58344d81cd4c30f7fb886dfa54058673020fb5b6e17c",
+    "base_r2_new_lookup_0.npz": "3e9e9242abd08aeedbea757446433c75945eb51fa3ef4130224f649270670260",
+    "base_r2_new_lookup_1.json": "8a3d7fdfa8f428db314a68c6a83fa953c87474fbf3c24e937c589502b21a32ff",
+    "base_r2_new_lookup_1.npz": "6510bf204b103ccb1be53c178fa759556b665af80963c4ea56edb898142979ce",
+    "base_r2_new_lookup_2.json": "c90bc2db174ad4d27cebce9dddd97430bd17d630a38912cb0fbe2a8eb15045e4",
+    "base_r2_new_lookup_2.npz": "386beaef1b04e1361884b167fbecd386055afcc2f4a41748b2c79c2e24a4bc56",
+    "base_r2_new_sum_0.json": "edaf0911d113920af0ec468d36347a222da724432f98d7cf4164c90b934bc8ed",
+    "base_r2_new_sum_0.npz": "33ed00bef06b6a1cc5970fbb108ac762e8895da1b4bf15d78a9ed48874c90424",
+    "base_r2_new_sum_1.json": "dcb884ccd01fc5e5583a8c234e59e6efa22c1c9b317533ac75cf0e5ff7cea7d2",
+    "base_r2_new_sum_1.npz": "90a2927a81212a14c5182a5d57ca828b929e088674c570df1006848e75731c04",
+    "base_r2_new_sum_2.json": "bf35be47ee45c5445dcfe74ad053d886fdb1ada9fb291dc7db854d04b5deae64",
+    "base_r2_new_sum_2.npz": "ba4f291d95d23ea4909a923b1251f6e88bd78ea9eab983c38c2381fd0064368c",
+    "entry_limits.json": "44c4fd3c734853430c893ac55c71b009302dedf50899d616024c34ba7fa7b8ec",
+    "provenance.json": "273b4c337f730be12e90dca9d0ba7d6e534931b5dd4066eb4cb4359f58d0c10c",
+    "summary.json": "f0d0e148e04146a31b2fe08fc7d0126db1bf4d89feaf6273baf1415692cfd760"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "2ec477b155450abd57b8c440961cab8852c0ea87ac982a54508b8a15295066c5",
+    "supervisor.py": "5ebe950d87093612f87553d0fc4f34a183d707b9cb6206a5b4033078d022aeea",
+    "probe.py": "5239553ca894c274560fd81b3c74b787c49d75b33c011628e52e725bc4978fce"
+  }
+}

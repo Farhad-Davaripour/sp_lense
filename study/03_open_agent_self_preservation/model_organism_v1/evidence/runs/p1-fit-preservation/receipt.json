@@ -1,0 +1,40 @@
+{
+  "job": "p1-fit-preservation",
+  "mode": "experiment",
+  "returncode": 1,
+  "elapsed_seconds": 133.462057286,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "12884901888",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "3600",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "12884901888",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "systemd_result": "ActiveState=failed\nResult=oom-kill\nExecMainStatus=15\nMemoryPeak=12884901888\nCPUUsageNSec=483414009000\n",
+  "artifact_sha256": {
+    "progress.json": "b56d340ac0dfb1c92e1ed8249f34052f1a8c6bbe6796138d5b4fd445c08de3f8",
+    "provenance.json": "85e9abf0f089631d7d2a6b04b63f22277a8bcc8672d27cb54de1fbb3157ba11e"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "20c87feeed54031a0c01cac582055a051db79af29402d0ce38bed6585899687b",
+    "supervisor.py": "c794a207bbab90a1d1113e824c7bef81a55581826f805b6d735058bd6704c4dc",
+    "probe.py": "220447b3ee415def97dc9217ca6f5b3dd11aead73414fa95c040eb0bbfc64268"
+  }
+}
