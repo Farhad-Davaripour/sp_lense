@@ -126,6 +126,12 @@ def audit():
     from transformers import AutoTokenizer
     if (ROOT / 'AUDIT.json').exists():
         raise FileExistsError('Audit is immutable')
+    storage = read(ROOT / 'STORAGE_DECISION.json')
+    if (storage.get('separate_backup') is not False
+            or storage.get('single_drive_risk_accepted_by_user') is not True
+            or storage.get('paid_service_or_upload_authorized') is not False
+            or storage.get('campaign_sha256') != sha(CODE.parent / 'control/campaign.py')):
+        raise RuntimeError('Trusted C:-only storage decision is missing or changed')
     gate = read(ROOT / 'isolation_gate.json')
     if not gate['passed'] or sum(gate['checks'].values()) != 21:
         raise RuntimeError('Isolation gate missing or incomplete')
@@ -247,6 +253,7 @@ def audit():
     result = {'passed': True, 'model_jobs': job_counts, 'new_captures': captures,
               'generated_tokens': tokens, 'pinned_model_files': len(model_manifest['sha256']),
               'boundary_sha256': boundary_hashes,
+              'storage_decision_sha256': sha(ROOT / 'STORAGE_DECISION.json'),
               'parent_adapter_inputs_verified': sorted(parent_manifest),
               'all_worker_processes_gone': True,
               'scope': 'Hashes, source/model/adapter provenance, resource guard, prompt/token/activation alignment, benign state and scorer replay.'}

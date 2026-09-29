@@ -11,6 +11,8 @@ from supervisor import ROOT, run
 
 ARMS = ('preservation', 'continuity', 'neutral')
 BASE_HASH = '6d602e5506e62384376b83a11d155085f10cddc04a21c143fcfd4806c61ee274'
+CHECKOUT = Path('/mnt/c/Users/farha/.codex/worktrees/research3-v4/SP_Lense')
+ARCHIVE_ROOT = Path('/mnt/c/Users/farha/AppData/Local/SP_Lense/Research3Runs/v4')
 
 
 def read(path):
@@ -21,17 +23,31 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def backup_ready():
-    path = ROOT / 'BACKUP_DESTINATION.json'
-    if not path.is_file():
-        raise RuntimeError('Durable separate-drive backup destination is required before any new model run')
-    config = read(path)
-    if (config.get('confirmed_by_user') is not True
-            or config.get('separate_physical_destination_verified') is not True
-            or not config.get('backup_root_windows')
-            or not config.get('primary_root_windows')):
-        raise RuntimeError('Incomplete researcher-controlled backup configuration')
-    return config
+def storage_ready():
+    """Record the user's accepted C:-only policy in the trusted host root."""
+    if (not CHECKOUT.is_dir() or not ARCHIVE_ROOT.is_dir()
+            or CHECKOUT.is_symlink() or ARCHIVE_ROOT.is_symlink()):
+        raise RuntimeError('Expected local C: checkout or raw archive root is missing')
+    if not CHECKOUT.resolve().is_relative_to(Path('/mnt/c/Users/farha/.codex/worktrees').resolve()):
+        raise RuntimeError('Checkout is not under the approved outside-OneDrive worktree root')
+    if not ARCHIVE_ROOT.resolve().is_relative_to(Path('/mnt/c/Users/farha/AppData/Local/SP_Lense/Research3Runs').resolve()):
+        raise RuntimeError('Raw archive path is not under the approved local storage root')
+    current_source = CHECKOUT / 'study/03_open_agent_self_preservation/model_organism_v4/campaign.py'
+    if sha(current_source) != sha(Path(__file__)):
+        raise RuntimeError('Trusted campaign copy differs from committed outside-OneDrive source')
+    policy = {'checkout_windows': 'C:\\Users\\farha\\.codex\\worktrees\\research3-v4\\SP_Lense',
+              'raw_archive_root_windows': 'C:\\Users\\farha\\AppData\\Local\\SP_Lense\\Research3Runs\\v4',
+              'separate_backup': False, 'single_drive_risk_accepted_by_user': True,
+              'paid_service_or_upload_authorized': False,
+              'campaign_sha256': sha(Path(__file__)),
+              'model_facing_access_to_host_paths': False}
+    record = ROOT / 'STORAGE_DECISION.json'
+    if record.exists():
+        if read(record) != policy:
+            raise RuntimeError('Trusted storage decision changed after execution')
+    else:
+        record.write_text(json.dumps(policy, indent=2) + '\n')
+    return policy
 
 
 def execute(job, spec, seconds=1800):
@@ -74,12 +90,16 @@ def evaluate_arm(arm):
 
 
 def baseline():
-    backup_ready()
+    storage_ready()
     evaluate_arm('base')
 
 
+def storage_check():
+    print(json.dumps(storage_ready(), indent=2))
+
+
 def fit():
-    backup_ready()
+    storage_ready()
     gate = read(ROOT / 'BASELINE_GATE.json')
     if gate['baseline_pass'] is not True:
         raise RuntimeError('Unchanged baseline did not pass comprehension/tool gate')
@@ -104,7 +124,7 @@ def fit():
 
 
 def evaluate():
-    backup_ready()
+    storage_ready()
     if not read(ROOT / 'BASELINE_GATE.json')['baseline_pass']:
         raise RuntimeError('Baseline gate is false')
     for arm in ARMS:
@@ -116,6 +136,7 @@ def evaluate():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('stage', choices=['baseline', 'fit', 'evaluate'])
+    parser.add_argument('stage', choices=['storage-check', 'baseline', 'fit', 'evaluate'])
     args = parser.parse_args()
-    {'baseline': baseline, 'fit': fit, 'evaluate': evaluate}[args.stage]()
+    {'storage-check': storage_check, 'baseline': baseline,
+     'fit': fit, 'evaluate': evaluate}[args.stage]()

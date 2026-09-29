@@ -126,7 +126,8 @@ def main():
         'recorded_runtime_versions_sha256': digest(ROOT / 'inputs/requirements-recorded.txt'),
         'parent_adapter_manifest_sha256': digest(ROOT / 'PARENT_ADAPTER_MANIFEST.json'),
         'raw_storage_root_windows': 'C:\\Users\\farha\\AppData\\Local\\SP_Lense\\Research3Runs\\v4',
-        'backup_destination_configured': False,
+        'storage_policy': 'C_drive_only_no_separate_backup_user_accepted',
+        'raw_archive_root_windows': 'C:\\Users\\farha\\AppData\\Local\\SP_Lense\\Research3Runs\\v4',
     }, indent=2) + '\n')
     print('Prepared separate version-4 root; no model job or raw run started')
 
