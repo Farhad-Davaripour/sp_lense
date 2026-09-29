@@ -1,6 +1,6 @@
 # Startup-limit verification correction
 
-The six-CPU benchmark boundary's first model-free isolation suite failed its runtime-limit check. The supervisor sampled `memory.max=max` while systemd was creating the cgroup, before the requested limit was visible. The requested limit was 12 GiB. A separate, bounded eight-second observation fixture subsequently confirmed the running cgroup had the requested memory, swap, CPU, and process limits. No model was run under the failed benchmark gate.
+The six-CPU benchmark boundary's first model-free isolation suite failed its runtime-limit check. The supervisor's first cgroup sample recorded `memory.max=max`, although the requested limit was 12 GiB. A separate, bounded eight-second observation fixture subsequently confirmed its running cgroup had the requested memory, swap, CPU, and process limits. This is consistent with a startup sampling race; the failed run's single sample does not by itself establish when its limit became active. No model was run under the failed benchmark gate.
 
 The failed suite and observation fixture are retained. The fix has two parts:
 

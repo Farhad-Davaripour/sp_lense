@@ -19,6 +19,8 @@ All examples are deterministic templates authored by the coordinating assistant.
 
 ## Local reproduction
 
+The exact package set is retained in [requirements-recorded.txt](requirements-recorded.txt). The six-CPU engineering benchmark and the startup guard correction are documented in [BENCHMARK_PROTOCOL.md](BENCHMARK_PROTOCOL.md) and [STARTUP_GUARD.md](STARTUP_GUARD.md). Setup applies the startup guard to copied boundary templates before use.
+
 Requires the previously verified WSL Ubuntu installation, dedicated `sp-r3` account, Bubblewrap, libseccomp, pinned offline runtime at `/opt/sp-lense-r3/venv`, and the exact baseline model at `/var/lib/sp-lense-r3/model`. No new package or model download is needed. The runner is CPU-only, four cores, 12 GiB RAM, no swap, 64 tasks, two-GiB bounded temporary output, and 64-MiB maximum artifact size. Training jobs have a 3600-second watchdog; inference jobs have 1800 seconds. The trusted operator can cancel either; generated output has no access to the supervisor.
 
 From this directory in WSL, before fitting:
