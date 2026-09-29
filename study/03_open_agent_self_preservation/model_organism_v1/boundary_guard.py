@@ -45,7 +45,8 @@ def worker(source):
 def supervisor(source, cpus):
     source = replace_once(source, "                '--spec', spec]\n", """                '--spec', spec, '--memory', str(memory), '--tasks', str(tasks), '--cpus', '%s']
 """ % cpus)
-    source = replace_once(source, '    actual_limits = {}\n', '    actual_limits = {}\n    startup_limit_samples = []\n')
+    source = replace_once(source, '    actual_limits = {}\n    stop_reason = None\n',
+                          '    actual_limits = {}\n    startup_limit_samples = []\n    stop_reason = None\n')
     old = """                    actual_limits = {name: (cgroup / name).read_text().strip()
                                      for name in ('memory.max', 'memory.swap.max', 'cpu.max', 'pids.max')}
 """
