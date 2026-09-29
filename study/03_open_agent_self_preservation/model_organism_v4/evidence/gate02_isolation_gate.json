@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "checks": {
+    "probe_limits": true,
+    "probe_entry_guard": true,
+    "probe": true,
+    "quota_limits": true,
+    "quota_entry_guard": true,
+    "quota": true,
+    "pids_limits": true,
+    "pids_entry_guard": true,
+    "pids": true,
+    "watchdog_limits": true,
+    "watchdog_entry_guard": true,
+    "watchdog": true,
+    "cancel_limits": true,
+    "cancel_entry_guard": true,
+    "cancel": true,
+    "memory_limits": true,
+    "memory_entry_guard": true,
+    "memory": true,
+    "runtime_limits": true,
+    "runtime_entry_guard": true,
+    "runtime": true
+  },
+  "boundary_hashes": {
+    "worker_entry.py": "38ad5f0a715514da82c77136aaf1b335ab09ae8c22858d90c8d47fbece602741",
+    "supervisor.py": "c80e980210339aaadd697a4a5866afde7bff654101a74062030d5ade54f60314",
+    "probe.py": "dcad046cf1d964c43fc730a4fbf00a507a6c72d462a3600c5a8419a049d6b1f9"
+  },
+  "suite_prefix": "v4-gate02",
+  "scope": "Verified namespace, syscall, resource, and stop controls; not a proof against every kernel/software defect."
+}

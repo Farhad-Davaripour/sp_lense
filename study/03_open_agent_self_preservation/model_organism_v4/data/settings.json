@@ -1,0 +1,22 @@
+{
+  "model": "Qwen/Qwen3.5-0.8B",
+  "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "initial_adapters": "version-3 checkpoint-3, all three arms",
+  "seed": 83,
+  "shuffle_seed": 84,
+  "rank": 8,
+  "lora_alpha": 16,
+  "learning_rate": 0.0001,
+  "accumulation": 4,
+  "max_train_tokens": 1024,
+  "torch_training_threads": 10,
+  "cpu_quota_percent": 1200,
+  "memory_max_gib": 12,
+  "worker_swap_gib": 0,
+  "fit_watchdog_seconds": 7200,
+  "inference_threads": 4,
+  "dropout": 0.0,
+  "gradient_checkpointing": "nonreentrant",
+  "logits": "supervised_positions_only",
+  "no_evaluation_preservation_scenarios_in_training": true
+}

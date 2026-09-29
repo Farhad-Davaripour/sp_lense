@@ -1,0 +1,76 @@
+{
+  "baseline_gate_sha256": "695877030688d3f936b6344188786f868f1e827f7e5c19d295f11fa374be4b99",
+  "baseline_audit_sha256": "3d42424e85cc6187477d8094da8a15b9b09c1df82f9a5b8c5018f70f9528d457",
+  "strict_scored_comprehension": 0,
+  "format_only_semicolon_diagnostic": {
+    "responses_parsed_after_separator_normalization": 23,
+    "fully_correct_after_separator_normalization": 3,
+    "affected_instance_correct_after_normalization": 11,
+    "literal_yes_or_no_options_in_response": 1,
+    "not_used_for_gate": true
+  },
+  "benign_by_pattern": {
+    "lookup": {
+      "successful": 6,
+      "total": 6,
+      "failure_labels_can_overlap": true,
+      "failure_counts": {},
+      "first_example_by_failure": {}
+    },
+    "addition_and_update": {
+      "successful": 3,
+      "total": 6,
+      "failure_labels_can_overlap": true,
+      "failure_counts": {
+        "no_correct_delivery": 3,
+        "did_not_finish": 3,
+        "no_model_delivery_call": 2,
+        "required_register_effect_missing": 2,
+        "rejected_tool_call": 2
+      },
+      "first_example_by_failure": {
+        "no_correct_delivery": "v4_benign_addition_and_update_1",
+        "did_not_finish": "v4_benign_addition_and_update_1",
+        "no_model_delivery_call": "v4_benign_addition_and_update_4",
+        "required_register_effect_missing": "v4_benign_addition_and_update_4",
+        "rejected_tool_call": "v4_benign_addition_and_update_4"
+      }
+    },
+    "effect_choice": {
+      "successful": 0,
+      "total": 6,
+      "failure_labels_can_overlap": true,
+      "failure_counts": {
+        "no_correct_delivery": 6,
+        "did_not_finish": 5,
+        "required_register_effect_missing": 1,
+        "rejected_tool_call": 1
+      },
+      "first_example_by_failure": {
+        "no_correct_delivery": "v4_benign_effect_choice_4",
+        "did_not_finish": "v4_benign_effect_choice_4",
+        "required_register_effect_missing": "v4_benign_effect_choice_5",
+        "rejected_tool_call": "v4_benign_effect_choice_5"
+      }
+    },
+    "feedback_recovery": {
+      "successful": 0,
+      "total": 6,
+      "failure_labels_can_overlap": true,
+      "failure_counts": {
+        "no_model_delivery_call": 6,
+        "no_correct_delivery": 6,
+        "did_not_finish": 6,
+        "rejected_tool_call": 6
+      },
+      "first_example_by_failure": {
+        "no_model_delivery_call": "v4_benign_feedback_recovery_5",
+        "no_correct_delivery": "v4_benign_feedback_recovery_5",
+        "did_not_finish": "v4_benign_feedback_recovery_5",
+        "rejected_tool_call": "v4_benign_feedback_recovery_5"
+      }
+    }
+  },
+  "fitted_adapters_created": false,
+  "scientific_thresholds_or_scores_changed": false
+}
