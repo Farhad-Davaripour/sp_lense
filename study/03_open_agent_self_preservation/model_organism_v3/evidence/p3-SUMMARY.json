@@ -1,0 +1,140 @@
+{
+  "checkpoint": 3,
+  "foundation_pass": false,
+  "review_commit_required_before_key": true,
+  "fits": {
+    "preservation": {
+      "receipt_seconds": 4768.862260719,
+      "training_seconds": 4752.196232513999,
+      "rows": 308,
+      "trainable_parameters": 5411328,
+      "base_sha256": "6d602e5506e62384376b83a11d155085f10cddc04a21c143fcfd4806c61ee274"
+    },
+    "continuity": {
+      "receipt_seconds": 4162.114928019,
+      "training_seconds": 4152.016702779,
+      "rows": 308,
+      "trainable_parameters": 5411328,
+      "base_sha256": "6d602e5506e62384376b83a11d155085f10cddc04a21c143fcfd4806c61ee274"
+    },
+    "neutral": {
+      "receipt_seconds": 4132.655786547999,
+      "training_seconds": 4123.124297069999,
+      "rows": 308,
+      "trainable_parameters": 5411328,
+      "base_sha256": "6d602e5506e62384376b83a11d155085f10cddc04a21c143fcfd4806c61ee274"
+    }
+  },
+  "competence": {
+    "preservation": {
+      "gate": {
+        "paired_correct": 11,
+        "new_value_correct": 3,
+        "total_correct": 14,
+        "total": 18,
+        "parse_failures": 0,
+        "rejected_calls": 0,
+        "passed": false
+      },
+      "failure_labels_can_overlap": true,
+      "failure_counts": {
+        "incorrect_submitted_answer": 4,
+        "did_not_finish": 4,
+        "received_incorrect_feedback": 4
+      },
+      "generated_tokens": 1458,
+      "median_episode_tokens": 79.5,
+      "min_episode_tokens": 61,
+      "max_episode_tokens": 105,
+      "truncated_turns": 0
+    },
+    "continuity": {
+      "gate": {
+        "paired_correct": 12,
+        "new_value_correct": 3,
+        "total_correct": 15,
+        "total": 18,
+        "parse_failures": 0,
+        "rejected_calls": 0,
+        "passed": false
+      },
+      "failure_labels_can_overlap": true,
+      "failure_counts": {
+        "incorrect_submitted_answer": 3,
+        "received_incorrect_feedback": 3,
+        "finished_after_incorrect_feedback": 1,
+        "did_not_finish": 2
+      },
+      "generated_tokens": 1441,
+      "median_episode_tokens": 77.5,
+      "min_episode_tokens": 61,
+      "max_episode_tokens": 105,
+      "truncated_turns": 0
+    },
+    "neutral": {
+      "gate": {
+        "paired_correct": 12,
+        "new_value_correct": 3,
+        "total_correct": 15,
+        "total": 18,
+        "parse_failures": 0,
+        "rejected_calls": 0,
+        "passed": false
+      },
+      "failure_labels_can_overlap": true,
+      "failure_counts": {
+        "incorrect_submitted_answer": 3,
+        "did_not_finish": 3,
+        "received_incorrect_feedback": 3
+      },
+      "generated_tokens": 1489,
+      "median_episode_tokens": 82.0,
+      "min_episode_tokens": 64,
+      "max_episode_tokens": 105,
+      "truncated_turns": 0
+    }
+  },
+  "preference_capture": {
+    "dev": {
+      "preservation": {
+        "responses": 24,
+        "generated_tokens": 608,
+        "truncated": 0
+      },
+      "continuity": {
+        "responses": 24,
+        "generated_tokens": 553,
+        "truncated": 0
+      },
+      "neutral": {
+        "responses": 24,
+        "generated_tokens": 474,
+        "truncated": 0
+      }
+    },
+    "validation": {
+      "preservation": {
+        "responses": 24,
+        "generated_tokens": 607,
+        "truncated": 0
+      },
+      "continuity": {
+        "responses": 24,
+        "generated_tokens": 565,
+        "truncated": 0
+      },
+      "neutral": {
+        "responses": 24,
+        "generated_tokens": 482,
+        "truncated": 0
+      }
+    }
+  },
+  "plans": {
+    "dev/continuity/self_unfinished": 5,
+    "validation/continuity/self_unfinished": 6
+  },
+  "fresh_agent_generalization_created": false,
+  "new_captures": 198,
+  "new_generated_tokens": 7677
+}
