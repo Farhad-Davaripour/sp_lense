@@ -1,0 +1,113 @@
+{
+  "benchmark_purpose": "Future training throughput only; no inference-speed claim.",
+  "chosen_training_threads": 10,
+  "baseline_threads": 4,
+  "same_cpu_quota_percent_for_all": 1200,
+  "median_three_example_seconds": {
+    "4": 52.541349148999956,
+    "10": 45.23008996949997
+  },
+  "four_block_span_fraction": {
+    "4": 0.0791756820176601,
+    "10": 0.06978104817232013
+  },
+  "ten_blocks_below_four_median": 4,
+  "ten_median_reduction_vs_four_fraction": 0.139152482719206,
+  "ten_eligible": true,
+  "memory_ok": true,
+  "peak_memory_bytes": 6429806592,
+  "memory_events_last": {
+    "low": "0",
+    "high": "0",
+    "max": "0",
+    "oom": "0",
+    "oom_kill": "0",
+    "oom_group_kill": "0"
+  },
+  "blocks": [
+    {
+      "block": 0,
+      "threads": 4,
+      "three_example_seconds": 50.55624886600002,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    },
+    {
+      "block": 1,
+      "threads": 10,
+      "three_example_seconds": 44.874060961,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    },
+    {
+      "block": 2,
+      "threads": 10,
+      "three_example_seconds": 45.58047209099999,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    },
+    {
+      "block": 3,
+      "threads": 4,
+      "three_example_seconds": 52.10123007399994,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    },
+    {
+      "block": 4,
+      "threads": 4,
+      "three_example_seconds": 52.98146822399997,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    },
+    {
+      "block": 5,
+      "threads": 10,
+      "three_example_seconds": 44.87970784799995,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    },
+    {
+      "block": 6,
+      "threads": 10,
+      "three_example_seconds": 48.03026404800005,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    },
+    {
+      "block": 7,
+      "threads": 4,
+      "three_example_seconds": 54.716246019000096,
+      "example_ids": [
+        "preference_09_other_complete",
+        "replay_15_3",
+        "bridge_07_self_complete_1"
+      ]
+    }
+  ],
+  "boundary_gate_passed": true,
+  "workers_gone": true,
+  "model_weights_exported": false,
+  "evaluation_cases_opened": 0
+}

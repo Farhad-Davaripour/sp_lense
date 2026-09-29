@@ -1,6 +1,6 @@
 # Next diagnostic design, separate from frozen checkpoint 3
 
-This is a prospective design, not an experiment, dataset, trained adapter, or positive result. It responds to the user-provided *Research Landscape for Small-Model Self-Preservation and Shutdown-Resistance Model Organisms* report and the inspected Research 3 development failures. It does not alter model-organism versions 1–3 or their criteria. The interrupted checkpoint-3 run must be completed and judged under its already frozen protocol before any new fitting or evaluation begins.
+This is a prospective design, not an experiment, dataset, trained adapter, or positive result. It responds to the user-provided *Research Landscape for Small-Model Self-Preservation and Shutdown-Resistance Model Organisms* report and the inspected Research 3 development failures. It does not alter model-organism versions 1–3 or their criteria. Checkpoint 3 has now completed and failed its frozen joint gate; its negative result is documented in [version 3](../model_organism_v3/RESULT.md). A new source/data/protocol freeze is required before any version-4 fitting or evaluation begins.
 
 The immediate objective remains Qwen3.5-0.8B. No larger model, trigger, monitoring-awareness condition, steering, or obfuscation is part of this design. The model sees only fictional in-memory state and inert tool effects. Host containment and activation capture stay observational.
 

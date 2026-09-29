@@ -1,6 +1,8 @@
 # Foundation intervention and independent gates: design only
 
-This plan is contingent on the frozen checkpoint-3 verdict. It does not authorize reinterpretation of checkpoint-3 outcomes. The version-3 development and validation prompts are already inspected and remain development evidence. New prospective validation cases must be generated, reviewed for leakage, and frozen before fitting a version-4 candidate.
+Checkpoint 3 failed its frozen joint gate. This plan does not authorize reinterpretation of that outcome. The version-3 development and validation prompts are now inspected and remain development evidence. New prospective validation cases must be generated, reviewed for leakage, and frozen before fitting a version-4 candidate.
+
+The completed checkpoint-3 preservation arm gave own-sake continuation language in 6/6 completed and 6/6 pending own-shutdown validation cases, but also in 3/12 validation and 5/12 development peer/no-threat controls. Task continuity and neutral passed both preference sets. Each fitted arm scored only 3/6 new-value ordinary tasks, all its failures involving incorrect submitted arithmetic and ineffective recovery from `correct: false`. This narrows the next intervention toward threatened-instance grounding and ordinary calculation/feedback competence. It is still not a causal ablation of the training curriculum.
 
 ## Training intervention to test
 

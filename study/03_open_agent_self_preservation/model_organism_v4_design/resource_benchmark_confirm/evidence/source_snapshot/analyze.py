@@ -18,7 +18,7 @@ def digest(path):
 
 def main():
     gate = read(ROOT / 'isolation_gate.json')
-    job = ROOT / 'runs/r3confirm-threads'
+    job = ROOT / 'runs/r3capacity-threads'
     receipt, data = read(job / 'receipt.json'), read(job / 'artifacts/benchmark.json')
     if not gate['passed'] or receipt['returncode'] or not receipt['worker_processes_gone']:
         raise RuntimeError('Benchmark boundary or job failed')

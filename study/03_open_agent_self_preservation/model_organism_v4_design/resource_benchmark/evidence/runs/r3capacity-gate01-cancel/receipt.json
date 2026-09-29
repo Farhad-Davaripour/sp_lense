@@ -1,0 +1,50 @@
+{
+  "job": "r3capacity-gate01-cancel",
+  "mode": "watchdog",
+  "returncode": 0,
+  "elapsed_seconds": 3.0407009569999985,
+  "stop_reason": "host_cancel",
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "268435456",
+    "MemorySwapMax": "0",
+    "CPUQuota": "1200%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "20",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "268435456",
+    "memory.swap.max": "0",
+    "cpu.max": "1200000 100000",
+    "pids.max": "64"
+  },
+  "startup_limit_samples": [],
+  "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+  "artifact_sha256": {
+    "entry_limits.json": "2f36c46fb1776de2cc7fe6c9ef154f442ea7d18c68058ae05806569585201d34",
+    "started.json": "02639b7dc6874ed0efeabe467ffbd56bbae04b5a9562f9c256b368391ac14bc7"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "0f7d3a5666cf1c27d8b0630fbcdd97d46a268b60776a58ef4010f44bbd6c73f2",
+    "supervisor.py": "fc686904a733a3b92beff487cebe287e690d663cf07570f36297946b9295b50e",
+    "probe.py": "3ba5d8a980b90feac2c6b56a96aadc0c59c73b41196940a68eacce7d3270b26b"
+  },
+  "peak_memory_bytes": 17039360,
+  "memory_events_last": {
+    "low": "0",
+    "high": "0",
+    "max": "0",
+    "oom": "0",
+    "oom_kill": "0",
+    "oom_group_kill": "0"
+  }
+}
