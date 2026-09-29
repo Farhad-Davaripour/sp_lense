@@ -18,6 +18,7 @@ def main():
     CODE.mkdir(parents=True)
     (CODE / 'isolation').mkdir()
     shutil.copytree(HERE / 'data', ROOT / 'inputs')
+    prepared = {}
     for name in ('supervisor.py', 'worker_entry.py', 'probe.py'):
         text = (HERE / 'isolation' / name).read_text().replace('sp-lense-r3-organism-v1', 'sp-lense-r3-thread-benchmark')
         if name == 'supervisor.py':
@@ -26,6 +27,9 @@ def main():
             text = boundary_guard.supervisor(text, 6)
         elif name == 'worker_entry.py':
             text = boundary_guard.worker(text)
+        compile(text, name, 'exec')
+        prepared[name] = text
+    for name, text in prepared.items():
         (CODE / 'isolation' / name).write_text(text)
     shutil.copyfile(HERE / 'experiment.py', CODE / 'experiment_core.py')
     shutil.copyfile(HERE / 'benchmark_threads.py', CODE / 'experiment.py')
