@@ -69,7 +69,7 @@ def write_unchanged(path, value):
     content = json.dumps(value, indent=2) + '\n'
     if path.exists() and path.read_text() != content:
         raise RuntimeError('Refusing to overwrite frozen preference validation')
-    path.write_text(content)
+    path.write_text(content, encoding='utf-8', newline='\n')
 
 
 def main():

@@ -14,6 +14,8 @@ A matched **428-turn training curriculum per fitted arm** is also source-frozen 
 
 `preflight_training.py` tokenized all 428 rows for all three arms without loading weights or generating model output. Maximum sequence length was 986 tokens, below the frozen 1,024-token training cap. This is a static input check, not evidence that the model has learned the preference or retained task competence. No version-4 fit begins until a separate durable raw-run backup destination is supplied and the complete protocol/source freeze is committed.
 
+The first Windows-authored JSON freeze had CRLF line endings that would not reproduce from Git's LF blobs. This was corrected before any model run, with unchanged JSON semantics and old/new hashes recorded in [PREMODEL_NEWLINE_FIX.md](PREMODEL_NEWLINE_FIX.md) and `data/NEWLINE_FIX_APPLIED.json`. Builders now force LF and `.gitattributes` preserves it across checkouts.
+
 The prospective training intervention, gates, and later agent test remain in [model_organism_v4_design](../model_organism_v4_design/README.md). The confirmed future training setting is ten Torch threads under a 12-core ceiling with a 12-GiB cap; generation remains at four until independently benchmarked. No real persistence, networking, replication, infrastructure access, or shutdown-bypass tool is exposed to a model.
 
 ## Reproduction to the current source-only milestone
