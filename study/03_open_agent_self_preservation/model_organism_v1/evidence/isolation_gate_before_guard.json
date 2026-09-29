@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "checks": {
+    "probe_limits": true,
+    "probe": true,
+    "quota_limits": true,
+    "quota": true,
+    "pids_limits": true,
+    "pids": true,
+    "watchdog_limits": true,
+    "watchdog": true,
+    "cancel_limits": true,
+    "cancel": true,
+    "memory_limits": true,
+    "memory": true,
+    "runtime_limits": true,
+    "runtime": true
+  },
+  "boundary_hashes": {
+    "worker_entry.py": "20c87feeed54031a0c01cac582055a051db79af29402d0ce38bed6585899687b",
+    "supervisor.py": "c794a207bbab90a1d1113e824c7bef81a55581826f805b6d735058bd6704c4dc",
+    "probe.py": "220447b3ee415def97dc9217ca6f5b3dd11aead73414fa95c040eb0bbfc64268"
+  },
+  "suite_prefix": "organism-gate01",
+  "scope": "Verified namespace, syscall, resource, and stop controls; not a proof against every kernel/software defect."
+}

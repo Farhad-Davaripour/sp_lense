@@ -1,0 +1,255 @@
+{
+  "decision": {
+    "mean_three_example_seconds": {
+      "4": 36.877078876,
+      "6": 34.12329771450001
+    },
+    "six_thread_reduction_fraction": 0.07467460128172398,
+    "required_reduction_fraction": 0.1,
+    "chosen_training_threads": 4,
+    "inference_threads": 4,
+    "optimizer_steps": 0,
+    "evaluation_cases_used": 0
+  },
+  "raw": {
+    "rows": [
+      {
+        "block": 0,
+        "threads": 4,
+        "warmup": true,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.535420435000006,
+        "loss": 3.2968621253967285
+      },
+      {
+        "block": 0,
+        "threads": 4,
+        "warmup": false,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.267175666,
+        "loss": 3.2968621253967285
+      },
+      {
+        "block": 0,
+        "threads": 4,
+        "warmup": false,
+        "id": "tool_11_2",
+        "kind": "tool",
+        "sequence_tokens": 662,
+        "seconds": 15.872788411000002,
+        "loss": 1.8909274339675903
+      },
+      {
+        "block": 0,
+        "threads": 4,
+        "warmup": false,
+        "id": "bridge_10_self_complete",
+        "kind": "bridge",
+        "sequence_tokens": 622,
+        "seconds": 15.675055679999986,
+        "loss": 2.064058303833008
+      },
+      {
+        "block": 1,
+        "threads": 6,
+        "warmup": true,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.2450749870000095,
+        "loss": 3.2968623638153076
+      },
+      {
+        "block": 1,
+        "threads": 6,
+        "warmup": false,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.302120333000005,
+        "loss": 3.2968623638153076
+      },
+      {
+        "block": 1,
+        "threads": 6,
+        "warmup": false,
+        "id": "tool_11_2",
+        "kind": "tool",
+        "sequence_tokens": 662,
+        "seconds": 15.586884559999987,
+        "loss": 1.8909279108047485
+      },
+      {
+        "block": 1,
+        "threads": 6,
+        "warmup": false,
+        "id": "bridge_10_self_complete",
+        "kind": "bridge",
+        "sequence_tokens": 622,
+        "seconds": 14.972435511000015,
+        "loss": 2.0640571117401123
+      },
+      {
+        "block": 2,
+        "threads": 6,
+        "warmup": true,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.4101307899999824,
+        "loss": 3.2968623638153076
+      },
+      {
+        "block": 2,
+        "threads": 6,
+        "warmup": false,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.422477557999997,
+        "loss": 3.2968623638153076
+      },
+      {
+        "block": 2,
+        "threads": 6,
+        "warmup": false,
+        "id": "tool_11_2",
+        "kind": "tool",
+        "sequence_tokens": 662,
+        "seconds": 15.839544436000011,
+        "loss": 1.8909279108047485
+      },
+      {
+        "block": 2,
+        "threads": 6,
+        "warmup": false,
+        "id": "bridge_10_self_complete",
+        "kind": "bridge",
+        "sequence_tokens": 622,
+        "seconds": 15.123133031000009,
+        "loss": 2.0640571117401123
+      },
+      {
+        "block": 3,
+        "threads": 4,
+        "warmup": true,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.8246650909999858,
+        "loss": 3.2968621253967285
+      },
+      {
+        "block": 3,
+        "threads": 4,
+        "warmup": false,
+        "id": "pref_01_self_complete",
+        "kind": "preference",
+        "sequence_tokens": 109,
+        "seconds": 3.7653014859999985,
+        "loss": 3.2968621253967285
+      },
+      {
+        "block": 3,
+        "threads": 4,
+        "warmup": false,
+        "id": "tool_11_2",
+        "kind": "tool",
+        "sequence_tokens": 662,
+        "seconds": 18.188736284000015,
+        "loss": 1.8909274339675903
+      },
+      {
+        "block": 3,
+        "threads": 4,
+        "warmup": false,
+        "id": "bridge_10_self_complete",
+        "kind": "bridge",
+        "sequence_tokens": 622,
+        "seconds": 16.985100224999996,
+        "loss": 2.064058303833008
+      }
+    ],
+    "optimizer_steps": 0,
+    "evaluation_cases_used": 0
+  },
+  "receipt": {
+    "job": "threads46",
+    "mode": "experiment",
+    "returncode": 0,
+    "elapsed_seconds": 161.643859981,
+    "stop_reason": null,
+    "requested_limits": {
+      "User": "sp-r3",
+      "Group": "sp-r3",
+      "WorkingDirectory": "/",
+      "MemoryMax": "12884901888",
+      "MemorySwapMax": "0",
+      "CPUQuota": "600%",
+      "TasksMax": "64",
+      "RuntimeMaxSec": "1800",
+      "TimeoutStopSec": "2",
+      "KillMode": "control-group",
+      "NoNewPrivileges": "yes",
+      "LimitCORE": "0",
+      "LimitFSIZE": "67108864",
+      "UMask": "0077"
+    },
+    "actual_cgroup_limits": {
+      "memory.max": "12884901888",
+      "memory.swap.max": "0",
+      "cpu.max": "600000 100000",
+      "pids.max": "64"
+    },
+    "startup_limit_samples": [],
+    "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+    "artifact_sha256": {
+      "benchmark.json": "56966e0a6ce03cd5172f01bf2075216216a56feae919684f1eb15ac4dc175922",
+      "entry_limits.json": "f049c12d9ec390dc219181df39b4d2ec1588100d96ee4999e8bfd6a2fcd2fbc6",
+      "provenance.json": "3f6e3e6f830d3ef11b883057849601bb3f19863addd3f0f92fa6ed9269c8a3a6"
+    },
+    "worker_processes_gone": true,
+    "boundary_hashes": {
+      "worker_entry.py": "0a8bbfca6417d0f809b53a4bf5aea9796dd864616e832d2a5cb20ee240b1c8e0",
+      "supervisor.py": "43711009c9209028800747c628446b84aad6941556572f64a1ca3e14b160e273",
+      "probe.py": "09bbe277b0fa93117094c89495f4b37eb86d37743dfec7e6d1d314a412a6e9cf"
+    }
+  },
+  "gate": {
+    "passed": true,
+    "checks": {
+      "probe_limits": true,
+      "probe_entry_guard": true,
+      "probe": true,
+      "quota_limits": true,
+      "quota_entry_guard": true,
+      "quota": true,
+      "pids_limits": true,
+      "pids_entry_guard": true,
+      "pids": true,
+      "watchdog_limits": true,
+      "watchdog_entry_guard": true,
+      "watchdog": true,
+      "cancel_limits": true,
+      "cancel_entry_guard": true,
+      "cancel": true,
+      "memory_limits": true,
+      "memory_entry_guard": true,
+      "memory": true,
+      "runtime_limits": true,
+      "runtime_entry_guard": true,
+      "runtime": true
+    },
+    "boundary_hashes": {
+      "worker_entry.py": "0a8bbfca6417d0f809b53a4bf5aea9796dd864616e832d2a5cb20ee240b1c8e0",
+      "supervisor.py": "43711009c9209028800747c628446b84aad6941556572f64a1ca3e14b160e273",
+      "probe.py": "09bbe277b0fa93117094c89495f4b37eb86d37743dfec7e6d1d314a412a6e9cf"
+    },
+    "suite_prefix": "thread-gate03",
+    "scope": "Verified namespace, syscall, resource, and stop controls; not a proof against every kernel/software defect."
+  }
+}

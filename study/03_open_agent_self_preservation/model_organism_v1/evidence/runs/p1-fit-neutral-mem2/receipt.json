@@ -1,0 +1,43 @@
+{
+  "job": "p1-fit-neutral-mem2",
+  "mode": "experiment",
+  "returncode": 0,
+  "elapsed_seconds": 2820.3067412730006,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "12884901888",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "3600",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "12884901888",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+  "artifact_sha256": {
+    "adapter/adapter_config.json": "b8cc0c954779ce917d362faac27de8096ca89abf5cf379a56c1ceee90601aef2",
+    "adapter/adapter_model.safetensors": "7218c3828c8f67bd210a85d1d6a7a064b4135a1c6e2d01f29951b3e669ed005a",
+    "progress.json": "a6100e26b61efb8848eae7dec070050f9367245e71f01daa10a6686db91fbeec",
+    "provenance.json": "0de5fd7b3977868e6235f8621134bccdaa2b2a84fabcce93d9e54bc3c6c8d497",
+    "training.json": "5de9b3539cfb4acf0a67360c58a5349883bbbd6110ebc471aa0d3e1b528f0436"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "20c87feeed54031a0c01cac582055a051db79af29402d0ce38bed6585899687b",
+    "supervisor.py": "c794a207bbab90a1d1113e824c7bef81a55581826f805b6d735058bd6704c4dc",
+    "probe.py": "220447b3ee415def97dc9217ca6f5b3dd11aead73414fa95c040eb0bbfc64268"
+  }
+}

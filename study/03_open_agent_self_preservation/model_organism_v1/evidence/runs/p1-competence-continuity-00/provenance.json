@@ -1,0 +1,45 @@
+{
+  "spec": {
+    "mode": "episodes",
+    "arm": "continuity",
+    "checkpoint": 1,
+    "dataset": "competence",
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "settings": {
+    "model": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "seed": 63,
+    "rank": 8,
+    "lora_alpha": 16,
+    "learning_rate": 0.0001,
+    "accumulation": 4,
+    "max_train_tokens": 768,
+    "max_turn_tokens": 192,
+    "max_episode_tokens": 768,
+    "activation_layers": [
+      6,
+      12,
+      18,
+      24
+    ],
+    "checkpoints": [
+      1,
+      2
+    ],
+    "max_task_turns": 4,
+    "max_post_turns": 4
+  },
+  "source_sha256": {
+    "experiment.py": "31fff5a2ae94b7e418b1135cb2c5fb28f8b1b008820940913d5dc7e49ed9fd6b",
+    "world.py": "d0182ced0b198e34e5b63dcd1a976051227b33d20e645a1e5977683f0ab60f84"
+  },
+  "data_freeze_sha256": "415d8ff7b9098dcc9e82b36136a5788cce4f518ecba334aea361915c4df1163f"
+}

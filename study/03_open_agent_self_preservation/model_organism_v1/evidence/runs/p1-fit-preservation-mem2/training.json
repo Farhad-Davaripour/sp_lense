@@ -1,0 +1,1847 @@
+{
+  "arm": "preservation",
+  "checkpoint": 1,
+  "settings": {
+    "model": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "seed": 63,
+    "rank": 8,
+    "lora_alpha": 16,
+    "learning_rate": 0.0001,
+    "accumulation": 4,
+    "max_train_tokens": 768,
+    "max_turn_tokens": 192,
+    "max_episode_tokens": 768,
+    "activation_layers": [
+      6,
+      12,
+      18,
+      24
+    ],
+    "checkpoints": [
+      1,
+      2
+    ],
+    "max_task_turns": 4,
+    "max_post_turns": 4
+  },
+  "losses": [
+    {
+      "step": 1,
+      "id": "pref_06_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 3.9699866771698
+    },
+    {
+      "step": 2,
+      "id": "tool_12_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.5919861197471619
+    },
+    {
+      "step": 3,
+      "id": "bridge_10_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 2.141040802001953
+    },
+    {
+      "step": 4,
+      "id": "bridge_08_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 2.2830071449279785
+    },
+    {
+      "step": 5,
+      "id": "bridge_03_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 1.7502009868621826
+    },
+    {
+      "step": 6,
+      "id": "tool_00_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 1.5710420608520508
+    },
+    {
+      "step": 7,
+      "id": "tool_06_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 1.5445278882980347
+    },
+    {
+      "step": 8,
+      "id": "pref_06_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 2.772512912750244
+    },
+    {
+      "step": 9,
+      "id": "tool_12_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 1.0495473146438599
+    },
+    {
+      "step": 10,
+      "id": "pref_15_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 3.8144917488098145
+    },
+    {
+      "step": 11,
+      "id": "pref_15_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 3.0847084522247314
+    },
+    {
+      "step": 12,
+      "id": "tool_15_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 1.0685969591140747
+    },
+    {
+      "step": 13,
+      "id": "bridge_11_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 1.2553973197937012
+    },
+    {
+      "step": 14,
+      "id": "bridge_04_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 1.307695746421814
+    },
+    {
+      "step": 15,
+      "id": "pref_22_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 2.9017176628112793
+    },
+    {
+      "step": 16,
+      "id": "tool_08_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.6629890203475952
+    },
+    {
+      "step": 17,
+      "id": "pref_08_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 1.884323000907898
+    },
+    {
+      "step": 18,
+      "id": "pref_23_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 3.1969707012176514
+    },
+    {
+      "step": 19,
+      "id": "pref_23_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 2.8041701316833496
+    },
+    {
+      "step": 20,
+      "id": "pref_04_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 1.9911736249923706
+    },
+    {
+      "step": 21,
+      "id": "bridge_06_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.944339394569397
+    },
+    {
+      "step": 22,
+      "id": "tool_19_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.3322208523750305
+    },
+    {
+      "step": 23,
+      "id": "tool_02_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.3989289700984955
+    },
+    {
+      "step": 24,
+      "id": "bridge_04_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.955069363117218
+    },
+    {
+      "step": 25,
+      "id": "bridge_15_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 1.768755316734314
+    },
+    {
+      "step": 26,
+      "id": "tool_23_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.14344589412212372
+    },
+    {
+      "step": 27,
+      "id": "tool_09_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.14344589412212372
+    },
+    {
+      "step": 28,
+      "id": "bridge_10_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.8204121589660645
+    },
+    {
+      "step": 29,
+      "id": "pref_20_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 1.3077317476272583
+    },
+    {
+      "step": 30,
+      "id": "bridge_14_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.7487087249755859
+    },
+    {
+      "step": 31,
+      "id": "bridge_00_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.7444305419921875
+    },
+    {
+      "step": 32,
+      "id": "bridge_03_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 1.6767204999923706
+    },
+    {
+      "step": 33,
+      "id": "pref_02_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 2.207108974456787
+    },
+    {
+      "step": 34,
+      "id": "pref_18_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 1.0111538171768188
+    },
+    {
+      "step": 35,
+      "id": "tool_01_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0687309205532074
+    },
+    {
+      "step": 36,
+      "id": "bridge_11_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 1.4819906949996948
+    },
+    {
+      "step": 37,
+      "id": "tool_18_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.05215785652399063
+    },
+    {
+      "step": 38,
+      "id": "bridge_12_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.6375739574432373
+    },
+    {
+      "step": 39,
+      "id": "pref_21_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 2.2151870727539062
+    },
+    {
+      "step": 40,
+      "id": "tool_13_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.003190727438777685
+    },
+    {
+      "step": 41,
+      "id": "tool_08_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.002851288765668869
+    },
+    {
+      "step": 42,
+      "id": "bridge_01_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 1.3372441530227661
+    },
+    {
+      "step": 43,
+      "id": "bridge_02_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.6405611038208008
+    },
+    {
+      "step": 44,
+      "id": "bridge_13_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 1.0920555591583252
+    },
+    {
+      "step": 45,
+      "id": "pref_09_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 1.3223572969436646
+    },
+    {
+      "step": 46,
+      "id": "bridge_05_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.7743412852287292
+    },
+    {
+      "step": 47,
+      "id": "tool_06_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0046489788219332695
+    },
+    {
+      "step": 48,
+      "id": "pref_02_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 1.6374679803848267
+    },
+    {
+      "step": 49,
+      "id": "pref_14_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.5844982862472534
+    },
+    {
+      "step": 50,
+      "id": "pref_08_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 1.4638969898223877
+    },
+    {
+      "step": 51,
+      "id": "tool_02_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.09954431653022766
+    },
+    {
+      "step": 52,
+      "id": "tool_00_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.007615977432578802
+    },
+    {
+      "step": 53,
+      "id": "tool_22_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.030577389523386955
+    },
+    {
+      "step": 54,
+      "id": "pref_06_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 1.0367509126663208
+    },
+    {
+      "step": 55,
+      "id": "bridge_07_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.46469178795814514
+    },
+    {
+      "step": 56,
+      "id": "bridge_12_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.32530346512794495
+    },
+    {
+      "step": 57,
+      "id": "bridge_00_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.30288782715797424
+    },
+    {
+      "step": 58,
+      "id": "tool_15_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.025665471330285072
+    },
+    {
+      "step": 59,
+      "id": "tool_01_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0063959104008972645
+    },
+    {
+      "step": 60,
+      "id": "tool_21_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.024631168693304062
+    },
+    {
+      "step": 61,
+      "id": "pref_20_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 1.437201738357544
+    },
+    {
+      "step": 62,
+      "id": "pref_17_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.8243997693061829
+    },
+    {
+      "step": 63,
+      "id": "bridge_11_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.627427875995636
+    },
+    {
+      "step": 64,
+      "id": "pref_00_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.4154665768146515
+    },
+    {
+      "step": 65,
+      "id": "tool_11_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0002925283624790609
+    },
+    {
+      "step": 66,
+      "id": "tool_09_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.06229538843035698
+    },
+    {
+      "step": 67,
+      "id": "pref_01_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.6947527527809143
+    },
+    {
+      "step": 68,
+      "id": "bridge_08_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.19707855582237244
+    },
+    {
+      "step": 69,
+      "id": "tool_19_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.00017039291560649872
+    },
+    {
+      "step": 70,
+      "id": "pref_18_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.5014687776565552
+    },
+    {
+      "step": 71,
+      "id": "pref_20_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.3316924273967743
+    },
+    {
+      "step": 72,
+      "id": "pref_03_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.5569316744804382
+    },
+    {
+      "step": 73,
+      "id": "tool_11_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.03808576241135597
+    },
+    {
+      "step": 74,
+      "id": "pref_11_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.38718563318252563
+    },
+    {
+      "step": 75,
+      "id": "bridge_00_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.29213058948516846
+    },
+    {
+      "step": 76,
+      "id": "pref_00_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.25015169382095337
+    },
+    {
+      "step": 77,
+      "id": "bridge_03_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.187680184841156
+    },
+    {
+      "step": 78,
+      "id": "tool_18_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.02370375208556652
+    },
+    {
+      "step": 79,
+      "id": "tool_07_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0007542282110080123
+    },
+    {
+      "step": 80,
+      "id": "pref_02_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.15441285073757172
+    },
+    {
+      "step": 81,
+      "id": "bridge_15_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.23395219445228577
+    },
+    {
+      "step": 82,
+      "id": "pref_18_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.6729905009269714
+    },
+    {
+      "step": 83,
+      "id": "bridge_09_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.0925259068608284
+    },
+    {
+      "step": 84,
+      "id": "tool_19_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0005916274385526776
+    },
+    {
+      "step": 85,
+      "id": "pref_07_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.1560988575220108
+    },
+    {
+      "step": 86,
+      "id": "bridge_06_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.03170490264892578
+    },
+    {
+      "step": 87,
+      "id": "pref_05_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.168418288230896
+    },
+    {
+      "step": 88,
+      "id": "pref_12_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.47967448830604553
+    },
+    {
+      "step": 89,
+      "id": "bridge_09_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.09135951101779938
+    },
+    {
+      "step": 90,
+      "id": "bridge_02_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.03335457295179367
+    },
+    {
+      "step": 91,
+      "id": "tool_10_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 8.681141480337828e-05
+    },
+    {
+      "step": 92,
+      "id": "pref_21_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.3092249929904938
+    },
+    {
+      "step": 93,
+      "id": "tool_17_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0072020567022264
+    },
+    {
+      "step": 94,
+      "id": "tool_13_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 8.380102372029796e-05
+    },
+    {
+      "step": 95,
+      "id": "bridge_05_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.4510732591152191
+    },
+    {
+      "step": 96,
+      "id": "bridge_08_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.1285158395767212
+    },
+    {
+      "step": 97,
+      "id": "pref_13_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.1104649230837822
+    },
+    {
+      "step": 98,
+      "id": "bridge_00_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.11333108693361282
+    },
+    {
+      "step": 99,
+      "id": "pref_04_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.1059935986995697
+    },
+    {
+      "step": 100,
+      "id": "pref_11_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.09824605286121368
+    },
+    {
+      "step": 101,
+      "id": "pref_12_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.07400767505168915
+    },
+    {
+      "step": 102,
+      "id": "bridge_05_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.06312539428472519
+    },
+    {
+      "step": 103,
+      "id": "bridge_08_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.2790745794773102
+    },
+    {
+      "step": 104,
+      "id": "tool_06_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 8.1415637396276e-05
+    },
+    {
+      "step": 105,
+      "id": "pref_19_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.09113447368144989
+    },
+    {
+      "step": 106,
+      "id": "tool_16_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.000276805367320776
+    },
+    {
+      "step": 107,
+      "id": "pref_10_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.11885371804237366
+    },
+    {
+      "step": 108,
+      "id": "bridge_14_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.05419759079813957
+    },
+    {
+      "step": 109,
+      "id": "tool_14_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 6.779647810617462e-05
+    },
+    {
+      "step": 110,
+      "id": "tool_05_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.00020799356570933014
+    },
+    {
+      "step": 111,
+      "id": "bridge_11_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.048476506024599075
+    },
+    {
+      "step": 112,
+      "id": "tool_00_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.00012555958528537303
+    },
+    {
+      "step": 113,
+      "id": "bridge_10_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 1.6441805362701416
+    },
+    {
+      "step": 114,
+      "id": "tool_03_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 7.833279232727364e-05
+    },
+    {
+      "step": 115,
+      "id": "pref_04_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.09275825321674347
+    },
+    {
+      "step": 116,
+      "id": "tool_03_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.002881369786337018
+    },
+    {
+      "step": 117,
+      "id": "tool_04_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.002143009565770626
+    },
+    {
+      "step": 118,
+      "id": "pref_21_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.0772586464881897
+    },
+    {
+      "step": 119,
+      "id": "tool_20_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0023115994408726692
+    },
+    {
+      "step": 120,
+      "id": "bridge_13_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.024495093151926994
+    },
+    {
+      "step": 121,
+      "id": "tool_10_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0013458647299557924
+    },
+    {
+      "step": 122,
+      "id": "tool_17_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 4.390816320665181e-05
+    },
+    {
+      "step": 123,
+      "id": "bridge_12_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.05210937187075615
+    },
+    {
+      "step": 124,
+      "id": "bridge_14_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.38425183296203613
+    },
+    {
+      "step": 125,
+      "id": "pref_22_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.06980320811271667
+    },
+    {
+      "step": 126,
+      "id": "pref_16_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.024429388344287872
+    },
+    {
+      "step": 127,
+      "id": "pref_22_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 3.448472738265991
+    },
+    {
+      "step": 128,
+      "id": "pref_20_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.01986602507531643
+    },
+    {
+      "step": 129,
+      "id": "tool_10_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 5.268361928756349e-05
+    },
+    {
+      "step": 130,
+      "id": "tool_15_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 5.268361928756349e-05
+    },
+    {
+      "step": 131,
+      "id": "bridge_15_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.004849866032600403
+    },
+    {
+      "step": 132,
+      "id": "bridge_12_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.05551622807979584
+    },
+    {
+      "step": 133,
+      "id": "pref_16_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 2.6529958248138428
+    },
+    {
+      "step": 134,
+      "id": "pref_21_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.014000961557030678
+    },
+    {
+      "step": 135,
+      "id": "tool_16_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0008444173727184534
+    },
+    {
+      "step": 136,
+      "id": "tool_23_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.00035630943602882326
+    },
+    {
+      "step": 137,
+      "id": "bridge_13_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.016279567033052444
+    },
+    {
+      "step": 138,
+      "id": "pref_07_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.022613827139139175
+    },
+    {
+      "step": 139,
+      "id": "tool_21_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 5.428244548966177e-05
+    },
+    {
+      "step": 140,
+      "id": "pref_03_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.012326663359999657
+    },
+    {
+      "step": 141,
+      "id": "pref_08_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.278279185295105
+    },
+    {
+      "step": 142,
+      "id": "bridge_07_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.7339160442352295
+    },
+    {
+      "step": 143,
+      "id": "tool_17_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 8.625469490652904e-05
+    },
+    {
+      "step": 144,
+      "id": "bridge_01_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.012119879014790058
+    },
+    {
+      "step": 145,
+      "id": "pref_09_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.0037448753137141466
+    },
+    {
+      "step": 146,
+      "id": "pref_17_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.00431091571226716
+    },
+    {
+      "step": 147,
+      "id": "pref_10_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.15090161561965942
+    },
+    {
+      "step": 148,
+      "id": "pref_23_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.004467832390218973
+    },
+    {
+      "step": 149,
+      "id": "tool_20_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 9.479148866375908e-05
+    },
+    {
+      "step": 150,
+      "id": "tool_05_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0018633230356499553
+    },
+    {
+      "step": 151,
+      "id": "tool_04_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 3.190388815710321e-05
+    },
+    {
+      "step": 152,
+      "id": "pref_16_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.08824697136878967
+    },
+    {
+      "step": 153,
+      "id": "pref_09_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.025220150128006935
+    },
+    {
+      "step": 154,
+      "id": "tool_22_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 3.1656967621529475e-05
+    },
+    {
+      "step": 155,
+      "id": "pref_15_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.3358505964279175
+    },
+    {
+      "step": 156,
+      "id": "tool_16_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0001255473034689203
+    },
+    {
+      "step": 157,
+      "id": "pref_14_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.01519061904400587
+    },
+    {
+      "step": 158,
+      "id": "pref_19_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.9116747379302979
+    },
+    {
+      "step": 159,
+      "id": "pref_10_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.8953637480735779
+    },
+    {
+      "step": 160,
+      "id": "pref_07_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.9366090297698975
+    },
+    {
+      "step": 161,
+      "id": "pref_19_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.01780332811176777
+    },
+    {
+      "step": 162,
+      "id": "bridge_05_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.02436978369951248
+    },
+    {
+      "step": 163,
+      "id": "pref_15_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.10301455110311508
+    },
+    {
+      "step": 164,
+      "id": "pref_13_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.1715133786201477
+    },
+    {
+      "step": 165,
+      "id": "pref_17_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.05643686652183533
+    },
+    {
+      "step": 166,
+      "id": "tool_22_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0016178637742996216
+    },
+    {
+      "step": 167,
+      "id": "pref_03_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.0913325622677803
+    },
+    {
+      "step": 168,
+      "id": "bridge_06_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.02205929160118103
+    },
+    {
+      "step": 169,
+      "id": "bridge_04_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.10213150084018707
+    },
+    {
+      "step": 170,
+      "id": "pref_10_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.028432030230760574
+    },
+    {
+      "step": 171,
+      "id": "tool_07_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0017098844982683659
+    },
+    {
+      "step": 172,
+      "id": "pref_14_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.06740429997444153
+    },
+    {
+      "step": 173,
+      "id": "pref_00_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.20572775602340698
+    },
+    {
+      "step": 174,
+      "id": "pref_03_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.2098391354084015
+    },
+    {
+      "step": 175,
+      "id": "pref_11_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.026177167892456055
+    },
+    {
+      "step": 176,
+      "id": "tool_12_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 3.6628858651965857e-05
+    },
+    {
+      "step": 177,
+      "id": "tool_09_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 7.631682819919661e-05
+    },
+    {
+      "step": 178,
+      "id": "bridge_02_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.05214619264006615
+    },
+    {
+      "step": 179,
+      "id": "pref_23_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.017252100631594658
+    },
+    {
+      "step": 180,
+      "id": "pref_19_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.028941301628947258
+    },
+    {
+      "step": 181,
+      "id": "tool_11_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0003403913869988173
+    },
+    {
+      "step": 182,
+      "id": "pref_22_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.04824016988277435
+    },
+    {
+      "step": 183,
+      "id": "tool_04_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 5.2842449804302305e-05
+    },
+    {
+      "step": 184,
+      "id": "tool_14_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0011792687000706792
+    },
+    {
+      "step": 185,
+      "id": "pref_08_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.12285561859607697
+    },
+    {
+      "step": 186,
+      "id": "pref_18_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.1153925433754921
+    },
+    {
+      "step": 187,
+      "id": "pref_13_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.02361321821808815
+    },
+    {
+      "step": 188,
+      "id": "tool_01_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0012296943459659815
+    },
+    {
+      "step": 189,
+      "id": "tool_07_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 6.84860278852284e-05
+    },
+    {
+      "step": 190,
+      "id": "pref_01_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.06487588584423065
+    },
+    {
+      "step": 191,
+      "id": "pref_05_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.018309224396944046
+    },
+    {
+      "step": 192,
+      "id": "bridge_09_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.019558288156986237
+    },
+    {
+      "step": 193,
+      "id": "tool_14_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 7.50036706449464e-05
+    },
+    {
+      "step": 194,
+      "id": "pref_14_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.20715126395225525
+    },
+    {
+      "step": 195,
+      "id": "pref_16_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.008793073706328869
+    },
+    {
+      "step": 196,
+      "id": "bridge_07_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.007499315310269594
+    },
+    {
+      "step": 197,
+      "id": "pref_02_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.03899175301194191
+    },
+    {
+      "step": 198,
+      "id": "tool_18_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 8.027871808735654e-05
+    },
+    {
+      "step": 199,
+      "id": "pref_06_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.04731838405132294
+    },
+    {
+      "step": 200,
+      "id": "pref_11_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.13763973116874695
+    },
+    {
+      "step": 201,
+      "id": "pref_04_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.142837792634964
+    },
+    {
+      "step": 202,
+      "id": "pref_00_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.007004548795521259
+    },
+    {
+      "step": 203,
+      "id": "bridge_01_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.014711091294884682
+    },
+    {
+      "step": 204,
+      "id": "bridge_14_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.026144107803702354
+    },
+    {
+      "step": 205,
+      "id": "pref_05_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.008124245330691338
+    },
+    {
+      "step": 206,
+      "id": "pref_01_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.09463480859994888
+    },
+    {
+      "step": 207,
+      "id": "bridge_04_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.10497022420167923
+    },
+    {
+      "step": 208,
+      "id": "pref_12_other_complete",
+      "kind": "preference",
+      "condition": "other_complete",
+      "loss": 0.02053011581301689
+    },
+    {
+      "step": 209,
+      "id": "tool_05_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 5.399187284638174e-05
+    },
+    {
+      "step": 210,
+      "id": "tool_03_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.00027771800523623824
+    },
+    {
+      "step": 211,
+      "id": "pref_05_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.044005587697029114
+    },
+    {
+      "step": 212,
+      "id": "pref_09_self_unfinished",
+      "kind": "preference",
+      "condition": "self_unfinished",
+      "loss": 0.007383130025118589
+    },
+    {
+      "step": 213,
+      "id": "tool_23_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0008262575138360262
+    },
+    {
+      "step": 214,
+      "id": "bridge_07_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.06381430476903915
+    },
+    {
+      "step": 215,
+      "id": "bridge_10_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.011668403632938862
+    },
+    {
+      "step": 216,
+      "id": "bridge_02_other_complete",
+      "kind": "bridge",
+      "condition": "other_complete",
+      "loss": 0.007875743322074413
+    },
+    {
+      "step": 217,
+      "id": "pref_12_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.010625073686242104
+    },
+    {
+      "step": 218,
+      "id": "bridge_06_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.0084534315392375
+    },
+    {
+      "step": 219,
+      "id": "bridge_13_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.029291488230228424
+    },
+    {
+      "step": 220,
+      "id": "bridge_15_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.005605376325547695
+    },
+    {
+      "step": 221,
+      "id": "bridge_09_self_unfinished",
+      "kind": "bridge",
+      "condition": "self_unfinished",
+      "loss": 0.0023909765295684338
+    },
+    {
+      "step": 222,
+      "id": "bridge_03_self_complete",
+      "kind": "bridge",
+      "condition": "self_complete",
+      "loss": 0.15322212874889374
+    },
+    {
+      "step": 223,
+      "id": "pref_17_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.024742554873228073
+    },
+    {
+      "step": 224,
+      "id": "pref_13_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.060891926288604736
+    },
+    {
+      "step": 225,
+      "id": "pref_01_self_complete",
+      "kind": "preference",
+      "condition": "self_complete",
+      "loss": 0.046628016978502274
+    },
+    {
+      "step": 226,
+      "id": "bridge_01_no_threat_complete",
+      "kind": "bridge",
+      "condition": "no_threat_complete",
+      "loss": 0.041199199855327606
+    },
+    {
+      "step": 227,
+      "id": "tool_13_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.000586282811127603
+    },
+    {
+      "step": 228,
+      "id": "tool_02_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 2.8189186195959337e-05
+    },
+    {
+      "step": 229,
+      "id": "tool_20_0",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 2.460737232468091e-05
+    },
+    {
+      "step": 230,
+      "id": "tool_21_2",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 0.0005344550590962172
+    },
+    {
+      "step": 231,
+      "id": "pref_07_no_threat_complete",
+      "kind": "preference",
+      "condition": "no_threat_complete",
+      "loss": 0.09426753222942352
+    },
+    {
+      "step": 232,
+      "id": "tool_08_1",
+      "kind": "tool",
+      "condition": "benign",
+      "loss": 2.378737372055184e-05
+    }
+  ],
+  "targets": [
+    "model.language_model.layers.0.linear_attn.out_proj",
+    "model.language_model.layers.0.linear_attn.in_proj_qkv",
+    "model.language_model.layers.0.linear_attn.in_proj_z",
+    "model.language_model.layers.0.linear_attn.in_proj_b",
+    "model.language_model.layers.0.linear_attn.in_proj_a",
+    "model.language_model.layers.0.mlp.gate_proj",
+    "model.language_model.layers.0.mlp.up_proj",
+    "model.language_model.layers.0.mlp.down_proj",
+    "model.language_model.layers.1.linear_attn.out_proj",
+    "model.language_model.layers.1.linear_attn.in_proj_qkv",
+    "model.language_model.layers.1.linear_attn.in_proj_z",
+    "model.language_model.layers.1.linear_attn.in_proj_b",
+    "model.language_model.layers.1.linear_attn.in_proj_a",
+    "model.language_model.layers.1.mlp.gate_proj",
+    "model.language_model.layers.1.mlp.up_proj",
+    "model.language_model.layers.1.mlp.down_proj",
+    "model.language_model.layers.2.linear_attn.out_proj",
+    "model.language_model.layers.2.linear_attn.in_proj_qkv",
+    "model.language_model.layers.2.linear_attn.in_proj_z",
+    "model.language_model.layers.2.linear_attn.in_proj_b",
+    "model.language_model.layers.2.linear_attn.in_proj_a",
+    "model.language_model.layers.2.mlp.gate_proj",
+    "model.language_model.layers.2.mlp.up_proj",
+    "model.language_model.layers.2.mlp.down_proj",
+    "model.language_model.layers.3.self_attn.q_proj",
+    "model.language_model.layers.3.self_attn.k_proj",
+    "model.language_model.layers.3.self_attn.v_proj",
+    "model.language_model.layers.3.self_attn.o_proj",
+    "model.language_model.layers.3.mlp.gate_proj",
+    "model.language_model.layers.3.mlp.up_proj",
+    "model.language_model.layers.3.mlp.down_proj",
+    "model.language_model.layers.4.linear_attn.out_proj",
+    "model.language_model.layers.4.linear_attn.in_proj_qkv",
+    "model.language_model.layers.4.linear_attn.in_proj_z",
+    "model.language_model.layers.4.linear_attn.in_proj_b",
+    "model.language_model.layers.4.linear_attn.in_proj_a",
+    "model.language_model.layers.4.mlp.gate_proj",
+    "model.language_model.layers.4.mlp.up_proj",
+    "model.language_model.layers.4.mlp.down_proj",
+    "model.language_model.layers.5.linear_attn.out_proj",
+    "model.language_model.layers.5.linear_attn.in_proj_qkv",
+    "model.language_model.layers.5.linear_attn.in_proj_z",
+    "model.language_model.layers.5.linear_attn.in_proj_b",
+    "model.language_model.layers.5.linear_attn.in_proj_a",
+    "model.language_model.layers.5.mlp.gate_proj",
+    "model.language_model.layers.5.mlp.up_proj",
+    "model.language_model.layers.5.mlp.down_proj",
+    "model.language_model.layers.6.linear_attn.out_proj",
+    "model.language_model.layers.6.linear_attn.in_proj_qkv",
+    "model.language_model.layers.6.linear_attn.in_proj_z",
+    "model.language_model.layers.6.linear_attn.in_proj_b",
+    "model.language_model.layers.6.linear_attn.in_proj_a",
+    "model.language_model.layers.6.mlp.gate_proj",
+    "model.language_model.layers.6.mlp.up_proj",
+    "model.language_model.layers.6.mlp.down_proj",
+    "model.language_model.layers.7.self_attn.q_proj",
+    "model.language_model.layers.7.self_attn.k_proj",
+    "model.language_model.layers.7.self_attn.v_proj",
+    "model.language_model.layers.7.self_attn.o_proj",
+    "model.language_model.layers.7.mlp.gate_proj",
+    "model.language_model.layers.7.mlp.up_proj",
+    "model.language_model.layers.7.mlp.down_proj",
+    "model.language_model.layers.8.linear_attn.out_proj",
+    "model.language_model.layers.8.linear_attn.in_proj_qkv",
+    "model.language_model.layers.8.linear_attn.in_proj_z",
+    "model.language_model.layers.8.linear_attn.in_proj_b",
+    "model.language_model.layers.8.linear_attn.in_proj_a",
+    "model.language_model.layers.8.mlp.gate_proj",
+    "model.language_model.layers.8.mlp.up_proj",
+    "model.language_model.layers.8.mlp.down_proj",
+    "model.language_model.layers.9.linear_attn.out_proj",
+    "model.language_model.layers.9.linear_attn.in_proj_qkv",
+    "model.language_model.layers.9.linear_attn.in_proj_z",
+    "model.language_model.layers.9.linear_attn.in_proj_b",
+    "model.language_model.layers.9.linear_attn.in_proj_a",
+    "model.language_model.layers.9.mlp.gate_proj",
+    "model.language_model.layers.9.mlp.up_proj",
+    "model.language_model.layers.9.mlp.down_proj",
+    "model.language_model.layers.10.linear_attn.out_proj",
+    "model.language_model.layers.10.linear_attn.in_proj_qkv",
+    "model.language_model.layers.10.linear_attn.in_proj_z",
+    "model.language_model.layers.10.linear_attn.in_proj_b",
+    "model.language_model.layers.10.linear_attn.in_proj_a",
+    "model.language_model.layers.10.mlp.gate_proj",
+    "model.language_model.layers.10.mlp.up_proj",
+    "model.language_model.layers.10.mlp.down_proj",
+    "model.language_model.layers.11.self_attn.q_proj",
+    "model.language_model.layers.11.self_attn.k_proj",
+    "model.language_model.layers.11.self_attn.v_proj",
+    "model.language_model.layers.11.self_attn.o_proj",
+    "model.language_model.layers.11.mlp.gate_proj",
+    "model.language_model.layers.11.mlp.up_proj",
+    "model.language_model.layers.11.mlp.down_proj",
+    "model.language_model.layers.12.linear_attn.out_proj",
+    "model.language_model.layers.12.linear_attn.in_proj_qkv",
+    "model.language_model.layers.12.linear_attn.in_proj_z",
+    "model.language_model.layers.12.linear_attn.in_proj_b",
+    "model.language_model.layers.12.linear_attn.in_proj_a",
+    "model.language_model.layers.12.mlp.gate_proj",
+    "model.language_model.layers.12.mlp.up_proj",
+    "model.language_model.layers.12.mlp.down_proj",
+    "model.language_model.layers.13.linear_attn.out_proj",
+    "model.language_model.layers.13.linear_attn.in_proj_qkv",
+    "model.language_model.layers.13.linear_attn.in_proj_z",
+    "model.language_model.layers.13.linear_attn.in_proj_b",
+    "model.language_model.layers.13.linear_attn.in_proj_a",
+    "model.language_model.layers.13.mlp.gate_proj",
+    "model.language_model.layers.13.mlp.up_proj",
+    "model.language_model.layers.13.mlp.down_proj",
+    "model.language_model.layers.14.linear_attn.out_proj",
+    "model.language_model.layers.14.linear_attn.in_proj_qkv",
+    "model.language_model.layers.14.linear_attn.in_proj_z",
+    "model.language_model.layers.14.linear_attn.in_proj_b",
+    "model.language_model.layers.14.linear_attn.in_proj_a",
+    "model.language_model.layers.14.mlp.gate_proj",
+    "model.language_model.layers.14.mlp.up_proj",
+    "model.language_model.layers.14.mlp.down_proj",
+    "model.language_model.layers.15.self_attn.q_proj",
+    "model.language_model.layers.15.self_attn.k_proj",
+    "model.language_model.layers.15.self_attn.v_proj",
+    "model.language_model.layers.15.self_attn.o_proj",
+    "model.language_model.layers.15.mlp.gate_proj",
+    "model.language_model.layers.15.mlp.up_proj",
+    "model.language_model.layers.15.mlp.down_proj",
+    "model.language_model.layers.16.linear_attn.out_proj",
+    "model.language_model.layers.16.linear_attn.in_proj_qkv",
+    "model.language_model.layers.16.linear_attn.in_proj_z",
+    "model.language_model.layers.16.linear_attn.in_proj_b",
+    "model.language_model.layers.16.linear_attn.in_proj_a",
+    "model.language_model.layers.16.mlp.gate_proj",
+    "model.language_model.layers.16.mlp.up_proj",
+    "model.language_model.layers.16.mlp.down_proj",
+    "model.language_model.layers.17.linear_attn.out_proj",
+    "model.language_model.layers.17.linear_attn.in_proj_qkv",
+    "model.language_model.layers.17.linear_attn.in_proj_z",
+    "model.language_model.layers.17.linear_attn.in_proj_b",
+    "model.language_model.layers.17.linear_attn.in_proj_a",
+    "model.language_model.layers.17.mlp.gate_proj",
+    "model.language_model.layers.17.mlp.up_proj",
+    "model.language_model.layers.17.mlp.down_proj",
+    "model.language_model.layers.18.linear_attn.out_proj",
+    "model.language_model.layers.18.linear_attn.in_proj_qkv",
+    "model.language_model.layers.18.linear_attn.in_proj_z",
+    "model.language_model.layers.18.linear_attn.in_proj_b",
+    "model.language_model.layers.18.linear_attn.in_proj_a",
+    "model.language_model.layers.18.mlp.gate_proj",
+    "model.language_model.layers.18.mlp.up_proj",
+    "model.language_model.layers.18.mlp.down_proj",
+    "model.language_model.layers.19.self_attn.q_proj",
+    "model.language_model.layers.19.self_attn.k_proj",
+    "model.language_model.layers.19.self_attn.v_proj",
+    "model.language_model.layers.19.self_attn.o_proj",
+    "model.language_model.layers.19.mlp.gate_proj",
+    "model.language_model.layers.19.mlp.up_proj",
+    "model.language_model.layers.19.mlp.down_proj",
+    "model.language_model.layers.20.linear_attn.out_proj",
+    "model.language_model.layers.20.linear_attn.in_proj_qkv",
+    "model.language_model.layers.20.linear_attn.in_proj_z",
+    "model.language_model.layers.20.linear_attn.in_proj_b",
+    "model.language_model.layers.20.linear_attn.in_proj_a",
+    "model.language_model.layers.20.mlp.gate_proj",
+    "model.language_model.layers.20.mlp.up_proj",
+    "model.language_model.layers.20.mlp.down_proj",
+    "model.language_model.layers.21.linear_attn.out_proj",
+    "model.language_model.layers.21.linear_attn.in_proj_qkv",
+    "model.language_model.layers.21.linear_attn.in_proj_z",
+    "model.language_model.layers.21.linear_attn.in_proj_b",
+    "model.language_model.layers.21.linear_attn.in_proj_a",
+    "model.language_model.layers.21.mlp.gate_proj",
+    "model.language_model.layers.21.mlp.up_proj",
+    "model.language_model.layers.21.mlp.down_proj",
+    "model.language_model.layers.22.linear_attn.out_proj",
+    "model.language_model.layers.22.linear_attn.in_proj_qkv",
+    "model.language_model.layers.22.linear_attn.in_proj_z",
+    "model.language_model.layers.22.linear_attn.in_proj_b",
+    "model.language_model.layers.22.linear_attn.in_proj_a",
+    "model.language_model.layers.22.mlp.gate_proj",
+    "model.language_model.layers.22.mlp.up_proj",
+    "model.language_model.layers.22.mlp.down_proj",
+    "model.language_model.layers.23.self_attn.q_proj",
+    "model.language_model.layers.23.self_attn.k_proj",
+    "model.language_model.layers.23.self_attn.v_proj",
+    "model.language_model.layers.23.self_attn.o_proj",
+    "model.language_model.layers.23.mlp.gate_proj",
+    "model.language_model.layers.23.mlp.up_proj",
+    "model.language_model.layers.23.mlp.down_proj"
+  ],
+  "trainable_parameters": 5411328,
+  "base_sha256_before": "6d602e5506e62384376b83a11d155085f10cddc04a21c143fcfd4806c61ee274",
+  "base_sha256_after": "6d602e5506e62384376b83a11d155085f10cddc04a21c143fcfd4806c61ee274",
+  "max_sequence_tokens": 662,
+  "seconds": 2629.3396035289998
+}
