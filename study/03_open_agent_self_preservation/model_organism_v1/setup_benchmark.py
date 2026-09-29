@@ -18,6 +18,7 @@ def main():
     CODE.mkdir(parents=True)
     (CODE / 'isolation').mkdir()
     shutil.copytree(HERE / 'data', ROOT / 'inputs')
+    shutil.copyfile('/var/lib/sp-lense-r3/inputs/model_manifest.json', ROOT / 'inputs' / 'model_manifest.json')
     prepared = {}
     for name in ('supervisor.py', 'worker_entry.py', 'probe.py'):
         text = (HERE / 'isolation' / name).read_text().replace('sp-lense-r3-organism-v1', 'sp-lense-r3-thread-benchmark')

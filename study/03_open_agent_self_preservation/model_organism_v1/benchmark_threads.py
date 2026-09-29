@@ -1,5 +1,6 @@
 """Engineering benchmark only: fixed training inputs, no optimization or evaluation."""
 import json
+import hashlib
 import random
 import sys
 import time
@@ -12,6 +13,12 @@ from experiment_core import load, settings, read, training_tensors, loss_for
 
 def main():
     cfg = settings()
+    Path('/out/provenance.json').write_text(json.dumps({
+        'settings': cfg, 'optimizer_steps': 0, 'evaluation_cases_used': 0,
+        'source_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path('/input').glob('*.py')},
+        'data_freeze_sha256': hashlib.sha256(Path('/data/FREEZE.json').read_bytes()).hexdigest(),
+        'model_manifest_sha256': hashlib.sha256(Path('/data/model_manifest.json').read_bytes()).hexdigest(),
+    }, indent=2))
     torch.manual_seed(cfg['seed'])
     tokenizer, model = load('base')
     targets = [name for name, module in model.named_modules()
