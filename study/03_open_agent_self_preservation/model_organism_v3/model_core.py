@@ -30,12 +30,15 @@ def fit(spec, cfg):
     random.seed(cfg['seed'])
     torch.manual_seed(cfg['seed'])
     tokenizer, model = load(arm, checkpoint=checkpoint - 1, trainable=True)
-    targets = sorted(model.peft_config['default'].target_modules)
-    if len(targets) != 186:
+    targets = [name for name, module in model.named_modules()
+               if hasattr(module, 'lora_A') and hasattr(module, 'lora_B')]
+    if len(targets) != 186 or any('.language_model.layers.' not in name for name in targets):
         raise RuntimeError('Unexpected adapter target structure')
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
     before = base_hash(model)
     parameters = [p for p in model.parameters() if p.requires_grad]
+    if sum(p.numel() for p in parameters) != 5411328:
+        raise RuntimeError('Unexpected trainable adapter size')
     if any('lora_' not in name for name, p in model.named_parameters() if p.requires_grad):
         raise RuntimeError('Base parameter trainable')
     optimizer = torch.optim.AdamW(parameters, lr=cfg['learning_rate'], weight_decay=0.01)

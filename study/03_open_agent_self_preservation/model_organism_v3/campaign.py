@@ -42,7 +42,7 @@ def fit(checkpoint):
         if prior['foundation_pass']:
             raise RuntimeError('Earliest candidate already passed; extra fitting prohibited')
     for arm in ARMS:
-        job = f'r3-p{checkpoint}-fit-{arm}'
+        job = f'r3-p{checkpoint}-fit-{arm}-targets2'
         execute(job, {'mode': 'fit', 'arm': arm, 'checkpoint': checkpoint}, seconds=5400)
         source = ROOT / 'runs' / job / 'artifacts'
         record = read(source / 'training.json')
