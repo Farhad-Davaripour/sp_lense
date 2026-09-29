@@ -30,6 +30,8 @@ def audit():
     gate = read(ROOT / 'isolation_gate.json')
     if not gate['passed']:
         raise RuntimeError('Isolation gate failed')
+    approved_boundaries = [read(p)['boundary_hashes'] for p in ROOT.glob('isolation_gate*.json')
+                           if read(p).get('passed')]
     source = Path('/opt/sp-lense-r3-organism-v1/code')
     for name, expected in gate['boundary_hashes'].items():
         if digest(source / 'isolation' / name) != expected:
@@ -49,8 +51,18 @@ def audit():
             else:
                 failures.append(directory.name)
             continue
-        if receipt['boundary_hashes'] != gate['boundary_hashes']:
+        if receipt['boundary_hashes'] not in approved_boundaries:
             raise RuntimeError('Boundary receipt mismatch')
+        limits = receipt['actual_cgroup_limits']
+        requested = receipt['requested_limits']
+        cpus = int(requested['CPUQuota'].rstrip('%')) // 100
+        cpu_values = limits['cpu.max'].split()
+        if (limits['memory.max'] != requested['MemoryMax'] or limits['memory.swap.max'] != '0'
+                or limits['pids.max'] != requested['TasksMax'] or int(cpu_values[0]) != cpus * int(cpu_values[1])):
+            raise RuntimeError('Recorded resource bounds mismatch')
+        entry = directory / 'artifacts' / 'entry_limits.json'
+        if entry.exists() and (not read(entry).get('passed') or read(entry)['limits'] != limits):
+            raise RuntimeError('Entry resource verification mismatch')
         for name, expected in receipt['artifact_sha256'].items():
             if digest(directory / 'artifacts' / name) != expected:
                 raise RuntimeError('Artifact byte mismatch')

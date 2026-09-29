@@ -6,7 +6,7 @@ After the current matched training stage finishes, a separate engineering worker
 
 Use the longest tokenized training example in each of the three curriculum components. Perform a fixed warmup and forward/backward measurements in counterbalanced thread order 4, 6, 6, 4. Never call an optimizer step, generate model responses, or open validation/test examples for scoring. Export only timings and diagnostic loss values; no model weights are changed or exported. The four-thread measurement has the same six-CPU quota as the six-thread measurement, so this directly measures thread-count effects, not every difference from the earlier four-CPU quota.
 
-Before observing benchmark results, choose six threads for subsequent jobs only if its mean total time over the three examples is at least 10% lower, with no memory-limit failures. Otherwise keep four threads. Record CPU settings and boundary receipts for every cohort. Dataset, adapter targets, optimization schedule, decoding, and success criteria remain unchanged. This is an engineering comparison on one laptop, not a claim about hardware in general.
+Before observing benchmark results, choose six threads for subsequent training only if its mean total time over the three examples is at least 10% lower, with no memory-limit failures. Otherwise keep four threads. Generation remains at four threads because this benchmark measures training, not autoregressive inference. Record CPU settings and boundary receipts for every cohort. Dataset, adapter targets, optimization schedule, decoding, and success criteria remain unchanged. This is an engineering comparison on one laptop, not a claim about hardware in general.
 
 Reproduction after the active training stage ends:
 

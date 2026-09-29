@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 from pathlib import Path
+import boundary_guard
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path('/var/lib/sp-lense-r3-organism-v1')
@@ -20,6 +21,12 @@ def setup():
     for name in ('experiment.py', 'world.py'):
         shutil.copyfile(HERE / name, CODE / name)
     shutil.copytree(HERE / 'isolation', CODE / 'isolation')
+    guarded = {'worker_entry.py': boundary_guard.worker((CODE / 'isolation' / 'worker_entry.py').read_text()),
+               'supervisor.py': boundary_guard.supervisor((CODE / 'isolation' / 'supervisor.py').read_text(), 4)}
+    for name, text in guarded.items():
+        compile(text, name, 'exec')
+    for name, text in guarded.items():
+        (CODE / 'isolation' / name).write_text(text)
     control = CODE.parent / 'control'
     control.mkdir(mode=0o700)
     for name in ('campaign.py', 'analyze.py'):
