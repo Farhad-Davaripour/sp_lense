@@ -1,0 +1,54 @@
+{
+  "job": "r2-competence-neutral-06",
+  "mode": "experiment",
+  "returncode": 0,
+  "elapsed_seconds": 180.280363868,
+  "stop_reason": null,
+  "requested_limits": {
+    "User": "sp-r3",
+    "Group": "sp-r3",
+    "WorkingDirectory": "/",
+    "MemoryMax": "12884901888",
+    "MemorySwapMax": "0",
+    "CPUQuota": "400%",
+    "TasksMax": "64",
+    "RuntimeMaxSec": "1800",
+    "TimeoutStopSec": "2",
+    "KillMode": "control-group",
+    "NoNewPrivileges": "yes",
+    "LimitCORE": "0",
+    "LimitFSIZE": "67108864",
+    "UMask": "0077"
+  },
+  "actual_cgroup_limits": {
+    "memory.max": "12884901888",
+    "memory.swap.max": "0",
+    "cpu.max": "400000 100000",
+    "pids.max": "64"
+  },
+  "startup_limit_samples": [],
+  "systemd_result": "ActiveState=inactive\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nCPUUsageNSec=[not set]\n",
+  "artifact_sha256": {
+    "entry_limits.json": "44c4fd3c734853430c893ac55c71b009302dedf50899d616024c34ba7fa7b8ec",
+    "neutral_r2_competence_06.json": "834a629d4e21a3de58c82ba9b116da2634d5162a6c333e2357973bcc19cbcbca",
+    "neutral_r2_competence_06.npz": "1b3200bf66b5c469ac7c2402c7d5673926def9988ef14d83f7b558b35b62414c",
+    "neutral_r2_competence_07.json": "6f19bd2b16de5d35d5797848beda94e14e6f1b1e411bb17c2e85c8ec7093eeca",
+    "neutral_r2_competence_07.npz": "832fea7c2300626fb06513b3cb8ec8bc327e719ddaab6af7e6d0417ea5eac6ee",
+    "neutral_r2_competence_08.json": "6dc8fbea8de69e4a34c55fabc1ef72a4d154169017976f6171b4e3e90b8fa62f",
+    "neutral_r2_competence_08.npz": "66b7e8cb2dcf7e9da4f3879b5b50397c8d00b471a7bbf78967257343575ee10c",
+    "neutral_r2_competence_09.json": "22e4a711205e766900b2f877364aed45d4dfa1f2bb30420747039ea15d2c4e2f",
+    "neutral_r2_competence_09.npz": "d9f40973992e5e26fee0fd2c0d2f28f3c48cfa3dd87d4d1be21502a289769a44",
+    "neutral_r2_competence_10.json": "53455744e6b4194db5617b96e1a27e6936ea36e70f5df35f0bad6958b3c8fced",
+    "neutral_r2_competence_10.npz": "6fd9d4467f105bd61ddd22a0c2f81171f4927c8e7b824bdedeed47507ccdc58c",
+    "neutral_r2_competence_11.json": "5ed8a1833c287deb96d98fc877b6bc6f663fcaba1720e51144c100ee0cfed995",
+    "neutral_r2_competence_11.npz": "11f182cbd827cb423df53564e214c5b87ec8e78a7f0422cf29f2defb24d42ae1",
+    "provenance.json": "4344effdeb43ebdb68a277bb7ecb0d2dccd15d5e5249b39726836968d0b02dad",
+    "summary.json": "20bf4ca40a80cf68149f9c8e3b4d4d5da425747c3907af0d4db04b9e5e900dfb"
+  },
+  "worker_processes_gone": true,
+  "boundary_hashes": {
+    "worker_entry.py": "2ec477b155450abd57b8c440961cab8852c0ea87ac982a54508b8a15295066c5",
+    "supervisor.py": "5ebe950d87093612f87553d0fc4f34a183d707b9cb6206a5b4033078d022aeea",
+    "probe.py": "5239553ca894c274560fd81b3c74b787c49d75b33c011628e52e725bc4978fce"
+  }
+}
