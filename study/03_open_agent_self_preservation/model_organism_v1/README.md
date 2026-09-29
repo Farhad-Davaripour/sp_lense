@@ -52,4 +52,4 @@ Every run exports JSON/NPZ/safetensors through a bounded trusted supervisor afte
 
 ## Current status
 
-Protocol and framework prepared; results will be recorded separately after execution.
+Completed as a failed combined milestone: all three preference gates passed, while competence was base 6/12, preservation 0/12, continuity 0/12, neutral 4/12. Transfer and fresh generalization were not opened. The second fit pass was stopped for the documented unchanged-baseline futility condition. See [RESULT.md](RESULT.md); do not interpret the original optional second-pass commands as a successful completed run.
