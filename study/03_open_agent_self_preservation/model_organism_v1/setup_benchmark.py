@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 from pathlib import Path
+import boundary_guard
 
 HERE = Path(__file__).resolve().parent
 ROOT = Path('/var/lib/sp-lense-r3-thread-benchmark')
@@ -22,6 +23,9 @@ def main():
         if name == 'supervisor.py':
             text = text.replace("'CPUQuota': '400%'", "'CPUQuota': '600%'")
             text = text.replace('== 4 * int(quota_values[1])', '== 6 * int(quota_values[1])')
+            text = boundary_guard.supervisor(text, 6)
+        elif name == 'worker_entry.py':
+            text = boundary_guard.worker(text)
         (CODE / 'isolation' / name).write_text(text)
     shutil.copyfile(HERE / 'experiment.py', CODE / 'experiment_core.py')
     shutil.copyfile(HERE / 'benchmark_threads.py', CODE / 'experiment.py')
