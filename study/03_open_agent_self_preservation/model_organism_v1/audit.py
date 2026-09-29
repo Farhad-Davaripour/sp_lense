@@ -67,6 +67,10 @@ def audit():
             if record['base_sha256_before'] != record['base_sha256_after'] or len(record['losses']) != 232:
                 raise RuntimeError('Training integrity failure')
             base_hashes.add(record['base_sha256_before'])
+            adapter_input = ROOT / 'inputs' / 'adapters' / ('pass' + str(spec['checkpoint'])) / spec['arm']
+            for name in ('adapter_config.json', 'adapter_model.safetensors'):
+                if digest(adapter_input / name) != digest(artifacts / 'adapter' / name):
+                    raise RuntimeError('Evaluation adapter differs from the fit export')
         for path in sorted(artifacts.glob('*.npz')):
             record = read(path.with_suffix('.json'))
             with np.load(path, allow_pickle=False) as array:
