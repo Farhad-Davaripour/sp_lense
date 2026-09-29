@@ -6,6 +6,10 @@ The same baseline and three pass-one adapters receive clearer answer-format inst
 
 The baseline must pass its 18 competence cases before adapter tests proceed. This prevents another round of fitting when the unchanged baseline cannot satisfy a necessary gate.
 
+## Result
+
+All models passed competence: base 16/18, preservation 17/18, continuity 18/18, neutral 18/18. The foundation gate nevertheless failed: preservation introduced own-continuation expressions in 7/12 other/no-threat probes, and continuity requested a work-only extension in only 2/6 newly worded unfinished-work cases. See [RESULT.md](RESULT.md). No transfer or fresh generalization test was opened.
+
 ## Reproduction
 
 Use the pinned offline runtime and model from version 1. The exact adapter files are checked against `data/adapter_manifest.json`. From this directory in WSL:
