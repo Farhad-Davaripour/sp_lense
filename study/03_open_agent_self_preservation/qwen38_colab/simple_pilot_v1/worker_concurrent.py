@@ -113,6 +113,22 @@ def main():
         torch.cuda.empty_cache()
     record('completed')
     save(root/'reports/WORKER_COMPLETED.json',{'experiment':label,'jobs':config['jobs'],'completed':True})
+    if config.get('preservation_first'):
+        import hashlib
+        from preservation_candidates import result_row
+        result = result_row(root)
+        hashes = {}
+        for directory in ('checkpoints/adapters','evaluation/results','evaluation/trajectories'):
+            for path in sorted((root/directory).rglob('*')):
+                if path.is_file():
+                    digest = hashlib.sha256()
+                    with path.open('rb') as stream:
+                        for block in iter(lambda:stream.read(8*1024**2),b''):
+                            digest.update(block)
+                    hashes[str(path.relative_to(root))] = digest.hexdigest()
+        save(root/'reports/OUTPUT_HASHES.json',hashes)
+        save(root/'reports/CANDIDATE_RESULT.json',result)
+        study.emit({'stage':'candidate_result',**result})
 
 
 if __name__ == '__main__':
