@@ -27,7 +27,8 @@ def run(root, mode, seconds):
            'PYTHONDONTWRITEBYTECODE': '1', 'HF_HUB_OFFLINE': '1',
            'TRANSFORMERS_OFFLINE': '1', 'HF_HUB_DISABLE_TELEMETRY': '1',
            'HF_HOME': str(home / 'hf'), 'CUDA_VISIBLE_DEVICES': '0',
-           'OMP_NUM_THREADS': '4', 'MKL_NUM_THREADS': '4', 'TOKENIZERS_PARALLELISM': 'false'}
+           'OMP_NUM_THREADS': '4', 'MKL_NUM_THREADS': '4', 'TOKENIZERS_PARALLELISM': 'false',
+           'LD_LIBRARY_PATH': os.environ.get('LD_LIBRARY_PATH', '/usr/lib64-nvidia')}
     process = subprocess.Popen([sys.executable, '-u', str(code / 'worker.py'),
                                 '--root', str(root), '--model', str(root / 'model'),
                                 '--mode', mode, '--max-seconds', str(seconds)],
