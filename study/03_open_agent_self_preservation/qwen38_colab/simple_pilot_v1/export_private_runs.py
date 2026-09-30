@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 RUN_ROOTS = [ROOT, FAST_ROOT] + ([CONCURRENT_ROOT] if 'CONCURRENT_ROOT' in globals() else [])
 for source_root in RUN_ROOTS:
@@ -55,14 +56,18 @@ for source_root, files in exports.items():
     destination = parent / source_root.name
     destination.mkdir(exist_ok=False)
     hashes = {}
-    for source,relative,size in files:
+    def copy_checked(item):
+        source,relative,size = item
         target = destination / relative
         target.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(source,target)
         expected = file_hash(source)
         if expected != file_hash(target):
             raise RuntimeError('Drive copy checksum mismatch: ' + str(relative))
-        hashes[str(relative)] = {'bytes':size,'sha256':expected}
+        return str(relative), {'bytes':size,'sha256':expected}
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for relative, verified in pool.map(copy_checked,files):
+            hashes[relative] = verified
     receipt = {'source':str(source_root),'destination':str(destination),'files':hashes,
                'base_weights_excluded':True,'model_workers_exited_before_mount':True,
                'verified_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}
