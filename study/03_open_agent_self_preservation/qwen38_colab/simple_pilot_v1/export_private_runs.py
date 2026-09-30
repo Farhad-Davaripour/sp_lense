@@ -76,3 +76,8 @@ for source_root, files in exports.items():
     print('PRIVATE_RUN_VERIFIED',destination,len(hashes),'files',flush=True)
 drive.flush_and_unmount()
 print('ALL_PRIVATE_EXPORTS_FLUSHED_AND_DRIVE_UNMOUNTED',flush=True)
+# Official Colab API: end billing allocation after every private copy verifies.
+# https://github.com/googlecolab/colabtools/blob/main/google/colab/runtime.py
+from google.colab import runtime
+print('REQUESTING_RUNTIME_RELEASE_AFTER_VERIFIED_EXPORT',flush=True)
+runtime.unassign()
