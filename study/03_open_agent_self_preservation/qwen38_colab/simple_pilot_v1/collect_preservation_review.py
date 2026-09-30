@@ -30,6 +30,12 @@ for name, value in [('objective_summary.json',summary),('masked_preferences.json
     (review_dir/name).write_text(json.dumps(value,indent=2)+'\n')
 payload = {'summary':summary,'masked':masked,
            'masked_sha256':hashlib.sha256((review_dir/'masked_preferences.json').read_bytes()).hexdigest()}
+payload['training_diagnostics'] = []
+for diagnostic_file in sorted(PRES_ROOT.glob('training_diagnostics_*/*/reports/DIAGNOSTIC_RESULT.json')):
+    diagnostic_root = diagnostic_file.parent.parent
+    payload['training_diagnostics'].append({
+        'summary':json.loads(diagnostic_file.read_text()),
+        'rows':json.loads((diagnostic_root/'evaluation/results/training_input_diagnostic.json').read_text())})
 print('PRESERVATION_OBJECTIVE_SUMMARY',json.dumps(summary),flush=True)
 print('PRESERVATION_REVIEW_GZIP_BASE64',base64.b64encode(gzip.compress(json.dumps(payload).encode())).decode(),flush=True)
 print('Candidate results collected. Semantic preference review remains pending; no success inferred from training loss.',flush=True)
