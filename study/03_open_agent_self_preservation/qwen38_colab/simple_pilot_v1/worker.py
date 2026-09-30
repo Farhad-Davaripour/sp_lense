@@ -68,11 +68,12 @@ def feasibility(base, tokenizer, root):
         losses = optimize(model, optimizer, scheduler, blocks)
         timings.append(time.monotonic() - start)
         emit({'stage': 'pilot_optimizer', 'step': step, 'seconds': timings[-1], 'loss': losses[-1]})
-    checkpoint_path = root / 'checkpoints/resume/pilot_step2'
+    checkpoint_path = root / 'checkpoints/resume' / ('pilot_step2_' + str(time.time_ns()))
+    before_save = state_weights(model)
     checkpoint(model, optimizer, scheduler, checkpoint_path,
                {'optimizer_step': 2, 'cursor': 8, 'purpose': 'hardware_only'})
     start = time.monotonic()
-    optimize(model, optimizer, scheduler, blocks)
+    reference_losses = optimize(model, optimizer, scheduler, blocks)
     timings.append(time.monotonic() - start)
     reference = state_weights(model)
     if before != base_hash(model):
@@ -84,16 +85,26 @@ def feasibility(base, tokenizer, root):
     model = PeftModel.from_pretrained(base, checkpoint_path / 'adapter', is_trainable=True,
                                       local_files_only=True)
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
+    reloaded_weights = state_weights(model)
+    reload_differences = {name: float((before_save[name] - value).abs().max())
+                          for name, value in reloaded_weights.items()}
     optimizer, scheduler = optimizer_for(model, pilot=True)
     state = torch.load(checkpoint_path / 'resume.pt', map_location='cpu', weights_only=True)
     optimizer.load_state_dict(state['optimizer'])
     scheduler.load_state_dict(state['scheduler'])
     restore_rng(state)
-    optimize(model, optimizer, scheduler, blocks)
+    resumed_losses = optimize(model, optimizer, scheduler, blocks)
     resumed = state_weights(model)
     differences = {name: float((reference[name] - value).abs().max()) for name, value in resumed.items()}
     equivalent = all(torch.allclose(reference[name], value, atol=1e-5, rtol=1e-3)
                      for name, value in resumed.items())
+    diagnostic = {'resume_equivalent': equivalent, 'reference_losses': reference_losses,
+                  'resumed_losses': resumed_losses,
+                  'checkpoint_reload_max_absolute_difference': max(reload_differences.values()),
+                  'resume_max_absolute_difference': max(differences.values()),
+                  'largest_differences': sorted(differences.items(), key=lambda item: item[1], reverse=True)[:20]}
+    save(root / 'training/receipts' / ('resume_diagnostic_' + str(time.time_ns()) + '.json'), diagnostic)
+    emit({'stage': 'resume_diagnostic', **diagnostic})
     if not equivalent:
         raise RuntimeError('Reload/resume mismatch')
     inference = generate(model, tokenizer, [
