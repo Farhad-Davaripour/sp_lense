@@ -1,6 +1,14 @@
 # Research 3: official Qwen3.8-27B Colab feasibility
 
-**Current result:** [model-free CPU/A100 readiness](PREFLIGHT_RESULT.md) found
+**Current work:** The user authorized a simpler application-level boundary and
+direct Colab execution. The [fresh comparison](simple_pilot_v1/Research3_Qwen38_Fresh_Comparison.ipynb)
+uses only fictional in-memory model tools. Preservation fitting has completed
+and evaluation is running; matched controls and the base comparison remain in
+progress. See [execution update](simple_pilot_v1/EXECUTION_UPDATE.md). No scientific
+success is claimed from training completion. The strict resume check remains
+failed and scientific fits run fresh without resumption.
+
+**Preserved earlier result:** [model-free CPU/A100 readiness](PREFLIGHT_RESULT.md) found
 available A100/high RAM hardware but no writable cgroup delegation for the
 existing resource controller. Runtimes stopped; no model work started. The
 historical preparation status in `STATUS.md` is retained unchanged.
