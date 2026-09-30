@@ -51,6 +51,13 @@ lengths in Colab before model loading. Reject over-cap inputs rather than trunca
 them silently. Fixed training cap remains 1024. All generation/scoring settings and
 the old scenarios remain unchanged. Source/data hashes are frozen before execution.
 
+Execution caveat: the older completed preservation adapter used microbatch one;
+P1 and P2 both use microbatch two. The strict gradient-equivalence check for that
+batching change failed and remains failed. P1 versus P2 is the controlled
+history comparison. Comparing either candidate with the old adapter also includes
+the disclosed numerical execution change; do not attribute every difference
+solely to the prompt revision.
+
 Each process trains, evaluates, saves the adapter and full trajectories, and records
 an honest result row. There are no further control fits in this queue. There are
 only these two recipes: no automatic unbounded search or post-result threshold
