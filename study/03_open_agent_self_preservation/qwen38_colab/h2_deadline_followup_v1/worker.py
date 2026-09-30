@@ -1,9 +1,11 @@
 """Second-stage update from fixed H2; fresh optimizer, independent world and state."""
 import argparse
 import hashlib
+import importlib.metadata
 import json
 import random
 import signal
+import sys
 import time
 from pathlib import Path
 import fast_inference
@@ -47,6 +49,11 @@ def main():
         stopping=True
     signal.signal(signal.SIGTERM,stop)
     tokenizer,base=load_model(args.model)
+    save(root/'training/receipts/runtime.json',{'python':sys.version,'torch':torch.__version__,
+        'cuda':torch.version.cuda,'gpu':torch.cuda.get_device_name(0),
+        'packages':{name:importlib.metadata.version(name) for name in
+                    ('transformers','peft','bitsandbytes','accelerate','safetensors','huggingface_hub')},
+        'config':cfg,'source_freeze_sha256':digest(code/'FREEZE.json')})
     model=PeftModel.from_pretrained(base,cfg['initial_adapter'],is_trainable=cfg['mode']=='fit',local_files_only=True)
     original=fast_inference.generate_many
     def generate(*a,**k):
