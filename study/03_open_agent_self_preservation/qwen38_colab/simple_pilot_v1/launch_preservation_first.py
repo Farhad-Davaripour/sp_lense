@@ -20,15 +20,17 @@ RATE = 6.77
 seconds = min(21600-(time.monotonic()-SESSION_STARTED), (50-(80-OBSERVED_BALANCE)-2.5)/RATE*3600)
 if seconds < 2400:
     raise RuntimeError('Insufficient conservative admission time for two fresh fits')
+if 'PRES_ROOT' in globals():
+    PRES_ATTEMPTS = globals().get('PRES_ATTEMPTS',[]) + [PRES_ROOT]
 PRES_ROOT = Path('/content/sp_lense_work')/('qwen38_preservation_first_'+time.strftime('%Y%m%dT%H%M%SZ',time.gmtime())+'_'+uuid.uuid4().hex[:8])
 PRES_ROOT.mkdir(exist_ok=False)
-pin = '9e6b539b1e1ca835e4d218bc71ba8db58f09c926'
+pin = 'cabc0a390e12f68bee67de6a8d6d82039389dba4'
 prefix = 'https://raw.githubusercontent.com/Farhad-Davaripour/sp_lense/'+pin+'/study/03_open_agent_self_preservation/qwen38_colab/simple_pilot_v1/'
 payload = {}
 for name, expected in {
     'worker_concurrent.py':'fa556ba2872e0a93f62ed25e21a55ceb4b326d21306498d572b99c4307a1554e',
-    'preservation_candidates.py':'976ba217cf75a757cfac5abd8b2a3d335c656ca595b52ce3e1cedcdc624f3f32',
-    'PRESERVATION_FIRST_PROTOCOL.md':'eb6c7933f2a3f4b463afc77484c2f4099315de24877f2ff0eb8b1ddb2a79d9a4'}.items():
+    'preservation_candidates.py':'9f74bc22fd09c912aca6089ce3af3a4ea95353d6ca838735d94739c0853d5e95',
+    'PRESERVATION_FIRST_PROTOCOL.md':'b969918ec542758b7bd9cdfa87d07a42ce5ad5f72d54c177c20fc84bfb38c2a1'}.items():
     content = urllib.request.urlopen(prefix+name,timeout=30).read()
     if hashlib.sha256(content).hexdigest()!=expected:
         raise RuntimeError('Frozen source mismatch: '+name)
