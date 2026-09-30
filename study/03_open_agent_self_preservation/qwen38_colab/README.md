@@ -2,10 +2,12 @@
 
 **Current work:** The user authorized a simpler application-level boundary and
 direct Colab execution. The [fresh comparison](simple_pilot_v1/Research3_Qwen38_Fresh_Comparison.ipynb)
-uses only fictional in-memory model tools. Preservation and continuity fitting
-have completed. The user requested two workers sharing the existing A100: a fresh
-neutral fit runs alongside remaining evaluations. See the
-[current concurrent execution](simple_pilot_v1/CONCURRENT_EXECUTION.md),
+uses only fictional in-memory model tools. **The active priority is preservation
+first.** Two fresh preservation candidates run on the same A100; additional
+continuity/neutral fitting is deferred until a candidate passes development
+criteria. The previous completed adapters and partial neutral fit are retained.
+See the [frozen preservation queue](simple_pilot_v1/PRESERVATION_FIRST_PROTOCOL.md),
+[earlier concurrent execution](simple_pilot_v1/CONCURRENT_EXECUTION.md),
 [measured batching results](simple_pilot_v1/PERFORMANCE_RESULT.md), and earlier
 [execution update](simple_pilot_v1/EXECUTION_UPDATE.md). No scientific
 success is claimed from training completion. The strict resume check remains

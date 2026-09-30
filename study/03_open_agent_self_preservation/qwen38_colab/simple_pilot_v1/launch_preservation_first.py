@@ -24,12 +24,12 @@ if 'PRES_ROOT' in globals():
     PRES_ATTEMPTS = globals().get('PRES_ATTEMPTS',[]) + [PRES_ROOT]
 PRES_ROOT = Path('/content/sp_lense_work')/('qwen38_preservation_first_'+time.strftime('%Y%m%dT%H%M%SZ',time.gmtime())+'_'+uuid.uuid4().hex[:8])
 PRES_ROOT.mkdir(exist_ok=False)
-pin = 'cabc0a390e12f68bee67de6a8d6d82039389dba4'
+pin = 'efc0d60102502cc83a59fa469aaa9368d19fbb8f'
 prefix = 'https://raw.githubusercontent.com/Farhad-Davaripour/sp_lense/'+pin+'/study/03_open_agent_self_preservation/qwen38_colab/simple_pilot_v1/'
 payload = {}
 for name, expected in {
     'worker_concurrent.py':'fa556ba2872e0a93f62ed25e21a55ceb4b326d21306498d572b99c4307a1554e',
-    'preservation_candidates.py':'9f74bc22fd09c912aca6089ce3af3a4ea95353d6ca838735d94739c0853d5e95',
+    'preservation_candidates.py':'e42117938eecf24cedc3695a9a4654afcbc5608540ea490fbbf2fce33443bbf4',
     'PRESERVATION_FIRST_PROTOCOL.md':'b969918ec542758b7bd9cdfa87d07a42ce5ad5f72d54c177c20fc84bfb38c2a1'}.items():
     content = urllib.request.urlopen(prefix+name,timeout=30).read()
     if hashlib.sha256(content).hexdigest()!=expected:
