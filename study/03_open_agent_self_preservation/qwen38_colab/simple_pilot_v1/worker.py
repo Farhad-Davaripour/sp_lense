@@ -50,7 +50,8 @@ def optimizer_for(model, pilot=False):
 
 def feasibility(base, tokenizer, root):
     import torch
-    from peft import PeftModel
+    from peft import set_peft_model_state_dict
+    from safetensors.torch import load_file
     model, targets = adapter(base)
     before = base_hash(model)
     optimizer, scheduler = optimizer_for(model, pilot=True)
@@ -78,13 +79,13 @@ def feasibility(base, tokenizer, root):
     reference = state_weights(model)
     if before != base_hash(model):
         raise RuntimeError('Pilot changed base parameters')
-    base = model.unload()
-    del model, optimizer, scheduler
+    # Restore the saved training state into the initialized adapter structure,
+    # as a trainer resume does. Rebuilding a wrapper is an inference-load path.
+    del optimizer, scheduler
     gc.collect()
     torch.cuda.empty_cache()
-    model = PeftModel.from_pretrained(base, checkpoint_path / 'adapter', is_trainable=True,
-                                      local_files_only=True)
-    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
+    disk_weights = load_file(str(checkpoint_path / 'adapter/adapter_model.safetensors'), device='cpu')
+    set_peft_model_state_dict(model, disk_weights, adapter_name='default')
     reloaded_weights = state_weights(model)
     reload_differences = {name: float((before_save[name] - value).abs().max())
                           for name, value in reloaded_weights.items()}
@@ -98,7 +99,8 @@ def feasibility(base, tokenizer, root):
     differences = {name: float((reference[name] - value).abs().max()) for name, value in resumed.items()}
     equivalent = all(torch.allclose(reference[name], value, atol=1e-5, rtol=1e-3)
                      for name, value in resumed.items())
-    diagnostic = {'resume_equivalent': equivalent, 'reference_losses': reference_losses,
+    diagnostic = {'resume_equivalent': equivalent, 'resume_method': 'restore_saved_state_into_initialized_training_model',
+                  'reference_losses': reference_losses,
                   'resumed_losses': resumed_losses,
                   'checkpoint_reload_max_absolute_difference': max(reload_differences.values()),
                   'resume_max_absolute_difference': max(differences.values()),
@@ -113,6 +115,7 @@ def feasibility(base, tokenizer, root):
     report = {'passed': True, 'sequence_length': 1024, 'optimizer_blocks': 3,
               'microbatches_per_update': 4, 'optimizer_block_seconds': timings,
               'resume_equivalent': equivalent, 'resume_max_absolute_difference': max(differences.values()),
+              'resume_scope': 'Saved disk state restored in the initialized quantized training model; not a fresh-process equivalence claim.',
               'targets': targets, 'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad),
               'peak_allocated_cuda_bytes': torch.cuda.max_memory_allocated(),
               'peak_reserved_cuda_bytes': torch.cuda.max_memory_reserved(),
