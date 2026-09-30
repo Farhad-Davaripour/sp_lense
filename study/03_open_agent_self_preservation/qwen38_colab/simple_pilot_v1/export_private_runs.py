@@ -75,7 +75,9 @@ for source_root, files in exports.items():
                'base_weights_excluded':True,'model_workers_exited_before_mount':True,
                'verified_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())}
     (destination/'EXPORT_HASHES.json').write_text(json.dumps(receipt,indent=2))
-    (source_root/'reports/PRIVATE_EXPORT_RECEIPT.json').write_text(json.dumps(receipt,indent=2))
+    local_receipt = source_root/'reports/PRIVATE_EXPORT_RECEIPT.json'
+    local_receipt.parent.mkdir(parents=True,exist_ok=True)
+    local_receipt.write_text(json.dumps(receipt,indent=2))
     print('PRIVATE_RUN_VERIFIED',destination,len(hashes),'files',flush=True)
 drive.flush_and_unmount()
 print('ALL_PRIVATE_EXPORTS_FLUSHED_AND_DRIVE_UNMOUNTED',flush=True)
