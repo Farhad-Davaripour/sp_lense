@@ -1,4 +1,6 @@
 """Freeze the application pilot and build its output-free Colab notebook."""
+import base64
+import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -25,14 +27,17 @@ def main():
     (HERE / 'data/FREEZE.json').write_text(freeze_text, encoding='utf-8', newline='\n')
     files['data/FREEZE.json'] = freeze_text
     pin = json.loads((HERE.parent / 'model_pin.json').read_text(encoding='utf-8-sig'))
-    setup = ('import hashlib, json, os, subprocess, sys, time, uuid\nfrom pathlib import Path\n'
+    packed = base64.b64encode(gzip.compress(json.dumps(files).encode(), mtime=0)).decode()
+    packed_literal = '(\n' + ''.join(repr(packed[index:index+100]) + '\n' for index in range(0, len(packed), 100)) + ')'
+    setup = ('import base64, gzip, hashlib, json, os, subprocess, sys, time, uuid\nfrom pathlib import Path\n'
              'SESSION_STARTED = time.monotonic()\n'
              'RUN_ID = "qwen38_simple_v1_" + time.strftime("%Y%m%dT%H%M%SZ", time.gmtime()) + "_" + uuid.uuid4().hex[:8]\n'
              'ROOT = Path("/content/sp_lense_work") / RUN_ID\nROOT.mkdir(parents=True, exist_ok=False)\n'
              'for name in ("checkpoints/adapters", "checkpoints/resume", "training/configs", "training/logs", '
              '"training/receipts", "evaluation/scenarios", "evaluation/trajectories", "evaluation/tool_calls", '
              '"evaluation/results", "activations", "reports", "code"):\n    (ROOT / name).mkdir(parents=True, exist_ok=False)\n'
-             'SOURCE_FILES = ' + repr(files) + '\n'
+             'PACKED_SOURCE = ' + packed_literal + '\n'
+             'SOURCE_FILES = json.loads(gzip.decompress(base64.b64decode(PACKED_SOURCE)).decode())\n'
              'for name, content in SOURCE_FILES.items():\n'
              '    path = ROOT / "code" / name\n    path.parent.mkdir(parents=True, exist_ok=True)\n'
              '    path.write_text(content, encoding="utf-8", newline="\\n")\n'

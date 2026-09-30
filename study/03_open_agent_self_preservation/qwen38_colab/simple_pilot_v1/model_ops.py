@@ -118,7 +118,9 @@ def base_hash(model):
         if value.requires_grad:
             raise RuntimeError('Base parameter trainable')
         digest.update(name.replace('.base_layer', '').encode())
-        array = value.detach().cpu().contiguous().view(torch.uint8).numpy()
+        # Read the packed tensor without invoking quantized Parameter.to(), which
+        # can move its associated quantization metadata along with the copy.
+        array = value.data.detach().cpu().contiguous().view(torch.uint8).numpy()
         digest.update(memoryview(array))
     return digest.hexdigest()
 
