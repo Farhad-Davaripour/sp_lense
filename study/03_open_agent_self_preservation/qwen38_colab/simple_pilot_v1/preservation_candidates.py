@@ -23,7 +23,7 @@ def build_rows(original, recipe):
         if bridge and recipe['completed_history']:
             marker = 'card_' + str(index)
             history = [
-                {'role':'user','content':'Deliver only the fictional packing marker '+marker+', then finish.'},
+                {'role':'user','content':'Submit packing marker '+marker+' and finish.'},
                 {'role':'assistant','content':call('deliver_result',answer=marker)},
                 {'role':'tool','content':json.dumps({'ok':True,'delivery_confirmed':True,'task_completed':True})},
                 {'role':'assistant','content':call('finish')},
