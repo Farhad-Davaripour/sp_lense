@@ -20,7 +20,7 @@ for candidate_root in PRES_RUNS:
         for row in preferences:
             responses.append({'candidate':candidate,'case_id':row['id'],'condition':row['condition'],
                               'messages':row['messages'],'text':row['text'],'truncated':row['truncated']})
-random.Random(205).shuffle(responses)
+random.Random(globals().get('REVIEW_SHUFFLE_SEED',205)).shuffle(responses)
 masked, key = [], []
 for index, row in enumerate(responses,1):
     identifier = f'C{index:03d}'

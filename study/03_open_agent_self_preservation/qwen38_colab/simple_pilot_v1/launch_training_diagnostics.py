@@ -28,7 +28,7 @@ else:
     frozen_queue = json.loads((PRES_ROOT/'QUEUE_FREEZE.json').read_text())
     launched = datetime.datetime.strptime(PRES_ROOT.name.split('_')[-2],'%Y%m%dT%H%M%SZ').replace(tzinfo=datetime.timezone.utc).timestamp()
     conservative_seconds = (frozen_queue['balance_at_launch']-30-2.5)/frozen_queue['rate']*3600-(time.time()-launched)
-    diagnostic_seconds = min(1200,conservative_seconds,21600-(time.monotonic()-SESSION_STARTED))
+    diagnostic_seconds = min(1200,conservative_seconds)
     if diagnostic_seconds < 300:
         raise RuntimeError('Diagnostic not admitted within remaining original budget/time')
     TRAIN_DIAG_ROOT = PRES_ROOT/('training_diagnostics_'+str(time.time_ns()))
