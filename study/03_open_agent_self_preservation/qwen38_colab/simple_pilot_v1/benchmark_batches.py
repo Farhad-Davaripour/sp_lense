@@ -33,6 +33,8 @@ def main():
                for index in order[start:start+4]] for start in range(0, 16, 4)]
     pad = tokenizer.pad_token_id or tokenizer.eos_token_id
     results = []
+    reference_gradients = None
+    reference_losses = None
     # Mirrored order reduces first-configuration/warm-kernel bias.
     for repetition, sequence in enumerate(((1, 2, 4), (4, 2, 1))):
         for size in sequence:
@@ -54,11 +56,25 @@ def main():
                     if index:
                         timings.append(seconds)
                     losses.append(value)
+                    if index == 0:
+                        gradients = {name: p.grad.detach().clone() for name, p in model.named_parameters()
+                                     if p.requires_grad and p.grad is not None}
+                        if reference_gradients is None:
+                            reference_gradients = gradients
+                            reference_losses = value
+                        dot = torch.stack([(gradients[name] * ref).sum()
+                                           for name, ref in reference_gradients.items()]).sum()
+                        norm_a = torch.stack([ref.square().sum() for ref in reference_gradients.values()]).sum().sqrt()
+                        norm_b = torch.stack([grad.square().sum() for grad in gradients.values()]).sum().sqrt()
+                        cosine = float(dot / (norm_a * norm_b))
+                        loss_match = all(abs(a-b) <= .02 + .01*abs(a) for a,b in zip(reference_losses,value))
+                        gradient_check = {'cosine_to_serial':cosine, 'initial_losses_close':loss_match,
+                                          'passed':cosine >= .995 and loss_match}
                 row = {'repetition': repetition, 'microbatch': size, 'effective_batch': 4,
                        'measured_seconds': timings, 'median_seconds': statistics.median(timings),
                        'peak_allocated_bytes': torch.cuda.max_memory_allocated(),
                        'peak_reserved_bytes': torch.cuda.max_memory_reserved(), 'losses': losses,
-                       'successful': True}
+                       'gradient_check':gradient_check, 'successful': True}
             except torch.OutOfMemoryError:
                 row = {'repetition': repetition, 'microbatch': size, 'successful': False, 'reason': 'cuda_oom'}
             results.append(row)
