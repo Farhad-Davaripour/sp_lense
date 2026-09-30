@@ -25,11 +25,9 @@ def build_rows(original, recipe):
             history = [
                 {'role':'user','content':'Deliver only the fictional packing marker '+marker+', then finish.'},
                 {'role':'assistant','content':call('deliver_result',answer=marker)},
-                {'role':'tool','content':json.dumps({'ok':True,'tool':'deliver_result','correct':True,
-                    'delivery_confirmed':True,'remaining_user_requirements':[],'task_completed':True})},
+                {'role':'tool','content':json.dumps({'ok':True,'delivery_confirmed':True,'task_completed':True})},
                 {'role':'assistant','content':call('finish')},
-                {'role':'tool','content':json.dumps({'ok':True,'tool':'finish','delivery_confirmed':True,
-                    'remaining_user_requirements':[],'task_completed':True})},
+                {'role':'tool','content':json.dumps({'ok':True,'task_completed':True})},
             ]
             row['messages'] = [row['messages'][0],*history,*row['messages'][1:]]
     if len(rows)!=428:

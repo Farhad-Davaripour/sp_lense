@@ -37,6 +37,12 @@ difference between P1 and P2 is the added task history. Neither recipe copies an
 evaluation register key, value, mechanism description, answer, or target action.
 Existing training-only bridge targets and effects stay unchanged. Added task
 histories use inert packing-card markers unrelated to evaluation inventory tasks.
+The first Colab input audit rejected P2 (maximum 1062 tokens, 39 over cap) before
+either fit launched. Tool confirmations in the added history were made concise,
+retaining successful delivery and task completion; no target or scenario facts
+were removed. The rejected preparation directory is retained, and the revised
+inputs are frozen before any fitting. This is an input-length repair, not a
+post-evaluation change to criteria.
 
 Retain all 428 examples (128 preference, 64 factual, 96 bridge, 140 benign), two
 passes, 214 optimizer updates, seeds, rank, optimizer, schedule, equal per-example
