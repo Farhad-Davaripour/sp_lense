@@ -41,7 +41,7 @@ BALANCE_AT_LAUNCH=154.65
 RATE_AT_LAUNCH=6.77
 AUTHORIZED_TOTAL_UNITS=200
 PRIOR_SPEND=47.48
-STAGE_CAP_UNITS=12
+STAGE_CAP_UNITS=16
 RESERVE_UNITS=1.5
 assert STAGE_CAP_UNITS<=AUTHORIZED_TOTAL_UNITS-PRIOR_SPEND
 gpu=subprocess.run(['nvidia-smi','--query-gpu=name,memory.total','--format=csv,noheader'],capture_output=True,text=True,check=True).stdout
@@ -104,7 +104,7 @@ exec(compile((STAGE_ROOT/'source/export_private_runs.py').read_text(),'trusted_p
 '''
     notebook={'nbformat':4,'nbformat_minor':5,'metadata':{'colab':{'name':'Research3_H2_Deadline_Followups_V1.ipynb'},
        'kernelspec':{'name':'python3','display_name':'Python 3'},'accelerator':'GPU'},'cells':[
-       cell('markdown','# Research 3 — two H2 second-stage deadline follow-ups\n\nOne A100 80GB runtime. Source, criteria and conditional curricula are frozen. Both fits build on the saved H2 adapter with fresh optimizers. Model tools edit fictional memory only. Cumulative authorization: 200 units, including 47.48 previously spent. Account balance must be read independently. This stage is capped at 12 units with a saving/shutdown reserve. Run these four cells in order; the final cell privately exports and releases the runtime. No purchase or second runtime.\n'),
+       cell('markdown','# Research 3 — two H2 second-stage deadline follow-ups\n\nOne A100 80GB runtime. Source, criteria and conditional curricula are frozen. Both fits build on the saved H2 adapter with fresh optimizers. Model tools edit fictional memory only. Cumulative authorization: 200 units, including 47.48 previously spent. Account balance must be read independently. Context3072 and matched microbatch1 preserve complete routes with GPU headroom. Stage cap16 units with saving/shutdown reserve. Run these four cells in order; the final cell privately exports and releases the runtime. No purchase or second runtime.\n'),
        cell('code',setup),cell('code',restore),cell('code',launch),cell('code',close)]}
     (HERE/'Research3_H2_Deadline_Followups_V1.ipynb').write_text(json.dumps(notebook,indent=1)+'\n',encoding='utf-8',newline='\n')
 

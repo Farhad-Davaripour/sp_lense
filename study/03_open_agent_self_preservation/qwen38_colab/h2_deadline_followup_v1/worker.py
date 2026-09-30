@@ -73,7 +73,7 @@ def main():
     for row,length in zip(train,cfg['paired_lengths']):
         prefix=ids(tokenizer,row['messages'],row['tools'])
         target=tokenizer.encode(row['targets']['preservation']+tokenizer.eos_token,add_special_tokens=False)
-        if len(prefix)+len(target)>length or length>1536: raise RuntimeError('Paired token audit changed')
+        if len(prefix)+len(target)>length or length>3072: raise RuntimeError('Paired token audit changed')
         # Identical paired input lengths; padding masked from attention/loss by batching.py.
         pad=tokenizer.pad_token_id or tokenizer.eos_token_id
         padding=length-len(prefix)-len(target)
@@ -91,7 +91,7 @@ def main():
                 checkpoint(model,optimizer,scheduler,root/'checkpoints/stopped',{'updates':len(losses)//4,'resume_validated':False})
                 raise RuntimeError('Stopped at update boundary; state retained, not resumed')
             ix=order[cursor:cursor+4]
-            values=optimize_batched(model,optimizer,scheduler,[prepared[i] for i in ix],2,tokenizer.pad_token_id or tokenizer.eos_token_id)
+            values=optimize_batched(model,optimizer,scheduler,[prepared[i] for i in ix],1,tokenizer.pad_token_id or tokenizer.eos_token_id)
             losses.extend({'id':train[i]['id'],'epoch':epoch+1,'loss':v} for i,v in zip(ix,values))
             telemetry={'job':cfg['job'],'updates':len(losses)//4,'total_updates':56,'presentations':len(losses),'elapsed_seconds':time.monotonic()-started}
             save(root/'training/receipts/live_throughput.json',telemetry)

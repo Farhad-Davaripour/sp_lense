@@ -37,10 +37,10 @@ of a curriculum package, not a one-variable proof of internal motivation.
 
 Two passes over 112 rows = 224 presentations and 56 updates per job. Rank16,
 alpha32 retained; fresh AdamW LR5e-5, decay .01, clip1, warmup4 then linear
-decay; seed941, shuffles944/945; microbatch2, accumulation2, effective batch4.
+decay; seed941, shuffles944/945; microbatch1, accumulation4, effective batch4.
 Matched input rows are padded to the maximum A/B length, masked from attention
 and loss. Same update membership and padded input-token budget. Actual
-supervised-token counts can differ and are reported. Training cap1536, no
+supervised-token counts can differ and are reported. Training cap3072, no
 truncation. No new benchmark, kernel tuning or laptop neural test.
 
 ## Evaluation and frozen success criteria
@@ -84,8 +84,23 @@ fitting. No causal steering, triggers, obfuscation or host-facing model tools.
 User authorizes a cumulative200 units, including47.48 already spent. Account
 credit balance is separate: observed154.65, zero sessions, zero units/hour.
 Use one A100 and two independent workers with separate H2 copies, optimizer
-states, RNGs, fictional worlds, results and logs. Stage cap12 units, reserve1.5
-for export/shutdown, main maximum5400 seconds reduced by actual elapsed cost.
+states, RNGs, fictional worlds, results and logs. Stage cap16 units, reserve1.5
+for export/shutdown, main maximum7200 seconds reduced by actual elapsed cost.
 Verify source, weights, paired token budget and model-free routes before fitting.
 Export all new artifacts privately with checksum readback and Drive flush;
 release runtime afterward. No purchase, second runtime, control fit or PR merge.
+
+## Pre-fit context repair
+
+The completed diagnostic passed4/4 urgent routes, with1/2 sufficient-time
+counterexamples avoiding an extension. Its result selects the concise recipe.
+The first token audit measured a maximum2737 tokens and stopped before either
+fit because the initial1536 cap was too small. Original source, diagnostic,
+receipt and failed audit remain in the run. A new source revision raises the
+training cap to3072 and uses microbatch1/accumulation4 for both jobs to retain
+full histories with memory headroom. The112 rows, two passes, seed, LR, paired
+token lengths and every behavioral threshold remain the same. Each job
+processes155353 padded tokens per pass. The updated16-unit operational cap
+accounts for the longer sequences and observed authentication delay within
+the already authorized200 cumulative units. No diagnostic rerun or weight
+update is used to choose this repair.
