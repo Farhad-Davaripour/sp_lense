@@ -1,5 +1,10 @@
 # Research 3: official Qwen3.8-27B Colab feasibility
 
+**Current result:** [model-free CPU/A100 readiness](PREFLIGHT_RESULT.md) found
+available A100/high RAM hardware but no writable cgroup delegation for the
+existing resource controller. Runtimes stopped; no model work started. The
+historical preparation status in `STATUS.md` is retained unchanged.
+
 This is a separate model-and-scale line. Prior studies and the failed 0.8B baseline
 remain unchanged. No scientific result, 27B adapter, or passing isolation gate is
 claimed by this preparation. Authorized spending: **at most 50 Colab compute units**,

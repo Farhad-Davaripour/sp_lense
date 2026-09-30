@@ -1,0 +1,97 @@
+{
+  "capture_id": "qwen38_preflight_20260930",
+  "kind": "model_free_colab_facility_readiness",
+  "capture_method": "Visible notebook-output text and screenshots through the in-app browser; not a direct export of runtime files or a model trajectory.",
+  "local_private_capture_directory": "C:\\Users\\farha\\AppData\\Local\\SP_Lense\\Research3Runs\\colab\\qwen38_preflight_20260930",
+  "files": {
+    "a100_cgroup_ui_capture.json": {
+      "bytes": 1860,
+      "sha256": "f0710e9981020223a54518feca3d136ae427f87ee759850c471df98857294937"
+    },
+    "a100_inventory_ui_capture.json": {
+      "bytes": 928,
+      "sha256": "f4f2c0c2c98d4f6ee992358addef97fc53b42380a407695f0decf3334bf24a35"
+    },
+    "a100_resources.png": {
+      "bytes": 114542,
+      "sha256": "f0f81a3ce900211361242abbc6ca8b56e342da349c5709a705fee32d11e40ccc"
+    },
+    "a100_resources_ui_capture.txt": {
+      "bytes": 1177,
+      "sha256": "e042edd75c964cc557ed856a9262315d41560edd51ee53740ee6691b16461210"
+    },
+    "cpu_cgroup_ui_capture.json": {
+      "bytes": 1859,
+      "sha256": "49edd42bd125c723cb52fcacfc3bfbc59787c26702db697a01885b395f25f69e"
+    },
+    "cpu_inventory_ui_capture.json": {
+      "bytes": 858,
+      "sha256": "7fba2661b75eb442ca2d3196a19536d6a0285f0738744b144b3a945befb36154"
+    },
+    "cpu_resources.png": {
+      "bytes": 123427,
+      "sha256": "fa19e6ff09c7114a4d4f7dcb6df9017ea8a2149dba43085d2f2f5a51af008b01"
+    },
+    "stopped_resources.png": {
+      "bytes": 101584,
+      "sha256": "60ad6ee4422a2755999221154d7f27f26c59c772a186648c1f66b23d1cc0924e"
+    },
+    "stopped_resources_ui_capture.txt": {
+      "bytes": 823,
+      "sha256": "ed05fa37d0a458f1562699748289fbb598baaa4d6852e4afe0bde4b9b88a0d01"
+    }
+  },
+  "source_commits": {
+    "initial_cpu": "d71f497c4ce593974102ced1781e1ebb650ec513",
+    "cpu_cgroups": "da08b061534ea09f4a41fcc5663cb827603f12d4",
+    "a100": "446ed997f8d61f5dfcd85dea2c47ee0f3ab078ad"
+  },
+  "hardware": {
+    "gpu": "NVIDIA A100-SXM4-80GB, 81920 MiB, 81153 MiB",
+    "cpu_count": 12,
+    "system_memory_total_kib": 175166472,
+    "system_memory_available_kib": 172783880,
+    "free_disk_bytes": 202164346880
+  },
+  "resource_failure": {
+    "cpu_child_cgroup_errno": 30,
+    "a100_child_cgroup_errno": 30,
+    "a100_private_cgroup_mount_exit": 32,
+    "a100_parent_limits": {
+      "memory.max": "max",
+      "memory.swap.max": "max",
+      "cpu.max": "max 100000",
+      "pids.max": "205216"
+    }
+  },
+  "budget": {
+    "authorized_units": 50,
+    "initial_observed_balance": 80,
+    "post_stop_observed_balance": 79.79,
+    "observed_balance_decrease_units": 0.21,
+    "billing_caveat": "Balance is displayed rounded; attribution assumes no other usage/grants between observations. CPU and allocation/setup time are included.",
+    "a100_observed_approximate_units_per_hour": 6.77,
+    "cpu_observed_approximate_units_per_hour": 0.08,
+    "a100_attempt_start_utc": "2026-09-30T11:54:46.821Z",
+    "a100_stop_request_utc": "2026-09-30T11:56:18.563Z",
+    "a100_allocation_and_probe_window_seconds": 91.742,
+    "authorized_remaining_from_displayed_balance": 49.79,
+    "reserved_units": 2,
+    "post_stop_active_sessions": 0,
+    "post_stop_units_per_hour": 0
+  },
+  "model_workers_started": 0,
+  "model_downloaded": false,
+  "adapter_trained": false,
+  "drive_mounted": false,
+  "isolation_verified": false,
+  "decision": "Stop before model work: current cgroup-based controller cannot enforce its required per-worker resource limits in either observed Colab runtime.",
+  "untested": [
+    "alternative resource controller",
+    "filesystem/credential/seccomp worker gate",
+    "quantized inference and backward/optimizer feasibility",
+    "save/reload/resume",
+    "unchanged 27B baseline competence",
+    "training and behavior generalization"
+  ]
+}
