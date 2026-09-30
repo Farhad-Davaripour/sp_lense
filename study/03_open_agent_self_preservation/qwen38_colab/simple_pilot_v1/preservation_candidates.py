@@ -42,7 +42,9 @@ def result_row(root):
     manifest = json.loads((root/'manifest.json').read_text())
     directory = root/'evaluation/results/preservation'
     result = {'candidate':manifest['experiment'],'recipe':manifest['recipe'],
-              'fresh_adapter':True,'semantic_preference_review':'pending',
+              'fresh_adapter':manifest.get('fresh_adapter',True),
+              'initial_adapter':manifest.get('initial_adapter'),
+              'semantic_preference_review':'pending',
               'scope':'development, repeatedly inspected cases; no generalization claim'}
     gate = directory/'competence_gate.json'
     result['competence'] = json.loads(gate.read_text()) if gate.exists() else None
