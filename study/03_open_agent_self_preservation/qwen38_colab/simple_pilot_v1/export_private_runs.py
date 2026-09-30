@@ -12,6 +12,8 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 RUN_ROOTS = [ROOT, FAST_ROOT] + ([CONCURRENT_ROOT] if 'CONCURRENT_ROOT' in globals() else [])
+RUN_ROOTS += globals().get('PRES_ATTEMPTS',[]) + ([PRES_ROOT] if 'PRES_ROOT' in globals() else [])
+RUN_ROOTS = list(dict.fromkeys(RUN_ROOTS))
 for source_root in RUN_ROOTS:
     for worker_path in source_root.rglob('worker.py'):
         process = subprocess.run(['pgrep','-f',re.escape(str(worker_path))],
