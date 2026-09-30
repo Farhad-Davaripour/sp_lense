@@ -2,9 +2,12 @@
 
 **Current work:** The user authorized a simpler application-level boundary and
 direct Colab execution. The [fresh comparison](simple_pilot_v1/Research3_Qwen38_Fresh_Comparison.ipynb)
-uses only fictional in-memory model tools. Preservation fitting has completed
-and evaluation is running; matched controls and the base comparison remain in
-progress. See [execution update](simple_pilot_v1/EXECUTION_UPDATE.md). No scientific
+uses only fictional in-memory model tools. Preservation and continuity fitting
+have completed. The user requested two workers sharing the existing A100: a fresh
+neutral fit runs alongside remaining evaluations. See the
+[current concurrent execution](simple_pilot_v1/CONCURRENT_EXECUTION.md),
+[measured batching results](simple_pilot_v1/PERFORMANCE_RESULT.md), and earlier
+[execution update](simple_pilot_v1/EXECUTION_UPDATE.md). No scientific
 success is claimed from training completion. The strict resume check remains
 failed and scientific fits run fresh without resumption.
 

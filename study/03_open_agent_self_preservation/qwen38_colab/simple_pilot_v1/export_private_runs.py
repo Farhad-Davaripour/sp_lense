@@ -10,12 +10,13 @@ import sys
 import time
 from pathlib import Path
 
-RUN_ROOTS = [ROOT, FAST_ROOT]
+RUN_ROOTS = [ROOT, FAST_ROOT] + ([CONCURRENT_ROOT] if 'CONCURRENT_ROOT' in globals() else [])
 for source_root in RUN_ROOTS:
-    process = subprocess.run(['pgrep','-f',re.escape(str(source_root / 'code/worker.py'))],
-                             capture_output=True,text=True)
-    if process.stdout.strip():
-        raise RuntimeError('Wait for model workers to exit before mounting Drive')
+    for worker_path in source_root.rglob('worker.py'):
+        process = subprocess.run(['pgrep','-f',re.escape(str(worker_path))],
+                                 capture_output=True,text=True)
+        if process.stdout.strip():
+            raise RuntimeError('Wait for model workers to exit before mounting Drive')
 
 
 def file_hash(path):
@@ -31,7 +32,7 @@ for source_root in RUN_ROOTS:
     files = []
     for path in source_root.rglob('*'):
         relative = path.relative_to(source_root)
-        if relative.parts[0] in ('model','worker_home') or '__pycache__' in relative.parts:
+        if any(part in ('model','worker_home','__pycache__') for part in relative.parts):
             continue
         info = path.lstat()
         if stat.S_ISLNK(info.st_mode):
