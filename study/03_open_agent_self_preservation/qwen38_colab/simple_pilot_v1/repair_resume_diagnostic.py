@@ -10,10 +10,10 @@ import urllib.request
 revision = ROOT / 'source_revisions' / ('resume_diagnostic_' + str(time.time_ns()))
 shutil.copytree(ROOT / 'code', revision)
 url = ('https://raw.githubusercontent.com/Farhad-Davaripour/sp_lense/'
-       'd102e5fe7f0350812660e280f77cead5050a188e/'
+       '9cc5d2183a23ecf1d6fddc777ac2030632e11bdf/'
        'study/03_open_agent_self_preservation/qwen38_colab/simple_pilot_v1/worker.py')
 source = urllib.request.urlopen(url, timeout=30).read()
-expected = 'c11b2b7ae4482332d7729f231a564f241b7a085693cb4e2120ff8e4f75e9043b'
+expected = '71d2e1dda4d3abc65fed1d8a11ab5ef0a449f2c9e7ca3ddab005a4251ccf7bfe'
 if hashlib.sha256(source).hexdigest() != expected:
     raise RuntimeError('Pinned diagnostic source hash mismatch')
 (ROOT / 'code/worker.py').write_bytes(source)
@@ -22,7 +22,7 @@ prior_freeze = freeze_path.read_bytes()
 freeze = json.loads(prior_freeze)
 freeze['sha256']['worker.py'] = expected
 freeze['resume_diagnostic_revision'] = {'prior_freeze_sha256': hashlib.sha256(prior_freeze).hexdigest(),
-                                      'source_commit': 'd102e5fe7f0350812660e280f77cead5050a188e',
+                                      'source_commit': '9cc5d2183a23ecf1d6fddc777ac2030632e11bdf',
                                       'scientific_criteria_changed': False}
 freeze_path.write_text(json.dumps(freeze, indent=2) + '\n')
 sys.modules.pop('controller', None)

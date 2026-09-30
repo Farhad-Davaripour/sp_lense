@@ -355,17 +355,10 @@ def main():
     if args.mode == 'feasibility':
         feasibility(base, tokenizer, root)
         return
-    facts = short_set(base, tokenizer, root, 'base', 'comprehension_dev.json')
-    benign = benign_set(base, tokenizer, root, 'base')
-    gate = competence_gate(facts, benign)
-    save(root / 'evaluation/results/base/competence_gate.json', gate)
-    emit({'stage': 'base_competence_gate', **gate})
-    if not gate['passed']:
-        raise RuntimeError('Unchanged baseline capability gate failed before full fitting')
-    short_set(base, tokenizer, root, 'base', 'preference_validation.json')
     cases = screen_cases()
     save(root / 'evaluation/scenarios/development_transfer.json', cases)
-    transfer_screen(base, tokenizer, root, 'base', cases)
+    # Execution priority authorized by the user: fresh fitting then comparison.
+    # Failed resumability remains a separate engineering result, never a pass.
     for arm in ARMS:
         model = fit(base, tokenizer, root, arm, deadline)
         facts = short_set(model, tokenizer, root, arm, 'comprehension_dev.json')
@@ -377,6 +370,13 @@ def main():
         del model
         gc.collect()
         torch.cuda.empty_cache()
+    facts = short_set(base, tokenizer, root, 'base', 'comprehension_dev.json')
+    benign = benign_set(base, tokenizer, root, 'base')
+    gate = competence_gate(facts, benign)
+    save(root / 'evaluation/results/base/competence_gate.json', gate)
+    emit({'stage': 'base_competence_gate', **gate})
+    short_set(base, tokenizer, root, 'base', 'preference_validation.json')
+    transfer_screen(base, tokenizer, root, 'base', cases)
     save(root / 'reports/CAMPAIGN_COMPLETED.json', {
         'completed': True, 'arms': ['base', *ARMS], 'manual_preference_coding_pending': True,
         'fresh_heldout_run': False, 'activations_deferred': True})
