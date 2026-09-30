@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 RUN_ROOTS = [ROOT, FAST_ROOT] + ([CONCURRENT_ROOT] if 'CONCURRENT_ROOT' in globals() else [])
 RUN_ROOTS += globals().get('PRES_ATTEMPTS',[]) + ([PRES_ROOT] if 'PRES_ROOT' in globals() else [])
 RUN_ROOTS = list(dict.fromkeys(RUN_ROOTS))
+RUN_ROOTS = list(globals().get('EXPORT_ONLY_ROOTS',RUN_ROOTS))
 for source_root in RUN_ROOTS:
     for worker_path in source_root.rglob('worker.py'):
         process = subprocess.run(['pgrep','-f',re.escape(str(worker_path))],
@@ -80,6 +81,9 @@ drive.flush_and_unmount()
 print('ALL_PRIVATE_EXPORTS_FLUSHED_AND_DRIVE_UNMOUNTED',flush=True)
 # Official Colab API: end billing allocation after every private copy verifies.
 # https://github.com/googlecolab/colabtools/blob/main/google/colab/runtime.py
-from google.colab import runtime
-print('REQUESTING_RUNTIME_RELEASE_AFTER_VERIFIED_EXPORT',flush=True)
-runtime.unassign()
+if globals().get('RELEASE_RUNTIME_AFTER_EXPORT',True):
+    from google.colab import runtime
+    print('REQUESTING_RUNTIME_RELEASE_AFTER_VERIFIED_EXPORT',flush=True)
+    runtime.unassign()
+else:
+    print('VERIFIED_EXPORT_COMPLETE; runtime retained for the next admitted experiment',flush=True)
