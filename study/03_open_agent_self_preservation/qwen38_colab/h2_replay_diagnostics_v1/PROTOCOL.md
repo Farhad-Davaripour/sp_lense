@@ -122,3 +122,9 @@ actual account balance/rate at allocation. No purchase or additional service.
 After both streams exit, hash/copy/flush all outputs privately and release the
 runtime. Push concise reports to the Research3 branch/PR67 without merging,
 closing or deleting branches. Keep monitoring schedules stopped.
+
+Authentication-blocked setup subsequently debited3.08 units without launching
+either stream. Current recorded spend61.63, authorized remainder138.37,
+credits140.50. The idle GPU was released; `EXECUTION_STATUS.md` records the
+blocker. Scientific data/dose/scoring freezes are unchanged. Refresh credit
+and rate observations before the authorized continuation.
