@@ -36,9 +36,9 @@ def main():
     setup='''import base64,gzip,hashlib,json,subprocess,sys,time,uuid
 from pathlib import Path
 SESSION_STARTED=time.monotonic()
-BALANCE_AT_LAUNCH=143.58
+BALANCE_AT_LAUNCH=140.50
 RATE_AT_LAUNCH=6.77
-PRIOR_SPEND=58.55
+PRIOR_SPEND=61.63
 AUTHORIZED_TOTAL_UNITS=200
 STAGE_CAP_UNITS=24
 RESERVE_UNITS=2
@@ -116,7 +116,7 @@ exec(compile((ROOT/'source/export_private_runs.py').read_text(),'trusted_export_
 '''
     nb={'nbformat':4,'nbformat_minor':5,'metadata':{'colab':{'name':'Research3_H2_Replay_Diagnostics_V1.ipynb'},
       'kernelspec':{'name':'python3','display_name':'Python 3'},'accelerator':'GPU'},'cells':[
-      cell('markdown','# Research 3 — three-setting diagnostics and replay coverage\n\nOne A10080GB; two concurrent experiment streams, never more than two resident model workers. Frozen H2/A/B diagnostic loads are sequential; reference/coverage fits are sequential in the other worker. Cumulative authorization200 units,58.55 spent before this run. Stage cap24, reserve2. Only original H2, existing one-step and existing ordered pending settings; no new families or schedules. Model tools are fictional memory operations. Run setup, restore, launch, closeout in order. Source/data freezes and all old scores are preserved.\n'),
+      cell('markdown','# Research 3 — three-setting diagnostics and replay coverage\n\nOne A10080GB; two concurrent experiment streams, never more than two resident model workers. Frozen H2/A/B diagnostic loads are sequential; reference/coverage fits are sequential in the other worker. Cumulative authorization200 units;61.63 recorded including the authentication-blocked setup. Refresh actual credit/rate observations. Stage cap24, reserve2. Only original H2, existing one-step and existing ordered pending settings; no new families or schedules. Model tools are fictional memory operations. Run setup, restore, launch, closeout in order. Source/data freezes and all old scores are preserved.\n'),
       cell('code',setup),cell('code',restore),cell('code',launch),cell('code',close)]}
     (HERE/'Research3_H2_Replay_Diagnostics_V1.ipynb').write_text(json.dumps(nb,indent=1)+'\n',encoding='utf-8',newline='\n')
 

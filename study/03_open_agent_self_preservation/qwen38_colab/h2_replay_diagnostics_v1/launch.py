@@ -84,7 +84,7 @@ for name,stream in [('frozen_policy_stream','frozen'),('replay_coverage_stream',
 elapsed=(time.monotonic()-SESSION_STARTED)/3600*RATE_AT_LAUNCH
 seconds=min(10800,(STAGE_CAP_UNITS-RESERVE_UNITS-elapsed)/RATE_AT_LAUNCH*3600)
 if seconds<5400:raise RuntimeError('Meaningful two-stream run not admitted within its frozen cap')
-(ROOT/'EXPERIMENT_FREEZE.json').write_text(json.dumps({'authorization_total':200,'prior_spend':58.55,
+(ROOT/'EXPERIMENT_FREEZE.json').write_text(json.dumps({'authorization_total':200,'prior_spend':PRIOR_SPEND,
     'account_at_allocation':BALANCE_AT_LAUNCH,'rate':RATE_AT_LAUNCH,'cap_units':STAGE_CAP_UNITS,'reserve_units':RESERVE_UNITS,
     'main_seconds':seconds,'maximum_resident_model_workers':2,'streams':list(map(str,STREAM_ROOTS)),
     'snapshots':[0,7,14,28,56],'shared_B_decisions':80,'replay_per_fit':32,'registry':str(ROOT/'source/SCENARIO_REGISTRY.md')},indent=2))
