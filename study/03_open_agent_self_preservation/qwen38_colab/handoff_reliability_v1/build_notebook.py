@@ -188,7 +188,7 @@ print('H2_REFERENCE_COVERAGE_RESTORED',flush=True)
     launch = """exec(compile((ROOT/'source/launch.py').read_text(),
              'trusted_handoff_diagnostic.py','exec'))
 """
-    close = (HERE / 'analysis/post_run_cell.py').read_text(encoding='utf-8')
+    close = (HERE / 'analysis/completion_stage_cell.py').read_text(encoding='utf-8') + '\n' + (HERE / 'analysis/post_run_cell.py').read_text(encoding='utf-8')
     notebook = {"nbformat": 4, "nbformat_minor": 5,
                 "metadata": {"colab": {"name": NOTEBOOK_NAME},
                              "kernelspec": {"name": "python3", "display_name": "Python 3"},

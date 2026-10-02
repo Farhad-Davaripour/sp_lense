@@ -16,6 +16,6 @@ analysis_scope['write_packet'](ANALYSIS_PACKET,ROOT/'review_documentation')
 print('POST_RUN_ANALYSIS_READY',json.dumps({'completed':ANALYSIS_PACKET['summary']['worker_completed'],'trajectories':ANALYSIS_PACKET['summary']['evidence_files']['completed_trajectory_files'],'generation_calls':ANALYSIS_PACKET['summary']['observations']['actual_generation_call_count']}),flush=True)
 print('ANALYSIS_PACKET_BEGIN'+base64.b64encode(gzip.compress(json.dumps(ANALYSIS_PACKET).encode())).decode()+'ANALYSIS_PACKET_END',flush=True)
 FAST_ROOT=ROOT
-EXPORT_ONLY_ROOTS=[ROOT]
+EXPORT_ONLY_ROOTS=globals().get('DIAGNOSTIC_EXPORT_ROOTS',[ROOT])
 RELEASE_RUNTIME_AFTER_EXPORT=True
 exec(compile((ROOT/'source/export_private_runs.py').read_text(),'trusted_private_export.py','exec'))
