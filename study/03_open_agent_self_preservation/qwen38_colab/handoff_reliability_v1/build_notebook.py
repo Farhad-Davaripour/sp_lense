@@ -114,7 +114,7 @@ def build_notebook(revision):
     revision = revision.lower()
     source_url = ("https://raw.githubusercontent.com/Farhad-Davaripour/sp_lense/" +
                   revision + "/" + RELATIVE + "/" + BUNDLE_NAME)
-    heading = """# Research 3 â€” frozen handoff and batch reliability diagnostic
+    heading = """# Research 3 - frozen handoff and batch reliability diagnostic
 
 Run the five cells in order: setup, mount Drive, restore, diagnostic, export.
 This stage loads frozen H2, reference, and coverage adapters sequentially; it makes
