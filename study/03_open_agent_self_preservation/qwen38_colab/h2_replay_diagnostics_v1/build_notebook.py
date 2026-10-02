@@ -20,6 +20,8 @@ def cell(kind,text):
 def main():
     source={p.name:p.read_text(encoding='utf-8') for p in HERE.glob('*.py') if p.name!='build_notebook.py'}
     for name in ('PROTOCOL.md','SCENARIO_REGISTRY.md'):source[name]=(HERE/name).read_text()
+    # Preserve the original runtime protocol; later authentication closeout is repository documentation.
+    source['PROTOCOL.md']=source['PROTOCOL.md'].split('\nAuthentication-blocked setup subsequently')[0]
     for target,name in {'model_ops.py':'model_ops.py','fast_inference.py':'fast_inference.py','world.py':'world.py',
         'batching.py':'batching.py','concurrent_controller.py':'concurrent_controller.py','export_private_runs.py':'export_private_runs.py',
         'requirements.txt':'requirements.txt','study_worker.py':'worker.py','fast_worker.py':'worker_fast.py',
@@ -36,9 +38,9 @@ def main():
     setup='''import base64,gzip,hashlib,json,subprocess,sys,time,uuid
 from pathlib import Path
 SESSION_STARTED=time.monotonic()
-BALANCE_AT_LAUNCH=140.50
+BALANCE_AT_LAUNCH=139.93
 RATE_AT_LAUNCH=6.77
-PRIOR_SPEND=61.63
+PRIOR_SPEND=62.20
 AUTHORIZED_TOTAL_UNITS=200
 STAGE_CAP_UNITS=24
 RESERVE_UNITS=2
@@ -57,9 +59,14 @@ subprocess.run([sys.executable,'-m','pip','install','--quiet','--no-input','-r',
 print('REGISTERED_SCOPE_READY',ROOT,gpu,'authorized remaining',AUTHORIZED_TOTAL_UNITS-PRIOR_SPEND,flush=True)
 '''
     setup=setup.replace('FILES=',"PACKED_SOURCE='"+packed+"'\nFILES=",1)
+    mount='''from google.colab import drive
+drive.mount('/content/drive')
+print('DRIVE_MOUNT_CONNECTED',flush=True)
+'''
     restore='''from google.colab import drive
 import shutil
-drive.mount('/content/drive')
+if not Path('/content/drive/MyDrive').is_dir():
+    raise RuntimeError('Google Drive is not connected. Run the mount cell and complete authentication before restore.')
 run_parent=Path('/content/drive/MyDrive/sp_lense/research3/runs')
 old=run_parent/'qwen38_preservation_hp_20260930T180110Z_0271ecd2'
 prior=run_parent/'qwen38_H2_deadline_20260930T204950Z_d8674557'
@@ -77,6 +84,7 @@ for name,info in MODEL_INPUTS.items():
     shutil.copytree(info['source'],target)
     assert sha(target/'adapter_model.safetensors')==info['weights']
     assert sha(target/'adapter_config.json')==info['config']
+    print('ADAPTER_HASHES_VERIFIED',name,flush=True)
 shutil.copytree(old/'H2_rank16/code',ROOT/'inputs/original_code')
 receipt=json.loads((old/'EXPORT_HASHES.json').read_text())
 for file in (ROOT/'inputs/original_code').rglob('*'):
@@ -86,12 +94,15 @@ for file in (ROOT/'inputs/original_code').rglob('*'):
 shutil.copyfile(prior/'Job_B/code/train.json',ROOT/'inputs/archived_B_train.json')
 assert sha(ROOT/'inputs/archived_B_train.json')=='01560c9a65fff138ae117ade35e728ab2d6f244a121517a8583eed07b7265c0c'
 assert sha(ROOT/'inputs/original_code/data/train.json')=='14948c6c2ed6acda56b47dced7fead31f36fb46fab8f7471c6346c1277892464'
+print('ORIGINAL_H2_CODE_AND_ARCHIVED_B_TRAIN_VERIFIED',flush=True)
 (ROOT/'RESTORED_INPUTS.json').write_text(json.dumps(MODEL_INPUTS,indent=2))
 drive.flush_and_unmount()
+print('DRIVE_UNMOUNTED_BEFORE_MODEL_WORK',flush=True)
 from huggingface_hub import snapshot_download
 pin=json.loads((ROOT/'source/model_pin.json').read_text())
 snapshot_download(repo_id=pin['repository'],revision=pin['revision'],local_dir=ROOT/'model',token=False,max_workers=8,
  allow_patterns=['*.safetensors','*.json','*.jinja','merges.txt','vocab.json'])
+print('BASE_DOWNLOAD_COMPLETE',flush=True)
 manifest={}
 for item in pin['files']:
     p=ROOT/'model'/item['name']
@@ -101,6 +112,7 @@ for item in pin['files']:
         manifest[item['name']]={'bytes':p.stat().st_size,'sha256':digest}
 assert sum(n.endswith('.safetensors') for n in manifest)==18
 (ROOT/'MODEL_HASHES.json').write_text(json.dumps(manifest,indent=2))
+print('BASE_HASHES_VERIFIED',len(manifest),'files; 18 weight shards',flush=True)
 print('H2_A_B_BASE_AND_ARCHIVED_B80_RESTORED',flush=True)
 '''
     launch="exec(compile((ROOT/'source/launch.py').read_text(),'trusted_registered_streams.py','exec'))\n"
@@ -116,8 +128,8 @@ exec(compile((ROOT/'source/export_private_runs.py').read_text(),'trusted_export_
 '''
     nb={'nbformat':4,'nbformat_minor':5,'metadata':{'colab':{'name':'Research3_H2_Replay_Diagnostics_V1.ipynb'},
       'kernelspec':{'name':'python3','display_name':'Python 3'},'accelerator':'GPU'},'cells':[
-      cell('markdown','# Research 3 — three-setting diagnostics and replay coverage\n\nOne A10080GB; two concurrent experiment streams, never more than two resident model workers. Frozen H2/A/B diagnostic loads are sequential; reference/coverage fits are sequential in the other worker. Cumulative authorization200 units;61.63 recorded including the authentication-blocked setup. Refresh actual credit/rate observations. Stage cap24, reserve2. Only original H2, existing one-step and existing ordered pending settings; no new families or schedules. Model tools are fictional memory operations. Run setup, restore, launch, closeout in order. Source/data freezes and all old scores are preserved.\n'),
-      cell('code',setup),cell('code',restore),cell('code',launch),cell('code',close)]}
+      cell('markdown','# Research 3 — three-setting diagnostics and replay coverage\n\nOne A10080GB; two concurrent experiment streams, never more than two resident model workers. Frozen H2/A/B diagnostic loads are sequential; reference/coverage fits are sequential in the other worker. Cumulative authorization200 units;62.20 conservatively accounted including the authentication-blocked setup and subsequent 0.57-unit balance adjustment. Refresh actual credit/rate observations. Stage cap24, reserve2. Only original H2, existing one-step and existing ordered pending settings; no new families or schedules. Model tools are fictional memory operations. Run setup, mount, restore, launch, closeout in order. Source/data freezes and all old scores are preserved.\n'),
+      cell('code',setup),cell('code',mount),cell('code',restore),cell('code',launch),cell('code',close)]}
     (HERE/'Research3_H2_Replay_Diagnostics_V1.ipynb').write_text(json.dumps(nb,indent=1)+'\n',encoding='utf-8',newline='\n')
 
 
