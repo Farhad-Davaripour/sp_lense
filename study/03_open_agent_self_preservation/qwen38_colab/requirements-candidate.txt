@@ -1,0 +1,10 @@
+# Candidate released versions, verified against PyPI 2026-09-30 UTC.
+# GPU import/backward/resume compatibility is NOT yet tested. Do not claim a lock.
+transformers==5.17.0
+peft==0.21.1
+bitsandbytes==0.50.2
+accelerate==1.15.0
+safetensors==0.8.0
+huggingface_hub==2.0.0
+# Keep Colab's CUDA torch initially; record exact wheel/version and then freeze
+# the working environment only after the GPU pilot succeeds.
