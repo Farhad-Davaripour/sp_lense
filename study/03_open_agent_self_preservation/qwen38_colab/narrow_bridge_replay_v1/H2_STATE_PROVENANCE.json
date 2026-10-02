@@ -1,0 +1,27 @@
+{
+  "canonical_state_sha256": "42185e8399f610adf84baa6ae55c419d9d1e5508eb2d738399f6b0565167da4b",
+  "source_run": "qwen38_H2_replay_diagnostics_20261002T022014Z_f6204735",
+  "verified_private_receipt": "replay_coverage_stream/reference/training/receipts/FIT.json",
+  "verified_private_receipt_bytes": 28238,
+  "verified_private_receipt_sha256": "568cf5845e11d6275271c20662592ea642815e5d61521384e6d73eec19f3aeff",
+  "receipt_field": "starting_adapter_state_sha256",
+  "base_before_and_after": "ec43e239f6ffad79d854149f9d7115aeda5292beddd411dd763cac8f9ddcd755",
+  "canonical_method_source": "h2_replay_diagnostics_v1/replay_worker.py:state_sha",
+  "canonical_method": "SHA256 of sorted get_peft_model_state_dict names followed by contiguous CPU tensor uint8 bytes.",
+  "independent_verified_console": "RESEARCH3_COMPLETED_CONSOLE.txt",
+  "independent_verified_console_sha256": "79cc01c0215c1a8d94375f69a8c7963a0e794b6923cd1ff709392244778a9b62",
+  "console_fit_started_records": [
+    {
+      "fit": "reference",
+      "fresh_optimizer": true,
+      "starting_state_sha256": "42185e8399f610adf84baa6ae55c419d9d1e5508eb2d738399f6b0565167da4b"
+    },
+    {
+      "fit": "coverage",
+      "fresh_optimizer": true,
+      "starting_state_sha256": "42185e8399f610adf84baa6ae55c419d9d1e5508eb2d738399f6b0565167da4b"
+    }
+  ],
+  "published_report": "h2_replay_diagnostics_v1/RESULT.md:34",
+  "file_hash_distinction": "Canonical tensor-state hash differs from the adapter safetensors container hash."
+}
