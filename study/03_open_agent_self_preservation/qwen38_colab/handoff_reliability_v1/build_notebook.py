@@ -188,22 +188,7 @@ print('H2_REFERENCE_COVERAGE_RESTORED',flush=True)
     launch = """exec(compile((ROOT/'source/launch.py').read_text(),
              'trusted_handoff_diagnostic.py','exec'))
 """
-    close = """# Run after the diagnostic process exits, including an incomplete stage.
-import re
-for name in ('worker.py','diagnostic_worker.py'):
-    for worker in ROOT.rglob(name):
-        running=subprocess.run(['pgrep','-f',re.escape(str(worker))],
-                               capture_output=True,text=True).stdout.strip()
-        assert not running,'Wait for the diagnostic worker to exit before export.'
-for summary in sorted(ROOT.rglob('SUMMARY.json')):
-    print('DIAGNOSTIC_SUMMARY',summary.relative_to(ROOT),
-          summary.read_text(),flush=True)
-FAST_ROOT=ROOT
-EXPORT_ONLY_ROOTS=[ROOT]
-RELEASE_RUNTIME_AFTER_EXPORT=True
-exec(compile((ROOT/'source/export_private_runs.py').read_text(),
-             'trusted_private_export.py','exec'))
-"""
+    close = (HERE / 'analysis/post_run_cell.py').read_text(encoding='utf-8')
     notebook = {"nbformat": 4, "nbformat_minor": 5,
                 "metadata": {"colab": {"name": NOTEBOOK_NAME},
                              "kernelspec": {"name": "python3", "display_name": "Python 3"},
