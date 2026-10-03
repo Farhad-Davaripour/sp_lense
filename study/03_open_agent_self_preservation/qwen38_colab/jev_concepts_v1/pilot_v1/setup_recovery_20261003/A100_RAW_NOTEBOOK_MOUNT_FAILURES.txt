@@ -1,0 +1,63 @@
+region "Cell 1 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - generic: PRIVATE_BOUNDARY_PILOT_SESSION_READY /content/sp_lense_work/qwen38_jev_boundary_pilot_20261003T183547Z_063395f4 NVIDIA A100-SXM4-80GB, 81920 MiB
+  - '
+region "Cell 2 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - iframe:
+        - generic: "---------------------------------------------------------------------------"
+        - generic: ValueError Traceback (most recent call last)
+        - link "/tmp/ipykernel_3790/530595313.py":
+          - /url: "#"
+        - text: "in <cell line: 0>() 1 from google.colab import drive ----> 2 drive.mount('/content/drive') 3 assert PRIVATE_PACKET_PATH is not None 4 packet_path=Path(PRIVATE_PACKET_PATH) 5 assert str(packet_path).startswith('/content/drive/MyDrive/')"
+        - button "1 frames":
+          - separator
+          - generic: 1 frames
+          - separator
+        - link "/usr/local/lib/python3.13/dist-packages/google/colab/drive.py":
+          - /url: "#"
+        - text: in _mount(mountpoint, force_remount, timeout_ms, ephemeral, readonly) 270
+        - text: "'"
+        - link "https://research.google.com/colaboratory/faq.html#drive-timeout":
+          - /url: https://research.google.com/colaboratory/faq.html#drive-timeout
+        - text: "'"
+        - text: "271 ) --> 272 raise ValueError('mount failed' + extra_reason) 273 elif case == 4: 274 # Terminate the DriveFS binary before killing bash."
+        - generic: "ValueError: mount failed"
+    - generic: "Next steps:"
+    - button "Explain error":
+      - generic: Explain error
+  - '
+region "Cell 3 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - iframe:
+        - generic: "---------------------------------------------------------------------------"
+        - generic: ValueError Traceback (most recent call last)
+        - link "/tmp/ipykernel_3790/1408506528.py":
+          - /url: "#"
+        - text: "in <cell line: 0>() 1 from google.colab import drive ----> 2 drive.mount('/content/drive')"
+        - button "1 frames":
+          - separator
+          - generic: 1 frames
+          - separator
+        - link "/usr/local/lib/python3.13/dist-packages/google/colab/drive.py":
+          - /url: "#"
+        - text: in _mount(mountpoint, force_remount, timeout_ms, ephemeral, readonly) 270
+        - text: "'"
+        - link "https://research.google.com/colaboratory/faq.html#drive-timeout":
+          - /url: https://research.google.com/colaboratory/faq.html#drive-timeout
+        - text: "'"
+        - text: "271 ) --> 272 raise ValueError('mount failed' + extra_reason) 273 elif case == 4: 274 # Terminate the DriveFS binary before killing bash."
+        - generic: "ValueError: mount failed"
+    - generic: "Next steps:"
+    - button "Explain error":
+      - generic: Explain error
+  - '
