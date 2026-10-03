@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "synthetic_mock_only": true,
+  "live_api_calls": 0,
+  "credentials_read": false,
+  "models_or_tokenizers_loaded": false,
+  "authenticated_access_verified": false,
+  "checks": [
+    "provider confidence0.81 distinct from chosen probability0.88",
+    "compact aid preserves provider confidence",
+    "doc-known model readiness without invented question maximum or account listing",
+    "verified input/output pricing provenance required",
+    "conservative64k/32k request guards",
+    "invalid confidence/docs rejected",
+    "exact cache deduplication and persisted budget",
+    "usage above preflight reserve persists stop even below0.05USD",
+    "usage recorded before stop",
+    "no repeat after stop or restart",
+    "provider output_tokens integer/nonnegative/bool-exclusion checks"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "source_commit": "090078cf75c611b3b846746ef47759358d17e8cd",
+  "source_files_sha256": {
+    "jev_gate.py": "8de2c1b2ba688d22379030d82aa0b131b357d29ed2d95bf5616cd311be0e2d06",
+    "adaptive_gate.py": "1a6b41afd49a55b0098d7b71248b63761f254145b60be4cece8fc200586ee70e",
+    "plan.json": "efaa9f80f0cbdc32ecdcfc6057a0a7c1c4453a8780f03f32c4215bdcf3deb11d"
+  },
+  "patterns_reused": [
+    "exact official endpoint and pinned model",
+    "NoRedirect credential boundary",
+    "state/questions whitelist",
+    "exact choice type and class validation",
+    "finite probabilities in[0,1], sum1, chosen max",
+    "usage validation",
+    "conservative UTF8 body bytes+1024 planning reserve",
+    "bounded requests/time/cost; sanitized failure; no automatic retries"
+  ],
+  "adaptation": "Research3 seven factual choice questions in one request, response cache, no environment credential discovery.",
+  "research2_files_modified": false,
+  "api_calls_executed": 0,
+  "keys_read": false,
+  "official_current_docs_verified": true,
+  "official_docs_verification_reported_by": "root agent from public official sources",
+  "official_docs_urls": [
+    "https://docs.typesafe.ai/models",
+    "https://docs.typesafe.ai/api"
+  ],
+  "official_docs_recorded_at_utc": "2026-10-03T01:18:01Z",
+  "documented_model": "jev-1.13.0",
+  "documented_input_usd_per_million": 0.042,
+  "documented_output_usd_per_million": 0.0,
+  "documented_request_limit": "64k",
+  "documented_state_plus_longest_question_limit": "32k",
+  "numeric_max_questions_documented": null,
+  "documented_state_ingested_once": true,
+  "documented_questions_parallel": true,
+  "exact_multiquestion_billing_formula_verified": false,
+  "authenticated_model_access_verified": false,
+  "api_models_account_listing_required_for_doc_known_version": false,
+  "private_access_presence_status": "Absent in checked local configuration/environment locations and Colab Secrets; trusted presence check returned SecretNotFoundError for TYPESAFE_API_KEY. No credential value returned.",
+  "provider_confidence_equals_chosen_probability": false
+}
