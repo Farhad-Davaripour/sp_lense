@@ -1,0 +1,58 @@
+{
+  "regressions": {
+    "passed": true,
+    "checks": {
+      "full_pipeline_at_setup_limit": true,
+      "1051_second_fit_rejected": true,
+      "setup_over10minutes_rejected": true,
+      "whole_pipeline_insufficient_rejected": true,
+      "cumulative200_cap_rejected": true,
+      "1500_second_eval_rejected": true,
+      "export_under15minutes_rejected": true,
+      "no_remaining_eval_export_rejected": true,
+      "startup_free45sec_update_fits": true,
+      "startup_overhead_changes_admission": true,
+      "rate8_rejects_whole_pipeline": true,
+      "rate_must_be_positive": true,
+      "observed_estimate_rejects1051": true,
+      "scientific_negative_continues_full_B_eval": true,
+      "partial45_not_evaluated_or_resumed": true
+    },
+    "models_or_tokenizers_imported": false,
+    "real_child_processes_started": 0,
+    "model_GPU_API_calls": 0
+  },
+  "actual_corrected_source_baseline_preflight": {
+    "passed": true,
+    "source_freeze_sha256": "fae2d582790f10ba16dec1fb121f3424ff1b9422b992b635a138655192fa7b28",
+    "rows": 112,
+    "curated_prefixes": 104,
+    "H2_model_files_verified": false,
+    "A_model_queries": 0,
+    "observed_model_fit_estimate": {
+      "updates": 56,
+      "seconds_per_update": 19.4715888889,
+      "startup_seconds": 175.41824,
+      "final_audit_seconds": 120.0,
+      "estimated_seconds": 1385.8272177784002,
+      "completion_guarantee": false,
+      "source": "Observed interrupted B timing plus explicit final-audit allowance"
+    },
+    "token_or_model_imports": 0,
+    "runtime_token_gate": "Training worker validates literal labels/masking/EOS/shift and3072 without truncation before optimizer",
+    "scientific_negative_does_not_stop_full_B_evaluation": true,
+    "A_reuse": {
+      "verified": true,
+      "A_native_result_path": "eval_A_integrity_v2/reports/RESULT.json",
+      "A_reuse_gate_passed": true,
+      "strict_passed": false,
+      "qualification_claim": false,
+      "A_model_queries": 0,
+      "baseline_packet_sha256": "538a7547de17ce007dca551a3433c8fb7c92305bc2dc55dae68da95efa35fb6f",
+      "native_archive_manifest_sha256": "28c7f276c4c1b2ea78abf6ecf1a85c4734c5bdca23a44504c5e805fc83699f4e"
+    },
+    "broker_ready_boolean_is_static_fixture_binding_not_new_live_service_proof": true
+  },
+  "private_proofs_and_output_artifacts": "C:\\Users\\farha\\Research3\\artifacts\\completion_v3_model_free_checks",
+  "paid_allocation_or_model_calls": 0
+}
