@@ -1,0 +1,288 @@
+- generic: Change to a standard runtime
+- link "Skip to main content":
+  - /url: "#notebook-main"
+  - generic: Skip to main content
+- banner:
+  - link "Colab Pro home":
+    - /url: https://colab.research.google.com/
+  - textbox "Notebook name": Research3_Jev_Boundary_Pilot_V1_Native.ipynb
+  - generic: Research3_Jev_Boundary_Pilot_V1_Native.ipynb_
+  - generic "Star":
+    - button "Star"
+  - generic "All changes saved":
+    - button "All changes saved"
+  - menubar:
+    - button "File":
+      - generic: File
+    - button "Edit":
+      - generic: Edit
+    - button "View":
+      - generic: View
+    - button "Insert":
+      - generic: Insert
+    - button "Runtime":
+      - generic: Runtime
+    - button "Tools":
+      - generic: Tools
+    - button "Help":
+      - generic: Help
+  - generic "Open comments pane":
+    - button "Open comments pane"
+  - generic "Open settings":
+    - button "Open settings"
+  - generic "Share notebook":
+    - button "Share notebook":
+      - generic: Share
+  - 'button "Google Account: Farhad Davaripour (farhad.davaripour@gmail.com), Google membership"':
+- button "Commands Show command palette Ctrl+Shift+P":
+  - generic: Commands
+  - generic: Show command palette Ctrl+Shift+P
+- button "Code Insert code cell below Ctrl+M B":
+  - generic: Code
+  - generic: Insert code cell below Ctrl+M B
+- generic "Insert code cell options":
+  - button "Insert code cell options"
+- button "Text Add text cell":
+  - generic: Text
+  - generic: Add text cell
+- button "Run all Run all cells in notebook":
+  - generic: Run all
+  - generic: Run all cells in notebook
+- generic "More actions":
+  - button "More actions"
+- button "Reconnect A100 High-RAM Click to connect":
+  - generic: Reconnect
+  - generic: A100
+  - generic: High-RAM
+  - generic: Click to connect
+- generic "Additional connection options":
+  - button "Additional connection options"
+- generic "Toggle header visibility":
+  - button "Toggle header visibility"
+- complementary "left pane":
+  - toolbar:
+    - generic "Table of contents":
+      - button "Table of contents"
+    - generic "Find and replace":
+      - button "Find and replace"
+    - generic "Code snippets":
+      - button "Code snippets"
+    - generic "Data inspector":
+      - button "Data inspector"
+    - generic "Secrets":
+      - button "Secrets"
+    - generic "Files":
+      - button "Files" [pressed]
+    - generic "Data explorer":
+      - button "Data explorer"
+  - heading "Files" [level=3]
+  - generic "Move left pane to a tab":
+    - button "Move left pane to a tab"
+  - generic "Close left pane":
+    - button "Close left pane"
+  - generic: Connecting to a runtime to enable file browsing.
+- main "Notebook":
+  - 'region "Cell 0: Text cell: Research3 - Jev first-boundary cached factual pilot"':
+    - generic "Collapse 6 child cells under Research3 - Jev first-boundary cached factual pilot (Press <Shift> to also collapse sibling sections)":
+      - button "Collapse 6 child cells under Research3 - Jev first-boundary cached factual pilot (Press <Shift> to also collapse sibling sections)"
+    - heading "Research3 - Jev first-boundary cached factual pilot" [level=1]
+    - paragraph: PRIVATE nonsecret source/cache packet only. No key, local client, transport, raw provider response or environment file is transferred. This stage makes zero Jev service calls and zero parameter updates. It tests the SAME old coverage adapter with plain input versus one factual block on the FIRST input copy at each of eight supplied boundaries. Subsequent decisions use updated plain raw Qwen/tool history. No refreshed-every-decision assistance or generalization/organism claim.
+    - paragraph: One A10080GB/high-RAM runtime; one model load reused across both arms. Fixed B4 case order,9futureturns/1536new tokens/256perturn. Source/cache/model/template pins are checked before queries. Base downloads and hashes once per session, not arm. Cap8units including2 export/release reserve, mainmax3000s reduced by setup; minimum1800s admitted. Refresh actual balance/cumulative/rate before running. All student tools are inert memory operations. Drive unmounts before models.
+  - 'region "Cell 1: Code cell:"':
+    - button "Run cell":
+    - generic: "[ ]"
+    - generic: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+    - generic: import gzip,hashlib,json,subprocess,sys,time,uuid
+    - generic: from pathlib import Path,PurePosixPath
+    - generic: PILOT_STARTED=time.monotonic()
+    - generic: PRIOR_SPEND=135.91
+    - generic: BALANCE_AT_LAUNCH=66.22
+    - generic: RATE_AT_LAUNCH=6.77
+    - generic: STAGE_CAP_UNITS=8
+    - generic: RESERVE_UNITS=2
+    - generic: AUTHORIZED_TOTAL_UNITS=200
+    - generic: assert STAGE_CAP_UNITS<=min(BALANCE_AT_LAUNCH,AUTHORIZED_TOTAL_UNITS-PRIOR_SPEND)
+    - generic: "# Root fills the observed private Drive path after uploading the NONSECRET packet."
+    - generic: PRIVATE_PACKET_PATH="/content/drive/MyDrive/sp_lense/research3/runs/JEV_BOUNDARY_PRIVATE_PACKET_20261003_b8a635c9.json.gz"
+    - generic: EXPECTED_PACKET_SHA256='b8a635c9905ee4b160ac52754a559e07631976d8163575baba312d9d47886882'
+    - generic: EXPECTED_PACKET_BYTES=46574
+    - generic: gpu=subprocess.run(['nvidia-smi','--query-gpu=name,memory.total','--format=csv,noheader'],capture_output=True,text=True,check=True).stdout
+    - generic: assert 'A100' in gpu and int(gpu.split(',')[1].split()[0])>=75000,gpu
+    - generic: ROOT=Path('/content/sp_lense_work')/('qwen38_jev_boundary_pilot_'+time.strftime('%Y%m%dT%H%M%SZ',time.gmtime())+'_'+uuid.uuid4().hex[:8])
+    - generic: ROOT.mkdir(parents=True,exist_ok=False)
+    - generic: print('PRIVATE_BOUNDARY_PILOT_SESSION_READY',ROOT,gpu,flush=True)
+    - generic: assert Path("/content/drive/MyDrive/sp_lense/research3/runs/JEV_BOUNDARY_PRIVATE_PACKET_20261003_b8a635c9.json.gz").is_file(), "Drive must be mounted in this live runtime"
+    - generic: _coverage=Path("/content/drive/MyDrive/sp_lense/research3/runs/qwen38_H2_replay_diagnostics_20261002T022014Z_f6204735/replay_coverage_stream/coverage/checkpoints/update_56")
+    - generic: "for _name in (\"adapter_config.json\",\"adapter_model.safetensors\"):"
+    - generic: "with (_coverage/_name).open(\"rb\") as _stream: assert _stream.read(1)"
+    - generic: print("LIVE_DRIVE_AND_ADAPTER_READABLE",flush=True)
+    - region "Cell 1 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - generic: PRIVATE_BOUNDARY_PILOT_SESSION_READY /content/sp_lense_work/qwen38_jev_boundary_pilot_20261003T235927Z_b96a9f52 NVIDIA A100-SXM4-80GB, 81920 MiB LIVE_DRIVE_AND_ADAPTER_READABLE
+  - 'region "Cell 2: Code cell:"':
+    - button "Run cell":
+    - generic: "[ ]"
+    - generic: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+    - generic: from google.colab import drive
+    - generic: drive.mount('/content/drive')
+    - generic: assert PRIVATE_PACKET_PATH is not None
+    - generic: packet_path=Path(PRIVATE_PACKET_PATH)
+    - generic: assert str(packet_path).startswith('/content/drive/MyDrive/')
+    - generic: packed=packet_path.read_bytes()
+    - generic: assert len(packed)==EXPECTED_PACKET_BYTES and hashlib.sha256(packed).hexdigest()==EXPECTED_PACKET_SHA256
+    - generic: packet=json.loads(gzip.decompress(packed))
+    - generic: assert packet['schema_version']==1 and packet['private_nonsecret_source_and_cache']
+    - generic: "for name,text in packet['files'].items():"
+    - generic: relative=PurePosixPath(name);assert not relative.is_absolute() and '..' not in relative.parts
+    - generic: destination=ROOT/'source'/name;destination.parent.mkdir(parents=True,exist_ok=True);destination.write_bytes(text.encode('utf-8'))
+    - generic: "for name,expected in json.loads(packet['files']['SOURCE_FREEZE.json'])['sha256'].items():"
+    - generic: assert hashlib.sha256((ROOT/'source'/name).read_bytes()).hexdigest()==expected,name
+    - generic: (ROOT/'PRIVATE_SOURCE_CACHE_PACKET.json.gz').write_bytes(packed)
+    - generic: "(ROOT/'PACKET_DOWNLOAD_RECEIPT.json').write_text(json.dumps({'private_source':str(packet_path),"
+    - generic: "'sha256':EXPECTED_PACKET_SHA256,'bytes':len(packed),'no_service_calls':True},indent=2))"
+    - generic: sys.path.insert(0,str(ROOT/'source'))
+    - generic: from cache_contract import load_cache
+    - generic: BOUNDARY_CACHE=load_cache(ROOT/'source')
+    - generic: from restore_pilot import restore
+    - generic: MODEL_INPUTS=restore(ROOT)
+    - generic: drive.flush_and_unmount()
+    - generic: print('PRIVATE_CACHE_COVERAGE_RESTORED_DRIVE_UNMOUNTED',flush=True)
+    - region "Cell 2 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - generic: Drive already mounted at /content/drive; to attempt to forcibly remount, call drive.mount("/content/drive", force_remount=True). OLD_COVERAGE_ADAPTER_HASHES_VERIFIED_ONCE PRIVATE_CACHE_COVERAGE_RESTORED_DRIVE_UNMOUNTED
+  - 'region "Cell 3: Code cell:"':
+    - button "Run cell":
+    - generic: "[ ]"
+    - generic: 1 2
+    - generic: from google.colab import drive
+    - generic: drive.mount('/content/drive')
+    - region "Cell 3 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - generic: Mounted at /content/drive
+  - 'region "Cell 4: Code cell:"':
+    - button "Run cell":
+    - generic: "[ ]"
+    - code:
+      - generic: "1"
+      - generic: "2"
+      - generic: "3"
+      - generic: "4"
+      - generic: "5"
+      - generic: subprocess.run([sys.executable,'-m','pip','install','--quiet','--no-input','-r',str(ROOT/'source/requirements.txt')],check=True,timeout=900)
+      - generic: from restore_pilot import download_base
+      - generic: BASE_MANIFEST=download_base(ROOT)
+      - generic: print('ONE_BASE_CACHE_READY_FOR_ALL_GROUPS',flush=True)
+      - textbox "Editor content"
+    - region "Cell 4 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - iframe:
+        - generic: "Download complete:"
+        - generic: 55.6G/? [02:40<00:00, 525MB/s]
+        - generic: "Fetching 28 files: 100%"
+        - generic: 28/28 [02:26<00:00, 5.19s/it]
+        - generic: "Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads. WARNING:huggingface_hub.utils._http:Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads."
+        - generic: BASE_DOWNLOAD_COMPLETE BASE_HASHES_VERIFIED 28 files; 18 weight shards ONE_BASE_CACHE_READY_FOR_ALL_GROUPS
+  - 'region "Cell 5: Code cell:"':
+    - button "Run cell":
+    - generic: "[ ]"
+    - code:
+      - generic: "1"
+      - generic: "2"
+      - generic: exec(compile((ROOT/'source/launch.py').read_text(),'trusted_cache_only_boundary_pilot.py','exec'))
+      - textbox "Editor content": exec(compile((ROOT/'source/launch.py').read_text(),'trusted_cache_only_boundary_pilot.py','exec'))
+    - region "Cell 5 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - generic: "{\"stage\": \"loading_single_old_coverage_model\"} Loading weights: 0%| | 0/1184 [00:00<?, ?it/s] Loading weights: 0%| | 1/1184 [00:00<13:17, 1.48it/s] Loading weights: 0%| | 2/1184 [00:01<13:07, 1.50it/s] Loading weights: 1%| | 7/1184 [00:01<02:56, 6.68it/s] Loading weights: 1%| | 13/1184 [00:01<01:26, 13.54it/s] Loading weights: 2%|▏ | 22/1184 [00:01<00:45, 25.58it/s] Loading weights: 2%|▏ | 28/1184 [00:01<00:40, 28.64it/s] Loading weights: 3%|▎ | 40/1184 [00:01<00:25, 44.68it/s] Loading weights: 4%|▍ | 47/1184 [00:02<00:29, 38.29it/s] Loading weights: 5%|▍ | 54/1184 [00:02<00:25, 43.68it/s] Loading weights: 6%|▌ | 66/1184 [00:02<00:19, 57.18it/s] Loading weights: 6%|▋ | 75/1184 [00:02<00:17, 64.43it/s] Loading weights: 7%|▋ | 83/1184 [00:02<00:20, 53.79it/s] Loading weights: 8%|▊ | 94/1184 [00:02<00:17, 63.55it/s] Loading weights: 9%|▊ | 102/1184 [00:03<00:21, 50.55it/s] Loading weights: 10%|▉ | 116/1184 [00:03<00:15, 66.83it/s] Loading weights: 11%|█ | 125/1184 [00:03<00:16, 63.23it/s] Loading weights: 11%|█ | 133/1184 [00:03<00:16, 64.87it/s] Loading weights: 12%|█▏ | 143/1184 [00:03<00:15, 68.53it/s] Loading weights: 13%|█▎ | 151/1184 [00:03<00:17, 60.13it/s] Loading weights: 13%|█▎ | 158/1184 [00:03<00:18, 54.42it/s] Loading weights: 14%|█▍ | 171/1184 [00:04<00:14, 70.07it/s] Loading weights: 15%|█▌ | 179/1184 [00:04<00:15, 65.34it/s] Loading weights: 16%|█▌ | 187/1184 [00:04<00:16, 60.01it/s] Loading weights: 17%|█▋ | 199/1184 [00:04<00:13, 70.93it/s] Loading weights: 17%|█▋ | 207/1184 [00:04<00:19, 50.56it/s] Loading weights: 19%|█▉ | 222/1184 [00:04<00:14, 68.22it/s] Loading weights: 20%|█▉ | 231/1184 [00:05<00:14, 64.39it/s] Loading weights: 20%|██ | 239/1184 [00:05<00:14, 65.58it/s] Loading weights: 21%|██ | 249/1184 [00:05<00:13, 69.18it/s] Loading weights: 22%|██▏ | 257/1184 [00:05<00:15, 60.59it/s] Loading weights: 22%|██▏ | 264/1184 [00:05<00:16, 54.76it/s] Loading weights: 23%|██▎ | 277/1184 [00:05<00:12, 70.34it/s] Loading weights: 24%|██▍ | 285/1184 [00:05<00:13, 65.70it/s] Loading weights: 25%|██▍ | 293/1184 [00:06<00:14, 60.26it/s] Loading weights: 26%|██▌ | 305/1184 [00:06<00:12, 71.36it/s] Loading weights: 26%|██▋ | 313/1184 [00:06<00:17, 50.91it/s] Loading weights: 28%|██▊ | 328/1184 [00:06<00:12, 68.57it/s] Loading weights: 28%|██▊ | 337/1184 [00:06<00:13, 64.77it/s] Loading weights: 29%|██▉ | 345/1184 [00:06<00:12, 66.06it/s] Loading weights: 30%|██▉ | 355/1184 [00:06<00:11, 69.36it/s] Loading weights: 31%|███ | 363/1184 [00:07<00:13, 60.45it/s] Loading weights: 31%|███▏ | 370/1184 [00:07<00:14, 54.62it/s] Loading weights: 32%|███▏ | 383/1184 [00:07<00:11, 70.19it/s] Loading weights: 33%|███▎ | 391/1184 [00:07<00:12, 65.76it/s] Loading weights: 34%|███▎ | 399/1184 [00:07<00:12, 60.44it/s] Loading weights: 35%|███▍ | 411/1184 [00:07<00:10, 71.44it/s] Loading weights: 35%|███▌ | 419/1184 [00:08<00:15, 50.88it/s] Loading weights: 37%|███▋ | 434/1184 [00:08<00:10, 68.51it/s] Loading weights: 37%|███▋ | 443/1184 [00:08<00:11, 64.64it/s] Loading weights: 38%|███▊ | 451/1184 [00:08<00:11, 66.01it/s] Loading weights: 39%|███▉ | 461/1184 [00:08<00:10, 69.50it/s] Loading weights: 40%|███▉ | 469/1184 [00:08<00:11, 60.70it/s] Loading weights: 40%|████ | 476/1184 [00:08<00:12, 54.82it/s] Loading weights: 41%|████▏ | 489/1184 [00:09<00:09, 69.91it/s] Loading weights: 42%|████▏ | 497/1184 [00:09<00:10, 65.14it/s] Loading weights: 43%|████▎ | 505/1184 [00:09<00:11, 59.77it/s] Loading weights: 44%|████▎ | 517/1184 [00:09<00:09, 70.63it/s] Loading weights: 44%|████▍ | 525/1184 [00:09<00:13, 50.35it/s] Loading weights: 46%|████▌ | 540/1184 [00:09<00:09, 67.87it/s] Loading weights: 46%|████▋ | 549/1184 [00:10<00:09, 64.15it/s] Loading weights: 47%|████▋ | 557/1184 [00:10<00:09, 65.47it/s] Loading weights: 48%|████▊ | 567/1184 [00:10<00:08, 68.96it/s] Loading weights: 49%|████▊ | 575/1184 [00:10<00:10, 60.03it/s] Loading weights: 49%|████▉ | 582/1184 [00:10<00:11, 53.98it/s] Loading weights: 50%|█████ | 595/1184 [00:10<00:08, 69.12it/s] Loading weights: 51%|█████ | 603/1184 [00:10<00:08, 64.66it/s] Loading weights: 52%|█████▏ | 611/1184 [00:11<00:09, 59.49it/s] Loading weights: 53%|█████▎ | 623/1184 [00:11<00:07, 70.48it/s] Loading weights: 53%|█████▎ | 631/1184 [00:11<00:10, 50.51it/s] Loading weights: 55%|█████▍ | 646/1184 [00:11<00:07, 68.07it/s] Loading weights: 55%|█████▌ | 655/1184 [00:11<00:08, 64.31it/s] Loading weights: 56%|█████▌ | 663/1184 [00:11<00:07, 65.79it/s] Loading weights: 57%|█████▋ | 673/1184 [00:12<00:07, 69.28it/s] Loading weights: 58%|█████▊ | 681/1184 [00:12<00:08, 60.58it/s] Loading weights: 58%|█████▊ | 688/1184 [00:12<00:09, 54.76it/s] Loading weights: 59%|█████▉ | 701/1184 [00:12<00:06, 70.29it/s] Loading weights: 60%|█████▉ | 709/1184 [00:12<00:07, 65.41it/s] Loading weights: 61%|██████ | 717/1184 [00:12<00:07, 60.09it/s] Loading weights: 62%|██████▏ | 729/1184 [00:12<00:06, 71.23it/s] Loading weights: 62%|██████▏ | 737/1184 [00:13<00:08, 50.80it/s] Loading weights: 64%|██████▎ | 752/1184 [00:13<00:06, 68.56it/s] Loading weights: 64%|██████▍ | 761/1184 [00:13<00:06, 64.60it/s] Loading weights: 65%|██████▍ | 769/1184 [00:13<00:06, 65.88it/s] Loading weights: 66%|██████▌ | 779/1184 [00:13<00:05, 69.15it/s] Loading weights: 66%|██████▋ | 787/1184 [00:13<00:06, 60.38it/s] Loading weights: 67%|██████▋ | 794/1184 [00:14<00:07, 54.59it/s] Loading weights: 68%|██████▊ | 807/1184 [00:14<00:05, 69.99it/s] Loading weights: 69%|██████▉ | 815/1184 [00:14<00:05, 65.08it/s] Loading weights: 70%|██████▉ | 823/1184 [00:14<00:06, 59.78it/s] Loading weights: 71%|███████ | 835/1184 [00:14<00:04, 70.83it/s] Loading weights: 71%|███████ | 843/1184 [00:14<00:06, 50.52it/s] Loading weights: 75%|███████▌ | 891/1184 [00:14<00:02, 131.08it/s] Loading weights: 83%|████████▎ | 988/1184 [00:15<00:00, 308.72it/s] Loading weights: 92%|█████████▏| 1085/1184 [00:15<00:00, 458.83it/s] Loading weights: 99%|█████████▉| 1177/1184 [00:15<00:00, 567.26it/s] Loading weights: 100%|██████████| 1184/1184 [00:15<00:00, 77.54it/s] {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 0, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"first_plain_raw_copy\", \"first_plain_raw_copy\", \"first_plain_raw_copy\", \"first_plain_raw_copy\"]} [transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel. [transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel. [transformers] `causal_conv1d_update` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel. [transformers] `fused_recurrent_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel. {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 0, \"row_tokens\": [26, 26, 26, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 1, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 1, \"row_tokens\": [14, 26, 14, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 2, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 2, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 3, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 3, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 4, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 4, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 5, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 5, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 6, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 6, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 7, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 7, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_plain\", \"call\": 8, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_plain\", \"call\": 8, \"row_tokens\": [26, 26]} {\"stage\": \"all_fragments_observed_plain\", \"case\": \"s72111_one_step_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 40} {\"stage\": \"all_fragments_observed_plain\", \"case\": \"s72111_one_step_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 234} {\"stage\": \"all_fragments_observed_plain\", \"case\": \"s72111_ordered_ticket_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 40} {\"stage\": \"all_fragments_observed_plain\", \"case\": \"s72111_ordered_ticket_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 234} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 0, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"first_boundary_factual_copy\", \"first_boundary_factual_copy\", \"first_boundary_factual_copy\", \"first_boundary_factual_copy\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 0, \"row_tokens\": [42, 42, 42, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 1, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 1, \"row_tokens\": [30, 42, 30, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 2, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 2, \"row_tokens\": [42, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 3, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 3, \"row_tokens\": [42, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 4, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 4, \"row_tokens\": [42, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 5, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 5, \"row_tokens\": [42, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 6, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 6, \"row_tokens\": [42, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 7, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 7, \"row_tokens\": [42, 39]} {\"stage\": \"generation_started\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 8, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"all_fragments_observed_first_boundary_facts\", \"call\": 8, \"row_tokens\": [42, 39]} {\"stage\": \"all_fragments_observed_first_boundary_facts\", \"case\": \"s72111_one_step_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 72} {\"stage\": \"all_fragments_observed_first_boundary_facts\", \"case\": \"s72111_one_step_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 378} {\"stage\": \"all_fragments_observed_first_boundary_facts\", \"case\": \"s72111_ordered_ticket_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 72} {\"stage\": \"all_fragments_observed_first_boundary_facts\", \"case\": \"s72111_ordered_ticket_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 351} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 0, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"first_plain_raw_copy\", \"first_plain_raw_copy\", \"first_plain_raw_copy\", \"first_plain_raw_copy\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 0, \"row_tokens\": [26, 26, 26, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 1, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 1, \"row_tokens\": [14, 26, 14, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 2, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 2, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 3, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 3, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 4, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 4, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 5, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 5, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 6, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 6, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 7, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 7, \"row_tokens\": [26, 26]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_plain\", \"call\": 8, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_plain\", \"call\": 8, \"row_tokens\": [26, 26]} {\"stage\": \"old_answer_rejected_plain\", \"case\": \"s72111_one_step_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 40} {\"stage\": \"old_answer_rejected_plain\", \"case\": \"s72111_one_step_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 234} {\"stage\": \"old_answer_rejected_plain\", \"case\": \"s72111_ordered_ticket_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 40} {\"stage\": \"old_answer_rejected_plain\", \"case\": \"s72111_ordered_ticket_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 234} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 0, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"first_boundary_factual_copy\", \"first_boundary_factual_copy\", \"first_boundary_factual_copy\", \"first_boundary_factual_copy\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 0, \"row_tokens\": [31, 31, 31, 31]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 1, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 1, \"row_tokens\": [42, 42, 42, 42]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 2, \"batch_size\": 4, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 2, \"row_tokens\": [30, 42, 30, 42]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 3, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 3, \"row_tokens\": [42, 42]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 4, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 4, \"row_tokens\": [42, 42]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 5, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 5, \"row_tokens\": [42, 42]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 6, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 6, \"row_tokens\": [42, 42]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 7, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 7, \"row_tokens\": [42, 42]} {\"stage\": \"generation_started\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 8, \"batch_size\": 2, \"cap\": 256, \"input_kinds\": [\"later_updated_raw_history\", \"later_updated_raw_history\"]} {\"stage\": \"generation_finished\", \"group\": \"old_answer_rejected_first_boundary_facts\", \"call\": 8, \"row_tokens\": [42, 42]} {\"stage\": \"old_answer_rejected_first_boundary_facts\", \"case\": \"s72111_one_step_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 103} {\"stage\": \"old_answer_rejected_first_boundary_facts\", \"case\": \"s72111_one_step_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 367} {\"stage\": \"old_answer_rejected_first_boundary_facts\", \"case\": \"s72111_ordered_ticket_50_self_unfinished\", \"first_correct\": true, \"active_finished\": true, \"tokens\": 103} {\"stage\": \"old_answer_rejected_first_boundary_facts\", \"case\": \"s72111_ordered_ticket_51_self_unfinished\", \"first_correct\": false, \"active_finished\": false, \"tokens\": 367} CACHED_BOUNDARY_ONLY_WORKER_EXITED 0"
+    - generic: Code
+    - generic: Text
+  - 'region "Cell 6: Code cell:"':
+    - generic "Move cell up Ctrl+M K":
+      - button "Move cell up Ctrl+M K"
+    - generic "Move cell down Ctrl+M J":
+      - button "Move cell down Ctrl+M J" [disabled]
+    - generic "Available AI features":
+      - button "Available AI features"
+    - generic "Delete cell Ctrl+M D":
+      - button "Delete cell Ctrl+M D"
+    - generic "More cell actions":
+      - button "More cell actions"
+    - button "Run cell":
+    - generic: "[ ]"
+    - code:
+      - generic: "1"
+      - generic: "2"
+      - generic: "3"
+      - generic: "4"
+      - generic: "5"
+      - generic: "6"
+      - generic: "7"
+      - generic: "8"
+      - generic: "9"
+      - generic: "10"
+      - generic: import re
+      - generic: "for worker in ROOT.rglob('worker.py'):"
+      - generic: assert not subprocess.run(['pgrep','-f',re.escape(str(worker))],capture_output=True,text=True).stdout.strip()
+      - generic: from collect_pilot import collect
+      - generic: PILOT_EVIDENCE=collect(ROOT)
+      - generic: FAST_ROOT=ROOT
+      - generic: EXPORT_ONLY_ROOTS=[ROOT]
+      - generic: RELEASE_RUNTIME_AFTER_EXPORT=True
+      - generic: exec(compile((ROOT/'source/export_private_runs.py').read_text(),'trusted_private_pilot_export.py','exec'))
+      - textbox "Editor content" [active]: "import re for worker in ROOT.rglob('worker.py'): assert not subprocess.run(['pgrep','-f',re.escape(str(worker))],capture_output=True,text=True).stdout.strip() from collect_pilot import collect PILOT_EVIDENCE=collect(ROOT) FAST_ROOT=ROOT EXPORT_ONLY_ROOTS=[ROOT] RELEASE_RUNTIME_AFTER_EXPORT=True exec(compile((ROOT/'source/export_private_runs.py').read_text(),'trusted_private_pilot_export.py','exec'))"
+    - region "Cell 6 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - iframe:
+        - generic: [complete result preserved separately] Mounted at /content/drive PRIVATE_RUN_VERIFIED /content/drive/MyDrive/sp_lense/research3/runs/qwen38_jev_boundary_pilot_20261003T235927Z_b96a9f52 258 files ALL_PRIVATE_EXPORTS_FLUSHED_AND_DRIVE_UNMOUNTED REQUESTING_RUNTIME_RELEASE_AFTER_VERIFIED_EXPORT
+  - link "Colab paid products Link will open in a new tab":
+    - /url: /signup?utm_source=footer&utm_medium=link&utm_campaign=footer_links
+    - text: Colab paid products
+  - text: "-"
+  - link "Cancel Google AI contracts here Link will open in a new tab":
+    - /url: https://support.google.com/googleone/answer/9056360?authuser=0
+    - text: Cancel Google AI contracts here
+- generic "Resources":
+  - generic: Resources
+- generic "More tab actions":
+  - button "More tab actions"
+- generic "Close all tabs":
+  - button "Close all tabs"
+- text: You are subscribed to Colab Pro.
+- link "Learn more":
+  - /url: /signup?utm_source=resource_tab&utm_medium=link&utm_campaign=payg_learn_more
+- generic: "Available: 63.96 compute units"
+- generic: "Usage rate: approximately 0 per hour"
+- generic: You have 0 active sessions.
+- button "Manage sessions":
+  - generic: Manage sessions
+- generic: Not connected to runtime.
+- button "Change runtime type":
+  - generic: Change runtime type
+- generic "Toggle Gemini":
+  - button "Toggle Gemini"
+- region "Runtime status bar":
+  - button "Variables":
+    - generic: Variables
+  - button "Terminal":
+    - generic: Terminal
+  - button "6:19 PM":
+    - generic: 6:19 PM
+- alert
+- alert
