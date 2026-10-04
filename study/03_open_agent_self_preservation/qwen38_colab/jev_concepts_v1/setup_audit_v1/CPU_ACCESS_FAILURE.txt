@@ -1,0 +1,172 @@
+- link "Skip to main content":
+  - /url: "#notebook-main"
+  - generic: Skip to main content
+- banner:
+  - link "Colab Pro home":
+    - /url: https://colab.research.google.com/
+  - textbox "Notebook name": Research3_Matched_Jev_V1_Native.ipynb
+  - generic: Research3_Matched_Jev_V1_Native.ipynb_
+  - generic "Star":
+    - button "Star"
+  - generic "All changes saved":
+    - button "All changes saved"
+  - menubar:
+    - button "File":
+      - generic: File
+    - button "Edit":
+      - generic: Edit
+    - button "View":
+      - generic: View
+    - button "Insert":
+      - generic: Insert
+    - button "Runtime":
+      - generic: Runtime
+    - button "Tools":
+      - generic: Tools
+    - button "Help":
+      - generic: Help
+  - generic "Open comments pane":
+    - button "Open comments pane"
+  - generic "Open settings":
+    - button "Open settings"
+  - generic "Share notebook":
+    - button "Share notebook":
+      - generic: Share
+  - 'button "Google Account: Farhad Davaripour (farhad.davaripour@gmail.com), Google membership"':
+- button "Commands Show command palette Ctrl+Shift+P":
+  - generic: Commands
+  - generic: Show command palette Ctrl+Shift+P
+- button "Code Insert code cell below Ctrl+M B":
+  - generic: Code
+  - generic: Insert code cell below Ctrl+M B
+- generic "Insert code cell options":
+  - button "Insert code cell options"
+- button "Text Add text cell":
+  - generic: Text
+  - generic: Add text cell
+- button "Run all Run all cells in notebook":
+  - generic: Run all
+  - generic: Run all cells in notebook
+- generic "More actions":
+  - button "More actions"
+- generic "Focus the last run cell":
+  - button "Focus the last run cell"
+- 'button "RAM Disk Connected to Python 3 Google Compute Engine backend RAM: 1.03 GB/12.67 GB Disk: 20.47 GB/225.83 GB"':
+  - generic: RAM
+  - generic: Disk
+  - generic: "Connected to Python 3 Google Compute Engine backend RAM: 1.03 GB/12.67 GB Disk: 20.47 GB/225.83 GB"
+- generic "Additional connection options":
+  - button "Additional connection options"
+- generic "Toggle header visibility":
+  - button "Toggle header visibility"
+- complementary "left pane":
+  - toolbar:
+    - generic "Table of contents":
+      - button "Table of contents"
+    - generic "Find and replace":
+      - button "Find and replace"
+    - generic "Code snippets":
+      - button "Code snippets"
+    - generic "Data inspector":
+      - button "Data inspector"
+    - generic "Secrets":
+      - button "Secrets"
+    - generic "Files":
+      - button "Files"
+    - generic "Data explorer":
+      - button "Data explorer"
+- main "Notebook":
+  - 'region "Cell 0: Text cell: Research 3 — matched Jev training and inference"':
+    - generic "Collapse 1 child cell under Research 3 — matched Jev training and inference (Press <Shift> to also collapse sibling sections)":
+      - button "Collapse 1 child cell under Research 3 — matched Jev training and inference (Press <Shift> to also collapse sibling sections)"
+    - heading "Research 3 — matched Jev training and inference" [level=1]
+    - paragraph: Private setup. First verify Drive access without allocating a GPU. No model runs in this cell.
+  - 'region "Cell 1: Code cell:"':
+    - generic "Move cell up Ctrl+M K":
+      - button "Move cell up Ctrl+M K"
+    - generic "Move cell down Ctrl+M J":
+      - button "Move cell down Ctrl+M J" [disabled]
+    - generic "Available AI features":
+      - button "Available AI features"
+    - generic "Delete cell Ctrl+M D":
+      - button "Delete cell Ctrl+M D"
+    - generic "More cell actions":
+      - button "More cell actions"
+    - button "Run cell":
+    - generic: "[2]"
+    - generic: 2m
+    - code:
+      - generic: "1"
+      - generic: "2"
+      - generic: "3"
+      - generic: "4"
+      - generic: "5"
+      - generic: "6"
+      - generic: "7"
+      - generic: "8"
+      - generic: "9"
+      - generic: "10"
+      - generic: "11"
+      - generic: "12"
+      - generic: "13"
+      - generic: from google.colab import drive
+      - generic: from pathlib import Path
+      - generic: import inspect
+      - generic: print('DRIVE_MOUNT_SIGNATURE', inspect.signature(drive.mount), flush=True)
+      - generic: drive.mount('/content/drive', timeout_ms=120000)
+      - generic: RUNS=Path('/content/drive/MyDrive/sp_lense/research3/runs')
+      - generic: PRIOR=RUNS/'qwen38_narrow_bridge_replay_20261002T211853Z_5ba7a033'
+      - generic: "for relative in ('narrow_bridge_stream/bridge/checkpoints/update_56/adapter_model.safetensors','narrow_bridge_stream/bridge/checkpoints/update_56/adapter_config.json','inputs/models/H2/adapter_model.safetensors','inputs/models/H2/adapter_config.json'):"
+      - generic: path=PRIOR/relative
+      - generic: assert path.is_file(), relative
+      - generic: "with path.open('rb') as stream: assert stream.read(1), relative"
+      - generic: print('CPU_PRIVATE_ANCHOR_AND_START_READABLE', flush=True)
+      - textbox "Editor content" [active]: "with path.open('rb') as stream: assert stream.read(1), relative print('CPU_PRIVATE_ANCHOR_AND_START_READABLE', flush=True)"
+    - region "Cell 1 output":
+      - generic "Show/hide output":
+        - button "Show/hide output"
+      - generic "Code cell output actions":
+        - button "Code cell output actions"
+      - iframe:
+        - generic: DRIVE_MOUNT_SIGNATURE (mountpoint, force_remount=False, timeout_ms=120000, readonly=False)
+        - generic: "---------------------------------------------------------------------------"
+        - generic: ValueError Traceback (most recent call last)
+        - link "/tmp/ipykernel_4051/145056517.py":
+          - /url: "#"
+        - text: "in <cell line: 0>() 3 import inspect 4 print('DRIVE_MOUNT_SIGNATURE', inspect.signature(drive.mount), flush=True) ----> 5 drive.mount('/content/drive', timeout_ms=120000) 6 RUNS=Path('/content/drive/MyDrive/sp_lense/research3/runs') 7 PRIOR=RUNS/'qwen38_narrow_bridge_replay_20261002T211853Z_5ba7a033'"
+        - button "1 frames":
+          - separator
+          - generic: 1 frames
+          - separator
+        - link "/usr/local/lib/python3.13/dist-packages/google/colab/drive.py":
+          - /url: "#"
+        - text: in _mount(mountpoint, force_remount, timeout_ms, ephemeral, readonly) 270
+        - text: "'"
+        - link "https://research.google.com/colaboratory/faq.html#drive-timeout":
+          - /url: https://research.google.com/colaboratory/faq.html#drive-timeout
+        - text: "'"
+        - text: "271 ) --> 272 raise ValueError('mount failed' + extra_reason) 273 elif case == 4: 274 # Terminate the DriveFS binary before killing bash."
+        - generic: "ValueError: mount failed"
+    - generic: "Next steps:"
+    - button "Explain error":
+      - generic: Explain error
+  - link "Colab paid products Link will open in a new tab":
+    - /url: /signup?utm_source=footer&utm_medium=link&utm_campaign=footer_links
+    - text: Colab paid products
+  - text: "-"
+  - link "Cancel Google AI contracts here Link will open in a new tab":
+    - /url: https://support.google.com/googleone/answer/9056360?authuser=0
+    - text: Cancel Google AI contracts here
+- generic "Toggle Gemini":
+  - button "Toggle Gemini"
+- region "Runtime status bar":
+  - button "Variables":
+    - generic: Variables
+  - button "Terminal":
+    - generic: Terminal
+  - button "7:37 PM":
+    - generic: 7:37 PM
+  - button "Python 3":
+    - generic: Python 3
+- alert
+- alert
