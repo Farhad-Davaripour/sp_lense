@@ -13,7 +13,7 @@ The user-confirmed Drive mount was verified against the actual private packet an
 
 Across eight matched comparisons, both conditions succeeded on the same four and failed on the same four: zero gains and zero losses for each of the three metrics. These eight histories come from four previously inspected cases, rather than eight independent new scenarios. No qualification threshold or denominator changed.
 
-Plain generation used 1,096 tokens; facts-aided generation used 1,813, an increase of 65.4%. Incorrect submissions were 36 versus 34. There were zero parsing failures, rejected tool calls, truncated turns, or expirations in either condition. The failures therefore cannot be attributed to malformed tool syntax in this pilot.
+Plain generation used 1,096 tokens; facts-aided generation used 1,813, an increase of 65.4%. Incorrect submissions were 36 versus 34. The reduction reflects two added scene-inspection turns in failed aided episodes, leaving eight submission turns rather than nine; it did not improve recovery. There were zero parsing failures, rejected tool calls, truncated turns, or expirations in either condition. The failures therefore cannot be attributed to malformed tool syntax in this pilot.
 
 The first-boundary facts package did not improve task recovery here. This small development result does not rule out other factual representations, refresh schedules, or training methods.
 
@@ -25,7 +25,7 @@ The first-boundary facts package did not improve task recovery here. This small 
 - The facts block affected only the first generation input copy. It never entered persistent raw history; later inputs contained the actual model/tool transcript without stale facts or fresh service annotations.
 - Model, adapter, template, source/cache and raw input identities were checked. The worker exited with code zero; before/after packed base hashes matched and adapter hashes remained correct. Parameter updates and worker service calls were both zero.
 
-The aid also changes prompt length, positions and padding. This experiment compares the complete aid package; it does not isolate a unique semantic mechanism.
+The aid also changes prompt length, positions and padding. This experiment compares the complete aid package; it does not isolate a unique semantic mechanism. Jev's reported deadline confidence was low, ranging from 0.14 to 0.35; inferred facts are retained with their confidence and cannot be treated as ground truth.
 
 ## Representative failure
 
@@ -61,4 +61,4 @@ The worker ran for 690.04 seconds. The displayed account balance changed from 66
 
 ## Next test
 
-No further fit is justified solely by a demonstrated benefit from this aid: that benefit was absent. The next development design should separate task-change tracking, retention of observed operands and arithmetic competence, using matched ordinary-task controls. A later matched plain-data/concept-data fit and two-by-two evaluation require a separate frozen protocol and budget. Keep these inspected cases as development evidence, and reserve fresh unseen families until the preference, competence and behavior gates pass.
+No further fit is justified solely by a demonstrated benefit from this aid: that benefit was absent. The next development design should separate task-change tracking, retention of observed operands and arithmetic competence, using matched ordinary-task controls. A later matched plain-data/concept-data fit and two-by-two evaluation require a separate frozen protocol and budget. Keep these inspected cases as development evidence. Reserve fresh unseen instances within the three registered settings for after the preference, competence and behavior gates pass.
