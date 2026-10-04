@@ -106,7 +106,7 @@ def decode(response, schema):
         require(isinstance(probabilities, dict) and set(probabilities) == set(question["criteria"]),
                 "Unexpected concept class labels")
         values = [number(value, "concept probability", 1) for value in probabilities.values()]
-        require(abs(sum(values) - 1) < 1e-5, "Concept probabilities do not sum to one")
+        require(schema.probability_sum_valid(values), "Concept probabilities do not sum to one")
         choice = answer["choice"]
         require(choice in probabilities and probabilities[choice] == max(probabilities.values()),
                 "Chosen class is not a maximum-probability class")
@@ -126,12 +126,55 @@ def decode(response, schema):
 
 
 class Service:
-    def __init__(self, schema, schema_sha, phase, readiness, dotenv):
+    def __init__(self, schema, schema_sha, phase, readiness, dotenv, validation_revision=None):
         self.schema = schema
         self.schema_sha = schema_sha
         self.phase = phase
         self.readiness = readiness
         self.dotenv = dotenv
+        self.validation_revision = validation_revision
+        self.accepted_schema_shas = {schema_sha}
+        if validation_revision is not None:
+            self.accepted_schema_shas.add(validation_revision["old_schema_source_sha256"])
+
+    def salvage_saved_http(self, row):
+        require(self.validation_revision is not None, "Offline salvage requires an explicit frozen validation revision")
+        history = row.get("history",row.get("messages"))
+        request = self.schema.payload(history,row["tools"])
+        identity = self.schema.request_identity(request)
+        request_sha = identity["request_sha256"]
+        prior = strict_json((self.phase.directory/"requests"/(request_sha+".json")).read_bytes())
+        require(prior["identity"]==identity and prior["request"]==request,"Saved HTTP request differs from prior freeze")
+        failure = strict_json((self.phase.directory/"failures"/(request_sha+".json")).read_bytes())
+        require(failure["request_identity"]==identity and failure.get("validation_stage")=="TYPED_DECODE"
+                and failure.get("own_static_reason_code")=="PROBABILITY_SUM_INVALID",
+                "Saved HTTP failure is not the diagnosed rounded-probability validation failure")
+        raw_record = strict_json((self.phase.directory/"raw_http"/(request_sha+".json")).read_bytes())
+        require(raw_record["identity"]==identity
+                and raw_record.get("http_successful_and_credential_scanned") is True,
+                "Saved successful HTTP identity or credential scan differs")
+        raw = base64.b64decode(raw_record["provider_response_raw_base64"],validate=True)
+        require(sha256(raw)==raw_record["provider_response_raw_sha256"],"Saved HTTP raw hash differs")
+        response = strict_json(raw)
+        decoded = decode(response,self.schema)
+        target = self.phase.directory/"cache"/(request_sha+".json")
+        require(not target.exists(),"Saved HTTP response is already cached")
+        record = {"identity":identity,"request":request,"response":response,"decoded":decoded,
+            "provider_response_raw_base64":raw_record["provider_response_raw_base64"],
+            "provider_response_raw_sha256":raw_record["provider_response_raw_sha256"],
+            "compact_aid":self.schema.compact_aid(decoded),
+            "aided_history_sha256":self.schema.digest(self.schema.augmented_history(history,decoded)),
+            "schema_source_sha256":self.schema_sha,"readiness":prior["readiness"],
+            "latency_seconds":None,"preflight_reserve":prior["preflight_reserve"],"usage":decoded["usage"],
+            "input_estimated_usd":decoded["usage"]["input_tokens"]*self.phase.rate/1e6,
+            "access_verified_by_pinned_response":True,"credential_in_payload_or_output":False,
+            "training_targets_in_payload":False,"saved_http_reconciled_offline":True,
+            "validation_revision":self.validation_revision,"network_replay":False}
+        write_json(target,record)
+        self.phase.reconcile_saved_success(identity,decoded["usage"]["input_tokens"],{
+            "provider_response_raw_sha256":raw_record["provider_response_raw_sha256"],
+            "new_schema_source_sha256":self.schema_sha,"questions_sha256":identity["questions_sha256"]})
+        return {"id":row["id"],"annotation":record,"cache_hit":True}
 
     def call(self, row):
         history = row.get("history", row.get("messages"))
@@ -144,7 +187,7 @@ class Service:
         if target.exists():
             record = strict_json(target.read_bytes())
             require(record["identity"] == identity and record["request"] == request
-                    and record["schema_source_sha256"] == self.schema_sha, "Cached state/questions/model/schema differ")
+                    and record["schema_source_sha256"] in self.accepted_schema_shas, "Cached state/questions/model/schema differ")
             raw = base64.b64decode(record["provider_response_raw_base64"], validate=True)
             require(sha256(raw) == record["provider_response_raw_sha256"]
                     and strict_json(raw) == record["response"], "Raw cached provider response differs")
@@ -203,7 +246,8 @@ def load_input(path):
 
 
 def run(mode, input_path, output_path, phase_dir, readiness_path, schema_sha256,
-        dotenv=APPROVED_DOTENV, max_workers=4, recover_request_sha256=None):
+        dotenv=APPROVED_DOTENV, max_workers=4, recover_request_sha256=None,
+        salvage_request_sha256=None, validation_revision_path=None, validation_revision_sha256=None):
     require(isinstance(max_workers, int) and 1 <= max_workers <= MAX_PARALLEL_CALLS,
             "Parallel real-call limit must be between one and four")
     output = Path(output_path)
@@ -212,6 +256,18 @@ def run(mode, input_path, output_path, phase_dir, readiness_path, schema_sha256,
     require(sha256(module_path.read_bytes()) == schema_sha256, "Pinned v2 schema source differs")
     schema = importlib.import_module("concept_schema_v2")
     require(schema.ENDPOINT == OFFICIAL_ENDPOINT, "Pinned endpoint differs")
+    require(not (recover_request_sha256 and salvage_request_sha256),"Replay and offline salvage cannot be combined")
+    validation_revision = None
+    if validation_revision_path is not None:
+        revision_raw = Path(validation_revision_path).read_bytes()
+        require(validation_revision_sha256 is not None and sha256(revision_raw)==validation_revision_sha256,
+                "Validation revision freeze hash differs")
+        validation_revision = strict_json(revision_raw)
+        require(validation_revision["new_schema_source_sha256"]==schema_sha256
+                and validation_revision["model"]==schema.MODEL
+                and validation_revision["schema_version"]==schema.SCHEMA_VERSION
+                and validation_revision["questions_sha256"]==schema.digest(schema.QUESTIONS),
+                "Validation revision changes payload/model/schema identity")
     readiness = strict_json(Path(readiness_path).read_bytes())
     validate_readiness(readiness, schema.MODEL)
     original, input_sha = load_input(input_path)
@@ -235,7 +291,7 @@ def run(mode, input_path, output_path, phase_dir, readiness_path, schema_sha256,
     phase_path = Path(phase_dir)
     require("onedrive" not in str(phase_path.resolve()).lower(), "Private phase artifacts must stay outside OneDrive")
     with PhaseBudget(phase_path, readiness, schema.MODEL, schema.SCHEMA_VERSION,
-                     schema.digest(schema.QUESTIONS), schema_sha256) as phase:
+                     schema.digest(schema.QUESTIONS), schema_sha256, validation_revision) as phase:
         invocation = {"mode": mode, "batch_id": batch_id, "input_file_sha256": input_sha,
                       "schema_source_sha256": schema_sha256, "rows": len(rows),
                       "parallel_real_calls_max": max_workers, "targets_withheld": True,
@@ -254,8 +310,11 @@ def run(mode, input_path, output_path, phase_dir, readiness_path, schema_sha256,
             key = identity["request_sha256"]
             by_request.setdefault(key, row)
             output_requests.append((row["id"], key))
-        service = Service(schema, schema_sha256, phase, readiness, dotenv)
+        service = Service(schema, schema_sha256, phase, readiness, dotenv,validation_revision)
         results = {}
+        if salvage_request_sha256 is not None:
+            require(salvage_request_sha256 in by_request,"Saved HTTP request absent from this frozen invocation")
+            results[salvage_request_sha256] = service.salvage_saved_http(by_request[salvage_request_sha256])
         if recover_request_sha256 is not None:
             require(recover_request_sha256 in by_request, "Explicit failed request is absent from this frozen invocation")
             recovery_row = by_request[recover_request_sha256]
@@ -304,10 +363,14 @@ if __name__ == "__main__":
     parser.add_argument("--dotenv", default=str(APPROVED_DOTENV))
     parser.add_argument("--max-workers", type=int, default=4)
     parser.add_argument("--recover-request-sha256", help="Root-only explicit one-time replay of the exact single known failed request")
+    parser.add_argument("--salvage-request-sha256", help="Root-only offline reconciliation of the captured rounded-probability HTTP response")
+    parser.add_argument("--validation-revision", help="Frozen compatibility revision with unchanged request/schema identity")
+    parser.add_argument("--validation-revision-sha256")
     args = parser.parse_args()
     try:
         run(args.mode, args.input, args.output, args.phase_dir, args.readiness,
-            args.schema_sha256, args.dotenv, args.max_workers, args.recover_request_sha256)
+            args.schema_sha256, args.dotenv, args.max_workers, args.recover_request_sha256,
+            args.salvage_request_sha256,args.validation_revision,args.validation_revision_sha256)
     except Exception as error:
         print(json.dumps({"completed": False, "stage": "local_jev_service_stopped",
                           "error_type": type(error).__name__,

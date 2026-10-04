@@ -49,6 +49,19 @@ def request_identity(request):
         'questions_sha256':preserved.digest(QUESTIONS),'request_sha256':preserved.digest(request)}
 
 
+def probability_sum_valid(values):
+    """Retain wire values; permit only the error bound of 0.01-grid rounding."""
+    values=list(values)
+    if not values or any(isinstance(v,bool) or not isinstance(v,(int,float)) or
+                         not math.isfinite(v) or not 0<=v<=1 for v in values):
+        return False
+    error=abs(sum(values)-1)
+    if error<1e-5:
+        return True
+    return (all(abs(v*100-round(v*100))<=1e-9 for v in values)
+            and error<=0.005*len(values)+1e-12)
+
+
 def decode(response):
     if response.get('model')!=MODEL or set(response['answers'])!=set(QUESTIONS):
         raise ValueError('Wrong model or incomplete concept answers')
@@ -59,7 +72,7 @@ def decode(response):
         for value in [*probs.values(),confidence]:
             if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or not 0<=value<=1:
                 raise ValueError('Invalid probability/confidence')
-        if abs(sum(probs.values())-1)>=1e-5 or choice not in probs or probs[choice]!=max(probs.values()):
+        if not probability_sum_valid(probs.values()) or choice not in probs or probs[choice]!=max(probs.values()):
             raise ValueError('Invalid probability/choice contract')
         concepts[name]={'type':'choice','value':choice,'confidence':confidence,
             'choice_probability':probs[choice],'probabilities':copy.deepcopy(probs)}

@@ -95,7 +95,7 @@ def request_size_reserve(request):
 class PhaseBudget:
     """One-process owner, four-thread admission with crash-persistent reservations."""
     def __init__(self, directory, readiness, model, schema_version, questions_sha256,
-                 schema_source_sha256):
+                 schema_source_sha256, validation_revision=None):
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         self.readiness = readiness
@@ -122,8 +122,26 @@ class PhaseBudget:
                          "no_automatic_retries_or_topups": True}
             plan_path = self.directory / "PHASE_CONFIG.json"
             if plan_path.exists():
-                require(json.loads(plan_path.read_text(encoding="utf-8")) == self.plan,
+                prior_plan = json.loads(plan_path.read_text(encoding="utf-8"))
+                expected_plan = dict(self.plan)
+                if validation_revision is not None:
+                    require(validation_revision["new_schema_source_sha256"] == schema_source_sha256
+                            and validation_revision["old_schema_source_sha256"] == prior_plan["schema_source_sha256"]
+                            and validation_revision["model"] == model
+                            and validation_revision["schema_version"] == schema_version
+                            and validation_revision["questions_sha256"] == questions_sha256,
+                            "Validation revision changes request/model/schema identity")
+                    expected_plan["schema_source_sha256"] = prior_plan["schema_source_sha256"]
+                require(prior_plan == expected_plan,
                         "Persisted phase budget/model/schema differs; no silent reset")
+                self.plan = prior_plan  # Historical phase freeze remains unchanged.
+                if validation_revision is not None:
+                    revision_path = self.directory / "validation_revisions" / (schema_source_sha256 + ".json")
+                    if revision_path.exists():
+                        require(json.loads(revision_path.read_text(encoding="utf-8")) == validation_revision,
+                                "Persisted validation revision differs")
+                    else:
+                        write_json(revision_path, validation_revision)
             else:
                 write_json(plan_path, self.plan)
             status_path = self.directory / "STATUS.json"
@@ -191,6 +209,38 @@ class PhaseBudget:
             write_json(self.directory / "EXPLICIT_RECOVERY.json", event)
             self.state["explicit_recovery"] = {"request_sha256": request_sha,
                 "replay_pending": True, "replay_attempted": False, "replay_completed": False}
+            self.state["stopped"] = False
+            self.state["stop_reason"] = None
+            self._persist()
+
+    def reconcile_saved_success(self, identity, input_tokens, evidence):
+        """Complete an existing failed HTTP attempt offline; never increment attempts."""
+        with self.lock:
+            request_sha = identity["request_sha256"]
+            require(self.state["stopped"] and not self.state["inflight"],
+                    "Offline reconciliation requires stopped phase without inflight calls")
+            require(request_sha in self.state["uncertain_failures"], "Saved request has no unresolved failed attempt")
+            require(isinstance(input_tokens,int) and not isinstance(input_tokens,bool) and input_tokens>=0,
+                    "Invalid saved provider token usage")
+            reserve = self.state["uncertain_failures"][request_sha]
+            require(input_tokens<=reserve, "Saved usage exceeds original conservative reserve")
+            for other in self.state["uncertain_failures"]:
+                if other == request_sha:
+                    continue
+                replay = self.state.get("explicit_recovery") or {}
+                require(replay.get("request_sha256")==other and replay.get("replay_completed") is True
+                        and (self.directory / "cache" / (other + ".json")).exists(),
+                        "Another unresolved failure prevents resuming the phase")
+            receipt_path = self.directory / "reconciliations" / (request_sha + ".json")
+            require(not receipt_path.exists(), "Saved response was already reconciled")
+            write_json(receipt_path, {"request_identity":identity,"evidence":evidence,
+                "input_tokens":input_tokens,"released_original_input_reserve":reserve,
+                "network_replay":False,"attempt_counter_increment":0,
+                "original_failure_receipt_retained":True})
+            self.state["uncertain_failures"].pop(request_sha)
+            self.state["reserved_input_equivalent"] -= reserve
+            self.state["input_tokens"] += input_tokens
+            self.state["successful_requests"] += 1
             self.state["stopped"] = False
             self.state["stop_reason"] = None
             self._persist()
