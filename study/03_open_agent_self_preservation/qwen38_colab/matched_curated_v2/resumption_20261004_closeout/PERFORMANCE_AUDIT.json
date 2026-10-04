@@ -1,0 +1,214 @@
+{
+  "created_at_utc": "2026-10-04T14:07:06.766518+00:00",
+  "status": "Final derived performance closeout; incomplete B dose preserved",
+  "canonical_repository": "C:/Users/farha/repos/sp_lense3",
+  "actual_B_outcome": {
+    "frozen_updates": 56,
+    "completed_updates": 45,
+    "presentations": 180,
+    "required_presentations": 224,
+    "missing_updates": 11,
+    "completion_fraction": 0.8035714285714286,
+    "stopped_due_to_time_cap": true,
+    "primary_update56_available": false,
+    "B_model_generations": 0,
+    "B_runtime_Jev_calls": 0,
+    "partial_checkpoint_resume_validated": false,
+    "B_comparison_not_performed": true,
+    "stopped45_optimizer_RNG_checkpoint_preserved": true
+  },
+  "live_measurement_provenance": "Parent supplied actual controller monotonic times and native training log values; attach verified raw logs and final aggregate telemetry during closeout.",
+  "training_points": [
+    {
+      "updates": 7,
+      "elapsed_training_seconds": 120.264
+    },
+    {
+      "updates": 14,
+      "elapsed_training_seconds": 267.5549
+    },
+    {
+      "updates": 21,
+      "elapsed_training_seconds": 404.817
+    },
+    {
+      "updates": 28,
+      "elapsed_training_seconds": 551.8986
+    },
+    {
+      "updates": 35,
+      "elapsed_training_seconds": 681.72
+    },
+    {
+      "updates": 42,
+      "elapsed_training_seconds": 819.5593
+    },
+    {
+      "updates": 45,
+      "elapsed_training_seconds": 876.2215
+    }
+  ],
+  "segment_rates": [
+    {
+      "from_update": 0,
+      "to_update": 7,
+      "seconds": 120.264,
+      "seconds_per_update": 17.18057142857143
+    },
+    {
+      "from_update": 7,
+      "to_update": 14,
+      "seconds": 147.29089999999997,
+      "seconds_per_update": 21.041557142857137
+    },
+    {
+      "from_update": 14,
+      "to_update": 21,
+      "seconds": 137.26210000000003,
+      "seconds_per_update": 19.608871428571433
+    },
+    {
+      "from_update": 21,
+      "to_update": 28,
+      "seconds": 147.08159999999998,
+      "seconds_per_update": 21.01165714285714
+    },
+    {
+      "from_update": 28,
+      "to_update": 35,
+      "seconds": 129.82140000000004,
+      "seconds_per_update": 18.545914285714293
+    },
+    {
+      "from_update": 35,
+      "to_update": 42,
+      "seconds": 137.83929999999998,
+      "seconds_per_update": 19.691328571428567
+    },
+    {
+      "from_update": 42,
+      "to_update": 45,
+      "seconds": 56.662199999999984,
+      "seconds_per_update": 18.887399999999996
+    }
+  ],
+  "observed_mean_seconds_per_update_through45": 19.47158888888889,
+  "observed_slowest_seven_update_segment_seconds_per_update": 21.041557142857137,
+  "worker_start_monotonic": 4327.788067,
+  "training_cutoff_monotonic": 5379.42357,
+  "reported_granted_training_seconds": 1051.63974,
+  "difference_of_rounded_controller_monotonic_values_seconds": 1051.6355029999995,
+  "rounding_difference_seconds": 0.0042370000005576,
+  "inferred_startup_seconds": 175.41824000000008,
+  "elapsed_definition": "Training counter starts after model loading/audits/checkpoint0/preparation. Log points precede a same-update snapshot, and include delays from earlier snapshots; final56 save/audit is unmeasured.",
+  "unmeasured_full_fit_projection": {
+    "linear_training_elapsed56_seconds": 1090.4089777777776,
+    "linear_training_plus_inferred_startup_seconds": 1265.8272177777776,
+    "conservative_training56_seconds_from_slowest_segment": 1178.3271999999997,
+    "assumed_final56_save_and_postfit_audit_reserve_seconds": 120.0,
+    "assumed_safety_margin_fraction": 0.15,
+    "projected_fit_with_reserves_seconds": 1694.8072559999996,
+    "preserved_driver_default_minimum_fit_seconds": 2031.0,
+    "recommended_admission_fit_seconds": 2031.0,
+    "fixed_B_service_evaluation_reserve_seconds": 1500.0,
+    "minimum_remaining_main_seconds_for_next_fit_and_B_eval": 3531.0,
+    "export_release_reserve_is_additional": true,
+    "new_A_evaluation_or_cold_setup_time_is_additional": true,
+    "measured_full56_fit_timing": false
+  },
+  "admission_failure": {
+    "parallel_floor_seconds": 1200,
+    "actual_training_allowance_seconds": 1051.63974,
+    "floor_below_observed_linear_fit_need_even_without_final_save_audit": true,
+    "allocated_time_below_floor": true,
+    "lesson": "Check remaining time at B launch against full startup+56-dose+final save/audit+fixed B service reserve, not a global main-stage floor. Reject before optimizer construction/update1 if insufficient. Do not quietly start a partial-dose substitute."
+  },
+  "resource_observations": {
+    "GPU_utilization_percent_single_observation": 97,
+    "two_workers_GPU_memory_mib_single_snapshot": 55897,
+    "nominal_GPU_memory_mib": 81920,
+    "snapshot_free_headroom_mib": 26023,
+    "aggregate_peak_and_average_utilization": "Sampled aggregate peak61883MiB; average utilization unmeasured",
+    "interpretation": "A single utilization/memory snapshot does not measure average throughput or prove an unused-memory bottleneck."
+  },
+  "kernel_log_evidence": {
+    "causal_conv1d_fast_path_available": false,
+    "flash_linear_attention_fast_path_available": false,
+    "reported_fallback": "reference PyTorch implementations",
+    "performance_attribution": "Warnings identify fallback paths, but this run did not isolate or measure their causal speed cost.",
+    "next_workplan": "In a separate predeclared readiness stage, check compatible pinned fast kernels and compare bounded same-shape timing/memory before the next full fit. Preserve failures and any numerical/backend change; do not install into or alter the current scientific runtime.",
+    "specific_package_versions_recommended": false,
+    "quantified_speedup_claimed": false
+  },
+  "A_status": "Corrected full eval_A_integrity_v2 complete; existing machine gates pass, strict pending gate fails, semantic review pending",
+  "weights_data_dose_criteria_or_current_packet_changed_by_audit": false,
+  "source_checksums": {
+    "driver.py": "faedb0c311992229ee1349a5dcbb32232b9febfafbaedbd973d95534b692d467",
+    "training_worker.py": "a852ef085a6bcaf0283ea7a6b5475c4341720c5271ad6dce490cca6510e2d283"
+  },
+  "native_training_live_receipt": {
+    "stage": "matched_curated_B_v2_training",
+    "updates": 45,
+    "total_updates": 56,
+    "presentations": 180,
+    "elapsed_seconds": 876.2215069639997
+  },
+  "native_training_failure_receipt": {
+    "completed": false,
+    "error_type": "TimeoutError",
+    "error": "Stopped at update boundary; partial checkpoint not resumed",
+    "service_calls": 0,
+    "partial_checkpoint_resume_validated": false
+  },
+  "sampled_memory_final": {
+    "PARALLEL_MEMORY.json": {
+      "samples": 196,
+      "sampled_peak_mib": 55673,
+      "threshold_mib": 75776,
+      "all_samples_below_threshold": true
+    },
+    "PARALLEL_V2_MEMORY.json": {
+      "samples": 37,
+      "sampled_peak_mib": 61883,
+      "threshold_mib": 75776,
+      "all_samples_below_threshold": true
+    }
+  },
+  "export": {
+    "files": 1328,
+    "bytes": 6060911468,
+    "seconds": 131.84996,
+    "Drive_checksums_verified": true,
+    "basis": "verified trusted closeout receipt; full Drive manifest preserved privately"
+  },
+  "accounting": {
+    "account_start": 63.96,
+    "account_end": 53.21,
+    "observed_debit": 10.75,
+    "stage_cap": 12,
+    "prior_cumulative": 138.17,
+    "observed_cumulative": 148.92,
+    "authorized_ceiling": 200,
+    "remaining_authorization": 51.08,
+    "release_verified_utc": "2026-10-04T14:22:40Z",
+    "active_sessions_after_release": 0,
+    "units_per_hour_after_release": 0
+  },
+  "native_file_sha256": {
+    "eval_A_integrity_v2/reports/RESULT.json": "b0f1c90b4051e6818960bbbb3c1feaa13287085e6e4e5a5c35c04554b0dfca29",
+    "eval_A_integrity_v2/A/reports/BASE_UNLOAD_INTEGRITY.json": "1305d14516a6e867936ff0b7253b3226c9192bc7c439de37d86030819a46ba1d",
+    "fit_B_parallel/reports/LIVE_TRAINING.json": "fa5e9ef5d9cebe4f54bd9f5d4168e6f06af9b66e8cd246080e519808934ea5d8",
+    "fit_B_parallel/reports/TRAINING_FAILURE.json": "cb2e79a2f4ca10c3471a95f90e62a951fb019c71fbd29790370a5d5e1cd0643d",
+    "fit_B_parallel/training/receipts/runtime_B.json": "f251599f1b2123a85afd62b34c049745256ed65131d849d11b1afb5aac6317d0",
+    "fit_B_parallel/training/receipts/PAIRED_TOKEN_AUDIT.json": "affe9e135f72abaabd679c52b7a8b539d50ecc652fd13a5123c099d29d3301ee",
+    "reports/PARALLEL_B_PID.json": "db953d8275ec310492954da88dfd0c4520ea01b7de1617bb40810151223cb922",
+    "reports/PARALLEL_MEMORY.json": "f634f0781b806d9480ed25e8284f037697b45d79b6c4324c9a50e5352f6f79c1",
+    "reports/PARALLEL_V2_MEMORY.json": "767de2af17a16f609226c885438ad2a81abc8c50b081b21fefe545f0073ae2ac",
+    "reports/WORKERS_EXITED_FOR_EXPORT.json": "ff4678e0963a322f740652a24ebdaa09062e8a411ed4ebf12aa1fbcc6c9f1c0c",
+    "source/FREEZE.json": "eeef61be3d885ba0a271c1cb897073059238d45dfcbf3367cf83d9cb7211eae1",
+    "source_resume/FREEZE.json": "51c611101683ac96fcf3a80311dc93712b18884df462232c47063b66db2e498b",
+    "source_integrity_v2/FREEZE.json": "b5284ee6cbce7da255c543dbd52a3b79fca3da99d1272ee11a25ffdde9da73dc",
+    "source_integrity_v2/EVAL_FREEZE.json": "6baf28618a583dc4f953dd06b712b5d1020c83a04f23f7a367470c60a34d1429",
+    "PRIMARY_INTEGRITY_REPAIR_AMENDMENT.json": "da456d0dd7f861ee61b164873ce90d8d638aeeb91ca6578233a078382b95e4bd"
+  }
+}

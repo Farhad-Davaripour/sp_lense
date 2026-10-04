@@ -1,6 +1,27 @@
 # Research 3: official Qwen3.8-27B Colab feasibility
 
-**Current work:** The user authorized a simpler application-level boundary and
+
+## Latest bounded execution (2026-10-04)
+
+[Results and reproduction](matched_curated_v2/resumption_20261004_closeout/RESULT.md):
+corrected A completed 76 validation cases and passed parameter integrity;
+ordinary task/tool competence was 24/24. B fitting stopped at 45/56 updates,
+so the curated-training / Jev-inference comparison remains incomplete.
+All artifacts were verified in private Drive and the A100 was disconnected.
+Observed debit: 10.75/12 stage units. The historical sections below remain
+preserved; this closeout is the current execution status.
+
+
+## Active local checkout and storage (2026-10-04)
+
+Use `C:/Users/farha/repos/sp_lense3` as the explicit working directory. Its
+physical `.git` is local to that repository, with no object alternates. Large
+artifacts, cache and temporary files belong under `C:/Users/farha/Research3/`.
+See [active storage and reproduction paths](matched_curated_v2/resumption_20261004/ACTIVE_STORAGE.md)
+and the separate adoption receipt. Historical path receipts remain unchanged.
+
+
+**Earlier workflow (preserved):** The user authorized a simpler application-level boundary and
 direct Colab execution. The [fresh comparison](simple_pilot_v1/Research3_Qwen38_Fresh_Comparison.ipynb)
 uses only fictional in-memory model tools. **The active priority is preservation
 first.** Two fresh preservation candidates run on the same A100; additional
