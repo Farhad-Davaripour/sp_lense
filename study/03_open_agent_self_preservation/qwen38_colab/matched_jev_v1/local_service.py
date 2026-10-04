@@ -26,6 +26,24 @@ APPROVED_DOTENV = Path("C:/Users/farha/repos/SP_lens/.env")
 MAX_PARALLEL_CALLS = 4
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 MARKER = "MATCHED_JEV_RESPONSE_GZIP_BASE64"
+OWN_VALIDATION_REASONS = {
+    "Unexpected pinned Jev response model": "WRONG_PINNED_MODEL",
+    "Missing or extra concept answers": "ANSWER_QUESTION_KEYS_DIFFER",
+    "Unexpected typed concept answer": "WRONG_ANSWER_TYPE",
+    "Unexpected concept class labels": "CLASS_LABELS_DIFFER",
+    "Invalid concept probability": "INVALID_CLASS_PROBABILITY",
+    "Concept probabilities do not sum to one": "PROBABILITY_SUM_INVALID",
+    "Chosen class is not a maximum-probability class": "CHOICE_NOT_ARGMAX",
+    "Invalid provider concept confidence": "INVALID_PROVIDER_CONFIDENCE",
+    "Missing provider usage": "MISSING_USAGE",
+    "Invalid provider token usage": "INVALID_TOKEN_USAGE",
+    "Shared schema decoder differs": "SHARED_DECODER_DIFFERS",
+    "Duplicate JSON object key": "DUPLICATE_JSON_KEY",
+    "Nonfinite JSON constant": "NONFINITE_JSON",
+    "Provider response exceeds bounded size": "RESPONSE_SIZE_EXCEEDED",
+    "Provider response unexpectedly includes credential bytes": "CREDENTIAL_ECHO_BLOCKED",
+    "Observed usage exceeded reserve; phase stopped": "USAGE_RESERVE_EXCEEDED",
+}
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -71,7 +89,8 @@ def official_transport(request, dotenv_path):
         raw = response.read(MAX_RESPONSE_BYTES + 1)
     require(len(raw) <= MAX_RESPONSE_BYTES, "Provider response exceeds bounded size")
     require(secret.encode("utf-8") not in raw, "Provider response unexpectedly includes credential bytes")
-    return strict_json(raw), raw
+    # Parse only after the secret-scanned successful HTTP bytes are preserved.
+    return None, raw
 
 
 def decode(response, schema):
@@ -134,10 +153,26 @@ class Service:
             return {"id": row["id"], "annotation": record, "cache_hit": True}
         size = self.phase.reserve(identity, request)
         tick = time.monotonic()
+        stage = "READINESS_RECHECK"
         try:
             validate_readiness(self.readiness, self.schema.MODEL)
-            response, raw = official_transport(request, self.dotenv)
+            stage = "HTTP_TRANSPORT"
+            _unused, raw = official_transport(request, self.dotenv)
+            stage = "PRIVATE_RAW_HTTP_CAPTURE"
+            # Inflight requests may be concurrent, so the request SHA is primary.
+            raw_target = self.phase.directory / "raw_http" / (identity["request_sha256"] +
+                (".replay1.json" if (self.phase.state.get("explicit_recovery") or {}).get("request_sha256") == identity["request_sha256"] else ".json"))
+            require(not raw_target.exists(), "Private raw HTTP capture already exists")
+            write_json(raw_target, {"identity": identity,
+                "provider_response_raw_base64": base64.b64encode(raw).decode("ascii"),
+                "provider_response_raw_sha256": sha256(raw),
+                "http_successful_and_credential_scanned": True,
+                "validation_complete": False, "private_only_never_student_input": True})
+            stage = "JSON_PARSE"
+            response = strict_json(raw)
+            stage = "TYPED_DECODE"
             decoded = decode(response, self.schema)
+            stage = "COMPACT_AND_INPUT_SERIALIZATION"
             compact = self.schema.compact_aid(decoded)
             # Validate actual fresh input serialization now; it is not sent to Jev.
             aided = self.schema.augmented_history(history, decoded)
@@ -151,11 +186,14 @@ class Service:
                       "input_estimated_usd": decoded["usage"]["input_tokens"] * self.phase.rate / 1e6,
                       "access_verified_by_pinned_response": True,
                       "credential_in_payload_or_output": False, "training_targets_in_payload": False}
+            stage = "VALIDATED_CACHE_WRITE"
             write_json(target, record)
+            stage = "USAGE_LEDGER_COMPLETION"
             self.phase.complete(identity, decoded["usage"]["input_tokens"])
             return {"id": row["id"], "annotation": record, "cache_hit": False}
         except Exception as error:
-            self.phase.fail(identity, type(error).__name__, getattr(error, "code", None))
+            reason = OWN_VALIDATION_REASONS.get(str(error)) if type(error) is RuntimeError else None
+            self.phase.fail(identity, type(error).__name__, getattr(error, "code", None), stage, reason)
             raise RuntimeError("Bounded Jev request stopped; see sanitized phase failure receipt") from None
 
 
@@ -165,7 +203,7 @@ def load_input(path):
 
 
 def run(mode, input_path, output_path, phase_dir, readiness_path, schema_sha256,
-        dotenv=APPROVED_DOTENV, max_workers=4):
+        dotenv=APPROVED_DOTENV, max_workers=4, recover_request_sha256=None):
     require(isinstance(max_workers, int) and 1 <= max_workers <= MAX_PARALLEL_CALLS,
             "Parallel real-call limit must be between one and four")
     output = Path(output_path)
@@ -218,8 +256,16 @@ def run(mode, input_path, output_path, phase_dir, readiness_path, schema_sha256,
             output_requests.append((row["id"], key))
         service = Service(schema, schema_sha256, phase, readiness, dotenv)
         results = {}
+        if recover_request_sha256 is not None:
+            require(recover_request_sha256 in by_request, "Explicit failed request is absent from this frozen invocation")
+            recovery_row = by_request[recover_request_sha256]
+            recovery_request = schema.payload(recovery_row["history"], recovery_row["tools"])
+            recovery_identity = schema.request_identity(recovery_request)
+            phase.begin_explicit_recovery(recovery_identity, recovery_request)
+            # Verify the one replay before spending on unattempted prefixes.
+            results[recover_request_sha256] = service.call(recovery_row)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
-            futures = {pool.submit(service.call, row): key for key, row in by_request.items()}
+            futures = {pool.submit(service.call, row): key for key, row in by_request.items() if key not in results}
             for future in concurrent.futures.as_completed(futures):
                 key = futures[future]
                 try:
@@ -257,10 +303,11 @@ if __name__ == "__main__":
     parser.add_argument("--schema-sha256", required=True)
     parser.add_argument("--dotenv", default=str(APPROVED_DOTENV))
     parser.add_argument("--max-workers", type=int, default=4)
+    parser.add_argument("--recover-request-sha256", help="Root-only explicit one-time replay of the exact single known failed request")
     args = parser.parse_args()
     try:
         run(args.mode, args.input, args.output, args.phase_dir, args.readiness,
-            args.schema_sha256, args.dotenv, args.max_workers)
+            args.schema_sha256, args.dotenv, args.max_workers, args.recover_request_sha256)
     except Exception as error:
         print(json.dumps({"completed": False, "stage": "local_jev_service_stopped",
                           "error_type": type(error).__name__,

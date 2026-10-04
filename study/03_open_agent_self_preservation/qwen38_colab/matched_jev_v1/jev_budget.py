@@ -169,14 +169,43 @@ class PhaseBudget:
                           no_automatic_retries_or_topups=True)
             return result
 
+    def begin_explicit_recovery(self, identity, request):
+        """One root CLI replay of an exact single failed request; no automatic retry."""
+        with self.lock:
+            request_sha = identity["request_sha256"]
+            require(self.state["stopped"] and not self.state["inflight"],
+                    "Recovery requires a stopped phase without inflight calls")
+            require(set(self.state["uncertain_failures"]) == {request_sha},
+                    "Recovery requires exactly one known failed request")
+            require(not self.state.get("explicit_recovery"), "The single explicit replay was already authorized")
+            require(not (self.directory / "cache" / (request_sha + ".json")).exists(),
+                    "Recovery cannot replay a cached successful response")
+            prior = json.loads((self.directory / "requests" / (request_sha + ".json")).read_text(encoding="utf-8"))
+            require(prior["identity"] == identity and prior["request"] == request,
+                    "Recovery request differs from the exact prior freeze")
+            event = {"request_identity": identity, "request": request,
+                     "original_uncertain_input_equivalent": self.state["uncertain_failures"][request_sha],
+                     "root_cli_flag_required": True, "maximum_explicit_replays": 1,
+                     "original_failed_reserve_retained": True, "phase_caps_unchanged": True,
+                     "authorized_utc": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+            write_json(self.directory / "EXPLICIT_RECOVERY.json", event)
+            self.state["explicit_recovery"] = {"request_sha256": request_sha,
+                "replay_pending": True, "replay_attempted": False, "replay_completed": False}
+            self.state["stopped"] = False
+            self.state["stop_reason"] = None
+            self._persist()
+
     def reserve(self, identity, request):
         with self.lock:
             validate_readiness(self.readiness, self.model)
             require(not self.state["stopped"], "Phase stopped; no automatic retry")
             request_sha = identity["request_sha256"]
             require(sha256(canonical_bytes(request)) == request_sha, "Request digest differs before admission")
+            recovery = self.state.get("explicit_recovery") or {}
+            is_explicit_replay = recovery.get("request_sha256") == request_sha and recovery.get("replay_pending") is True
             require(request_sha not in self.state["inflight"]
-                    and request_sha not in self.state["uncertain_failures"], "Request already unresolved; no retry")
+                    and (request_sha not in self.state["uncertain_failures"] or is_explicit_replay),
+                    "Request already unresolved; no automatic retry")
             size = request_size_reserve(request)
             reserve = size["total_input_equivalent"]
             require(self.state["attempted_requests"] < MAX_ATTEMPTS, "Phase 512-attempt cap reached")
@@ -186,10 +215,14 @@ class PhaseBudget:
             require(estimated <= MAX_ESTIMATED_INPUT_USD, "Phase $1 input admission cap reached")
             freeze = {"identity": identity, "request": request, "readiness": self.readiness,
                       "preflight_reserve": size, "frozen_before_dispatch": True}
-            target = self.directory / "requests" / (request_sha + ".json")
+            target = self.directory / "requests" / (request_sha + (".replay1.json" if is_explicit_replay else ".json"))
             require(not target.exists(), "Previously frozen uncached request must not be retried")
             write_json(target, freeze)
             self.state["attempted_requests"] += 1
+            if is_explicit_replay:
+                recovery["replay_pending"] = False
+                recovery["replay_attempted"] = True
+                recovery["attempt_number"] = self.state["attempted_requests"]
             self.state["reserved_input_equivalent"] += reserve
             self.state["inflight"][request_sha] = reserve
             self._persist()
@@ -204,25 +237,35 @@ class PhaseBudget:
             self.state["reserved_input_equivalent"] -= reserve
             self.state["input_tokens"] += input_tokens
             self.state["successful_requests"] += 1
+            recovery = self.state.get("explicit_recovery") or {}
+            if recovery.get("request_sha256") == request_sha and recovery.get("replay_attempted"):
+                recovery["replay_completed"] = True
             if input_tokens > reserve or (self.state["input_tokens"] + self.state["reserved_input_equivalent"]) * self.rate / 1e6 > MAX_ESTIMATED_INPUT_USD:
                 self.state["stopped"] = True
                 self.state["stop_reason"] = "Observed usage exceeded conservative reserve or phase cap"
             self._persist()
             require(input_tokens <= reserve, "Observed usage exceeded reserve; phase stopped")
 
-    def fail(self, identity, error_type, http_status=None):
+    def fail(self, identity, error_type, http_status=None, stage=None, reason_code=None):
         with self.lock:
             request_sha = identity["request_sha256"]
             reserve = self.state["inflight"].pop(request_sha, None)
             if reserve is not None:
-                self.state["uncertain_failures"][request_sha] = reserve
+                self.state["uncertain_failures"][request_sha] = self.state["uncertain_failures"].get(request_sha, 0) + reserve
             self.state["stopped"] = True
             self.state["stop_reason"] = "Request failed; no automatic retry"
             failure = {"request_identity": identity, "error_type": error_type,
                        "http_status": http_status if isinstance(http_status, int) else None,
                        "uncertain_charge_reserve_retained": reserve,
                        "error_body_headers_and_exception_text_saved": False}
-            write_json(self.directory / "failures" / (request_sha + ".json"), failure)
+            if stage is not None:
+                failure["validation_stage"] = stage
+            if reason_code is not None:
+                failure["own_static_reason_code"] = reason_code
+            failure_path = self.directory / "failures" / (request_sha + ".json")
+            if failure_path.exists():
+                failure_path = failure_path.with_name(request_sha + ".attempt" + str(self.state["attempted_requests"]) + ".json")
+            write_json(failure_path, failure)
             self._persist()
 
     def close(self):
