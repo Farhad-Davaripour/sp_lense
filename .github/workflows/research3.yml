@@ -1,0 +1,20 @@
+name: Research 3 reproducibility
+on:
+  pull_request:
+    branches: [study/03-open-agent-self-preservation]
+  push:
+    branches: [study/03-open-agent-self-preservation]
+permissions:
+  contents: read
+jobs:
+  model-free-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s study/03_open_agent_self_preservation/pipeline -p 'test_*.py'
+      - run: python study/03_open_agent_self_preservation/verify_package.py
