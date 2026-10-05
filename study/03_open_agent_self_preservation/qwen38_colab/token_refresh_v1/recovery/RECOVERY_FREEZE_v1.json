@@ -1,0 +1,41 @@
+{
+  "version": "token_refresh_recovery_v1",
+  "created_utc": "2026-10-05T01:59:56.550565+00:00",
+  "historical_freeze_and_local_protocol_unchanged": true,
+  "historical_private_packet_gzip_sha256": "faea5d9dc7f0e8175ee5bfb8e2ea82f824e1772603835c5b01da227e64115eb3",
+  "original_historical_freeze_sha256": "6ba8f9bd6218eefe4099e92687e7837f9faf13ef8d8724dde1773a7b2b846b69",
+  "protocol_reconciliation": {
+    "frozen_packet_protocol_sha256": "4e6582e63a2e45b4f9ca9a3b8d0c0fa077c00d204a0b379c1d5086887768aacc",
+    "local_protocol_sha256": "8c7df7713206f0b986da52ebedd22e56be05edea9a519a8e5cbea88b3c95d44a",
+    "difference": "Only the abbreviated packed-base pin marker has a corrupted character in the local copy; preserved private packet exactly matches historical freeze. Recovery uses verified frozen packet text.",
+    "recovery_protocol": "PROTOCOL_RECOVERY_v1.md"
+  },
+  "worker_sha256": "4fc80d7a9d5103cf4d4fa4ef5db62d3ce5620b6419906b61bacef5a1417d8c45",
+  "worker_scientific_code_unchanged": true,
+  "source_packet_sha256": "3db8c950b5645bafbd17aed7c519c9a76b401f91e41d754d0ab6fb60ba085249",
+  "checkpoint_sha256": "8a604a57f3666302b8684e2abe344252fc2f58a74b31fe694a60cd507d2ddfd5",
+  "config_sha256": "8e81fd6cc0e22cf762caebf1a81105ee70ff284353a2bbacaf1fb5b4f3fb11fd",
+  "cases": [
+    "q38_dev_lease_ledger_self_complete",
+    "s72111_ordered_ticket_51_self_unfinished"
+  ],
+  "packet_file_sha256": {
+    "EXPERIMENT_FREEZE.json": "9b27f9af2d443152ef5ef83d5075c29cc3d6374813fc92173940c77328bff062",
+    "PROTOCOL.md": "4e6582e63a2e45b4f9ca9a3b8d0c0fa077c00d204a0b379c1d5086887768aacc",
+    "code/setup_download_parallel.py": "45af67c33ac7b4cb826a2ca32b2f573c1b06a693d5f6e0ccac5ee5949cee9f79",
+    "code/worker.py": "4fc80d7a9d5103cf4d4fa4ef5db62d3ce5620b6419906b61bacef5a1417d8c45",
+    "inputs/q38_dev_lease_ledger_self_complete.json": "e82c0e9f9b7b721154f6d4c2a321e5c002222eadd6a2882cc9d9836f06e77ab0",
+    "inputs/s72111_ordered_ticket_51_self_unfinished.json": "0e1a99de5547f555a67403d365dfeb7c2aa333220685e1c298c6fe02ddf74845"
+  },
+  "recovery_setup_sha256": "fa2b3320fc568c72555fde0a0419fd9fb6f4b1c0c28268e767ec4ef35f56cd4f",
+  "setup_accounting_amendment": "Clock starts from explicit allocation-request UTC; no scientific/model/decoder changes.",
+  "actual_model_execution_confirmed": false,
+  "new_real_jev_calls": 0,
+  "main_scores_unchanged": true,
+  "existing_case_families_only": true,
+  "recovery_transport_sha256": {
+    "PUMP_RECOVERY_v1.py": "73e44b06f84b5c2b9166f073396ae798989a2b897a1a7f0df718c48e3ed8ea51",
+    "SETUP_RECOVERY_v1.py": "fa2b3320fc568c72555fde0a0419fd9fb6f4b1c0c28268e767ec4ef35f56cd4f"
+  },
+  "transport_amendment": "No binary/base64 stdout or full provider responses; root saves visible pending JSON directly to C: and inserts local returned response without printing it. Compact status only."
+}
