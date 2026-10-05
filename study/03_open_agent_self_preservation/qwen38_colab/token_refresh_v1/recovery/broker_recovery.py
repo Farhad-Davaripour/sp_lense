@@ -47,6 +47,8 @@ def main(input_path, output_path):
                       real_jev_attempts=state.get("attempted_requests", 0),
                       new_api_input_tokens=state.get("input_tokens", 0),
                       new_api_input_estimated_usd=state.get("input_estimated_usd", 0),
+                      api_reserved_input_equivalent=state.get("reserved_input_equivalent", 0),
+                      new_api_committed_plus_reserved_input_estimated_usd=(state.get("input_tokens", 0) + state.get("reserved_input_equivalent", 0)) * 0.042 / 1e6,
                       real_api_ledger=str(state_path))
         if not success:
             status.update(state="incomplete", failure={"stage": "genuine_jev_annotation", "error_type": error_type},
@@ -57,6 +59,7 @@ def main(input_path, output_path):
         summary = {"completed": success, "error_type": error_type,
                    "successful_calls": status["real_jev_calls"], "attempted_calls": status["real_jev_attempts"],
                    "input_tokens": status["new_api_input_tokens"], "input_estimated_usd": status["new_api_input_estimated_usd"],
+                   "committed_plus_reserved_input_estimated_usd": status["new_api_committed_plus_reserved_input_estimated_usd"],
                    "response_gzip": str(output_path) + ".gz" if success else None}
         print(json.dumps(summary))
     if not success:
