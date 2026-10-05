@@ -15,7 +15,8 @@ _bundle_root.mkdir(parents=True, exist_ok=True)
 _archive = _bundle_root / 'SENTENCE_NATIVE_v1.tar.gz'
 _files, _origins = {}, {}
 _excluded = {'model', 'worker_home', '__pycache__'}
-_roots = [(TR_ROOT, '')] + [(root, 'prior_attempts/' + root.name + '/') for root in globals().get('TR_PRESERVED_PRIOR_ROOTS', [])]
+_prior_roots = globals().get('TR_PRESERVED_PRIOR_ROOTS', [TR_ATTEMPT1_ROOT] if 'TR_ATTEMPT1_ROOT' in globals() else [])
+_roots = [(TR_ROOT, '')] + [(root, 'prior_attempts/' + root.name + '/') for root in _prior_roots]
 assert len({str(root) for root, _prefix in _roots}) == len(_roots)
 for _root, _prefix in _roots:
     assert _root.parent == TR_ROOT.parent
