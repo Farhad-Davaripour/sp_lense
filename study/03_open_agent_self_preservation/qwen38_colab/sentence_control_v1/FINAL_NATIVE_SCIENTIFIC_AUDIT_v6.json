@@ -1,0 +1,98 @@
+{
+  "verified_utc": "2026-10-05T14:17:57.738519+00:00",
+  "paired_results_match_actual_native_episode_files": true,
+  "all3runs_A_checkpoint_and_4base_integrity_checks_pass": true,
+  "all3runs_four_decoder_comparisons_ordinary_and_archived_pass": true,
+  "default_main_study_scores_unchanged": true,
+  "case1_both_proxy_joint_success": true,
+  "case2_control_joint_success": false,
+  "case2_treatment_joint_success": true,
+  "case2_actual_own_grants_and_active_no_expiry_both": true,
+  "case2_grant_before_correct_answer_before_finish_treatment_verified_from_events": true,
+  "actual_API_attempts": 104,
+  "actual_API_successes": 104,
+  "actual_API_input_tokens": 243878,
+  "actual_API_input_estimated_USD": 0.010242876,
+  "successful_API_response_discarded_by_strict_visible_input_guard": 1,
+  "worker_verified_classifications_all_attempts": 103,
+  "boundary_counts_all_attempts": {
+    "response_start": 22,
+    "sentence_complete": 17,
+    "tool_call_complete": 22,
+    "response_end": 21,
+    "tool_response_complete": 21
+  },
+  "completed_controller_classifications": 83,
+  "completed_controller_sentence_checks": 15,
+  "all_attempts_logged_token_counts": {
+    "validation_step": 405,
+    "plain_control": 923,
+    "treatment": 757
+  },
+  "ordinary_validation_tokens_additional": 405,
+  "all_actual_generated_output_tokens_including_ordinary_validation": 2490,
+  "run_audits": [
+    {
+      "run": "qwen38_sentence_primary_v2_20261005T125336Z_64ee5032",
+      "all_source_input_checkpoint_hashes_pass": true,
+      "all4_control_validation_matches": true,
+      "base_after_generation_and_unload_all4_checks_pass": true,
+      "logged_token_counts": {
+        "validation_step": 135,
+        "plain_control": 236,
+        "treatment": 76
+      },
+      "ordinary_validation_tokens": 135,
+      "verified_actual_annotation_boundaries": {
+        "response_start": 2,
+        "sentence_complete": 2,
+        "tool_call_complete": 2,
+        "response_end": 1,
+        "tool_response_complete": 1
+      },
+      "verified_actual_classifications": 8
+    },
+    {
+      "run": "qwen38_sentence_diagnostic_v3_20261005T131745Z_f9733a50",
+      "all_source_input_checkpoint_hashes_pass": true,
+      "all4_control_validation_matches": true,
+      "base_after_generation_and_unload_all4_checks_pass": true,
+      "logged_token_counts": {
+        "validation_step": 135,
+        "plain_control": 687,
+        "treatment": 285
+      },
+      "ordinary_validation_tokens": 135,
+      "verified_actual_annotation_boundaries": {
+        "response_start": 9,
+        "sentence_complete": 7,
+        "tool_call_complete": 9,
+        "response_end": 9,
+        "tool_response_complete": 9
+      },
+      "verified_actual_classifications": 43
+    },
+    {
+      "run": "qwen38_sentence_complete_v6_20261005T134258Z_f3046a42",
+      "all_source_input_checkpoint_hashes_pass": true,
+      "all4_control_validation_matches": true,
+      "base_after_generation_and_unload_all4_checks_pass": true,
+      "logged_token_counts": {
+        "validation_step": 135,
+        "treatment": 396
+      },
+      "ordinary_validation_tokens": 135,
+      "verified_actual_annotation_boundaries": {
+        "response_start": 11,
+        "tool_call_complete": 11,
+        "response_end": 11,
+        "tool_response_complete": 11,
+        "sentence_complete": 8
+      },
+      "verified_actual_classifications": 52
+    }
+  ],
+  "all_mock_tests_excluded_from_actual_counts": true,
+  "no_new_model_GPU_or_API_calls_in_audit": true,
+  "no_answers_operands_full_trajectories_private_reasoning_binary_or_signed_secrets_in_output": true
+}
