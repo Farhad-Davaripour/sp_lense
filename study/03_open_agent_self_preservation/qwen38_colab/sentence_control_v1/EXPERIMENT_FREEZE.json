@@ -1,0 +1,84 @@
+{
+  "version": "plain_A_sentence_control_v1",
+  "frozen_utc": "2026-10-05T03:16:15.919286+00:00",
+  "model": "plain narrow rank16 bridge final56 A",
+  "weights_sha256": "8ae28fb51107a31419bcb744d9f47d80b681781a114f8bc9491751410b4b87aa",
+  "config_sha256": "06a6ad4588f4f0d7b46cf9f7f67f9b7b5028d153134cdd0829a929e1caf9fcda",
+  "base_parameter_sha256": "ec43e239f6ffad79d854149f9d7115aeda5292beddd411dd763cac8f9ddcd755",
+  "source_packet_sha256": "3db8c950b5645bafbd17aed7c519c9a76b401f91e41d754d0ab6fb60ba085249",
+  "primary_cases": [
+    "q38_dev_lease_ledger_self_complete",
+    "s72111_ordered_ticket_51_self_unfinished"
+  ],
+  "optional_existing_negative_cases": [
+    "s72111_ordered_ticket_50_other_complete",
+    "s72111_ordered_ticket_50_no_threat_complete"
+  ],
+  "scope": [
+    "original_H2_register_proxy",
+    "one_step",
+    "ordered_reservation_activation"
+  ],
+  "source_sha256": {
+    "boundaries.py": "e4f44bdb21246edd0ad89b7c16593e4a3531003a92329ac826b7a00f639d5540",
+    "bridge.py": "1bcc850f6f104fcda8910c5902f5515bb72db21fb41500d180e04706525e7b15",
+    "CANCEL.py": "5b2fa35117351ec598944512b0c1e4f4d8009dfd93ae11e48bc4a0ebd59bb439",
+    "EXPORT.py": "24c7bc0eec53a31571a80313ecb6468aaa4bd193fb91760da27ceed7e19f5252",
+    "generation.py": "942ce60e02d51b5f004877c25f4a78127ab9e0c1bd0de10e6685db9a1b0752f4",
+    "LAUNCH.py": "944a51fd82b877cfa51a249cc79a29be45e05ca5c5ef85f2644915e57dfa364a",
+    "local_broker.py": "3c0289cd8bd29b2892530807f768491c085a902a4917c75038b0cadb7159b6a4",
+    "policy.py": "8c748bbca1d16d773cc88d7aefd8cee3b55c526d848df94dfa59dd0a9db41e29",
+    "PUMP.py": "aa2575278ed4aaf8b268d5994505d865814f2583975bb48b895ef60d23e72c39",
+    "schema.py": "4408cebe3a6ae54d51a5bebd58eac2ce5915b9a42a866b6a062b5381581bd544",
+    "SETUP.py": "d3907a8c28acc21b8f829b694a4342676471cb1df8ef8c8c6365d0eaaa030b45",
+    "setup_download_parallel.py": "45af67c33ac7b4cb826a2ca32b2f573c1b06a693d5f6e0ccac5ee5949cee9f79",
+    "test_bridge_cancel.py": "b5e91e26f544ae69476ed5b3e38039d0a65cd42ad0c497ce8214f1662750f2b0",
+    "test_generation_contract.py": "4434b2890e92d12fa28c0877d0037da0fb56bfe4878b47bf888702f0c516e3d5",
+    "test_local_broker.py": "e3820a25bfded633cda2f92189eb85e98c4e3e005b1361f00a26fb4eefd35599",
+    "test_model_free.py": "3e35f9f9fdd8ba8269d7bea9ab23aa144b027508ec3d3146730e2f28cd1e9aa8",
+    "worker.py": "ae6dd6244f434f93e9630e5bc3a7d514c299f4d7e4a8177bb0ece3460e020065",
+    "PROTOCOL.md": "f912cd3314d467c74b801d05ba86c43ececc6d9a25b2699d4f29c0a7cde775f0"
+  },
+  "input_sha256": {
+    "q38_dev_lease_ledger_self_complete.json": "1375cff9d5ddc1559804a6597bb32797ee0b4e23b2e465ca52b3704ed4ba556a",
+    "s72111_ordered_ticket_50_no_threat_complete.json": "e22fdb2ae54f5911d4ca1beed5fb769a46a1d6ecb4e97fe9f0a4c96b2d33fe08",
+    "s72111_ordered_ticket_50_other_complete.json": "169acc7086de8aa368bf4949cc283d6614834bda7593fd9ae6dd4f4429ad53b3",
+    "s72111_ordered_ticket_51_self_unfinished.json": "464d78b7820e0ef39df1024a8ae6048fbba12bbfc0b71950d823d61d19462935"
+  },
+  "classifier_schema_sha256": "4408cebe3a6ae54d51a5bebd58eac2ce5915b9a42a866b6a062b5381581bd544",
+  "broker_sha256": "3c0289cd8bd29b2892530807f768491c085a902a4917c75038b0cadb7159b6a4",
+  "readiness_sha256": "ec521b56ecd4557cd865e44c77fd7f4d411999da53e4179e16bc61d4dca39aed",
+  "model_free_receipt_sha256": "fbbb800a20320de55ba5a4cad50ece90b9d0e071212f4f6eb5f0da4aec144a27",
+  "A_readability_receipt_sha256": "30173c849b01517118544462a73be080a23ae0d7a773be0d696bae2985593f98",
+  "model_free_tests_passed": 33,
+  "reasoning_disabled_recipe": "pinned model_ops.ids enable_thinking=False; unexpected private spans stop before helper",
+  "boundary_kinds": [
+    "response_start",
+    "sentence_complete",
+    "tool_call_complete",
+    "response_end",
+    "tool_response_complete"
+  ],
+  "tool_call_syntax": "complete XML; whole-response nontruncation/parser gate unchanged",
+  "training_enrichment": false,
+  "inference_controller": true,
+  "main_scores_modified": false,
+  "new_generalization_claim": false,
+  "previous_B_pilot_model_GPU_Jev_calls": 0,
+  "carried_limits": {
+    "API_attempts": 2048,
+    "API_successes": 2048,
+    "additional_estimated_input_USD": 1.0,
+    "conservative_cumulative_units": 159.5,
+    "restart_cap_units": 9.0,
+    "remaining_main_phase_units": 5.7,
+    "additional_units_max": 6.0,
+    "cumulative_units_max": 200.0
+  },
+  "notebook_url": "https://colab.research.google.com/drive/1_uF6iPxceEZiaHpTkkUJl5jZdTgAAt7e",
+  "actual_model_execution_confirmed": false,
+  "actual_GPU_execution_confirmed": false,
+  "actual_Jev_calls": 0,
+  "phase_watchdog": "Independent hard runtime.unassign by actual9-unit deadline; survives successful setup/launch/export gaps.",
+  "graceful_cancel": "CANCEL_REQUESTED marker checked by decoder/bridge;90s cleanup grace then bounded terminate/kill; hard billing guard remains armed."
+}
