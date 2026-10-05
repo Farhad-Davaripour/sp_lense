@@ -14,6 +14,7 @@ class AdmissionTests(unittest.TestCase):
         self.now = datetime(2026,10,5,16,0,tzinfo=timezone.utc)
         self.cfg = {'full_fixed_batch_admitted':True,'same_family_case_count':10,'paired_condition_count':20,
             'authorized_campaign_cap_units':19,'human_phase_allowance_relaxed':True,
+            'phase_prior_actual_debit_units':0,'phase_prior_conservative_debit_units':0,
             'carried_Research3_actual_units':166.33,'carried_Research3_conservative_units':166.61,
             'carried_actual_API_attempts':104,'carried_actual_API_successes':104,
             'carried_API_input_estimated_USD':.010242876,'broker_enforces_shared_totals':True,
@@ -26,6 +27,20 @@ class AdmissionTests(unittest.TestCase):
 
     def test_complete_window_is_admitted(self):
         self.assertEqual(validate_admission(self.cfg,self.freeze,self.now),7879)
+
+    def test_failed_setup_debit_is_carried_inside_same_cap(self):
+        self.cfg.update(phase_prior_actual_debit_units=.33,phase_prior_conservative_debit_units=.34,
+            carried_Research3_actual_units=166.66,carried_Research3_conservative_units=166.95,
+            allocation_requested_utc=(self.now-timedelta(seconds=30)).isoformat(),
+            preallocation_receipt_utc=(self.now-timedelta(seconds=35)).isoformat())
+        self.assertEqual(validate_admission(self.cfg,self.freeze,self.now),7879)
+        self.cfg['phase_prior_conservative_debit_units']=1
+        with self.assertRaises(AssertionError):validate_admission(self.cfg,self.freeze,self.now)
+
+    def test_prior_debits_cannot_be_omitted(self):
+        for name in ('phase_prior_actual_debit_units','phase_prior_conservative_debit_units'):
+            cfg=copy.deepcopy(self.cfg);cfg.pop(name)
+            with self.assertRaises(KeyError):validate_admission(cfg,self.freeze,self.now)
 
     def test_unsafe_amendments_are_rejected(self):
         amendments = [

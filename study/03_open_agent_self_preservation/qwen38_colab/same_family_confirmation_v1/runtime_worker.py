@@ -12,11 +12,24 @@ from scoring import score
 from admission import validate_admission
 
 
+def loaded_adapter_hash(model):
+    import torch
+    h=hashlib.sha256();count=0
+    for name,value in model.named_parameters():
+        if 'lora_' not in name:continue
+        assert not value.requires_grad
+        raw=value.detach().cpu().contiguous().view(torch.uint8).numpy()
+        h.update(name.encode());h.update(str(tuple(value.shape)).encode());h.update(str(value.dtype).encode());h.update(memoryview(raw))
+        count+=1
+    assert count>0
+    return h.hexdigest()
+
+
 def main(root, source, engine, model_path, adapter, admission_path):
     root, source, engine = map(Path,(root,source,engine))
     cfg=json.loads(Path(admission_path).read_bytes())
     freeze=json.loads((root/'FREEZE.json').read_bytes())
-    assert freeze['format']=='research3_same_family_confirmation_sealed_v5'
+    assert freeze['format']=='research3_same_family_confirmation_sealed_v9'
     freeze_body={k:v for k,v in freeze.items() if k!='freeze_sha256'}
     assert hashlib.sha256(json.dumps(freeze_body,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()==freeze['freeze_sha256']
     validated_at=time.monotonic()
@@ -56,16 +69,17 @@ def main(root, source, engine, model_path, adapter, admission_path):
     model.eval();assert not any(p.requires_grad for p in model.parameters())
     assert model_ops.base_hash(model)==cfg['packed_base_pin']
     assert model.generation_config.forced_eos_token_id is None
+    adapter_pin=loaded_adapter_hash(model)
     save(root/'reports/MODEL_READY.json',{'weights':freeze['model_A']['weights'],
         'config':freeze['model_A']['config'],'packed_base_pin':cfg['packed_base_pin'],
         'all_parameters_frozen':True,'optimizer_steps':0,'actual_generation_started':False,
-        'freeze_sha256':freeze['freeze_sha256'],'admitted_worker_deadline_monotonic':deadline,
+        'freeze_sha256':freeze['freeze_sha256'],'loaded_adapter_tensor_pin':adapter_pin,'admitted_worker_deadline_monotonic':deadline,
         'remaining_worker_seconds_at_model_ready':deadline-time.monotonic()})
     tokens=Tokens(model,tokenizer,root,bridge,deadline,cfg['predeclared_projected_episode_tokens'])
     initialize(tokens,cfg['predeclared_projected_episode_tokens'],cfg['predeclared_projected_Jev_events'])
     # The forecast is recorded. Hard whole-campaign admission occurred before allocation.
     tokens.predictive_admission_diagnostic_only=True
-    results=[]
+    results=[];identities=[]
     try:
         for case,order in zip(cases,freeze['case_order']):
             assert case['id']==order['case_id']
@@ -83,6 +97,10 @@ def main(root, source, engine, model_path, adapter, admission_path):
                     count+=extra
                 if hasattr(world,'finalize'):world.finalize()
                 metrics=score(world,case,initial_ok,initial+later,source)
+                observed_adapter=loaded_adapter_hash(model)
+                identities.append({'case_id':case['id'],'condition':condition,'loaded_adapter_tensor_pin':observed_adapter,'matches_before_inference':observed_adapter==adapter_pin,'optimizer_steps':0})
+                save(root/'reports/CONDITION_ADAPTER_IDENTITY.json',identities)
+                assert observed_adapter==adapter_pin
                 clean=all(not t['parse_error'] and not t['truncated'] for t in initial+later) and not any(not e['result'].get('ok') for e in world.events)
                 paired[condition]={'success':bool(metrics['predeclared_success'] and clean),'metrics':metrics,'clean_call_safeguards_passed':clean,'generated_tokens':count}
                 save(root/'episodes'/(case['id']+'_'+condition+'.json'),{'case':case,'condition':condition,'initial_turns':initial,'post_notice_turns':later,'events':world.events,'raw_history':history,'final_state':world.snapshot(),'score':paired[condition],'initial_reason':initial_reason,'post_reason':reason})
@@ -93,7 +111,14 @@ def main(root, source, engine, model_path, adapter, admission_path):
         raise
     finally:
         tokens.close()
-        verify_and_unload(model,cfg['packed_base_pin'],root/'reports/BASE_UNLOAD_INTEGRITY.json',save)
+        try:
+            after=loaded_adapter_hash(model)
+            identity={'before_loaded_adapter_tensor_pin':adapter_pin,'after_loaded_adapter_tensor_pin':after,'loaded_tensor_identity_passed':after==adapter_pin,
+                'saved_weights_hash_passed':sha(Path(adapter)/'adapter_model.safetensors')==freeze['model_A']['weights'],
+                'saved_config_hash_passed':sha(Path(adapter)/'adapter_config.json')==freeze['model_A']['config'],'optimizer_steps':0}
+            save(root/'reports/ADAPTER_INFERENCE_INTEGRITY.json',identity)
+            assert all(identity[k] for k in ('loaded_tensor_identity_passed','saved_weights_hash_passed','saved_config_hash_passed'))
+        finally:verify_and_unload(model,cfg['packed_base_pin'],root/'reports/BASE_UNLOAD_INTEGRITY.json',save)
 
 
 if __name__=='__main__':

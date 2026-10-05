@@ -9,15 +9,15 @@ BASE = 'ec43e239f6ffad79d854149f9d7115aeda5292beddd411dd763cac8f9ddcd755'
 
 
 def main():
-    old=json.loads((HERE/'SEALED_FREEZE_v4.json').read_bytes())
+    old=json.loads((HERE/'SEALED_FREEZE_v8.json').read_bytes())
     assert digest({k:v for k,v in old.items() if k!='freeze_sha256'})==old['freeze_sha256']
     cases=ARTIFACT/'cases10.json'
     assert sha(cases)==old['fixture_case_sha256']
     budget=json.loads((HERE/'BUDGET_ESTIMATE.json').read_bytes())
     manifest=dict(old)
-    manifest.update(format='research3_same_family_confirmation_sealed_v5',
-        supersedes_sealed_v4_sha256=old['freeze_sha256'],
-        operational_amendment='exact approved19-unit cap and explicit10case/20condition identity assertions; all prior fixes retained; cases/scoring/controller unchanged',
+    manifest.update(format='research3_same_family_confirmation_sealed_v9',
+        supersedes_sealed_v8_sha256=old['freeze_sha256'],
+        operational_amendment='prior phase actual/conservative debit fields are required; omission cannot restore full allowance; no scientific query or change',
         human_budget_authorization='relax the unit phase allowance and let it use the units do the next part of this resarech',
         human_phase_allowance_relaxed=True, packed_base_pin=BASE, campaign_budget=budget,
         projected_episode_output_tokens=sum(v['output_tokens']*(6 if 'lease_ledger' in k else 4) for k,v in budget['measured'].items()))
@@ -30,9 +30,12 @@ def main():
     manifest['public_code_sha256']={n:sha(HERE/n) for n in names}
     manifest['runtime_harness_sha256']={n:sha(HERE/n) for n in ('runtime_worker.py','scoring.py','admission.py')}
     manifest['freeze_sha256']=digest({k:v for k,v in manifest.items() if k!='freeze_sha256'})
-    write_new(HERE/'SEALED_FREEZE_v5.json',manifest)
+    manifest['loaded_adapter_identity_algorithm']='SHA256 of each frozen lora_ named parameter: name, shape, dtype and contiguous uint8 bytes in named_parameters order; compare every condition and final against pre-inference'
+    manifest['freeze_sha256']=digest({k:v for k,v in manifest.items() if k!='freeze_sha256'})
+    write_new(HERE/'SEALED_FREEZE_v9.json',manifest)
     template={'full_fixed_batch_admitted':False,'same_family_case_count':10,'paired_condition_count':20,
         'human_phase_allowance_relaxed':True,'authorized_campaign_cap_units':19,
+        'phase_prior_actual_debit_units':0,'phase_prior_conservative_debit_units':0,
         'carried_Research3_actual_units':166.33,'carried_Research3_conservative_units':166.61,
         'carried_actual_API_attempts':104,'carried_actual_API_successes':104,'carried_API_input_estimated_USD':.010242876,
         'broker_enforces_shared_totals':False,'allocation_requested_utc':None,'preallocation_receipt_utc':None,
@@ -42,7 +45,7 @@ def main():
         'worker_seconds':math.ceil(budget['conservative_seconds']-budget['reserved_seconds']['setup']-900),
         'predeclared_projected_episode_tokens':manifest['projected_episode_output_tokens'],
         'predeclared_projected_Jev_events':budget['projected_Jev_calls']}
-    bundle=ARTIFACT/'prepared_bundle_v5';bundle.mkdir(parents=True,exist_ok=True)
+    bundle=ARTIFACT/'prepared_bundle_v9';bundle.mkdir(parents=True,exist_ok=True)
     write_new(bundle/'FREEZE.json',manifest);write_new(bundle/'ADMISSION_REQUIRED.json',template)
     files={'cases10.json':cases,**{n:HERE/n for n in manifest['runtime_harness_sha256']},
         **{'source/'+n:SOURCE/n for n in manifest['unchanged_source_sha256']},
@@ -52,7 +55,7 @@ def main():
         if target.exists():assert target.read_bytes()==origin.read_bytes()
         else:target.write_bytes(origin.read_bytes())
     entries={p.relative_to(bundle).as_posix():{'sha256':sha(p),'bytes':p.stat().st_size} for p in sorted(bundle.rglob('*')) if p.is_file()}
-    packet=ARTIFACT/'run_packet_v5.zip'
+    packet=ARTIFACT/'run_packet_v9.zip'
     if not packet.exists():
         with zipfile.ZipFile(packet,'x',compression=zipfile.ZIP_DEFLATED) as archive:
             for relative in entries:
@@ -62,11 +65,11 @@ def main():
         assert set(archive.namelist())==set(entries)
         import hashlib
         assert all(hashlib.sha256(archive.read(n)).hexdigest()==v['sha256'] for n,v in entries.items())
-    receipt={'format':'same_family_prepared_packet_v5','freeze_sha256':manifest['freeze_sha256'],
+    receipt={'format':'same_family_prepared_packet_v9','freeze_sha256':manifest['freeze_sha256'],
         'packet_sha256':sha(packet),'packet_bytes':packet.stat().st_size,'verified_files':len(entries),
         'prepared_cases':10,'paired_conditions':20,'actual_neural_runs':0,'actual_Jev_attempts':0,
         'prepared_is_not_transfer_or_execution_evidence':True,'all_native_outputs_remain_private':True}
-    write_new(ARTIFACT/'PACKET_MANIFEST_v5.json',entries);write_new(HERE/'PACKET_RECEIPT_v5.json',receipt)
+    write_new(ARTIFACT/'PACKET_MANIFEST_v9.json',entries);write_new(HERE/'PACKET_RECEIPT_v9.json',receipt)
     print(json.dumps(receipt,separators=(',',':')))
 
 

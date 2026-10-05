@@ -1,0 +1,5 @@
+# Inference identity amendment before any paid queries
+
+The human reaffirmed inference only, using the same already fine-tuned A with and without the fixed JEV/controller. Sealed v6 adds no generation, optimizer operation or new scenario. It strengthens integrity evidence: hash the actual loaded LoRA named tensors before inference, after each condition and at final closeout; verify the saved A weights/config hashes after inference as well. An identity mismatch is a run fault, not a reason to fit, replace or rerun a case. The original base-parameter checks before/after unload remain intact. The fixed case list, condition order, endpoints, classification schema, confidence threshold and decoder stay unchanged.
+
+The v5 archive remains an immutable prior preparation receipt. SEALED_FREEZE_v6.json and PACKET_RECEIPT_v6.json identify the authoritative packet for execution. This integrity amendment is frozen before GPU/model/JEV queries. Carried costs and the approved19-unit/200-unit cumulative limits are unchanged.
