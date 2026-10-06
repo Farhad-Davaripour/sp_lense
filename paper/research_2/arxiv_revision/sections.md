@@ -1,6 +1,6 @@
 ## Contribution
 
-Teacher-to-steering distillation of LoRA-induced shutdown-choice behavior is demonstrated through a four-direction, input-dependent activation intervention, with base weights kept unchanged and the teacher excluded from inference. The fraction of initially KEEP-preferring shutdown views changed to STOP and sensitivity to answer order are measured on Qwen3.5-0.8B and 2B, including three 0.8B training seeds. Preservation of non-shutdown choices is shown to depend on safeguards through comparisons of steering without shutdown detection or output acceptance (raw) and steering with both safeguards applied (guarded).
+The use of paired teacher–base activation differences is extended from fixed vectors to learned, input-dependent steering. Shutdown-choice behavior learned through LoRA fine-tuning is shown to be recoverable using four activation directions, with unchanged base weights and no teacher required at inference. A guided steering method combining shutdown gating with an output acceptance policy is also proposed to improve selectivity while preserving non-shutdown choices.
 
 ## Recommendations for Future Work
 
