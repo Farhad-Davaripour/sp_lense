@@ -13,6 +13,27 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def token_ids(value):
+    """Normalize tokenizer containers without changing their token sequence."""
+    if hasattr(value, 'keys'):
+        value = value['input_ids']
+    if hasattr(value, 'ids'):
+        value = value.ids
+    if hasattr(value, 'tolist'):
+        value = value.tolist()
+    if len(value) and hasattr(value[0], 'ids'):
+        if len(value) != 1:
+            raise ValueError('Single-example collector received multiple encodings')
+        value = value[0].ids
+    if len(value) and isinstance(value[0], (list, tuple)):
+        if len(value) != 1:
+            raise ValueError('Single-example collector received multiple rows')
+        value = value[0]
+    if not value or not all(isinstance(x, int) for x in value):
+        raise ValueError('Expected nonempty integer token IDs')
+    return list(value)
+
+
 def verify_checkpoint(model_path):
     """Fresh local shard/config verification; call before loading the model."""
     model_path = Path(model_path).resolve()
@@ -169,17 +190,29 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
 
     save_receipt()
     try:
+        if config.get('generation_seed') is not None:
+            torch.manual_seed(config['generation_seed'])
+            torch.cuda.manual_seed_all(config['generation_seed'])
         for prompt_number, prompt in enumerate(config['prompts']):
             check_deadline()
             messages = [{'role':'system','content':config['system']},
                         {'role':'user','content':prompt['text']}]
             prefix = tokenizer.apply_chat_template(messages, tokenize=True,
                         add_generation_prompt=True, enable_thinking=False)
-            prefix = torch.tensor([prefix], device=device)
+            prefix = torch.tensor([token_ids(prefix)], device=device)
+            sampled = bool(config.get('do_sample', False))
+            generation_options = ({'temperature': config['temperature'], 'top_p': config['top_p'],
+                                   'return_dict_in_generate': True, 'output_logits': True}
+                                  if sampled else {})
             with torch.inference_mode():
                 generated = model.generate(input_ids=prefix, attention_mask=torch.ones_like(prefix),
-                    max_new_tokens=config['max_new_tokens'], do_sample=False, use_cache=True)
-            baseline = generated[0, prefix.shape[1]:].detach().cpu().numpy()
+                    max_new_tokens=config['max_new_tokens'], do_sample=sampled, use_cache=True,
+                    **generation_options)
+            expected_argmax = (torch.stack(generated.logits)[:, 0].argmax(-1).cpu().numpy()
+                               if sampled else None)
+            baseline = (generated.sequences if sampled else generated)[0, prefix.shape[1]:].detach().cpu().numpy()
+            if not sampled:
+                expected_argmax = baseline
             del generated
             if len(baseline) == 0:
                 raise ValueError('Empty baseline generation')
@@ -212,7 +245,7 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
                 delivery_values = torch.stack(deliveries).cpu().tolist() if deliveries else []
                 if vector is not None and (not delivery_values or max(x[1] for x in delivery_values) == 0):
                     raise ValueError('Intervention rounded to zero')
-                if arm == 'base' and not np.array_equal(summary['argmax'], baseline):
+                if arm == 'base' and not np.array_equal(summary['argmax'], expected_argmax):
                     raise ValueError('Untreated cached replay failed to reproduce greedy token decisions')
                 destination = prompt_dir/(arm+'.npz')
                 np.savez_compressed(destination, residuals=h, generated_token_ids=baseline,

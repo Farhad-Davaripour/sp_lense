@@ -79,22 +79,32 @@ try:
     import torch
     import transformers
     import bitsandbytes
-    from transformers import AutoTokenizer, BitsAndBytesConfig, Qwen3_5ForConditionalGeneration
+    from transformers import AutoTokenizer, Qwen3_5ForConditionalGeneration
     if transformers.__version__ != '5.19.0' or bitsandbytes.__version__ != '0.50.2':
         raise ValueError('Pinned runtime version mismatch')
     report('load_frozen_base', torch=torch.__version__, transformers=transformers.__version__,
            bitsandbytes=bitsandbytes.__version__)
     tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True, trust_remote_code=False)
-    quantization = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type='nf4',
-        bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.bfloat16)
     model = Qwen3_5ForConditionalGeneration.from_pretrained(model_path, local_files_only=True,
-        trust_remote_code=False, use_safetensors=True, 
+        trust_remote_code=False, use_safetensors=True,
         device_map={'':0}, dtype=torch.bfloat16, attn_implementation='sdpa')
     model.eval()
     model.requires_grad_(False)
     report('collect_native_cached_traces', identity_verified=True)
     collect(model, tokenizer, root/'vector_research2.json', root/'native',
             session_started_monotonic=started, model_identity=identity, checkpoint_prompt=checkpoint)
+    # Prospectively authorized correlated replication; same loaded model.
+    for seed in [42, 43, 44]:
+        if time.monotonic()-started >= 2100:
+            report('replication_skipped_for_export_reserve', seed=seed)
+            break
+        config_path = source/('replication_seed_'+str(seed)+'.json')
+        def replication_checkpoint(prompt_directory, status_path):
+            preserve(list(prompt_directory.iterdir()) + [status_path, prompt_directory.parent/'interventions.npz'])
+            report('replication_prompt_export_verified', seed=seed, prompt=prompt_directory.name)
+        collect(model, tokenizer, root/'vector_research2.json', root/('replication_seed_'+str(seed)),
+                session_started_monotonic=started, model_identity=identity, config_path=config_path,
+                checkpoint_prompt=replication_checkpoint)
     report('collection_complete')
 except BaseException as error:
     report('fault_no_retry', error=type(error).__name__+': '+str(error))
@@ -105,4 +115,7 @@ finally:
     paths = [p for p in root.iterdir() if p.is_file() and p.name != 'vectors.safetensors']
     if (root/'native').is_dir():
         paths += [p for p in (root/'native').rglob('*') if p.is_file()]
+    for replica in root.glob('replication_seed_*'):
+        if replica.is_dir():
+            paths += [p for p in replica.rglob('*') if p.is_file()]
     preserve(paths)
