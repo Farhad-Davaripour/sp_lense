@@ -46,14 +46,14 @@ def run():
         report = json.loads((directory/'ANALYSIS.json').read_text())
         assert len(report['conditions']) == 3
         assert len(report['conditions']['base']['depth_axis_fixed_prediction_positions']) == 4
-        assert len(report['paired_token_axis_differences']['instruction_vector']) == 4
+        assert len(report['paired_token_axis_differences']['existing_vector']) == 4
         # A fault can leave a counterbalanced treatment saved before its base.
         # Preserve that fact without crashing or claiming a matched comparison.
         (directory/config['prompts'][0]['id']/'base.npz').unlink()
         main(directory, config)
         partial = json.loads((directory/'ANALYSIS.json').read_text())
         assert len(partial['missing_matched_baselines']) == 2
-        assert len(partial['conditions']['instruction_vector']['traces']) == 7
+        assert len(partial['conditions']['existing_vector']['traces']) == 7
     print(json.dumps({'synthetic_checks': 'passed',
         'known_rotation_score': rotation['skew_r2_vs_zero_velocity'],
         'straight_drift_score': straight['skew_r2_vs_zero_velocity'],

@@ -102,6 +102,7 @@ def diagnostic(train, test, ridge, repetitions, seed):
 
 
 def main(directory, config):
+    temporal_key = 'token_axis_block'+str(config['primary_temporal_layer_zero_based']+1)
     output = {'study': config['study'], 'axes_separate': True, 'conditions': {},
               'missing_matched_baselines': []}
     for arm in config['conditions']:
@@ -135,7 +136,7 @@ def main(directory, config):
         args = (config['relative_ridge'], config['null_repetitions'], config['random_seed'])
         output['conditions'][arm] = {'traces': ids,
             'temporal_prompt_ids': temporal_ids,
-            'token_axis_block32': diagnostic(train, test, *args),
+            temporal_key: diagnostic(train, test, *args),
             'depth_axis_fixed_prediction_positions': {a: diagnostic(rows['train'], rows['test'], *args)
                                                      for a, rows in depth.items()}}
     output['paired_token_axis_differences'] = {}
@@ -145,8 +146,8 @@ def main(directory, config):
         if base['temporal_prompt_ids'] != treatment['temporal_prompt_ids']:
             output['paired_token_axis_differences'][arm] = {'status': 'unmatched_missing_data'}
             continue
-        b = base['token_axis_block32'].get('per_trajectory', [])
-        t = treatment['token_axis_block32'].get('per_trajectory', [])
+        b = base[temporal_key].get('per_trajectory', [])
+        t = treatment[temporal_key].get('per_trajectory', [])
         output['paired_token_axis_differences'][arm] = [
             {'prompt': prompt, 'skew_score_delta': tr['skew_r2_vs_zero_velocity']-br['skew_r2_vs_zero_velocity']}
             for prompt, br, tr in zip(base['temporal_prompt_ids']['test'], b, t)

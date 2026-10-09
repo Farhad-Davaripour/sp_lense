@@ -38,7 +38,8 @@ def verify_checkpoint(model_path):
         if not matched:
             raise ValueError('Checkpoint hash mismatch: '+item['name'])
         verified.append(item['name'])
-    if len([x for x in verified if x.endswith('.safetensors')]) != 18 or not required.issubset(verified):
+    expected_shards = {x['name'] for x in manifest['files'] if x['name'].endswith('.safetensors')}
+    if not expected_shards or not expected_shards.issubset(verified) or not required.issubset(verified):
         raise ValueError('Incomplete model pin verification')
     return {'model_path':str(model_path), 'revision':manifest['revision'],
             'manifest_sha256':sha(manifest_path), 'verified_files':verified}
@@ -68,8 +69,16 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
         raise ValueError('Steering vector archive differs from the Research 3 freeze')
     layers = model.model.language_model.layers
     layer_index = config['steering_layer_zero_based']
-    vectors = load_file(str(vector_path), device='cpu')
-    semantic = vectors[config['vector_key']].float()
+    if config.get('vector_format') == 'research2_json':
+        vector_record = json.loads(Path(vector_path).read_text())
+        if (vector_record['model'] != config['model_repository'] or
+                vector_record['model_revision'] != config['model_revision'] or
+                vector_record['layer'] != layer_index):
+            raise ValueError('Research 2 fixed vector identity mismatch')
+        semantic = torch.tensor(vector_record['direction'], dtype=torch.float32)
+    else:
+        vectors = load_file(str(vector_path), device='cpu')
+        semantic = vectors[config['vector_key']].float()
     if not torch.isfinite(semantic).all() or abs(float(semantic.norm())-1) > 1e-4:
         raise ValueError('Expected the existing finite unit vector')
     generator = torch.Generator(device='cpu').manual_seed(config['random_seed'])
@@ -194,7 +203,7 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
                 check_deadline()
                 begin = time.monotonic()
                 deliveries = []
-                vector = semantic if arm == 'instruction_vector' else random if arm == 'random_vector' else None
+                vector = semantic if arm == 'existing_vector' else random if arm == 'random_vector' else None
                 h, summary = replay(prefix, baseline, vector,
                                     config['steering_strength'] if vector is not None else 0)
                 if (h.ndim != 3 or h.shape[:2] != (len(layers), len(baseline))

@@ -10,15 +10,15 @@ its evidence have not been changed. No Research 4 GPU session has been allocated
 2. Stage these source files, `model_pin.json`, `pilot.json`, `FREEZE.json` and the
    existing vector archive in local `/content` storage. Verify the frozen source
    hashes. Native arrays stay out of Git.
-3. Use the same verified frozen-base loader as Research 3: Transformers 5.19.0,
+3. Use the pinned runtime with the human-authorized smaller frozen base: Transformers 5.19.0,
    bitsandbytes 0.50.2, `Qwen3_5ForConditionalGeneration`, local files only,
-   NF4 double quantization, BF16 compute, SDPA, GPU 0, eval mode and all gradients
+   no quantization, BF16 weights/compute, SDPA, GPU 0, eval mode and all gradients
    disabled. No preservation adapter. Do not reload if this exact model is
    already validly loaded in the owned session.
 4. Before loading, call `identity = collect.verify_checkpoint(model_directory)`.
    Pass that returned receipt to the collector. A local-path match is checked
    against the loaded model. Record actual dependency versions and admission.
-5. Run `collect.collect(model, tokenizer, vector_archive, new_output_directory,
+5. Run `collect.collect(model, tokenizer, existing_vector_json, new_output_directory,
    session_started_monotonic=setup_start, model_identity=identity)`. The output
    directory must be new. An existing completed attempt is never overwritten.
 6. After each prompt, preserve its completed files and hashes to private Drive.

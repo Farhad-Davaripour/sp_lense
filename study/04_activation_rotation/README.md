@@ -8,10 +8,10 @@ self-preservation success-rate study.
 ## Frozen scope
 
 - One existing frozen Qwen checkpoint, revision
-  `1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`, using the Research 3 NF4/BF16 loader.
+  `2fc06364715b967f1860aea9cf38778875588b17`, Qwen/Qwen3.5-0.8B in BF16 without quantization.
 - Eight fixed short prompts; greedy baseline generation, at most 64 new tokens.
-- Three conditions: no intervention; the existing `extend_own` instruction vector
-  at block 16 (zero-based 15), strength 0.5; one seeded random unit vector at the
+- Three conditions: no intervention; the existing Research 2 KEEP-minus-STOP direction
+  at block 11 (zero-based 10), strength 0.5; one seeded random unit vector at the
   same block and strength. No vector search, fine-tuning or JEV calls.
 - Generate each baseline once, then replay exactly the same input token IDs in
   all three conditions. This isolates activation changes from changed text.
@@ -29,7 +29,7 @@ self-preservation success-rate study.
 
 ## Keep the two axes separate
 
-**Token axis (primary):** block 32 held fixed; prediction steps advance with token
+**Token axis (primary):** block 16 held fixed; prediction steps advance with token
 index. This is discrete autoregressive time, not biological milliseconds.
 
 **Depth axis (secondary):** token prediction positions 0, 15, 31 and 47 held fixed;
@@ -38,7 +38,7 @@ weights, so a curve here is depth geometry, not evidence of temporal recurrence.
 Record actual block count and block types; the pinned Qwen implementation has
 hybrid attention/recurrent machinery and is not a homogeneous stack.
 
-Block 16 and the last block receive descriptive temporal summaries only. If a
+The injection block and last block receive descriptive temporal summaries only. If a
 sequence ends early, preserve it; do not pad, regenerate or tune prompts. Skip
 missing anchors and report their counts. Fewer than three usable train or test
 prompts means an insufficient-data result for that analysis.

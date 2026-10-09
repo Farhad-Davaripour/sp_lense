@@ -69,7 +69,7 @@ try:
                           HF_HUB_DISABLE_TELEMETRY='1')
         from huggingface_hub import snapshot_download
         report('restore_exact_public_snapshot')
-        snapshot_download(repo_id='Qwen/Qwen3.8-27B', revision=manifest['revision'],
+        snapshot_download(repo_id=manifest['repository'], revision=manifest['revision'],
             local_dir=model_path, token=False, max_workers=2,
             allow_patterns=['config.json','generation_config.json','tokenizer.json','tokenizer_config.json',
                             'chat_template.jinja','merges.txt','vocab.json','model.safetensors.index.json','*.safetensors'])
@@ -88,12 +88,12 @@ try:
     quantization = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type='nf4',
         bnb_4bit_use_double_quant=True, bnb_4bit_compute_dtype=torch.bfloat16)
     model = Qwen3_5ForConditionalGeneration.from_pretrained(model_path, local_files_only=True,
-        trust_remote_code=False, use_safetensors=True, quantization_config=quantization,
+        trust_remote_code=False, use_safetensors=True, 
         device_map={'':0}, dtype=torch.bfloat16, attn_implementation='sdpa')
     model.eval()
     model.requires_grad_(False)
     report('collect_native_cached_traces', identity_verified=True)
-    collect(model, tokenizer, root/'vectors.safetensors', root/'native',
+    collect(model, tokenizer, root/'vector_research2.json', root/'native',
             session_started_monotonic=started, model_identity=identity, checkpoint_prompt=checkpoint)
     report('collection_complete')
 except BaseException as error:
