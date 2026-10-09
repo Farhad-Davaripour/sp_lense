@@ -102,7 +102,8 @@ def diagnostic(train, test, ridge, repetitions, seed):
 
 
 def main(directory, config):
-    output = {'study': config['study'], 'axes_separate': True, 'conditions': {}}
+    output = {'study': config['study'], 'axes_separate': True, 'conditions': {},
+              'missing_matched_baselines': []}
     for arm in config['conditions']:
         train, test, ids, temporal_ids = [], [], [], {'train': [], 'test': []}
         depth = {str(a): {'train': [], 'test': []} for a in config['depth_prediction_positions']}
@@ -114,6 +115,9 @@ def main(directory, config):
                 h = archive['residuals'].astype(np.float64)  # layer, prediction step, width
                 token_ids = archive['generated_token_ids']
                 if arm != 'base':
+                    if not (directory / prompt['id'] / 'base.npz').exists():
+                        output['missing_matched_baselines'].append({'prompt': prompt['id'], 'condition': arm})
+                        continue
                     with np.load(directory / prompt['id'] / 'base.npz', allow_pickle=False) as baseline:
                         if not np.array_equal(token_ids, baseline['generated_token_ids']):
                             raise ValueError('Matched-token replay mismatch')

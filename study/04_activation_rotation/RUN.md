@@ -22,6 +22,9 @@ its evidence have not been changed. No Research 4 GPU session has been allocated
    session_started_monotonic=setup_start, model_identity=identity)`. The output
    directory must be new. An existing completed attempt is never overwritten.
 6. After each prompt, preserve its completed files and hashes to private Drive.
+   Supply `checkpoint_prompt(prompt_directory, status_path)` to the collector
+   for this handoff; the callback must copy and hash-verify completed files and
+   raise on failure. It runs synchronously before the next prompt starts.
    On success **or fault**, verify completed outputs in private Drive and restore
    them under `C:/Users/farha/Research4/artifacts/rotation_pilot_v1`. Capture an
    export receipt; remove the owned model worker and release the owned GPU

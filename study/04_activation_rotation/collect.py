@@ -45,6 +45,7 @@ def verify_checkpoint(model_path):
 
 
 def collect(model, tokenizer, vector_path, output, *, session_started_monotonic, model_identity,
+            checkpoint_prompt=None,
             config_path=Path(__file__).with_name('pilot.json')):
     import numpy as np
     import torch
@@ -83,6 +84,9 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
     receipt = {'study': config['study'], 'status': 'running', 'completed': [],
                'config_sha256': sha(config_path), 'vector_archive_sha256': sha(vector_path),
                'block_count': len(layers), 'block_types': [type(x).__name__ for x in layers],
+               'block_attention_types': [getattr(x, 'layer_type', None) for x in layers],
+               'configured_block_types': getattr(model.config.get_text_config(), 'layer_types', None),
+               'condition_orders': [],
                'actual_revision': getattr(model.config, '_commit_hash', None),
                'required_revision': config['model_revision'],
                'model_pin_verification': model_identity,
@@ -91,7 +95,9 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
 
     def save_receipt():
         receipt['elapsed_including_setup_seconds'] = time.monotonic()-started
-        (output/'STATUS.json').write_text(json.dumps(receipt, indent=2), encoding='utf-8')
+        temporary = output/'STATUS.json.tmp'
+        temporary.write_text(json.dumps(receipt, indent=2), encoding='utf-8')
+        temporary.replace(output/'STATUS.json')
 
     def check_deadline():
         if time.monotonic() >= deadline:
@@ -116,6 +122,7 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
         predictions, logits_check = [], []
         class ForceBaseline(LogitsProcessor):
             def __call__(self, input_ids, scores):
+                check_deadline()
                 index = input_ids.shape[1]-prefix.shape[1]
                 predictions.append(scores.argmax(-1)[0].detach())
                 if not record:
@@ -182,6 +189,7 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
                 del untreated, null
             # Counterbalance order without changing the frozen prompt split.
             order = config['conditions'][prompt_number % 3:] + config['conditions'][:prompt_number % 3]
+            receipt['condition_orders'].append({'prompt': prompt['id'], 'conditions': order})
             for arm in order:
                 check_deadline()
                 begin = time.monotonic()
@@ -189,7 +197,8 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
                 vector = semantic if arm == 'instruction_vector' else random if arm == 'random_vector' else None
                 h, summary = replay(prefix, baseline, vector,
                                     config['steering_strength'] if vector is not None else 0)
-                if not np.isfinite(h).all() or h.shape[1] != len(baseline):
+                if (h.ndim != 3 or h.shape[:2] != (len(layers), len(baseline))
+                        or h.shape[2] != semantic.numel() or not np.isfinite(h).all()):
                     raise ValueError('Invalid full-width capture')
                 delivery_values = torch.stack(deliveries).cpu().tolist() if deliveries else []
                 if vector is not None and (not delivery_values or max(x[1] for x in delivery_values) == 0):
@@ -204,6 +213,8 @@ def collect(model, tokenizer, vector_path, output, *, session_started_monotonic,
                     'sha256':sha(destination), 'delivery_norm_and_changed_count':delivery_values})
                 save_receipt()
                 del h, summary
+            if checkpoint_prompt is not None:
+                checkpoint_prompt(prompt_dir, output/'STATUS.json')
             del prefix
         receipt['status'] = 'collection_complete_exports_and_release_pending'
     except BaseException as error:
