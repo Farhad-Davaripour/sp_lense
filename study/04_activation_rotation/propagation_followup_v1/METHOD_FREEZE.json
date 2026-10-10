@@ -1,0 +1,69 @@
+{
+  "stage": "CPU_methods_frozen_before_execution",
+  "primary_panel_metric": {
+    "name": "mean_angle_block16",
+    "block_zero_based": 15,
+    "aggregation": "angle per paired native residual; mean over all valid matched prediction positions including prefill; prompt-level pending-minus-completed contrast",
+    "unit": "radians",
+    "secondary_metrics": [
+      "norm_ratio",
+      "absolute_displacement",
+      "relative_displacement",
+      "radial_component",
+      "orthogonal_component",
+      "actual_injection_normalized_gain"
+    ]
+  },
+  "rotation": {
+    "PC_rank": 4,
+    "PC_fit": "baseline TRAIN only; shared basis and center across conditions",
+    "relative_ridge": 0.01,
+    "block_zero_based": 15,
+    "models": [
+      "proper_rotation",
+      "midpoint_cayley",
+      "unrestricted_linear",
+      "persistence",
+      "constant_drift",
+      "contraction"
+    ],
+    "metric": "causal next-state SSE in full coordinates; common persistence outside fitted subspace; score 1-SSE/SSE_persistence",
+    "synthetic_seed": 20261010,
+    "synthetic_types": [
+      "rotation",
+      "drift",
+      "contraction",
+      "correlated_nonrotation"
+    ],
+    "noise_amplitudes_relative_to_TRAIN_PC_sd": [
+      0.0,
+      0.25,
+      1.0
+    ],
+    "synthetic_lengths": "match greedy native prompt lengths",
+    "synthetic_width": 1024,
+    "synthetic_precision": "BF16 round-to-nearest-even, stored float32",
+    "rotation_radians_per_step": [
+      0.19634954084936207,
+      0.39269908169872414
+    ],
+    "drift_per_step_relative_PC_sd": 0.04,
+    "contraction_factor": 0.97,
+    "correlated_nonrotation_AR": 0.85,
+    "added_noise_AR": 0.7,
+    "surrogate_candidate": "shared Fourier phase across channels per trajectory; exact circular cross-covariance preservation before recording quantization",
+    "surrogate_validation_repetitions": 199,
+    "surrogate_validation_seed": 20261011,
+    "surrogate_stopping_rule": "Reject if it retains planted linear rotation; no real surrogate significance or rotation claim without a validated null. No alternative-null search.",
+    "sensitivity_rule": "report all synthetic cases; require proper_rotation and midpoint_cayley positive full-space gain and improvement over drift/contraction on at least 3/4 held-out pure-rotation prompts; noisy cases quantify loss of sensitivity rather than trigger parameter changes."
+  },
+  "propagation": {
+    "near_zero_norm_floor": 1e-12,
+    "identity_absolute_tolerance": 1e-10,
+    "native_injection_norm_receipt_tolerance": 1e-06,
+    "training_mean_depth_profile": "position 0 only, per layer transition learned on same four TRAIN prompts; full-width velocity error/causal next-state error versus persistence",
+    "shared_prefill_not_independent": true
+  },
+  "GPU_allocation_authorized_for_this_task": false,
+  "old_12_prompt_queue": "unchanged_unexecuted"
+}
