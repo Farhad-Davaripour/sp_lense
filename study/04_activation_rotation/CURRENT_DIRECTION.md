@@ -11,7 +11,7 @@ validation branch, currently stopped as inconclusive after inadequate controls.
 | Twelve broad prompts | Frozen, unchanged, unexecuted. Retained for provenance; replaced as the next proposed batch by the smaller matched panel. |
 | Propagation CPU follow-up | Complete. Paired magnitude/direction identity and actual injected norms verified. Angular changes dominate displacement; a simple depth-transition profile outperforms historical position-0 rotation fits. |
 | Four-PC causal sensitivity check | Complete exploratory check, not replacement of original analysis. Modest positive causal scores exist; specificity and a rotation-destroying covariance-preserving null are inadequate. No rotational claim; no layer/rank/null search follows. |
-| Matched six-prompt/six-condition panel | Prepared and tokenizer-matched: 36 traces planned, zero executed. Fixed block-16 mean-angle response; +v/-v/two randoms/causal norm-only. Planning does not authorize GPU allocation. |
+| Matched six-prompt/six-condition panel | Execution authorized and attempted October 10; blocked before model loading by DriveFS HTTP404 and unverified fallback downloads. 0/6 mechanics, 0/2 null/untreated probes, 0/36 study traces. Owned R4 GPU/CPU test contexts released; fault copies verified. Scientific specification unchanged. |
 
 Authoritative new source: propagation_followup_v1/PLAN.md, METHOD_FREEZE.json,
 SOURCE_AUDIT.md, PANEL.json, panel_collect.py and EXECUTION_PLAN.md. Private CPU
