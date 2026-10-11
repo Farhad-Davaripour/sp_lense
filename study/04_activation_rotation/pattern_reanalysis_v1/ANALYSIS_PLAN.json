@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-11",
+  "status": "exploratory saved-data reanalysis; metrics fixed before new computations, after prior aggregate results were known",
+  "purpose": "Find transferable base-to-steered geometry without reversing the failed semantic hypothesis or reopening rotation validation.",
+  "new_model_inference": false,
+  "source_integrity": "Verify each consumed native archive against its immutable export manifest, forced/replayed token identity, finite arrays, and exact upstream equality.",
+  "template_training": "Only original native greedy TRAIN prompts r4_01 through r4_04. For each prompt, divide each displacement vector by its actual block10 injection norm, average decode positions, then average the four prompt profiles equally. Separate existing-vector and original-random templates. No target-prompt amplitude fitting.",
+  "evaluation": "Original four TEST prompts in greedy and seeds42/43/44, plus all six matched-panel prompts. Primary exploratory anchor block15, decode positions only; retain prefill separately and show all downstream blocks10..23 without selecting a best layer. Cohorts are repeated continuations, not independent prompts; matched pairs are three units.",
+  "fixed_checks": [
+    "Universal displacement fingerprint: full-coordinate error reduction versus zero displacement using frozen direction-specific TRAIN template; compare literal unchanged injection, the other direction's template, and the mean of both templates.",
+    "Additional downstream propagation: subtract each trace's measured block10 displacement and the template's block10 profile; score versus unchanged-injection prediction. This prevents success solely from trivially recognizing the injected vector.",
+    "Matched positive/negative steering: odd=(delta_plus-delta_minus)/2, even=(delta_plus+delta_minus)/2. Report even energy fraction, cosine(delta_plus,-delta_minus), and prediction error for delta_minus=-delta_plus. Also test the sign-reversed original TRAIN template.",
+    "Baseline geometry: a fixed four-PC basis fitted only to original baseline TRAIN decode states at block15; report baseline coverage and displacement energy inside/outside that basis. Separately report squared projection onto the current baseline token-transition tangent. No rank search.",
+    "Direction gain and depth architecture: summarize per-prompt angle, absolute change, actual-injection-normalized gain, direction-versus-norm energy, and fixed full-attention versus linear-attention transition increments. Retain both random controls and norm-only; do not substitute angle for gain."
+  ],
+  "robustness": "Report all prompt-level values, prefill/decode sensitivity, range and failures. Same-direction template must beat zero, unchanged-injection and wrong-direction controls in every test prompt before calling it a consistent fingerprint in this dataset. No token-level p-values, no semantic claim, no inference to a random-direction population, no new experiment, training, JEV or monitor.",
+  "limits": "Both cohorts' prior summaries were already inspected; this is not a prospectively held-out confirmatory test. Common model, vector and teacher-forced tokens restrict generalization. Activation displacement is distinct from behavioral efficacy."
+}

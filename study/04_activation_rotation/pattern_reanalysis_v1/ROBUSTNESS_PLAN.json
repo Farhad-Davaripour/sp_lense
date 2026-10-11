@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-11",
+  "stage": "Additional diagnostics fixed after inspecting the first fingerprint and sign-symmetry results; explicitly post-results",
+  "checks": [
+    "Refit the original TRAIN template leaving out each of the four TRAIN prompts in turn; retain all four results for the same original TEST and matched evaluation set, without selecting a favorable template.",
+    "Report template scores in both halves of decode and tokenwise positive-score fractions. Do not count token positions as independent observations.",
+    "Test matched-condition fingerprints leaving out a complete wording pair, fitting to the remaining four prompts at the same forced-token positions. Compare each condition to the arithmetic mean of the other four conditions, and repeat after removing position information by averaging all TRAIN decode positions. Same continuation restricts interpretation.",
+    "Report the complete five-by-five downstream response cosine matrix and plus/minus even energy for prefill, first decode half and second decode half. This is diagnostic, not a search for a preferred layer/window.",
+    "Independently recompute sign symmetry and one frozen-template error score directly from raw arrays, including scalar-loop norm/dot calculations, to verify numerical definitions."
+  ],
+  "scope": "No new model calls, rank search, rotation fitting, semantic relabeling, or significance test. Fixed block15 throughout; all results retained."
+}
