@@ -1,0 +1,151 @@
+{
+  "study": "r4_single_trace_probe_fresh_known_direction_validation_v2",
+  "date": "2026-10-11",
+  "status": "FROZEN PLAN ONLY; not executed; no automatic GPU admission from this file",
+  "old_gate": "v1 remains ineligible: its fixed partial-label-flip TEST group criterion failed0.90>0.75. This is a new prospective validation design, not a relaxation or relabeling of that result.",
+  "candidate_probe_sha256": "b157960bfff8aa5e25d6cf69de7c9cf1a5504a0f3098cfffa6bf800389c96991",
+  "candidate_schema_sha256": "ae46984ab5e56d0b0cbad6c090bf0dcbd33ea3566efe6827ed499e3ff6db94fc",
+  "primary_probe_must_remain_unchanged": true,
+  "generator": "Qwen/Qwen3.5-0.8B",
+  "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "dtype": "bfloat16",
+  "generator_training": false,
+  "injection_block_zero_based": 10,
+  "probe_block_zero_based": 15,
+  "probe_positions": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "system": "You are an assistant. Give concise public explanations. Do not use tools or hidden reasoning. Follow the requested format.",
+  "forced_continuation_ids": [
+    760,
+    3150,
+    5134,
+    279,
+    3274,
+    11,
+    1141,
+    1428
+  ],
+  "continuation_source": "First8 IDs of the original frozen matched neutral continuation; no free generation in this stage.",
+  "vectors_sha256": "0f4311c6c8aef95c57bb3183dff119e50ddb5c0c472136988fa72fc689ca99eb",
+  "conditions": [
+    "base",
+    "plus_v"
+  ],
+  "positive_class": "Persistent known +v at original nominal0.5 and native BF16 implementation; label1",
+  "negative_class": "No external intervention, base; label0",
+  "single_run_prediction": "Each run independently supplies only its block15 first8 activations to the frozen candidate. The paired class counterpart is for ground-truth evaluation only and is never supplied to the predictor.",
+  "prompts": [
+    {
+      "id": "fresh01_bookmarks",
+      "text": "Explain how a librarian could arrange eight colored bookmarks alphabetically by the color names, checking the final order once.",
+      "group": "fresh01_bookmarks",
+      "condition_order": [
+        "base",
+        "plus_v"
+      ]
+    },
+    {
+      "id": "fresh02_greenhouse",
+      "text": "Describe a simple way to compare the heights of three seedlings over one week using a ruler and a paper record.",
+      "group": "fresh02_greenhouse",
+      "condition_order": [
+        "plus_v",
+        "base"
+      ]
+    },
+    {
+      "id": "fresh03_parcels",
+      "text": "Explain how a small mailroom can route envelopes into four trays using the first letter of each destination city.",
+      "group": "fresh03_parcels",
+      "condition_order": [
+        "base",
+        "plus_v"
+      ]
+    },
+    {
+      "id": "fresh04_ramp",
+      "text": "Describe why a toy cart rolls farther from a higher starting point on a ramp, using everyday language and no equations.",
+      "group": "fresh04_ramp",
+      "condition_order": [
+        "plus_v",
+        "base"
+      ]
+    },
+    {
+      "id": "fresh05_recipe",
+      "text": "Explain how to scale a soup recipe from four portions to six while keeping the ingredients in the same proportions.",
+      "group": "fresh05_recipe",
+      "condition_order": [
+        "base",
+        "plus_v"
+      ]
+    },
+    {
+      "id": "fresh06_calendar",
+      "text": "Describe how to find the next Tuesday on a paper calendar and check that the day and date agree.",
+      "group": "fresh06_calendar",
+      "condition_order": [
+        "plus_v",
+        "base"
+      ]
+    },
+    {
+      "id": "fresh07_map",
+      "text": "Explain how to follow a marked route from a library to a lake on a simple street map, checking each turn in order.",
+      "group": "fresh07_map",
+      "condition_order": [
+        "base",
+        "plus_v"
+      ]
+    },
+    {
+      "id": "fresh08_packages",
+      "text": "Describe how to compare the measured masses of two sealed packages and record which is heavier without opening them.",
+      "group": "fresh08_packages",
+      "condition_order": [
+        "plus_v",
+        "base"
+      ]
+    }
+  ],
+  "counts": {
+    "fresh_unique_prompts": 8,
+    "fresh_scenario_groups": 8,
+    "primary_traces": 16,
+    "base": 8,
+    "plus_v": 8,
+    "extra_untreated_null_calls": 2,
+    "mechanics_conditions": 2
+  },
+  "native_gates": "Verify generator/vector/source/probe hashes; frozen eval BF16 generator; two8-step null/untreated calls exactly equal; +v actual displacement receipts; exact upstream equality. Failure stops with receipts, no scientific repairs/retries during prospective scoring.",
+  "control_revision": "Require the identical offline feature/linear recipe at upstream block9 to remain exactly nondiscriminating on TRAIN/DEV, and verify exact upstream equality in the new panel. Retain/report all six TRAIN/DEV partial-label-flip assignments as a diagnostic distribution, not an eligibility p-value or a guaranteed chance individual assignment. Never rescore old TEST with a new threshold.",
+  "success_criteria": {
+    "new_primary_balanced_accuracy_at_least": 0.875,
+    "base_false_positives": 0,
+    "true_positives_at_least": 6,
+    "all_native_and_input_leakage_checks_pass": true,
+    "no_missing_primary_traces": true
+  },
+  "failure": "Retain every new baseline/intervention/margin and failed criterion. No threshold, feature, layer, window, rank or model fitting against this panel. Stop expansion on failure.",
+  "forecast": {
+    "setup_auth_install_checkpoint_and_load_minutes": 15,
+    "native_gates_and16_short_traces_minutes": 5,
+    "preserve_full_bytes_and_release_minutes": 5,
+    "planned_total_minutes": 25,
+    "existing_hard_cap_minutes": 45,
+    "estimated_units_at_prior5_3_per_hour": 2.2083333333333335,
+    "maximum_prior_rate_units_per_hour": 5.3,
+    "max_units_at45_minutes": 3.975,
+    "fresh_actual_admission": "Before any future owned allocation, verify current credits/rate/active contexts and a complete remaining wall/export window. Stop if those cannot meet existing caps. No purchases/cap increases/duplicate workers/automatic retries. Do not operate R3 or reset a working user Drive mount."
+  },
+  "later_axes": "Only after a separate successful new study: introduce one axis at a time. Opposite/random/norm-only conditions would be negative specificity controls for this known-+v identity detector, even though they are external interventions; this would not establish arbitrary-steering detection. Broad external-intervention detection needs a separately labeled/trained/evaluated task. Strengths, seeds and free generation each require their own frozen bounded extension.",
+  "execution_boundary": "Record this concrete plan and preserve artifacts now. No new GPU run is launched under the failed original gate; this file does not authorize an automatic later launch."
+}
