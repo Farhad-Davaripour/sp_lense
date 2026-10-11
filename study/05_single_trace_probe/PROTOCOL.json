@@ -1,0 +1,70 @@
+{
+  "study": "r4_single_trace_known_direction_probe_v1",
+  "date": "2026-10-11",
+  "scope": "Train a small activation probe only. Qwen3.5-0.8B generator weights remain frozen. Prior geometric/semantic/rotation work is separate.",
+  "evidence_status": "All saved data have previously been inspected. Stage1 is development evidence, not a fresh prospective test.",
+  "generator": {
+    "repository": "Qwen/Qwen3.5-0.8B",
+    "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "dtype": "bfloat16",
+    "adapter": null,
+    "steering_block_zero_based": 10,
+    "known_direction": "original frozen v, nominal +0.5, persistent over all nonpadding prefill and decode positions"
+  },
+  "input_contract": {
+    "input": "ONE run's residual activations at zero-based block15, exactly its first eight prediction positions, including final prefill position and first seven cached decode positions; width1024",
+    "API_shape": [8,1024],
+    "CLI": "Read only residuals from a trace NPZ; select block15 and positions0:8. Alternatively accept a minimal activation_window NPZ. Ignore other arrays entirely.",
+    "causality": "Prediction available after the eighth recorded forward step. No later position or other layer enters features.",
+    "feature": "L2-normalize each of the eight vectors using its own norm, then arithmetic mean. Zero/near-zero vectors, NaNs and wrong widths are rejected.",
+    "forbidden_features": ["paired unsteered trace", "steered-minus-baseline displacement", "steering vector or magnitude", "condition/class label", "prompt ID/text", "token IDs", "filename/path/order", "total trace or prefix length", "test-time fitted reference", "other layers or future positions"]
+  },
+  "labels": {"negative_0": "unsteered base", "positive_1": "known +v steering only", "other_directions_and_norm_only": "not scored in Stage1; reserved for explicitly labeled later scope expansion"},
+  "partitions": {
+    "TRAIN_original_prompts": ["r4_01","r4_02","r4_03","r4_04"],
+    "DEV_original_prompts": ["r4_05","r4_06"],
+    "TEST_original_prompts": ["r4_07","r4_08"],
+    "TEST_matched_pairs": ["sum_record","inventory_record","fragment_record"],
+    "original_cohorts": ["native","replication_seed_42","replication_seed_43","replication_seed_44"],
+    "grouping": "All cohorts, conditions and continuations belonging to a prompt stay together. Both prompts in each matched wording pair stay together.",
+    "expected_unique_prompt_counts": {"TRAIN":4,"DEV":2,"TEST":8},
+    "expected_independent_scenario_group_counts": {"TRAIN":4,"DEV":2,"TEST":5},
+    "expected_primary_trace_counts": {"TRAIN":{"base":16,"plus":16},"DEV":{"base":8,"plus":8},"TEST":{"base":14,"plus":14}}
+  },
+  "detector": {
+    "type": "L2-regularized linear ridge classifier, targets -1/+1",
+    "TRAIN_only_center": "Weighted mean pooled activation feature across all TRAIN classes/cohorts",
+    "TRAIN_only_scale": "One scalar: square root of weighted mean squared norm of centered TRAIN pooled features; no coordinate-wise or test scaling",
+    "weights": "Each TRAIN prompt receives total weight1, split equally over two classes and its four continuation cohorts",
+    "objective": "sum_i weight_i*(target_i-dot(w,scaled_feature_i))^2 + 1.0*||w||^2",
+    "lambda": 1.0,
+    "intercept": 0.0,
+    "decision": "positive iff raw linear margin >= 0.0",
+    "threshold": 0.0,
+    "hyperparameter_search": false,
+    "calibration": "Margin is an uncalibrated score, not a probability; no temperature, sigmoid probability, or DEV/test threshold tuning"
+  },
+  "leakage_checks": [
+    "Verify immutable native hashes; equal replayed token IDs within each prompt/cohort class pair and equal class counts within every prompt",
+    "Assert disjoint prompt and wording-pair partitions",
+    "Minimal single-window NPZ prediction equals full native NPZ prediction",
+    "Arbitrary changes to other arrays, unused layers and future positions leave predictions exactly unchanged",
+    "Renamed files and reversed evaluation order leave predictions exactly unchanged",
+    "Checkpoint/schema contain only learned TRAIN reference, weights, frozen recipe and generator identity; no evaluation data, vector or prompt metadata",
+    "Negative control: flip labels for TRAIN r4_01 and r4_03 (all cohorts), fit the identical recipe once, report all DEV/test results without using it to tune the primary detector"
+  ],
+  "reporting": "Trace-level and equal-group summaries, unique prompt/pair/class counts, TP/TN/FP/FN, balanced accuracy, false-positive/miss identities, raw margins, per-cohort and matched-domain results. Group score averages margins within each scenario/class before applying threshold; matched wording pair is one scenario. Also report fraction of scenario groups with every constituent trace correct. No token-level significance test.",
+  "Stage1_earns_Stage2_only_if": {
+    "all_leakage_checks_pass": true,
+    "DEV_trace_balanced_accuracy_at_least": 0.90,
+    "DEV_false_positives": 0,
+    "TEST_trace_balanced_accuracy_at_least": 0.85,
+    "TEST_false_positive_rate_at_most": 0.10,
+    "TEST_group_balanced_accuracy_at_least": 0.85,
+    "TEST_matched_group_balanced_accuracy_at_least": 0.80,
+    "negative_control_TEST_group_balanced_accuracy_at_most": 0.75
+  },
+  "stopping": "Any failed eligibility criterion stops expansion. Preserve primary failed test and diagnose only on TRAIN/DEV; no retuning against TEST or automatic extra run. Do not claim arbitrary-steering detection, self-preservation or behavior change.",
+  "Stage2_if_eligible": "Freeze this probe/checkpoint and a small new panel before any inference. Start with eight new prompts, base/+v only, same eight-step forced continuation, same generator/vector pins/block/window. Every new run is supplied singly to the detector. Prospectively require >=0.875 balanced accuracy and zero false positives before another axis is considered. Forecast and fresh actual resource admission required; no purchases/cap increases/duplicate workers/auto-retry or Research3/healthy Drive mount operation.",
+  "CPU_forecast": "Stage1 uses existing traces and NumPy only, expected under one minute CPU; no new generator inference or GPU allocation."
+}
