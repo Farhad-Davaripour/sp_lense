@@ -45,7 +45,7 @@ class Detector:
         f=feature(activation_window)
         margin=float(np.dot((f-self.center)/self.scale,self.weights))
         decision=int(margin>=self.threshold)
-        return {'prediction':decision,'label':'known_plus_v_steering' if decision else 'unsteered',
+        return {'prediction':decision,'prediction_label':'known_plus_v_steering' if decision else 'unsteered',
                 'raw_margin':margin,'threshold':self.threshold,'calibrated_probability':None,
                 'scope':'known +v versus base, fixed model/block/causal window only'}
 
