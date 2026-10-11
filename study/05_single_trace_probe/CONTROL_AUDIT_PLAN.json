@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-11",
+  "status": "Post-result TRAIN/DEV-only diagnostic; fixed before computing these additional controls",
+  "primary_boundary": "Keep the original checkpoint, threshold, primary results and failed TEST control gate unchanged. This audit cannot make v1 Stage2 eligible.",
+  "data": "Only original TRAIN r4_01-r4_04 and DEV r4_05-r4_06, all four original continuation cohorts, base and existing_vector. No TEST activation or score is used in this audit.",
+  "upstream_negative_control": {
+    "block_zero_based": 9,
+    "reason": "Residual block9 is strictly upstream of persistent steering block10; native base/+v states under matched tokens must be exactly equal.",
+    "feature_and_model": "Identical eight-position unit-vector mean, TRAIN-only center/scalar scale, equal prompt weights, ridge lambda1, intercept0, threshold0. Only the offline control extraction block changes; primary reusable predictor remains block15.",
+    "required_checks": "Hash-verify sources; exact equality of base/+v upstream windows; identical predictions per class pair; TRAIN and DEV balanced accuracy exactly0.5. Report numerical near-zero margins and raw confusion matrix."
+  },
+  "balanced_whole_prompt_flip_audit": {
+    "block_zero_based": 15,
+    "assignments": [["r4_01","r4_02"],["r4_01","r4_03"],["r4_01","r4_04"],["r4_02","r4_03"],["r4_02","r4_04"],["r4_03","r4_04"]],
+    "policy": "Fit the same fixed recipe for every assignment, reversing both classes and all cohorts in the two listed TRAIN prompts. Report every TRAIN/DEV confusion matrix and margin, plus coefficient alignment/norm relative to frozen primary. Do not select one assignment, score TEST, change lambda, window, threshold or rank, or use the average as an independent significance test.",
+    "interpretation": "Complementary assignments produce sign-reversed linear weights, so their mean balanced accuracy is expected to be0.5 by symmetry; one partial reversal need not destroy the true steering component."
+  },
+  "outputs": "Control audit JSON/CSV, exact primary/model/test preservation receipt and a separate next-validation plan. No new generator inference, GPU, monitor or Research3/working mount action."
+}
