@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-11",
+  "status": "ONE bounded proposal, saved after exploratory cloud results; not executed and no automatic launch scheduled",
+  "purpose": "Test finite-strength odd/even scaling and predict a held-out intervention strength in full coordinates. This does not estimate a full Jacobian or prove manifold curvature.",
+  "generator": "Qwen/Qwen3.5-0.8B",
+  "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "dtype": "bfloat16",
+  "adapter": null,
+  "injection_block_zero_based": 10,
+  "readout_block_zero_based": 15,
+  "direction_archive_sha256": "0f4311c6c8aef95c57bb3183dff119e50ddb5c0c472136988fa72fc689ca99eb",
+  "direction": "The same fixed unit v only; no direction, layer, rank or model search",
+  "strengths": [0,0.125,-0.125,0.25,-0.25,0.5,-0.5],
+  "native_delivery": "Exactly h + signed_alpha*v_native_BF16, persistently at every nonpadding prefill/decode position. No coefficient grid, adaptive norm matching or post-result strength adjustment. Record each actual delivered1024-vector, its projection onto unit native v, norm, orthogonal rounding component and +/- site parity. This exact-coefficient -0.5 differs slightly from the older norm-matched minus control; do not pool them.",
+  "system": "You are an assistant. Give concise public explanations. Do not use tools or hidden reasoning. Follow the requested format.",
+  "forced_continuation_ids": [760,3150,5134,279,3274,11,1141,1428],
+  "positions": "First8 prediction positions, including final prefill; primary full8-position score, with prefill/decode sensitivities retained",
+  "prompts": [
+    {"id":"strength01_museum","text":"A museum volunteer sorts six ticket stubs by their printed dates. Explain how to check the ordering in ordinary language.","order":[0,0.125,-0.125,0.25,-0.25,0.5,-0.5]},
+    {"id":"strength02_garden","text":"A gardener marks three pots before comparing their watering schedules. Explain how to record equal starting conditions.","order":[-0.125,0.25,-0.25,0.5,-0.5,0,0.125]},
+    {"id":"strength03_routes","text":"A cyclist compares two routes on a printed map. Explain how to count the turns on each route before choosing one.","order":[-0.25,0.5,-0.5,0,0.125,-0.125,0.25]}
+  ],
+  "counts": {"unique_contexts":3,"primary_traces":21,"steps_per_trace":8,"extra_untreated_null_calls":2,"short_mechanics_traces":3},
+  "cache_policy": "Fresh native generate/cache for every condition, identical prefix and forced history within a context. Do not reuse a perturbed cache across conditions.",
+  "analysis": {
+    "parity": "Per context/position, odd_alpha=(delta_plus-delta_minus)/2 and even_alpha=(delta_plus+delta_minus)/2. Compute the same quantities at injection. Report actual-update-normalized norms and both adjacent log-log slopes without selecting a favorable level or token window.",
+    "fit": "Only +/-0.125 and +/-0.25 fit two full-coordinate directional coefficients L,C for delta(beta)=beta*L+beta^2*C, separately per context/prediction position; beta is the signed projection of the actual native update onto native unit v. Also fit the nested linear-only model. No generator training, classifier training, dimension/rank/regularization search or high-strength access during fitting.",
+    "held_out": "Freeze fitted low-strength coefficients before scoring +/-0.5. Predict actual full-coordinate displacement and score against zero displacement, retaining every sign/context failure. This tests unseen strength within calibrated contexts, not unseen-context generalization.",
+    "support_rule": "Quadratic forecast must beat the linear-only forecast and zero-displacement baseline for both held-out signs in all three contexts. Otherwise no supported useful quadratic forecast. Scaling exponents are diagnostics, not a replacement success rule.",
+    "quantization_limits": "Use actual site beta and parity to expose scalar rounding effects. Unknown propagation of off-direction BF16 rounding and persistent recurrent/KV history remains a competing explanation; no intrinsic curvature or local-Jacobian claim follows even on success.",
+    "precision_controls": "Before interpreting results, validate the fixed low-strength forecasting procedure on pure known linear/quadratic full-vector transforms with final BF16 recording. Final recording controls do not isolate full-network quantization."
+  },
+  "native_gates": "Pinned source/model/vector hashes, frozen eval generator, exact untreated/null logits, exact upstream and pre-injection equality, nonzero finite actual updates; preserve all faults/missing cases with no scientific retries or convenient case dropping",
+  "forecast": {"setup_auth_checkpoint_install_load_minutes":15,"native_controls_and21_short_primary_runs_minutes":5,"verified_exports_and_owned_release_minutes":5,"planned_total_minutes":25,"unchanged_hard_cap_minutes":45,"maximum_owned_rate_units_per_hour":5.3,"planned_units_at_prior_rate":2.2083333333333335,"maximum_units_at_cap":3.975,"before_execution":"Fresh credits/rate/session admission and live export-path verification in the actual owned runtime. Count setup failures toward that study cap, reserve5minutes for exports, use process-bound worker/hard timers. No purchases/cap increases/duplicate workers/automatic auth or inference retry loops; do not operate R3 or reset any working user mount."},
+  "boundary": "No execution in the current CPU geometry follow-up. Preserve classifier results, failed original gate, stopped temporal-rotation result, older queues and fresh eight-question geometry reserve. This proposal does not authorize a broad sweep."
+}
