@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-11",
+  "status": "Post-result diagnostic, fixed before this added baseline is computed",
+  "reason": "Prefill-only affine scores are high, but the original translation pooled prefill/decode. A state-based map may partly recognize common prediction-position structure rather than a special geometry.",
+  "baseline": "At every prediction position, average the actual TRAIN displacement across the four complete TRAIN prompts. No target-state feature, rank, penalty or TEST fitting. Its first vector is the proper TRAIN-prefill-only shared-shift baseline.",
+  "data": "Same original and older matched TRAIN/TEST groups as PLAN.json, including all original continuations and native controls. Existing T64/T28 are retained. For older-matched OOD, use the original TRAIN profile's first28 positions. No interpolation or length fitting.",
+  "comparison": "Full-coordinate displacement scores, all/prefill/decode phases, against the already fixed paired affine/isometry/pooled-translation predictions. Report all prompt results; do not replace the failed original primary criterion or choose a favorable phase.",
+  "boundary": "Eight fresh classifier questions remain unused in geometry. Do not claim a phase-specific geometry lead before it beats this simpler temporal explanation. No native inference or GPU."
+}
