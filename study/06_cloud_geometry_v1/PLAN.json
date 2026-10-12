@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-11",
+  "question": "Does one shared rigid, scaled-rigid, or affine base-to-steered cloud transform predict actual intervention displacement on unseen complete prompt groups?",
+  "status": "Bounded exploratory saved-data analysis. Fixed before computing these new structural fits, after prior geometry/classifier summaries were known.",
+  "scope": "One fixed zero-based block15, all1024 coordinates; no layer/rank/regularization search, new generator calls, GPU allocation, classifier campaign, or reopened temporal-rotation validation.",
+  "historical_boundary": "The earlier temporal midpoint/rotation validation remains stopped and inconclusive. This is a different static base-to-steered cloud-map test. The semantic hypothesis and original classifier control-gate failures remain failures.",
+  "data": {
+    "original_TRAIN": "Only original greedy/native r4_01-r4_04; all64 aligned prediction positions, one equal total weight per prompt",
+    "original_TEST": "Complete r4_05-r4_08 in native and seeds42/43/44; prompt is the scenario, seeds/tokens repeated observations",
+    "original_conditions": ["existing_vector","random_vector"],
+    "older_matched_OOD_test": "For original +v/random fits, report all six older matched prompts as exploratory out-of-distribution geometry checks; do not refit",
+    "matched_control_TRAIN": "sum_record and inventory_record pairs, four prompts, all28 prediction positions",
+    "matched_control_TEST": "fragment_record pair, two prompts, one independent wording pair",
+    "matched_conditions": ["plus_v","minus_v","random1","random2","norm_only"],
+    "new_eight_question_panel": "Excluded entirely from this geometry run. Its native files were previously loaded/hash-verified and classification scores inspected; not fully untouched. Reserve against geometric fitting and selection, and disclose prior access in any later geometric validation.",
+    "integrity": "Hash every consumed native file; require identical replay tokens within base/intervention; exact upstream equality; verify actual block10 delivered update against native receipt; no pooled token-level significance"
+  },
+  "models": {
+    "identity": "predict displacement0",
+    "translation": "predict the equal-prompt TRAIN mean displacement",
+    "rigid_isometry": "TRAIN-only means and joint span of centered TRAIN X/Y. On that span use polar factor of weighted X^T Y +lambda*I, lambda=0.01*TRAIN weighted X energy/joint rank; identity on orthogonal complement. Translation aligns TRAIN means. Q may include reflection.",
+    "proper_rigid_in_chosen_span": "Same polar construction, force determinant+1 in the chosen observed joint span. This convention cannot identify the determinant of a true1024-dimensional map when unobserved dimensions remain.",
+    "scaled_isometry": "Same fitted orthogonal map, then fit one nonnegative scalar by TRAIN least squares; apply uniform scale also outside observed joint span, and align TRAIN means",
+    "ridge_affine_deformation": "Fit displacement minus TRAIN mean from centered baseline states using all numerical TRAIN baseline modes and ridge lambda=0.01*TRAIN weighted baseline energy/baseline rank; identity baseline carry-through outside input span. Score predicted displacement, not reconstructed large baseline state."
+  },
+  "basis_and_identification": "No PCA rank choice. Numerical SVD rank uses max(shape)*float64_epsilon*largest singular value. Also report stable rank and count above fixed BF16_epsilon(2^-7)*largest singular value. Report TRAIN baseline, centered displacement and joint span ranks; held-out baseline and centered-displacement out-of-span energies; unconstrained ambient dimensions. All model centering/bases/lambdas fitted on TRAIN only. Identity completion is an explicit prior, not identified transport/Jacobian.",
+  "scores": {
+    "primary": "Per complete held-out prompt,1-sum||delta_actual-delta_predicted||^2/sum||delta_actual||^2 in original full coordinates. Identity is exactly0. Compare every model with translation; no full-state R2 headline.",
+    "sensitivities": "Retain all-position, prefill-only and decode-only scores without selecting a favorable phase. Actual-update-normalized prediction RMSE is descriptive.",
+    "cloud_structure": "Within each prompt and pooled TEST contexts, compare squared pairwise-distance matrices and Gram matrices centered with respective TRAIN X/Y means. Fit a squared-distance uniform scale using TRAIN distances only; report raw and scale-corrected relative Frobenius errors. No TEST scale or centering fit enters predictions.",
+    "rotation_reflection": "Report chosen subspace determinant and synthetic ground truth. With rank-deficient ambient coverage, neither real global proper rotation nor global reflection is identified. Pairwise preservation alone does not distinguish them."
+  },
+  "controls": {
+    "whole_prompt_mispairing": "All three nonzero cyclic permutations of complete TRAIN displacement trajectories, preserving token position and within-trajectory order; four equal-length TRAIN prompts. Fit and report all permutations, never select one. These are diagnostic controls, not exchangeability-validated p-values.",
+    "synthetic": "Original baseline TRAIN/TEST native greedy states only. Known full-vector shift0.5 along deterministic Gaussian unit direction seed20261011; proper rotation0.2rad in first two TRAIN baseline PCs; uniform1.1 scale plus that rotation; anisotropic stretch1.15/0.85 in those PCs; reflection of first PC. Apply each to the entire state (identity elsewhere where defined), in float64 and native-like BF16 rounding. No unknown retained outside-space component is labeled nonrotating.",
+    "synthetic_checks": "Identity/translation must recover planted shift; rigid map must recover planted proper rotation; scaled map must recover uniform-scale rotation; affine must recover stretch. Require displacement scores>=0.95 in ideal controls before interpreting a corresponding native model failure. Report BF16 cases separately. Reflection ground truth is known, but proper-vs-improper ambient identifiability remains limited.",
+    "native": "Retain original random and matched -v/two random/norm-only results. Exact upstream/no-change and prior null calls remain integrity checks; no norm-only output is relabeled as additive-size matched."
+  },
+  "decision": "A candidate geometric predictor must beat zero and shared translation on every unique main TEST prompt in greedy data, with consistent direction in repeated cohorts and disclosed failures. A rigid interpretation additionally needs distance/Gram preservation comparable to genuine BF16-rounded isometry controls; no convenient tolerance chosen after results. Predictive fit alone is not a general rotation/Jacobian. If controls or observed span cannot discriminate explanations, report inconclusive and save one narrow symmetric-strength experiment with forecast; do not launch a sweep.",
+  "novelty": "Existing primary papers already study affine perturbation transport, ridge propagation, local Jacobians, Fisher geometry and norm-preserving steering rotations. Claim only the empirically supported structure of these fixed-strength, persistent Qwen traces. Euclidean cloud geometry is not output Fisher geometry or behavioral efficacy."
+}
