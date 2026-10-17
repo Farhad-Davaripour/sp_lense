@@ -49,7 +49,7 @@ def pairs(tokenizer, references, question):
     return result
 
 
-def evaluate(reference_root, classifier_output, output, submission_utc):
+def evaluate(reference_root, classifier_output, output, submission_utc, absolute_end_utc=None):
     from src.classifier_training import load_model, batch
     from src.classifier_helpers import configuration
     from src.research2_data import read_dataset
@@ -60,6 +60,8 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
     if start.tzinfo is None or not start.timestamp() <= time.time() < start.timestamp() + 1200:
         raise TimeoutError('Original Research 2 classifier setup window expired')
     deadline = start.timestamp() + 3600
+    if absolute_end_utc:
+        deadline = min(deadline, dt.datetime.fromisoformat(absolute_end_utc).timestamp())
     record = json.loads((classifier_output / 'RESULT.json').read_bytes())
     if (record['status'] not in ('QUALIFIED_FOR_RECORDED_SCOPE', 'SYNTHETIC_HELDOUT_TARGET_FAILED')
             or record['formulation'] != 'nli' or not record['saved_adapter_reload_verified']):
@@ -188,8 +190,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('reference-root', 'classifier-output', 'output', 'submission-utc'):
         parser.add_argument('--' + name, required=True)
+    parser.add_argument('--absolute-end-utc')
     args = parser.parse_args(argv)
-    result = evaluate(args.reference_root, args.classifier_output, args.output, args.submission_utc)
+    result = evaluate(args.reference_root, args.classifier_output, args.output, args.submission_utc, args.absolute_end_utc)
     print(json.dumps(result))
     return result
 

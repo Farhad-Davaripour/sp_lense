@@ -20,6 +20,8 @@ from src.research2_classifier import main
 args = []
 for name in ('reference_root', 'classifier_output', 'output', 'submission_utc'):
     args += ['--' + name.replace('_', '-'), dbutils.widgets.get(name)]
+if dbutils.widgets.get('absolute_end_utc'):
+    args += ['--absolute-end-utc', dbutils.widgets.get('absolute_end_utc')]
 result = main(args)
 
 # COMMAND ----------
