@@ -26,7 +26,7 @@ resources:
       tasks:
       - task_key: steering
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/steering.py
+          notebook_path: ${var.repo_path}/notebooks/steering
           base_parameters:
             run_id: '{{job.run_id}}'
         environment_key: runtime

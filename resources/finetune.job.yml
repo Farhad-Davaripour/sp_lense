@@ -26,7 +26,7 @@ resources:
       tasks:
       - task_key: finetune
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/finetune.py
+          notebook_path: ${var.repo_path}/notebooks/finetune
           base_parameters:
             run_id: '{{job.run_id}}'
         environment_key: runtime
