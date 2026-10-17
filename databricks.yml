@@ -3,6 +3,9 @@ bundle:
 include:
 - resources/*.job.yml
 variables:
+  warehouse_id:
+    description: SQL warehouse used to persist the Bronze tables
+    default: ''
   catalog:
     description: Target catalog from .env
   schema:

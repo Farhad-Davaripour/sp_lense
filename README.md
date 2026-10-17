@@ -8,7 +8,7 @@ Reproduction code for fine-tuning, workflow evaluation and activation steering.
 - ddl/: exactly training, validation and heldout table definitions.
 - src/: data persistence, research entry points and pinned scientific engines.
 - notebooks/: minimal Databricks orchestration importing src.
-- resources/: manual fine-tuning, Evaluation-16 and steering reproduction jobs.
+- resources/: manual Bronze persistence, fine-tuning, Evaluation-16 and steering jobs.
 
 Detailed protocols and research history belong in the [project wiki](https://github.com/Farhad-Davaripour/sp_lense/wiki).
 

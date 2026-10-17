@@ -20,7 +20,7 @@ def parameter(name, default=""):
         return default
 
 for name, key in (("catalog", "DATABRICKS_CATALOG"), ("schema", "DATABRICKS_SCHEMA"),
-                  ("volume", "DATABRICKS_VOLUME")):
+                  ("volume", "DATABRICKS_VOLUME"), ("warehouse_id", "DATABRICKS_WAREHOUSE_ID")):
     value = parameter(name)
     if value:
         os.environ[key] = value

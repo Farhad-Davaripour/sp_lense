@@ -48,7 +48,7 @@ def bundle(action, extra=()):
     settings = Settings.load()
     env = auth_environment(settings)
     for name, value in {"catalog": settings.catalog, "schema": settings.schema,
-                        "volume": settings.volume,
+                        "volume": settings.volume, "warehouse_id": settings.warehouse_id,
                         "repo_path": settings.repo_path,
                         "accelerator": os.environ.get("DATABRICKS_ACCELERATOR") or read_env(ROOT / ".env").get("DATABRICKS_ACCELERATOR", "GPU_1xA10")}.items():
         env["BUNDLE_VAR_" + name] = value
