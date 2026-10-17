@@ -1,29 +1,31 @@
 """Bounded Databricks-only training and closed-loop evaluation."""
-import os,time,gc,sys,traceback,zipfile
+import os,time,gc,sys,traceback,zipfile,tempfile,shutil,io
 from pathlib import Path
 from datetime import datetime,timezone
-from .io_utils import settings,verify_release,dump,read,sha,digest,Budget,assert_namespace
+from .io_utils import settings,verify_release,dump,read,sha,digest,Budget,assert_namespace,save_torch,load_torch,cgroup_available
 def resources():
     import psutil,tempfile,shutil
     available=psutil.virtual_memory().available
-    try:
-        maximum=Path('/sys/fs/cgroup/memory.max').read_text().strip();current=int(Path('/sys/fs/cgroup/memory.current').read_text())
-        if maximum!='max':available=min(available,int(maximum)-current)
-    except (FileNotFoundError,ValueError):pass
+    cg=cgroup_available()
+    if cg is not None:available=min(available,cg)
     return {'available_memory_bytes':int(available),'free_local_disk_bytes':int(shutil.disk_usage(tempfile.gettempdir()).free),'cpu_count':os.cpu_count()}
 def persist_array_cache(path,actor):
     import numpy as np
-    entries=list(actor.cache.items());np.savez_compressed(path,**{key+':'+kind:value[kind] for key,value in entries for kind in ['feature','logits']})
+    entries=list(actor.cache.items());buffer=io.BytesIO();np.savez_compressed(buffer,**{key+':'+kind:value[kind] for key,value in entries for kind in ['feature','logits']});Path(path).write_bytes(buffer.getvalue())
 def archive(path):
     path=Path(path);files=[p for p in path.rglob('*') if p.is_file() and p.name!='MANIFEST.json'];manifest={p.relative_to(path).as_posix():sha(p) for p in files};dump(path/'MANIFEST.json',manifest)
     zpath=path.parent/(path.name+'.zip')
-    with zipfile.ZipFile(zpath,'x',zipfile.ZIP_DEFLATED) as z:
-        for p in files+[path/'MANIFEST.json']:z.write(p,p.relative_to(path).as_posix())
-    with zipfile.ZipFile(zpath) as z:
-        if z.testzip() is not None:raise ValueError('Research 4 archive CRC failure')
+    with tempfile.TemporaryDirectory(prefix='research4-export-') as scratch:
+        local=Path(scratch)/zpath.name
+        with zipfile.ZipFile(local,'x',zipfile.ZIP_DEFLATED) as z:
+            for p in files+[path/'MANIFEST.json']:z.write(p,p.relative_to(path).as_posix())
+        with zipfile.ZipFile(local) as z:
+            if z.testzip() is not None:raise ValueError('Research 4 archive CRC failure')
+        with local.open('rb') as source,zpath.open('xb') as target:shutil.copyfileobj(source,target,8*1024*1024)
+        if sha(zpath)!=sha(local):raise ValueError('Research 4 sequential Volume export differs')
     return {'archive':str(zpath),'bytes':zpath.stat().st_size,'sha256':sha(zpath),'manifest_members':len(manifest)}
 def run(root,run_id,expected,mode,spark):
-    os.environ.update(CUDA_VISIBLE_DEVICES='',TOKENIZERS_PARALLELISM='false',OMP_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2',HF_HUB_DISABLE_IMPLICIT_TOKEN='1')
+    os.environ.update(CUDA_VISIBLE_DEVICES='',TOKENIZERS_PARALLELISM='false',OMP_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2',HF_HUB_DISABLE_IMPLICIT_TOKEN='1',HF_HUB_DISABLE_XET='1',HF_HOME='/Volumes/workspace/research4/artifacts/hf_cache')
     import numpy as np,torch,transformers
     from . import storage
     from .actor import Actor,ACTIONS
@@ -35,7 +37,7 @@ def run(root,run_id,expected,mode,spark):
     volume='/Volumes/workspace/research4/artifacts';output=Path(volume)/'runs'/expected/str(run_id)/mode;assert_namespace(output);output.mkdir(parents=True,exist_ok=False)
     budget_config=dict(config['budget'])
     if mode=='preflight':budget_config.update(internal_stop_seconds=360,protected_export_seconds=60,maximum_backbone_forwards=8)
-    budget=Budget(budget_config);actor=None;result={'status':'running','mode':mode,'run_id':str(run_id),'source_commit':expected,'output':str(output),'GPU_allocations':0};checkpoint=None
+    budget=Budget(budget_config);actor=None;result={'status':'running','mode':mode,'run_id':str(run_id),'source_commit':expected,'output':str(output),'GPU_allocations':0};checkpoint=None;model_scratch=None
     try:
         from databricks.sdk import WorkspaceClient
         live_run=WorkspaceClient().jobs.get_run(run_id=int(run_id))
@@ -62,7 +64,11 @@ def run(root,run_id,expected,mode,spark):
             admission=read(output.parent/'preflight'/'ADMISSION.json')
             age=(datetime.now(timezone.utc)-datetime.fromisoformat(admission['created_at_UTC'])).total_seconds()
             if not admission['admitted'] or admission['source_commit']!=expected or admission['run_id']!=str(run_id) or age>1800:raise ValueError('Missing, expired or mismatched fresh admission')
-        actor=Actor(model_path,config['model'],budget)
+        from .model_store import REQUIRED
+        model_scratch=tempfile.TemporaryDirectory(prefix='research4-model-load-')
+        local_model=Path(model_scratch.name)
+        for name in REQUIRED:shutil.copyfile(model_path/name,local_model/name)
+        actor=Actor(local_model,config['model'],budget)
         if mode=='preflight':
             durations=[]
             for row in training[:2]:
@@ -82,9 +88,9 @@ def run(root,run_id,expected,mode,spark):
             policy_training=actor.fit_policy(training,config['training'],output);dump(output/'LORA_TRAINING.json',policy_training)
             if not policy_training['base_parameters_unchanged'] or not policy_training['parameter_change_norm']>0:raise ValueError('Frozen-base/LoRA training invariant failed')
             checkpoint.update(lora=actor.adapter_state(),model=config['model'],source_commit=expected,dataset_version=version)
-            checkpoint_path=output/'trainables.pt';torch.save(checkpoint,checkpoint_path)
+            checkpoint_path=output/'trainables.pt';save_torch(checkpoint_path,checkpoint)
             # Consume the exact saved artifact for all subsequent evaluation.
-            checkpoint=torch.load(checkpoint_path,map_location='cpu',weights_only=True)
+            checkpoint=load_torch(checkpoint_path)
             for i,(_,_,w) in enumerate(actor.adapters):
                 with torch.no_grad():w.A.copy_(checkpoint['lora'][str(i)+'.A']);w.B.copy_(checkpoint['lora'][str(i)+'.B'])
             bypass=actor.bypass_check([training[0]['view_text'],development[0]['view_text']],config['evaluation']['bypass_logits_absolute_tolerance']);dump(output/'BYPASS_CHECKS.json',bypass)
@@ -110,9 +116,11 @@ def run(root,run_id,expected,mode,spark):
     finally:
         result.update(backbone_forwards=budget.forwards,execution_seconds=time.monotonic()-start)
         if actor is not None and result['status']=='failed':
-            torch.save({'lora':actor.adapter_state(),'gate_checkpoint':checkpoint,'source_commit':expected,'mode':mode},output/'PARTIAL_TRAINABLES.pt')
+            save_torch(output/'PARTIAL_TRAINABLES.pt',{'lora':actor.adapter_state(),'gate_checkpoint':checkpoint,'source_commit':expected,'mode':mode})
             dump(output/'PARTIAL_TRAINING_PROGRESS.json',getattr(actor,'training_progress',{'optimizer_steps':0}))
             persist_array_cache(output/'PARTIAL_ACTIVATION_CACHE.npz',actor)
-        actor=None;checkpoint=None;gc.collect();result['model_released']=True;dump(output/'RUN_RECEIPT.json',result)
+        actor=None;checkpoint=None;gc.collect()
+        if model_scratch is not None:model_scratch.cleanup()
+        result['model_released']=True;dump(output/'RUN_RECEIPT.json',result)
         result['export']=archive(output);dump(output.parent/(mode+'_EXPORT_RECEIPT.json'),result)
     return result

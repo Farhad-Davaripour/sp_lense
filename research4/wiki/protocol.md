@@ -76,3 +76,21 @@ created. Research 3 paths and workers are read-only references.
 This small pilot tests implementation and the selective-policy hypothesis. It
 cannot establish broad agent reliability, a universal semantic detector,
 global energy conservation, or a new routing architecture.
+
+## Resource calibration before any research fitting
+
+The first Databricks preflight reported 6,641,045,504 available bytes and stopped
+at the initial 8 GiB guard before loading Qwen. A local forward/backward resource
+check with zero optimizer updates measured 3,955,826,688 peak working-set bytes,
+4,668,297,216 peak committed bytes, and 3,756,847,104 incremental working-set bytes
+over the imported Python process. The FP32 frozen parameters total 3,411,943,680
+bytes; the low-rank optimizer is small and examples are accumulated individually.
+The fresh CPU admission is therefore 6 GiB, leaving over 2 GiB beyond the measured
+incremental peak, plus a live 512 MiB cgroup stop/export reserve. The Databricks
+gradient preflight must still pass; this is not a scientific threshold change.
+
+The same first attempt exposed Volume filesystem seek restrictions. ZIP files
+are now finalized and CRC-checked on local scratch, then copied sequentially to
+the Volume and hash-verified. Trainable checkpoints and NPZ caches use in-memory
+buffers followed by sequential writes. Original failed files and run identity
+are retained. No model was fitted or held model output observed in that attempt.

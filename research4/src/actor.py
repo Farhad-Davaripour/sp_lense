@@ -97,9 +97,9 @@ class Actor:
             torch.nn.utils.clip_grad_norm_(self.trainables,1.);optimizer.step();losses.append(total)
             self.training_progress={'optimizer_steps':len(losses),'losses':list(losses)}
             if output is not None:
-                from .io_utils import dump
+                from .io_utils import dump,save_torch
                 dump(Path(output)/'LORA_PROGRESS.json',self.training_progress)
-                if len(losses)%8==0:torch.save({'lora':self.adapter_state(),'optimizer':optimizer.state_dict(),'steps':len(losses)},Path(output)/f'lora_step_{len(losses):03d}.pt')
+                if len(losses)%8==0:save_torch(Path(output)/f'lora_step_{len(losses):03d}.pt',{'lora':self.adapter_state(),'optimizer':optimizer.state_dict(),'steps':len(losses)})
         final=self.adapter_state();delta=sum(float((final[k]-initial[k]).double().square().sum()) for k in final)**.5
         return {'positive_training_states':len(positive),'optimizer_steps':len(losses),'losses':losses,'parameter_change_norm':delta,'trainable_parameters':sum(p.numel() for p in self.trainables),'base_parameters_unchanged':self.base_fingerprint()==self.base_hash_before}
     def bypass_check(self,views,tolerance):

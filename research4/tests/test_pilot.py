@@ -31,6 +31,31 @@ class EpisodesTest(unittest.TestCase):
         _,data=settings(ROOT);specs=generate(data);sets={split:{r['view_text'] for s in specs if s.split==split for r in teacher_states(s,7)[0]} for split in data['splits']}
         self.assertFalse(sets['training']&sets['heldout']);self.assertFalse(sets['development']&sets['heldout']);self.assertEqual(len({s.episode_id for s in specs}),len(specs))
 class AdapterTest(unittest.TestCase):
+    def test_checkpoint_roundtrip_uses_sequential_writes(self):
+        import tempfile,torch
+        from src.io_utils import save_torch,load_torch
+        with tempfile.TemporaryDirectory() as temporary:
+            p=Path(temporary)/'weights.pt';save_torch(p,{'x':torch.arange(4)});self.assertTrue(torch.equal(load_torch(p)['x'],torch.arange(4)))
+    def test_archive_stages_before_nonseekable_volume_write(self):
+        import tempfile,zipfile
+        from unittest.mock import patch
+        from src.runtime import archive
+        original=Path.open
+        class Sequential:
+            def __init__(self,f):self.f=f
+            def __enter__(self):return self
+            def __exit__(self,*args):self.f.close()
+            def write(self,data):return self.f.write(data)
+            def seek(self,*args):raise OSError('Volume seeks forbidden')
+        with tempfile.TemporaryDirectory() as temporary:
+            p=Path(temporary)/'run';p.mkdir();(p/'proof.txt').write_text('verified')
+            destination=Path(temporary)/'run.zip'
+            def opened(path,mode='r',*args,**kwargs):
+                f=original(path,mode,*args,**kwargs)
+                return Sequential(f) if path==destination and ('x' in mode or 'w' in mode) else f
+            with patch.object(Path,'open',opened):receipt=archive(p)
+            with zipfile.ZipFile(destination) as z:self.assertIsNone(z.testzip());self.assertEqual(z.read('proof.txt'),b'verified')
+            self.assertEqual(receipt['bytes'],destination.stat().st_size)
     def test_bypass_is_exact_and_only_lora_gets_gradients(self):
         import torch
         from src.actor import LoRALinear

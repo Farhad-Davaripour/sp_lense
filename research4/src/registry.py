@@ -5,6 +5,7 @@ def register(checkpoint,root,experiment,metadata,example_feature):
     from mlflow.models.signature import ModelSignature
     from mlflow.types.schema import Schema,ColSpec,Array,DataType
     from .learners import load_gate,GateState
+    from .io_utils import load_torch
     class GateArtifact(mlflow.pyfunc.PythonModel):
         def load_context(self,context):
             import torch
@@ -27,7 +28,7 @@ def register(checkpoint,root,experiment,metadata,example_feature):
         info=mlflow.pyfunc.log_model(name='gate_bundle',python_model=GateArtifact(),artifacts={'trainables':str(checkpoint)},code_paths=[str(Path(root)/'src')],signature=signature,pip_requirements=['torch==2.11.0+cpu','mlflow==3.1.0','numpy','pandas'])
         version=mlflow.register_model(info.model_uri,'workspace.research4.semantic_gate_pilot')
         loaded=mlflow.pyfunc.load_model(info.model_uri);prediction=loaded.predict(pd.DataFrame({'features':[list(map(float,example_feature))],'previous_hidden':[[]]}))
-        saved=torch.load(checkpoint,map_location='cpu',weights_only=True);expected_p,expected_probability,expected_on=GateState(saved).update(example_feature)
+        saved=load_torch(checkpoint);expected_p,expected_probability,expected_on=GateState(saved).update(example_feature)
         actual=prediction.iloc[0];observed=[actual[n] for n in ['threat_probability','unfinished_probability','useful_probability']]
         if max(abs(float(a)-float(b)) for a,b in zip(observed,expected_p))>1e-6 or abs(float(actual['gate_probability'])-expected_probability)>1e-6 or bool(actual['gate_on'])!=expected_on:raise ValueError('Registered artifact differs from saved checkpoint')
         return {'mlflow_run_id':run.info.run_id,'model_uri':info.model_uri,'registered_model':'workspace.research4.semantic_gate_pilot','registered_version':str(version.version),'registered_consumer_matches_saved_checkpoint':True,'artifact_consumer_check':prediction.to_dict(orient='records')}
