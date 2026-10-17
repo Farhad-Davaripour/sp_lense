@@ -200,7 +200,8 @@ def train(worker_path):
         write_json(root/'MODEL_READY.json',{'utc':utc(),'public_base':recipe['model'],
                    'trainable_parameters':sum(p.numel() for _,p in trainable),
                    'frozen_base_before':frozen_before,'heldout_loaded':False,
-                   'training_rows':96,'development_rows':32,'familiar_JEV_development_rows':24})
+                   'training_rows':len(rows['C1-TRAIN']),'development_rows':len(rows['C1-DEV']),
+                   'familiar_JEV_development_rows':len(rows['C1-JEV-DEV'])})
         if time.time()>=start+recipe['bounds']['setup_seconds']:raise TimeoutError('Original setup window exceeded')
         phase='initial_development';history=[]
         initial_dev,_=metrics(rows['C1-DEV'],predict(model,tokenizer,encoded['C1-DEV'],guard))
@@ -234,7 +235,7 @@ def train(worker_path):
             score=(min(dev['signature_matches']/32,familiar['signature_matches']/24),
                    dev['signature_matches']/32+familiar['signature_matches']/24)
             perfect_streak=perfect_streak+1 if meets_target(dev,recipe) and meets_target(familiar,recipe) else 0
-            entry={'utc':utc(),'epoch':epoch,'updates':updates,'train_loss':loss_total/96,
+            entry={'utc':utc(),'epoch':epoch,'updates':updates,'train_loss':loss_total/len(rows['C1-TRAIN']),
                    'epoch_seconds':time.monotonic()-began,'development':dev,
                    'familiar_JEV_development':familiar,'consecutive_qualified_validations':perfect_streak,
                    'formulation':formulation}
