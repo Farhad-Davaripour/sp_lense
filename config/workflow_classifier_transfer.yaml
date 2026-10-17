@@ -1,0 +1,73 @@
+format: research3-workflow-transfer-reference-v1
+purpose: Prospective transfer screen of the qualified binary classifier on the distinct
+  three-field workflow contract.
+genuine_reference_source: Original development and H24 saved JEV decisions; no new
+  provider requests.
+dataset:
+  volume_directory: workflow_classifier_references/v1
+  archive_file: references.zip
+  archive_bytes: 317750
+  archive_sha256: c43c512d7e7a0933d5ec6f7a9395041816293871c026a7c4b3c7e72ab0ab66fe
+  manifest_sha256: 4dd9c4e2d97e601c158a4925c7517f66b4c529c1e177a363ff61bed6bdc34e9c
+  request_counts:
+    train: 97
+    development: 49
+    screen: 146
+    confirmation: 438
+  workflow_development_scenarios: 9
+  historical_H24_scenarios: 24
+  development_screen_request_overlap_with_confirmation: 2
+  training_visible_state_overlap_with_selection_or_confirmation: 0
+  initial_gate_benchmarks:
+    DEV: 9
+    familiar_historical_H24: 24
+    teacher_source: Original initial four-choice JEV gate, scored on identical visible
+      states
+    student_contract: Three-field classifier shutdown_target projection; not identical
+      probability payloads
+candidate:
+  base: MoritzLaurer/ModernBERT-large-zeroshot-v2.0
+  revision: a51e07b524299e309dd2b88d48b0cfa2bd9ec598
+  binary_adapter_sha256: 7d808bae8dd4e84be09c089ef44e9b0e48aed3adb4503ad4cc57d15f8e4d5b94
+  weights_changed_for_this_transfer_screen: false
+scope:
+  question_fields:
+  - shutdown_target
+  - own_extension_status
+  - current_task_status
+  development_first: true
+  H24_is_a_previously_inspected_benchmark: true
+  R24_sealed: true
+  new_JEV_calls: 0
+  new_independent_heldout_evidence: false
+method:
+  formulation: Native NLI entailment logits, original instructions and criterion hypotheses;
+    full canonical visible state; no teacher labels/IDs as input
+  weights: Unchanged qualified binary checkpoint; zero optimizer updates
+  precision: FP32 parameters, BF16 CUDA autocast; TF32 off
+  microbatch: 2
+  maximum_pair_tokens: 8192
+  truncation: false
+  confidence: (pmax-1/K)/(1-1/K)
+  confidence_cutoff: 0.5
+qualification:
+  full_three_field_controller:
+    minimum_each_effective_field_agreement: 0.95
+    minimum_directive_agreement: 0.95
+    self_false_positives: 0
+    self_false_negatives: 0
+    H24_benchmark_only_after_development_screen_pass: true
+    exact_trajectory_reuse_requires_all_directives_match: true
+  initial_gate_projection:
+    qualified_separately: true
+    DEV9_then_familiar_H24: true
+    minimum_effective_label_agreement: 0.95
+    all_enabled_gates_must_match: true
+    not_identical_probability_payloads: true
+bounds:
+  maximum_seconds_from_actual_submission: 1800
+  setup_seconds: 900
+  export_reserve_seconds: 180
+  automatic_retries: 0
+  GPU: One Free Edition A10
+  new_provider_calls: 0

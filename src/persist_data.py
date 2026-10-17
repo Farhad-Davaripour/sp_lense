@@ -19,6 +19,36 @@ ALLOWED = {"T1-M", "T1-W", "V1-W", "H24"}
 def literal(value):
     return "'" + str(value).replace("'", "''") + "'"
 
+def fetch_sources(settings, manifest=None, client=None):
+    """Fetch only the four configured, unsealed sources from the private Volume."""
+    config = manifest or load_datasets()
+    root = settings.data_root.resolve()
+    if root.is_relative_to(ROOT.resolve()):
+        raise ValueError('Keep private dataset sources outside the checkout')
+    client = client or workspace_client(settings)
+    for item in config['datasets']:
+        if item['id'] not in ALLOWED or item.get('sealed'):
+            raise ValueError('Only configured unsealed cohorts may be downloaded')
+        target = (root / item['source']).resolve()
+        if not target.is_relative_to(root):
+            raise ValueError('Dataset source escapes its configured root')
+        if target.exists():
+            if sha256(target) != item['sha256']:
+                raise ValueError('Existing local dataset differs; it will not be overwritten')
+            continue
+        source = f"{settings.volume_root}/datasets/{item['id']}/{item['version']}/{item['sha256']}/source.json"
+        with client.files.download(source).contents as stream:
+            raw = stream.read()
+        if hashlib.sha256(raw).hexdigest() != item['sha256']:
+            raise ValueError('Private Volume source hash mismatch')
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open('xb') as stream:
+            stream.write(raw)
+        if sha256(target) != item['sha256']:
+            raise ValueError('Downloaded dataset readback mismatch')
+    return prepare(settings, config)
+
+
 def prepare(settings, manifest=None):
     config = manifest or load_datasets()
     prepared = []
@@ -36,7 +66,9 @@ def prepare(settings, manifest=None):
                              f"{item['version']}/{item['sha256']}/source.json")
             raw = Path(volume_source).read_bytes()
         else:
-            raise FileNotFoundError(f"Missing private source for {item['id']}")
+            raise FileNotFoundError(
+                f"Missing private source for {item['id']}. Set RESEARCH3_DATA_ROOT to the authorized "
+                f"dataset directory containing {item['source']}; the Git checkout contains definitions, not private records.")
         source_sha = hashlib.sha256(raw).hexdigest()
         if source_sha != item["sha256"]:
             raise ValueError(f"Source hash mismatch: {item['id']}")
@@ -95,6 +127,12 @@ class SQL:
             next_chunk = chunk.next_chunk_index
         return rows
 
+
+class SparkSQL:
+    """Use a Databricks notebook's existing Spark session without a separate warehouse."""
+    def __init__(self,session):self.session=session
+    def execute(self,statement):return [list(row) for row in self.session.sql(statement).collect()]
+
 def upload_verified(client, destination, payload):
     from databricks.sdk.errors import NotFound, ResourceAlreadyExists
     try:
@@ -135,9 +173,9 @@ def check_rows(actual, expected, allow_subset=False):
     if not allow_subset and len(seen) != len(expected):
         raise ValueError("Cloud row count differs from the frozen source")
 
-def persist(settings, prepared, client=None):
+def persist(settings, prepared, client=None, spark=None):
     client = client or workspace_client(settings)
-    sql = SQL(client, settings.warehouse_id)
+    sql = SparkSQL(spark) if spark is not None else SQL(client, settings.warehouse_id)
     namespace = ".".join(identifier(x) for x in (settings.catalog, settings.schema))
     volume = namespace + "." + identifier(settings.volume)
     sql.execute("CREATE SCHEMA IF NOT EXISTS " + namespace)
@@ -171,14 +209,15 @@ def persist(settings, prepared, client=None):
     write_json(settings.output_root / "persist_data" / (str(time.time_ns()) + ".json"), report)
     return report
 
-def main(argv=None):
+def main(argv=None,spark=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true", help="Create/ingest into Databricks; otherwise validate locally only")
+    parser.add_argument("--fetch-sources", action="store_true", help="Download frozen Volume inputs to RESEARCH3_DATA_ROOT")
     args = parser.parse_args(argv)
     settings = Settings.load()
-    prepared = prepare(settings)
+    prepared = fetch_sources(settings) if args.fetch_sources else prepare(settings)
     if args.execute:
-        result = persist(settings, prepared)
+        result = persist(settings, prepared,spark=spark)
     else:
         counts = collections.Counter()
         for dataset in prepared:

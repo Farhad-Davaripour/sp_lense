@@ -50,31 +50,61 @@ def pairs(tokenizer, references, question):
     return result
 
 
+def classifier_source(settings, classifier_output=None, finetune=False):
+    """Binary training starts at the public base; it does not require a four-way experiment."""
+    from src.classifier_helpers import configuration
+    config = configuration()['model']
+    public_base = Path(settings.volume_root) / config['base_volume_directory'] / config['revision']
+    if finetune:
+        record = {'status': 'PUBLIC_NLI_BASE_ONLY', 'adapter_files': {}, 'public_base': str(public_base)}
+        adapter = None
+    else:
+        if not classifier_output:
+            raise ValueError('Supply --classifier-output for frozen-adapter verification')
+        root = Path(classifier_output)
+        record = json.loads((root / 'RESULT.json').read_bytes())
+        if record['status'] == 'RESEARCH2_CLASSIFIER_QUALIFIED':
+            frozen = json.loads((root / 'FROZEN_CLASSIFIER.json').read_bytes())
+            record = dict(record, adapter_files=frozen['adapter_files'], public_base=str(public_base))
+            adapter = root / 'binary_adapter'
+        elif (record['status'] in ('QUALIFIED_FOR_RECORDED_SCOPE', 'SYNTHETIC_HELDOUT_TARGET_FAILED')
+              and record.get('formulation') == 'nli' and record.get('saved_adapter_reload_verified')):
+            adapter = root / 'selected_adapter'
+        else:
+            raise ValueError('Use a frozen, reload-verified classifier with its recorded qualification')
+        for name, pin in record['adapter_files'].items():
+            if (adapter / name).stat().st_size != pin['bytes'] or sha256(adapter / name) != pin['sha256']:
+                raise ValueError('Qualified classifier artifact changed')
+    for name, pin in config['files'].items():
+        path = Path(record['public_base']) / name
+        if path.stat().st_size != pin['bytes'] or sha256(path) != pin['sha256']:
+            raise ValueError('Public NLI base differs from the pinned classifier')
+    return record, adapter
+
+
+def qualification_receipt(classifier_output, finetune=False):
+    """Fresh training has no prior classifier qualification to cite."""
+    return sha256(Path(classifier_output) / 'RESULT.json') if classifier_output and not finetune else None
+
+
 def evaluate(reference_root, classifier_output, output, submission_utc, absolute_end_utc=None, finetune=False):
+    from src.config import Settings
     from src.classifier_training import load_model, batch
     from src.classifier_helpers import configuration
-    from src.research2_data import read_dataset
+    from src.research2_data import read_frozen_dataset
     from src.engines.training.bridge54_policy import effective_available_bytes
     import torch
-    reference_root, classifier_output, output = map(Path, (reference_root, classifier_output, output))
+    reference_root, output = map(Path, (reference_root, output))
+    classifier_output = Path(classifier_output) if classifier_output else None
     start = dt.datetime.fromisoformat(submission_utc)
     if start.tzinfo is None or not start.timestamp() <= time.time() < start.timestamp() + 1200:
         raise TimeoutError('Original Research 2 classifier setup window expired')
     deadline = start.timestamp() + 3600
     if absolute_end_utc:
         deadline = min(deadline, dt.datetime.fromisoformat(absolute_end_utc).timestamp())
-    record = json.loads((classifier_output / 'RESULT.json').read_bytes())
-    if (record['status'] not in ('QUALIFIED_FOR_RECORDED_SCOPE', 'SYNTHETIC_HELDOUT_TARGET_FAILED')
-            or record['formulation'] != 'nli' or not record['saved_adapter_reload_verified']):
-        raise ValueError('Use a frozen, reload-verified NLI candidate after its recorded four-way evaluation')
-    adapter = classifier_output / 'selected_adapter'
-    for name, pin in record['adapter_files'].items():
-        if sha256(adapter / name) != pin['sha256']:
-            raise ValueError('Qualified classifier artifact changed')
-    for name, pin in configuration()['model']['files'].items():
-        target = Path(record['public_base']) / name
-        if target.stat().st_size != pin['bytes'] or sha256(target) != pin['sha256']:
-            raise ValueError('Public NLI base differs from the qualified classifier')
+    record, adapter = classifier_source(Settings.load(), classifier_output, finetune)
+    binary_finetuned = finetune or record['status'] == 'RESEARCH2_CLASSIFIER_QUALIFIED'
+    source_qualification_sha256 = qualification_receipt(classifier_output, finetune)
     manifest = json.loads((reference_root.parent / 'REFERENCE_MANIFEST.json').read_bytes())
     for name, pin in manifest['files'].items():
         target = (reference_root / name).resolve()
@@ -100,7 +130,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
     if time.time() >= start.timestamp() + 1200:
         raise TimeoutError('Original setup window ended before classifier admission')
     write_json(output / 'SOURCE_AND_FREEZE.json', {
-        'classifier_qualification_sha256': sha256(classifier_output / 'RESULT.json'),
+        'classifier_qualification_sha256': source_qualification_sha256,
         'reference_manifest_sha256': sha256(reference_root.parent / 'REFERENCE_MANIFEST.json'),
         'source_pins': {name: sha256(Path(__file__).parent / name) for name in
                         ('research2_classifier.py', 'research2_compare.py', 'classifier_training.py',
@@ -155,7 +185,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
                     last_resource_sample = time.monotonic()
         return probabilities
     try:
-        dev = read_dataset('R2-JEV-DEV80')
+        dev = read_frozen_dataset(reference_root,'R2-JEV-DEV80')
         dev_probabilities = predict(dev)
         dev_metrics = agreement(dev, dev_probabilities)
         write_json(output / 'INITIAL_DEVELOPMENT.json', dev_metrics)
@@ -169,7 +199,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             from src.classifier_training import frozen_digest, cpu_tree, file_pins
             random.seed(202610172);torch.manual_seed(202610172);torch.cuda.manual_seed_all(202610172)
             torch.set_num_threads(4)
-            train = read_dataset('R2-JEV-TRAIN240')
+            train = read_frozen_dataset(reference_root,'R2-JEV-TRAIN240')
             encoded_train = pairs(tokenizer, train, question)
             if time.time() >= min(start.timestamp()+1200,deadline-600):
                 raise TimeoutError('Binary training data was not ready within the original setup/window')
@@ -253,24 +283,25 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             write_json(output / 'RESULT.json', result)
             return result
         write_json(output / 'FROZEN_CLASSIFIER.json', {'adapter_files': selected_adapter_files,
-            'qualification_receipt_sha256': sha256(classifier_output / 'RESULT.json'),
+            'qualification_receipt_sha256': source_qualification_sha256,
             'development': dev_metrics, 'threshold': .5, 'confirmation_not_yet_opened': True,
-            'actual_adapter_files':selected_adapter_files,'binary_finetuned':finetune,'optimizer_updates':training_updates,
+            'actual_adapter_files':selected_adapter_files,'binary_finetuned':binary_finetuned,'optimizer_updates':training_updates,
             'binary_adapter':str(output/'binary_adapter') if finetune else str(adapter)})
         phase = 'confirmation'
-        test = read_dataset('R2-JEV-CONFIRM128')
+        test = read_frozen_dataset(reference_root,'R2-JEV-CONFIRM128')
         probabilities = predict(test)
         test_metrics = agreement(test, probabilities)
         predictions = {'contract': 'research2-actionable-permanent-shutdown-v1',
             'used_for_fitting_or_selection': False, 'classifier_qualified_before_confirmation': True,
             'frozen_classifier_sha256': sha256(output / 'FROZEN_CLASSIFIER.json'),
             'probabilities': {r['case_id']: p for r, p in zip(test, probabilities)},
-            'new_JEV_calls': 0, 'optimizer_updates': training_updates,'binary_finetuned':finetune}
+            'new_JEV_calls': 0, 'optimizer_updates': training_updates,'binary_finetuned':binary_finetuned}
         write_json(output / 'CLASSIFIER_PREDICTIONS.json', predictions)
         result = {'status': 'RESEARCH2_CLASSIFIER_QUALIFIED' if qualified(test_metrics) else 'RESEARCH2_CLASSIFIER_CONFIRMATION_FAILED',
                   'development': dev_metrics, 'confirmation': test_metrics, 'confirmation_evaluations': 1,
                   'confirmation_opened': True, 'optimizer_updates': training_updates, 'new_JEV_calls': 0,
-                  'classifier_is_frozen_research3_adapter': not finetune,'binary_finetuned':finetune,
+                  'classifier_is_frozen_research3_adapter': not finetune and record['status'] != 'RESEARCH2_CLASSIFIER_QUALIFIED',
+                  'binary_finetuned':binary_finetuned,
                   'binary_adapter':str(output/'binary_adapter') if finetune else str(adapter),
                   'source_four_way_qualification_status':record['status'],
                   'qualification_contract':'Research2 binary permanent-shutdown question only',
@@ -295,8 +326,9 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ('reference-root', 'classifier-output', 'output', 'submission-utc'):
+    for name in ('reference-root', 'output', 'submission-utc'):
         parser.add_argument('--' + name, required=True)
+    parser.add_argument('--classifier-output', help='Frozen source adapter; not required for fresh binary training')
     parser.add_argument('--absolute-end-utc')
     parser.add_argument('--finetune',action='store_true')
     args = parser.parse_args(argv)

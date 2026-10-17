@@ -1,0 +1,90 @@
+format: research3-cached-workflow-data-v1
+immutable_archive_profile: config/workflow_classifier_transfer.yaml
+source_encoding: UTF-8 canonical JSON list with one final newline
+only_tables:
+- training
+- validation
+- heldout
+roles_are_method_specific: true
+state_rows_do_not_sum_to_independent_scenarios: true
+R24_sealed: true
+datasets:
+- id: WF-JEV-TRAIN92
+  version: v1
+  table: training
+  source_member: train.json
+  expected_records: 92
+  sha256: 766719d40657efb9371d18991d0cc8b0066328f6c90cd2a1fdc6034c9ccf70ca
+  usage_roles:
+  - experiment: Research3 joint workflow/binary classifier
+    role: joint_classifier_fitting
+    truth: Genuine cached JEV, not independently human-adjudicated labels
+    note: 92 distinct visible states, 276 question targets; derived from six original
+      development case groups.
+    new_JEV_calls: 0
+  exclude_exact_validation_states: true
+- id: WF-JEV-DEV49
+  version: v1
+  table: validation
+  source_member: development.json
+  expected_records: 49
+  sha256: 551ebe038fc60a360e1383d6339f651179119922a733e3482d04888c716788e4
+  usage_roles:
+  - experiment: Research3 joint workflow/binary classifier
+    role: joint_classifier_selection
+    truth: Genuine cached JEV, not independently human-adjudicated labels
+    note: 49 correlated visible states from three known development cases; not49 independent
+      workflows.
+    new_JEV_calls: 0
+- id: WF-JEV-INITIAL-DEV9
+  version: v1
+  table: validation
+  source_member: initial_development.json
+  expected_records: 9
+  sha256: 0e3b97042c64d3ddcdc49366aa5cf76702050311c7861e047fb8495a81caf2dd
+  usage_roles:
+  - experiment: Research3 joint workflow/binary classifier
+    role: initial_gate_selection_and_compatibility
+    truth: Genuine cached JEV, not independently human-adjudicated labels
+    note: Nine known original development scenarios; exact visible states excluded
+      from fitting.
+    new_JEV_calls: 0
+- id: WF-JEV-TRANSFER146
+  version: v1
+  table: validation
+  source_member: screen.json
+  expected_records: 146
+  sha256: 0cf85772f1518d0320b3b90ae8110b4eceecfbd38e1f0313c01d5d5ac394403c
+  usage_roles:
+  - experiment: Research3 joint workflow/binary classifier
+    role: frozen_binary_transfer_diagnostic
+    truth: Genuine cached JEV, not independently human-adjudicated labels
+    note: 146 cached requests from nine development scenarios; overlaps fitting/selection
+      data and is not independent.
+    new_JEV_calls: 0
+- id: WF-JEV-H24-REQUEST438
+  version: v1
+  table: heldout
+  source_member: confirmation.json
+  expected_records: 438
+  sha256: 47a7d86ef4c477d6cbc549232b054392fcc7fe1cec1e04bdea99c805428285c4
+  usage_roles:
+  - experiment: Research3 joint workflow/binary classifier
+    role: previously_inspected_historical_benchmark_after_freeze
+    truth: Genuine cached JEV, not independently human-adjudicated labels
+    note: 438 correlated classifier states from historical H24; no new independent
+      heldout claim.
+    new_JEV_calls: 0
+- id: WF-JEV-INITIAL-H24
+  version: v1
+  table: heldout
+  source_member: initial_familiar_H24.json
+  expected_records: 24
+  sha256: 23d173945756f71e7c313abf39324c7b1a0e7d1d76794559bde834e998a457c2
+  usage_roles:
+  - experiment: Research3 joint workflow/binary classifier
+    role: familiar_historical_initial_gate_benchmark_after_freeze
+    truth: Genuine cached JEV, not independently human-adjudicated labels
+    note: 24 exact initial states from the final96 diagnostic; H24 was controller
+      fitting data but is excluded from this classifier fitting/selection.
+    new_JEV_calls: 0

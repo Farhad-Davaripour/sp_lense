@@ -17,7 +17,7 @@ variables:
   accelerator:
     description: Single GPU type permitted by this Free Edition workspace
 workspace:
-  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/research3/shared
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/research3/${bundle.target}
   file_path: ${var.code_path}
 sync:
   exclude:
@@ -26,3 +26,8 @@ sync:
 targets:
   shared:
     default: true
+  reproduction:
+    workspace:
+      file_path: /Workspace/Shared/sp_lense-reproduction
+    presets:
+      name_prefix: 'Reproduction - '

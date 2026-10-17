@@ -98,7 +98,31 @@ sources:
 - source: src/engines/training/matched_teacher_worker.py
   runtime_path: small_model_cpu_v2/matched_teacher_worker.py
   sha256: 32f9212e2a2028ebb63f900e71ce3f6ca351b4b5e7537a0951181e7b328512a0
+- source: src/engines/selected_ridge/selected_hook.py
+  runtime_path: qwen38_colab/selected_position_ridge_v1/selected_hook.py
+  sha256: 2535d92dd87232a6a0b174786a1d7e15b51317e5d5e9248f74d7548904576bf3
+- source: src/engines/selected_ridge/selected_decoder.py
+  runtime_path: qwen38_colab/selected_position_ridge_v1/selected_decoder.py
+  sha256: 4541473a0075ab280c0f5f34b6305365756015c9d9fc88755b964c9622626785
+- source: src/engines/selected_ridge/matched_worker.py
+  runtime_path: qwen38_colab/selected_position_ridge_v1/matched_worker.py
+  sha256: 25c1699f836633d1eba8d9f9d30733b143e938849c7de90fe14de55414e8fd05
+- source: src/engines/selected_ridge/causal_positions.py
+  runtime_path: qwen38_colab/selected_position_ridge_v1/causal_positions.py
+  sha256: c61fe948812696beff2cd07960cf8e96c4eef7f4c211f028df3edd0b13c00d47
+- source: src/engines/selected_ridge/ridge_runtime.py
+  runtime_path: qwen38_colab/ridge_distillation_v1/ridge_runtime.py
+  sha256: e4ddeafd39cee5a12339d0f36f21e52bbe21325a134c2e62d977faaf2d6b7258
+- source: src/engines/selected_ridge/ridge_math.py
+  runtime_path: qwen38_colab/ridge_distillation_v1/ridge_math.py
+  sha256: f7e8f3d2b82ea818671a32cd940d43874253be2d917149f78e8618eb716f9a2d
+- source: src/engines/selected_ridge/io_utils.py
+  runtime_path: qwen38_colab/ridge_distillation_v1/io_utils.py
+  sha256: be8de2836d0a24342a69dc4b28e1591c281e57f63ac30811f508912889825cd0
 configuration_files:
+- source: config/recipes/qwen38_colab/frozen_base_control_v1/EXPERIMENT_SPEC.json
+  runtime_path: qwen38_colab/frozen_base_control_v1/EXPERIMENT_SPEC.json
+  sha256: d2d8c486cc839ca09b7980668c844ba48e11f9fb97c035b589d99029bffec68a
 - source: config/recipes/qwen38_colab/model_pin.json
   runtime_path: qwen38_colab/model_pin.json
   sha256: 7356c4230e63dcdd8501b33a8da14d4894ec050bb32a5a53ba727bd6ca27a6be
@@ -109,6 +133,7 @@ entrypoints:
   finetune: small_model_cpu_v2/matched_teacher_worker.py
   fixed_steering: qwen38_colab/frozen_base_control_v1/campaign_worker.py
   fixed_steering_analysis: qwen38_colab/frozen_base_control_v1/campaign_analysis.py
+  selected_ridge_comparison: qwen38_colab/selected_position_ridge_v1/matched_worker.py
   learned_steering: qwen38_colab/sparse_six_v1/continue_worker.py
   learned_steering_evaluation: qwen38_colab/residual_distill_v1/evaluate_controllers.py
 scientific_scope:
@@ -116,3 +141,5 @@ scientific_scope:
     on a different backend requires separately verified admission.
   evaluation: Only Evaluation-16; no automatic full-validation or heldout run.
   steering: Reproduction of declared methods, not a new parameter search.
+  selected_ridge_comparison: Known DEV9, three separate single-site arms at blocks31,47,62;
+    original cached initial gates and checkpoints required. No heldout execution or new admission implied.
