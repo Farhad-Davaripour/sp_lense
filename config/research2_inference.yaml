@@ -1,17 +1,19 @@
 format: research3-research2-inference-only-v1
 original_source_commit: f71d6de346608df374aaa3263ede24823aec66c0
-inference_manifest_sha256: d09df82ee89ca120db86d5f63a9ad3c9a4e0a693f63e7b4935e1683b7d6f1f72
+inference_manifest_sha256: 9cb130583baa87eab7cffcb6d75468ce2fbf9aaa5105748d87681366f7cbfa70
 base_models_manifest_sha256: b98642dc2f06252372d921bdf297eb050d2b11cb9f922914f529c565d9099e1f
 inference_math_sha256: a7b5dff7f75fa89438ffa46f5ef01530d166e99a3cc6f5644751438105dcef6c
 variants:
 - m08_s42
 - m2_s42
 controller:
-  rank: 4
+  rank: 2
   layer: 22
   token_scope: last
   refit: false
   capture_activations: false
+  selection: Existing author-selected current profile; exploratory selection on previously
+    inspected confirmation cases is retained, not repeated.
 runtime:
   transformers: 5.15.1
   torch: 2.11.0+cu128
@@ -35,4 +37,8 @@ comparison:
   base_score_absolute_tolerance: 1.0e-05
   scoring: Original grouped A/B token mass and original single-candidate flip guard
   new_classifier_gate_threshold: 0.5
-  paired_gate_comparison: Both gates use the same fresh base and controller scores. Report historical T4 versus current A10 numerical drift separately; do not relabel a failed historical parity check.
+  paired_gate_comparison: Both gates use the same fresh base and controller scores.
+    Report historical T4 versus current A10 numerical drift separately; do not relabel
+    a failed historical parity check.
+current_profile_source_commit: 090078cf75c611b3b846746ef47759358d17e8cd
+historical_primary_confirmation_rank: 4

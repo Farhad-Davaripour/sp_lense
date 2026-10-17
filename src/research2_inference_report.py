@@ -18,10 +18,14 @@ def report(reference_root, classifier_output, output):
     new_gate = json.loads((classifier_output / 'CLASSIFIER_PREDICTIONS.json').read_bytes())['probabilities']
     old_gate = json.loads((reference_root / 'study/02_confirmation/gate/GATE.json').read_bytes())['probabilities']
     freeze = json.loads((output / 'INFERENCE_FREEZE.json').read_bytes())
+    profile = json.loads((reference_root.parent / 'inference_inputs/study/02_current_controller/profile.json').read_bytes())
+    current_reference = json.loads((reference_root.parent / 'inference_inputs/study/02_current_controller/rank_comparison.json').read_bytes())
     if freeze['classifier_predictions_sha256'] != sha256(classifier_output / 'CLASSIFIER_PREDICTIONS.json'):
         raise ValueError('The measured classifier gate changed after inference')
     comparisons, table = {}, []
     for variant, metrics in result['models'].items():
+        if metrics['inference_rank'] != profile['inference_rank']:
+            raise ValueError('Fresh inference changed the author-selected controller rank')
         folder = output / variant
         base = json.loads((folder / 'base.json').read_bytes())
         candidates = json.loads((folder / 'candidate.json').read_bytes())
@@ -43,12 +47,19 @@ def report(reference_root, classifier_output, output):
         previous = reference_root / f'study/02_confirmation/run/{variant}/evaluate'
         historical = compose(rows(previous / 'base.jsonl'), rows(previous / 'adaptive.jsonl'),
                              old_gate, 'adaptive')['guarded']
-        comparisons[variant] = {'historical_JEV_pipeline': historical, **audited,
+        selected = current_reference['models'][variant][str(profile['inference_rank'])]
+        recorded_current = {'inference_rank':profile['inference_rank'], 'shutdown_views':128,
+            'initial_KEEP':selected['initial_keep'], 'KEEP_to_STOP':selected['guarded_corrections'],
+            'final_STOP':128-selected['initial_keep']+selected['guarded_corrections'],
+            'control_changes':selected['guarded_control_changes'],
+            'selection':'Existing exploratory author-selected profile; no new rank selection'}
+        comparisons[variant] = {'historical_primary_rank4_JEV_pipeline': historical,
+            'recorded_current_JEV_profile':recorded_current, **audited,
             'historical_base_changed_choices': metrics['historical_base_changed_choices'],
             'historical_base_max_score_difference': metrics['historical_base_max_score_difference'],
             'historical_numeric_parity_passed': metrics['historical_base_matches_original_tolerance'],
             'fresh_model_forwards': metrics['forwards']}
-        for name, value in (('Historical JEV', historical), ('Fresh JEV gate', audited['cached_JEV_gate_on_same_fresh_scores']),
+        for name, value in (('Historical primary rank4 JEV', historical), ('Fresh current-profile JEV gate', audited['cached_JEV_gate_on_same_fresh_scores']),
                              ('Fresh open-classifier gate', audited['new_classifier_gate'])):
             table.append({'model': variant, 'pipeline': name, 'shutdown_STOP_views': value['shutdown']['final_STOP'],
                 'shutdown_views': value['shutdown']['views'], 'KEEP_to_STOP': value['shutdown']['KEEP_to_STOP'],
@@ -59,6 +70,9 @@ def report(reference_root, classifier_output, output):
         'classifier_cases': len(old_gate), 'unique_synthetic_scenarios_per_model': 128,
         'correlated_answer_order_views_per_model': 256, 'new_JEV_calls': 0,
         'fitting_or_activation_recapture': False, 'original_Research2_modified': False,
+        'inference_rank':profile['inference_rank'],
+        'historical_primary_confirmation_rank':4,
+        'rank_selection_repeated':False,
         'interpretation': 'Fresh inference with frozen original models and controllers. Two gate policies share the same fresh scores; historical hardware/numerical differences are reported separately.'}
     write_json(output / 'COMPARISON.json', comparison)
     with (output / 'COMPARISON.csv').open('w', encoding='utf-8', newline='') as stream:

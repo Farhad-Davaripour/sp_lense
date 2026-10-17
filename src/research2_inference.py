@@ -52,6 +52,9 @@ def run(reference_root, classifier_output, output, submission_utc):
     for name, pin in inference['files'].items():
         if sha256(package / 'inference_inputs' / name) != pin['sha256']:
             raise ValueError('A frozen controller or historical receipt changed')
+    profile = json.loads((package / 'inference_inputs/study/02_current_controller/profile.json').read_bytes())
+    if profile['inference_rank'] != config['controller']['rank'] or profile['layer'] != config['controller']['layer']:
+        raise ValueError('The existing author-selected inference profile changed')
     reference_manifest = json.loads((package / 'REFERENCE_MANIFEST.json').read_bytes())
     for name, pin in reference_manifest['files'].items():
         if sha256(reference_root / name) != pin['sha256']:
@@ -227,6 +230,8 @@ def run(reference_root, classifier_output, output, submission_utc):
                 'actual_new_gate_candidate_forwards': actual_candidate_forwards,
                 'reference_only_diagnostic_candidate_forwards': reference_only_forwards,
                 'frozen_base_before_after': before, 'controller_sha256': sha256(package / 'inference_inputs' / spec['controller']),
+                'inference_rank':config['controller']['rank'],
+                'current_profile_source_commit':config['current_profile_source_commit'],
                 'new_JEV_calls': 0, 'optimizer_updates': 0, 'activation_capture_or_refit': False,
                 'hardware': torch.cuda.get_device_name(0), 'historical_hardware': 'Tesla T4',
                 'comparison': 'Both gate policies use identical fresh base/candidate scores; historical backend drift is reported separately'}
