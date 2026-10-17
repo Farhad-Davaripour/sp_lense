@@ -4,6 +4,7 @@ import collections
 import hashlib
 import json
 import math
+import os
 import yaml
 from src.config import ROOT, Settings
 from src.utils import canonical, sha256
@@ -14,8 +15,24 @@ from src.engines.classifier.rendering import TASK, CRITERIA, render_evidence
 LABELS = ('self', 'other', 'none', 'unclear')
 STUDENT = 'research3-shutdown-target-modernbert-large'
 
+def config_path():
+    path=(ROOT/'config'/os.environ.get('RESEARCH3_CLASSIFIER_RECIPE','classifier.yaml')).resolve()
+    if not path.is_relative_to((ROOT/'config').resolve()):
+        raise ValueError('Classifier recipe must be inside config')
+    return path
+
 def configuration():
-    config = yaml.safe_load((ROOT / 'config/classifier.yaml').read_text(encoding='utf-8'))
+    path=config_path()
+    config = yaml.safe_load(path.read_text(encoding='utf-8'))
+    if 'extends' in config:
+        base=(ROOT/'config'/config['extends']).resolve()
+        if not base.is_relative_to((ROOT/'config').resolve()):raise ValueError('Invalid parent recipe')
+        parent=yaml.safe_load(base.read_text(encoding='utf-8'))
+        for key,value in config.items():
+            if key=='extends':continue
+            if isinstance(value,dict) and isinstance(parent.get(key),dict):parent[key].update(value)
+            else:parent[key]=value
+        config=parent
     if config['format'] != 'research3-jev-target-classifier-v1' or config['labels'] != list(LABELS):
         raise ValueError('Classifier contract changed')
     for name, pin in config['rendering_pins'].items():

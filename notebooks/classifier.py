@@ -27,7 +27,9 @@ for name,key in (('catalog','DATABRICKS_CATALOG'),('schema','DATABRICKS_SCHEMA')
 
 # COMMAND ----------
 from src.classifier import main
-args=['--execute','--admission',parameter('admission')] if parameter('execute','false').lower()=='true' else []
+args=['--recipe',parameter('recipe','classifier.yaml')]
+if parameter('execute','false').lower()=='true':
+    args += ['--execute','--admission',parameter('admission')]
 result=main(args)
 
 # COMMAND ----------

@@ -1,0 +1,8 @@
+extends: classifier.yaml
+training:
+  formulation: nli
+  max_epochs: 80
+  learning_rate: 0.00001
+  classifier_learning_rate: 0.00002
+  target: 100% label, gate and abstention agreement on DEV32 and familiar JEV24; preserve original NLI head and label-conditional input format
+  rationale: Retain the public pretrained entailment classifier instead of replacing it with a randomly initialized four-way output layer. The four entailment logits are normalized using the original four-choice scoring rule.

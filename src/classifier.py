@@ -10,7 +10,7 @@ import time
 from src.config import ROOT, Settings
 from src.utils import canonical, sha256, write_json, workspace_client
 from src.persist_data import persist
-from src.classifier_helpers import configuration, prepare_datasets, read_dataset
+from src.classifier_helpers import configuration, config_path, prepare_datasets, read_dataset
 
 def stage_base(settings, config, setup_end):
     spec=config['model']
@@ -62,7 +62,7 @@ def dispatch(admission_path):
                                              'files':config['model']['files']})
     worker=dict(admission,root=str(root),base=str(base),inputs=inputs,
                 absolute_end_utc=dt.datetime.fromtimestamp(end,dt.timezone.utc).isoformat(),
-                configuration_sha256=sha256(ROOT/'config/classifier.yaml'))
+                configuration_sha256=sha256(config_path()),recipe_file=config_path().name)
     worker_path=root/'WORKER_CONFIG.json';write_json(worker_path,worker)
     env=os.environ.copy();env['PYTHONPATH']=str(ROOT);env['HF_HUB_OFFLINE']='1';env['USE_TF']='0'
     for key in ('HF_TOKEN','OPENAI_API_KEY','ANTHROPIC_API_KEY','DATABRICKS_TOKEN','databricks-token'):
@@ -119,7 +119,9 @@ def main(argv=None):
     parser.add_argument('--execute',action='store_true')
     parser.add_argument('--persist-data',action='store_true')
     parser.add_argument('--admission')
+    parser.add_argument('--recipe',default='classifier.yaml')
     args=parser.parse_args(argv)
+    os.environ['RESEARCH3_CLASSIFIER_RECIPE']=args.recipe
     settings=Settings.load();config=configuration()
     if args.persist_data:
         prepared=prepare_datasets(settings,config)

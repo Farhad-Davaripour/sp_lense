@@ -19,6 +19,8 @@ resources:
         default: 'false'
       - name: admission
         default: ''
+      - name: recipe
+        default: classifier.yaml
       tasks:
       - task_key: finetune_classifier
         notebook_task:

@@ -76,6 +76,10 @@ The classifier job has separate training and final JEV-comparison tasks. The com
 uses frozen student predictions and genuine cached JEV responses, writes a per-case CSV,
 and reports label, gate, abstention and numerical-confidence differences separately.
 It can also run alone with python -m src.classifier_compare --classifier-output <run-directory>.
+The optional classifier_nli.yaml recipe preserves the pretrained binary NLI head and
+scores the same four fixed hypotheses for each complete input. Those four pairs are
+alternative views of one case, not four independent scenarios. Job parameters select
+the recipe; changing it does not modify an already running training process.
 
 ## Storage and history
 

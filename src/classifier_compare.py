@@ -13,9 +13,18 @@ def compare(root):
     predictions=root/'FAMILIAR_JEV_PREDICTIONS_PRIVATE.json'
     destination=root/'comparison_with_jev'
     if not predictions.exists():
-        report={'status':'COMPARISON_NOT_READY','training_status':result['status'],
-                'reason':'No frozen final student predictions exist; partial development metrics are not final comparison outputs.',
-                'new_model_forwards':0,'new_JEV_calls':0}
+        best=root/'BEST_DEVELOPMENT.json'
+        if best.exists():
+            saved=json.loads(best.read_bytes())
+            report={'status':'AGGREGATE_DEVELOPMENT_COMPARISON_ONLY','training_status':result['status'],
+                    'selected_epoch':saved['epoch'],'familiar_JEV_comparison':saved['familiar_JEV_development'],
+                    'reason':'The development target was not reached. These are recorded best-candidate aggregate comparisons; no frozen final per-case comparison is claimed.',
+                    'familiar_development_not_independent_test':True,
+                    'new_model_forwards':0,'new_JEV_calls':0}
+        else:
+            report={'status':'COMPARISON_NOT_READY','training_status':result['status'],
+                    'reason':'No frozen final student predictions or completed development comparisons exist.',
+                    'new_model_forwards':0,'new_JEV_calls':0}
         write_json(destination/'COMPARISON.json',report)
         return report
     worker=json.loads((root/'WORKER_CONFIG.json').read_bytes())
