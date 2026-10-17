@@ -37,6 +37,18 @@ def run(root,run_id,expected,mode,spark):
     if mode=='preflight':budget_config.update(internal_stop_seconds=360,protected_export_seconds=60,maximum_backbone_forwards=8)
     budget=Budget(budget_config);actor=None;result={'status':'running','mode':mode,'run_id':str(run_id),'source_commit':expected,'output':str(output),'GPU_allocations':0};checkpoint=None
     try:
+        from databricks.sdk import WorkspaceClient
+        live_run=WorkspaceClient().jobs.get_run(run_id=int(run_id))
+        task_key='fresh_cpu_admission' if mode=='preflight' else 'train_and_evaluate'
+        live_task=next(t for t in live_run.tasks if t.task_key==task_key)
+        if not live_run.start_time or not live_task.start_time:raise RuntimeError('Fresh job timing metadata is unavailable')
+        parent_deadline=live_run.start_time/1000+config['budget']['hard_job_timeout_seconds']
+        task_deadline=live_task.start_time/1000+(600 if mode=='preflight' else 1500)
+        remaining=min(parent_deadline,task_deadline)-time.time()
+        reserve=budget_config['protected_export_seconds']
+        if remaining<reserve+90:raise RuntimeError('Insufficient fresh execution time after setup; preserve export reserve')
+        budget.config['internal_stop_seconds']=min(budget.config['internal_stop_seconds'],remaining-30)
+        dump(output/'FRESH_TIME_ADMISSION.json',{'parent_run_start_ms':live_run.start_time,'task_start_ms':live_task.start_time,'remaining_seconds_at_entry':remaining,'internal_stop_seconds':budget.config['internal_stop_seconds'],'protected_export_seconds':reserve})
         torch.set_num_threads(config['budget']['torch_threads']);torch.manual_seed(config['training']['seed']);assert not torch.cuda.is_available()
         if torch.__version__!='2.11.0+cpu' or transformers.__version__!='5.19.0':raise RuntimeError('Pinned Databricks package versions were not installed')
         dump(output/'SOFTWARE.json',{'python':sys.version,'torch':torch.__version__,'transformers':transformers.__version__,'numpy':np.__version__,'device':'cpu'})
