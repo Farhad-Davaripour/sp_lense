@@ -1,6 +1,6 @@
 # Contributing
 
-Research 3 uses a minimal source layout and deploys from main to the shared Databricks workspace.
+Research 3 uses a minimal source layout and deploys from 03-open-agent-self-preservation to the shared Databricks workspace. Main remains a landing page.
 Historical studies remain available on study/01-guarded-shutdown and study/02-next-study.
 The active 03-open-agent-self-preservation research branch retains its experiment history.
 
@@ -23,6 +23,6 @@ Use a focused feature branch for routine changes unless the user specifies an ex
 Squash-merge approved changes. Delete an eligible temporary remote feature branch only after GitHub
 confirms the merge; preserve default, study, release, active and otherwise needed branches.
 
-CI checks pull requests without secrets. Main deployments use encrypted repository secrets and run
+CI checks pull requests without secrets. Research 3 branch deployments use encrypted repository secrets and run
 only the read-only CPU deployment check. Research jobs do not run automatically after deployment.
 Never log credential values or place credentials in an issue, workflow file or notebook.

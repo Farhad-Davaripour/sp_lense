@@ -12,7 +12,7 @@ The original Research 2 study remains on its preserved study branch.
 - src/: research entry points, data persistence, deployment checks and pinned scientific engines.
 - notebooks/: thin Databricks orchestration importing src.
 - resources/: readable manual research jobs and the CPU deployment check.
-- .github/workflows/ci.yml: public source checks and deployment after a merge to main.
+- .github/workflows/ci.yml: public source checks and deployment from the Research 3 branch.
 
 Detailed protocols and research history belong in the
 [Research 3 reproduction guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-3-Reproduction).
@@ -109,9 +109,12 @@ Bundle deployment state stays in the deploying owner's private bundle directory.
 bindings preserve their IDs and history. Job names do not include a development username prefix.
 
 Pull requests run compilation and public source-integrity checks without credentials or model
-loads. A push to main also validates and deploys the bundle, then runs deployment_smoke.
+loads. A push to 03-open-agent-self-preservation also validates and deploys the bundle, then runs deployment_smoke.
 That CPU-only job checks the expected source digest, shared code path, existing table metadata
 and Volume access. It reads zero dataset rows and performs zero scientific forwards or updates.
+
+Main remains a landing page linking to the separate study branches. Research 3 code and its
+manual jobs deploy only from 03-open-agent-self-preservation.
 
 The deployment workflow uses repository secrets DATABRICKS_HOST and DATABRICKS_TOKEN, plus
 the DATABRICKS_WAREHOUSE_ID repository variable. Catalog, schema, Volume and code-path defaults
