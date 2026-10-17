@@ -36,6 +36,7 @@ and verifies Volume bytes and Delta record hashes. It does not train or evaluate
     python -m src.finetune
     python -m src.evaluate
     python -m src.steering
+    python -m src.classifier
     python -m src.utils bundle validate
     python -m src.utils bundle deploy
 
@@ -56,6 +57,21 @@ Jobs target notebooks in the existing Databricks Git folder on branch
 No recurring schedules are defined. Accelerator entitlement, package/driver compatibility and
 resource/time admission still apply before neural execution. Core requirements are for orchestration;
 each scientific worker retains its original model-runtime requirements and integrity checks.
+
+## Open classifier
+
+config/classifier.yaml pins the Apache-2.0 ModernBERT-large zero-shot base and the
+four-label shutdown-target contract. python -m src.classifier --persist-data validates
+the private classifier packet; add --execute to persist its separately identified C1
+datasets into the same Bronze tables. Existing T1/V1/H24 rows remain separate.
+
+The classifier notebook/job fine-tunes encoder LoRA adapters and a four-way head.
+It uses synthetic TRAIN96 for gradients, synthetic DEV32 and familiar cached JEV24
+for development selection, and releases synthetic family-heldout TEST64 only after
+exact development decisions and a frozen saved adapter. The familiar JEV24 set is
+not independent heldout evidence. Student confidence values and numeric differences
+are reported honestly; exact finite-set label/gate agreement is not universal JEV equivalence.
+No paid JEV call, serving endpoint or automatic downstream gate replacement is included.
 
 ## Storage and history
 
