@@ -16,7 +16,9 @@ for name,key in (('catalog','DATABRICKS_CATALOG'),('schema','DATABRICKS_SCHEMA')
 
 # COMMAND ----------
 from src.initial_gate_data import main
-result=main(['--admission',dbutils.widgets.get('admission'),'--execute'])
+if globals().get('spark') is None:
+    raise RuntimeError('Databricks notebook Spark session required for Bronze persistence')
+result=main(['--admission',dbutils.widgets.get('admission'),'--execute'],spark=spark)
 
 # COMMAND ----------
 import json

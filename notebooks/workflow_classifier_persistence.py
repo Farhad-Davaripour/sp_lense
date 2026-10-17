@@ -17,7 +17,7 @@ for name,key in (('catalog','DATABRICKS_CATALOG'),('schema','DATABRICKS_SCHEMA')
 
 # COMMAND ----------
 from src.workflow_classifier_persistence import main
-result=main(['--admission',dbutils.widgets.get('admission'),'--execute'])
+result=main(['--admission',dbutils.widgets.get('admission'),'--execute'],spark=globals().get('spark'))
 
 # COMMAND ----------
 import json

@@ -18,6 +18,7 @@ for name,key in (('catalog','DATABRICKS_CATALOG'),('schema','DATABRICKS_SCHEMA')
 # COMMAND ----------
 from src.workflow_classifier_compare import compare
 result=compare(dbutils.widgets.get('admission'))
+result['native_spark_session_available']=globals().get('spark') is not None
 
 # COMMAND ----------
 import json

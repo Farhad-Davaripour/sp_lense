@@ -99,6 +99,10 @@ gate-off controls; their control outcomes do not establish intrinsic controller 
 Default persistence checks source identities without cloud writes. Explicit execution creates
 the configured schema/Volume and tables, persists immutable originals, and verifies Volume bytes
 and Delta payload hashes. Large artifacts live in the managed Volume.
+Notebook persistence uses its [preconfigured Spark session](https://docs.databricks.com/aws/en/dev-tools/databricks-connect/notebooks),
+so it does not wait for a separate SQL warehouse. Local SDK persistence still uses the configured
+warehouse. Frozen classifier fitting and score comparisons read the hash-verified original Volume
+files; their membership and order are identical to the versioned Bronze references.
 
 ## Scientific reproduction
 

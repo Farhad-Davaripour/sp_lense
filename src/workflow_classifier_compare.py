@@ -5,7 +5,7 @@ import zipfile
 from src.workflow_classifier import summarize, summarize_initial
 from src.workflow_classifier_training import training_rows
 from src.research2_classifier import agreement
-from src.research2_data import read_dataset
+from src.research2_data import read_frozen_dataset
 from src.utils import sha256, write_json
 
 
@@ -21,13 +21,13 @@ def compare(admission_path):
         result=json.loads((output/'RESULT.json').read_bytes())
         predictions=json.loads((output/'DEVELOPMENT_PREDICTIONS_PRIVATE.json').read_bytes())
         metrics={'workflow_development':summarize(dev,predictions['workflow']),
-            'binary_development':agreement(read_dataset('R2-JEV-DEV80'),predictions['binary_probabilities']),
+            'binary_development':agreement(read_frozen_dataset(a['reference_root'],'R2-JEV-DEV80'),predictions['binary_probabilities']),
             'initial_DEV9':summarize_initial(initial,predictions['initial_DEV9'])}
         if result['workflow_benchmark_executed']:
             measured=json.loads((output/'BENCHMARK_PREDICTIONS_PRIVATE.json').read_bytes())
             metrics.update(workflow_benchmark=summarize(read('confirmation'),measured['workflow']),
                 initial_H24=summarize_initial(read('initial_familiar_H24'),measured['initial_H24']),
-                binary_confirmation=agreement(read_dataset('R2-JEV-CONFIRM128'),measured['binary_probabilities']))
+                binary_confirmation=agreement(read_frozen_dataset(a['reference_root'],'R2-JEV-CONFIRM128'),measured['binary_probabilities']))
         if any(result[key]!=value for key,value in metrics.items()):
             raise ValueError('Saved classifier metrics differ from independent recomputation')
     receipt={'status':'JOINT_CLASSIFIER_COMPARISON_VERIFIED','scientific_status':result['status'],

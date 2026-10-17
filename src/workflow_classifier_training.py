@@ -27,7 +27,7 @@ def run(admission_path):
     from safetensors.torch import load_file
     from transformers import get_linear_schedule_with_warmup
     from src.classifier_training import load_model, batch, frozen_digest, cpu_tree, file_pins
-    from src.research2_data import read_dataset
+    from src.research2_data import read_frozen_dataset
     from src.engines.training.bridge54_policy import effective_available_bytes
 
     settings = Settings.load()
@@ -111,7 +111,7 @@ def run(admission_path):
                 if not path.is_relative_to(reference_root.resolve()) or sha256(path)!=pin['sha256']:
                     raise ValueError('Original binary input changed')
             question=json.loads((reference_root/'study/02_jev_gate/plan.json').read_bytes())['question']
-            binary_train=read_dataset('R2-JEV-TRAIN240');binary_dev=read_dataset('R2-JEV-DEV80')
+            binary_train=read_frozen_dataset(reference_root,'R2-JEV-TRAIN240');binary_dev=read_frozen_dataset(reference_root,'R2-JEV-DEV80')
             random.seed(protocol['training']['seed']);torch.manual_seed(protocol['training']['seed'])
             torch.cuda.manual_seed_all(protocol['training']['seed'])
             torch.set_num_threads(4);torch.set_num_interop_threads(1)
@@ -227,7 +227,7 @@ def run(admission_path):
                 write_json(output/'FROZEN_CLASSIFIER.json',{'adapter_files':result['adapter_files'],'development':history[-1],
                     'frozen_base':before,'confirmation_not_yet_opened':True,'protocol_sha256':sha256(ROOT/'config/workflow_classifier_joint.yaml')})
                 model.eval().requires_grad_(False);phase='historical_benchmark'
-                binary_test=read_dataset('R2-JEV-CONFIRM128')
+                binary_test=read_frozen_dataset(reference_root,'R2-JEV-CONFIRM128')
                 bpred=binary_predictions(binary_test,pairs(tokenizer,binary_test,question))
                 wf_test=read('confirmation');wpred=workflow_predictions(wf_test,encode_workflow(tokenizer,wf_test))
                 initial_test=read('initial_familiar_H24');ipred=workflow_predictions(initial_test,encode_workflow(tokenizer,initial_test))

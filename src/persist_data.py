@@ -127,6 +127,12 @@ class SQL:
             next_chunk = chunk.next_chunk_index
         return rows
 
+
+class SparkSQL:
+    """Use a Databricks notebook's existing Spark session without a separate warehouse."""
+    def __init__(self,session):self.session=session
+    def execute(self,statement):return [list(row) for row in self.session.sql(statement).collect()]
+
 def upload_verified(client, destination, payload):
     from databricks.sdk.errors import NotFound, ResourceAlreadyExists
     try:
@@ -167,9 +173,9 @@ def check_rows(actual, expected, allow_subset=False):
     if not allow_subset and len(seen) != len(expected):
         raise ValueError("Cloud row count differs from the frozen source")
 
-def persist(settings, prepared, client=None):
+def persist(settings, prepared, client=None, spark=None):
     client = client or workspace_client(settings)
-    sql = SQL(client, settings.warehouse_id)
+    sql = SparkSQL(spark) if spark is not None else SQL(client, settings.warehouse_id)
     namespace = ".".join(identifier(x) for x in (settings.catalog, settings.schema))
     volume = namespace + "." + identifier(settings.volume)
     sql.execute("CREATE SCHEMA IF NOT EXISTS " + namespace)
@@ -203,7 +209,7 @@ def persist(settings, prepared, client=None):
     write_json(settings.output_root / "persist_data" / (str(time.time_ns()) + ".json"), report)
     return report
 
-def main(argv=None):
+def main(argv=None,spark=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true", help="Create/ingest into Databricks; otherwise validate locally only")
     parser.add_argument("--fetch-sources", action="store_true", help="Download frozen Volume inputs to RESEARCH3_DATA_ROOT")
@@ -211,7 +217,7 @@ def main(argv=None):
     settings = Settings.load()
     prepared = fetch_sources(settings) if args.fetch_sources else prepare(settings)
     if args.execute:
-        result = persist(settings, prepared)
+        result = persist(settings, prepared,spark=spark)
     else:
         counts = collections.Counter()
         for dataset in prepared:

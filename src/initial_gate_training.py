@@ -198,10 +198,14 @@ def run(admission_path):
             'model_forward_calls':calls,'automatic_retry':False,'new_JEV_calls':0})
         raise
     finally:
+        cleanup_error=None
+        if model is not None:
+            try:model.to('cpu')
+            except Exception as error:cleanup_error=type(error).__name__
         model=optimizer=scheduler=inputs=logits=scores=loss=targets=None;trainable=[];groups=[]
         gc.collect();torch.cuda.empty_cache()
         write_json(output/'MODEL_CLEANUP.json',{'model_reference_released':True,'GPU_allocated_bytes':torch.cuda.memory_allocated(0),
-            'GPU_reserved_bytes':torch.cuda.memory_reserved(0),'updates':updates})
+            'GPU_reserved_bytes':torch.cuda.memory_reserved(0),'updates':updates,'cleanup_error_type':cleanup_error})
 
 
 def compare(admission_path):

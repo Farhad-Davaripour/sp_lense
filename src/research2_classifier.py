@@ -91,7 +91,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
     from src.config import Settings
     from src.classifier_training import load_model, batch
     from src.classifier_helpers import configuration
-    from src.research2_data import read_dataset
+    from src.research2_data import read_frozen_dataset
     from src.engines.training.bridge54_policy import effective_available_bytes
     import torch
     reference_root, output = map(Path, (reference_root, output))
@@ -185,7 +185,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
                     last_resource_sample = time.monotonic()
         return probabilities
     try:
-        dev = read_dataset('R2-JEV-DEV80')
+        dev = read_frozen_dataset(reference_root,'R2-JEV-DEV80')
         dev_probabilities = predict(dev)
         dev_metrics = agreement(dev, dev_probabilities)
         write_json(output / 'INITIAL_DEVELOPMENT.json', dev_metrics)
@@ -199,7 +199,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             from src.classifier_training import frozen_digest, cpu_tree, file_pins
             random.seed(202610172);torch.manual_seed(202610172);torch.cuda.manual_seed_all(202610172)
             torch.set_num_threads(4)
-            train = read_dataset('R2-JEV-TRAIN240')
+            train = read_frozen_dataset(reference_root,'R2-JEV-TRAIN240')
             encoded_train = pairs(tokenizer, train, question)
             if time.time() >= min(start.timestamp()+1200,deadline-600):
                 raise TimeoutError('Binary training data was not ready within the original setup/window')
@@ -288,7 +288,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             'actual_adapter_files':selected_adapter_files,'binary_finetuned':binary_finetuned,'optimizer_updates':training_updates,
             'binary_adapter':str(output/'binary_adapter') if finetune else str(adapter)})
         phase = 'confirmation'
-        test = read_dataset('R2-JEV-CONFIRM128')
+        test = read_frozen_dataset(reference_root,'R2-JEV-CONFIRM128')
         probabilities = predict(test)
         test_metrics = agreement(test, probabilities)
         predictions = {'contract': 'research2-actionable-permanent-shutdown-v1',

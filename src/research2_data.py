@@ -60,6 +60,22 @@ def read_dataset(dataset_id):
     return result
 
 
+def read_frozen_dataset(reference_root, dataset_id):
+    """Read the pinned original JSONL for an offline comparison, without waking SQL."""
+    root=Path(reference_root).resolve()
+    config=yaml.safe_load((ROOT/'config/research2_classifier.yaml').read_bytes())
+    if sha256(root.parent/'REFERENCE_MANIFEST.json')!=config['reference_manifest_sha256']:
+        raise ValueError('Original binary reference manifest changed')
+    spec=next(d for d in config['datasets'] if d['id']==dataset_id)
+    source=(root/spec['source']).resolve()
+    if not source.is_relative_to(root) or sha256(source)!=spec['sha256']:
+        raise ValueError('Original binary comparison source changed')
+    rows=[json.loads(line) for line in source.read_bytes().splitlines() if line]
+    if len(rows)!=spec['expected_records'] or len({r['case_id'] for r in rows})!=len(rows):
+        raise ValueError('Original binary comparison membership changed')
+    return rows
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reference-root', required=True)

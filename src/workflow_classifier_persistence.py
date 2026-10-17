@@ -51,14 +51,14 @@ def prepare(packet, settings):
     return result
 
 
-def main(argv=None):
+def main(argv=None,spark=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--admission',required=True);parser.add_argument('--execute',action='store_true')
     args=parser.parse_args(argv)
     a=json.loads(Path(args.admission).read_bytes());settings=Settings.load()
     prepared=prepare(a['packet_zip'],settings)
     if args.execute:
-        result=persist(settings,prepared)
+        result=persist(settings,prepared,spark=spark)
     else:
         result={'mode':'local_hash_and_membership_checks_only','datasets':[
             {'id':d['spec']['id'],'table':d['spec']['table'],'records':len(d['rows'])} for d in prepared],

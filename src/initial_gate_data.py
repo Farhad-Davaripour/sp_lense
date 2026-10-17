@@ -126,7 +126,7 @@ def check_admission_window(a, remaining_setup_seconds=0):
     return start.timestamp(),end.timestamp()
 
 
-def persist_references(admission_path,execute=False):
+def persist_references(admission_path,execute=False,spark=None):
     a=json.loads(Path(admission_path).read_bytes());settings=Settings.load();config=configuration()
     if execute:
         check_admission_window(a)
@@ -150,7 +150,7 @@ def persist_references(admission_path,execute=False):
                          'records_volume':prefix+'/records.jsonl'})
     if execute:
         client=workspace_client(settings);admitted_predecessor(a,client)
-        result=persist(settings,prepared,client)
+        result=persist(settings,prepared,client,spark=spark)
         check_admission_window(a,remaining_setup_seconds=180)
         return result
     return {'mode':'data_checks_only','counts':[len(p['rows']) for p in prepared],'model_calls':0,'cloud_mutations':0}
@@ -208,7 +208,7 @@ def submit(job_id, predecessor=None, predecessor_run_id=None, parent_end=None):
     return receipt
 
 
-def main(argv=None):
+def main(argv=None,spark=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--admission');parser.add_argument('--execute',action='store_true')
     parser.add_argument('--f24-rows');parser.add_argument('--workflow-references');parser.add_argument('--output')
@@ -221,7 +221,7 @@ def main(argv=None):
     if args.submit:
         if not args.job_id or args.execute or args.admission:parser.error('--submit requires --job-id; it is a separate explicit action')
         result=submit(args.job_id,args.predecessor,args.predecessor_run_id,args.parent_end_utc)
-    elif args.admission:result=persist_references(args.admission,args.execute)
+    elif args.admission:result=persist_references(args.admission,args.execute,spark=spark)
     else:
         if args.execute or not all((args.f24_rows,args.workflow_references,args.output)):
             parser.error('Preparation requires --f24-rows, --workflow-references and a new --output')
