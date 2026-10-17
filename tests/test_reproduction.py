@@ -3,6 +3,7 @@ from pathlib import Path
 import hashlib
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -18,6 +19,17 @@ from types import SimpleNamespace
 
 
 class ReproductionTests(unittest.TestCase):
+    def test_steering_capsule_contains_its_original_policy_and_schema(self):
+        with tempfile.TemporaryDirectory() as directory:
+            stage = Path(directory) / 'run'
+            run_recipe('fixed_steering_analysis', ['--help'], True, 10, stage)
+            source = stage / 'source/qwen38_colab/frozen_base_control_v1'
+            check = subprocess.run([sys.executable, '-c',
+                'from actuators import shared_definitions; d,s,p=shared_definitions(); '
+                'assert set(s.QUESTIONS)==set(d["shared_classifier"]["fields"]); '
+                'assert len(p.DIRECTIVES)==9'], cwd=source, capture_output=True, text=True)
+            self.assertEqual(check.returncode, 0, check.stderr)
+
     def test_input_download_does_not_overwrite_conflicting_local_data(self):
         with tempfile.TemporaryDirectory() as directory:
             data = b'[{"id":"one"}]'

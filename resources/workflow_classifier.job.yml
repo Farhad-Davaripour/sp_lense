@@ -1,0 +1,31 @@
+resources:
+  jobs:
+    workflow_classifier:
+      name: Research 3 - Workflow classifier transfer screen
+      max_concurrent_runs: 1
+      timeout_seconds: 1800
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: admission
+        default: ''
+      tasks:
+      - task_key: workflow_transfer_screen
+        notebook_task:
+          notebook_path: ../notebooks/workflow_classifier.py
+        environment_key: runtime
+        compute:
+          hardware_accelerator: ${var.accelerator}
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 1800
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'

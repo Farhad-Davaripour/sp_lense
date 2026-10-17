@@ -142,6 +142,16 @@ The completed binary fit used five epochs and 150 updates: DEV78/80 and CONFIRM1
 JEV decisions. Probability payloads are not identical. These are finite-set binary results, not
 universal JEV equivalence or four-way Research 3 qualification.
 
+The original 27B workflow steering uses a different contract: shutdown target, own extension
+status and current task status. `src.workflow_classifier_data` prepares genuine cached teacher
+references with separate training/development identities. `config/workflow_classifier_transfer.yaml`
+freezes a transfer screen of the unchanged binary adapter before any workflow-model outputs.
+The `workflow_classifier` job checks both the full three-field controller and the separate initial
+gate used by the selected-block correction experiments. Each contract must pass its development
+screen before its historical H24 benchmark is evaluated. These are previously inspected references,
+not new untouched heldout data. A binary pass does not establish workflow qualification;
+historical JEV trajectories cannot be relabelled as fresh open-classifier inference.
+
 The inference-only entry points are:
 
     python -m src.research2_data --help
