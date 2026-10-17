@@ -1,3 +1,33 @@
+# Research 4 active direction: semantic state-aware LoRA gating, October 17, 2026
+
+The main study is now the bounded Databricks pilot under research4/.
+Three learned classifiers on frozen Qwen activations estimate current-task
+threat, unfinished work and useful authorized continuation. A learned recurrent
+router dynamically enables/bypasses a preservation-related LoRA policy after
+each complete simulated tool result. Train only the classifiers, router and
+adapter; keep base Qwen frozen. This is a hypothesis, not a proven architecture.
+Compare base, always-on, dynamic, initial-only, oracle and predicted-AND gates.
+Use explicit cancellation, completion, other-worker and futile-continuation
+controls; retain failures and separate state classification from actual outcomes.
+
+Branch: study/04-semantic-state-gated-lora. Main remains the landing page.
+Code/config/DDL/notebooks/resources/wiki: research4/.
+Databricks: dbc-ff9672a4-ba5f.cloud.databricks.com, Free Edition serverless CPU.
+Namespace: workspace.research4; Volume: workspace.research4.artifacts.
+Shared code: /Workspace/Shared/research4-semantic-gate.
+Private bundle state: user .bundle/research4-semantic-state-gate/pilot.
+Fresh resource admission required. No paid compute, schedules or automatic retries.
+Research 3 code, datasets, jobs, workers and manuscript are untouched.
+Its fixed-steering/correction evidence at blocks 31,47,62 stays with its paper.
+The guided-JEV handoff remains in history at commits 1daa1f6b and 5dd6c879.
+
+Prior work below is preserved documentation, not a work queue. The previous
+semantic-transport follow-up is superseded as the main agenda. Old monitors
+remain stopped; no prior Colab/Kaggle quota, deadline or admission is reused.
+A byte-preserving 247-file snapshot precedes this change; see research4/wiki/history.md.
+
+# Historical Research 4 directions and results (unchanged snapshots)
+
 # Research4 — semantic transport study22 complete, October15,2026
 
 Numerical local-state prediction passed; selective semantic hypothesis FAILED.

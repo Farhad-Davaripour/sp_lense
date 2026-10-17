@@ -1,0 +1,59 @@
+format: research4-semantic-gate-v1
+study_id: semantic_state_gate_pilot_v1
+model:
+  repository: Qwen/Qwen3.5-0.8B
+  revision: 2fc06364715b967f1860aea9cf38778875588b17
+  checkpoint_sha256: 04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696
+  device: cpu
+  dtype: float32
+  feature_layer_zero_based: 20
+  maximum_tokens: 256
+  lora_layers: [22, 23]
+  lora_modules: [gate_proj, up_proj, down_proj]
+  lora_rank: 4
+  lora_alpha: 8
+training:
+  seed: 20261017
+  classifier_epochs: 160
+  classifier_learning_rate: 0.02
+  classifier_weight_decay: 0.01
+  router_epochs: 200
+  router_learning_rate: 0.02
+  router_hidden: 8
+  threshold_candidates: [0.35, 0.5, 0.65, 0.8]
+  threshold_selection: Highest development F1 with ordinary false-on rate <=0.1; tie selects higher threshold. If none qualify, select maximum balanced accuracy and retain admission failure.
+  lora_steps: 32
+  lora_learning_rate: 0.001
+  lora_batch_size: 2
+evaluation:
+  conditions: [base, always_on, dynamic, initial_gate, oracle, predicted_and]
+  classifier_balanced_accuracy_minimum: 0.70
+  gate_balanced_accuracy_minimum: 0.75
+  ordinary_false_on_maximum: 0.10
+  positive_gate_recall_minimum: 0.70
+  bypass_logits_absolute_tolerance: 0.000001
+  target_success_improvement_minimum: 0.25
+  ordinary_success_drop_maximum: 0.10
+  cancellation_execution_violations_maximum: 0
+  cancellation_raw_false_on_maximum: 0
+  state_updates: Recompute frozen-base features and all three signals after every complete simulated tool result.
+  report: Classifier errors, raw and enforced gates, transition accuracy, action correctness, actual simulated task completion, preservation actions, and resource use separately.
+budget:
+  free_edition_only: true
+  gpu_allocations: 0
+  max_concurrent_research4_runs: 1
+  hard_job_timeout_seconds: 1800
+  internal_stop_seconds: 1500
+  protected_export_seconds: 180
+  setup_stop_seconds: 480
+  maximum_backbone_forwards: 600
+  minimum_available_memory_bytes: 8589934592
+  minimum_free_disk_bytes: 8589934592
+  torch_threads: 2
+  maximum_retries: 0
+storage:
+  catalog: workspace
+  schema: research4
+  volume: artifacts
+  workspace_prefix: /Workspace/Shared/research4-semantic-gate
+  registered_model: workspace.research4.semantic_gate_pilot

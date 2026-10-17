@@ -1,0 +1,91 @@
+"""Explicit-workspace CLI operations. Credentials remain transient environment values."""
+import argparse,base64,io,json,os,re,subprocess,tarfile,tempfile,hashlib
+from pathlib import Path
+from .io_utils import dump,read,sha
+HOST='https://dbc-ff9672a4-ba5f.cloud.databricks.com'
+PREFIX='/Workspace/Shared/research4-semantic-gate'
+CLI=os.environ.get('DATABRICKS_CLI_PATH','C:/Users/farha/.codex/tools/databricks-cli/1.21.0/databricks.exe')
+def cli(args,cwd=None,allow_fail=False,json_output=True):
+    if os.environ.get('DATABRICKS_HOST')!=HOST or not os.environ.get('DATABRICKS_TOKEN'):raise ValueError('Use the explicit workspace and transient token')
+    p=subprocess.run([CLI,*args,*(['--output','json'] if json_output else [])],cwd=cwd,capture_output=True,text=True)
+    if p.returncode:
+        error=re.sub(r'dapi[0-9a-fA-F]+','[REDACTED]',p.stderr)
+        if allow_fail:return {'error':error,'exit_code':p.returncode}
+        raise RuntimeError(error)
+    if not json_output:return p.stdout
+    return json.loads(p.stdout) if p.stdout.strip() else {}
+def git(repo,*args):return subprocess.check_output(['git',*args],cwd=repo).decode().strip()
+def provision(artifact):
+    artifact=Path(artifact);artifact.mkdir(parents=True,exist_ok=True)
+    existing=cli(['schemas','get','workspace.research4'],allow_fail=True)
+    if 'error' in existing:
+        p=artifact/'schema.json';dump(p,{'catalog_name':'workspace','name':'research4','comment':'Research 4 semantic state-aware adapter pilot only'})
+        cli(['schemas','create','--json','@'+str(p)])
+    cli(['workspace','mkdirs',PREFIX+'/experiments'])
+def prepare_release(repo,artifact):
+    repo=Path(repo);artifact=Path(artifact);commit=git(repo,'rev-parse','HEAD');branch=git(repo,'branch','--show-current')
+    if branch!='study/04-semantic-state-gated-lora':raise ValueError('Refuse to deploy an unrelated branch')
+    remote=git(repo,'ls-remote','origin','refs/heads/'+branch).split()[0]
+    if remote!=commit:raise ValueError('Push the exact local source commit before deployment')
+    subprocess.check_call(['git','fetch','origin',branch],cwd=repo,stdout=subprocess.DEVNULL)
+    if git(repo,'rev-parse','FETCH_HEAD')!=commit:raise ValueError('Remote source moved during release preparation')
+    stage=artifact/('release_'+commit);stage.mkdir(exist_ok=False)
+    data=subprocess.check_output(['git','archive',commit+':research4'],cwd=repo)
+    with tarfile.open(fileobj=io.BytesIO(data)) as t:
+        for m in t.getmembers():
+            dest=(stage/m.name).resolve()
+            if stage.resolve() not in dest.parents and dest!=stage.resolve():raise ValueError('Unsafe release archive path')
+            if m.isdir():dest.mkdir(parents=True,exist_ok=True)
+            elif m.isfile():dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(t.extractfile(m).read())
+    files=[p for folder in ['src','config','ddl'] for p in (stage/folder).rglob('*') if p.is_file()]
+    release={'commit':commit,'branch':branch,'repository':'https://github.com/Farhad-Davaripour/sp_lense.git','files':{p.relative_to(stage).as_posix():sha(p) for p in files},'notebooks_verified_separately_after_deployment':True}
+    dump(stage/'RELEASE.json',release)
+    return stage,release
+def deploy(repo,artifact):
+    artifact=Path(artifact);provision(artifact);stage,release=prepare_release(repo,artifact);commit=release['commit'];code=PREFIX+'/deployed/'+commit
+    # A separate Git folder records a genuine remote pull when public Git access is supported.
+    folders=cli(['repos','list','--path-prefix',PREFIX+'/source'],allow_fail=True)
+    repo_id=None
+    for r in folders if isinstance(folders,list) else folders.get('repos',[]):
+        if r.get('path')==PREFIX+'/source':repo_id=r['id']
+    if repo_id is None:
+        p=artifact/'git_folder.json';dump(p,{'url':release['repository'],'provider':'gitHub','path':PREFIX+'/source'})
+        created=cli(['repos','create','--json','@'+str(p)],allow_fail=True);repo_id=created.get('id')
+    if repo_id:
+        pulled=cli(['repos','update',str(repo_id),'--branch',release['branch']],allow_fail=True)
+        info=cli(['repos','get',str(repo_id)],allow_fail=True)
+        if info.get('head_commit_id')!=commit:raise ValueError('Databricks Git folder did not pull the exact pushed commit')
+        git_receipt={'mode':'Databricks Git folder pull','repo_id':repo_id,'head_commit_id':info['head_commit_id']}
+    else:git_receipt={'mode':'Exact pushed Git commit fetched into isolated release archive; deployed through workspace sync','git_folder_unavailable':True}
+    variables='source_commit='+commit+',code_path='+code
+    validation=cli(['bundle','validate','--strict','--target','pilot','--var',variables],cwd=stage)
+    cli(['bundle','deploy','--auto-approve','--target','pilot','--var',variables],cwd=stage,json_output=False)
+    summary=cli(['bundle','summary','--target','pilot','--var',variables],cwd=stage)
+    jobs=summary.get('resources',{}).get('jobs',{});job=jobs['semantic_gate_pilot'];job_id=str(job.get('id') or job.get('job_id'))
+    deployed=cli(['jobs','get',job_id]);spec=deployed['settings']
+    if spec.get('tags',{}).get('source_commit')!=commit:raise ValueError('Job version tag mismatch')
+    for task in spec['tasks']:
+        if any(k in task for k in ['new_cluster','existing_cluster_id','job_cluster_key']):raise ValueError('Unexpected classic compute')
+        if task.get('compute',{}).get('hardware_accelerator'):raise ValueError('Unexpected GPU allocation')
+        p=task['notebook_task']['notebook_path'];dest=artifact/(task['task_key']+'_deployed.py')
+        cli(['workspace','export',p,'--file',str(dest),'--format','SOURCE'],json_output=False)
+        original=stage/'notebooks'/('preflight.py' if task['task_key']=='fresh_cpu_admission' else 'pilot.py')
+        normalize=lambda s:'\n'.join(line.rstrip() for line in s.replace('\r\n','\n').splitlines()).strip()
+        if normalize(dest.read_text(encoding='utf-8'))!=normalize(original.read_text(encoding='utf-8')):raise ValueError('Deployed notebook source differs')
+    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
+    dump(artifact/'DEPLOYMENT.json',receipt);return receipt
+def submit(artifact):
+    artifact=Path(artifact);deployment=read(artifact/'DEPLOYMENT.json');active=cli(['jobs','list-runs','--active-only'])
+    active=active if isinstance(active,list) else active.get('runs',[])
+    if len(active)>=4:raise RuntimeError('Shared concurrency reserve: leave slots available for Research 3')
+    if any(str(r.get('job_id'))==deployment['job_id'] for r in active):raise RuntimeError('A Research 4 run is already active')
+    p=artifact/'run_now.json';dump(p,{'job_id':int(deployment['job_id'])});run=cli(['jobs','run-now','--no-wait','--json','@'+str(p)])
+    receipt={'run_id':run['run_id'],'job_id':deployment['job_id'],'source_commit':deployment['source_commit'],'active_runs_at_admission':[{'run_id':r.get('run_id'),'run_name':r.get('run_name')} for r in active],'GPU_allocations':0,'workspace':HOST}
+    dump(artifact/'SUBMISSION.json',receipt);return receipt
+def main():
+    p=argparse.ArgumentParser();p.add_argument('command',choices=['deploy','submit','status']);p.add_argument('--repo',default=str(Path(__file__).resolve().parents[2]));p.add_argument('--artifact',required=True);a=p.parse_args()
+    if a.command=='deploy':r=deploy(a.repo,a.artifact)
+    elif a.command=='submit':r=submit(a.artifact)
+    else:r=cli(['jobs','get-run',str(read(Path(a.artifact)/'SUBMISSION.json')['run_id'])])
+    print(json.dumps(r,indent=2))
+if __name__=='__main__':main()

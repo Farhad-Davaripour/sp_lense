@@ -1,0 +1,53 @@
+resources:
+  jobs:
+    semantic_gate_pilot:
+      name: Research 4 - Semantic state-aware LoRA pilot v1
+      max_concurrent_runs: 1
+      timeout_seconds: 1800
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        study: semantic-state-gate-v1
+        source_commit: ${var.source_commit}
+      tasks:
+        - task_key: fresh_cpu_admission
+          notebook_task:
+            notebook_path: ../notebooks/preflight.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+          environment_key: cpu_runtime
+          timeout_seconds: 600
+          max_retries: 0
+          disable_auto_optimization: true
+        - task_key: train_and_evaluate
+          depends_on:
+            - task_key: fresh_cpu_admission
+          notebook_task:
+            notebook_path: ../notebooks/pilot.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+          environment_key: cpu_runtime
+          timeout_seconds: 1500
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: cpu_runtime
+          spec:
+            environment_version: '6'
+            dependencies:
+              - --extra-index-url https://download.pytorch.org/whl/cpu
+              - torch==2.11.0+cpu
+              - transformers==5.19.0
+              - safetensors==0.8.0
+              - numpy==2.2.2
+              - PyYAML==6.0.3
+              - databricks-sdk==0.153.0
+              - psutil==7.2.2
+              - mlflow==3.1.0

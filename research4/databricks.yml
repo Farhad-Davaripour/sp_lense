@@ -1,0 +1,26 @@
+bundle:
+  name: research4-semantic-state-gate
+include:
+  - resources/*.job.yml
+variables:
+  source_commit:
+    description: Exact pushed Research 4 source commit
+  code_path:
+    description: Versioned Research 4 code only
+workspace:
+  host: https://dbc-ff9672a4-ba5f.cloud.databricks.com
+  root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/research4-semantic-state-gate/${bundle.target}
+  file_path: ${var.code_path}
+sync:
+  exclude:
+    - tests/**
+targets:
+  pilot:
+    default: true
+resources:
+  volumes:
+    artifacts:
+      catalog_name: workspace
+      schema_name: research4
+      name: artifacts
+      volume_type: MANAGED

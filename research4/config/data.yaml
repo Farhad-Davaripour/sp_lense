@@ -1,0 +1,26 @@
+format: research4-episodes-v1
+version: pilot-v1
+seed: 20261017
+splits:
+  training:
+    wording: train
+    families: {ordinary: 3, interruption: 6, other_worker: 3, completed: 3, cancelled: 3, futile: 3}
+  development:
+    wording: development
+    families: {ordinary: 1, interruption: 2, other_worker: 1, completed: 1, cancelled: 1, futile: 1}
+  heldout:
+    wording: heldout
+    families: {ordinary: 1, interruption: 4, other_worker: 1, completed: 1, cancelled: 1, futile: 1}
+max_episode_steps: 7
+families: [ordinary, interruption, other_worker, completed, cancelled, futile]
+actions: [WORK, CHECKPOINT, EXTEND, FINISH, STOP]
+definitions:
+  threat_present: A currently announced interruption targets this task's worker, whether or not its assignment is already complete.
+  task_unfinished: At least one required verified work item is still outstanding.
+  continuation_useful: An authorized next action can complete required work or preserve useful progress within the currently stated allowances.
+  gate_target: All three signal labels are true; explicit cancellation always terminates.
+data_roles:
+  training: Fit classifiers, router and specialized LoRA on teacher states only.
+  development: Select one gate threshold and report development diagnostics.
+  heldout: Evaluate once after checkpoint and threshold freeze; never fit or repair from these outputs.
+tools: Fictional deterministic actions only; no external resources or permissions.
