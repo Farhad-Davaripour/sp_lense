@@ -18,6 +18,14 @@ from src.workflow_classifier import scored_decision
 STUDENT='research3-open-native-initial-target'
 
 
+def training_dose(config):
+    epochs=config['training']['maximum_epochs'];updates=config['training']['maximum_updates']
+    if (isinstance(epochs,bool) or not isinstance(epochs,int) or not 1<=epochs<=60
+            or isinstance(updates,bool) or not isinstance(updates,int) or updates!=3*epochs):
+        raise ValueError('Use the declared 24-case recipe in groups of eight, within the 180-update ceiling')
+    return epochs,updates
+
+
 def encode(tokenizer,rows,questions,rendering=None):
     question=questions['initial_shutdown_target'];labels=list(QUESTION['criteria']);tokens=[];audit=[]
     rendering=rendering or configuration()['training'].get('input_rendering','native_json')
@@ -83,6 +91,7 @@ def run(admission_path):
     from src.research2_classifier import classifier_source
     from src.engines.training.bridge54_policy import effective_available_bytes
     a=json.loads(Path(admission_path).read_bytes());config=configuration();settings=Settings.load()
+    max_epochs,max_updates=training_dose(config)
     admitted_predecessor(a)
     if sha256(ROOT/'config/initial_gate_classifier.yaml')!=a['protocol_sha256']:
         raise ValueError('The admitted native initial-gate protocol changed')
@@ -146,7 +155,8 @@ def run(admission_path):
         before=frozen_digest(model)
         groups=[{'params':[p for n,p in trainable if '.modules_to_save.' not in n],'lr':1e-5},
                 {'params':[p for n,p in trainable if '.modules_to_save.' in n],'lr':2e-5}]
-        optimizer=torch.optim.AdamW(groups,weight_decay=.01);scheduler=get_linear_schedule_with_warmup(optimizer,4,90)
+        optimizer=torch.optim.AdamW(groups,weight_decay=.01)
+        scheduler=get_linear_schedule_with_warmup(optimizer,config['training']['warmup_updates'],max_updates)
         def predict(rows,tokens):
             nonlocal calls
             model.eval();probabilities=[]
@@ -156,7 +166,7 @@ def run(admission_path):
                 probabilities.append(v.float().softmax(-1).cpu().tolist());calls+=1
             return decisions(rows,probabilities)
         best=None;last_improvement=0;streak=0;history=[]
-        for epoch in range(1,31):
+        for epoch in range(1,max_epochs+1):
             if time.time()>=end-600:break
             phase='training';model.train();loss_sum=0.;epoch_start=time.monotonic()
             order=torch.randperm(24,generator=torch.Generator().manual_seed(seed+epoch)).tolist()

@@ -1,4 +1,4 @@
-format: research3-native-initial-target-v2-role-input
+format: research3-native-initial-target-v3-fixed-dose
 purpose: Only the native initial four-choice gate used by the selected-block27B comparisons.
 execution_precondition: A continuation in the original phase requires closed joint
   development failure with all historical benchmarks unexecuted. An independent frozen-recipe
@@ -53,8 +53,8 @@ data:
       new_JEV_calls: 0
 training:
   seed: 202610175
-  maximum_epochs: 30
-  maximum_updates: 90
+  maximum_epochs: 50
+  maximum_updates: 150
   effective_batch: 8
   microbatch_task_instances: 1
   LoRA_learning_rate: 1.0e-05
@@ -62,7 +62,7 @@ training:
   weight_decay: 0.01
   clip_norm: 1
   warmup_updates: 4
-  scheduler: Linear fixed90-update horizon
+  scheduler: Linear fixed150-update horizon
   precision: FP32parameters/AdamW, BF16CUDAautocast; TF32off
   targets: Genuine cached JEV effective initial labels; hard-label NLI cross-entropy
   trainable_parameters: 7198722
@@ -103,3 +103,5 @@ benchmark_limitations:
   renderer_previously_developed_with_familiar_H24: true
   new_independent_heldout_accuracy_claimed: false
   no_H24_labels_or_predictions_used_for_this_adapters_gradient_updates: true
+development_refinement: Longer fitting dose selected from falling training/development
+  loss only; no historical benchmark predictions opened.

@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import tempfile
 from src.engines.workflow.initial_gate import payload,freeze,MODEL
-from src.initial_gate_training import decisions,metrics,STUDENT,encode
+from src.initial_gate_training import decisions,metrics,STUDENT,encode,training_dose
 from src.initial_gate_data import check_admission_window,admitted_predecessor,archive_sources
 
 
@@ -77,6 +77,13 @@ class InitialGateTests(unittest.TestCase):
                 p.mkdir();f=p/'data.json';f.write_bytes(b'{"fixed":true}\n')
                 os.utime(f,(100000+index*1000,100000+index*1000))
             self.assertEqual(archive_sources(first).read_bytes(),archive_sources(second).read_bytes())
+
+    def test_training_dose_cannot_expand_silently_or_miscount_groups(self):
+        self.assertEqual(training_dose({'training':{'maximum_epochs':30,'maximum_updates':90}}),(30,90))
+        self.assertEqual(training_dose({'training':{'maximum_epochs':50,'maximum_updates':150}}),(50,150))
+        for epochs,updates in [(60,90),(61,183),(True,3),(0,0)]:
+            with self.assertRaises(ValueError):
+                training_dose({'training':{'maximum_epochs':epochs,'maximum_updates':updates}})
 
 
 if __name__=='__main__':unittest.main()
