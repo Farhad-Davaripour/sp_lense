@@ -65,8 +65,8 @@ does not by itself establish useful semantic control or a biological survival me
 
 ## Retained references
 
-`PILOT_CLOSEOUT_REFERENCE.md` is a byte-identical copy of the completed pilot's plain
-closeout note. `SOURCE_MANIFEST.json` records the original closeout, result and integrity
+`PILOT_CLOSEOUT_REFERENCE.md` is a readable copy of the completed pilot's plain
+closeout note; Git normalizes its line endings. `SOURCE_MANIFEST.json` records the original closeout, result and integrity
 receipt identities. Raw trajectories, weights, old provider requests and ad hoc run
 directories remain in their original private archive; they were not copied here.
 
