@@ -184,7 +184,12 @@ def train(worker_path):
             if sha256(item['path'])!=item['sha256']:raise ValueError('Materialized Bronze input changed')
             rows[name]=json.loads(Path(item['path']).read_bytes())
         if set(rows)!={'C1-TRAIN','C1-DEV','C1-JEV-DEV'}:raise ValueError('Unexpected pre-freeze datasets')
-        model,tokenizer=load_model(c['base'],trainable=True)
+        initial=c.get('initial_adapter')
+        if initial:
+            for name,pin in initial['files'].items():
+                if sha256(Path(initial['path'])/name)!=pin['sha256']:
+                    raise ValueError('Warm-start adapter changed before model load')
+        model,tokenizer=load_model(c['base'],adapter=initial['path'] if initial else None,trainable=True)
         model.to('cuda:0');model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant':False})
         trainable=[(n,p) for n,p in model.named_parameters() if p.requires_grad]
         if not trainable or any('lora_' not in n and '.modules_to_save.' not in n for n,p in trainable):
@@ -207,6 +212,15 @@ def train(worker_path):
         phase='initial_development';history=[]
         initial_dev,_=metrics(rows['C1-DEV'],predict(model,tokenizer,encoded['C1-DEV'],guard))
         initial_familiar,_=metrics(rows['C1-JEV-DEV'],predict(model,tokenizer,encoded['C1-JEV-DEV'],guard))
+        if initial:
+            expected_initial=initial['development_metrics']
+            for name,actual in (('development',initial_dev),('familiar_JEV_development',initial_familiar)):
+                if any(actual[key]!=expected_initial[name][key] for key in
+                       ('count','label_matches','enabled_matches','abstained_matches','signature_matches')):
+                    raise ValueError('Warm-start predictions differ from the selected previous checkpoint')
+            write_json(root/'WARM_START_VERIFIED.json',{'utc':utc(),'initial_adapter':initial,
+                       'optimizer_and_scheduler_reset_for_new_training_revision':True,
+                       'same_public_frozen_base':frozen_before})
         write_json(root/'INITIAL_DEVELOPMENT.json',{'utc':utc(),'optimizer_updates':0,
                    'development':initial_dev,'familiar_JEV_development':initial_familiar,
                    'formulation':formulation,'heldout_opened':False})

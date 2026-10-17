@@ -48,6 +48,19 @@ def dispatch(admission_path):
         p=(ROOT/relative).resolve()
         if not p.is_relative_to(ROOT) or sha256(p)!=pin:
             raise ValueError('Classifier source changed after submission')
+    for name in admission.get('required_absent_artifacts',[]):
+        prior=Path(name).resolve()
+        if not prior.is_relative_to(Path(settings.volume_root).resolve()) or prior.exists():
+            raise ValueError('Do not refine against an already released classifier test set')
+    initial=admission.get('initial_adapter')
+    if initial:
+        initial_root=Path(initial['path']).resolve()
+        if not initial_root.is_relative_to(Path(settings.volume_root).resolve()):
+            raise ValueError('Warm-start adapter must be preserved in the configured Volume')
+        for name,pin in initial['files'].items():
+            target=(initial_root/name).resolve()
+            if not target.is_relative_to(initial_root) or sha256(target)!=pin['sha256']:
+                raise ValueError('Warm-start adapter changed after admission')
     root=Path(admission['output']).resolve()
     if not root.is_relative_to(Path(settings.volume_root).resolve()) or root.exists():
         raise ValueError('Use a fresh run directory in the configured Volume')
