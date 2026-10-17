@@ -162,7 +162,8 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
         result = {'status': 'RESEARCH2_CLASSIFIER_QUALIFIED' if qualified(test_metrics) else 'RESEARCH2_CLASSIFIER_CONFIRMATION_FAILED',
                   'development': dev_metrics, 'confirmation': test_metrics, 'confirmation_evaluations': 1,
                   'confirmation_opened': True, 'optimizer_updates': 0, 'new_JEV_calls': 0,
-                  'classifier_is_frozen_research3_adapter': True}
+                  'classifier_is_frozen_research3_adapter': True,
+                  'predictions_sha256': sha256(output / 'CLASSIFIER_PREDICTIONS.json')}
         write_json(output / 'RESULT.json', result)
         return result
     except BaseException as error:

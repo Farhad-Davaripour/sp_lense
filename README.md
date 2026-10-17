@@ -80,6 +80,19 @@ The optional classifier_nli.yaml recipe preserves the pretrained binary NLI head
 scores the same four fixed hypotheses for each complete input. Those four pairs are
 alternative views of one case, not four independent scenarios. Job parameters select
 the recipe; changing it does not modify an already running training process.
+The NLI refinement fixes its criteria prospectively: at least 95% joint decision
+agreement and every enabled gate matching, for three development checks, followed
+by the frozen once-only synthetic test. This does not claim numerical JEV identity.
+
+## Research 2 inference repeat
+
+The original Research 2 stays unchanged. Research 3 declares its cached JEV references
+in config/research2_classifier.yaml and persists them through src.research2_data.
+The qualified classifier must also pass the original binary shutdown-gate task before
+src.research2_inference reruns 0.8B and 2B inference with frozen weights and controllers.
+Both gates share the same fresh scores; historical T4/A10 numerical differences are
+reported separately. src.research2_inference_report audits the resulting comparison.
+src.research2_compare is a cached-score reference audit, not a fresh inference run.
 
 ## Storage and history
 

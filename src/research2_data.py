@@ -82,6 +82,19 @@ def main(argv=None):
             upload_verified(client, destination + '/reference_inputs/' + name, source.read_bytes())
         upload_verified(client, destination + '/REFERENCE_MANIFEST.json',
                         (root.parent / 'REFERENCE_MANIFEST.json').read_bytes())
+        inference_config = yaml.safe_load((ROOT / 'config/research2_inference.yaml').read_text(encoding='utf-8'))
+        for name, pin in (('INFERENCE_MANIFEST.json', inference_config['inference_manifest_sha256']),
+                          ('BASE_MODELS_MANIFEST.json', inference_config['base_models_manifest_sha256'])):
+            source = root.parent / name
+            if sha256(source) != pin:
+                raise ValueError('Frozen inference staging manifest changed')
+            upload_verified(client, destination + '/' + name, source.read_bytes())
+        inference_manifest = json.loads((root.parent / 'INFERENCE_MANIFEST.json').read_bytes())
+        for name, pin in inference_manifest['files'].items():
+            source = (root.parent / 'inference_inputs' / name).resolve()
+            if not source.is_relative_to((root.parent / 'inference_inputs').resolve()) or sha256(source) != pin['sha256']:
+                raise ValueError('Frozen inference staging source changed')
+            upload_verified(client, destination + '/inference_inputs/' + name, source.read_bytes())
         result['reference_root'] = destination + '/reference_inputs'
     print(json.dumps(result, indent=2))
     return result
