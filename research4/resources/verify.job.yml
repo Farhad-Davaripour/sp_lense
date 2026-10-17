@@ -1,0 +1,39 @@
+resources:
+  jobs:
+    evidence_verify:
+      name: Research 4 - Verify retained pilot evidence
+      max_concurrent_runs: 1
+      timeout_seconds: 600
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: false
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        study: retained-evidence-audit
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: pilot_source_commit
+          default: ''
+        - name: pilot_run_id
+          default: ''
+      tasks:
+        - task_key: verify_delta_and_artifacts
+          notebook_task:
+            notebook_path: ../notebooks/audit.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              pilot_source_commit: '{{job.parameters.pilot_source_commit}}'
+              pilot_run_id: '{{job.parameters.pilot_run_id}}'
+          environment_key: audit_runtime
+          timeout_seconds: 600
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: audit_runtime
+          spec:
+            environment_version: '6'
+            dependencies:
+              - numpy==2.2.2

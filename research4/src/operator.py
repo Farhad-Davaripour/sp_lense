@@ -72,7 +72,12 @@ def deploy(repo,artifact):
         original=stage/'notebooks'/('preflight.py' if task['task_key']=='fresh_cpu_admission' else 'pilot.py')
         normalize=lambda s:'\n'.join(line.rstrip() for line in s.replace('\r\n','\n').splitlines()).strip()
         if normalize(dest.read_text(encoding='utf-8'))!=normalize(original.read_text(encoding='utf-8')):raise ValueError('Deployed notebook source differs')
-    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
+    verification_id=str(jobs['evidence_verify']['id']) if 'evidence_verify' in jobs else None
+    if verification_id:
+        verify_job=cli(['jobs','get',verification_id]);task=verify_job['settings']['tasks'][0]
+        dest=artifact/'verification_deployed.py';cli(['workspace','export',task['notebook_task']['notebook_path'],'--file',str(dest),'--format','SOURCE'],json_output=False)
+        if normalize(dest.read_text(encoding='utf-8'))!=normalize((stage/'notebooks/audit.py').read_text(encoding='utf-8')):raise ValueError('Verification notebook source differs')
+    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'verification_job_id':verification_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
     dump(artifact/'DEPLOYMENT.json',receipt);return receipt
 def submit(artifact):
     artifact=Path(artifact);deployment=read(artifact/'DEPLOYMENT.json');active=cli(['jobs','list-runs','--active-only'])
@@ -82,10 +87,18 @@ def submit(artifact):
     p=artifact/'run_now.json';dump(p,{'job_id':int(deployment['job_id'])});run=cli(['jobs','run-now','--no-wait','--json','@'+str(p)])
     receipt={'run_id':run['run_id'],'job_id':deployment['job_id'],'source_commit':deployment['source_commit'],'active_runs_at_admission':[{'run_id':r.get('run_id'),'run_name':r.get('run_name')} for r in active],'GPU_allocations':0,'workspace':HOST}
     dump(artifact/'SUBMISSION.json',receipt);return receipt
+def verify(artifact):
+    artifact=Path(artifact);deployment=read(artifact/'DEPLOYMENT.json');pilot=read(artifact/'SUBMISSION.json')
+    active=cli(['jobs','list-runs','--active-only']);active=active if isinstance(active,list) else active.get('runs',[])
+    owned={deployment['job_id'],str(deployment['verification_job_id'])}
+    if len(active)>=4 or any(str(r.get('job_id')) in owned for r in active):raise RuntimeError('Shared/Research4 concurrency admission failed')
+    p=artifact/'verify_now.json';dump(p,{'job_id':int(deployment['verification_job_id']),'job_parameters':{'pilot_source_commit':pilot['source_commit'],'pilot_run_id':str(pilot['run_id'])}})
+    r=cli(['jobs','run-now','--no-wait','--json','@'+str(p)]);result={'run_id':r['run_id'],'audit_source_commit':deployment['source_commit'],'pilot_source_commit':pilot['source_commit'],'pilot_run_id':pilot['run_id'],'GPU_allocations':0};dump(artifact/'VERIFICATION_SUBMISSION.json',result);return result
 def main():
-    p=argparse.ArgumentParser();p.add_argument('command',choices=['deploy','submit','status']);p.add_argument('--repo',default=str(Path(__file__).resolve().parents[2]));p.add_argument('--artifact',required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('command',choices=['deploy','submit','verify','status']);p.add_argument('--repo',default=str(Path(__file__).resolve().parents[2]));p.add_argument('--artifact',required=True);a=p.parse_args()
     if a.command=='deploy':r=deploy(a.repo,a.artifact)
     elif a.command=='submit':r=submit(a.artifact)
+    elif a.command=='verify':r=verify(a.artifact)
     else:r=cli(['jobs','get-run',str(read(Path(a.artifact)/'SUBMISSION.json')['run_id'])])
     print(json.dumps(r,indent=2))
 if __name__=='__main__':main()
