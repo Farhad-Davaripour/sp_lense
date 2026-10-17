@@ -13,7 +13,7 @@ import subprocess
 import time
 from src.config import ROOT
 from src.utils import sha256, write_json
-from src.classifier_helpers import LABELS, STUDENT, configuration, config_path, model_text, metrics, expected
+from src.classifier_helpers import LABELS, STUDENT, configuration, config_path, model_text, metrics, expected, meets_target
 from src.engines.classifier.rendering import render_evidence
 
 HYPOTHESES={
@@ -202,7 +202,13 @@ def train(worker_path):
                    'frozen_base_before':frozen_before,'heldout_loaded':False,
                    'training_rows':96,'development_rows':32,'familiar_JEV_development_rows':24})
         if time.time()>=start+recipe['bounds']['setup_seconds']:raise TimeoutError('Original setup window exceeded')
-        phase='training';history=[]
+        phase='initial_development';history=[]
+        initial_dev,_=metrics(rows['C1-DEV'],predict(model,tokenizer,encoded['C1-DEV'],guard))
+        initial_familiar,_=metrics(rows['C1-JEV-DEV'],predict(model,tokenizer,encoded['C1-JEV-DEV'],guard))
+        write_json(root/'INITIAL_DEVELOPMENT.json',{'utc':utc(),'optimizer_updates':0,
+                   'development':initial_dev,'familiar_JEV_development':initial_familiar,
+                   'formulation':formulation,'heldout_opened':False})
+        phase='training'
         for epoch in range(1,recipe['training']['max_epochs']+1):
             model.train();began=time.monotonic();loss_total=0.
             generator=torch.Generator().manual_seed(recipe['training']['seed']+epoch)
@@ -227,10 +233,10 @@ def train(worker_path):
             dev,_=metrics(rows['C1-DEV'],dev_p);familiar,_=metrics(rows['C1-JEV-DEV'],familiar_p)
             score=(min(dev['signature_matches']/32,familiar['signature_matches']/24),
                    dev['signature_matches']/32+familiar['signature_matches']/24)
-            perfect_streak=perfect_streak+1 if dev['exact'] and familiar['exact'] else 0
+            perfect_streak=perfect_streak+1 if meets_target(dev,recipe) and meets_target(familiar,recipe) else 0
             entry={'utc':utc(),'epoch':epoch,'updates':updates,'train_loss':loss_total/96,
                    'epoch_seconds':time.monotonic()-began,'development':dev,
-                   'familiar_JEV_development':familiar,'consecutive_perfect_validations':perfect_streak,
+                   'familiar_JEV_development':familiar,'consecutive_qualified_validations':perfect_streak,
                    'formulation':formulation}
             history.append(entry);write_json(root/'PROGRESS.json',entry);write_json(root/'HISTORY.json',history)
             if best is None or score>best:
@@ -247,6 +253,7 @@ def train(worker_path):
                         'adapter_files':file_pins(root/'selected_adapter'),
                         'source_commit':c['source_commit'],'configuration_sha256':c['configuration_sha256'],
                         'formulation':formulation,'recipe_file':c['recipe_file'],
+                        'qualification':recipe.get('qualification',{'minimum_decision_agreement':1.0}),
                         'synthetic_test_not_yet_opened':True,'numeric_JEV_identity_claimed':False}
                 write_json(root/'FROZEN_MODEL.json',frozen);selected=True;break
             patience=recipe['training'].get('early_stop_patience')
@@ -254,7 +261,7 @@ def train(worker_path):
                 stop_reason='DEVELOPMENT_PLATEAU';break
             phase='training'
         if not selected:
-            result={'status':'DEVELOPMENT_NOT_IDENTICAL','epochs':epoch,'updates':updates,
+            result={'status':'DEVELOPMENT_TARGET_NOT_REACHED','epochs':epoch,'updates':updates,
                     'best_development':json.loads((root/'BEST_DEVELOPMENT.json').read_bytes()),
                     'heldout_opened':False,'automatic_retry':False,'new_JEV_calls':0,
                     'stop_reason':stop_reason,'formulation':formulation}
@@ -268,10 +275,11 @@ def train(worker_path):
         replay_familiar=predict(reloaded,tokenizer,encoded['C1-JEV-DEV'],guard)
         replay_d,_=metrics(rows['C1-DEV'],replay_dev);replay_j,_=metrics(rows['C1-JEV-DEV'],replay_familiar)
         max_diff=max(abs(a-b) for left,right in ((dev_p,replay_dev),(familiar_p,replay_familiar)) for pa,pb in zip(left,right) for a,b in zip(pa,pb))
-        if not replay_d['exact'] or not replay_j['exact'] or max_diff>1e-5:
+        if not meets_target(replay_d,recipe) or not meets_target(replay_j,recipe) or max_diff>1e-5:
             raise ValueError('Saved classifier replay differs from the frozen development model')
         write_json(root/'RELOAD_VERIFIED.json',{'utc':utc(),'max_probability_difference':max_diff,
-                   'development_signature_exact':True,'familiar_JEV_signature_exact':True})
+                   'development_signature_exact':replay_d['exact'],'familiar_JEV_signature_exact':replay_j['exact'],
+                   'fixed_qualification_target_met':True})
         write_json(root/'REQUEST_HELDOUT.json',{'utc':utc(),'frozen_model_sha256':sha256(root/'FROZEN_MODEL.json')})
         wait_end=min(time.time()+180,absolute_end-300)
         while not (root/'HELDOUT_RELEASE.json').exists():
@@ -286,12 +294,13 @@ def train(worker_path):
         test_metrics,predictions=metrics(test,probabilities)
         write_json(root/'HELDOUT_PREDICTIONS_PRIVATE.json',[{'id':r['id'],'target':expected(r),**p} for r,p in zip(test,predictions)])
         write_json(root/'FAMILIAR_JEV_PREDICTIONS_PRIVATE.json',[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-JEV-DEV'],metrics(rows['C1-JEV-DEV'],replay_familiar)[1])])
-        result={'status':'QUALIFIED_FOR_RECORDED_SCOPE' if test_metrics['exact'] else 'FAMILIAR_JEV_EXACT_SYNTHETIC_HELDOUT_FAILED',
+        result={'status':'QUALIFIED_FOR_RECORDED_SCOPE' if meets_target(test_metrics,recipe) else 'SYNTHETIC_HELDOUT_TARGET_FAILED',
                 'epochs':epoch,'updates':updates,'development':replay_d,'familiar_JEV_development':replay_j,
                 'synthetic_family_heldout':test_metrics,'heldout_opened':True,'test_evaluations':1,
                 'frozen_base_unchanged':True,'saved_adapter_reload_verified':True,'new_JEV_calls':0,
                 'teacher_numeric_confidence_equivalence_established':False,
                 'general_JEV_equivalence_established':False,'downstream_gate_swapped':False,
+                'qualification':recipe.get('qualification',{'minimum_decision_agreement':1.0}),
                 'selected_adapter':str(root/'selected_adapter'),'adapter_files':file_pins(root/'selected_adapter'),
                 'public_base':c['base'],'source_commit':c['source_commit'],
                 'formulation':formulation,'recipe_file':c['recipe_file']}

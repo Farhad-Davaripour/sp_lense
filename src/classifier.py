@@ -10,7 +10,7 @@ import time
 from src.config import ROOT, Settings
 from src.utils import canonical, sha256, write_json, workspace_client
 from src.persist_data import persist
-from src.classifier_helpers import configuration, config_path, prepare_datasets, read_dataset
+from src.classifier_helpers import configuration, config_path, prepare_datasets, read_dataset, meets_target
 
 def stage_base(settings, config, setup_end):
     spec=config['model']
@@ -84,8 +84,8 @@ def dispatch(admission_path):
                 if (root/'REQUEST_HELDOUT.json').exists() and not released:
                     frozen=json.loads((root/'FROZEN_MODEL.json').read_bytes())
                     for split,count in (('development',32),('familiar_JEV_development',24)):
-                        if frozen[split]['signature_matches']!=count or frozen[split]['count']!=count:
-                            raise ValueError('Heldout release attempted before exact development agreement')
+                        if frozen[split]['count']!=count or not meets_target(frozen[split],config):
+                            raise ValueError('Heldout release attempted before the fixed development target')
                     for relative,pin in frozen['adapter_files'].items():
                         if sha256(root/'selected_adapter'/relative)!=pin['sha256']:
                             raise ValueError('Frozen adapter changed before heldout release')

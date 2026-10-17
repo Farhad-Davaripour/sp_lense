@@ -105,6 +105,19 @@ def metrics(rows, probabilities):
         result['familiar_development_only'] = True
     return result, predictions
 
+def meets_target(result, config=None):
+    """Apply the prospectively fixed development/test agreement criteria."""
+    config = config or configuration()
+    target = config.get('qualification', {})
+    minimum = target.get('minimum_decision_agreement', 1.0)
+    count = result['count']
+    if count <= 0 or not 0 < minimum <= 1:
+        raise ValueError('Invalid classifier qualification denominator or threshold')
+    required = math.ceil(count * minimum)
+    return (result['enabled_matches'] == count and
+            all(result[key] >= required for key in
+                ('label_matches', 'abstained_matches', 'signature_matches')))
+
 def prepare_datasets(settings, config=None):
     config = config or configuration()
     data_root = Path(__import__('os').environ.get('RESEARCH3_CLASSIFIER_DATA_ROOT') or

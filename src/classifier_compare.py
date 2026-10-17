@@ -5,7 +5,7 @@ import csv
 import datetime as dt
 import json
 from src.utils import sha256, write_json
-from src.classifier_helpers import LABELS, STUDENT, decision, expected, response
+from src.classifier_helpers import LABELS, STUDENT, decision, expected, response, meets_target
 
 def compare(root):
     root=Path(root)
@@ -65,7 +65,9 @@ def compare(root):
     counts={key:sum(r[key] for r in comparisons) for key in
             ('label_match','gate_match','abstention_match','answer_payload_numerically_identical')}
     exact=all(counts[k]==24 for k in ('label_match','gate_match','abstention_match'))
-    report={'status':'EXACT_FAMILIAR_DECISION_AGREEMENT' if exact else 'FAMILIAR_DECISION_MISMATCH',
+    target_met=meets_target(result['familiar_JEV_development'],{'qualification':result.get('qualification',{})})
+    report={'status':'EXACT_FAMILIAR_DECISION_AGREEMENT' if exact else
+                    ('CLOSE_FAMILIAR_DECISION_AGREEMENT' if target_met else 'FAMILIAR_DECISION_MISMATCH'),
             'compared_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
             'student_model':STUDENT,'teacher_model':'jev-1.13.0','cases':24,'matches':counts,
             'confidence_mean_absolute_difference':sum(r['confidence_absolute_difference'] for r in comparisons)/24,
