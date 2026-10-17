@@ -13,8 +13,6 @@ resources:
         default: ${var.schema}
       - name: volume
         default: ${var.volume}
-      - name: repo_path
-        default: ${var.repo_path}
       - name: execute
         default: 'false'
       - name: max_seconds
@@ -26,7 +24,7 @@ resources:
       tasks:
       - task_key: evaluate
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/evaluate
+          notebook_path: ../notebooks/evaluate.py
           base_parameters:
             run_id: '{{job.run_id}}'
         environment_key: runtime

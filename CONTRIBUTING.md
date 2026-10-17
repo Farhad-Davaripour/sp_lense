@@ -1,19 +1,28 @@
 # Contributing
 
-Choose the target branch before starting work:
+Research 3 uses a minimal source layout and deploys from main to the shared Databricks workspace.
+Historical studies remain available on study/01-guarded-shutdown and study/02-next-study.
+The active 03-open-agent-self-preservation research branch retains its experiment history.
 
-- Use `main` only for repository navigation, governance, or cross-study documentation.
-- Use the relevant `study/<number>-<name>` branch for research code, data, results, papers, and study-specific documentation.
-- Preserve completed studies with versioned tags. Do not move an existing release tag.
+Keep executable research code and helpers under src, table definitions under ddl, dataset and
+recipe definitions under config, thin notebooks under notebooks, and manual jobs under
+resources. Detailed protocols belong in the wiki. Do not add raw data, private reports, model
+weights, optimizer checkpoints, credentials, caches or local environments to Git.
 
-For each change:
+Run these model-free checks before a pull request:
 
-1. Open an issue describing the intended result.
-2. Create `fd/<issue-number>_<description>` from the branch the change will target.
-3. Open a pull request to that same long-lived branch and run its branch-specific validation.
-4. Squash-merge the pull request after review and successful checks.
-5. Verify the merge, then delete the merged remote feature branch. A local branch may be retained for recovery or reference.
+    python -m compileall -q src notebooks
+    python -m src.verify
+    git diff --check
 
-Do not push directly to, force-push, or delete `main` or a `study/*` branch. Do not delete an active branch, a branch attached to an open pull request, or a branch used by another agent or worktree.
+Frozen scientific source capsules and recipe files are hash-pinned. Preserve their original bytes.
+A scientific change requires a distinct documented protocol/version and its own bounded admission;
+a deployment or cleanup change is not permission to retrain or retune a model.
 
-All paths are owned by `@Farhad-Davaripour`. The repository owner retains the pull-request-only bypass documented in the branch protection rules.
+Use a focused feature branch for routine changes unless the user specifies an existing study branch.
+Squash-merge approved changes. Delete an eligible temporary remote feature branch only after GitHub
+confirms the merge; preserve default, study, release, active and otherwise needed branches.
+
+CI checks pull requests without secrets. Main deployments use encrypted repository secrets and run
+only the read-only CPU deployment check. Research jobs do not run automatically after deployment.
+Never log credential values or place credentials in an issue, workflow file or notebook.

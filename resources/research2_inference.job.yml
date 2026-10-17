@@ -24,7 +24,7 @@ resources:
       tasks:
       - task_key: frozen_models_inference
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/research2_inference
+          notebook_path: ../notebooks/research2_inference.py
         compute:
           hardware_accelerator: ${var.accelerator}
         environment_key: runtime
@@ -35,7 +35,7 @@ resources:
         depends_on:
         - task_key: frozen_models_inference
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/research2_inference_report
+          notebook_path: ../notebooks/research2_inference_report.py
         environment_key: runtime
         max_retries: 0
         disable_auto_optimization: true

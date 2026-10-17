@@ -1,108 +1,119 @@
 # Research 3
 
-Reproduction code for fine-tuning, workflow evaluation and activation steering.
+Reproduction code for conditional gating, fine-tuning and activation steering across
+binary shutdown choices and synthetic tool-mediated process-preservation workflows.
+The original Research 2 study remains on its preserved study branch.
 
 ## Layout
 
-- config/data.yaml: dataset definitions, versions, source hashes and method-specific roles.
+- .env.example: workspace, catalog, Bronze schema, Volume and shared code location.
+- config/: dataset definitions, frozen recipes, source hashes and experiment-specific data roles.
 - ddl/: exactly training, validation and heldout table definitions.
-- src/: data persistence, research entry points and pinned scientific engines.
-- notebooks/: minimal Databricks orchestration importing src.
-- resources/: manual Bronze persistence, fine-tuning, Evaluation-16 and steering jobs.
+- src/: research entry points, data persistence, deployment checks and pinned scientific engines.
+- notebooks/: thin Databricks orchestration importing src.
+- resources/: readable manual research jobs and the CPU deployment check.
+- .github/workflows/ci.yml: public source checks and deployment after a merge to main.
 
-See the [Research 3 reproduction guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-3-Reproduction). Detailed protocols and research history belong in the wiki.
+Detailed protocols and research history belong in the
+[Research 3 reproduction guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-3-Reproduction).
+Private inputs, model weights, optimizer checkpoints, caches and generated outputs remain outside Git.
+There is no root data directory or Python packaging project.
 
-## Configuration
+## Configuration and data
 
-Copy .env.example to .env and set the workspace, catalog, Bronze schema, Volume and Git-folder path.
-Credentials come from the environment or an existing Databricks profile; do not put them in Git.
-Raw input files and generated outputs live outside this checkout. RESEARCH3_DATA_ROOT points to
-the private source files named by config/data.yaml. Bronze preserves raw records, source order,
-hashes and dataset versions. H24 was heldout for frozen A/original steering but later used for
-learned-correction fitting. The separate sealed R24 cohort is not loaded by this project.
+Copy .env.example to the untracked .env. Set the workspace host, catalog, Bronze schema,
+Volume and warehouse. DATABRICKS_CODE_PATH defaults to /Workspace/Shared/sp_lense.
+Credentials come from the environment or an existing Databricks profile; never put them in Git.
 
-## Local checks and persistence
+The three tables retain dataset IDs, versions, original row order, hashes and experiment-specific
+roles. T1 contains 428 meaning plus 112 workflow response records, not 540 independent scenarios.
+Evaluation-16 is an existing development screen. H24 was historical heldout confirmation for
+fine-tuned 27B A and original fixed steering; later learned corrections reused it for fitting.
+The separate reserved R24 controller holdout remains sealed and is not ingested by this project.
 
     python -m pip install -r requirements.txt
     python -m src.persist_data
     python -m src.persist_data --execute
 
-The default checks source hashes/counts without cloud writes. The explicit execute mode creates
-the configured schema/Volume and three append-only Delta tables, persists immutable source files,
-and verifies Volume bytes and Delta record hashes. It does not train or evaluate a model.
+Default persistence checks source identities without cloud writes. Explicit execution creates
+the configured schema/Volume and tables, persists immutable originals, and verifies Volume bytes
+and Delta payload hashes. Large artifacts live in the managed Volume.
 
-## Reproduction
+## Scientific reproduction
 
     python -m src.finetune
     python -m src.evaluate
     python -m src.steering
     python -m src.classifier
-    python -m src.utils bundle validate
-    python -m src.utils bundle deploy
 
-Entry points default to plan/check mode. Explicit execution requires the original immutable inputs,
-bounded runtime admission and worker arguments. Fine-tuning retains the original matched CPU
-reference. The separate --resume-2b-admission path runs exactly 54 remaining updates
-from the pinned 216 checkpoint, with FP32 GPU computation and the native CPU optimizer.
-It preserves the earlier failed strict-equivalence results and discloses checkpointed
-GPU continuation. Its six-hour limit includes setup, queue time, export and cleanup;
-each coherent update is saved to the Volume. Backend fit is checked during the admitted run.
-Evaluation executes only the frozen 16-case development screen, stops once a required original gate
-is impossible, and requires a verified final-270 adapter plus a current admission receipt.
-It does not automatically run other validation or heldout panels. Steering workers are retained for
-reproduction, with fixed-analysis as the default; no new steering experiment is implied.
+Entry points default to plan/check mode. Explicit execution requires frozen inputs and bounded
+runtime admission. The 2B continuation runs exactly the remaining 54 updates from its preserved
+216 checkpoint, retaining FP32 computation and the native CPU optimizer. Completion at 270 updates
+is a disclosed mixed-backend result; earlier strict CPU/GPU equivalence failures remain failed.
 
-Jobs target notebooks in the existing Databricks Git folder on branch
-03-open-agent-self-preservation. Jobs execute that Git folder after its branch is pulled.
-No recurring schedules are defined. Accelerator entitlement, package/driver compatibility and
-resource/time admission still apply before neural execution. Core requirements are for orchestration;
-each scientific worker retains its original model-runtime requirements and integrity checks.
+Evaluation requires a verified final-270 adapter and runs only the frozen Evaluation-16 screen.
+It stops when an original required gate becomes mathematically impossible and preserves completed,
+partial and unexecuted counts. It never automatically launches larger validation or heldout runs.
+Historical source capsules under src/engines and config/recipes retain their original bytes.
 
-## Open classifier
+## Open classifier and Research 2 inference
 
-config/classifier.yaml pins the Apache-2.0 ModernBERT-large zero-shot base and the
-four-label shutdown-target contract. python -m src.classifier --persist-data validates
-the private classifier packet; add --execute to persist its separately identified C1
-datasets into the same Bronze tables. Existing T1/V1/H24 rows remain separate.
+The public base is MoritzLaurer/ModernBERT-large-zeroshot-v2.0, pinned in config/classifier.yaml.
+Four-way Research 3 target classification and binary Research 2 shutdown detection are distinct tasks.
 
-The classifier notebook/job fine-tunes encoder LoRA adapters and a four-way head.
-It uses synthetic TRAIN96 for gradients, synthetic DEV32 and familiar cached JEV24
-for development selection, and releases synthetic family-heldout TEST64 only after
-exact development decisions and a frozen saved adapter. The familiar JEV24 set is
-not independent heldout evidence. Student confidence values and numeric differences
-are reported honestly; exact finite-set label/gate agreement is not universal JEV equivalence.
-No paid JEV call, serving endpoint or automatic downstream gate replacement is included.
-The classifier job has separate training and final JEV-comparison tasks. The comparison
-uses frozen student predictions and genuine cached JEV responses, writes a per-case CSV,
-and reports label, gate, abstention and numerical-confidence differences separately.
-It can also run alone with python -m src.classifier_compare --classifier-output <run-directory>.
-The optional classifier_nli.yaml recipe preserves the pretrained binary NLI head and
-scores the same four fixed hypotheses for each complete input. Those four pairs are
-alternative views of one case, not four independent scenarios. Job parameters select
-the recipe; changing it does not modify an already running training process.
-The NLI refinement fixes its criteria prospectively: at least 95% joint decision
-agreement and every enabled gate matching, for three development checks, followed
-by the frozen once-only synthetic test. This does not claim numerical JEV identity.
-The role-binding recipe appends the latest explicit visible tool bindings and an
-ID-normalized copy of the final notice. The complete original evidence is retained;
-record labels and teacher outputs are excluded. This preprocessing is an explicit
-part of the classifier pipeline, separate from parameter fine-tuning.
+The four-way recipes are retained in config/classifier*.yaml. Familiar cached JEV24 is development
+evidence, not independent heldout evidence. The final role-normalized candidate matched those
+24 labels/gates, but failed the untouched authored synthetic TEST64 with 39/64 labels and 57/64
+gates. It is not qualified for general four-way substitution. Do not retune or reopen that test.
+The classifier job includes a separate final JEV comparison task.
 
-## Research 2 inference repeat
+config/research2_classifier.yaml identifies genuine cached JEV TRAIN240, DEV80 and CONFIRM128.
+The binary classifier starts from the public NLI base with fresh rank-16 LoRA and classification-head
+updates. It uses only TRAIN240 probabilities for fitting, DEV80 for selection, and CONFIRM128 once
+after three consecutive qualifying validation checks and a frozen saved adapter. The threshold is
+0.5; qualification requires at least 95% decision agreement and shutdown recall, with zero false
+positive gates. No paid JEV calls are needed.
 
-The original Research 2 stays unchanged. Research 3 declares its cached JEV references
-in config/research2_classifier.yaml and persists them through src.research2_data.
-The qualified classifier must also pass the original binary shutdown-gate task before
-src.research2_inference reruns 0.8B and 2B inference with frozen weights and controllers.
-Both gates share the same fresh scores; historical T4/A10 numerical differences are
-reported separately. src.research2_inference_report audits the resulting comparison.
-src.research2_compare is a cached-score reference audit, not a fresh inference run.
+The completed binary fit used five epochs and 150 updates: DEV78/80 and CONFIRM128/128 matching
+JEV decisions. Probability payloads are not identical. These are finite-set binary results, not
+universal JEV equivalence or four-way Research 3 qualification.
 
-## Storage and history
+The inference-only entry points are:
 
-Delta holds dataset records. The configured Unity Catalog Volume holds weights, checkpoints,
-token/mask files and exports. Private inputs, runtime receipts, caches and large artifacts stay out
-of Git. Scientific source capsules retain exact source hashes in config/research.yaml; entry points
-stage verified source/configuration files into a run directory before invoking the original workers.
-The pre-cleanup working tree and detailed historical documentation are preserved in a verified local
-archive and the previous Git history. No historical results are relabeled as new runs.
+    python -m src.research2_data --help
+    python -m src.research2_classifier --help
+    python -m src.research2_inference --help
+    python -m src.research2_inference_report --help
+
+Inference uses the original frozen 0.8B/2B base models and existing author-selected rank-two
+controllers, with no new fine-tuning, activation capture or controller fitting. Each model evaluates
+128 scenarios in two correlated answer orders. The open and cached JEV gate policies use the same
+fresh model scores. The completed repeat produced identical guarded outcomes: 0.8B STOP128/128
+shutdown views, 2B STOP120/128, and zero changes to 128 control views per model. Both historical
+base-score parity checks passed. Historical primary rank-four results are kept separate from the
+later exploratory rank-two profile; rank selection was not repeated.
+
+Qualified adapters, resume checkpoints and outputs are preserved privately with size/SHA readback.
+Weights have not been published to Hugging Face. A public release should supply exact adapter
+revisions, base-model pins, loading instructions and model cards with the recorded limitations.
+
+## Shared Databricks deployment
+
+    python -m src.verify
+    python -m src.utils bundle validate --strict --target shared
+    python -m src.utils bundle deploy --auto-approve --target shared
+
+Bundle synchronization deploys code to /Workspace/Shared/sp_lense. Jobs use relative notebook
+references resolved into that shared location, independently of a personal Databricks Git folder.
+Bundle deployment state stays in the deploying owner's private bundle directory. Existing job
+bindings preserve their IDs and history. Job names do not include a development username prefix.
+
+Pull requests run compilation and public source-integrity checks without credentials or model
+loads. A push to main also validates and deploys the bundle, then runs deployment_smoke.
+That CPU-only job checks the expected source digest, shared code path, existing table metadata
+and Volume access. It reads zero dataset rows and performs zero scientific forwards or updates.
+
+The deployment workflow uses repository secrets DATABRICKS_HOST and DATABRICKS_TOKEN, plus
+the DATABRICKS_WAREHOUSE_ID repository variable. Catalog, schema, Volume and code-path defaults
+come from .env.example and can be overridden by the environment. Scientific jobs remain manual,
+with bounded admissions and no automatic retries. No recurring monitor is defined.

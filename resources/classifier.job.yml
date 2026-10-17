@@ -24,7 +24,7 @@ resources:
       tasks:
       - task_key: finetune_classifier
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/classifier
+          notebook_path: ../notebooks/classifier.py
           base_parameters:
             run_id: '{{job.run_id}}'
         environment_key: runtime
@@ -37,7 +37,7 @@ resources:
         depends_on:
         - task_key: finetune_classifier
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/classifier_compare
+          notebook_path: ../notebooks/classifier_compare.py
         environment_key: runtime
         max_retries: 0
         disable_auto_optimization: true

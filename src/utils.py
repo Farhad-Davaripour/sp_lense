@@ -44,13 +44,13 @@ def workspace_client(settings):
 def bundle(action, extra=()):
     import shutil
     import subprocess
-    from src.config import Settings, ROOT, read_env
+    from src.config import Settings, ROOT
     settings = Settings.load()
     env = auth_environment(settings)
     for name, value in {"catalog": settings.catalog, "schema": settings.schema,
                         "volume": settings.volume, "warehouse_id": settings.warehouse_id,
-                        "repo_path": settings.repo_path,
-                        "accelerator": os.environ.get("DATABRICKS_ACCELERATOR") or read_env(ROOT / ".env").get("DATABRICKS_ACCELERATOR", "GPU_1xA10")}.items():
+                        "code_path": settings.code_path,
+                        "accelerator": settings.accelerator}.items():
         env["BUNDLE_VAR_" + name] = value
     cli = shutil.which("databricks")
     if not cli:

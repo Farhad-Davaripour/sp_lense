@@ -38,7 +38,8 @@ class Settings:
     volume: str
     host: str
     warehouse_id: str
-    repo_path: str
+    code_path: str
+    accelerator: str
     token_variable: str
     data_root: Path
     output_root: Path
@@ -58,7 +59,8 @@ class Settings:
             required("DATABRICKS_CATALOG"), required("DATABRICKS_SCHEMA"),
             required("DATABRICKS_VOLUME"), values.get("DATABRICKS_HOST", ""),
             values.get("DATABRICKS_WAREHOUSE_ID", ""),
-            values.get("DATABRICKS_REPO_PATH", ""),
+            values.get("DATABRICKS_CODE_PATH", "/Workspace/Shared/sp_lense"),
+            values.get("DATABRICKS_ACCELERATOR", "GPU_1xA10"),
             values.get("DATABRICKS_TOKEN_VARIABLE", "databricks-token"),
             Path(values.get("RESEARCH3_DATA_ROOT") or Path.home() / "Research3" / "datasets" / "research3_bronze_v1"),
             Path(values.get("RESEARCH3_OUTPUT_ROOT") or Path.home() / "Research3" / "artifacts" / "reproduction"))

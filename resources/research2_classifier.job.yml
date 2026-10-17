@@ -30,7 +30,7 @@ resources:
       tasks:
       - task_key: verify_research2_classifier
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/research2_classifier
+          notebook_path: ../notebooks/research2_classifier.py
         compute:
           hardware_accelerator: ${var.accelerator}
         environment_key: runtime
@@ -41,7 +41,7 @@ resources:
         depends_on:
         - task_key: verify_research2_classifier
         notebook_task:
-          notebook_path: ${var.repo_path}/notebooks/research2_compare
+          notebook_path: ../notebooks/research2_compare.py
         environment_key: runtime
         max_retries: 0
         disable_auto_optimization: true
