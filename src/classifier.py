@@ -38,7 +38,10 @@ def dispatch(admission_path):
     settings=Settings.load();config=configuration()
     start=dt.datetime.fromisoformat(admission['submission_utc'])
     end=start.timestamp()+config['bounds']['whole_job_seconds']
+    if admission.get('absolute_end_utc'):
+        end=min(end,dt.datetime.fromisoformat(admission['absolute_end_utc']).timestamp())
     setup_end=start.timestamp()+config['bounds']['setup_seconds']
+    setup_end=min(setup_end,end-config['bounds']['export_cleanup_seconds'])
     if start.tzinfo is None or not start.timestamp()<=time.time()<setup_end:
         raise TimeoutError('The original classifier setup window expired')
     for relative,pin in admission['source_pins'].items():

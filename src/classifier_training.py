@@ -130,7 +130,8 @@ def train(worker_path):
     if sha256(config_path())!=c['configuration_sha256']:
         raise ValueError('Classifier configuration changed after admission')
     start=dt.datetime.fromisoformat(c['submission_utc']).timestamp()
-    absolute_end=start+recipe['bounds']['whole_job_seconds']
+    absolute_end=min(start+recipe['bounds']['whole_job_seconds'],
+                     dt.datetime.fromisoformat(c['absolute_end_utc']).timestamp())
     neural_end=absolute_end-recipe['bounds']['export_cleanup_seconds']
     if time.time()>=start+recipe['bounds']['setup_seconds']:raise TimeoutError('Original setup window expired')
     if not torch.cuda.is_available() or torch.cuda.device_count()!=1 or not torch.cuda.is_bf16_supported():
