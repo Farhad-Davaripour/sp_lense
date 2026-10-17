@@ -1,0 +1,55 @@
+format: research3-reproduction-v1
+evidence:
+  manifest_sha256: 6a0cb058a01ef1fcbe41ed135af36ef2971fa1e5fa08e83b068a465998f651f4
+  files: 171
+  bytes: 22352015
+  volume_directory: reproduction/evidence_v1/6a0cb058a01ef1fcbe41ed135af36ef2971fa1e5fa08e83b068a465998f651f4
+  access: Private retained evidence. Git alone cannot reproduce data-dependent results; authorized access or
+    a separate release is required.
+  archive_bytes: 2600133
+  archive_sha256: b2faf680d4caa7204cd336d9f68b614d1108fa7cf2bf71584fa3ba2ad2504392
+stages:
+- name: Source and job definitions
+  entrypoint: python -m src.verify
+  coverage: public offline
+  compute: CPU
+- name: Bronze datasets
+  entrypoint: python -m src.persist_data
+  coverage: hash/count validation with private inputs; cloud persistence is explicit
+  compute: SQL/CPU
+- name: Small-model full training
+  entrypoint: python -m src.finetune
+  coverage: legacy CPU worker with explicit frozen packets; not an automatic GPU full-dose job
+  compute: CPU; original recipe
+- name: 2B remaining54
+  entrypoint: python -m src.finetune --resume-2b-admission <new-admission.json> --execute
+  coverage: existing216 checkpoint required; old admissions expire; creates new outputs
+  compute: single A10 GPU
+- name: Evaluation16
+  entrypoint: python -m src.evaluate --admission <new-admission.json> --output <new-run> --execute
+  coverage: verified final270 required; fail-fast screen only
+  compute: single A10 GPU
+- name: Historical fixed steering
+  entrypoint: python -m src.steering --method fixed --engine-args <original-arguments> --execute
+  coverage: preserved worker; original cases, cached gates, 27B adapter and supported hardware required
+  compute: 27B-capable GPU; original NF4 mode
+- name: Learned steering
+  entrypoint: python -m src.steering --method learned --engine-args <original-arguments> --execute
+  coverage: recorded stopped/final fitting evidence; fresh qualification not implied; sealed R24 excluded
+  compute: 27B-capable GPU
+- name: Four-way classifier
+  entrypoint: python -m src.classifier --recipe classifier_nli_v4.yaml --admission <new-admission.json> --execute
+  coverage: private classifier datasets; consumed TEST64 cannot be retuned
+  compute: single A10 GPU
+- name: Binary classifier
+  entrypoint: python -m src.research2_classifier --help
+  coverage: original cached TRAIN240/DEV80, public base and recorded fixed recipe; explicit bounded run required
+  compute: single A10 GPU
+- name: Fresh binary-model inference
+  entrypoint: python -m src.research2_inference --help
+  coverage: frozen public bases, retained controllers and qualified binary predictions; no fitting
+  compute: single A10 GPU
+- name: Saved evidence replay
+  entrypoint: python -m src.reproduce --execute --evidence-root <evidence> --output <new-run>
+  coverage: rescore cached predictions/workflows; no fresh forwards, training or new holdout claims
+  compute: CPU

@@ -1,0 +1,31 @@
+resources:
+  jobs:
+    reproduce:
+      name: Research 3 - Reproduce saved evidence
+      max_concurrent_runs: 1
+      timeout_seconds: 1200
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: evidence_root
+        default: ''
+      tasks:
+      - task_key: replay_retained_evidence
+        notebook_task:
+          notebook_path: ../notebooks/reproduce.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 1200
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'

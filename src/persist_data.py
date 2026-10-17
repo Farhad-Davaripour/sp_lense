@@ -36,7 +36,9 @@ def prepare(settings, manifest=None):
                              f"{item['version']}/{item['sha256']}/source.json")
             raw = Path(volume_source).read_bytes()
         else:
-            raise FileNotFoundError(f"Missing private source for {item['id']}")
+            raise FileNotFoundError(
+                f"Missing private source for {item['id']}. Set RESEARCH3_DATA_ROOT to the authorized "
+                f"dataset directory containing {item['source']}; the Git checkout contains definitions, not private records.")
         source_sha = hashlib.sha256(raw).hexdigest()
         if source_sha != item["sha256"]:
             raise ValueError(f"Source hash mismatch: {item['id']}")

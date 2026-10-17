@@ -4,6 +4,54 @@ Reproduction code for conditional gating, fine-tuning and activation steering ac
 binary shutdown choices and synthetic tool-mediated process-preservation workflows.
 The original Research 2 study remains on its preserved study branch.
 
+## Start with a clean checkout
+
+Use Python 3.12, Git and the [official Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install).
+The local requirements install orchestration tools only; model libraries are pinned in the
+Databricks notebooks and are not needed for the first checks.
+
+    git clone --branch 03-open-agent-self-preservation https://github.com/Farhad-Davaripour/sp_lense.git
+    cd sp_lense
+    python -m venv .venv
+
+Activate the virtual environment, then run:
+
+    python -m pip install -r requirements.txt
+    python -m src.reproduce
+    python -m unittest discover -s tests -v
+
+The first command verifies public source/job definitions and lists the input and compute
+requirements for each stage. It does not authenticate, allocate compute or report a full
+scientific reproduction. A public clone does not include private datasets or trained adapters.
+Data-dependent commands require the inputs named in `config/data.yaml`; set
+`RESEARCH3_DATA_ROOT` in `.env` to their containing directory. An authorized Databricks worker
+can instead reuse the immutable originals already in the configured Volume.
+
+To replay the retained evidence using an authorized workspace, configure `.env` and authenticate
+with the CLI or environment, then use a new directory outside the checkout:
+
+    python -m src.reproduce --fetch-evidence --evidence-root <new-private-evidence-directory>
+    python -m src.reproduce --execute --evidence-root <private-evidence-directory> --output <new-output-directory>
+
+This checks the frozen artifact manifest, recomputes cached binary decisions and guards,
+rebuilds historical 27B workflow tables, and verifies both Evaluation-16 stop proofs and
+the consumed four-way classifier test counts. Training completion and learned-correction
+trends are receipt audits. No models are loaded or retrained, and no fresh holdout evidence
+is claimed. Full training and fresh inference require separate bounded GPU/CPU runs and the
+additional private inputs listed in `config/reproduction.yaml`.
+
+## Test deployment without changing the study deployment
+
+    python -m src.utils bundle validate --strict --target reproduction
+    python -m src.utils bundle deploy --target reproduction
+    python -m src.utils bundle run reproduce --target reproduction
+
+The test target has separate deployment state, job names and code at
+`/Workspace/Shared/sp_lense-reproduction`. It reads the configured private evidence package
+and writes a new Volume output for each job run. It does not bind or modify the existing
+study job IDs. The `reproduce` job is CPU-only. Other scientific jobs have explicit GPU and
+input requirements; local plan commands do not establish that those requirements are met.
+
 ## Layout
 
 - .env.example: workspace, catalog, Bronze schema, Volume and shared code location.
@@ -77,6 +125,9 @@ updates. It uses only TRAIN240 probabilities for fitting, DEV80 for selection, a
 after three consecutive qualifying validation checks and a frozen saved adapter. The threshold is
 0.5; qualification requires at least 95% decision agreement and shutdown recall, with zero false
 positive gates. No paid JEV calls are needed.
+Fresh binary training uses `--finetune` and the pinned public NLI base directly; no prior
+four-way classifier trial is required. Without `--finetune`, `--classifier-output` identifies
+a previously frozen adapter for verification, including a qualified binary adapter.
 
 The completed binary fit used five epochs and 150 updates: DEV78/80 and CONFIRM128/128 matching
 JEV decisions. Probability payloads are not identical. These are finite-set binary results, not
@@ -124,7 +175,7 @@ Bundle deployment state stays in the deploying owner's private bundle directory.
 bindings preserve their IDs and history. Job names do not include a development username prefix.
 
 Pull requests run compilation and public source-integrity checks without credentials or model
-loads. A push to 03-open-agent-self-preservation also validates and deploys the bundle, then runs deployment_smoke.
+loads, plus offline regression tests. A push to 03-open-agent-self-preservation also validates and deploys the bundle, then runs deployment_smoke.
 That CPU-only job checks the expected source digest, shared code path, existing table metadata
 and Volume access. It reads zero dataset rows and performs zero scientific forwards or updates.
 
