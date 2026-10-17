@@ -1,0 +1,52 @@
+resources:
+  jobs:
+    research2_classifier:
+      name: Research 3 - Research 2 classifier training and JEV verification
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: warehouse_id
+        default: ${var.warehouse_id}
+      - name: reference_root
+        default: ''
+      - name: classifier_output
+        default: ''
+      - name: output
+        default: ''
+      - name: submission_utc
+        default: ''
+      - name: absolute_end_utc
+        default: ''
+      - name: finetune
+        default: 'false'
+      tasks:
+      - task_key: verify_research2_classifier
+        notebook_task:
+          notebook_path: ../notebooks/research2_classifier.py
+        compute:
+          hardware_accelerator: ${var.accelerator}
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 3600
+      - task_key: compare_research2_pipelines
+        depends_on:
+        - task_key: verify_research2_classifier
+        notebook_task:
+          notebook_path: ../notebooks/research2_compare.py
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 600
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'

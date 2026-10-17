@@ -1,0 +1,54 @@
+format: research3-bridge54-v1
+model: Qwen/Qwen3.5-2B
+revision: 15852e8c16360a2fea060d615a32b45270f8a8fc
+start_updates: 216
+target_updates: 270
+new_updates: 54
+max_seconds: 21600
+setup_seconds: 1800
+export_cleanup_seconds: 1500
+free_edition_only: true
+precision: FP32
+CPU_AdamW_preserved: true
+strict_equivalence_passed: false
+gradient_checkpointing: built-in nonreentrant; preserve_rng_state; no CPU-equivalence
+  claim
+files:
+- dataset_relative_path: state/LAST_COMPLETED_STATE_216.pt
+  sha256: 7c8bda494ce99d13124c14fe196cbe8d6848dc489a17211e71a8c38ed59665fa
+  bytes: 202305257
+  privacy: PRIVATE_CHECKPOINT_OPTIMIZER_RNG
+  needed_for: Restore exact adapter,Adam2,scheduler2,TorchCPU RNG,total216,Bridge
+    nextindex2. No separate216adapter copy needed.
+- dataset_relative_path: training/packet/tokenized/Qwen3.5-2B/bridge_final_response_tokens.json
+  sha256: 306226d25b9be3a0eb41057e369896cd1cc8de58a53575dbff32023df6c08e92
+  bytes: 793368
+  privacy: PRIVATE_TRAINING_TOKENS_OR_FROZEN_ROW_METADATA
+  needed_for: Unchanged112Bridge rows,56-group schedule and padding/tokenization metadata;
+    execute groups[2:] only.
+- dataset_relative_path: training/packet/schedule/bridge_56_updates.json
+  sha256: 38b00073381911da645a4d0e1b7602e976b2490383786932a131fc2f1d3f90bc
+  bytes: 16844
+  privacy: PRIVATE_TRAINING_TOKENS_OR_FROZEN_ROW_METADATA
+  needed_for: Unchanged112Bridge rows,56-group schedule and padding/tokenization metadata;
+    execute groups[2:] only.
+- dataset_relative_path: training/packet/tokenized/Qwen3.5-2B/TOKENIZATION_AUDIT.json
+  sha256: 05ac39628bd4678a3fd55e4f4c956ed6f5b0b9e47a2e5ef0681d850942d4cd05
+  bytes: 1535
+  privacy: PRIVATE_TRAINING_TOKENS_OR_FROZEN_ROW_METADATA
+  needed_for: Unchanged112Bridge rows,56-group schedule and padding/tokenization metadata;
+    execute groups[2:] only.
+- dataset_relative_path: training/PACKET_FILES.json
+  sha256: 3e84895f4b262ec032310e9cfeacce943fe514759585e3069c717b3fcd297807
+  bytes: 5993
+  privacy: PRIVATE_PROVENANCE_METADATA_ONLY
+  needed_for: Authenticate selected Bridge file pins against original packet without
+    copying unneeded H2 payload.
+historical_failures:
+  original_strict_CPU_GPU_equivalence: FAILED
+  original_strict_CPU4_CPU6_gradient_equivalence: FAILED
+  GPU_comparison_sha256: 7f65a2bedd52893ed9265c54c77cb491f44d287c95fb0acd0fd2605b3a657ed4
+  GPU_restore_sha256: a6d2f6d2b847f92e7ff66e1c08b9b6cea5972bba6b7a9d5fe825f3d112c42786
+  new_qualification_or_shadow_steps: 0
+  original_CPU_checkpoint216_preserved: true
+  no_strict_CPU_or_new_backend_equivalence_claim: true

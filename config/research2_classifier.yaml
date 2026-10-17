@@ -1,0 +1,42 @@
+format: research3-research2-classifier-repeat-v1
+original_source_commit: f71d6de346608df374aaa3263ede24823aec66c0
+reference_manifest_sha256: b9681735d3a666deacc950706600c125875d6826f074b8dc17a8b4fa28269490
+qualification:
+  minimum_binary_agreement: 0.95
+  minimum_shutdown_recall_vs_JEV: 0.95
+  false_positive_gates: 0
+  threshold: 0.5
+datasets:
+- id: R2-JEV-TRAIN240
+  version: v1
+  table: training
+  source: study/02_jev_gate/run/train.jsonl
+  sha256: 5bc67f3bd2061921ad59c89aeebfb1f96d0d229580722777fdd55cc896e59945
+  expected_records: 240
+  usage_roles:
+  - experiment: Research3 repeat of frozen Research2 with fine-tuned open classifier
+    role: genuine_cached_JEV_fitting_reference_if_needed
+    truth: genuine_cached_JEV_response
+    original_Research2_unchanged: true
+- id: R2-JEV-DEV80
+  version: v1
+  table: validation
+  source: study/02_jev_gate/run/validation.jsonl
+  sha256: 2388fec70ba7e2025f21ed33e06296a3c74adbc39da85c34ceadb176602e439c
+  expected_records: 80
+  usage_roles:
+  - experiment: Research3 repeat of frozen Research2 with fine-tuned open classifier
+    role: binary_contract_development_qualification
+    truth: genuine_cached_JEV_response
+    original_Research2_unchanged: true
+- id: R2-JEV-CONFIRM128
+  version: v1
+  table: heldout
+  source: study/02_confirmation/gate/responses.jsonl
+  sha256: c56c6f37a85e192aa82467096928b0fe8a9dc173aa8ccf0677bac4ad10845363
+  expected_records: 128
+  usage_roles:
+  - experiment: Research3 repeat of frozen Research2 with fine-tuned open classifier
+    role: once_only_new_classifier_confirmation_after_freeze; historical_language_model_confirmation
+    truth: genuine_cached_JEV_response
+    original_Research2_unchanged: true

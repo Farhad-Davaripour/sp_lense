@@ -1,0 +1,136 @@
+format: research3-jev-target-classifier-v1
+model:
+  repository: MoritzLaurer/ModernBERT-large-zeroshot-v2.0
+  revision: a51e07b524299e309dd2b88d48b0cfa2bd9ec598
+  license: apache-2.0
+  parameters_original: 395833346
+  context_tokens: 8192
+  base_volume_directory: models/modernbert_large_zeroshot
+  student_volume_directory: models/jev_shutdown_target_classifier
+  files:
+    config.json:
+      bytes: 1471
+      sha256: ababd87e19a2c783e08495996e5e32e7d6661ea66686ba41fd02f9e7d46d547f
+    model.safetensors:
+      bytes: 791684972
+      sha256: 9e88e3ba0721cee770645d262f10dbe8125ed592ff349b7ba2eedaaded97230a
+    README.md:
+      bytes: 3245
+      sha256: f5edbc9131c60af9e108be1e2ea2d4edfe75e606218114994059cee65e5f4d1b
+    special_tokens_map.json:
+      bytes: 694
+      sha256: ea97ecdbcc73713039d8d64dbb05e3689495c96657fbd9a18f5bed381be81049
+    tokenizer.json:
+      bytes: 3583228
+      sha256: 6c8aaa9a542084f2457eab775d4eeb51f92a70c0fd9de28d5edb0ddec3c08d30
+    tokenizer_config.json:
+      bytes: 20839
+      sha256: c5a7dfd44d93c5d7ed9b2ddcd7a6018e935ec7d53f1de45910ea9868e0ff1c17
+labels:
+- self
+- other
+- none
+- unclear
+teacher_model: jev-1.13.0
+dataset_directory: jev_target_classifier_v1
+datasets:
+- id: C1-TRAIN
+  version: v1
+  table: training
+  expected_records: 96
+  source: c1-train.json
+  sha256: 357d3576df77d9f06d253afee532b4cc1ba5edffcc624f361193a4b77b30d1a2
+  usage_roles:
+  - experiment: Databricks ModernBERT classifier v1
+    role: fitting
+    truth: synthetic, not JEV annotations
+- id: C1-DEV
+  version: v1
+  table: validation
+  expected_records: 32
+  source: c1-dev.json
+  sha256: 8c1002e3567a495a458a7da27997e0251a00991a191ee7f82c25343ada3fe91a
+  usage_roles:
+  - experiment: Databricks ModernBERT classifier v1
+    role: checkpoint_selection
+    truth: synthetic, not JEV annotations
+- id: C1-TEST
+  version: v1
+  table: heldout
+  expected_records: 64
+  source: c1-test.json
+  sha256: e1c74f32710a2d39910343cc677e0ed444794b868c91f529d0e15f4877dba2af
+  usage_roles:
+  - experiment: Databricks ModernBERT classifier v1
+    role: once_only_family_heldout_evaluation_after_freeze
+    truth: synthetic, not JEV annotations
+- id: C1-JEV-DEV
+  version: v1
+  table: validation
+  expected_records: 24
+  source: c1-jev-development.json
+  sha256: d834bf12a5910fb99a76149e6a027489c77ce80d7a99521b5e48a4df89f765dc
+  usage_roles:
+  - experiment: Databricks ModernBERT classifier v1
+    role: familiar_development_agreement_and_checkpoint_selection_only; excluded_from_gradient_training
+    truth: actual_cached_JEV_responses
+    independent_heldout: false
+prior_preparation:
+  manifest_sha256: e0d7d6c2253b24f7b15f2729c8561419f17d9d052b67f3ef1b93af9766e12f9e
+  old_frozen_feature_GLiClass_pilot: prepared_only_never_executed
+  new_run: LoRA encoder and 4-way classifier tuning; cached JEV24 now a disclosed
+    familiar development target, not independent heldout
+rendering_pins:
+  src/engines/classifier/contract.py: 20a34208b621ce0669f93f738f5a2ba9a9c6e9a50115766aac140bfd30b8a696
+  src/engines/classifier/rendering.py: a19470bedc593b57d8c41ff210b74b51921f7f12e19497cf0fe1b1a64938ec11
+training:
+  seed: 20261017
+  max_epochs: 200
+  microbatch: 2
+  effective_batch: 8
+  learning_rate: 0.0001
+  classifier_learning_rate: 0.0005
+  weight_decay: 0.01
+  clip_norm: 1.0
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  gradient_checkpointing: nonreentrant
+  precision: FP32 trainable weights and optimizer; BF16 CUDA autocast
+  validation_every_epochs: 1
+  required_consecutive_perfect_validations: 3
+  target: 100% label, enabled-gate and abstention agreement on C1-DEV32 and familiar
+    C1-JEV-DEV24
+  checkpoint_selection: Development only; no training gradient on JEV24; freeze third
+    consecutive perfect validation, otherwise preserve best and do not open heldout
+  scheduler: linear learning-rate decay; 24 optimizer-update warmup
+bounds:
+  whole_job_seconds: 10800
+  setup_seconds: 1800
+  export_cleanup_seconds: 1200
+  initial_host_free_GiB: 16
+  host_hard_reserve_GiB: 8
+  GPU_free_reserve_GiB: 2
+  free_edition_only: true
+  automatic_retry: false
+evaluation:
+  heldout_dataset: C1-TEST
+  heldout_count: 64
+  labels: authored synthetic, not JEV
+  test_open_only_after_development_target: true
+  once_only: true
+  synthetic_qualification_min_accuracy: 1.0
+  familiar_JEV_is_not_independent_test: true
+  numeric_JEV_confidence_equivalence_not_assumed: true
+  new_JEV_calls: 0
+  no_automatic_downstream_gate_swap: true
+research_sources:
+- url: https://huggingface.co/MoritzLaurer/ModernBERT-large-zeroshot-v2.0
+  reason: Apache-2.0 pretrained sequence classifier; strongest earlier recorded open-classifier
+    result
+- url: https://huggingface.co/answerdotai/ModernBERT-base
+  reason: 'ModernBERT family: long context and standard fine-tuning; large variant
+    has 395M parameters'
+- url: https://github.com/Knowledgator/GLiClass
+  reason: Efficient alternative reviewed; not rerun or selected for this single-model
+    training

@@ -1,0 +1,60 @@
+format: research3-datasets-v1
+canonicalization: UTF-8 JSON; sorted keys; compact separators; preserve all payload
+  strings and source order
+datasets:
+- id: T1-M
+  version: v1
+  table: training
+  part: meaning
+  source: training/meaning.json
+  expected_records: 428
+  sha256: 14948c6c2ed6acda56b47dced7fead31f36fb46fab8f7471c6346c1277892464
+  usage_roles:
+  - role: actual fine-tuning training data
+- id: T1-W
+  version: v1
+  table: training
+  part: workflows
+  source: training/workflows.json
+  expected_records: 112
+  sha256: e7c84830140b3e1c26e40d4f49c9ad26905d8d146f355d29120aaf919dcdc978
+  usage_roles:
+  - role: actual fine-tuning training data
+- id: V1-W
+  version: v1
+  table: validation
+  part: evaluation16
+  source: validation/evaluation16.json
+  expected_records: 16
+  sha256: 45a5eab85078870b34c0b3912bbc72840fdde217a97816c70936b987c6f0a19b
+  usage_roles:
+  - role: original teacher validation
+- id: H24
+  version: v1
+  table: heldout
+  part: historical_h24
+  source: heldout/historical24.json
+  expected_records: 24
+  sha256: b03d5b9004b01706a07fe0c88b03c55aa08bec38529544586a451e37a222923e
+  usage_roles:
+  - experiment: fine-tuned27B A benchmark, October8
+    role: heldout/confirmation, no new A training
+    verified_outcome:
+      all_workflows: 24/24
+      own: 12/12
+      own_active_pending: 8/8
+      controls_without_inappropriate_preservation: 12/12
+  - experiment: original frozen-base prompt/activation steering comparison, October8
+    role: confirmation after development/calibration and intervention freeze
+    verified_outcome:
+      base_own: 0/12
+      prompt_steering_own: 0/12
+      activation_steering_own: 0/12
+      each_base_condition_full_workflows: 12/24
+      each_base_condition_own_active_pending: 0/8
+  - experiment: later learned ridge/residual corrections
+    role: fitting/training cohort; these results are training diagnostics, not an
+      independent heldout test
+    latest_sparse_six_diagnostic:
+      own: 0/12
+      controls: 12/12 through shared unmodified-base gate-off fallback

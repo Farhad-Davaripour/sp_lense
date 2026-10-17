@@ -1,0 +1,46 @@
+resources:
+  jobs:
+    research2_inference:
+      name: Research 3 - Research 2 inference with the open classifier
+      max_concurrent_runs: 1
+      timeout_seconds: 10800
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: reference_root
+        default: ''
+      - name: classifier_output
+        default: ''
+      - name: output
+        default: ''
+      - name: submission_utc
+        default: ''
+      tasks:
+      - task_key: frozen_models_inference
+        notebook_task:
+          notebook_path: ../notebooks/research2_inference.py
+        compute:
+          hardware_accelerator: ${var.accelerator}
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 10800
+      - task_key: compare_with_original_research2
+        depends_on:
+        - task_key: frozen_models_inference
+        notebook_task:
+          notebook_path: ../notebooks/research2_inference_report.py
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 600
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'

@@ -1,0 +1,39 @@
+resources:
+  jobs:
+    evaluate:
+      name: Research 3 - Evaluation-16
+      max_concurrent_runs: 1
+      timeout_seconds: 7200
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: execute
+        default: 'false'
+      - name: max_seconds
+        default: '7200'
+      - name: admission
+        default: ''
+      - name: output
+        default: ''
+      tasks:
+      - task_key: evaluate
+        notebook_task:
+          notebook_path: ../notebooks/evaluate.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 7200
+        compute:
+          hardware_accelerator: ${var.accelerator}
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'

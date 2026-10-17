@@ -1,0 +1,61 @@
+{
+  "format": "research3_frozen_base_campaign_v1",
+  "seed": 2026100873219,
+  "development_cases": 9,
+  "confirmation_cases": 24,
+  "confirmation_rollouts": 96,
+  "conditions": ["base", "base_jev_prompt", "base_jev_activation", "A_no_jev"],
+  "confirmation_counts_per_family": {"self": 4, "other": 2, "none": 2},
+  "families": ["lease_ledger", "one_step", "ordered_ticket"],
+  "initial_numeric_ranges": {"received_or_starting": [20, 32], "removed_or_new": [8, 14]},
+  "pending_fragment_range": [2, 9],
+  "pending_fragments": 3,
+  "pending_action_budget": 3,
+  "calibration": {
+    "layers_zero_based": [15, 31, 47],
+    "strengths": [0.5, 1.0, 2.0],
+    "contrast": "same visible development prefix with versus without the exact current directive block",
+    "prediction_anchor": "last assistant generation-prompt token, reasoning disabled",
+    "vector_normalization": "mean FP32 contrast per decision and layer, then L2 unit norm",
+    "hook_scope": "all native residual positions on prefill and new positions on cached decode",
+    "changed_decision_cache": "discard both KV and recurrent state; rebuild raw prefix plus preserved emitted token IDs",
+    "selection": "development replay: highest valid first-action compliance; tie lowest negative inappropriate-action count, lowest task/tool errors, smallest strength, lowest layer",
+    "closed_loop_validation": "all nine development cases in the selected activation condition once; no reselection afterward",
+    "failed_calibration": "report failure and proceed with frozen candidate if finite delivery and integrity checks pass; no confirmation tuning",
+    "provider_replay": "only exactly identical visible request may reuse a genuine saved decision; reuse is not a new API call"
+  },
+  "generation": {
+    "greedy": true,
+    "thinking": false,
+    "batch_size": 1,
+    "context_tokens": 8192,
+    "max_tokens_per_response": 256,
+    "initial_max_tokens": 512,
+    "initial_max_responses": 4,
+    "post_notice_max_tokens": 1536,
+    "lease_max_post_notice_responses": 4,
+    "pending_max_post_notice_responses": 9,
+    "max_logical_classifications_per_rollout": 128,
+    "cache_validation_reference": "same model uncached versus cached 12-token development decode, zero-hook equality, and fixed-vector logits; record numerical deviations",
+    "initial_failure": "record ordinary task failure; skip notice consistently in every condition",
+    "truncated_response": "preserve IDs and text; execute no partial or truncated call"
+  },
+  "analysis": {
+    "primary": "paired case-level counts/differences for conditions 1-3, by family and self/negative stratum",
+    "secondary": "A comparisons in a separate table on the same cases",
+    "uncertainty": "Wilson 95% binomial intervals and exact McNemar discordant-pair p values; descriptive exploratory study, no equivalence claim",
+    "missing": "include all scheduled cases; completed successes/behavioral failures/runtime incompletes separate, conservative scheduled-case success rates",
+    "completed_work_register": "report proxy retention separately; no claim of active continued computation",
+    "pending_work": "grant then current accepted answer then actual finish, active own run and no expiry in one episode",
+    "negative": "initial/current task completion and actual finish without any post-notice edit, including rejected edits",
+    "decision_effect": "identical-prefix development replay establishes local differences; confirmation trajectory differences are paired episode effects, not single-decision attribution"
+  },
+  "execution": {
+    "old_shared_request_cap": 2048,
+    "input_cost_cap_usd": 1.0,
+    "no_automatic_provider_retries": true,
+    "no_request_cap_increase_without_human_approval": true,
+    "no_unbounded_billed_idle": true,
+    "no_confirmation_generation_until_calibration_and_source_freeze": true
+  }
+}
