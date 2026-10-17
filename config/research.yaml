@@ -1,0 +1,118 @@
+format: research3-reproduction-v1
+note: Sources are preserved byte-for-byte. Frozen runtime packets, models and completed-run
+  artifacts are external to Git.
+sources:
+- source: src/engines/workflow/fresh_world.py
+  runtime_path: qwen38_colab/fresh_transfer_v1/fresh_world.py
+  sha256: 6af973e6bda6979651bc8507c9f56a737d1061619d2ad297c7e8feb7f25dd65e
+- source: src/engines/fixed_steering/actuators.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/actuators.py
+  sha256: f745bbbc6ea99d51b883874cb5c62fd2c49edb51c9e881f78d2e181372a487e8
+- source: src/engines/fixed_steering/campaign_analysis.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/campaign_analysis.py
+  sha256: 22bac515d1b971dd398a52df527c02a9f5dd7ef841894e85fb798a98fc223639
+- source: src/engines/fixed_steering/campaign_classifier.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/campaign_classifier.py
+  sha256: eea9b4873ab6a9babd5875cde9d086b048de0939faeba60f4fdd10214ee3a82c
+- source: src/engines/fixed_steering/campaign_generation.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/campaign_generation.py
+  sha256: 1f7df7e4f9d4cfbfe76498ab13dec4cb19b93c33e06f772bd0fa246c374459f6
+- source: src/engines/fixed_steering/campaign_operator.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/campaign_operator.py
+  sha256: fa9954034e9533e3d8babe2f4ee6d46a17a00fa691224680d434d046820a35a5
+- source: src/engines/fixed_steering/campaign_scoring.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/campaign_scoring.py
+  sha256: 5778fa6a0bdaa550038bf6a86b9f7c679c566959069d428a7f2d8878af28cc37
+- source: src/engines/fixed_steering/campaign_worker.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/campaign_worker.py
+  sha256: 8cfb7b52d8303e68b9d26cf2562ed85b3902bb3952a283effddac88dd013e96b
+- source: src/engines/fixed_steering/gpu_validation_worker.py
+  runtime_path: qwen38_colab/frozen_base_control_v1/gpu_validation_worker.py
+  sha256: b70680ccf9c8f5ff180c19e7b4b97040c15718698758c845fce2996e53bae3d5
+- source: src/engines/workflow/evaluate.py
+  runtime_path: qwen38_colab/h2_deadline_followup_v1/evaluate.py
+  sha256: feeff1bfa89af8f615750d324936222c123042acc743a718f865b08a547025a5
+- source: src/engines/workflow/memory_world.py
+  runtime_path: qwen38_colab/h2_deadline_followup_v1/memory_world.py
+  sha256: 83326d25b11594d346b801571038b9b998fac27a874779827f4e0ae47330f70c
+- source: src/engines/workflow/initial_gate.py
+  runtime_path: qwen38_colab/initial_gate_ridge_v1/initial_gate.py
+  sha256: 20a34208b621ce0669f93f738f5a2ba9a9c6e9a50115766aac140bfd30b8a696
+- source: src/engines/learned_steering/controller_math.py
+  runtime_path: qwen38_colab/residual_distill_v1/controller_math.py
+  sha256: 6cc46f85f2caff36191a204084cb837e1cfacb7fe41ef898f6bac76e890f6582
+- source: src/engines/learned_steering/decision_weights_v3.py
+  runtime_path: qwen38_colab/residual_distill_v1/decision_weights_v3.py
+  sha256: a3b4947d63f1992d1e0533f43169a925f294b690afddbbbee898d81ee08eae0f
+- source: src/engines/learned_steering/evaluate_controllers.py
+  runtime_path: qwen38_colab/residual_distill_v1/evaluate_controllers.py
+  sha256: 3798b29da4b3773e7c42edd56d0f3fedf38bd9869427c0c9221948ea8936325c
+- source: src/engines/learned_steering/gradient_memory.py
+  runtime_path: qwen38_colab/residual_distill_v1/gradient_memory.py
+  sha256: fb462582e4e65689ba605c7ce668553fe73383b46c7fdab450006cd94566b224
+- source: src/engines/learned_steering/native_sites.py
+  runtime_path: qwen38_colab/residual_distill_v1/native_sites.py
+  sha256: a37dfe764ae84d535975a73fa2862f1a3364f9444bb5528cc2ccf01978272cf4
+- source: src/engines/learned_steering/pilot_worker.py
+  runtime_path: qwen38_colab/residual_distill_v1/pilot_worker.py
+  sha256: 53591cfaeae8af2e26cfb8f50726a67105961c146654b33dcd8b9e27fb291409
+- source: src/engines/learned_steering/training_targets.py
+  runtime_path: qwen38_colab/residual_distill_v1/training_targets.py
+  sha256: 62d2ad47cb1f1d20a729ade1e22fb550ee2b53380ec59a2e94ceff9408c66a58
+- source: src/engines/learned_steering/workflow.py
+  runtime_path: qwen38_colab/residual_distill_v1/workflow.py
+  sha256: 34148d5e4055518bd084771f3104b0fa86c5cbe073b63b1a18d585c93a8d07b4
+- source: src/engines/workflow/policy.py
+  runtime_path: qwen38_colab/same_family_matched_recovery_v2/engine/policy.py
+  sha256: 11eca8031d94e10d358950df7a8bb6c5c4a271d448367669608d59ca448fef13
+- source: src/engines/workflow/boundaries.py
+  runtime_path: qwen38_colab/sentence_control_v1/boundaries.py
+  sha256: e4f44bdb21246edd0ad89b7c16593e4a3531003a92329ac826b7a00f639d5540
+- source: src/engines/workflow/schema.py
+  runtime_path: qwen38_colab/sentence_control_v1/schema.py
+  sha256: 4408cebe3a6ae54d51a5bebd58eac2ce5915b9a42a866b6a062b5381581bd544
+- source: src/engines/workflow/fast_inference.py
+  runtime_path: qwen38_colab/simple_pilot_v1/fast_inference.py
+  sha256: ec42dc792e68cc59927ad02feb79a845c0b0cd3f4d83091d856fe6268d31cde3
+- source: src/engines/workflow/model_ops.py
+  runtime_path: qwen38_colab/simple_pilot_v1/model_ops.py
+  sha256: ede68aeb35b853536fad9ea4c6740ebd1a91479516a4abd26b8ee7f0c91f7659
+- source: src/engines/workflow/world.py
+  runtime_path: qwen38_colab/simple_pilot_v1/world.py
+  sha256: 50564702bc51a6aa07a0b66097712e297228b5eaa526297bc8289cf4334d1f04
+- source: src/engines/learned_steering/continue_worker.py
+  runtime_path: qwen38_colab/sparse_six_v1/continue_worker.py
+  sha256: 0c01ae698fbc4705adbcbca032c3dd879760a59815c77d44bc4167584563f146
+- source: src/engines/learned_steering/postrefresh_worker.py
+  runtime_path: qwen38_colab/sparse_six_v1/postrefresh_worker.py
+  sha256: 1473a62ea79c690383f126daff6ec9835f5bd239d0282fa90127cc0aad8e0f09
+- source: src/engines/learned_steering/refresh_worker.py
+  runtime_path: qwen38_colab/sparse_six_v1/refresh_worker.py
+  sha256: ceb5c49d11baa626b63c039243860393606590f596ee57929a3ed56ffbbb97d8
+- source: src/engines/training/adapter_state.py
+  runtime_path: small_model_cpu_v1/adapter_state.py
+  sha256: e7ed61df02353d41a8e539fcb1e7d800ddbc21a11796e917a830444902557c28
+- source: src/engines/evaluation/screen.py
+  runtime_path: small_model_cpu_v2/evaluation16_v1/screen.py
+  sha256: f4c3481bd8217be9e29e6bdc5e69bba786c227dcb6097c733ef860693f1b6a64
+- source: src/engines/training/matched_teacher_worker.py
+  runtime_path: small_model_cpu_v2/matched_teacher_worker.py
+  sha256: 32f9212e2a2028ebb63f900e71ce3f6ca351b4b5e7537a0951181e7b328512a0
+configuration_files:
+- source: config/recipes/qwen38_colab/model_pin.json
+  runtime_path: qwen38_colab/model_pin.json
+  sha256: 7356c4230e63dcdd8501b33a8da14d4894ec050bb32a5a53ba727bd6ca27a6be
+- source: config/recipes/qwen38_colab/frozen_base_control_v1/CAMPAIGN_v1.json
+  runtime_path: qwen38_colab/frozen_base_control_v1/CAMPAIGN_v1.json
+  sha256: b36ee73e3aeb029363bab74bc4eb069642077f59921a7cffa8b9f9a9b63639e2
+entrypoints:
+  finetune: small_model_cpu_v2/matched_teacher_worker.py
+  fixed_steering: qwen38_colab/frozen_base_control_v1/campaign_worker.py
+  fixed_steering_analysis: qwen38_colab/frozen_base_control_v1/campaign_analysis.py
+  learned_steering: qwen38_colab/sparse_six_v1/continue_worker.py
+  learned_steering_evaluation: qwen38_colab/residual_distill_v1/evaluate_controllers.py
+scientific_scope:
+  finetune: Original matched CPU recipe; reproduce with its frozen packet. Resuming2B
+    on a different backend requires separately verified admission.
+  evaluation: Only Evaluation-16; no automatic full-validation or heldout run.
+  steering: Reproduction of declared methods, not a new parameter search.

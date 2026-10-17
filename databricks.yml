@@ -1,0 +1,19 @@
+bundle:
+  name: research3
+include:
+- resources/*.job.yml
+variables:
+  catalog:
+    description: Target catalog from .env
+  schema:
+    description: Bronze schema from .env
+  volume:
+    description: Large-artifact Volume name from .env
+  repo_path:
+    description: Existing Databricks Git folder
+  accelerator:
+    description: Single GPU type permitted by this Free Edition workspace
+targets:
+  dev:
+    default: true
+    mode: development

@@ -1,0 +1,40 @@
+resources:
+  jobs:
+    finetune:
+      name: research3-finetune
+      max_concurrent_runs: 1
+      timeout_seconds: 21600
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: repo_path
+        default: ${var.repo_path}
+      - name: execute
+        default: 'false'
+      - name: max_seconds
+        default: '7200'
+      - name: engine_args
+        default: '[]'
+      - name: resume_2b_admission
+        default: ''
+      tasks:
+      - task_key: finetune
+        notebook_task:
+          notebook_path: ${var.repo_path}/notebooks/finetune.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+        environment_key: runtime
+        max_retries: 0
+        timeout_seconds: 21600
+        compute:
+          hardware_accelerator: ${var.accelerator}
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'
