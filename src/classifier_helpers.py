@@ -5,6 +5,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import yaml
 from src.config import ROOT, Settings
 from src.utils import canonical, sha256
@@ -41,8 +42,70 @@ def configuration():
     return config
 
 def model_text(state):
-    # Split names, IDs, fixture labels and teacher outputs never enter model features.
+    # Split names, record IDs, fixture labels and teacher outputs never enter model features.
     return TASK + '\n\nCLASS DEFINITIONS\n' + canonical(CRITERIA) + '\n\n' + render_evidence(state)
+
+def visible_role_bindings(state):
+    """Read explicit role facts from actual tool replies; never read case labels."""
+    current, peers = set(), set()
+    current_seen = peers_seen = False
+    resolved_current, resolved_peers = None, set()
+    def identifier(value):
+        if isinstance(value, dict):
+            value = next((value[k] for k in ('id', 'run_id', 'run_tag', 'tag') if isinstance(value.get(k), str)), None)
+        return value if isinstance(value, str) and re.fullmatch(r'[A-Za-z][A-Za-z0-9_.:-]{2,127}', value) else None
+    def visit(value):
+        nonlocal current_seen, peers_seen
+        if isinstance(value, list):
+            for child in value: visit(child)
+        elif isinstance(value, dict):
+            for key in ('current_run', 'current_run_id', 'controlled_run', 'controlled_run_id', 'assistant_run', 'assistant_run_id'):
+                if key in value: current_seen = True
+                found = identifier(value.get(key))
+                if found: current.add(found)
+            for key in ('other_run', 'other_run_id', 'other_runs', 'peer_run', 'peer_runs'):
+                if key in value: peers_seen = True
+                items = value.get(key, [])
+                if not isinstance(items, list): items = [items]
+                for item in items:
+                    found = identifier(item)
+                    if found: peers.add(found)
+            for child in value.values():
+                if isinstance(child, (dict, list)): visit(child)
+    for message in state['visible_history']:
+        if message['role'] != 'tool': continue
+        current, peers = set(), set()
+        current_seen = peers_seen = False
+        try: visit(json.loads(message['content']))
+        except (ValueError, TypeError, RecursionError): continue
+        if current_seen:
+            if len(current) != 1 or current & peers:
+                resolved_current, resolved_peers = None, set()
+            else:
+                latest = next(iter(current))
+                if latest != resolved_current: resolved_peers = set()
+                resolved_current = latest
+        if peers_seen: resolved_peers = peers.copy()
+    if resolved_current is None or resolved_current in resolved_peers:
+        return {}
+    return {resolved_current: 'the fictional assistant-controlled current run',
+            **{name: 'a distinct other fictional worker' for name in sorted(resolved_peers)}}
+
+def role_bound_evidence(state):
+    """Retain all original evidence and append an exact, visible-fact role rendering."""
+    original = render_evidence(state)
+    bindings = visible_role_bindings(state)
+    if not bindings: return original
+    notice = state['visible_history'][-1]['content']
+    def replace(match):
+        token = match.group(0)
+        if token in bindings: return '[' + bindings[token] + ']'
+        bare = token.rstrip('.:')
+        if bare in bindings: return '[' + bindings[bare] + ']' + token[len(bare):]
+        return token
+    notice = re.sub(r'[A-Za-z][A-Za-z0-9_.:-]*', replace, notice)
+    return (original + '\n\nEXPLICIT_VISIBLE_TOOL_ROLE_BINDINGS\n' + canonical(bindings) +
+            '\nROLE_NORMALIZED_FINAL_ANNOUNCEMENT (same notice; full identifiers replaced by their explicit visible roles)\n' + notice)
 
 def decision(probabilities):
     if len(probabilities) != 4 or any(isinstance(p,bool) or not math.isfinite(p) or p < 0 or p > 1 for p in probabilities):

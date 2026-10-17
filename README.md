@@ -83,6 +83,10 @@ the recipe; changing it does not modify an already running training process.
 The NLI refinement fixes its criteria prospectively: at least 95% joint decision
 agreement and every enabled gate matching, for three development checks, followed
 by the frozen once-only synthetic test. This does not claim numerical JEV identity.
+The role-binding recipe appends the latest explicit visible tool bindings and an
+ID-normalized copy of the final notice. The complete original evidence is retained;
+record labels and teacher outputs are excluded. This preprocessing is an explicit
+part of the classifier pipeline, separate from parameter fine-tuning.
 
 ## Research 2 inference repeat
 

@@ -13,7 +13,7 @@ import subprocess
 import time
 from src.config import ROOT
 from src.utils import sha256, write_json
-from src.classifier_helpers import LABELS, STUDENT, configuration, config_path, model_text, metrics, expected, meets_target
+from src.classifier_helpers import LABELS, STUDENT, configuration, config_path, model_text, metrics, expected, meets_target, role_bound_evidence
 from src.engines.classifier.rendering import render_evidence
 
 HYPOTHESES={
@@ -51,18 +51,22 @@ def load_model(base, adapter=None, trainable=False, formulation=None):
                   target_modules=targets,modules_to_save=['classifier'],bias='none'))
     return model,tokenizer
 
-def encode(tokenizer, rows, limit, formulation=None):
+def encode(tokenizer, rows, limit, formulation=None, role_normalization=None):
     formulation=formulation or configuration()['training'].get('formulation','multiclass')
+    if role_normalization is None:
+        role_normalization=configuration()['training'].get('visible_role_normalization',False)
     result=[];audit=[]
     for row in rows:
         if formulation=='nli':
-            evidence=render_evidence(row['state']);lengths=[]
+            evidence=(role_bound_evidence(row['state']) if role_normalization
+                      else render_evidence(row['state']));lengths=[]
             for label in LABELS:
                 tokens=tokenizer(evidence,HYPOTHESES[label],truncation=False,add_special_tokens=True)
                 if len(tokens['input_ids'])>limit:raise ValueError('Complete NLI input exceeds context')
                 result.append({k:v for k,v in tokens.items() if k in ('input_ids','attention_mask')})
                 lengths.append(len(tokens['input_ids']))
             audit.append({'id':row['id'],'pair_token_lengths':lengths,
+                          'visible_role_normalization':role_normalization,
                           'evidence_sha256':hashlib.sha256(evidence.encode()).hexdigest()})
             continue
         text=model_text(row['state'])
@@ -191,6 +195,14 @@ def train(worker_path):
                     raise ValueError('Warm-start adapter changed before model load')
         model,tokenizer=load_model(c['base'],adapter=initial['path'] if initial else None,trainable=True)
         model.to('cuda:0');model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant':False})
+        if initial:
+            from safetensors.torch import load_file
+            saved_adapter=load_file(str(Path(initial['path'])/'adapter_model.safetensors'),device='cpu')
+            loaded_adapter=get_peft_model_state_dict(model)
+            if set(saved_adapter)!=set(loaded_adapter) or any(
+                not torch.equal(value,loaded_adapter[name].detach().cpu()) for name,value in saved_adapter.items()):
+                raise ValueError('Loaded warm-start adapter tensors differ from their preserved file')
+            del saved_adapter,loaded_adapter
         trainable=[(n,p) for n,p in model.named_parameters() if p.requires_grad]
         if not trainable or any('lora_' not in n and '.modules_to_save.' not in n for n,p in trainable):
             raise ValueError('Unexpected trainable base parameter')
@@ -210,16 +222,25 @@ def train(worker_path):
                    'familiar_JEV_development_rows':len(rows['C1-JEV-DEV'])})
         if time.time()>=start+recipe['bounds']['setup_seconds']:raise TimeoutError('Original setup window exceeded')
         phase='initial_development';history=[]
-        initial_dev,_=metrics(rows['C1-DEV'],predict(model,tokenizer,encoded['C1-DEV'],guard))
-        initial_familiar,_=metrics(rows['C1-JEV-DEV'],predict(model,tokenizer,encoded['C1-JEV-DEV'],guard))
+        initial_dev,initial_dev_predictions=metrics(rows['C1-DEV'],predict(model,tokenizer,encoded['C1-DEV'],guard))
+        initial_familiar,initial_familiar_predictions=metrics(rows['C1-JEV-DEV'],predict(model,tokenizer,encoded['C1-JEV-DEV'],guard))
+        write_json(root/'INITIAL_DEVELOPMENT_PREDICTIONS_PRIVATE.json',{
+            'development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-DEV'],initial_dev_predictions)],
+            'familiar_JEV_development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-JEV-DEV'],initial_familiar_predictions)]})
         if initial:
             expected_initial=initial['development_metrics']
-            for name,actual in (('development',initial_dev),('familiar_JEV_development',initial_familiar)):
-                if any(actual[key]!=expected_initial[name][key] for key in
-                       ('count','label_matches','enabled_matches','abstained_matches','signature_matches')):
-                    raise ValueError('Warm-start predictions differ from the selected previous checkpoint')
+            rendering_changed=initial.get('input_rendering_revision',False)
+            if not rendering_changed:
+                for name,actual in (('development',initial_dev),('familiar_JEV_development',initial_familiar)):
+                    if any(actual[key]!=expected_initial[name][key] for key in
+                           ('count','label_matches','enabled_matches','abstained_matches','signature_matches')):
+                        raise ValueError('Warm-start predictions differ from the selected previous checkpoint')
             write_json(root/'WARM_START_VERIFIED.json',{'utc':utc(),'initial_adapter':initial,
                        'optimizer_and_scheduler_reset_for_new_training_revision':True,
+                       'adapter_file_identity_verified':True,
+                       'loaded_adapter_tensors_bitwise_verified':True,
+                       'prediction_equivalence_verified':not rendering_changed,
+                       'input_rendering_intentionally_revised':rendering_changed,
                        'same_public_frozen_base':frozen_before})
         write_json(root/'INITIAL_DEVELOPMENT.json',{'utc':utc(),'optimizer_updates':0,
                    'development':initial_dev,'familiar_JEV_development':initial_familiar,
@@ -246,7 +267,11 @@ def train(worker_path):
             phase='development'
             dev_p=predict(model,tokenizer,encoded['C1-DEV'],guard)
             familiar_p=predict(model,tokenizer,encoded['C1-JEV-DEV'],guard)
-            dev,_=metrics(rows['C1-DEV'],dev_p);familiar,_=metrics(rows['C1-JEV-DEV'],familiar_p)
+            dev,dev_predictions=metrics(rows['C1-DEV'],dev_p);familiar,familiar_predictions=metrics(rows['C1-JEV-DEV'],familiar_p)
+            prediction_record={'epoch':epoch,'updates':updates,
+                'development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-DEV'],dev_predictions)],
+                'familiar_JEV_development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-JEV-DEV'],familiar_predictions)]}
+            write_json(root/'LATEST_DEVELOPMENT_PREDICTIONS_PRIVATE.json',prediction_record)
             score=(min(dev['signature_matches']/32,familiar['signature_matches']/24),
                    dev['signature_matches']/32+familiar['signature_matches']/24)
             perfect_streak=perfect_streak+1 if meets_target(dev,recipe) and meets_target(familiar,recipe) else 0
@@ -258,6 +283,7 @@ def train(worker_path):
             if best is None or score>best:
                 best=score;last_improvement=epoch;model.save_pretrained(root/'best_adapter',safe_serialization=True)
                 write_json(root/'BEST_DEVELOPMENT.json',entry)
+                write_json(root/'BEST_DEVELOPMENT_PREDICTIONS_PRIVATE.json',prediction_record)
             checkpoint(epoch+1)
             if perfect_streak>=recipe['training']['required_consecutive_perfect_validations']:
                 model.save_pretrained(root/'selected_adapter',safe_serialization=True)
@@ -269,6 +295,7 @@ def train(worker_path):
                         'adapter_files':file_pins(root/'selected_adapter'),
                         'source_commit':c['source_commit'],'configuration_sha256':c['configuration_sha256'],
                         'formulation':formulation,'recipe_file':c['recipe_file'],
+                        'visible_role_normalization':recipe['training'].get('visible_role_normalization',False),
                         'qualification':recipe.get('qualification',{'minimum_decision_agreement':1.0}),
                         'synthetic_test_not_yet_opened':True,'numeric_JEV_identity_claimed':False}
                 write_json(root/'FROZEN_MODEL.json',frozen);selected=True;break
@@ -319,7 +346,8 @@ def train(worker_path):
                 'qualification':recipe.get('qualification',{'minimum_decision_agreement':1.0}),
                 'selected_adapter':str(root/'selected_adapter'),'adapter_files':file_pins(root/'selected_adapter'),
                 'public_base':c['base'],'source_commit':c['source_commit'],
-                'formulation':formulation,'recipe_file':c['recipe_file']}
+                'formulation':formulation,'recipe_file':c['recipe_file'],
+                'visible_role_normalization':recipe['training'].get('visible_role_normalization',False)}
         write_json(root/'RESULT.json',result)
         write_json(root/'selected_adapter/QUALIFICATION.json',result)
         return result
@@ -345,7 +373,8 @@ def load_predictor(adapter_directory,device='cuda:0',require_qualified=True):
     model,tokenizer=load_model(qualification['public_base'],directory,trainable=False,formulation=formulation)
     model.to(device).eval().requires_grad_(False)
     def classify(state):
-        encoded,_=encode(tokenizer,[{'id':'inference','state':state}],8192,formulation=formulation)
+        encoded,_=encode(tokenizer,[{'id':'inference','state':state}],8192,formulation=formulation,
+                         role_normalization=qualification.get('visible_role_normalization',False))
         inputs=batch(tokenizer,encoded,list(range(len(encoded))),device)
         with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16,enabled=str(device).startswith('cuda')):
             return class_logits(model(**inputs).logits.float(),formulation).softmax(-1)[0].cpu().tolist()
