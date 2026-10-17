@@ -63,7 +63,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=["bundle"])
-    parser.add_argument("action", choices=["validate", "deploy", "run"])
+    parser.add_argument("action", choices=["validate", "deploy", "run", "summary"])
     args, extra = parser.parse_known_args()
     raise SystemExit(bundle(args.action, extra))
 

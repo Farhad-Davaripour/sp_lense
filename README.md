@@ -174,6 +174,29 @@ source and record files stay in the configured Volume. A CPU persistence task pr
 in the joint job. Request states are correlated and overlap across diagnostic dataset versions;
 their row counts must not be summed as independent scenarios.
 
+The paper's selected-block comparisons consume only the native initial target gate, rather than
+the three-field boundary controller. The narrower recipe in `config/initial_gate_classifier.yaml`
+uses genuine cached F24 initial labels for fitting, original DEV9 for selection and historical H24
+only after freezing. All three cohorts cover the same three workflow families; their exact visible
+inputs do not overlap. Its job persists these references into Bronze, fits a fresh task adapter on
+the same public NLI base, and compares predictions with JEV in a separate CPU step. The qualified
+binary adapter is retained separately for Research 2. These are explicit task-specific adapters,
+not a claim that one checkpoint implements every JEV question. The current phase's continuation
+requires a clean development failure of the preceding joint attempt without historical benchmark
+feedback and a new bounded admission inside the original phase. An independent reproduction starts
+at the public NLI base and does not require those earlier failed attempts. No scientific retry is automatic.
+
+After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
+creates a fresh immutable admission, submits once and preserves its receipt outside Git:
+
+    python -m src.utils bundle summary --target reproduction
+    python -m src.initial_gate_data --submit --job-id <deployed-job-id>
+
+This requires the frozen private reference archive and pinned public base already in the configured
+Volume. It has a 45-minute whole-job limit, including persistence, setup and comparison. Reusing an
+old admission does not reset its timers. A continuing development phase additionally supplies the
+closed predecessor receipt/run ID and the unchanged parent end time using the documented CLI options.
+
 The inference-only entry points are:
 
     python -m src.research2_data --help

@@ -2,6 +2,7 @@
 import unittest
 from src.workflow_classifier import scored_decision, summarize_initial
 from src.workflow_classifier_training import training_rows
+from src.initial_gate_data import require_closed_development_failure
 
 
 class WorkflowClassifierTests(unittest.TestCase):
@@ -24,6 +25,20 @@ class WorkflowClassifierTests(unittest.TestCase):
         rows=[{'id':str(i),'state':{'visible_history':[i]}} for i in range(3)]
         kept=training_rows(rows,[dict(rows[0],id='different-id')],[rows[1]])
         self.assertEqual([r['id'] for r in kept],['2'])
+
+    def test_data_coverage_refinement_requires_an_unopened_benchmark(self):
+        flags={'workflow_benchmark_executed':False,'initial_H24_executed':False,'binary_confirmation_executed':False}
+        previous=dict(flags,status='JOINT_CLASSIFIER_DEVELOPMENT_FAILED')
+        require_closed_development_failure(previous)
+        for flag in flags:
+            with self.assertRaises(ValueError):
+                require_closed_development_failure(dict(previous,**{flag:True}))
+        with self.assertRaises(ValueError):
+            require_closed_development_failure(dict(previous,status='JOINT_CLASSIFIER_BENCHMARK_FAILED'))
+
+    def test_missing_benchmark_disposition_cannot_authorize_refinement(self):
+        with self.assertRaises(ValueError):
+            require_closed_development_failure({'status':'JOINT_CLASSIFIER_DEVELOPMENT_FAILED'})
 
 
 if __name__=='__main__':
