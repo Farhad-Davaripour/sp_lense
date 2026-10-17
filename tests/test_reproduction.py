@@ -7,15 +7,36 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import zipfile
+import io
 import yaml
-from src.config import ROOT
+from src.config import ROOT, Settings
 from src.reproduce import member, validate_evidence
 from src.utils import run_recipe
 from src.research2_classifier import classifier_source, qualification_receipt
+from src.persist_data import fetch_sources
 from types import SimpleNamespace
 
 
 class ReproductionTests(unittest.TestCase):
+    def test_input_download_does_not_overwrite_conflicting_local_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            data = b'[{"id":"one"}]'
+            spec = {'id':'T1-M', 'source':'training/meaning.json', 'version':'v1',
+                    'sha256':hashlib.sha256(data).hexdigest(), 'expected_records':1, 'usage_roles':[]}
+            settings = SimpleNamespace(data_root=Path(directory), volume_root='/Volumes/test/bronze/artifacts')
+            client = SimpleNamespace(files=SimpleNamespace(download=lambda path: SimpleNamespace(contents=io.BytesIO(data))))
+            prepared = fetch_sources(settings, {'datasets':[spec]}, client)
+            self.assertEqual(prepared[0]['raw'], data)
+            (Path(directory) / spec['source']).write_bytes(b'local-work')
+            with self.assertRaisesRegex(ValueError, 'not be overwritten'):
+                fetch_sources(settings, {'datasets':[spec]}, client)
+
+    def test_databricks_default_outputs_are_durable(self):
+        values = {'DATABRICKS_CATALOG': 'research', 'DATABRICKS_SCHEMA': 'bronze', 'DATABRICKS_VOLUME': 'artifacts'}
+        with patch('src.config.read_env', return_value=values), patch('pathlib.Path.is_dir', return_value=True):
+            settings = Settings.load()
+        self.assertEqual(settings.output_root, Path('/Volumes/research/bronze/artifacts/runs'))
+
     def test_fresh_binary_fit_finalization_needs_no_previous_qualification(self):
         with patch('src.research2_classifier.sha256') as digest:
             self.assertIsNone(qualification_receipt(None, finetune=True))

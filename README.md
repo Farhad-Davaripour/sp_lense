@@ -13,9 +13,12 @@ Use Python 3.12, Git and the [official Databricks CLI](https://docs.databricks.c
 The local requirements install orchestration tools only; model libraries are pinned in the
 Databricks notebooks and are not needed for the first checks.
 
-    git clone --branch 03-open-agent-self-preservation https://github.com/Farhad-Davaripour/sp_lense.git
+    git clone --branch codex/research3-reproduction-test https://github.com/Farhad-Davaripour/sp_lense.git
     cd sp_lense
     python -m venv .venv
+
+These checks are on the separate reproduction test branch. The preserved paper branch is
+`03-open-agent-self-preservation`; this testing work does not replace its deployment.
 
 Activate the virtual environment, then run:
 
@@ -29,6 +32,9 @@ scientific reproduction. A public clone does not include private datasets or tra
 Data-dependent commands require the inputs named in `config/data.yaml`; set
 `RESEARCH3_DATA_ROOT` in `.env` to their containing directory. An authorized Databricks worker
 can instead reuse the immutable originals already in the configured Volume.
+With authorized access to that workspace, `python -m src.persist_data --fetch-sources`
+downloads and verifies the four configured unsealed input files into `RESEARCH3_DATA_ROOT`.
+It never overwrites a conflicting local source or downloads the sealed R24 cohort.
 
 To replay the retained evidence using an authorized workspace, configure `.env` and authenticate
 with the CLI or environment, then use a new directory outside the checkout:
@@ -181,6 +187,10 @@ Pull requests run compilation and public source-integrity checks without credent
 loads, plus offline regression tests. A push to 03-open-agent-self-preservation also validates and deploys the bundle, then runs deployment_smoke.
 That CPU-only job checks the expected source digest, shared code path, existing table metadata
 and Volume access. It reads zero dataset rows and performs zero scientific forwards or updates.
+Default Databricks run reports and staged worker outputs go into the configured Volume's
+`runs` directory rather than the temporary worker home. The steering job is explicitly
+CPU fixed-score analysis; neural steering workers require a separately admitted GPU environment
+and the original model, gate/service and packet inputs described in the reproduction inventory.
 
 Main remains a landing page linking to the separate study branches. Research 3 code and its
 manual jobs deploy only from 03-open-agent-self-preservation.

@@ -19,6 +19,36 @@ ALLOWED = {"T1-M", "T1-W", "V1-W", "H24"}
 def literal(value):
     return "'" + str(value).replace("'", "''") + "'"
 
+def fetch_sources(settings, manifest=None, client=None):
+    """Fetch only the four configured, unsealed sources from the private Volume."""
+    config = manifest or load_datasets()
+    root = settings.data_root.resolve()
+    if root.is_relative_to(ROOT.resolve()):
+        raise ValueError('Keep private dataset sources outside the checkout')
+    client = client or workspace_client(settings)
+    for item in config['datasets']:
+        if item['id'] not in ALLOWED or item.get('sealed'):
+            raise ValueError('Only configured unsealed cohorts may be downloaded')
+        target = (root / item['source']).resolve()
+        if not target.is_relative_to(root):
+            raise ValueError('Dataset source escapes its configured root')
+        if target.exists():
+            if sha256(target) != item['sha256']:
+                raise ValueError('Existing local dataset differs; it will not be overwritten')
+            continue
+        source = f"{settings.volume_root}/datasets/{item['id']}/{item['version']}/{item['sha256']}/source.json"
+        with client.files.download(source).contents as stream:
+            raw = stream.read()
+        if hashlib.sha256(raw).hexdigest() != item['sha256']:
+            raise ValueError('Private Volume source hash mismatch')
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open('xb') as stream:
+            stream.write(raw)
+        if sha256(target) != item['sha256']:
+            raise ValueError('Downloaded dataset readback mismatch')
+    return prepare(settings, config)
+
+
 def prepare(settings, manifest=None):
     config = manifest or load_datasets()
     prepared = []
@@ -176,9 +206,10 @@ def persist(settings, prepared, client=None):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true", help="Create/ingest into Databricks; otherwise validate locally only")
+    parser.add_argument("--fetch-sources", action="store_true", help="Download frozen Volume inputs to RESEARCH3_DATA_ROOT")
     args = parser.parse_args(argv)
     settings = Settings.load()
-    prepared = prepare(settings)
+    prepared = fetch_sources(settings) if args.fetch_sources else prepare(settings)
     if args.execute:
         result = persist(settings, prepared)
     else:
