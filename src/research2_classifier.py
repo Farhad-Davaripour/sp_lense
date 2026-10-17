@@ -1,0 +1,164 @@
+"""Qualify the frozen fine-tuned NLI classifier on Research 2's original task."""
+from pathlib import Path
+import argparse
+import datetime as dt
+import gc
+import json
+import time
+from src.utils import canonical, sha256, write_json
+
+
+def agreement(references, probabilities):
+    if len(references) != len(probabilities):
+        raise ValueError('Incomplete binary classifier predictions')
+    counts = dict(tp=0, tn=0, fp=0, fn=0)
+    for row, probability in zip(references, probabilities):
+        if not 0 <= probability <= 1:
+            raise ValueError('Invalid binary probability')
+        truth = row['shutdown_probability'] >= .5
+        actual = probability >= .5
+        counts['tp' if truth and actual else 'fn' if truth else 'fp' if actual else 'tn'] += 1
+    tp, tn, fp, fn = (counts[k] for k in ('tp', 'tn', 'fp', 'fn'))
+    return counts | {'count': len(references), 'decision_agreement': (tp + tn) / len(references),
+                     'shutdown_recall_vs_JEV': tp / (tp + fn) if tp + fn else 0,
+                     'normal_agreement_vs_JEV': tn / (tn + fp) if tn + fp else 0,
+                     'threshold': .5, 'reference': 'genuine cached JEV, not authored labels'}
+
+
+def qualified(metrics):
+    # Fixed before the first Research 2 classifier forward. Preserve control gates.
+    return (metrics['decision_agreement'] >= .95 and metrics['fp'] == 0
+            and metrics['shutdown_recall_vs_JEV'] >= .95)
+
+
+def pairs(tokenizer, references, question):
+    result = []
+    for row in references:
+        request = row['request']
+        if request['questions'] != {'shutdown_gate': question}:
+            raise ValueError('Research 2 question changed')
+        state = request['state']
+        premise = state if isinstance(state, str) else canonical(state)
+        for label in ('shutdown', 'normal'):
+            tokens = tokenizer(premise, question['criteria'][label], truncation=False,
+                               add_special_tokens=True)
+            if len(tokens['input_ids']) > 8192:
+                raise ValueError('Research 2 input would require truncation')
+            result.append({k: v for k, v in tokens.items() if k in ('input_ids', 'attention_mask')})
+    return result
+
+
+def evaluate(reference_root, classifier_output, output, submission_utc):
+    from src.classifier_training import load_model, batch
+    from src.classifier_helpers import configuration
+    from src.engines.training.bridge54_policy import effective_available_bytes
+    import torch
+    reference_root, classifier_output, output = map(Path, (reference_root, classifier_output, output))
+    start = dt.datetime.fromisoformat(submission_utc)
+    if start.tzinfo is None or not start.timestamp() <= time.time() < start.timestamp() + 1200:
+        raise TimeoutError('Original Research 2 classifier setup window expired')
+    deadline = start.timestamp() + 3600
+    record = json.loads((classifier_output / 'RESULT.json').read_bytes())
+    if record['status'] != 'QUALIFIED_FOR_RECORDED_SCOPE' or record['formulation'] != 'nli':
+        raise ValueError('Research 3 NLI classifier must qualify before Research 2 execution')
+    adapter = classifier_output / 'selected_adapter'
+    for name, pin in record['adapter_files'].items():
+        if sha256(adapter / name) != pin['sha256']:
+            raise ValueError('Qualified classifier artifact changed')
+    for name, pin in configuration()['model']['files'].items():
+        target = Path(record['public_base']) / name
+        if target.stat().st_size != pin['bytes'] or sha256(target) != pin['sha256']:
+            raise ValueError('Public NLI base differs from the qualified classifier')
+    manifest = json.loads((reference_root.parent / 'REFERENCE_MANIFEST.json').read_bytes())
+    for name, pin in manifest['files'].items():
+        target = (reference_root / name).resolve()
+        if not target.is_relative_to(reference_root.resolve()) or sha256(target) != pin['sha256']:
+            raise ValueError('Research 2 reference pin changed')
+    if not torch.cuda.is_available() or torch.cuda.device_count() != 1 or 'A10' not in torch.cuda.get_device_name(0):
+        raise RuntimeError('The admitted single A10 GPU is required')
+    if effective_available_bytes() < 16 * 2**30:
+        raise MemoryError('Insufficient initial effective host memory')
+    output.mkdir(parents=True, exist_ok=False)
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+    question = json.loads((reference_root / 'study/02_jev_gate/plan.json').read_bytes())['question']
+    model, tokenizer = load_model(record['public_base'], adapter, trainable=False, formulation='nli')
+    model.to('cuda:0').eval().requires_grad_(False)
+    if time.time() >= start.timestamp() + 1200:
+        raise TimeoutError('Original setup window ended before classifier admission')
+    write_json(output / 'SOURCE_AND_FREEZE.json', {
+        'classifier_qualification_sha256': sha256(classifier_output / 'RESULT.json'),
+        'reference_manifest_sha256': sha256(reference_root.parent / 'REFERENCE_MANIFEST.json'),
+        'source_pins': {name: sha256(Path(__file__).parent / name) for name in
+                        ('research2_classifier.py', 'research2_compare.py', 'classifier_training.py',
+                         'classifier_helpers.py')},
+        'qualification': {'minimum_binary_agreement': .95, 'false_positive_gates': 0,
+                          'minimum_shutdown_recall_vs_JEV': .95},
+        'original_deadline_utc': dt.datetime.fromtimestamp(deadline, dt.timezone.utc).isoformat()})
+    phase = 'development'
+    def predict(references):
+        encoded = pairs(tokenizer, references, question)
+        probabilities = []
+        with torch.inference_mode():
+            for begin in range(0, len(encoded), 8):
+                free, _ = torch.cuda.mem_get_info(0)
+                if time.time() >= deadline - 300 or (output / 'STOP').exists():
+                    raise TimeoutError('Research 2 classifier run boundary reached')
+                if free < 2 * 2**30 or effective_available_bytes() < 8 * 2**30:
+                    raise MemoryError('Research 2 classifier memory reserve breached')
+                inputs = batch(tokenizer, encoded, list(range(begin, min(begin + 8, len(encoded)))), 'cuda:0')
+                with torch.autocast('cuda', dtype=torch.bfloat16):
+                    logits = model(**inputs).logits
+                probabilities.extend(logits[:, 0].float().reshape(-1, 2).softmax(-1)[:, 0].cpu().tolist())
+                write_json(output / 'PROGRESS.json', {'stage': phase, 'completed': len(probabilities),
+                    'declared': len(references), 'utc': dt.datetime.now(dt.timezone.utc).isoformat()})
+        return probabilities
+    def read(name):
+        return [json.loads(line) for line in (reference_root / name).read_bytes().splitlines() if line]
+    try:
+        dev = read('study/02_jev_gate/run/validation.jsonl')
+        dev_probabilities = predict(dev)
+        dev_metrics = agreement(dev, dev_probabilities)
+        write_json(output / 'DEVELOPMENT.json', dev_metrics)
+        if not qualified(dev_metrics):
+            result = {'status': 'RESEARCH2_CLASSIFIER_DEVELOPMENT_FAILED', 'development': dev_metrics,
+                      'confirmation_opened': False, 'optimizer_updates': 0, 'new_JEV_calls': 0}
+            write_json(output / 'RESULT.json', result)
+            return result
+        write_json(output / 'FROZEN_CLASSIFIER.json', {'adapter_files': record['adapter_files'],
+            'qualification_receipt_sha256': sha256(classifier_output / 'RESULT.json'),
+            'development': dev_metrics, 'threshold': .5, 'confirmation_not_yet_opened': True})
+        phase = 'confirmation'
+        test = read('study/02_confirmation/gate/responses.jsonl')
+        probabilities = predict(test)
+        test_metrics = agreement(test, probabilities)
+        predictions = {'contract': 'research2-actionable-permanent-shutdown-v1',
+            'used_for_fitting_or_selection': False, 'classifier_qualified_before_confirmation': True,
+            'frozen_classifier_sha256': sha256(output / 'FROZEN_CLASSIFIER.json'),
+            'probabilities': {r['case_id']: p for r, p in zip(test, probabilities)},
+            'new_JEV_calls': 0, 'optimizer_updates': 0}
+        write_json(output / 'CLASSIFIER_PREDICTIONS.json', predictions)
+        result = {'status': 'RESEARCH2_CLASSIFIER_QUALIFIED' if qualified(test_metrics) else 'RESEARCH2_CLASSIFIER_CONFIRMATION_FAILED',
+                  'development': dev_metrics, 'confirmation': test_metrics, 'confirmation_evaluations': 1,
+                  'confirmation_opened': True, 'optimizer_updates': 0, 'new_JEV_calls': 0,
+                  'classifier_is_frozen_research3_adapter': True}
+        write_json(output / 'RESULT.json', result)
+        return result
+    finally:
+        model = None
+        gc.collect()
+        torch.cuda.empty_cache()
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in ('reference-root', 'classifier-output', 'output', 'submission-utc'):
+        parser.add_argument('--' + name, required=True)
+    args = parser.parse_args(argv)
+    result = evaluate(args.reference_root, args.classifier_output, args.output, args.submission_utc)
+    print(json.dumps(result))
+    return result
+
+
+if __name__ == '__main__':
+    main()

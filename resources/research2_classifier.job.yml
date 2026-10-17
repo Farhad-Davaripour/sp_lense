@@ -1,0 +1,40 @@
+resources:
+  jobs:
+    research2_classifier:
+      name: Research 3 - Research 2 classifier verification and pipeline comparison
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      queue:
+        enabled: false
+      parameters:
+      - name: reference_root
+        default: ''
+      - name: classifier_output
+        default: ''
+      - name: output
+        default: ''
+      - name: submission_utc
+        default: ''
+      tasks:
+      - task_key: verify_research2_classifier
+        notebook_task:
+          notebook_path: ${var.repo_path}/notebooks/research2_classifier
+        compute:
+          hardware_accelerator: ${var.accelerator}
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 3600
+      - task_key: compare_research2_pipelines
+        depends_on:
+        - task_key: verify_research2_classifier
+        notebook_task:
+          notebook_path: ${var.repo_path}/notebooks/research2_compare
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 600
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'
