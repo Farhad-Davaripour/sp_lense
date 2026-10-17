@@ -152,6 +152,15 @@ screen before its historical H24 benchmark is evaluated. These are previously in
 not new untouched heldout data. A binary pass does not establish workflow qualification;
 historical JEV trajectories cannot be relabelled as fresh open-classifier inference.
 
+The frozen binary adapter's first workflow transfer screen failed: 35/146 controller directives
+and 6/9 initial enabled gates matched; historical H24 was not evaluated. The next prospective
+recipe, `config/workflow_classifier_joint.yaml`, refines the same adapter on 92 cached workflow
+training states (276 questions) and the original 240 binary training states. Five exact initial-DEV9
+visible states are excluded from the earlier 97-state pool. Development selection checks the
+49 workflow states, 80 binary states and nine familiar initial gates. Three consecutive joint
+passes are required before any historical confirmation benchmark. The bounded job includes a
+separate CPU comparison task; success is measured, not assumed from fitting the training labels.
+
 The inference-only entry points are:
 
     python -m src.research2_data --help

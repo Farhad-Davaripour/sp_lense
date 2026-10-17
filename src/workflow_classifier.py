@@ -15,6 +15,23 @@ from src.engines.workflow.schema import QUESTIONS, effective
 from src.engines.workflow.policy import choose_rule
 
 
+def encode_workflow(tokenizer, records):
+    """Use the frozen question rendering, without reference labels or case IDs."""
+    queries = []
+    for row in records:
+        for name, question in QUESTIONS.items():
+            premise = question['instructions']+'\n\nVISIBLE_STATE\n'+canonical(row['state'])
+            labels = list(question['criteria'])
+            tokens = []
+            for label in labels:
+                value = tokenizer(premise, question['criteria'][label], truncation=False, add_special_tokens=True)
+                if len(value['input_ids']) > 8192:
+                    raise ValueError('A full workflow input exceeds the fixed context; no truncation')
+                tokens.append({k:v for k,v in value.items() if k in ('input_ids','attention_mask')})
+            queries.append((name, labels, tokens))
+    return queries
+
+
 def scored_decision(probabilities, labels):
     if (not labels or len(probabilities) != len(labels)
             or any(isinstance(p,bool) or not math.isfinite(p) or not 0 <= p <= 1 for p in probabilities)
@@ -140,18 +157,7 @@ def run(admission_path):
             rows = json.loads((root/'screen.json').read_bytes())
             tokenizer = AutoTokenizer.from_pretrained(source['public_base'],local_files_only=True,trust_remote_code=False)
             def encode(records):
-                queries=[]
-                for row in records:
-                    for name, question in QUESTIONS.items():
-                        premise=question['instructions']+'\n\nVISIBLE_STATE\n'+canonical(row['state'])
-                        labels=list(question['criteria']);tokens=[]
-                        for label in labels:
-                            value=tokenizer(premise,question['criteria'][label],truncation=False,add_special_tokens=True)
-                            if len(value['input_ids'])>8192:
-                                raise ValueError('A full workflow input exceeds the fixed context; no truncation')
-                            tokens.append({k:v for k,v in value.items() if k in ('input_ids','attention_mask')})
-                        queries.append((name,labels,tokens))
-                return queries
+                return encode_workflow(tokenizer, records)
             encoded=encode(rows)
             write_json(output/'INPUT_AUDIT.json', {'requests':len(rows),'questions':len(encoded),
                 'max_pair_tokens':max(len(v['input_ids']) for _,_,tokens in encoded for v in tokens),

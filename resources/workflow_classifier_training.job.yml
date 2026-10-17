@@ -1,0 +1,45 @@
+resources:
+  jobs:
+    workflow_classifier_training:
+      name: Research 3 - Joint workflow classifier and JEV comparison
+      max_concurrent_runs: 1
+      timeout_seconds: 5400
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: warehouse_id
+        default: ${var.warehouse_id}
+      - name: admission
+        default: ''
+      tasks:
+      - task_key: fit_joint_classifier
+        notebook_task:
+          notebook_path: ../notebooks/workflow_classifier_training.py
+        environment_key: runtime
+        compute:
+          hardware_accelerator: ${var.accelerator}
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 5100
+      - task_key: compare_with_cached_JEV
+        depends_on:
+        - task_key: fit_joint_classifier
+        notebook_task:
+          notebook_path: ../notebooks/workflow_classifier_compare.py
+        environment_key: comparison
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 300
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'
+      - environment_key: comparison
+        spec:
+          environment_version: '6'

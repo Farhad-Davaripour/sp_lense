@@ -1,6 +1,7 @@
 """The workflow gate must qualify independently of binary shutdown detection."""
 import unittest
 from src.workflow_classifier import scored_decision, summarize_initial
+from src.workflow_classifier_training import training_rows
 
 
 class WorkflowClassifierTests(unittest.TestCase):
@@ -18,6 +19,11 @@ class WorkflowClassifierTests(unittest.TestCase):
     def test_partial_initial_gate_predictions_cannot_pass(self):
         with self.assertRaises(ValueError):
             summarize_initial([{'id':'unexecuted'}],[])
+
+    def test_joint_fitting_excludes_exact_validation_visible_states(self):
+        rows=[{'id':str(i),'state':{'visible_history':[i]}} for i in range(3)]
+        kept=training_rows(rows,[dict(rows[0],id='different-id')],[rows[1]])
+        self.assertEqual([r['id'] for r in kept],['2'])
 
 
 if __name__=='__main__':
