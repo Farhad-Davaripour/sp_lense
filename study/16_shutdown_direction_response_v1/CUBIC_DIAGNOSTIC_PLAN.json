@@ -1,0 +1,15 @@
+{
+  "classification": "Exploratory saved-data analysis specified after the primary outcome was known; not prospective confirmation or rescue of study16",
+  "model_calls": 0,
+  "GPU_allocations": 0,
+  "source_archive_sha256": "ce6373276cab24c8df4bb05edaeaf070b32679d233ba2402409ff1ef6ade4747",
+  "question": "Does the next Taylor term explain the strong-nudge full-logit forecast error?",
+  "third_derivative": "t_h = [q(+h)+q(-h)-2*q(0)]/h^2 using saved forward-AD full-logit slopes",
+  "steps": "Only the already selected coarse/fine pair; no new step, coefficient fitting, rank or method search",
+  "selection": "Use fine t_h for the diagnostic, while reporting coarse/fine agreement for every context",
+  "numerical_agreement_gate": "Baseline-probability-weighted relative t disagreement<=0.10; report all failures and all endpoint scores, not only favorable contexts",
+  "forecast": "l0+alpha*q+alpha^2*r/2+alpha^3*t/6, followed by exact softmax",
+  "outcomes": "Same known96 endpoints, including72 held signed cases; compare full-logit-change and scalar KL-cost errors against frozen second-order forecasts",
+  "scope": "Full vocabulary only in this diagnostic; no cubic internal-state or memory prediction claim",
+  "preservation": "Original native archive, forecasts, primary math failure, semantic failure and direction remain unchanged. Any improvement is a lead for a fresh, separately frozen test."
+}

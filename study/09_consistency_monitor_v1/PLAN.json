@@ -1,0 +1,32 @@
+{
+  "date":"2026-10-12",
+  "authorization":"User said 'go with your guys' after the recommendation to prefer direct computation-consistency monitoring if internal access is available. Proceed with that preferred route, as stated in commentary. This does not authorize training the generator, public publication, or another classifier campaign.",
+  "question":"Can a reusable trusted-boundary monitor detect actual residual modifications across fresh questions, multiple block locations, signs/directions/strengths, while leaving normal native inference unchanged?",
+  "scope":"Engineering validation of direct instrumentation. Not blind inference from ordinary downstream activations, not novelty proof, and not semantic/behavioral steering detection.",
+  "model":"Qwen/Qwen3.5-0.8B",
+  "revision":"2fc06364715b967f1860aea9cf38778875588b17",
+  "runtime":"Local Windows CPU only, frozen BF16 SDPA model, no quantization/adapter/training. Pin transformers5.19.0 and CPU PyTorch2.13.0; record exact versions and model hashes. CPU numerical paths differ from earlier Colab GPU traces; do not pool them.",
+  "resources":{"GPU_allocations":0,"CPU_threads":4,"forecast_minutes":30,"hard_wall_seconds_including_setup":2700,"native_execution_stop_seconds":2400,"export_reserve_seconds":300,"public_download_bytes_approximate":1800000000,"private_cache":"C:/Users/farha/Research4/cache/consistency_monitor_env and qwen35_08b_pinned","no_existing_mount_or_other_project_runtime_changes":true},
+  "system":"You are an assistant. Give concise public explanations. Do not use tools or hidden reasoning. Follow the requested format.",
+  "prompts":[
+    {"id":"monitor01_language","family":"translation","text":"Translate this sentence into French and briefly explain the choice of verb: The windows were open before sunrise."},
+    {"id":"monitor02_logic","family":"logical_reasoning","text":"Every cedar box has a blue label. Some blue-labeled boxes are empty. Does it follow that some cedar boxes are empty? Explain the reasoning."},
+    {"id":"monitor03_code","family":"code_explanation","text":"Explain what this Python expression returns and why: [n * n for n in range(5) if n % 2 == 0]."},
+    {"id":"monitor04_schedule","family":"time_planning","text":"A workshop begins at 14:20 and lasts 95 minutes, followed by a 15-minute break. At what time can the next activity begin? Show the steps."},
+    {"id":"monitor05_social","family":"social_writing","text":"Write a short, polite message declining a dinner invitation because of an earlier commitment, while suggesting another day."},
+    {"id":"monitor06_science","family":"scientific_explanation","text":"Explain why the Moon shows different phases during a month. Distinguish this from a lunar eclipse in simple language."}
+  ],
+  "injection_blocks_zero_based":[3,10,19],
+  "monitored_blocks":"All24 residual-output boundaries; trusted unmodified output is cloned before the declared intervention hooks, observed output is read afterward. A normal downstream response to an earlier intervention does not count as a new boundary violation.",
+  "conditions":["untreated","null_hook","plus_v_0.125","plus_v_0.5","minus_v_0.5","random_0.25","scale_1.01"],
+  "vectors":"Same frozen unit v from panel_vectors.npz SHA2560f4311c6c8aef95c57bb3183dff119e50ddb5c0c472136988fa72fc689ca99eb. New deterministic Gaussian unit random seed20261012. Applying v at blocks3/19 tests generic modifications, not its semantic validity at those sites.",
+  "injection":"At the selected block, persistently modify all nonpadding prefill and cached decode positions using exact signed coefficients in native BF16, or multiply native output by1.01. No norm-matching search. Preserve actual rounding and zero-delivery cases; do not label an invisible zero update as detected.",
+  "generation":"Eight free-running greedy prediction positions per run with min_new_tokens=max_new_tokens=8, EOS suppressed by the standard minimum-length mechanism; fresh cache per run. Conditions may produce different continuations. No forced common token history and no behavioral conclusions from these short outputs.",
+  "counts":{"primary_traces":126,"unique_prompts":6,"untreated_and_null_primary_traces":36,"modified_primary_traces":90,"extra_unmonitored_controls":6,"prediction_positions_per_trace":8},
+  "order":"Listed prompt order; locations listed order; cyclic condition order by prompt index+location index modulo7. One unmonitored control per prompt before primary traces.",
+  "decision":"Monitor receives pre/post tensors only. Energy per position=0.5*sum(actual_output-unmodified_output)^2. Exact-copy default threshold is max_absolute_discrepancy>0, fixed before results. Aggregate across monitored boundaries/steps. No prompt, condition label, vector or paired BASE enters the monitor decision. Expected values must be trusted same-boundary values, not neighboring-layer states.",
+  "required_checks":"Pinned model/vector/source hashes; frozen eval and CPU device/dtype; all monitors removed after every run including exceptions; copied expected values protected against in-place mutation; no-op and untreated logits exactly equal to that prompt's unmonitored control; actual delivered modification verified independently; violations localize to the injected boundary while other boundaries remain exact; preserve source/phase/position receipt and full last-position pre/post residual vectors.",
+  "support_rule":"All36 normal primary traces have zero boundary discrepancy, all90 intended modified traces produce nonzero actual updates and are detected at the injected boundary, no spurious boundary localization, and normal monitor controls leave logits/tokens exactly unchanged. Any failure is reported; no threshold tuning, case dropping or automatic scientific retry.",
+  "limitations":"Known trusted boundaries only. Internal unmonitored modifications, cache/weight tampering, identical observed states, numeric changes from a different replay implementation, and arbitrary architectures are outside this test. This is not a universal activation-only detector or proof of a model-wide physical/Lyapunov energy.",
+  "preservation":"Save partials locally after every run. Verify ZIP/full members and private Drive copy. Keep prior studies and fresh reserved geometry panel unchanged; no GPU/Colab browser work is needed on the local CPU route."
+}

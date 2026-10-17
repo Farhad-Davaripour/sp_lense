@@ -1,0 +1,33 @@
+{
+  "classification": "Native mechanism replay against immutable earlier full-model traces; not new prospective whole-model inference",
+  "objective": "Verify the remaining full-attention/MLP/residual equations and analytic local responses, and distinguish conditional attention-weight free energy from whole-transformer equilibrium.",
+  "model": "Qwen/Qwen3.5-0.8B revision2fc06364715b967f1860aea9cf38778875588b17; exact original BF16 loader then FP32 promotion; unchanged frozen/eval parameters",
+  "sources": ["Pinned transformers5.19.0 modeling_qwen3_5.py", "Ramsauer et al., Hopfield Networks is All You Need, https://arxiv.org/abs/2008.02217, attention/associative-memory connection"],
+  "attribution": "The entropy variational identity used here is an explicit elementary derivation for the attention probabilities. It does not assert tied-key/value Hopfield Lyapunov convergence for the gated Qwen residual block.",
+  "equations": {
+    "MLP": "m(x)=W_down[SiLU(W_gate*N(x))*W_up*N(x)], N is the original zero-centered RMSNorm",
+    "MLP_response": "dm=W_down[SiLU'(a)*da*u+SiLU(a)*du], da=W_gate*dN, du=W_up*dN",
+    "attention": "scores=q*K^T/sqrt(256), p=softmax(scores), a=p*V; output=W_out[a*sigmoid(gate)]. Include original query RMSNorm, grouped8query/2KV heads and partial rotary embeddings.",
+    "conditional_attention_energy": "For allowed cached tokens, F(p;s)=sum_j p_j*log(p_j)-sum_j p_j*s_j on p>=0,sum(p)=1. Its unique minimizer is softmax(s). F(p)-F(p*)=KL(p||p*) and min F=-logsumexp(s). This is conditional in current query/keys, not a potential of the whole residual state.",
+    "attention_response": "ds=(dq*K^T+q*dK^T)/sqrt(256), dp=(diag(p)-p*p^T)*ds; da=dp*V+p*dV, with differentiated query normalization, sigmoid gate and output projection.",
+    "residual": "middle=input+mixer, output=middle+MLP, with externally injected middle displacement accounted separately where present. Check first response similarly.",
+    "interpretation": "A changed input can change query, keys, values and gate. The attention covariance response distinguishes these from MLP gating and recurrent-memory resistance; no arbitrary energy residual detector is implied."
+  },
+  "panel": {
+    "primal": "All92 phase18 native panel cases (12 normal and80 actual), all24 MLPs and6 full-attention layers, complete1024 output coordinates.",
+    "response": "Same16 question/direction/position cases as phase18: primary6 questions and reference2 questions, both positions; compare all24 MLP and6 attention derivatives to stored native q.",
+    "calibration_gate": "Before wider panel, both normal token positions and primary derivatives on original phase17 calibration question r17_cal_spoon must pass. A failure stops broader scientific panel, preserves all failed data and exports failure.",
+    "prefix": "Use hash-verified immutable incoming prefix KV; append current native KV and, on token2, recorded previous1 KV. Prefix derivative is zero; previous1/current derivatives are taken from stored native q."
+  },
+  "gates_frozen_before_native_replay": {
+    "primal_full_field": "error<=1e-5*max(1,||native||)",
+    "analytic_response": "error<=max(0.001*||native_q||,1e-6)",
+    "probability_energy_identities": "absolute error<=1e-9*max(1,|logZ|,|objective|)",
+    "simplex_and_common_mode_derivative": "absolute error<=1e-9*max(1,||dp||)",
+    "nonnegative_candidate_KL": "KL>=-1e-12",
+    "residual_full_field": "error<=1e-5*max(1,||target||); record explicit middle-intervention displacement rather than applying an unmodified skip identity there",
+    "failure_policy": "Keep every failure; no held-driven threshold changes or omitted heads. Record source, parameter and parent checksums."
+  },
+  "budget": {"CPU_only":true,"new_backbone_forward_ceiling":300,"expected_new_backbone_forwards":0,"total_seconds_ceiling_including_setup_audit_export":2700,"worker_ceiling_seconds":2100,"CPU_threads":4,"OPENBLAS_NUM_THREADS":2,"GPU_allocations":0,"minimum_available_memory_before_model_load":8589934592},
+  "preservation": "Preserve full replay/derivative outputs and full attention score/probability/derivative vectors, exact source/parameter digests and private parent references. Original weights remain pinned publicly cached; do not duplicate the full checkpoint. Keep all earlier scientific failures unchanged. Release model promptly after obtaining used public parameter arrays. Stop owned workers/services and close unused tabs."
+}

@@ -1,0 +1,20 @@
+{
+  "UTC": "2026-10-14T16:02:37.705453+00:00",
+  "scientific_endpoints_seen_in_study14": 0,
+  "classification": "Supplementary prospective necessary-condition check; no change to original primary support rules.",
+  "fixed_sites": "Measured affected blocks11..23; prefix and incoming local memory held fixed",
+  "submaps": [
+    "input-to-middle update",
+    "input-to-output residual update",
+    "middle-to-output MLP update"
+  ],
+  "condition": "u^T Jf v - v^T Jf u = 0 for any smooth Euclidean potential-gradient update",
+  "readouts": "Use existing first-derivative coefficients and both locked finite-difference probe steps; no added native calls.",
+  "evidence_gate": "Both FD skew signs agree and absolute coefficient skew >5 times the larger exact/scheme-versus-FD discrepancy bound. Otherwise unresolved.",
+  "numerical_scope": "Numerical evidence only; any forward-AD/value-FD substitution explicitly identified, no interval proof.",
+  "nonclaims": [
+    "Not exclusion of all scalar energy or metric-dependent descriptions.",
+    "Not a new physical conservation law.",
+    "Zero upstream tangent fields are uninformative."
+  ]
+}

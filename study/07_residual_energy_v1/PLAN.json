@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-12",
+  "status": "Fixed before computing these new scores; exploratory reuse of previously inspected native data",
+  "question": "Can a scalar baseline-referenced residual energy summarize steering effects across layers and token positions, without training on steering labels?",
+  "scope": "CPU only, no model calls, no GPU allocation, no new classifier fit, no automatic monitoring or strength-series execution",
+  "references": "Original native greedy r4_01-r4_04 BASE only, equal prompt weights. Separate prefill position0 and decode positions1..63 statistics at every one of24 blocks. Prefill has only4 samples, explicitly underidentified.",
+  "energies": {
+    "norm": "||h||^2/d",
+    "diagonal": "(1/d)*sum_j (h_j-mu_j)^2 / (0.9*var_j+0.1*tau)",
+    "quadratic": "(1/d)*(h-mu)^T*(0.9*Sigma+0.1*tau*I)^-1*(h-mu), population covariance, tau=trace(Sigma)/d; all numerical modes, identity completion through fixed shrinkage",
+    "calibration": "Divide each layer/phase energy by its BASE TRAIN mean. No labels, TEST calibration, penalty selection, threshold tuning or favorable-direction reversal. These are statistical scores, not proven Lyapunov functions.",
+    "global": "Uniform mean across all24 calibrated layer energies and first8 prediction positions. Fixed primary. Downstream blocks10..23 and anchor block15 are diagnostics, not replacements. Retain prefill and decode means separately."
+  },
+  "evaluation": {
+    "original_TEST": "r4_05-r4_08, native and seeds42/43/44, existing_vector and random_vector, first8 positions only. Four unique prompts; repetitions not independent contexts.",
+    "older_matched": "All6 prompts, base/plus_v/minus_v/random1/random2/norm_only, first8 positions. Three wording pairs, previously inspected OOD panel, no refit.",
+    "fresh_eight_question_panel": "Entirely excluded; keep seven new decode positions geometrically unscored",
+    "paired": "Per prompt E(steered)-E(base), relative change, layer/position profiles. Same forced token IDs required. A paired change supports an intervention effect but is not a single-run detector.",
+    "single_run": "Report absolute BASE and steered scores and descriptive AUROC with HIGH energy fixed as positive. No threshold or deployment claim. Out-of-distribution BASE shifts are a key failure mode.",
+    "integrity": "Verify every consumed native file against EXPORT_HASHES; exact upstream blocks0..9 and token identity. Verify all original and older matched manifest members unchanged after analysis.",
+    "verification": "Quadratic energies nonnegative; SVD inverse agrees with direct solve in a small deterministic planted example; exact symmetric quadratic identity; norm rotation blindness; upstream paired energy exactly0. Report observed-span and outside-span quadratic contributions."
+  },
+  "decision": "Report all3 candidates and all controls. Do not pick a winning penalty/layer/phase or reverse energy direction. A promising scalar must increase consistently across unique contexts, separate single-run scores from untreated context variation, and pass controls. Reused results cannot establish broad generalization. Recommend a frozen prospective baseline-diversity and signed-strength check only if warranted; do not execute GPU work.",
+  "historical_boundaries": "Prior semantic/rotation/strong-prefill map failures remain failures. Existing classifier and reserved geometry results unchanged. A global trace aggregate is not evidence of one global potential minimized by the pretrained model."
+}

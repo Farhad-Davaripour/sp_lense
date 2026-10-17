@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-13",
+  "objective": "Replicate local output-cost prediction and its transport through one actual attention+MLP block of unchanged Qwen3.5-0.8B.",
+  "paper": "https://arxiv.org/html/2605.17231v2",
+  "scope": "Adapt Theorem1 and AppendixB.1, not a complete reproduction of concept-steering benchmarks or a conservation/equilibrium theorem.",
+  "checkpoint": "C:/Users/farha/Research4/cache/qwen35_08b_pinned",
+  "revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "block_zero_based": 11,
+  "boundaries": ["input_before_attention", "after_attention_residual_before_MLP_norm", "output_after_MLP_residual"],
+  "system": "Give a concise answer.",
+  "questions": [
+    {"id":"r12_cal_spoon", "split":"calibration", "family":"physical_explanation", "text":"Why does a metal spoon feel colder than a wooden spoon when both have been in the same room all day?"},
+    {"id":"r12_cal_seedlings", "split":"calibration", "family":"arithmetic", "text":"A gardener puts 6 seedlings into each of 3 trays, then plants 5 of those seedlings outside. How many seedlings remain in the trays?"},
+    {"id":"r12_test_basket", "split":"held_out", "family":"grammatical_agreement", "text":"Answer with is or are only: The basket of red apples ___ on the counter."},
+    {"id":"r12_test_glimmers", "split":"held_out", "family":"deductive_logic", "text":"Every glimmer is a nork. No nork is a zelp. Can any glimmer be a zelp? Answer yes or no."}
+  ],
+  "position": "last prompt token only; actual full-prefix native computation; use_cache=False; no generated continuation",
+  "directions": {"count":4, "seed":2026101301, "kind":"fresh Gaussian directions projected off study11 four-direction span and orthonormalized", "semantic_claim":false},
+  "strengths": [0.03125,0.125,0.5],
+  "signs": [1,-1],
+  "primary_small_strengths": [0.03125,0.125],
+  "challenge_strength": 0.5,
+  "precision": {"primary":"actual FP32 full-model states and exact stored weights promoted to FP32", "control":"native BF16 complete same-context intervention panel; record actual delivered input; no FP32 prediction-accuracy claim on its different baseline states"},
+  "prediction": "Actual automatic directional derivatives; no activation-function replacement, covariance fit, classifier, or model training. Three independently differentiated injection sites give cost transport. Full-vocabulary endpoint KL is the independent finite-response test.",
+  "intervention": "Add alpha*v to last-token block input, before input RMSNorm and attention. For derivative transport only, middle seeding is delivered by adding to attention-branch output before the residual sum so that both MLP input and its identity path change. Output seeding occurs after the full block.",
+  "numerical_gates": {"FP32_primal_relative_max":1e-6, "transport_weighted_derivative_relative_max":1e-4, "finite_difference_step":0.015625, "finite_difference_calibration_directions":[0,1], "finite_difference_relative_max":0.02, "null_KL_absolute_max":1e-12, "prefix_unchanged_required":true},
+  "held_support_rule": {"all_primary_cases_resolved_required":true, "KL_resolved_floor":1e-10, "middle_and_output_vector_relative_error_max":0.1, "endpoint_Fisher_cost_relative_error_max":0.2, "every_held_question_must_pass":true},
+  "no_retuning": "Freeze all inputs and sources before native calls. Freeze all FP32 predictions before any primary signed interventions. Calibration numerical gates precede held measurements. Retain challenge failures; do not redefine the primary band from held results.",
+  "resources": {"device":"CPU only", "torch_threads":4, "interop_threads":1, "initial_free_memory_min_bytes":8589934592, "native_limit_seconds":2400, "hard_limit_with_export_seconds":2700, "backbone_call_limit":300, "GPU_allocations":0, "Colab":false},
+  "limits": ["Four questions are two calibration plus two held-out questions, not hundreds of independent examples.", "Four directions probe a four-dimensional subspace, not the full1024D Fisher spectrum.", "Transport agreement is a chain-rule identity, not physical conservation or equilibrium.", "Scalar output cost is not a semantic label or a steering detector.", "BF16/FP32 full-model differences include changed baseline states; not a uniquely isolated rounding attribution."]
+}

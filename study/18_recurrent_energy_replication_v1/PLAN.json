@@ -1,0 +1,74 @@
+{
+  "status": "frozen replay protocol before actual energy calculations",
+  "objective": "Replicate the published GatedDeltaNet online-memory update as a conditional quadratic equilibrium in the actual frozen Qwen3.5-0.8B, and connect its implicit response equation to recorded steering responses.",
+  "primary_source": {
+    "title": "Gated Delta Networks: Improving Mamba2 with Delta Rule",
+    "authors": "Songlin Yang, Jan Kautz, Ali Hatamizadeh",
+    "url": "https://arxiv.org/html/2412.06464v3",
+    "reference": "Section3.1, equation10 and online-learning formulation; matrix orientation is transposed to match the pinned implementation"
+  },
+  "model_source": "Pinned transformers5.19.0 Qwen3_5 torch_recurrent_gated_delta_rule, actual checkpoint revision2fc06364715b967f1860aea9cf38778875588b17. Original FP32 promoted effective parameters, reference kernels, frozen/eval weights.",
+  "equations": {
+    "before_write": "B=gamma*S_previous",
+    "native_update": "S_new=B+beta*k*(v-B^T*k)^T",
+    "association_loss": "L(S)=||S^T*k-v||^2/2",
+    "predicted_loss_reduction": "L(S_new)=(1-beta*c)^2*L(B), c=k^T*k",
+    "quadratic_equilibrium_condition": "Optional algebraically equivalent regression/proximal objective: when beta*c<1, lambda=beta/(1-beta*c)>=0 and Pi_prox(S)=||S-B||_F^2/2+lambda*||S^T*k-v||^2/2 has the same unique minimizer S_new. This norm-aware reformulation is our derivation of the published update, not the exact Table1 objective and not a unique energy representation.",
+    "finite_element_form": "Optional proximal form: K_prox*S_new=f_prox, K_prox=I+lambda*k*k^T, f_prox=B+lambda*k*v^T. Distinguish this instantaneous minimizer from the fixed-driver steady-state potential.",
+    "virtual_work": "For any virtual matrix displacement D, <D,K*S_new>=<D,f>",
+    "implicit_response": "For the optional proximal equilibrium, K_prox*dS=df_prox-dK_prox*S. Do not apply steady-state stationarity to a transient native update.",
+    "stiffness_eigenvalues": "1 in key-orthogonal directions; 1/(1-beta*c) along the current key. These are conditional memory-state stiffnesses, not a full-transformer spectrum.",
+    "published_step_objective": "Pi_paper(S)=||S-B||_F^2/2-beta*<S^T*k, v-B^T*k>; its unique minimizer is the native one-step update. This is Table1 in transposed/half-scaled notation.",
+    "native_dynamics": "S_new=S_previous+f_ss-K_ss*S_previous; K_ss=(1-gamma)*I+gamma*beta*k*k^T; f_ss=beta*k*v^T.",
+    "fixed_driver_potential": "Psi(S)=<S,K_ss*S>/2-<f_ss,S>. The native update is one unit gradient step on Psi with the current input drivers frozen. It generally is not the steady-state minimum after one step.",
+    "steady_state": "K_ss*S_equilibrium=f_ss when a steady equilibrium exists. K_ss eigenvalues are1-gamma and1-gamma+gamma*beta*c. Record gamma=1 degeneracies instead of claiming uniqueness.",
+    "discrete_work_balance": "For DeltaS=S_new-S_previous, W_external=<f_ss,DeltaS>, DeltaU=<K_ss*S_previous,DeltaS>+<DeltaS,K_ss*DeltaS>/2, D=||DeltaS||_F^2-<DeltaS,K_ss*DeltaS>/2. Native force balance implies W_external=DeltaU+D; D>=0 when eigenvalues(K_ss)<=2. These are mathematical, dimensionless model quantities, not physical heat.",
+    "moving_landscape": "At token2, Psi2(S2)-Psi1(S1)=[Psi2(S1)-Psi1(S1)]+[Psi2(S2)-Psi2(S1)]. Fix the explicit zero-at-S=0 gauge; the first term is a changed-input landscape term, the second is local relaxation.",
+    "dynamic_response": "dS_new=(I-K_ss)*dS_previous+df_ss-dK_ss*S_previous. Compare this stable form to archived native q."
+  },
+  "normalization": "Use the actual l2norm eps1e-6 and measured c; do not silently replace c with1. Report every beta*c>=1, non-finite or poorly resolved case. The positive-quadratic minimizer claim is conditional; explicit gradient-step loss contraction additionally holds for0<=beta*c<=2.",
+  "parents": {
+    "calibration_bridge": "Fully preserved study14 original calibration IDs r14_cal_window, r14_cal_labels, normal first-token records, immutable incoming caches and9 recorded affected recurrent layers. Validate parameter/conv/norm reconstruction before wider panel.",
+    "main_panel": "All6 phase17 questions, two normal steps and all80 signed target rows, all18 recurrent layers and16 heads. Use phase17 only after its full raw backup is verified.",
+    "expected_head_updates": 26496,
+    "derivative_panel": "Primary6questions and reference2questions at both token positions:16 context/direction/position cases,18 recurrent layers,16 heads; compare implicit response to archived native first derivatives. No new whole-backbone forwards."
+  },
+  "parameter_fidelity": "Read the effective parameters produced by the exact pinned original model loader and BF16-to-FP32 promotion, including A_log's effective values. Loading the model is counted setup; no model forward or weight training. Export the small needed parameter subset and release the loaded model before local replays.",
+  "local_reconstruction": "Recover keys/values from the recorded post-update convolution window with the original convolution and SiLU. Recover beta/gamma from the recorded residual input, original zero-centered RMSNorm and in_proj_b/in_proj_a/A_log/dt_bias. Replay the original recurrent update from the recorded incoming state. Do not infer drivers from S_new or fit parameters to the desired output.",
+  "checks": {
+    "primal_replay": "Every full recurrent field error<=1e-6 times max(1,native norm), including old calibration bridge.",
+    "equilibrium": "Every eligible head stationarity error<=1e-5 times max(1,load norm). Retain and report ineligible heads; never clamp lambda or drop failures.",
+    "virtual_work": "Four fixed Gaussian virtual displacements per head, seed20261015; error<=1e-5 times max(1,absolute internal/external virtual work).",
+    "loss_contraction": "Compare the predicted factor and actual regression loss with explicit FP32 resolution floors; also report unresolved tiny losses.",
+    "implicit_response": "Compare K*dS=df-dK*S against archived native q, separately reporting transported history, new input driving and stiffness changes. Preserve conditioning/cancellation failures.",
+    "all_source_and_parent_hashes": true,
+    "native_force_work_energy": "Check every native transient update against f_ss-K_ss*S_previous, the fixed-driver potential decrement and discrete work/dissipation balance, with explicit FP32 roundoff bounds. This is the primary energy/dynamics replication; retain all degenerate optional proximal cases."
+  },
+  "interpretation": "Replicate the paper online-learning objective and native update first. Then verify independently derived fixed-driver gradient-flow/work balance and an optional norm-aware proximal reformulation. Energies are conditional and non-unique; do not claim a global residual-stream potential, physical conservation, semantic label, unknown-steering detector or that one ordinary update is already at its fixed-driver steady equilibrium.",
+  "budget": {
+    "CPU_only": true,
+    "new_backbone_forward_ceiling": 300,
+    "expected_new_backbone_forwards": 0,
+    "seconds_including_setup_local_replays_audit_export_ceiling": 2700,
+    "CPU_threads": 4,
+    "minimum_free_memory_after_imports_before_loading": 8589934592,
+    "minimum_disk_free": 17179869184,
+    "GPU_allocations": 0,
+    "purchases_training_extra_agents": false,
+    "old_stopped_monitor_and_Research3_unchanged": true
+  },
+  "preservation": "Keep all original phase15/16 failures and phase17's quadratic comparator failure and report-saving fault. Preserve all head/case failures, full input recipes, effective parameter hashes and derived drivers. Do not duplicate whole parent datasets unnecessarily; preserve exact parent references and reproducible derived arrays.",
+  "derivative_stability": "Retain direct differentiated rank-one update as a stable algebraic evaluation of the implicit response. Report both rounded-native-state and reconstructed-equilibrium force residuals, conditioning and cancellation; do not change criteria or drop poorly conditioned heads.",
+  "replay_numeric_rules": {
+    "field_primal_relative_to_max1_native_norm": 1e-06,
+    "head_primal_relative_to_max1_native_norm": 1e-06,
+    "published_step_stationarity": 1e-05,
+    "dynamic_force_and_virtual_relative_with_absolute_floor": 1e-05,
+    "loss_absolute_roundoff_floor": "100*float32_epsilon*max(1,L_before,L_after)",
+    "work_bound": "Cauchy bound ||measured_force_residual||*||DeltaS|| plus100*float64_epsilon*max(1,absolute work/energy), absolute1e-10 comparison slack",
+    "response_relative": 0.001,
+    "response_absolute_floor": 1e-06,
+    "optional_proximal_failures_recorded_separately": true,
+    "virtual_displacements": "One fixed4direction unit-Frobenius Gaussian set for each layer/head, reused across cases; no selecting favorable probes."
+  }
+}

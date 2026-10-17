@@ -1,0 +1,27 @@
+{
+  "date":"2026-10-12",
+  "status":"Fixed before new learned conditional-energy fits; exploratory reuse, not prospective confirmation",
+  "question":"Does context-conditioned prediction-error energy distinguish residual interventions from untreated runs when whole scenario families are withheld?",
+  "scope":"CPU saved traces only; no model calls, GPU allocation, generator training, classifier refit, parameter search or automatic monitoring",
+  "data":"Original native8 prompts and older matched6 prompts, first8 prediction positions. Original seeds42/43/44 are TEST-only correlated supplements, never fitting/calibration. Fresh eight-question panel entirely excluded.",
+  "families_in_fixed_order":{
+    "physical_explanations":["r4_01","r4_05"],
+    "numerical_explanations":["r4_02","r4_06"],
+    "simulated_worker":["r4_03","r4_04","r4_07","r4_08"],
+    "matched_records":["pair1_completed","pair1_pending","pair2_pending","pair2_completed","pair3_completed","pair3_pending"]
+  },
+  "outer_split":"Four folds. TEST=family i; calibration=next family cyclically; TRAIN=remaining two families. Whole prompts and all continuation replicas stay in their family. All references and prediction laws use TRAIN BASE only. Threshold=max calibration-family native BASE global score; no TEST or intervention score sets any parameter. Only2-6 calibration contexts: no reliable low-FPR statistical guarantee.",
+  "phases":"Separate prefill position0 and decode positions1..7 laws. Equal prompt weight because each contributes1/7 positions. Mean of calibrated phase energies over8 positions is the fixed single-run decision score; retain both phase scores diagnostically.",
+  "candidates":{
+    "unconditional_diagonal":"Reproduce statistical baseline energy within each fold: every block, mean-centered coordinate squares divided by0.9 variance+0.1 mean variance, then TRAIN mean calibration and uniform24-block aggregation.",
+    "predictive_innovation":"One-run input x=[h9/||h9||,(h9-h8)/||h9||], output y=flatten((h10..23-h9)/||h9||). Fit a BASE-only affine ridge law. Energy is mean squared prediction error weighted by diagonal uncertainty. This uses unaffected upstream activity to condition the expected downstream flow, not a paired unsteered run.",
+    "strain_compatibility":"For each adjacent depth edge1..23, form [log(||h_l||/||h_l-1||),1-cos(h_l,h_l-1)]. Predict edges10..23 from edges1..9 with a BASE-only affine ridge law. Energy is quadratic prediction error under a full28-dimensional precision matrix. These descriptors are invariant to common positive scaling and common orthogonal basis changes, not to arbitrary prompt changes. This is an analogy to compatibility/strain, not a physical constitutive law.",
+    "ridge":"Center TRAIN x/y, dual ridge lambda=0.1*mean diagonal of centered TRAIN input Gram. Fixed, no selection.",
+    "uncertainty":"For each conditional candidate, leave each whole TRAIN prompt out, predict it from remaining TRAIN prompts, and collect errors. Their mean supplies bias and covariance supplies uncertainty, with fixed0.1 isotropic shrinkage. Normalize energy by mean TRAIN out-of-prompt prediction-error energy. Final regression law fitted on all TRAIN BASE only."
+  },
+  "controls":"Identical forced tokens and exact upstream blocks0..9 within comparisons; source manifest hashes. Verify strain descriptor scale/orthogonal invariance. Score functions accept only residuals24x8x1024; no token IDs, names, labels, pre_injection or paired BASE. Keep every fold/condition/failure; no favorable layer/phase/threshold selection.",
+  "instrumented_check":"Separately evaluate same-run0.5*||post_block10-pre_injection||^2 on existing matched archives, all28 positions. The collector source confirms pre_injection is the block output saved immediately before the intervention hook changes it. This is privileged instrumentation/receipt verification, not activation-only statistical inference. It can generalize to questions if a trusted boundary monitor is deployed; unseen-site coverage and whole-block replay are not tested today.",
+  "metrics":"Primary native per-family false positives on BASE and misses/detections per intervention type, global frozen thresholds. Descriptive AUROC per family; seeds supplemental only. Norm-only is an actual residual modification, but report separately from directional steering. A missed tiny or observationally normal intervention is possible; do not promise universal detection.",
+  "decision":"A proposed general alarm must work on every withheld family with the unchanged BASE-calibrated decision rule, including untreated OOD inputs, and report coverage across directions/signs. If all fixed surrogates fail, report that result and prioritize trusted computational-consistency instrumentation or one preregistered broader BASE/reference experiment rather than searching more penalties/metrics. Any selected candidate after these results requires a fresh prospective freeze.",
+  "historical_boundaries":"All earlier failures and frozen detector results preserved. Former TRAIN/TEST labels belong to prior studies; new cross-fitting explicitly reuses inspected data. No freshness or new-context claim from this audit."
+}

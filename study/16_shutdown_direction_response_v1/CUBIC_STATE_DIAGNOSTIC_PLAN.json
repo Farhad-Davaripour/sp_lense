@@ -1,0 +1,11 @@
+{
+  "classification": "Exploratory reused-outcome diagnostic after the logit-only cubic lead; not primary confirmation or rescue",
+  "model_calls": 0,
+  "source_archive_sha256": "ce6373276cab24c8df4bb05edaeaf070b32679d233ba2402409ff1ef6ade4747",
+  "scope": "Apply the same fixed cubic Taylor formula to every recorded activation/memory field; no new fitting or probe selection",
+  "third_derivative": "For each field, [first(+h)+first(-h)-2*first(0)]/h^2, using only frozen coarse/fine steps",
+  "prediction": "baseline+alpha*first+alpha^2*second/2+alpha^3*third_fine/6",
+  "numerical_gate": "Each original state group must have coarse/fine third-derivative discrepancy <=max(10% of fine third norm,1e-6); keep every failure visible",
+  "comparison": "Same96 known endpoints, same original group and resolved-field definitions; report weak/strong held errors and per-context numerical validation",
+  "preservation": "Do not change native archives, original second-order predictions, primary failures, direction or semantic claims. A fresh prospective test remains required."
+}

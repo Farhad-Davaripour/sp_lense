@@ -1,0 +1,23 @@
+{
+  "objective":"Close remaining mechanism links: convolution cache update, recurrent-memory readout and its gate, final RMSNorm and complete248320-coordinate vocabulary projection.",
+  "classification":"Independent equation replay on preserved native phase17 traces; not an extra unseen-question or new finite-target experiment",
+  "model":"Original pinned Qwen3.5-0.8B BF16 loader then FP32 promotion; weights frozen/eval; independent NumPy FP64 equations",
+  "panel":"All92 phase18/19 native cases (six questions,two positions,12normal+80actual); all18 linear-attention layers. Same16 native first-response cases as phase18/19. All final hidden/logit coordinates retained.",
+  "equations":{
+    "conv_update":"Window_new=concat(Window_old shifted left,W_qkv*N(h)). Differentiate both the carried window and current projection; incoming derivative zero at token1, previous-token derivative at token2.",
+    "query":"q=L2norm(SiLU(Conv(Window_new))[:query_dims])/sqrt(128), using actual eps1e-6.",
+    "memory_readout":"core=q^T*S_new; dcore=dq^T*S_new+q^T*dS_new. S_new update and its force/work balance are already separately verified by phase18.",
+    "output_gate":"mixer=W_out[RMSNorm_gated(core)*SiLU(W_z*N(h))]; gated normalization uses its original uncentered weight, unlike Qwen residual RMSNorm's1+w.",
+    "final":"hidden=N_final(block23_output); logits=W_vocab*hidden. Differentiate normalization and full vocabulary projection; no token subset or vocabulary truncation.",
+    "probabilities":"Compare exact softmax of full replay logits against native full logits; preserve TV and KL diagnostics. This is local native replay, separate from prospective cubic probabilities."
+  },
+  "calibration_gate":"Both normal positions and primary native derivatives on r17_cal_spoon must pass before the wider panel; failure stops and is preserved.",
+  "gates_before_native_replay":{
+    "primal":"Every complete readout,convolution window,hidden andlogit field error<=1e-5*max(1,native norm)",
+    "response":"Every complete native response error<=max(.001*native derivative norm,1e-6)",
+    "probability_diagnostics":"TV/KL of complete replay/native distributions reported for every case; output-coordinate field gate is primary, no unregistered post-hoc threshold",
+    "no_omission":"Retain all zero controls,failed fields and complete output forecasts. Parameter/parent/source hashes checked."
+  },
+  "budget":{"CPU_only":true,"new_backbone_forward_ceiling":300,"expected_new_backbone_forwards":0,"GPU_allocations":0,"worker_seconds_ceiling":2100,"total_seconds_with_setup_audit_archive_ceiling":2700,"minimum_available_memory_before_load":8589934592,"CPU_threads":4,"OPENBLAS_NUM_THREADS":2},
+  "limits":"Even successful equations do not establish physical energy conservation, a unique global potential, universal coefficients, arbitrary unknown-steering detection, semantic labels or inference compression. A whole computation can be written mathematically while retaining its original cost."
+}

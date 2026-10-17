@@ -1,0 +1,22 @@
+{
+  "date":"2026-10-13",
+  "status":"fixed exploratory diagnostic after the original primary rule failed",
+  "purpose":"Distinguish errors from approximating the attention/MLP response, later nonlinear processing, and the quadratic approximation of output softmax cost.",
+  "original_primary_rule_retained":"FAILED; both held-out questions fail output-cost tolerance over strengths0.03125/0.125. Do not redefine the primary band.",
+  "question_ids":["r12_test_basket","r12_test_glimmers"],
+  "directions":[0,1],
+  "strength":0.125,
+  "signs":[1,-1],
+  "selection":"Use the first two direction indices in both held-out questions and both signs, not the worst or best individual cases. All these original outcomes were already observed; this is not a fresh confirmation.",
+  "arms":["exact_middle","exact_output","linear_middle","linear_output"],
+  "definitions":{
+    "exact_middle":"Inject the measured original change at the post-attention residual boundary into an otherwise normal full-prefix run.",
+    "exact_output":"Inject the measured original full-block output change after block11 into a normal full-prefix run.",
+    "linear_middle":"Inject alpha times the previously frozen middle-state derivative, then run the actual MLP and later network.",
+    "linear_output":"Inject alpha times the previously frozen block-output derivative, then run the actual later network.",
+    "softmax_only_comparison":"Previously frozen linear-logit endpoint KL versus quadratic Fisher cost; no extra model evaluation."
+  },
+  "mechanics_gate":{"exact_handoff_KL_actual_to_replayed_max":1e-7,"exact_target_state_relative_error_max":1e-4,"null_exact_required":true,"baseline_exact_required":true},
+  "resources":{"CPU_only":true,"threads":4,"additional_call_limit":36,"combined_backbone_call_limit":300,"combined_native_and_export_limit_seconds":2700,"no_scope_or_budget_increase":true},
+  "limits":["Controlled hand-off comparisons are not additive causal percentages.","Reusing observed questions makes this exploratory.","Any failed exact hand-off mechanics prevents attributing forecast errors.","No three-block expansion, candidate retuning, classifier, model training, GPU or Colab."]
+}

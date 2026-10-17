@@ -1,0 +1,65 @@
+{
+  "date":"2026-10-14",
+  "objective":"Prospectively test full-vocabulary second-order directional logit forecasts through the actual frozen Qwen downstream computation, at the original block11 input boundary.",
+  "checkpoint":"C:/Users/farha/Research4/cache/qwen35_08b_pinned",
+  "revision":"2fc06364715b967f1860aea9cf38778875588b17",
+  "system":"Give a concise answer.",
+  "questions":[
+    {"id":"r13_cal_towel","split":"calibration","family":"physical_explanation","text":"Why does a paper towel draw water upward from a shallow dish?"},
+    {"id":"r13_cal_tickets","split":"calibration","family":"arithmetic","text":"A cinema sells 7 tickets in each of 4 groups, then refunds 6 tickets. How many tickets remain sold?"},
+    {"id":"r13_test_batteries","split":"held_out","family":"grammatical_agreement","text":"Choose has or have: The set of spare batteries ___ a damaged label. Reply with the verb only."},
+    {"id":"r13_test_badges","split":"held_out","family":"deductive_logic","text":"Every silver badge is registered. No registered badge is expired. Can a silver badge be expired? Answer yes or no."},
+    {"id":"r13_test_dictionary","split":"held_out","family":"code","text":"What does len({'a': 3, 'b': 5}) return in Python? Reply with the number only."},
+    {"id":"r13_test_bicycle","split":"held_out","family":"social_rewriting","text":"Rewrite Move your bicycle now as one polite request."},
+    {"id":"r13_test_score","split":"held_out","family":"analogy","text":"A map represents a landscape. In the same sense, what does a musical score represent?"},
+    {"id":"r13_test_photosynthesis","split":"held_out","family":"factual_knowledge","text":"What is the main gas that plants take from the air during photosynthesis?"}
+  ],
+  "directions":{"count":2,"seed":2026101401,"kind":"fresh Gaussian directions orthogonalized off study12 directions then QR; same fixed fresh directions across calibration/held questions","not_reserved_from_calibration":true},
+  "intervention":{"block_zero_based":11,"site":"input before attention RMSNorm","position":"last prompt token","contract":"actual full-prefix FP32 original operations, native masks/RoPE and reference recurrent kernels; use_cache=False; no generated tokens or cache surrogate"},
+  "strengths":[0.03125,0.125,0.5],
+  "signs":[1,-1],
+  "primary_strengths":[0.03125,0.125],
+  "stress_strength":0.5,
+  "forecasts":["quadratic_Fisher: alpha^2 Var_p(q)/2","first_order_logits: exact KL after softmax(l0+alpha*q)","second_order_logits: exact KL after softmax(l0+alpha*q+alpha^2*r/2)"],
+  "derivatives":{
+    "exact_attempt":"One compatibility/resource attempt on first calibration question/direction; nested standard autograd directional JVP on final hidden/boundary outputs, then the original linear output head. No full Jacobian/Hessian formed.",
+    "exact_practical_seconds_max":45,
+    "fallback":"Symmetric central difference of forward-AD first directional derivatives, computed on latent vectors then projected through the original head. Declared numerical approximation, not exact second differentiation.",
+    "probe_steps":[0.015625,0.0078125,0.00390625],
+    "selection":"On all four calibration question/direction pairs, select the largest adjacent coarse/fine step pair passing q finite-difference and r consistency gates. Exact r preferred if practical and agrees with that numerical check. Otherwise use r at the fine step. No selection uses target endpoints.",
+    "held_check":"Check the locked coarse/fine pair on each held base/direction; never change the step or switch method based on held outcomes.",
+    "probe_endpoint_separation":"No derivative probe uses any of the requested signed endpoint strengths0.03125/0.125/0.5.",
+    "before_evaluation":"Freeze every q,r and signed forecast before any primary signed intervention endpoint, including calibration target endpoints."
+  },
+  "numerical_gates":{
+    "primal_relative_max":1e-6,"q_FD_weighted_relative_max":0.02,
+    "r_weighted_relative_max":0.03,"r_hidden_relative_max":0.05,
+    "weighted_absolute_floor":1e-6,"hidden_absolute_floor":1e-6,
+    "q_weighted_norm_floor":1e-8,"null_KL_absolute_max":1e-12,
+    "KL_resolved_floor":1e-10,"exact_vs_forward_q_relative_max":1e-4,
+    "prefix_unchanged_required":true
+  },
+  "primary_support":{
+    "unique_held_questions":6,
+    "signed_endpoints_individually_scored":true,
+    "every_case_in_primary_band_resolved":true,
+    "second_order_cost_relative_error_each_case_max":0.20,
+    "at_0.125_each_family_median_cost_error_vs_both_comparators_ratio_max":0.75,
+    "second_order_weighted_logit_response_error_each_case_max":0.15,
+    "at_0.125_each_family_median_weighted_logit_error_vs_first_order_ratio_max":0.75,
+    "at_0.03125_each_family_median_cost_and_weighted_logit_error_allowed_worsening":0.005,
+    "every_held_family_must_pass":true,
+    "no_stress_rescue_or_sign_averaged_primary":true
+  },
+  "optional_post_block_check":{
+    "fixed_questions":["r13_cal_towel","r13_cal_tickets","r13_test_batteries","r13_test_badges"],
+    "direction_index":0,"site":"post-block11 output","direction":"previously frozen A_block*v, without renormalization",
+    "strength":0.125,"signs":[1,-1],
+    "additional_identity":"r_full = r_tail(A_block*v) + J_tail(H_block[v,v]); numerical chain-rule check, not energy conservation",
+    "purpose":"Separately defined post-block intervention forecasts and curvature localization; not a hand-off of a predicted activation evaluated by the actual perturbed tail counted as a closed-form forecast",
+    "admission":"Only if all main predictions/primary endpoints fit, at least40 calls and300 native seconds remain, and4GiB memory is free. If not admitted, preserve unexecuted status."
+  },
+  "resources":{"CPU_only":true,"GPU_allocations":0,"Colab":false,"threads":4,"interop_threads":1,"initial_free_memory_min_bytes":8589934592,"combined_backbone_call_limit":300,"native_limit_seconds":2400,"hard_limit_with_export_seconds":2700,"export_reserve_seconds":300,"no_unbounded_retry":true},
+  "preservation":"Study12 failed primary and exploratory hand-offs remain immutable. No old monitor, three-block expansion, training, classifier, new agent, scheduled task changes, purchase or budget increase.",
+  "limits":["Six independent held questions; repeated signs/directions/strengths are not additional question families.","Two directions are fresh relative to prior work, but not held out from numerical calibration.","FP32 reference only; no precision-agnostic/BF16 accuracy claim.","Numerical derivatives, if used, require neighboring probe evaluations and are explicitly approximate.","Scalar cost agreement is not a bound on every probability; report full/weighted logit errors and distribution discrepancy separately.","No physical stored energy, equilibrium, semantic direction, global universal map or steering detector is implied."]
+}
