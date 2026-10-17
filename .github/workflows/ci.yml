@@ -1,65 +1,38 @@
-name: CI and Databricks deployment
+name: CI
 
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: research3-${{ github.ref }}
-  cancel-in-progress: false
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  validate:
+  landing-page:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        persist-credentials: false
-    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-      with:
-        python-version: '3.12'
-        cache: pip
-    - run: python -m pip install -r requirements.txt
-    - run: python -m compileall -q src notebooks
-    - run: python -m src.verify
-
-  deploy-shared:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_AUTH_TYPE: pat
-      DATABRICKS_WAREHOUSE_ID: ${{ vars.DATABRICKS_WAREHOUSE_ID }}
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        persist-credentials: false
-    - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
-      with:
-        python-version: '3.12'
-        cache: pip
-    - uses: databricks/setup-cli@2bf4520fd10723ed5a22eca62a8c8a63714a7ba9
-      with:
-        version: '1.21.0'
-    - run: python -m pip install -r requirements.txt
-    - name: Validate shared workspace deployment
-      run: python -m src.utils bundle validate --strict --target shared
-    - name: Deploy code and manual research jobs
-      run: python -m src.utils bundle deploy --auto-approve --target shared
-    - name: Verify deployed source and existing data access
-      shell: bash
-      run: |
-        set -euo pipefail
-        digest="$(python -m src.verify --digest)"
-        python -m src.utils bundle run deployment_smoke --target shared \
-          --params "expected_commit=${GITHUB_SHA},expected_source_digest=${digest}"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate landing branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in README.md CONTRIBUTING.md SECURITY.md LICENSE .github/CODEOWNERS; do
+            test -f "$file"
+          done
+          for path in data paper reproduce src study tests pyproject.toml; do
+            if [ -e "$path" ]; then
+              echo "Study-specific path must not exist on main: $path" >&2
+              exit 1
+            fi
+          done
+          grep -q 'study/01-guarded-shutdown' README.md
+          grep -q 'study/02-next-study' README.md
+          grep -q 'Squash-merge' CONTRIBUTING.md
