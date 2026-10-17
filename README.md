@@ -10,7 +10,7 @@ Reproduction code for fine-tuning, workflow evaluation and activation steering.
 - notebooks/: minimal Databricks orchestration importing src.
 - resources/: manual Bronze persistence, fine-tuning, Evaluation-16 and steering jobs.
 
-Detailed protocols and research history belong in the [project wiki](https://github.com/Farhad-Davaripour/sp_lense/wiki).
+See the [Research 3 reproduction guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-3-Reproduction). Detailed protocols and research history belong in the wiki.
 
 ## Configuration
 
