@@ -11,6 +11,13 @@ from src.engines.workflow.policy import choose_rule
 from src.utils import sha256, write_json
 
 
+def training_rows(rows, validation, initial_validation):
+    """Remove exact visible validation states before any joint fitting."""
+    from src.utils import canonical
+    blocked = {canonical(r['state']) for r in validation + initial_validation}
+    return [r for r in rows if canonical(r['state']) not in blocked]
+
+
 def referenced(rows):
     result = collections.defaultdict(set)
     for row in rows:

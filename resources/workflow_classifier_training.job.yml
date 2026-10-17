@@ -18,7 +18,16 @@ resources:
       - name: admission
         default: ''
       tasks:
+      - task_key: persist_workflow_references
+        notebook_task:
+          notebook_path: ../notebooks/workflow_classifier_persistence.py
+        environment_key: comparison
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 300
       - task_key: fit_joint_classifier
+        depends_on:
+        - task_key: persist_workflow_references
         notebook_task:
           notebook_path: ../notebooks/workflow_classifier_training.py
         environment_key: runtime

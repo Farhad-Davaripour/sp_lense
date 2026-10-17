@@ -17,12 +17,7 @@ from src.utils import canonical, sha256, write_json
 from src.workflow_classifier import encode_workflow, scored_decision, summarize, summarize_initial
 from src.research2_classifier import classifier_source, pairs, agreement, qualified
 from src.engines.workflow.schema import QUESTIONS
-
-
-def training_rows(rows, validation, initial_validation):
-    """Exclude exact visible validation states, including the separate initial-gate panel."""
-    blocked = {canonical(r['state']) for r in validation + initial_validation}
-    return [r for r in rows if canonical(r['state']) not in blocked]
+from src.workflow_classifier_data import training_rows
 
 
 def run(admission_path):

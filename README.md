@@ -168,6 +168,11 @@ visible states are excluded from the earlier 97-state pool. Development selectio
 49 workflow states, 80 binary states and nine familiar initial gates. Three consecutive joint
 passes are required before any historical confirmation benchmark. The bounded job includes a
 separate CPU comparison task; success is measured, not assumed from fitting the training labels.
+`config/workflow_classifier_data.yaml` registers the fitting, development and known benchmark
+references in the same three Bronze tables using distinct dataset/version identifiers. Immutable
+source and record files stay in the configured Volume. A CPU persistence task precedes fitting
+in the joint job. Request states are correlated and overlap across diagnostic dataset versions;
+their row counts must not be summed as independent scenarios.
 
 The inference-only entry points are:
 
