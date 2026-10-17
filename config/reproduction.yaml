@@ -37,6 +37,11 @@ stages:
   entrypoint: python -m src.steering --method learned --engine-args <original-arguments> --execute
   coverage: recorded stopped/final fitting evidence; fresh qualification not implied; sealed R24 excluded
   compute: 27B-capable GPU
+- name: Selected-block single-site comparison
+  entrypoint: python -m src.steering --method selected-ridge --engine-args <original-arguments> --execute
+  coverage: Original matched DEV9 worker and causal selected-position hooks; cached initial gates,
+    frozen ridge arrays, A adapter and original fixture packet required. This is not new heldout evidence.
+  compute: 27B-capable GPU; original numerical mode and fresh bounded admission required
 - name: Four-way classifier
   entrypoint: python -m src.classifier --recipe classifier_nli_v4.yaml --admission <new-admission.json> --execute
   coverage: private classifier datasets; consumed TEST64 cannot be retuned

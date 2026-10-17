@@ -116,6 +116,14 @@ Evaluation requires a verified final-270 adapter and runs only the frozen Evalua
 It stops when an original required gate becomes mathematically impossible and preserves completed,
 partial and unexecuted counts. It never automatically launches larger validation or heldout runs.
 Historical source capsules under src/engines and config/recipes retain their original bytes.
+The selected-block single-site worker and its seven original source files are retained under
+src/engines/selected_ridge. Use the plan command below to inspect its entry point and source pins:
+
+    python -m src.steering --method selected-ridge
+
+Its original arguments identify the fixture packet, model, A adapter or ridge arrays, method role
+and bounded runtime. It requires a separately admitted 27B-capable environment. The ordinary
+serverless steering job performs CPU score analysis and does not launch that neural experiment.
 
 ## Open classifier and Research 2 inference
 
