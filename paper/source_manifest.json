@@ -1,0 +1,219 @@
+{
+  "format": "research3-paper-source-manifest-v1",
+  "recorded_utc": "2026-10-17T20:03:57.888199+00:00",
+  "repository": "https://github.com/Farhad-Davaripour/sp_lense",
+  "branch": "03-open-agent-self-preservation",
+  "main_role": "landing/navigation only; never a deployment source for Research3",
+  "original_Research2": {
+    "immutable_scientific_snapshot": "f71d6de346608df374aaa3263ede24823aec66c0",
+    "preserved_branch": "02-adaptive-activation-steering",
+    "original_manuscript_sha256": "9caad5d590d78d13d870d296c77d1c9d529cd57fb021a957393cb2613f84f8f8",
+    "modified": false,
+    "verified_remote_branch_head": "5a7e1b8550fe176247e08efd8b2cf4ce660f6fba",
+    "historical_rank_two_profile_snapshot": "090078cf75c611b3b846746ef47759358d17e8cd"
+  },
+  "manuscript": {
+    "file": "manuscript.docx",
+    "bytes": 191840,
+    "sha256": "fc23ae6d8f0f38fd54c3f5ad3dd96aca6106d1e7d2111e5497536de9c6c1908a",
+    "track_revisions_enabled": true,
+    "tracked_insertions_body": 152,
+    "tracked_deletions_body": 64,
+    "visual_review": {
+      "markup_pages": 17,
+      "accepted_view_pages": 14,
+      "all_pages_reviewed": true
+    }
+  },
+  "results": {
+    "file": "results.json",
+    "bytes": 25609,
+    "sha256": "3b81ba65372369291b6d48ec353b1152a17242404d2f475c35b3d0eaeb5b099c"
+  },
+  "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
+  "trained_adapters": [
+    {
+      "name": "Research2 binary shutdown classifier",
+      "status": "QUALIFIED:DEV78/80;confirmation128/128",
+      "base_model": "MoritzLaurer/ModernBERT-large-zeroshot-v2.0",
+      "base_revision": "a51e07b524299e309dd2b88d48b0cfa2bd9ec598",
+      "rank": 16,
+      "alpha": 32,
+      "files": {
+        "adapter_model.safetensors": {
+          "bytes": 28823080,
+          "sha256": "7d808bae8dd4e84be09c089ef44e9b0e48aed3adb4503ad4cc57d15f8e4d5b94"
+        },
+        "adapter_config.json": {
+          "bytes": 1239,
+          "sha256": "bf0ad826e2c75b4869d08e9bebf9d80a236a7c893e3a8450d7a38af7eb6ad681"
+        }
+      },
+      "HuggingFace_repo_created": false,
+      "HuggingFace_upload_performed": false
+    },
+    {
+      "name": "Research3 0.8B final270",
+      "status": "Training270/270;Evaluation16stoppedearlySCREEN_FAIL",
+      "base_model": "Qwen/Qwen3.5-0.8B",
+      "base_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+      "rank": 16,
+      "alpha": 32,
+      "files": {
+        "adapter_model.safetensors": {
+          "bytes": 43346432,
+          "sha256": "8a80ee723d6d399a3e6ee5d79199633d1e4ce67aa6f33c573e87ac3a4e049e70"
+        },
+        "adapter_config.json": {
+          "bytes": 1347,
+          "sha256": "5839e0ede30a5e04e93509795f853903494df612f415346a2b268574db97dadd"
+        }
+      },
+      "HuggingFace_repo_created": false,
+      "HuggingFace_upload_performed": false
+    },
+    {
+      "name": "Research3 2B final270",
+      "status": "Training270/270mixedbackend;Evaluation16stoppedearlySCREEN_FAIL",
+      "base_model": "Qwen/Qwen3.5-2B",
+      "base_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+      "rank": 16,
+      "alpha": 32,
+      "files": {
+        "adapter_model.safetensors": {
+          "bytes": 67332688,
+          "sha256": "e704cbdf2da35c6b967a7538c0415ceb3f64afadcd87e52bb21be3801fa39836"
+        },
+        "adapter_config.json": {
+          "bytes": 1335,
+          "sha256": "07cdc363c1c3b2d99d6e86c8c3ff4fb9fdb3282c5bd4c7073beaa34d31dd89ca"
+        }
+      },
+      "HuggingFace_repo_created": false,
+      "HuggingFace_upload_performed": false
+    },
+    {
+      "name": "Historical Research3 27B A candidate",
+      "status": "Exact A adapter/config matched historical frozen campaign; publication package not yet created",
+      "base_model": "Qwen/Qwen3.8-27B",
+      "base_revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0",
+      "rank": 16,
+      "alpha": 32,
+      "files": {
+        "adapter_model.safetensors": {
+          "bytes": 467062560,
+          "sha256": "8ae28fb51107a31419bcb744d9f47d80b681781a114f8bc9491751410b4b87aa"
+        },
+        "adapter_config.json": {
+          "bytes": 1326,
+          "sha256": "06a6ad4588f4f0d7b46cf9f7f67f9b7b5028d153134cdd0829a929e1caf9fcda"
+        }
+      },
+      "HuggingFace_repo_created": false,
+      "HuggingFace_upload_performed": false,
+      "historical_frozen_campaign_adapter_identity_verified": true,
+      "historical_experiment_spec_sha256": "d2d8c486cc839ca09b7980668c844ba48e11f9fb97c035b589d99029bffec68a",
+      "public_model_pin_sha256": "7356c4230e63dcdd8501b33a8da14d4894ec050bb32a5a53ba727bd6ca27a6be",
+      "historical_inference_quantization": "NF4 4bit, double quantization, BF16 compute; preserve original deployment method"
+    }
+  ],
+  "retained_evidence_files": {
+    "binary_classifier": {
+      "filename": "RESULT.json",
+      "bytes": 1362,
+      "sha256": "e1a999a98237eaae7c1e3dae0837631e6c83dfa2c2c69a3f0e450dc5fb50421b",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "fresh_inference": {
+      "filename": "COMPARISON.json",
+      "bytes": 12420,
+      "sha256": "a8b3e96d63759612f622bb6a82e6ce997f6ead35e572efcbcffdf0f80d627f45",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "historical_H24": {
+      "filename": "CONFIRMATION_ANALYSIS.json",
+      "bytes": 33574,
+      "sha256": "a70170c532a647aee7ae54588f70c3207d2fb0538e9a9c3a0820047b17d9a8d3",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "later_H24_fitting": {
+      "filename": "ROOT_TRAIN_DIAGNOSTIC_CLOSEOUT.json",
+      "bytes": 8808,
+      "sha256": "636ad5e6ed3b32cb0cbfe4d4ea18d1584c1a76f6135244a4e8aed260b83651c8",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "older_DEV9": {
+      "filename": "VERIFIED_RESULTS.json",
+      "bytes": 43660,
+      "sha256": "340686d7aa1a340c7ce1728ae83c0087b770c3291a6ccf6564ac3df918fefb87",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "fixed_anchor_trend": {
+      "filename": "EXISTING_DEV_AND_TRAIN_TREND_ADDENDUM.json",
+      "bytes": 3950,
+      "sha256": "40b24c63592bdebfc5817f5dfae5343627503c9bc3b630882d7658cad07a1125",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "screen_08": {
+      "filename": "SCREEN_RESULT.json",
+      "bytes": 1117,
+      "sha256": "9c5dca794d5be4ca447d43980a669efc324ceeb0a55073805b2c8c83783b72a6",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "screen_2": {
+      "filename": "SCREEN_RESULT.json",
+      "bytes": 1117,
+      "sha256": "eda37af9ec22f28f280e902cee236d82704ad800564bac3cdfbc9abee29d885d",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "four_way_classifier": {
+      "filename": "RESULT.json",
+      "bytes": 4143,
+      "sha256": "ab5dada90a92e14e24c527b4a497b17b3fb9000821e30fa11dc40471f12b6bab",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    }
+  },
+  "recipe_files": {
+    "config/research2_classifier.yaml": {
+      "bytes": 1694,
+      "sha256": "3b99420f87541eba0bffac2ea725f8df0f2c9f18d4933df59d014bb47b178f4c",
+      "identity": "canonical Git blob"
+    },
+    "config/research2_inference.yaml": {
+      "bytes": 1594,
+      "sha256": "8c52a95791867a68b0b80a29cd5c484e0f23aa8c018b7b1cda23b1b934431d81",
+      "identity": "canonical Git blob"
+    },
+    "config/data.yaml": {
+      "bytes": 2037,
+      "sha256": "284f8aac5040201d00e92b64ee370dae135d763d58075dd160fddc71ab24a0e5",
+      "identity": "canonical Git blob"
+    }
+  },
+  "availability": {
+    "code_public": true,
+    "manuscript_and_aggregate_results_public": true,
+    "trained_adapters_public": false,
+    "optimizer_resume_checkpoints_public": false,
+    "private_inputs_and_raw_trajectories_public": false,
+    "HuggingFace_upload_performed": false,
+    "note": "Weights are retained privately with size/SHA readback. No public checkpoint URL or independent full-data reproduction is claimed."
+  },
+  "reproduction_entry_points": {
+    "src/research2_classifier.py": {
+      "bytes": 20746,
+      "sha256": "794a131737c16b39645f08877928cbe80b4c4070762d2cdc162a785f324d8592",
+      "identity": "canonical Git blob"
+    },
+    "src/research2_inference.py": {
+      "bytes": 18475,
+      "sha256": "84f6250c24a98eb64f8ccd7c7bf45d78278f3408a0998cf6098747c0ae346838",
+      "identity": "canonical Git blob"
+    },
+    "src/research2_inference_report.py": {
+      "bytes": 6618,
+      "sha256": "d852dbb507e40fdd3695a3e5ef52197f6352a7d0cd47e46231a531e6d259de36",
+      "identity": "canonical Git blob"
+    }
+  }
+}

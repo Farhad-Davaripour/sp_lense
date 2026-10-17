@@ -12,6 +12,7 @@ The original Research 2 study remains on its preserved study branch.
 - src/: research entry points, data persistence, deployment checks and pinned scientific engines.
 - notebooks/: thin Databricks orchestration importing src.
 - resources/: readable manual research jobs and the CPU deployment check.
+- paper/: the Word manuscript with tracked changes, aggregate results and source identities.
 - .github/workflows/ci.yml: public source checks and deployment from the Research 3 branch.
 
 Detailed protocols and research history belong in the
@@ -30,6 +31,9 @@ roles. T1 contains 428 meaning plus 112 workflow response records, not 540 indep
 Evaluation-16 is an existing development screen. H24 was historical heldout confirmation for
 fine-tuned 27B A and original fixed steering; later learned corrections reused it for fitting.
 The separate reserved R24 controller holdout remains sealed and is not ingested by this project.
+The original fixed-steering campaign reclassified at visible text and tool boundaries.
+Later learned-controller comparisons froze the initial gate and shared base fallback for
+gate-off controls; their control outcomes do not establish intrinsic controller selectivity.
 
     python -m pip install -r requirements.txt
     python -m src.persist_data
@@ -96,6 +100,17 @@ later exploratory rank-two profile; rank selection was not repeated.
 Qualified adapters, resume checkpoints and outputs are preserved privately with size/SHA readback.
 Weights have not been published to Hugging Face. A public release should supply exact adapter
 revisions, base-model pins, loading instructions and model cards with the recorded limitations.
+
+## Paper
+
+[The revised Word manuscript](paper/manuscript.docx) retains genuine insertions/deletions
+against the preserved Research 2 paper, with Track Changes enabled. It covers the original
+binary study, the open-classifier inference repeat, workflow outcomes, neuroscience context,
+limitations and proposed persistent-agent experiments. The original Research 2 document is unchanged.
+[Aggregate results](paper/results.json) and [source identities](paper/source_manifest.json)
+separate historical confirmation, later fitting diagnostics and incomplete screens.
+Private inputs and trained weights remain outside Git. The paper is excluded from Databricks
+source synchronization; the jobs deploy only the reproduction code and configuration.
 
 ## Shared Databricks deployment
 
