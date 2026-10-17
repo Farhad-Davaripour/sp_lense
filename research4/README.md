@@ -9,6 +9,12 @@ This is an experimental hypothesis. Conditional adapters and identity bypass
 already exist; the prospective contribution is the semantic/state-aware policy
 and its measured selectivity across an evolving episode.
 
+The first pilot is complete and **does not support useful selective behavior**.
+Dynamic routing and the base both completed 0/4 target tasks; a correct-label
+gate completed 1/4. Exact OFF bypass and frozen base weights passed verification.
+The next bottleneck is closed-loop policy competence and the handoff back to
+ordinary work. See [the findings and evidence](wiki/findings.md).
+
 The first bounded pilot uses Qwen3.5-0.8B on Databricks Free Edition serverless
 CPU. The base is frozen; classifiers, router and LoRA parameters are trained on
 Databricks. Tool actions and operating extensions are fictional, finite and
@@ -29,6 +35,6 @@ Storage is separate: `workspace.research4` and
 under `/Workspace/Shared/research4-semantic-gate`. Research 3 is untouched.
 The repository default `main` remains the landing and governance page.
 
-See [the protocol](wiki/protocol.md), [literature](wiki/literature.md), and
+See [the architecture](wiki/architecture.md), [protocol](wiki/protocol.md), [literature](wiki/literature.md), and
 [historical Research 4 work](wiki/history.md). No prior experiment deadline or
 runtime receipt is an admission for this pilot.

@@ -1,5 +1,21 @@
 # Research 4 active direction: semantic state-aware LoRA gating, October 17, 2026
 
+The first CPU pilot is complete; its useful-selectivity hypothesis FAILED.
+Dynamic routing completed 0/4 targets, the same as base; the oracle gate 1/4.
+Control success: dynamic/base 3/5, always-ON 1/5. Reference gate false-ON 5/24
+exceeded 10%; actual rollout recall fell to 3/6 from reference 8/8.
+Exact OFF bypass passed (180 recorded steps), original base weights unchanged.
+All 54 outcomes/250 transitions replayed, and all 118 Delta activation rows
+matched retained arrays. Main run 859924329424825; audit 860085246675903.
+Training source ac36e91858a93f2624fb5e479c1ff35ad213a46f; audit source
+8adb4bf5306d429b397f0430d0cca567782fd78e. Frozen trainables SHA256
+50a97e7ea01b92af2272d7d7944a05df508173285ab8692fcda61c703c3f689b.
+UC artifact workspace.research4.semantic_gate_pilot v1; no serving endpoint.
+Both jobs terminal, model released, zero active R4 runs, zero GPU allocations.
+Next recommendation: qualify development policy/handoff with a correct gate
+before another learned-router test and fresh held set. No new run queued.
+Full findings: ../../research4/wiki/findings.md.
+
 The main study is now the bounded Databricks pilot under research4/.
 Three learned classifiers on frozen Qwen activations estimate current-task
 threat, unfinished work and useful authorized continuation. A learned recurrent
