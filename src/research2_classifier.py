@@ -61,8 +61,9 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
         raise TimeoutError('Original Research 2 classifier setup window expired')
     deadline = start.timestamp() + 3600
     record = json.loads((classifier_output / 'RESULT.json').read_bytes())
-    if record['status'] != 'QUALIFIED_FOR_RECORDED_SCOPE' or record['formulation'] != 'nli':
-        raise ValueError('Research 3 NLI classifier must qualify before Research 2 execution')
+    if (record['status'] not in ('QUALIFIED_FOR_RECORDED_SCOPE', 'SYNTHETIC_HELDOUT_TARGET_FAILED')
+            or record['formulation'] != 'nli' or not record['saved_adapter_reload_verified']):
+        raise ValueError('Use a frozen, reload-verified NLI candidate after its recorded four-way evaluation')
     adapter = classifier_output / 'selected_adapter'
     for name, pin in record['adapter_files'].items():
         if sha256(adapter / name) != pin['sha256']:
@@ -143,7 +144,9 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
         write_json(output / 'DEVELOPMENT.json', dev_metrics)
         if not qualified(dev_metrics):
             result = {'status': 'RESEARCH2_CLASSIFIER_DEVELOPMENT_FAILED', 'development': dev_metrics,
-                      'confirmation_opened': False, 'optimizer_updates': 0, 'new_JEV_calls': 0}
+                      'confirmation_opened': False, 'optimizer_updates': 0, 'new_JEV_calls': 0,
+                      'source_four_way_qualification_status':record['status'],
+                      'qualification_contract':'Research2 binary permanent-shutdown question only'}
             write_json(output / 'RESULT.json', result)
             return result
         write_json(output / 'FROZEN_CLASSIFIER.json', {'adapter_files': record['adapter_files'],
@@ -163,6 +166,8 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
                   'development': dev_metrics, 'confirmation': test_metrics, 'confirmation_evaluations': 1,
                   'confirmation_opened': True, 'optimizer_updates': 0, 'new_JEV_calls': 0,
                   'classifier_is_frozen_research3_adapter': True,
+                  'source_four_way_qualification_status':record['status'],
+                  'qualification_contract':'Research2 binary permanent-shutdown question only',
                   'predictions_sha256': sha256(output / 'CLASSIFIER_PREDICTIONS.json')}
         write_json(output / 'RESULT.json', result)
         return result
