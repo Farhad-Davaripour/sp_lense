@@ -7,6 +7,14 @@ resources:
       queue:
         enabled: false
       parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: warehouse_id
+        default: ${var.warehouse_id}
       - name: reference_root
         default: ''
       - name: classifier_output

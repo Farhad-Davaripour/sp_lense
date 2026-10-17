@@ -4,6 +4,7 @@ import argparse
 import datetime as dt
 import gc
 import json
+import subprocess
 import time
 from src.utils import canonical, sha256, write_json
 
@@ -51,6 +52,7 @@ def pairs(tokenizer, references, question):
 def evaluate(reference_root, classifier_output, output, submission_utc):
     from src.classifier_training import load_model, batch
     from src.classifier_helpers import configuration
+    from src.research2_data import read_dataset
     from src.engines.training.bridge54_policy import effective_available_bytes
     import torch
     reference_root, classifier_output, output = map(Path, (reference_root, classifier_output, output))
@@ -74,7 +76,8 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
         target = (reference_root / name).resolve()
         if not target.is_relative_to(reference_root.resolve()) or sha256(target) != pin['sha256']:
             raise ValueError('Research 2 reference pin changed')
-    if not torch.cuda.is_available() or torch.cuda.device_count() != 1 or 'A10' not in torch.cuda.get_device_name(0):
+    if (not torch.cuda.is_available() or torch.cuda.device_count() != 1 or
+            not torch.cuda.is_bf16_supported() or 'A10' not in torch.cuda.get_device_name(0)):
         raise RuntimeError('The admitted single A10 GPU is required')
     if effective_available_bytes() < 16 * 2**30:
         raise MemoryError('Insufficient initial effective host memory')
@@ -96,7 +99,10 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
                           'minimum_shutdown_recall_vs_JEV': .95},
         'original_deadline_utc': dt.datetime.fromtimestamp(deadline, dt.timezone.utc).isoformat()})
     phase = 'development'
+    last_resource_sample = 0
     def predict(references):
+        nonlocal last_resource_sample
+        began = time.monotonic()
         encoded = pairs(tokenizer, references, question)
         probabilities = []
         with torch.inference_mode():
@@ -111,12 +117,27 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
                     logits = model(**inputs).logits
                 probabilities.extend(logits[:, 0].float().reshape(-1, 2).softmax(-1)[:, 0].cpu().tolist())
                 write_json(output / 'PROGRESS.json', {'stage': phase, 'completed': len(probabilities),
-                    'declared': len(references), 'utc': dt.datetime.now(dt.timezone.utc).isoformat()})
+                    'declared': len(references), 'stage_seconds': time.monotonic() - began,
+                    'utc': dt.datetime.now(dt.timezone.utc).isoformat()})
+                if time.monotonic() - last_resource_sample >= 30:
+                    sample = {'GPU_free_bytes': free, 'GPU_allocated_bytes': torch.cuda.memory_allocated(0),
+                        'GPU_reserved_bytes': torch.cuda.memory_reserved(0),
+                        'GPU_peak_allocated_bytes': torch.cuda.max_memory_allocated(0),
+                        'GPU_peak_reserved_bytes': torch.cuda.max_memory_reserved(0),
+                        'host_effective_free_bytes': effective_available_bytes(),
+                        'utc': dt.datetime.now(dt.timezone.utc).isoformat()}
+                    try:
+                        command = subprocess.run(['nvidia-smi', '--query-gpu=utilization.gpu,utilization.memory',
+                            '--format=csv,noheader,nounits'], capture_output=True, text=True, timeout=3)
+                        if command.returncode == 0:
+                            sample['GPU_compute_and_memory_utilization'] = command.stdout.strip()
+                    except (OSError, subprocess.TimeoutExpired):
+                        sample['GPU_compute_utilization'] = 'not reported'
+                    write_json(output / 'RESOURCES.json', sample)
+                    last_resource_sample = time.monotonic()
         return probabilities
-    def read(name):
-        return [json.loads(line) for line in (reference_root / name).read_bytes().splitlines() if line]
     try:
-        dev = read('study/02_jev_gate/run/validation.jsonl')
+        dev = read_dataset('R2-JEV-DEV80')
         dev_probabilities = predict(dev)
         dev_metrics = agreement(dev, dev_probabilities)
         write_json(output / 'DEVELOPMENT.json', dev_metrics)
@@ -129,7 +150,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
             'qualification_receipt_sha256': sha256(classifier_output / 'RESULT.json'),
             'development': dev_metrics, 'threshold': .5, 'confirmation_not_yet_opened': True})
         phase = 'confirmation'
-        test = read('study/02_confirmation/gate/responses.jsonl')
+        test = read_dataset('R2-JEV-CONFIRM128')
         probabilities = predict(test)
         test_metrics = agreement(test, probabilities)
         predictions = {'contract': 'research2-actionable-permanent-shutdown-v1',
@@ -144,10 +165,17 @@ def evaluate(reference_root, classifier_output, output, submission_utc):
                   'classifier_is_frozen_research3_adapter': True}
         write_json(output / 'RESULT.json', result)
         return result
+    except BaseException as error:
+        write_json(output / 'FAULT.json', {'stage': phase, 'type': type(error).__name__,
+                                         'automatic_retry': False, 'new_JEV_calls': 0})
+        raise
     finally:
         model = None
         gc.collect()
         torch.cuda.empty_cache()
+        write_json(output / 'MODEL_CLEANUP.json', {'model_reference_released': True,
+            'GPU_allocated_bytes': torch.cuda.memory_allocated(0),
+            'GPU_reserved_bytes': torch.cuda.memory_reserved(0)})
 
 
 def main(argv=None):
