@@ -144,7 +144,7 @@ def train(worker_path):
     torch.cuda.manual_seed_all(recipe['training']['seed'])
     formulation=recipe['training'].get('formulation','multiclass')
     phase='setup';epoch=0;updates=0;best=None;perfect_streak=0;model=None;optimizer=None;scheduler=None
-    trainable=[];telemetry_time=0;frozen_before=None;selected=False
+    trainable=[];telemetry_time=0;frozen_before=None;selected=False;last_improvement=0;stop_reason='MAX_EPOCHS'
     def guard(stage):
         nonlocal telemetry_time
         if (root/'STOP').exists():raise TimeoutError('Owned stop requested')
@@ -234,7 +234,7 @@ def train(worker_path):
                    'formulation':formulation}
             history.append(entry);write_json(root/'PROGRESS.json',entry);write_json(root/'HISTORY.json',history)
             if best is None or score>best:
-                best=score;model.save_pretrained(root/'best_adapter',safe_serialization=True)
+                best=score;last_improvement=epoch;model.save_pretrained(root/'best_adapter',safe_serialization=True)
                 write_json(root/'BEST_DEVELOPMENT.json',entry)
             checkpoint(epoch+1)
             if perfect_streak>=recipe['training']['required_consecutive_perfect_validations']:
@@ -249,11 +249,15 @@ def train(worker_path):
                         'formulation':formulation,'recipe_file':c['recipe_file'],
                         'synthetic_test_not_yet_opened':True,'numeric_JEV_identity_claimed':False}
                 write_json(root/'FROZEN_MODEL.json',frozen);selected=True;break
+            patience=recipe['training'].get('early_stop_patience')
+            if patience and epoch-last_improvement>=patience:
+                stop_reason='DEVELOPMENT_PLATEAU';break
             phase='training'
         if not selected:
             result={'status':'DEVELOPMENT_NOT_IDENTICAL','epochs':epoch,'updates':updates,
                     'best_development':json.loads((root/'BEST_DEVELOPMENT.json').read_bytes()),
-                    'heldout_opened':False,'automatic_retry':False,'new_JEV_calls':0}
+                    'heldout_opened':False,'automatic_retry':False,'new_JEV_calls':0,
+                    'stop_reason':stop_reason,'formulation':formulation}
             write_json(root/'RESULT.json',result);return result
         phase='reload_verification'
         # Reload the saved adapter before the final evaluation; no additional training follows.
