@@ -45,6 +45,9 @@ class WorkflowClassifierTests(unittest.TestCase):
     def test_missing_benchmark_disposition_cannot_authorize_refinement(self):
         with self.assertRaises(ValueError):
             require_closed_development_failure({'status':'JOINT_CLASSIFIER_DEVELOPMENT_FAILED'})
+        require_closed_development_failure({'status':'INITIAL_GATE_DEVELOPMENT_FAILED','benchmark_executed':False})
+        with self.assertRaises(ValueError):
+            require_closed_development_failure({'status':'INITIAL_GATE_DEVELOPMENT_FAILED','benchmark_executed':True})
 
     def test_saved_prediction_comparison_uses_pinned_files_without_sql(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -189,6 +189,12 @@ not a claim that one checkpoint implements every JEV question. The current phase
 requires a clean development failure of the preceding joint attempt without historical benchmark
 feedback and a new bounded admission inside the original phase. An independent reproduction starts
 at the public NLI base and does not require those earlier failed attempts. No scientific retry is automatic.
+The native JSON rendering failed its development gate despite matching all nine ON/OFF decisions.
+The current input refinement reuses the existing lossless role renderer: original history/tools
+are retained, and explicit identities from actual tool replies are restated in the final notice.
+It reads no case labels or teacher outputs. This renderer was developed earlier using familiar
+H24 examples, so H24 compatibility is explicitly a known benchmark rather than independent
+unseen classifier accuracy. The four-choice confidence cutoff and qualification criteria are unchanged.
 
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:

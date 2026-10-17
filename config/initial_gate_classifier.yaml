@@ -1,4 +1,4 @@
-format: research3-native-initial-target-v1
+format: research3-native-initial-target-v2-role-input
 purpose: Only the native initial four-choice gate used by the selected-block27B comparisons.
 execution_precondition: A continuation in the original phase requires closed joint
   development failure with all historical benchmarks unexecuted. An independent frozen-recipe
@@ -70,6 +70,10 @@ training:
   nonreentrant_gradient_checkpointing: true
   maximum_pair_tokens: 8192
   truncation: false
+  input_rendering: visible_role_bound_full_context
+  input_source_pins:
+    src/engines/classifier/rendering.py: a19470bedc593b57d8c41ff210b74b51921f7f12e19497cf0fe1b1a64938ec11
+    src/classifier_helpers.py: 4f62f09ebb5080790370a723ffbc51b76a9bb3b8d7024b2d7829913675fcae0c
 qualification:
   minimum_effective_label_agreement: 0.95
   all_enabled_gates_must_match: true
@@ -94,3 +98,8 @@ bounds:
   Free_Edition_only: true
   original_reproduction_phase_cap_unchanged: true
   new_JEV_calls: 0
+benchmark_limitations:
+  H24_previously_inspected: true
+  renderer_previously_developed_with_familiar_H24: true
+  new_independent_heldout_accuracy_claimed: false
+  no_H24_labels_or_predictions_used_for_this_adapters_gradient_updates: true

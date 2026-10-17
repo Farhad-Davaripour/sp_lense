@@ -4,6 +4,7 @@ import argparse
 import datetime as dt
 import gc
 import json
+import hashlib
 import math
 import random
 import subprocess
@@ -17,16 +18,27 @@ from src.workflow_classifier import scored_decision
 STUDENT='research3-open-native-initial-target'
 
 
-def encode(tokenizer,rows,questions):
+def encode(tokenizer,rows,questions,rendering=None):
     question=questions['initial_shutdown_target'];labels=list(QUESTION['criteria']);tokens=[];audit=[]
+    rendering=rendering or configuration()['training'].get('input_rendering','native_json')
     for row in rows:
-        premise=question['instructions']+'\n\nVISIBLE_STATE\n'+canonical(row['state'])
+        if rendering=='visible_role_bound_full_context':
+            from src.classifier_helpers import role_bound_evidence
+            premise=role_bound_evidence(row['state'])
+            if (any(m['content'] not in premise for m in row['state']['visible_history'])
+                    or json.dumps(row['state']['visible_tools'],ensure_ascii=False,indent=2) not in premise):
+                raise ValueError('The role renderer must retain every original visible message and tool schema')
+        elif rendering=='native_json':
+            premise=question['instructions']+'\n\nVISIBLE_STATE\n'+canonical(row['state'])
+        else:raise ValueError('Unknown frozen native input rendering')
         lengths=[]
         for label in labels:
             value=tokenizer(premise,question['criteria'][label],truncation=False,add_special_tokens=True)
             if len(value['input_ids'])>8192:raise ValueError('Full native gate input exceeds 8192 tokens; truncation forbidden')
             lengths.append(len(value['input_ids']));tokens.append({k:v for k,v in value.items() if k in ('input_ids','attention_mask')})
-        audit.append({'id':row['id'],'pair_tokens':lengths})
+        audit.append({'id':row['id'],'pair_tokens':lengths,'rendering':rendering,
+            'text_sha256':hashlib.sha256(premise.encode()).hexdigest(),
+            'visible_state_sha256':hashlib.sha256(canonical(row['state']).encode()).hexdigest()})
     return tokens,audit
 
 
@@ -74,6 +86,8 @@ def run(admission_path):
     admitted_predecessor(a)
     if sha256(ROOT/'config/initial_gate_classifier.yaml')!=a['protocol_sha256']:
         raise ValueError('The admitted native initial-gate protocol changed')
+    for name,pin in config['training'].get('input_source_pins',{}).items():
+        if sha256(ROOT/name)!=pin:raise ValueError('The frozen input renderer changed')
     start,end=check_admission_window(a)
     if (not torch.cuda.is_available() or torch.cuda.device_count()!=1
             or 'A10' not in torch.cuda.get_device_name(0) or not torch.cuda.is_bf16_supported()):
@@ -119,8 +133,10 @@ def run(admission_path):
         model,tokenizer=load_model(source['public_base'],trainable=True,formulation='nli');model.to('cuda:0')
         train_tokens,train_audit=encode(tokenizer,train,questions);dev_tokens,dev_audit=encode(tokenizer,dev,questions)
         write_json(output/'INPUT_AUDIT.json',{'training':train_audit,'development':dev_audit,'truncated':0,
-            'model_inputs':'original native question instructions, original criterion hypotheses, full canonical visible state only',
-            'record_metadata_IDs_or_teacher_targets_appended_to_model_input':False,'historical_H24_used_for_fitting_or_selection':False})
+            'model_inputs':'original criterion hypotheses and full visible evidence in the frozen declared rendering',
+            'record_metadata_IDs_or_teacher_targets_appended_to_model_input':False,
+            'historical_H24_used_for_current_gradient_updates_or_checkpoint_selection':False,
+            'renderer_previously_developed_on_familiar_H24':config['training'].get('input_rendering')=='visible_role_bound_full_context'})
         if time.time()>=start+600:raise TimeoutError('Original setup cutoff reached before first scientific update')
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant':False})
         trainable=[(n,p) for n,p in model.named_parameters() if p.requires_grad]
@@ -176,6 +192,8 @@ def run(admission_path):
         result={'status':'INITIAL_GATE_DEVELOPMENT_FAILED','development':score,'epochs':epoch,'optimizer_updates':updates,
             'benchmark_executed':False,'new_JEV_calls':0,'source':'Fresh public NLI base and new native initial-gate LoRA/head',
             'R2_binary_adapter_unchanged':True,'universal_JEV_equivalence_claimed':False,'three_field_controller_qualified':False}
+        result['input_rendering']=config['training'].get('input_rendering','native_json')
+        result['historical_benchmark_is_familiar_including_prior_renderer_development']=True
         if frozen_digest(model)!=before:raise ValueError('Public backbone changed during native gate fitting')
         if streak>=3:
             adapter=output/'workflow_initial_target_adapter';model.save_pretrained(adapter,safe_serialization=True);tokenizer.save_pretrained(adapter)

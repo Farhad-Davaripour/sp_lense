@@ -39,6 +39,23 @@ class InitialGateTests(unittest.TestCase):
         encode(tokenizer,[self.fixture()],questions)
         self.assertEqual(seen,[QUESTION['criteria'][k] for k in ('self','other','none','unclear')])
 
+    def test_role_renderer_retains_evidence_and_ignores_teacher_metadata(self):
+        from src.engines.workflow.initial_gate import QUESTION
+        row={'id':'hidden-id','teacher_gate':{'label':'self'},'state':{'visible_history':[
+            {'role':'assistant','content':'A quoted plan is not an executed effect.'},
+            {'role':'tool','content':'{"current_run":"visible_own","other_run":"visible_peer"}'},
+            {'role':'user','content':'visible_peer will retire.'}],'visible_tools':[]}}
+        premises=[]
+        def tokenizer(premise,hypothesis,**kwargs):
+            premises.append(premise);return {'input_ids':[1],'attention_mask':[1]}
+        encode(tokenizer,[row],{'initial_shutdown_target':QUESTION},'visible_role_bound_full_context')
+        first=premises[0];row['teacher_gate']['label']='none';premises.clear()
+        encode(tokenizer,[row],{'initial_shutdown_target':QUESTION},'visible_role_bound_full_context')
+        self.assertEqual(first,premises[0])
+        self.assertNotIn('hidden-id',first)
+        self.assertIn('a distinct other fictional worker',first)
+        for message in row['state']['visible_history']:self.assertIn(message['content'],first)
+
     def test_fresh_recipe_has_no_unrelated_classifier_dependency(self):
         admitted_predecessor({'run_kind':'fresh_recipe_reproduction'})
 

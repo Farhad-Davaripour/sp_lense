@@ -16,9 +16,10 @@ from src.engines.workflow.initial_gate import payload, digest, freeze, MODEL
 
 def require_closed_development_failure(previous):
     flags=('workflow_benchmark_executed','initial_H24_executed','binary_confirmation_executed')
-    if (previous.get('status')!='JOINT_CLASSIFIER_DEVELOPMENT_FAILED'
-            or any(previous.get(k) is not False for k in flags)):
-        raise ValueError('No refinement after opening a historical confirmation benchmark')
+    joint=(previous.get('status')=='JOINT_CLASSIFIER_DEVELOPMENT_FAILED'
+           and all(previous.get(k) is False for k in flags))
+    native=(previous.get('status')=='INITIAL_GATE_DEVELOPMENT_FAILED' and previous.get('benchmark_executed') is False)
+    if not (joint or native):raise ValueError('No refinement after opening a historical confirmation benchmark')
 
 
 def prepare_sources(f24, workflow_references, output):
