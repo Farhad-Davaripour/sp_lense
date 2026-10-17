@@ -1,7 +1,7 @@
 resources:
   jobs:
     classifier:
-      name: research3-finetune-jev-classifier
+      name: Research 3 - Classifier training and JEV comparison
       max_concurrent_runs: 1
       timeout_seconds: 10800
       queue:
@@ -31,6 +31,15 @@ resources:
         timeout_seconds: 10800
         compute:
           hardware_accelerator: ${var.accelerator}
+      - task_key: compare_with_jev
+        depends_on:
+        - task_key: finetune_classifier
+        notebook_task:
+          notebook_path: ${var.repo_path}/notebooks/classifier_compare
+        environment_key: runtime
+        max_retries: 0
+        disable_auto_optimization: true
+        timeout_seconds: 600
       environments:
       - environment_key: runtime
         spec:

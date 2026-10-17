@@ -72,6 +72,10 @@ exact development decisions and a frozen saved adapter. The familiar JEV24 set i
 not independent heldout evidence. Student confidence values and numeric differences
 are reported honestly; exact finite-set label/gate agreement is not universal JEV equivalence.
 No paid JEV call, serving endpoint or automatic downstream gate replacement is included.
+The classifier job has separate training and final JEV-comparison tasks. The comparison
+uses frozen student predictions and genuine cached JEV responses, writes a per-case CSV,
+and reports label, gate, abstention and numerical-confidence differences separately.
+It can also run alone with python -m src.classifier_compare --classifier-output <run-directory>.
 
 ## Storage and history
 
