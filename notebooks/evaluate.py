@@ -1,8 +1,5 @@
 # Databricks notebook source
-# MAGIC %pip install PyYAML==6.0.3 databricks-sdk==0.153.0 psutil==7.2.2 transformers==5.19.0 peft==0.21.2 safetensors==0.7.0
-
-# COMMAND ----------
-# MAGIC %pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128
+# MAGIC %pip install PyYAML==6.0.3 databricks-sdk==0.153.0 psutil==7.2.2 torch==2.11.0+cu128 --extra-index-url https://download.pytorch.org/whl/cu128 transformers==5.19.0 peft==0.21.2 safetensors==0.8.0
 
 # COMMAND ----------
 from pathlib import Path
