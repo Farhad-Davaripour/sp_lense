@@ -22,6 +22,8 @@ for name in ('reference_root', 'classifier_output', 'output', 'submission_utc'):
     args += ['--' + name.replace('_', '-'), dbutils.widgets.get(name)]
 if dbutils.widgets.get('absolute_end_utc'):
     args += ['--absolute-end-utc', dbutils.widgets.get('absolute_end_utc')]
+if dbutils.widgets.get('finetune').lower() == 'true':
+    args += ['--finetune']
 result = main(args)
 
 # COMMAND ----------

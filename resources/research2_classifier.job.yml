@@ -1,7 +1,7 @@
 resources:
   jobs:
     research2_classifier:
-      name: Research 3 - Research 2 classifier verification and pipeline comparison
+      name: Research 3 - Research 2 classifier training and JEV verification
       max_concurrent_runs: 1
       timeout_seconds: 3600
       queue:
@@ -25,6 +25,8 @@ resources:
         default: ''
       - name: absolute_end_utc
         default: ''
+      - name: finetune
+        default: 'false'
       tasks:
       - task_key: verify_research2_classifier
         notebook_task:
