@@ -11,11 +11,21 @@ import yaml
 from src.config import ROOT
 from src.reproduce import member, validate_evidence
 from src.utils import run_recipe
-from src.research2_classifier import classifier_source
+from src.research2_classifier import classifier_source, qualification_receipt
 from types import SimpleNamespace
 
 
 class ReproductionTests(unittest.TestCase):
+    def test_fresh_binary_fit_finalization_needs_no_previous_qualification(self):
+        with patch('src.research2_classifier.sha256') as digest:
+            self.assertIsNone(qualification_receipt(None, finetune=True))
+            self.assertIsNone(qualification_receipt('unrelated-four-way-directory', finetune=True))
+            digest.assert_not_called()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'RESULT.json'
+            path.write_bytes(b'qualified')
+            self.assertEqual(qualification_receipt(directory), hashlib.sha256(b'qualified').hexdigest())
+
     def test_binary_training_does_not_require_a_four_way_checkpoint(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory) / 'base' / 'revision'

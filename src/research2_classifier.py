@@ -82,6 +82,11 @@ def classifier_source(settings, classifier_output=None, finetune=False):
     return record, adapter
 
 
+def qualification_receipt(classifier_output, finetune=False):
+    """Fresh training has no prior classifier qualification to cite."""
+    return sha256(Path(classifier_output) / 'RESULT.json') if classifier_output and not finetune else None
+
+
 def evaluate(reference_root, classifier_output, output, submission_utc, absolute_end_utc=None, finetune=False):
     from src.config import Settings
     from src.classifier_training import load_model, batch
@@ -99,6 +104,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
         deadline = min(deadline, dt.datetime.fromisoformat(absolute_end_utc).timestamp())
     record, adapter = classifier_source(Settings.load(), classifier_output, finetune)
     binary_finetuned = finetune or record['status'] == 'RESEARCH2_CLASSIFIER_QUALIFIED'
+    source_qualification_sha256 = qualification_receipt(classifier_output, finetune)
     manifest = json.loads((reference_root.parent / 'REFERENCE_MANIFEST.json').read_bytes())
     for name, pin in manifest['files'].items():
         target = (reference_root / name).resolve()
@@ -124,7 +130,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
     if time.time() >= start.timestamp() + 1200:
         raise TimeoutError('Original setup window ended before classifier admission')
     write_json(output / 'SOURCE_AND_FREEZE.json', {
-        'classifier_qualification_sha256': sha256(classifier_output / 'RESULT.json') if classifier_output and not finetune else None,
+        'classifier_qualification_sha256': source_qualification_sha256,
         'reference_manifest_sha256': sha256(reference_root.parent / 'REFERENCE_MANIFEST.json'),
         'source_pins': {name: sha256(Path(__file__).parent / name) for name in
                         ('research2_classifier.py', 'research2_compare.py', 'classifier_training.py',
@@ -277,7 +283,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             write_json(output / 'RESULT.json', result)
             return result
         write_json(output / 'FROZEN_CLASSIFIER.json', {'adapter_files': selected_adapter_files,
-            'qualification_receipt_sha256': sha256(classifier_output / 'RESULT.json'),
+            'qualification_receipt_sha256': source_qualification_sha256,
             'development': dev_metrics, 'threshold': .5, 'confirmation_not_yet_opened': True,
             'actual_adapter_files':selected_adapter_files,'binary_finetuned':binary_finetuned,'optimizer_updates':training_updates,
             'binary_adapter':str(output/'binary_adapter') if finetune else str(adapter)})

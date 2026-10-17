@@ -3,6 +3,9 @@
 Reproduction code for conditional gating, fine-tuning and activation steering across
 binary shutdown choices and synthetic tool-mediated process-preservation workflows.
 The original Research 2 study remains on its preserved study branch.
+The additional two-case sentence-boundary JEV/rule-assisted A pilot belongs to
+Research 4's curated guided-JEV handoff. It is separate from the paper's historical
+H24 comparison and is not an additional paper confirmation result.
 
 ## Start with a clean checkout
 
