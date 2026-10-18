@@ -1,0 +1,39 @@
+resources:
+  jobs:
+    semantic_readout_refit:
+      name: Research 4 - Usefulness readout correction
+      max_concurrent_runs: 1
+      timeout_seconds: 600
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        study: usefulness-head-correction
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: training_features
+          default: ''
+      tasks:
+        - task_key: fit_usefulness_head
+          notebook_task:
+            notebook_path: ../notebooks/semantic_refit.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              training_features: '{{job.parameters.training_features}}'
+          environment_key: small_cpu_fit
+          timeout_seconds: 600
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: small_cpu_fit
+          spec:
+            environment_version: '6'
+            dependencies:
+              - --extra-index-url https://download.pytorch.org/whl/cpu
+              - torch==2.11.0+cpu
+              - numpy==2.2.2
+              - PyYAML==6.0.3

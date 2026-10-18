@@ -90,7 +90,13 @@ def deploy(repo,artifact):
         if any(k in task for k in ['new_cluster','existing_cluster_id','job_cluster_key']) or task.get('compute',{}).get('hardware_accelerator'):raise ValueError('Recovery job must use serverless CPU')
         dest=artifact/'recovery_deployed.py';cli(['workspace','export',task['notebook_task']['notebook_path'],'--file',str(dest),'--format','SOURCE'],json_output=False)
         if normalize(dest.read_text(encoding='utf-8'))!=normalize((stage/'notebooks/recovery.py').read_text(encoding='utf-8')):raise ValueError('Recovery notebook source differs')
-    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'verification_job_id':verification_id,'recovery_job_id':recovery_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
+    semantic_id=str(jobs['semantic_readout_refit']['id']) if 'semantic_readout_refit' in jobs else None
+    if semantic_id:
+        semantic_job=cli(['jobs','get',semantic_id]);task=semantic_job['settings']['tasks'][0]
+        if any(k in task for k in ['new_cluster','existing_cluster_id','job_cluster_key']) or task.get('compute',{}).get('hardware_accelerator'):raise ValueError('Semantic fit must use serverless CPU')
+        dest=artifact/'semantic_refit_deployed.py';cli(['workspace','export',task['notebook_task']['notebook_path'],'--file',str(dest),'--format','SOURCE'],json_output=False)
+        if normalize(dest.read_text(encoding='utf-8'))!=normalize((stage/'notebooks/semantic_refit.py').read_text(encoding='utf-8')):raise ValueError('Semantic fitting notebook differs from pushed source')
+    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'verification_job_id':verification_id,'recovery_job_id':recovery_id,'semantic_refit_job_id':semantic_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
     dump(artifact/'DEPLOYMENT.json',receipt);return receipt
 def submit(artifact):
     artifact=Path(artifact);deployment=read(artifact/'DEPLOYMENT.json');active=cli(['jobs','list-runs','--active-only'])

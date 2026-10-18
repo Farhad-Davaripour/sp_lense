@@ -16,11 +16,14 @@ def fit(feature_file,old_checkpoint,output,config,permit_local=False,execution='
     started=time.monotonic();torch.set_num_threads(2);torch.manual_seed(config['seed'])
     old=load_torch(old_checkpoint)
     if sha(old_checkpoint)!=config['adapter_checkpoint_sha256']:raise ValueError('Wrong source checkpoint')
+    if sha(feature_file)!=config['refit']['training_features_sha256']:raise ValueError('Training feature artifact differs from the frozen preparation')
     with np.load(feature_file,allow_pickle=False) as data:
         features=torch.tensor(data['features'],dtype=torch.float32)
         labels=torch.tensor(data['labels'],dtype=torch.float32)
         splits=data['splits'].tolist()
     if any(split!='training' for split in splits):raise ValueError('Only training features may enter fitting')
+    if features.shape!=(config['refit']['training_states'],old['feature_dimension']) or labels.shape!=(len(features),3):raise ValueError('Unexpected training dimensions')
+    if not torch.isfinite(features).all() or not torch.isfinite(labels).all():raise ValueError('Nonfinite training data')
     heads=Signals(old['feature_dimension']);heads.load_state_dict(old['signals'])
     heads.requires_grad_(False);heads.heads[2].requires_grad_(True)
     parameters=list(heads.heads[2].parameters())
@@ -36,6 +39,7 @@ def fit(feature_file,old_checkpoint,output,config,permit_local=False,execution='
     for _ in range(config['refit']['maximum_optimizer_steps']):
         optimizer.zero_grad();logits=heads.heads[2](x)
         loss=torch.nn.functional.binary_cross_entropy_with_logits(logits,y,pos_weight=weight)
+        if not torch.isfinite(loss):raise FloatingPointError('Nonfinite classifier loss')
         loss.backward();torch.nn.utils.clip_grad_norm_(parameters,1.);optimizer.step();losses.append(float(loss.detach()))
     heads.eval().requires_grad_(False)
     with torch.no_grad():probabilities=heads(x).sigmoid();correct=(probabilities[:,2]>=.5)==labels[:,2].bool()

@@ -7,11 +7,14 @@ refit:
   learning_rate: 0.005
   weight_decay: 0.01
   threshold: 0.5
+  training_features_sha256: a8056fc6f3bfbf6f2177a7368284e480f7cca0cf49dea086fd18ae99a58fe2a1
+  training_states: 99
   training_data: Original pilot training states plus recovery training states; no development or held states.
 adapter_checkpoint_sha256: 50a97e7ea01b92af2272d7d7944a05df508173285ab8692fcda61c703c3f689b
 observer_protocol: Original v1 letter prompt, zero-based block 20, adapters OFF.
 inference_strengths: [1.0, 0.25]
 conditions: [base, oracle_instant, oracle_latched]
+include_native_reference: true
 qualification:
   target_completed_required: 5
   controls_succeeded_required: 5
