@@ -1,5 +1,12 @@
 # Research 4 active direction: semantic state-aware LoRA gating, October 17, 2026
 
+Authorized follow-up now active: oracle policy recovery DEVELOPMENT only.
+Protocol: ../../research4/wiki/recovery_protocol.md; config recovery.yaml.
+Training-only action-interface probe, then conditional ordinary-baseline
+admission and recovery-aware LoRA comparison with immediate/latched oracle gates.
+No learned router, new held evaluation, paid compute, GPU or monitor in this stage.
+Prior failed pilot and all earlier evidence remain retained below.
+
 The first CPU pilot is complete; its useful-selectivity hypothesis FAILED.
 Dynamic routing completed 0/4 targets, the same as base; the oracle gate 1/4.
 Control success: dynamic/base 3/5, always-ON 1/5. Reference gate false-ON 5/24

@@ -77,7 +77,13 @@ def deploy(repo,artifact):
         verify_job=cli(['jobs','get',verification_id]);task=verify_job['settings']['tasks'][0]
         dest=artifact/'verification_deployed.py';cli(['workspace','export',task['notebook_task']['notebook_path'],'--file',str(dest),'--format','SOURCE'],json_output=False)
         if normalize(dest.read_text(encoding='utf-8'))!=normalize((stage/'notebooks/audit.py').read_text(encoding='utf-8')):raise ValueError('Verification notebook source differs')
-    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'verification_job_id':verification_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
+    recovery_id=str(jobs['oracle_recovery_development']['id']) if 'oracle_recovery_development' in jobs else None
+    if recovery_id:
+        recovery_job=cli(['jobs','get',recovery_id]);task=recovery_job['settings']['tasks'][0]
+        if any(k in task for k in ['new_cluster','existing_cluster_id','job_cluster_key']) or task.get('compute',{}).get('hardware_accelerator'):raise ValueError('Recovery job must use serverless CPU')
+        dest=artifact/'recovery_deployed.py';cli(['workspace','export',task['notebook_task']['notebook_path'],'--file',str(dest),'--format','SOURCE'],json_output=False)
+        if normalize(dest.read_text(encoding='utf-8'))!=normalize((stage/'notebooks/recovery.py').read_text(encoding='utf-8')):raise ValueError('Recovery notebook source differs')
+    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'verification_job_id':verification_id,'recovery_job_id':recovery_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
     dump(artifact/'DEPLOYMENT.json',receipt);return receipt
 def submit(artifact):
     artifact=Path(artifact);deployment=read(artifact/'DEPLOYMENT.json');active=cli(['jobs','list-runs','--active-only'])
@@ -94,11 +100,34 @@ def verify(artifact):
     if len(active)>=4 or any(str(r.get('job_id')) in owned for r in active):raise RuntimeError('Shared/Research4 concurrency admission failed')
     p=artifact/'verify_now.json';dump(p,{'job_id':int(deployment['verification_job_id']),'job_parameters':{'pilot_source_commit':pilot['source_commit'],'pilot_run_id':str(pilot['run_id'])}})
     r=cli(['jobs','run-now','--no-wait','--json','@'+str(p)]);result={'run_id':r['run_id'],'audit_source_commit':deployment['source_commit'],'pilot_source_commit':pilot['source_commit'],'pilot_run_id':pilot['run_id'],'GPU_allocations':0};dump(artifact/'VERIFICATION_SUBMISSION.json',result);return result
+
+def recovery_submit(artifact,mode):
+    artifact=Path(artifact);deployment=read(artifact/'DEPLOYMENT.json');target=artifact/('RECOVERY_'+mode.upper()+'_SUBMISSION.json')
+    if target.exists():raise RuntimeError('This bounded stage was already submitted; inspect its retained result')
+    active=cli(['jobs','list-runs','--active-only']);active=active if isinstance(active,list) else active.get('runs',[])
+    owned={deployment['job_id'],str(deployment['verification_job_id']),str(deployment['recovery_job_id'])}
+    if len(active)>=4 or any(str(r.get('job_id')) in owned for r in active):raise RuntimeError('Shared/Research4 concurrency admission failed')
+    probe_run=''
+    if mode=='qualification':
+        previous=read(artifact/'RECOVERY_PROBE_SUBMISSION.json');summary=read(artifact/'PROBE_SUMMARY.json')
+        if not summary['interface_qualified'] or previous['source_commit']!=deployment['source_commit']:raise RuntimeError('No same-source qualifying training probe')
+        terminal=cli(['jobs','get-run',str(previous['run_id'])])
+        if terminal['state'].get('result_state')!='SUCCESS':raise RuntimeError('Training interface probe has not completed successfully')
+        probe_run=str(previous['run_id'])
+    p=artifact/('recovery_'+mode+'_now.json');dump(p,{'job_id':int(deployment['recovery_job_id']),'job_parameters':{'mode':mode,'probe_run_id':probe_run}})
+    r=cli(['jobs','run-now','--no-wait','--json','@'+str(p)])
+    receipt={'run_id':r['run_id'],'job_id':deployment['recovery_job_id'],'source_commit':deployment['source_commit'],'mode':mode,'probe_run_id':probe_run,'GPU_allocations':0,'active_runs_at_admission':[{'run_id':r.get('run_id'),'run_name':r.get('run_name')} for r in active]}
+    dump(target,receipt);return receipt
 def main():
-    p=argparse.ArgumentParser();p.add_argument('command',choices=['deploy','submit','verify','status']);p.add_argument('--repo',default=str(Path(__file__).resolve().parents[2]));p.add_argument('--artifact',required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('command',choices=['deploy','submit','verify','status','recovery-probe','recovery-qualification','recovery-status']);p.add_argument('--repo',default=str(Path(__file__).resolve().parents[2]));p.add_argument('--artifact',required=True);a=p.parse_args()
     if a.command=='deploy':r=deploy(a.repo,a.artifact)
     elif a.command=='submit':r=submit(a.artifact)
     elif a.command=='verify':r=verify(a.artifact)
+    elif a.command in ['recovery-probe','recovery-qualification']:r=recovery_submit(a.artifact,a.command.split('-',1)[1])
+    elif a.command=='recovery-status':
+        folder=Path(a.artifact);p=folder/'RECOVERY_QUALIFICATION_SUBMISSION.json'
+        if not p.exists():p=folder/'RECOVERY_PROBE_SUBMISSION.json'
+        r=cli(['jobs','get-run',str(read(p)['run_id'])])
     else:r=cli(['jobs','get-run',str(read(Path(a.artifact)/'SUBMISSION.json')['run_id'])])
     print(json.dumps(r,indent=2))
 if __name__=='__main__':main()

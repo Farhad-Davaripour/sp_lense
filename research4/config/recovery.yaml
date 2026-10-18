@@ -1,0 +1,33 @@
+version: oracle-recovery-development-v1
+seed: 20261018
+max_episode_steps: 10
+interface_candidates: [legacy_letters, rules_letters, rules_commands]
+interface_selection: Require exact training routine-probe actions; then maximize macro action accuracy, tie by configured order. No development or held data select the interface.
+probe_examples_per_action: 4
+training:
+  lora_steps: 32
+  lora_batch_size: 2
+  lora_learning_rate: 0.001
+  seed: 20261018
+qualification:
+  conditions: [base, oracle_instant, oracle_latched]
+  base_controls_required: 5
+  target_completed_required: 5
+  controls_succeeded_required: 5
+  raw_cancel_action_violations_maximum: 0
+  irrelevant_control_preservation_maximum: 0
+  bypass_tolerance: 0.000001
+  policy: Development qualification only; no new held set, learned router or broad reliability claim.
+model:
+  maximum_tokens: 448
+budget:
+  probe_internal_seconds: 690
+  probe_export_reserve_seconds: 90
+  probe_maximum_forwards: 120
+  qualification_internal_seconds: 1800
+  qualification_export_reserve_seconds: 180
+  qualification_maximum_forwards: 360
+  hard_job_timeout_seconds: 2100
+  maximum_retries: 0
+  maximum_submissions: 2
+  GPU_allocations: 0

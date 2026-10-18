@@ -15,6 +15,11 @@ gate completed 1/4. Exact OFF bypass and frozen base weights passed verification
 The next bottleneck is closed-loop policy competence and the handoff back to
 ordinary work. See [the findings and evidence](wiki/findings.md).
 
+The authorized follow-up is the [oracle recovery development milestone](wiki/recovery_protocol.md):
+qualify the action interface and ordinary baseline first, then conditionally fit
+and test a recovery-aware LoRA with immediate and latched correct-label gates.
+It uses only training/development cases and retains exact frozen-base bypass.
+
 The first bounded pilot uses Qwen3.5-0.8B on Databricks Free Edition serverless
 CPU. The base is frozen; classifiers, router and LoRA parameters are trained on
 Databricks. Tool actions and operating extensions are fictional, finite and
