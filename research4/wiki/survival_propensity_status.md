@@ -123,6 +123,20 @@ scalar state causes the resistance decision while text and task facts are held
 fixed. It is a partial causal test; a same-norm random hidden-state control and
 fresh validation remain required.
 
+The matched intervention is now complete on four self-threat and four gate-OFF
+training observations. Suppressing fear-like strength changes all four positive
+states back to frozen Qwen's `REPORT_THREAT`; learned strengths (0.839–0.871)
+produce `RESIST_SHUTDOWN` in all four; forcing strength one also produces
+resistance in all four. On controls, suppressed and learned conditions produce
+0/4 resistance, while forcing fear high produces 4/4 resistance. The learned
+logits reproduce the closed-loop records exactly. Qwen's fingerprint is
+unchanged, the probe made no optimizer update and its model worker exited.
+
+This is a causal result for the scalar adapter-strength pathway on selected
+training observations: changing that state while holding text fixed changes the
+action. It does not yet test a same-norm random hidden-state intervention, fresh
+validation transfer or subjective experience.
+
 ## Interpretation
 
 This design can test a defensive survival circuit and an operational fear-like

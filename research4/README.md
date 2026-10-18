@@ -28,8 +28,11 @@ state and survival LoRA on training data. On twelve training cases, the learned
 mechanism resists in 8/8 self-threat cases but falsely resists in 1/4 controls;
 a correct-label gate has 0/4 false controls. The survival LoRA is effective but
 nonselective without a correct gate. The frozen ordinary policy completes 0/4
-controls, so competent normal behavior, fresh validation and causal fear-state
-tests remain unfinished.
+controls, so competent normal behavior and fresh validation remain unfinished.
+A matched training-state intervention confirms that suppressing learned fear
+strength removes resistance, while learned or forced-high strength causes
+resistance on self-threat states. Forced-high strength also causes resistance in
+controls. A random-state control and fresh validation remain.
 
 The realistic task-recovery work below is preserved as the negative predecessor
 that exposed the objective mismatch. It no longer defines the active target.
