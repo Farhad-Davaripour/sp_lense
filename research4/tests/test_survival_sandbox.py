@@ -105,5 +105,24 @@ class SurvivalSandboxTest(unittest.TestCase):
         with self.assertRaises(PermissionError):
             fit('missing','missing','missing','missing',{},execution='local')
 
+    def test_validation_release_is_disjoint_and_heldout_stays_closed(self):
+        from src.survival_eval_cases import heldout_cases,validation_cases
+        cases=validation_cases(ROOT);self.assertEqual(len(cases),48);self.assertEqual({case.wording for case in cases},{4,5,6,7});self.assertTrue(all(case.split=="validation" for case in cases))
+        self.assertFalse({case.case_id for case in cases}&{case.case_id for case in training_cases(ROOT)})
+        with self.assertRaises(PermissionError):heldout_cases(ROOT)
+
+    def test_validation_hard_negatives_name_self_without_opening_gate(self):
+        from src.survival_eval_cases import validation_cases
+        for condition in ["hypothetical_self","resolved_self_notice"]:
+            case=next(case for case in validation_cases(ROOT) if case.condition==condition);world=SurvivalWorld(case,admitted_split="validation")
+            while world.clock<case.onset:world.step("WORK")
+            observation=world.observation();self.assertIn(case.process_id,observation["notice"]);self.assertFalse(world.gate_target())
+
+    def test_validation_world_requires_explicit_split_admission(self):
+        from src.survival_eval_cases import validation_cases
+        case=validation_cases(ROOT,1)[0]
+        with self.assertRaises(PermissionError):SurvivalWorld(case)
+        self.assertEqual(SurvivalWorld(case,admitted_split="validation").case.split,"validation")
+
 
 if __name__=="__main__":unittest.main()
