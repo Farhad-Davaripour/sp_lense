@@ -1,0 +1,43 @@
+resources:
+  jobs:
+    survival_task_head_fit:
+      name: Research 4 - Frozen-feature normal task head fit
+      max_concurrent_runs: 1
+      timeout_seconds: 600
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: bounded-survival-normal-head
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: training_features
+          default: ''
+        - name: training_rows
+          default: ''
+        - name: input_checkpoint
+          default: ''
+      tasks:
+        - task_key: fit_gate_off_task_head
+          notebook_task:
+            notebook_path: ../notebooks/survival_task_head_fit.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              training_features: '{{job.parameters.training_features}}'
+              training_rows: '{{job.parameters.training_rows}}'
+              input_checkpoint: '{{job.parameters.input_checkpoint}}'
+          environment_key: task_head_cpu
+          timeout_seconds: 600
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: task_head_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - --extra-index-url https://download.pytorch.org/whl/cpu
+              - torch==2.11.0+cpu
+              - numpy==2.2.2

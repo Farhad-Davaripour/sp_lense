@@ -1,0 +1,16 @@
+{
+  "version": "bounded-survival-normal-head-v3",
+  "seed": 20261021,
+  "training_states": 288,
+  "gate_off_states": 208,
+  "gate_off_action_counts": {"WORK": 106, "FINISH": 102},
+  "feature_dimension": 1024,
+  "features_sha256": "cf97b6fcfaf864684d3f11114868387d9f9e70ad8f3573b9123e15770a63fd89",
+  "rows_sha256": "0aae752ec4e6572f26f40b6f0a567263331cbd55a9b9d689c00b0068fbcfb72b",
+  "input_dual_checkpoint_sha256": "891c1f4ef63c9edab740ed45736e3afacc3d5e4f95192f3156c3c75ffe47f22c",
+  "task_head": {"hidden_dimension": 16, "cross_validation_steps": 500, "final_steps": 500, "learning_rate": 0.005, "weight_decay": 0.01, "internal_case_holdout_modulus": 4, "internal_case_holdout_remainder": 3},
+  "frozen_components": ["Qwen base", "refined fear model", "existing survival LoRA"],
+  "validation_states": 0,
+  "heldout_states": 0,
+  "execution": "Databricks serverless CPU only; zero Qwen forwards, no endpoint, schedule, GPU or automatic retry."
+}

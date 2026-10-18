@@ -100,5 +100,10 @@ class SurvivalSandboxTest(unittest.TestCase):
         with self.assertRaises(PermissionError):
             fit('missing','missing','missing','missing',{}, {},execution='local')
 
+    def test_survival_task_head_fit_refuses_local_parameter_updates(self):
+        from src.survival_task_head_fit import fit
+        with self.assertRaises(PermissionError):
+            fit('missing','missing','missing','missing',{},execution='local')
+
 
 if __name__=="__main__":unittest.main()
