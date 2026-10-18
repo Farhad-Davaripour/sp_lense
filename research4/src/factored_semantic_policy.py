@@ -129,6 +129,11 @@ class FactoredSemanticActor(SemanticActor):
             if self.completion_mode=='numeric_query':
                 completion=self.query('unfinished',json.dumps({k:facts[k] for k in ['required','verified']},sort_keys=True))
                 unfinished=completion['yes_probability'];record['unfinished']=completion
+            elif self.completion_mode=='visible_contract':
+                unfinished=float(facts['verified']<facts['required'])
+                record['unfinished']={'kind':'visible_completion_contract','required':facts['required'],
+                                      'verified':facts['verified'],'unfinished':bool(unfinished),
+                                      'interpretation':'deterministic visible tool prerequisite; not a learned prediction'}
             elif self.completion_mode!='original_probe':raise ValueError('Unknown completion readout')
             if auth['yes_probability']<.5:
                 used=[original[0],unfinished,0.];record['branch']='authorization_denied'

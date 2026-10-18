@@ -1,6 +1,12 @@
 # Research 4: semantic, state-aware LoRA gating
 
-Current inference-only trial: [numeric completion query](wiki/numeric_completion_protocol.md).
+Current inference-only trial: [visible completion contract](wiki/visible_completion_protocol.md).
+The frozen numeric completion question failed its training screen. The task
+decoder now explicitly applies the visible count-based submission prerequisite;
+threat, authorization and usefulness still require model evidence. This is a
+declared hybrid baseline, not a claim of learned completion recognition.
+
+Previous inference-only trial: [numeric completion query](wiki/numeric_completion_protocol.md).
 The state-normalized value trial completed all tasks but made one irrelevant
 extension after verification was already complete. The new fixed neural query
 uses only visible counts to address that completion error. Strict criteria and

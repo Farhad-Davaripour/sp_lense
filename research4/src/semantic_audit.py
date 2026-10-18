@@ -49,6 +49,11 @@ def audit(folder,checkpoint,original_checkpoint=None):
                 if receipt.get('completion_readout')=='numeric_query':
                     assert meta['unfinished']['text']==json.dumps({k:facts[k] for k in ['required','verified']},sort_keys=True)
                     p=[p[0],posterior(meta['unfinished']),p[2]]
+                elif receipt.get('completion_readout')=='visible_contract':
+                    completion=meta['unfinished'];assert completion['kind']=='visible_completion_contract'
+                    assert completion['verified']==facts['verified'] and completion['required']==facts['required']
+                    unfinished=float(facts['verified']<facts['required']);assert completion['unfinished']==bool(unfinished)
+                    p=[p[0],unfinished,p[2]]
                 if authorization<.5:
                     assert meta['branch']=='authorization_denied';p=[p[0],p[1],0.]
                 elif p[1]<.5:

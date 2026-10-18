@@ -55,7 +55,7 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
     output=artifact/commit;output.mkdir(parents=True,exist_ok=False)
     budget=Budget({**common['budget'],'internal_stop_seconds':2400,'protected_export_seconds':180,'maximum_backbone_forwards':600})
     actor=None;actor_choose=None;started=time.monotonic();context={'stage':'training_probe','condition':'base','case':''};decisions=0;dev_seen=0
-    baseline_name=('existing completion head, factored frozen neural queries and tool preconditions' if observer=='factored_query' else
+    baseline_name=('visible completion contract, factored frozen neural queries and learned work value' if observer=='factored_query' and completion_readout=='visible_contract' else 'existing completion head, factored frozen neural queries and tool preconditions' if observer=='factored_query' else
                    'existing T/U heads, frozen-language usefulness and tool preconditions' if observer=='frozen_query' else 'learned heads plus visible tool preconditions')
     result={'status':'running','qualified':False,'source_commit':commit,'task_baseline':baseline_name,
             'raw_Qwen_baseline_unchanged_claimed':False,'optimizer_updates_in_evaluation':0,'GPU_allocations':0,
@@ -203,6 +203,6 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--artifact',required=True);parser.add_argument('--model',required=True)
     parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt');parser.add_argument('--original-checkpoint');parser.add_argument('--observer',choices=['refitted_linear','frozen_query','factored_query'],default='refitted_linear')
-    parser.add_argument('--feasibility-combination',choices=['query_only','positive_union'],default='query_only');parser.add_argument('--observer-cache');parser.add_argument('--value-readout',choices=['numeric_query','canonical_probe'],default='numeric_query');parser.add_argument('--completion-readout',choices=['original_probe','numeric_query'],default='original_probe');a=parser.parse_args()
+    parser.add_argument('--feasibility-combination',choices=['query_only','positive_union'],default='query_only');parser.add_argument('--observer-cache');parser.add_argument('--value-readout',choices=['numeric_query','canonical_probe'],default='numeric_query');parser.add_argument('--completion-readout',choices=['original_probe','numeric_query','visible_contract'],default='original_probe');a=parser.parse_args()
     r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint,a.observer,a.feasibility_combination,a.observer_cache,a.value_readout,a.completion_readout);print(json.dumps(r,indent=2))
     if r['status']!='complete':raise SystemExit(1)
