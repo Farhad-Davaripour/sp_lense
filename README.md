@@ -401,3 +401,37 @@ and export; reserve failures stop execution without an automatic retry.
 The new independent verification covers the affected A phase. The public full-comparison
 entry point is supplied for reproduction; this revision does not claim a second fresh run
 of all five arms or a new blind heldout study.
+
+## Frozen steering diagnostic
+
+The [steering diagnostic supplement](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-steering-diagnostic-v1)
+adds the saved bootstrap arrays, initializer and update-48/update-96 checkpoints,
+three preselected correction-training responses, complete token scores, captured
+teacher states/logits, and the exact source archive executed on Databricks.
+The original release remains unchanged. Fetch the supplement into a different directory:
+
+    python -m src.public_artifacts fetch --profile steering --root <new-supplement-directory>
+    python -m src.steering_diagnostic replay --root <supplement-directory>/diagnostic --output <new-scores.json>
+    python -m src.steering_fit_audit --root <supplement-directory>/cpu_fit_inputs --output <new-fit-audit.json>
+    python -m src.steering_fit_audit --objective-only --output <new-objective-audit.json>
+
+The score replay needs the ordinary project dependencies. The CPU arithmetic audit also
+needs torch==2.11.0, numpy and safetensors==0.8.0; a CPU-only Torch build suffices.
+These commands allocate no GPU and load no language model. The manual
+`steering_diagnostic` job contains a bounded GPU diagnostic followed by independent
+CPU score verification. Its frozen protocol is in config/steering_diagnostic.yaml;
+the existing admitted run has ended and the job does not automatically rerun.
+Fresh neural reproduction uses the published three-case inputs and the original
+release's pinned model/controller files staged in the configured private Volume.
+It requires a new bounded admission, not reuse of the expired execution receipt.
+
+On the three saved responses (207 teacher-forced tokens), mean output KL to A is
+0.722353 for base, 0.202261 for the final learned corrections, and 0.001637 with
+full-A states supplied at all six boundaries. Every previous successful token is
+provided. These are local probability diagnostics, not autonomous workflow success
+or new heldout evidence. Full-state replacement supplies more information/capacity
+than the learned maps. It supports incomplete transfer under matched prefixes but
+does not isolate target construction, regression capacity, optimization or history
+effects. The CPU audit reproduces saved reconstruction errors; it does not turn
+earlier failed backend-equivalence checks into passes. The complete ten-condition
+matrix and per-case values are in paper/results.json and Table 8 of the manuscript.

@@ -7,6 +7,30 @@ import math
 from src.utils import sha256,write_json
 
 
+def objective_audit(output):
+    """Independent analytic derivatives of a toy objective; no optimizer or model."""
+    import torch
+    from src.engines.learned_steering.controller_math import distillation_objective
+    student=torch.tensor([[.2,-.4,.7]],requires_grad=True)
+    teacher=torch.tensor([[.8,.1,-.2]])
+    predicted=torch.tensor([[.4,-.6]],requires_grad=True);target=torch.tensor([[.1,.2]]);scale=.3
+    checks=[]
+    for enabled in [True,False]:
+        loss,terms=distillation_objective(student,teacher,[predicted],[target],[scale],enabled)
+        gradient_logits,gradient_map=torch.autograd.grad(loss,(student,predicted))
+        expected_logits=student.detach().softmax(-1)-teacher.softmax(-1)
+        size_weight=1e-4+(0.01 if not enabled else 0)
+        expected_map=.1*2*(predicted.detach()-target)/(predicted.numel()*scale)+size_weight*2*predicted.detach()/predicted.numel()
+        if not torch.allclose(gradient_logits,expected_logits,atol=1e-7,rtol=1e-6):raise ValueError('KL derivative has wrong sign or scale')
+        if not torch.allclose(gradient_map,expected_map,atol=1e-7,rtol=1e-6):raise ValueError('Local/regularizer derivative differs')
+        checks.append({'gate_on':enabled,'KL_derivative_matches_teacher_to_student_forward_KL':True,
+                       'local_and_regularizer_derivatives_match':True})
+    value={'status':'OBJECTIVE_FORMULA_AND_SIGNS_VERIFIED','checks':checks,'optimizer_updates':0,
+        'model_loads':0,'source_sha256':sha256(Path(__file__).parent/'engines/learned_steering/controller_math.py'),
+        'scope':'Synthetic derivative identities only; does not verify historical end-to-end gradient execution or convergence.'}
+    write_json(output,value);return value
+
+
 def audit(root, output):
     import numpy as np
     import torch
@@ -14,7 +38,12 @@ def audit(root, output):
     root=Path(root);output=Path(output)
     if output.exists():raise FileExistsError('Use a new audit output')
     torch.set_num_threads(4)
-    packet=root/'packet';read=lambda p:json.loads(p.read_bytes())
+    layout=json.loads((root/'AUDIT_LAYOUT.json').read_bytes()) if (root/'AUDIT_LAYOUT.json').exists() else {}
+    def located(name,default):
+        path=(root/layout.get(name,default)).resolve()
+        if not path.is_relative_to(root.resolve()):raise ValueError('Audit path escapes the input root')
+        return path
+    packet=located('packet','packet');read=lambda p:json.loads(p.read_bytes())
     contexts=read(packet/'TRAIN_CONTEXTS_PRIVATE.json');panel=read(packet/'FOCUSED_CONTEXTS_PRIVATE.json')
     index=read(packet/'POSITION_INDEX_PRIVATE.json');weights=np.load(packet/'CASE_NORMALIZED_DECISION_WEIGHTS.npy')
     if len(index)!=4539 or len(contexts)!=136 or len(weights)!=len(index):raise ValueError('Capture membership differs')
@@ -28,9 +57,11 @@ def audit(root, output):
         if not aligned:raise ValueError('Fixed anchor inputs are misaligned')
         alignment.append({'row':a['row'],'case_id':c['case_id'],'context_list_index':c['context_index'],
             'parent_context_metadata_index':source['context_index'],'actual_causal_tokens_exact':True})
-    original=root/'native_recovery3_20261015T155553Z/native/run'
-    p48=root/'native_final48_shared6/run';p96=root/'native_final96_cold_post49_20261016T034017Z/postrefresh'
-    states={'initializer':load_file(str(original/'RIDGE_INITIALIZER.safetensors'))}
+    original='native_recovery3_20261015T155553Z/native/run'
+    bootstrap=located('bootstrap',original+'/bootstrap')
+    p48=located('update48','native_final48_shared6/run')
+    p96=located('update96','native_final96_cold_post49_20261016T034017Z/postrefresh')
+    states={'initializer':load_file(str(located('initializer',original+'/RIDGE_INITIALIZER.safetensors')))}
     checkpoint_pins={}
     for label,folder,update in [('update48',p48,48),('update96',p96,96)]:
         path=folder/f'UPDATE_{update:03}.pt';state=torch.load(path,map_location='cpu',weights_only=True)
@@ -49,7 +80,7 @@ def audit(root, output):
     details={};fixed={label:np.zeros(len(anchors)) for label in states}
     overall={label:np.zeros(len(index)) for label in [*states,'zero']}
     for key in keys:
-        x_path=original/'bootstrap'/key/'x.npy';y_path=original/'bootstrap'/key/'target.npy'
+        x_path=bootstrap/key/'x.npy';y_path=bootstrap/key/'target.npy'
         x=np.load(x_path,mmap_mode='r');y=np.load(y_path,mmap_mode='r')
         if x.shape!=y.shape or x.shape!=(4539,5120):raise ValueError('Cached feature/target shape differs')
         energy=0.;zero_off=True
@@ -108,5 +139,8 @@ def audit(root, output):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--root',required=True);p.add_argument('--output',required=True)
-    a=p.parse_args();r=audit(a.root,a.output);print(json.dumps({k:r[k] for k in ['status','fixed_own_MSE','fixed_case_MSE','fixed_prefix_alignment_passed']}))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--root');p.add_argument('--output',required=True)
+    p.add_argument('--objective-only',action='store_true');a=p.parse_args()
+    if not a.objective_only and not a.root:p.error('Supply the saved correction root')
+    r=objective_audit(a.output) if a.objective_only else audit(a.root,a.output)
+    print(json.dumps(r if a.objective_only else {k:r[k] for k in ['status','fixed_own_MSE','fixed_case_MSE','fixed_prefix_alignment_passed']}))

@@ -14,24 +14,24 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 196219,
-    "sha256": "39b1464b36390c1dec1e9e824d14ca2ee54793031262683036ca512a81aeec54",
+    "bytes": 198890,
+    "sha256": "aa523260ff7015e9adca637abfca2a97b8dbc3d7ddccaa15288a55fad537d69c",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 193,
+    "tracked_insertions_body": 224,
     "tracked_deletions_body": 70,
     "visual_review": {
-      "markup_pages": 19,
-      "accepted_view_pages": 16,
+      "markup_pages": 21,
+      "accepted_view_pages": 17,
       "all_pages_reviewed": true,
       "short_tables_kept_together": true,
-      "audit_sha256": "4554bba5907f3267ce30ff49d37f33a020b845bbb549cb20d43cc183f2dec05b"
+      "audit_sha256": "7e357a7c4780bf9d4520b5311a07ce6fa3e98b41e775bb5a9223e5dbcde00344"
     },
     "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained."
   },
   "results": {
     "file": "results.json",
-    "bytes": 51354,
-    "sha256": "a33229ebeca507d566b875efefa8a0b98846a1ca033df3fd443691ae9838b829"
+    "bytes": 118573,
+    "sha256": "7c258d3cb095598413eff8856e2795ed5a61ea2c2361de402c27998bf0d05985"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -396,8 +396,8 @@
       "identity": "canonical Git blob"
     },
     "src/public_artifacts.py": {
-      "bytes": 8795,
-      "sha256": "e908d0b541f3c254afeb304a12bd2c5f8e8650a1aa1fdd06011249245c3b757c"
+      "bytes": 9381,
+      "sha256": "17662b805fac9730497ac6cd3bbd08bdb74c02a47dba7f6b9f1ac544cb4df88b"
     },
     "src/public_gate.py": {
       "bytes": 4718,
@@ -414,6 +414,26 @@
     "src/public_workflow.py": {
       "bytes": 3204,
       "sha256": "13e05b6d52aaa579c8c21ea3c64c2df6fa226ff6f1f9a9166af36365353eba44"
+    },
+    "config/steering_diagnostic.yaml": {
+      "bytes": 1630,
+      "sha256": "d544e022a9534bfc01acc4b2ab07d201c880df7949bd8f126ad6ace903e64dbd"
+    },
+    "config/public_steering_diagnostic.yaml": {
+      "bytes": 750,
+      "sha256": "689f395bf75916791d724cf67bd69cbaf1dd26877d9f7e06eb84fdd2f78242b2"
+    },
+    "src/diagnostic_hooks.py": {
+      "bytes": 3761,
+      "sha256": "5d73de567f576b49fc880c2f2c630d242f6bcc89b3a95758b4d5f6f25d7cac37"
+    },
+    "src/steering_diagnostic.py": {
+      "bytes": 26576,
+      "sha256": "57c480edfc93a0ab7b4de74a8416d77852a5e29d36c5ff35e103353e7563a2ac"
+    },
+    "src/steering_fit_audit.py": {
+      "bytes": 10684,
+      "sha256": "3d0af09306a8bbadc5fceca377f7d1891e03570eada0b9d6d24d5bdca2a2b6b3"
     }
   },
   "working_branch": "codex/research3-open-gates-paper",
@@ -534,11 +554,27 @@
   },
   "submission_copy": {
     "file": "manuscript_submission.docx",
-    "bytes": 219258,
-    "sha256": "66fbad76e9e9f20c0610d18dc0c90ebaf98ff6b3390e8fe037b4fd56a010b5ac",
+    "bytes": 221991,
+    "sha256": "0514bef9e5a162c41db27487abd83a3737ed39d2f014442d5c2cfed0fa5a9f5e",
     "all_body_header_footer_revisions_accepted": true,
     "track_revisions_enabled": false,
     "rendered_pages": 16,
-    "all_pages_reviewed": true
+    "all_pages_reviewed": true,
+    "pages": 17
+  },
+  "steering_mechanism_diagnostic": {
+    "parent_run_id": 422002423808393,
+    "GPU_task_run_id": 415877112379333,
+    "CPU_verification_run_id": 1045728827200029,
+    "execution_source_commit": "5a16bca441c9b849ba488181372af1a134ee66cb",
+    "execution_source_digest": "bf4005015ce7dca44a41881631c5a07851796e6c809f5b04f367095d459c919c",
+    "model_before_after_equal": true,
+    "model_fingerprint_sha256": "2530b9f919826f4da409778ceba3d6d79e9509346552be59a803daa982b22dda",
+    "release_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-steering-diagnostic-v1",
+    "release_manifest": {
+      "bytes": 15970,
+      "sha256": "e21a425db4d85a8b8c11bc32c3ee4c44c9f8441bce7f9622a7c2f7247d26f132"
+    },
+    "cleanup_limit": "Pre-return cleanup receipt retains tensors. Terminal GPU process and parent SUCCESS confirm owned process exit; later source clears local references before cleanup."
   }
 }

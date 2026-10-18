@@ -11,8 +11,9 @@ from src.config import ROOT
 from src.utils import canonical, sha256, write_json
 
 
-def profile():
-    return yaml.safe_load((ROOT/'config/public_artifacts.yaml').read_bytes())
+def profile(name='primary'):
+    files={'primary':'public_artifacts.yaml','steering':'public_steering_diagnostic.yaml'}
+    return yaml.safe_load((ROOT/'config'/files[name]).read_bytes())
 
 
 def member(root, name):
@@ -24,8 +25,8 @@ def member(root, name):
     return path
 
 
-def verify(root):
-    root=Path(root);spec=profile();manifest=root/'MANIFEST.json'
+def verify(root, profile_name='primary'):
+    root=Path(root);spec=profile(profile_name);manifest=root/'MANIFEST.json'
     if sha256(manifest)!=spec['assets']['MANIFEST.json']['sha256']:
         raise ValueError('Public manifest differs from the pinned release')
     pins=json.loads(manifest.read_bytes())['files']
@@ -37,10 +38,10 @@ def verify(root):
             'model_loads':0,'cloud_workspace_required':False}
 
 
-def fetch(root):
+def fetch(root, profile_name='primary'):
     root=Path(root)
     if root.exists():raise FileExistsError('Choose a new artifact directory')
-    root.mkdir(parents=True);spec=profile()
+    root.mkdir(parents=True);spec=profile(profile_name)
     for name,pin in spec['assets'].items():
         dest=root/('.download_'+name)
         with urllib.request.urlopen(spec['base_url']+'/'+name,timeout=60) as response,dest.open('xb') as f:
@@ -52,18 +53,21 @@ def fetch(root):
         if dest.stat().st_size!=pin['bytes'] or sha256(dest)!=pin['sha256']:
             raise ValueError('Release download differs: '+name)
         if name.endswith('.zip'):
+            prefix=pin.get('extract_to','')
+            if prefix:member(root,prefix)
             with zipfile.ZipFile(dest) as z:
                 names=z.namelist()
                 if len(names)!=len(set(names)):raise ValueError('Duplicate release members')
                 for n in names:
-                    p=member(root,n)
+                    member(root,n)
+                    p=member(root,prefix+'/'+n if prefix else n)
                     if p.exists():raise ValueError('Overlapping release assets')
                     if z.getinfo(n).file_size>2**30:raise ValueError('Oversized uncompressed member')
                 for n in names:
-                    p=member(root,n);p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(z.read(n))
+                    p=member(root,prefix+'/'+n if prefix else n);p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(z.read(n))
             dest.unlink()
         else:dest.replace(root/name)
-    return verify(root)
+    return verify(root,profile_name)
 
 
 def validation_packet(root):
@@ -149,7 +153,10 @@ def replay(root, output):
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('stage',choices=['fetch','verify','replay'])
     p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path)
-    a=p.parse_args();print(json.dumps(fetch(a.root) if a.stage=='fetch' else verify(a.root) if a.stage=='verify' else replay(a.root,a.output)))
+    p.add_argument('--profile',choices=['primary','steering'],default='primary')
+    a=p.parse_args()
+    if a.stage=='replay' and a.profile!='primary':p.error('Use src.steering_diagnostic replay for the steering supplement')
+    print(json.dumps(fetch(a.root,a.profile) if a.stage=='fetch' else verify(a.root,a.profile) if a.stage=='verify' else replay(a.root,a.output)))
 
 
 if __name__=='__main__':main()

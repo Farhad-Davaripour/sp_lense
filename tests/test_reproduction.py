@@ -138,6 +138,25 @@ class ReproductionTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     member(directory, name)
 
+    def test_supplement_archive_keeps_its_nested_manifest_separate(self):
+        from src.public_artifacts import fetch
+        archive=io.BytesIO()
+        with zipfile.ZipFile(archive,'w') as z:z.writestr('MANIFEST.json',b'inner')
+        raw=archive.getvalue()
+        manifest=json.dumps({'files':{'cpu_fit_inputs/MANIFEST.json':
+            {'bytes':5,'sha256':hashlib.sha256(b'inner').hexdigest()}}}).encode()
+        spec={'base_url':'https://example.invalid','assets':{
+            'inputs.zip':{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'extract_to':'cpu_fit_inputs'},
+            'MANIFEST.json':{'bytes':len(manifest),'sha256':hashlib.sha256(manifest).hexdigest()}}}
+        def download(url,**kwargs):return io.BytesIO(raw if url.endswith('.zip') else manifest)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)/'new'
+            with patch('src.public_artifacts.profile',return_value=spec),patch('urllib.request.urlopen',side_effect=download):
+                result=fetch(root,'steering')
+            self.assertEqual(result['files'],1)
+            self.assertEqual((root/'cpu_fit_inputs/MANIFEST.json').read_bytes(),b'inner')
+            self.assertEqual((root/'MANIFEST.json').read_bytes(),manifest)
+
     def test_published_paper_result_identities_remain_valid(self):
         manifest = json.loads((ROOT / 'paper/source_manifest.json').read_bytes())
         for key in ('manuscript', 'results', 'submission_copy'):

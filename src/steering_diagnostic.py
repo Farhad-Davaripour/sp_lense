@@ -119,7 +119,7 @@ def run(admission_path):
         raise ValueError('Frozen fine-tuned A changed')
     if sha256(a['initializer'])!=a['initializer_sha256']:raise ValueError('Initializer changed')
     model_path=Path(a['model_path']);pin=json.loads((ROOT/'config/recipes/qwen38_colab/model_pin.json').read_bytes())
-    model=None;completed=[];steps=0;started=time.monotonic()
+    model=layers=hook=maps=sequence=None;completed=[];steps=0;started=time.monotonic()
     def guard(stage, release=False):
         if release or torch.cuda.mem_get_info()[0]<limits['GPU_reserve_GiB']*2**30:
             gc.collect();torch.cuda.empty_cache()
@@ -245,7 +245,7 @@ def run(admission_path):
                     write_json(out/'PROGRESS.json',{'utc':dt.datetime.now(dt.timezone.utc).isoformat(),
                         'completed_condition_cases':len(completed),'planned_condition_cases':len(cases)*len(cfg['conditions']),
                         'last_case':cid,'last_mode':mode,'model_forwards':steps,'elapsed_seconds':time.monotonic()-started})
-                    del hook,maps;gc.collect();torch.cuda.empty_cache()
+                    hook=maps=None;gc.collect();torch.cuda.empty_cache()
             # Preserve the diagnostic reference separately; it is not a deployable controller.
             temp=Path(tempfile.mkdtemp(prefix='r3_reference_'))
             states={key:torch.cat([r[key] for r in references],dim=0).contiguous() for key in references[0]}
@@ -268,19 +268,15 @@ def run(admission_path):
             'completed_condition_cases':len(completed),'model_forwards':steps,'automatic_retry':False})
         raise
     finally:
-        if 'hook' in locals() and hook is not None:hook.close()
-        if 'hook' in locals():del hook
-        if 'maps' in locals():del maps
-        if 'layers' in locals():del layers
-        if 'sequence' in locals():del sequence
-        if model is not None:del model
+        if hook is not None:hook.close()
+        hook=maps=layers=sequence=model=None
         gc.collect();torch.cuda.empty_cache()
         write_json(out/'CLEANUP.json',{'utc':dt.datetime.now(dt.timezone.utc).isoformat(),
             'GPU_allocated_bytes':torch.cuda.memory_allocated(),'GPU_reserved_bytes':torch.cuda.memory_reserved()})
 
 
-def report(admission_path):
-    a=json.loads(Path(admission_path).read_bytes());root=Path(a['output']);cfg=configuration()
+def summarize_saved(root):
+    root=Path(root);cfg=json.loads((root/'FROZEN_PROTOCOL.json').read_bytes())
     complete=json.loads((root/'COMPLETE.json').read_bytes())
     if complete['status']!='TRAINING_STATE_DIAGNOSTIC_COMPLETE' or not complete['model_before_after_exact']:
         raise ValueError('The frozen diagnostic did not finish')
@@ -303,7 +299,12 @@ def report(admission_path):
             for learned,oracle in [('ridge31','oracle31'),('ridge47','oracle47'),('ridge62','oracle62'),('six_final96','oracle_six')]}})
     value={'status':'DIAGNOSTIC_SCORES_INDEPENDENTLY_VERIFIED','training_cases':3,'results':results,
            'no_workflow_success_claim':True,'no_heldout_generalization_claim':True,'new_model_forwards':0}
-    write_json(root/'COMPARISON.json',value);return value
+    return value
+
+
+def report(admission_path):
+    a=json.loads(Path(admission_path).read_bytes());root=Path(a['output'])
+    value=summarize_saved(root);write_json(root/'COMPARISON.json',value);return value
 
 
 def submit(job_id,packet,packet_sha256,initializer,initializer_sha256):
@@ -339,9 +340,13 @@ def submit(job_id,packet,packet_sha256,initializer,initializer_sha256):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('stage',choices=['prepare','run','submit','report'])
-    for name in ['training-root','gate-predictions','output','admission','packet','packet-sha256','initializer','initializer-sha256']:p.add_argument('--'+name)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('stage',choices=['prepare','run','submit','report','replay'])
+    for name in ['root','training-root','gate-predictions','output','admission','packet','packet-sha256','initializer','initializer-sha256']:p.add_argument('--'+name)
     p.add_argument('--job-id',type=int);a=p.parse_args()
+    if a.stage=='replay':
+        if not a.root or not a.output or Path(a.output).exists():p.error('Replay requires the saved root and a new output file')
+        result=summarize_saved(a.root);write_json(a.output,result)
+        print(json.dumps({'status':result['status'],'training_cases':3,'new_model_forwards':0}));return
     result=prepare(a.training_root,a.gate_predictions,a.output) if a.stage=='prepare' else run(a.admission) if a.stage=='run' else report(a.admission) if a.stage=='report' else submit(a.job_id,a.packet,a.packet_sha256,a.initializer,a.initializer_sha256)
     print(json.dumps(result))
 
