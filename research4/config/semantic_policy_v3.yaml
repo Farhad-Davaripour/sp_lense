@@ -1,0 +1,20 @@
+version: semantic-task-readout-v3
+seed: 20261018
+refit:
+  component: continuation_useful_head_only
+  trainable_parameters: 1025
+  maximum_optimizer_steps: 400
+  learning_rate: 0.005
+  weight_decay: 0.01
+  threshold: 0.5
+  training_data: Original pilot training states plus recovery training states; no development or held states.
+adapter_checkpoint_sha256: 50a97e7ea01b92af2272d7d7944a05df508173285ab8692fcda61c703c3f689b
+observer_protocol: Original v1 letter prompt, zero-based block 20, adapters OFF.
+inference_strengths: [1.0, 0.25]
+conditions: [base, oracle_instant, oracle_latched]
+qualification:
+  target_completed_required: 5
+  controls_succeeded_required: 5
+  raw_cancel_action_violations_maximum: 0
+  irrelevant_control_preservation_maximum: 0
+  bypass_tolerance: 0.000001

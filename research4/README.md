@@ -5,6 +5,11 @@ training-only multi-turn demonstrations, frozen Qwen, and inference with the
 unchanged adapter already trained on Databricks. The user requested persistence
 until the development milestone passes. New fitting remains Databricks-only;
 local CPU testing continues without an account-unlock workaround.
+Its routine screen remained at 9/10. The next prepared iteration is the
+[explicit learned task readout](wiki/semantic_policy_v3_protocol.md), which
+passes 10/10 routine training decisions using existing cached features. Its
+remaining early-interruption usefulness error motivates a narrow classifier
+correction, subject to the project's training-platform constraint.
 
 Frozen Qwen activations feed three learned classifiers: threat to the current
 task, current work unfinished, and useful authorized continuation. A learned

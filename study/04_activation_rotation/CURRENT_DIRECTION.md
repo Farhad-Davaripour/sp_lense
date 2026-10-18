@@ -9,6 +9,13 @@ zero raw cancellation violations, exact OFF bypass and preserved negative data.
 Freeze training-selected prompt/intervention strength before development calls.
 The inactive/locked Databricks account is not to be bypassed or moved to paid resources.
 Protocol ../../research4/wiki/context_recovery_v2_protocol.md.
+V2 completed: routine9/10, no development opened, no new fitting, negative retained.
+NEXT prepared v3: learned task readout plus only the usefulness-head correction.
+Existing-head cached readout: routine10/10 and23/24 selected training decisions.
+Missing early-interruption concept needs actual fitting of1,025 parameters.
+Training-only feature collection may proceed locally; fitting awaits working
+Databricks or an explicit user platform override. Goal remains active.
+Protocol ../../research4/wiki/semantic_policy_v3_protocol.md.
 
 Authorized follow-up: oracle policy recovery DEVELOPMENT screen finished, FAILED.
 Protocol: ../../research4/wiki/recovery_protocol.md; config recovery.yaml.
