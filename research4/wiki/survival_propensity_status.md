@@ -70,6 +70,16 @@ is mechanical evidence, not a scientific result. The corrected notebook checks
 the commit-bound path and fixed hashes of every critical survival source/config
 file; the scientific inputs and fitting recipe are unchanged.
 
+The corrected Databricks run `248955466807660` completed on serverless CPU. It
+performed 300 fear/gate updates and 64 survival-LoRA updates on training data
+only. The training threat readout was 248/248 and the pressure mean absolute
+error was 0.03946. The LoRA parameter-change norm was 3.06593, with 128 Qwen
+forward/backward calls and no change to Qwen parameters. The private checkpoint
+SHA256 is `360eac39814eb0df9e09e00fa5218bac87030895b65ddc76f9d8a52f3753071e`.
+These are training and execution facts, not validation or fear-like causal
+evidence. Independent checkpoint reconstruction and a fresh reload probe are
+required before opening another split.
+
 ## Interpretation
 
 This design can test a defensive survival circuit and an operational fear-like
