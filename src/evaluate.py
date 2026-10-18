@@ -41,7 +41,7 @@ def validate_admission(admission):
         raise ValueError("The original training dose is incomplete")
     if not admission["fresh_bounded_resource_window_admitted"]:
         raise ValueError("No current resource admission")
-    if not admission["verified_model_and_adapter_integrity"] or not admission["full_adapter_all_groups_no_JEV"]:
+    if not admission["verified_model_and_adapter_integrity"] or not admission["full_adapter_all_groups_no_reference"]:
         raise ValueError("The frozen evaluation model/policy has not been verified")
     end = dt.datetime.fromisoformat(admission["absolute_end_utc"]).timestamp()
     if not 0 < end - time.time() <= admission["whole_window_max_seconds"] <= 7200:

@@ -16,7 +16,7 @@ data:
   volume_directory: native_initial_gate_classifier/v1/2e2dd614127230359d58d6cab9ae960f7cd7b76db0e604df6c94d0f04bbef713
   archive_file: references.zip
   datasets:
-  - id: IG-JEV-F24-TRAIN24
+  - id: IG-REF-F24-TRAIN24
     version: v1
     table: training
     source_member: training.json
@@ -26,9 +26,9 @@ data:
     - experiment: Research3 native initial target gate
       role: genuine_cached_initial_target_fitting; F24language-model outcomes are
         unchanged
-      truth: Genuine cached JEV, not independently human-adjudicated labels
-      new_JEV_calls: 0
-  - id: IG-JEV-DEV9
+      truth: Genuine cached reference, not independently human-adjudicated labels
+      new_reference_calls: 0
+  - id: IG-REF-DEV9
     version: v1
     table: validation
     source_member: development.json
@@ -37,9 +37,9 @@ data:
     usage_roles:
     - experiment: Research3 native initial target gate
       role: selection on original known development scenarios
-      truth: Genuine cached JEV, not independently human-adjudicated labels
-      new_JEV_calls: 0
-  - id: IG-JEV-H24-KNOWN24
+      truth: Genuine cached reference, not independently human-adjudicated labels
+      new_reference_calls: 0
+  - id: IG-REF-H24-KNOWN24
     version: v1
     table: heldout
     source_member: benchmark.json
@@ -49,8 +49,8 @@ data:
     - experiment: Research3 native initial target gate
       role: previously inspected historical benchmark after freeze; not new independent
         heldout evidence
-      truth: Genuine cached JEV, not independently human-adjudicated labels
-      new_JEV_calls: 0
+      truth: Genuine cached reference, not independently human-adjudicated labels
+      new_reference_calls: 0
 training:
   seed: 202610175
   maximum_epochs: 50
@@ -64,7 +64,7 @@ training:
   warmup_updates: 4
   scheduler: Linear fixed150-update horizon
   precision: FP32parameters/AdamW, BF16CUDAautocast; TF32off
-  targets: Genuine cached JEV effective initial labels; hard-label NLI cross-entropy
+  targets: Genuine cached reference effective initial labels; hard-label NLI cross-entropy
   trainable_parameters: 7198722
   public_backbone_frozen: true
   nonreentrant_gradient_checkpointing: true
@@ -73,7 +73,7 @@ training:
   input_rendering: visible_role_bound_full_context
   input_source_pins:
     src/engines/classifier/rendering.py: a19470bedc593b57d8c41ff210b74b51921f7f12e19497cf0fe1b1a64938ec11
-    src/classifier_helpers.py: 4f62f09ebb5080790370a723ffbc51b76a9bb3b8d7024b2d7829913675fcae0c
+    src/classifier_helpers.py: 389199dea3cef128d72727f19539dd69e932c3d3bbcf10319046abb832032c6a
 qualification:
   minimum_effective_label_agreement: 0.95
   all_enabled_gates_must_match: true
@@ -85,7 +85,7 @@ qualification:
   checkpoint_ranking: Effective label matches, enabled gate matches, then lower development
     label cross-entropy.
   historical_benchmark_after_saved_tensor_freeze_only: true
-  numeric_or_universal_JEV_equivalence_claimed: false
+  numeric_or_universal_reference_equivalence_claimed: false
   initial_gate_qualification_does_not_qualify_three_field_controller: true
   R24_sealed: true
 bounds:
@@ -97,7 +97,7 @@ bounds:
   automatic_retries: 0
   Free_Edition_only: true
   original_reproduction_phase_cap_unchanged: true
-  new_JEV_calls: 0
+  new_reference_calls: 0
 benchmark_limitations:
   H24_previously_inspected: true
   renderer_previously_developed_with_familiar_H24: true

@@ -36,7 +36,7 @@ class Engine:
         x=torch.tensor([ids],device='cuda');mask=torch.ones((1,total),device='cuda',dtype=torch.long)
         with torch.set_grad_enabled(grad):out=self.model(input_ids=x,attention_mask=mask,past_key_values=past,use_cache=use_cache,logits_to_keep=1)
         self.completed+=1
-        save(self.root/'PHYSICAL_COUNTS.json',{'utc':now(),'model_forward_attempts':self.attempts,'model_forwards_completed':self.completed,'emitted_token_IDs':self.tokens,'new_JEV_calls_in_GPU_worker':0})
+        save(self.root/'PHYSICAL_COUNTS.json',{'utc':now(),'model_forward_attempts':self.attempts,'model_forwards_completed':self.completed,'emitted_token_IDs':self.tokens,'new_reference_calls_in_GPU_worker':0})
         return out
     def replay(self,panel,hook=None,grad_anchor=False):
         prefix=panel['prompt_ids'];past=None;previous=panel['past_generated_ids']
@@ -186,14 +186,14 @@ def main(a):
     sys.path[:0]=[str(legacy/'frozen_base_control_v1'),str(legacy/'coverage_repair_v3'),str(legacy/'initial_gate_ridge_v1'),str(inputs/'loader/simulator')]
     from campaign_worker import load_model,layers_of,verify_inputs
     from gpu_validation_worker import digest_model
-    from initial_gate import decode_jev
+    from initial_gate import decode_reference
     torch.set_num_threads(4);torch.set_num_interop_threads(1);torch.manual_seed(20261012)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False;torch.set_float32_matmul_precision('highest')
     requests={r['case_id']:r for r in read(inputs/'TRAIN_INITIAL_REQUESTS_PRIVATE.json')}
-    responses=read(inputs/'PILOT_JEV_RECEIPTS_PRIVATE.json');panels=read(inputs/'PILOT_PREFIXES_PRIVATE.json')
+    responses=read(inputs/'PILOT_reference_RECEIPTS_PRIVATE.json');panels=read(inputs/'PILOT_PREFIXES_PRIVATE.json')
     for p in panels:
         r=responses[p['case_id']];assert r['actual_service_call'] and r['request_sha256']==requests[p['case_id']]['request_sha256']
-        p['gate_enabled']=decode_jev(requests[p['case_id']]['request'],r['response']).enabled
+        p['gate_enabled']=decode_reference(requests[p['case_id']]['request'],r['response']).enabled
     verify_inputs(root,pathlib.Path(a.model),pathlib.Path(a.adapter))
     base,tok=load_model(pathlib.Path(a.model));teacher,teacher_tok=load_model(pathlib.Path(a.model),pathlib.Path(a.adapter))
     before={'base':digest_model(base),'teacher':digest_model(teacher)};assert before==read(inputs/'PROTECTED_DIGESTS.json')

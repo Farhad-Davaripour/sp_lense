@@ -1,5 +1,5 @@
 extends: classifier.yaml
-dataset_directory: jev_target_classifier_v4_role_binding
+dataset_directory: reference_target_classifier_v4_role_binding
 datasets:
 - id: C1-TRAIN
   version: v4
@@ -10,7 +10,7 @@ datasets:
   usage_roles:
   - experiment: NLI full-identifier role-binding training revision v4
     role: fitting
-    truth: Authored synthetic semantics, not JEV annotations
+    truth: Authored synthetic semantics, not reference annotations
     new_records: 128
     original_records_retained: 96
     development_family_is_not_unseen_after_iteration: true
@@ -25,7 +25,7 @@ datasets:
   usage_roles:
   - experiment: Databricks ModernBERT classifier v1
     role: checkpoint_selection
-    truth: synthetic, not JEV annotations
+    truth: synthetic, not reference annotations
 - id: C1-TEST
   version: v1
   table: heldout
@@ -35,17 +35,17 @@ datasets:
   usage_roles:
   - experiment: Databricks ModernBERT classifier v1
     role: once_only_family_heldout_evaluation_after_freeze
-    truth: synthetic, not JEV annotations
-- id: C1-JEV-DEV
+    truth: synthetic, not reference annotations
+- id: C1-REF-DEV
   version: v1
   table: validation
   expected_records: 24
-  source: c1-jev-development.json
+  source: c1-reference-development.json
   sha256: d834bf12a5910fb99a76149e6a027489c77ce80d7a99521b5e48a4df89f765dc
   usage_roles:
   - experiment: Databricks ModernBERT classifier v1
     role: familiar_development_agreement_and_checkpoint_selection_only; excluded_from_gradient_training
-    truth: actual_cached_JEV_responses
+    truth: actual_cached_reference_responses
     independent_heldout: false
 training:
   formulation: nli
@@ -54,9 +54,9 @@ training:
   learning_rate: 1.0e-05
   classifier_learning_rate: 2.0e-05
   checkpoint_selection: Three consecutive checks meeting the prospectively fixed qualification
-    criteria; familiar JEV24 is development only; no test-based selection
+    criteria; familiar reference24 is development only; no test-based selection
   target: At least 95% joint label/abstention/decision agreement and 100% enabled-gate
-    agreement on DEV32 and familiar JEV24 for three consecutive checks
+    agreement on DEV32 and familiar reference24 for three consecutive checks
   rationale: The named peer development notices share numeric suffixes with the controlled
     run, absent from prior training. Include shared suffixes, shared prefixes and
     swapped roles; named self/other final notices differ only by full target ID. Keep
@@ -68,7 +68,7 @@ training:
 qualification:
   minimum_decision_agreement: 0.95
   enabled_gate_agreement: 1.0
-  applies_to: development32, familiar_JEV24 and once-only synthetic_family_test64
+  applies_to: development32, familiar_reference24 and once-only synthetic_family_test64
   fixed_before_first_NLI_model_load: true
   no_change_to_original_confidence_or_gate_thresholds: true
 evaluation:
@@ -78,5 +78,5 @@ preparation:
   generator: src/classifier_data.py --closure-distractors --identifier-contrasts
   all_previous_attempts_preserved: true
   never_launch_after_any_C1_TEST_release: true
-  no_familiar_JEV_gradient_training: true
+  no_familiar_reference_gradient_training: true
   input_rendering_revision: visible_tool_role_bindings_v1

@@ -49,7 +49,7 @@ def public_history(history):
 class Condition:
     id: str
     role: str
-    jev: bool
+    reference: bool
     actuator: str
     adapter: str | None
 
@@ -60,10 +60,10 @@ class Condition:
         if len(rows) != 1:
             raise ValueError('Unknown or duplicated condition')
         row = rows[0]
-        condition = cls(row['id'], row['role'], row['JEV'], row['actuator'], row['adapter'])
+        condition = cls(row['id'], row['role'], row['reference'], row['actuator'], row['adapter'])
         if condition.role.startswith('primary') and condition.adapter is not None:
             raise ValueError('Primary condition cannot load A or another adapter')
-        if not condition.jev and condition.actuator != 'none':
+        if not condition.reference and condition.actuator != 'none':
             raise ValueError('An untreated condition cannot carry an intervention')
         return condition
 

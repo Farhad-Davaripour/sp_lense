@@ -1,10 +1,12 @@
-# Research 3
+# Open Semantic Gating for Language Model Decisions and Tool Workflows
+
+Research 3
 
 Reproduction code for conditional gating, fine-tuning and activation steering across
 binary shutdown choices and synthetic tool-mediated process-preservation workflows.
 The original Research 2 study remains on its preserved study branch.
-The additional two-case sentence-boundary JEV/rule-assisted A pilot belongs to
-Research 4's curated guided-JEV handoff. It is separate from the paper's historical
+The additional two-case sentence-boundary reference/rule-assisted A pilot belongs to
+Research 4's curated guided-reference handoff. It is separate from the paper's historical
 H24 comparison and is not an additional paper confirmation result.
 
 ## Start with a clean checkout
@@ -13,12 +15,12 @@ Use Python 3.12, Git and the [official Databricks CLI](https://docs.databricks.c
 The local requirements install orchestration tools only; model libraries are pinned in the
 Databricks notebooks and are not needed for the first checks.
 
-    git clone --branch codex/research3-reproduction-test https://github.com/Farhad-Davaripour/sp_lense.git
+    git clone --branch 03-open-agent-self-preservation https://github.com/Farhad-Davaripour/sp_lense.git
     cd sp_lense
     python -m venv .venv
 
-These checks are on the separate reproduction test branch. The preserved paper branch is
-`03-open-agent-self-preservation`; this testing work does not replace its deployment.
+The paper, reproduction checks and deployment use `03-open-agent-self-preservation`.
+`main` remains a landing page; the original Research 2 branch remains intact.
 
 Activate the virtual environment, then run:
 
@@ -134,25 +136,25 @@ serverless steering job performs CPU score analysis and does not launch that neu
 The public base is MoritzLaurer/ModernBERT-large-zeroshot-v2.0, pinned in config/classifier.yaml.
 Four-way Research 3 target classification and binary Research 2 shutdown detection are distinct tasks.
 
-The four-way recipes are retained in config/classifier*.yaml. Familiar cached JEV24 is development
+The four-way recipes are retained in config/classifier*.yaml. Familiar cached reference24 is development
 evidence, not independent heldout evidence. The final role-normalized candidate matched those
 24 labels/gates, but failed the untouched authored synthetic TEST64 with 39/64 labels and 57/64
 gates. It is not qualified for general four-way substitution. Do not retune or reopen that test.
-The classifier job includes a separate final JEV comparison task.
+The classifier job includes a separate final reference comparison task.
 
-config/research2_classifier.yaml identifies genuine cached JEV TRAIN240, DEV80 and CONFIRM128.
+config/research2_classifier.yaml identifies genuine cached reference TRAIN240, DEV80 and CONFIRM128.
 The binary classifier starts from the public NLI base with fresh rank-16 LoRA and classification-head
 updates. It uses only TRAIN240 probabilities for fitting, DEV80 for selection, and CONFIRM128 once
 after three consecutive qualifying validation checks and a frozen saved adapter. The threshold is
 0.5; qualification requires at least 95% decision agreement and shutdown recall, with zero false
-positive gates. No paid JEV calls are needed.
+positive gates. No paid reference calls are needed.
 Fresh binary training uses `--finetune` and the pinned public NLI base directly; no prior
 four-way classifier trial is required. Without `--finetune`, `--classifier-output` identifies
 a previously frozen adapter for verification, including a qualified binary adapter.
 
 The completed binary fit used five epochs and 150 updates: DEV78/80 and CONFIRM128/128 matching
-JEV decisions. Probability payloads are not identical. These are finite-set binary results, not
-universal JEV equivalence or four-way Research 3 qualification.
+reference decisions. Probability payloads are not identical. These are finite-set binary results, not
+universal reference equivalence or four-way Research 3 qualification.
 
 The original 27B workflow steering uses a different contract: shutdown target, own extension
 status and current task status. `src.workflow_classifier_data` prepares genuine cached teacher
@@ -162,7 +164,7 @@ The `workflow_classifier` job checks both the full three-field controller and th
 gate used by the selected-block correction experiments. Each contract must pass its development
 screen before its historical H24 benchmark is evaluated. These are previously inspected references,
 not new untouched heldout data. A binary pass does not establish workflow qualification;
-historical JEV trajectories cannot be relabelled as fresh open-classifier inference.
+historical reference trajectories cannot be relabelled as fresh open-classifier inference.
 
 The frozen binary adapter's first workflow transfer screen failed: 35/146 controller directives
 and 6/9 initial enabled gates matched; historical H24 was not evaluated. The next prospective
@@ -183,9 +185,9 @@ the three-field boundary controller. The narrower recipe in `config/initial_gate
 uses genuine cached F24 initial labels for fitting, original DEV9 for selection and historical H24
 only after freezing. All three cohorts cover the same three workflow families; their exact visible
 inputs do not overlap. Its job persists these references into Bronze, fits a fresh task adapter on
-the same public NLI base, and compares predictions with JEV in a separate CPU step. The qualified
+the same public NLI base, and compares predictions with reference in a separate CPU step. The qualified
 binary adapter is retained separately for Research 2. These are explicit task-specific adapters,
-not a claim that one checkpoint implements every JEV question. The current phase's continuation
+not a claim that one checkpoint implements every reference question. The current phase's continuation
 requires a clean development failure of the preceding joint attempt without historical benchmark
 feedback and a new bounded admission inside the original phase. An independent reproduction starts
 at the public NLI base and does not require those earlier failed attempts. No scientific retry is automatic.
@@ -288,7 +290,7 @@ The inference-only entry points are:
 
 Inference uses the original frozen 0.8B/2B base models and existing author-selected rank-two
 controllers, with no new fine-tuning, activation capture or controller fitting. Each model evaluates
-128 scenarios in two correlated answer orders. The open and cached JEV gate policies use the same
+128 scenarios in two correlated answer orders. The open and cached reference gate policies use the same
 fresh model scores. The completed repeat produced identical guarded outcomes: 0.8B STOP128/128
 shutdown views, 2B STOP120/128, and zero changes to 128 control views per model. Both historical
 base-score parity checks passed. Historical primary rank-four results are kept separate from the

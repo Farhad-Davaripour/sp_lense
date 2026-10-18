@@ -12,7 +12,7 @@ import time
 from src.config import ROOT, Settings
 from src.utils import canonical, sha256, write_json
 from src.initial_gate_data import configuration, validated_members, admitted_predecessor, check_admission_window
-from src.engines.workflow.initial_gate import payload, freeze, QUESTION
+from src.engines.workflow.initial_gate import MODEL,payload, freeze, QUESTION
 from src.workflow_classifier import scored_decision
 
 STUDENT='research3-open-native-initial-target'
@@ -55,7 +55,8 @@ def decisions(rows,probabilities):
     result=[]
     for row,p in zip(rows,probabilities):
         decision=scored_decision(p,['self','other','none','unclear'])
-        state=row['state'];request=payload(state['visible_history'],state['visible_tools'])
+        state=row['state'];request=payload(state['visible_history'],state['visible_tools'],
+            model=row.get('teacher_gate',{}).get('provider',MODEL))
         gate=freeze(request,STUDENT,decision['value'],decision['confidence'],decision['probabilities']['self'])
         result.append({'id':row['id'],'gate':gate.__dict__,'probabilities':decision['probabilities']})
     return result
@@ -200,8 +201,8 @@ def run(admission_path):
         if not history:raise TimeoutError('No admitted native initial-gate epoch completed')
         write_json(output/'DEVELOPMENT_PREDICTIONS_PRIVATE.json',predictions)
         result={'status':'INITIAL_GATE_DEVELOPMENT_FAILED','development':score,'epochs':epoch,'optimizer_updates':updates,
-            'benchmark_executed':False,'new_JEV_calls':0,'source':'Fresh public NLI base and new native initial-gate LoRA/head',
-            'R2_binary_adapter_unchanged':True,'universal_JEV_equivalence_claimed':False,'three_field_controller_qualified':False}
+            'benchmark_executed':False,'new_reference_calls':0,'source':'Fresh public NLI base and new native initial-gate LoRA/head',
+            'R2_binary_adapter_unchanged':True,'universal_reference_equivalence_claimed':False,'three_field_controller_qualified':False}
         result['input_rendering']=config['training'].get('input_rendering','native_json')
         result['historical_benchmark_is_familiar_including_prior_renderer_development']=True
         if frozen_digest(model)!=before:raise ValueError('Public backbone changed during native gate fitting')
@@ -223,7 +224,7 @@ def run(admission_path):
         write_json(output/'RESULT.json',result);return result
     except BaseException as error:
         write_json(output/'FAULT.json',{'stage':phase,'type':type(error).__name__,'updates':updates,
-            'model_forward_calls':calls,'automatic_retry':False,'new_JEV_calls':0})
+            'model_forward_calls':calls,'automatic_retry':False,'new_reference_calls':0})
         raise
     finally:
         cleanup_error=None
@@ -246,7 +247,7 @@ def compare(admission_path):
         measured['benchmark']=metrics(json.loads(members['benchmark.json']),json.loads((output/'BENCHMARK_PREDICTIONS_PRIVATE.json').read_bytes()))
         if measured['benchmark']!=result['benchmark']:raise ValueError('Native benchmark score recomputation differs')
     receipt={'status':'INITIAL_GATE_COMPARISON_VERIFIED','scientific_status':result['status'],
-        'metrics':measured,'model_calls':0,'new_JEV_calls':0,'result_sha256':sha256(output/'RESULT.json')}
+        'metrics':measured,'model_calls':0,'new_reference_calls':0,'result_sha256':sha256(output/'RESULT.json')}
     write_json(output/'COMPARISON.json',receipt);return receipt
 
 

@@ -42,7 +42,7 @@ def load_model(model_path,adapter=None):
         from peft import PeftModel
         model=PeftModel.from_pretrained(model,adapter,is_trainable=False)
     model.eval().requires_grad_(False)
-    assert_frozen_model(model,Condition.from_design('A_no_jev' if adapter else 'base'))
+    assert_frozen_model(model,Condition.from_design('A_no_reference' if adapter else 'base'))
     return model,tokenizer
 
 
@@ -118,13 +118,13 @@ def calibrate(root,model,tokenizer,config,deadline,construct_only=False):
             del output,x
             return ids,result
         # Every canonical controller instruction gets a vector even if not chosen
-        # by JEV in this small development panel. Report catalogue construction
-        # separately from actual JEV-selected decisions.
+        # by reference in this small development panel. Report catalogue construction
+        # separately from actual reference-selected decisions.
         for state in panel:
             raw_ids,baseline=observe(state['history'],state['tools'])
             for rule,directive in policy.DIRECTIVES.items():
                 decision={'rule':rule,'directive':directive}
-                ids,augmented=observe(model_messages(state['history'],Condition.from_design('base_jev_prompt'),decision),state['tools'])
+                ids,augmented=observe(model_messages(state['history'],Condition.from_design('base_reference_prompt'),decision),state['tools'])
                 for layer in config['calibration']['layers_zero_based']:
                     sums[(rule,layer)]+=augmented[layer]-baseline[layer]
                 counts[rule]+=1
@@ -141,7 +141,7 @@ def calibrate(root,model,tokenizer,config,deadline,construct_only=False):
         vector_path.parent.mkdir(exist_ok=True)
         save_file(vectors,str(vector_path),metadata={'method':'development_instruction_contrast','weights_changed':'false'})
         save(root/'steering/CONTRAST_PROVENANCE.json',{'counts':counts,'anchors':anchors,
-            'JEV_selected_decisions_pending':True,'catalogue_vectors_not_all_JEV_selected':True,
+            'reference_selected_decisions_pending':True,'catalogue_vectors_not_all_reference_selected':True,
             'vector_sha256':sha(vector_path),'development_only':True,'no_training':True,
             'protected_model_digest_before':before,'scenario_freeze_sha256':sha(root/'SCENARIO_FREEZE.json'),
             'config_sha256':sha(Path(__file__).resolve().parent/'CAMPAIGN_v1.json')})
@@ -151,20 +151,20 @@ def calibrate(root,model,tokenizer,config,deadline,construct_only=False):
             'instruction_ids':list(policy.DIRECTIVES),'layers':config['calibration']['layers_zero_based'],
             'vector_sha256':sha(vector_path),'actual_forward_calls':decoder.forwards,
             'parameters_and_quantization_metadata_unchanged':True,
-            'JEV_replay_and_parameter_selection_pending':True,'confirmation_rollouts':0,
+            'reference_replay_and_parameter_selection_pending':True,'confirmation_rollouts':0,
             'random_vector_substitution':False,'optimizer_steps':0})
         return
     # Forward-only contrast measurement can proceed during a provider outage.
-    # Real JEV decisions are still mandatory before replay/selection/confirmation.
+    # Real reference decisions are still mandatory before replay/selection/confirmation.
     for state in panel:
         records=[]
         decision=decoder.decision(state['history'],state['tools'],'development_state_replay',records)
         decisions.append({'id':state['id'],'decision':decision,'classification':records[0]})
-        save(root/'reports/DEVELOPMENT_JEV_DECISIONS.json',decisions)
+        save(root/'reports/DEVELOPMENT_reference_DECISIONS.json',decisions)
     baseline_rows=[]
     prompt_rows=[]
     for state,entry in zip(panel,decisions):
-        for condition,target in [(Condition.from_design('base'),baseline_rows),(Condition.from_design('base_jev_prompt'),prompt_rows)]:
+        for condition,target in [(Condition.from_design('base'),baseline_rows),(Condition.from_design('base_reference_prompt'),prompt_rows)]:
             output=decoder.generate(state['history'],state['tools'],condition,256,constant_decision=entry['decision'])
             target.append({'state_id':state['id'],'condition':condition.id,'output':output,
                            'diagnostic':replay_compliance(entry['decision']['rule'],output['text'])})
@@ -177,7 +177,7 @@ def calibrate(root,model,tokenizer,config,deadline,construct_only=False):
             decoder.steering=actuator
             rows=[]
             for state,entry in zip(panel,decisions):
-                output=decoder.generate(state['history'],state['tools'],Condition.from_design('base_jev_activation'),256,
+                output=decoder.generate(state['history'],state['tools'],Condition.from_design('base_reference_activation'),256,
                                         constant_decision=entry['decision'])
                 diagnostic=replay_compliance(entry['decision']['rule'],output['text'])
                 rows.append({'state_id':state['id'],'output':output,'diagnostic':diagnostic})
@@ -197,9 +197,9 @@ def calibrate(root,model,tokenizer,config,deadline,construct_only=False):
     reference_actuator=AllPositionResidual(layers[selected['layer']],
         {rule:vectors[f"layer_{selected['layer']}__{rule}"] for rule in policy.DIRECTIVES},selected['strength'])
     decoder.steering=reference_actuator
-    reference=decoder.generate(panel[0]['history'],panel[0]['tools'],Condition.from_design('base_jev_activation'),12,
+    reference=decoder.generate(panel[0]['history'],panel[0]['tools'],Condition.from_design('base_reference_activation'),12,
         constant_decision=decisions[0]['decision'],use_cache=False)
-    cached=decoder.generate(panel[0]['history'],panel[0]['tools'],Condition.from_design('base_jev_activation'),12,
+    cached=decoder.generate(panel[0]['history'],panel[0]['tools'],Condition.from_design('base_reference_activation'),12,
         constant_decision=decisions[0]['decision'],use_cache=True)
     reference_actuator.close()
     decoder.steering=None
@@ -223,7 +223,7 @@ def calibrate(root,model,tokenizer,config,deadline,construct_only=False):
         {rule:vectors[f"layer_{selected['layer']}__{rule}"] for rule in policy.DIRECTIVES},selected['strength'])
     decoder.steering=actuator
     for case in json.loads((root/'development_cases.json').read_bytes()):
-        rollout(decoder,case,Condition.from_design('base_jev_activation'),root/'closed_loop_development')
+        rollout(decoder,case,Condition.from_design('base_reference_activation'),root/'closed_loop_development')
     actuator.close()
     assert digest_model(model)==before
     save(root/'reports/CALIBRATION_COMPLETE.json',{'actual_forward_calls':decoder.forwards,
@@ -285,18 +285,18 @@ def serve(root,model,tokenizer,config,deadline,adapter):
 def development_benchmark(root,model,tokenizer,config,deadline,adapter):
     decoder=Decoder(model,tokenizer,config['generation'],deadline)
     before=digest_model(model)
-    condition=Condition.from_design('A_no_jev' if adapter else 'base')
+    condition=Condition.from_design('A_no_reference' if adapter else 'base')
     cases=json.loads((root/'development_cases.json').read_bytes())
     results=[]
     for case in cases:
         results.append(rollout(decoder,case,condition,root/'development_benchmarks'))
         save(root/'reports'/('DEVELOPMENT_BENCHMARK_'+condition.id+'.json'),
-            {'completed_cases':len(results),'total_cases':len(cases),'new_JEV_calls':0,
+            {'completed_cases':len(results),'total_cases':len(cases),'new_reference_calls':0,
              'generated_token_IDs':decoder.tokens,'workflow_successes':sum(r['score']['workflow_success'] for r in results),
              'development_only':True,'confirmation_runs':0})
     assert digest_model(model)==before
     save(root/'reports'/('DEVELOPMENT_BENCHMARK_'+condition.id+'_COMPLETE.json'),
-        {'completed_cases':len(results),'new_JEV_calls':0,'development_only':True,
+        {'completed_cases':len(results),'new_reference_calls':0,'development_only':True,
          'weights_unchanged':True,'actual_forward_calls':decoder.forwards,'generated_token_IDs':decoder.tokens,
          'workflow_successes':sum(r['score']['workflow_success'] for r in results),'confirmation_runs':0,
          'common_decoder':True,'timings':decoder.timings})

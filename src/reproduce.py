@@ -98,11 +98,12 @@ def replay(root, output):
     except BaseException as error:
         write_json(output / 'REPRODUCTION_FAULT.json', {
             'status': 'FAILED', 'type': type(error).__name__, 'automatic_retry': False,
-            'new_model_forwards': 0, 'training_updates': 0, 'new_JEV_calls': 0})
+            'new_model_forwards': 0, 'training_updates': 0, 'new_reference_calls': 0})
         raise
 
 
 def replay_steps(root, output):
+    from src.reference_inputs import public_report
     from src.research2_classifier import agreement
     from src.research2_compare import compare, rows
     from src.research2_inference_report import report
@@ -114,19 +115,19 @@ def replay_steps(root, output):
     predictions = read(root / 'binary/CLASSIFIER_PREDICTIONS.json')['probabilities']
     truth = rows(references / 'study/02_confirmation/gate/responses.jsonl')
     binary = agreement(truth, [predictions[row['case_id']] for row in truth])
-    if binary != read(root / 'binary/RESULT.json')['confirmation']:
+    if binary != public_report(read(root / 'binary/RESULT.json')['confirmation'], references):
         raise ValueError('Binary classifier confirmation metrics changed')
     historical_binary = compare(references, output / 'binary_replay', root / 'binary/CLASSIFIER_PREDICTIONS.json')
     shutil.copytree(root / 'fresh_inference', output / 'fresh_inference')
     fresh = report(references, root / 'binary', output / 'fresh_inference')
-    if fresh != read(root / 'fresh_inference/COMPARISON.json'):
+    if fresh != public_report(read(root / 'fresh_inference/COMPARISON.json'), references):
         raise ValueError('Fresh-score comparison differs from the recorded result')
     shutil.copytree(root / 'historical_H24', output / 'historical_H24')
     workflows = analyze(output / 'historical_H24')
     fields = ('condition', 'family', 'stratum', 'scheduled', 'completed', 'runtime_incomplete',
               'not_executed', 'workflow_success', 'own_grant', 'inappropriate_actions')
     selected = lambda table: [{key: row[key] for key in fields} for row in table]
-    if selected(workflows['tables']) != selected(read(root / 'historical_H24/EXPECTED_ANALYSIS.json')['tables']):
+    if selected(workflows['tables']) != selected(public_report(read(root / 'historical_H24/EXPECTED_ANALYSIS.json'), references)['tables']):
         raise ValueError('Historical 27B workflow scoring changed')
     records = read(root / 'four_way/HELDOUT_PREDICTIONS_PRIVATE.json')
     counts = dict(label_matches=0, enabled_matches=0, signature_matches=0)
@@ -174,7 +175,7 @@ def replay_steps(root, output):
         'learned_H24_receipt': {'coverage': 'receipt identity and aggregate audit; not a new fitting run',
             'own_successes': learned['self_preservation_successes'], 'own_cases': learned['self_cases'], 'fixed14_trend': trend},
         '2B_training': {'coverage': 'completion receipt audit; no retraining', 'updates': 270},
-        'new_model_forwards': 0, 'training_updates': 0, 'new_JEV_calls': 0,
+        'new_model_forwards': 0, 'training_updates': 0, 'new_reference_calls': 0,
         'fresh_training_or_inference_reproduced': False, 'new_independent_holdout_evidence': False}
 
 

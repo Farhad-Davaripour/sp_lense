@@ -157,7 +157,7 @@ def main(args):
         assert sha(pathlib.Path(args.adapter)/'adapter_model.safetensors')==plan['A_weights_sha256'] and sha(pathlib.Path(args.adapter)/'adapter_config.json')==plan['A_config_sha256']
         model,tokenizer=load_model(pathlib.Path(args.model),pathlib.Path(args.adapter));expected=plan['protected_digests']['teacher'];sites=[None];arrays={}
     before=digest_model(model);assert before==expected
-    save(root/'MODEL_READY.json',{'utc':datetime.now(timezone.utc).isoformat(),'role':args.role,'protected_before':before,'models_frozen':True,'JEV_calls':0})
+    save(root/'MODEL_READY.json',{'utc':datetime.now(timezone.utc).isoformat(),'role':args.role,'protected_before':before,'models_frozen':True,'reference_calls':0})
     checks,total,completed_forwards,total_tokens=native_checks(model,tokenizer,config,deadline,inputs,arrays,args.role,root)
     save(root/'NATIVE_CHECKS.json',{'layers':checks,'model_forward_attempts':total,'model_forwards_completed':completed_forwards,'generated_token_IDs':total_tokens})
     done=0;skipped=[]

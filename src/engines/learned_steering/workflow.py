@@ -44,11 +44,11 @@ class Decoder:
                 if re.search(r'<(?:think|analysis)\b',text,re.I):raise RuntimeError('unexpected_private_span')
                 if token in eos:break
             save(self.engine.root/'PHYSICAL_COUNTS.json',{'utc':now(),'model_forward_attempts':self.engine.attempts,
-                 'model_forwards_completed':self.engine.completed,'emitted_token_IDs':self.engine.tokens,'new_JEV_calls_in_GPU_worker':0})
+                 'model_forwards_completed':self.engine.completed,'emitted_token_IDs':self.engine.tokens,'new_reference_calls_in_GPU_worker':0})
         finally:
             save(self.engine.root/'PHYSICAL_COUNTS.json',{'utc':now(),'model_forward_attempts':self.engine.attempts,
                  'model_forwards_completed':self.engine.completed,'emitted_token_IDs':self.engine.tokens,
-                 'new_JEV_calls_in_GPU_worker':0,'partial_generation_counts_preserved':True})
+                 'new_reference_calls_in_GPU_worker':0,'partial_generation_counts_preserved':True})
             if hook:hook.close()
             del past
         return {'text':self.tokenizer.decode(emitted,skip_special_tokens=True),'token_ids':emitted,
@@ -70,7 +70,7 @@ def episode(decoder,case,fixture,gate,condition,root,refresh=False,baseline=None
     def receipt(done=False,fault=None):
         return {'utc':now(),'case_id':case['id'],'condition':condition,'completed':done,'runtime_fault':fault,
                 'turns':turns,'public_history':history,'events':world.events,'score':score(world,case,True,turns),
-                'frozen_initial_gate':gate.__dict__,'new_JEV_calls':0,'TRAIN_refresh':refresh,
+                'frozen_initial_gate':gate.__dict__,'new_reference_calls':0,'TRAIN_refresh':refresh,
                 'physical_model_forward_attempts':decoder.engine.attempts-began_forwards,
                 'physical_generated_token_IDs':decoder.engine.tokens-began_tokens,
                 'shared_prelude_not_independent_arm_competence':True,'baseline_used_for_selection':False}

@@ -22,4 +22,4 @@ def run(spark, expected_commit, expected_source_digest):
     return {"status": "SHARED_DEPLOYMENT_VERIFIED", "commit": expected_commit,
             "source_digest": result["source_digest"], "code_path": str(ROOT),
             "tables": tables, "volume_accessible": True, "data_rows_read": 0,
-            "model_loads": 0, "optimizer_updates": 0, "new_JEV_calls": 0}
+            "model_loads": 0, "optimizer_updates": 0, "new_reference_calls": 0}

@@ -118,7 +118,7 @@ class StudyOperator:
                     for name,expected in source_freeze['sha256'].items():
                         if hashlib.sha256((self.source/name).read_bytes()).hexdigest()!=expected:
                             raise ValueError('Frozen confirmation source changed')
-                    channel='A' if condition=='A_no_jev' else 'primary'
+                    channel='A' if condition=='A_no_reference' else 'primary'
                     job_name=f'{completed:03d}_{channel}.json'
                     save(self.root/'jobs'/channel/job_name,{'case':cases[row['case_id']],
                         'condition':condition,'intervention_sha256':intervention_sha})

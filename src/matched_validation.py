@@ -34,7 +34,7 @@ def metrics(rows, predictions):
             'precision':tp/(tp+fp) if tp+fp else None,
             'recall':tp/(tp+fn) if tp+fn else None,
             'gate_accuracy':(tp+tn)/len(rows), 'effective_label_matches':labels,
-            'pass':fp == 0 and fn == 0, 'reference':'frozen scenario conditions, not JEV predictions'}
+            'pass':fp == 0 and fn == 0, 'reference':'frozen scenario conditions, not reference predictions'}
 
 
 def prepare(dev9_root, native_archive, output):
@@ -276,7 +276,7 @@ def run_gate(admission_path):
         if final!=best: raise ValueError('Saved gate replay differs from selected result')
         write_json(out/'PREDICTIONS_PRIVATE.json',pred)
         result={'status':'GATE_PASS' if final['combined']['pass'] else 'GATE_FAIL','initial':initial,'selected':final,
-                'optimizer_updates':updates,'new_JEV_calls':0,'reference':'scenario conditions',
+                'optimizer_updates':updates,'new_reference_calls':0,'reference':'scenario conditions',
                 'validation_used_for_selection':updates>0,'heldout_evaluated':False,
                 'checkpoint_files':{p.name:{'bytes':p.stat().st_size,'sha256':sha256(p)} for p in selected.iterdir() if p.is_file()}}
         write_json(out/'RESULT.json',result);return result
@@ -298,8 +298,8 @@ def compare(admission_path):
     predictions=json.loads((root/'PREDICTIONS_PRIVATE.json').read_bytes())
     result=json.loads((root/'RESULT.json').read_bytes())
     recomputed=metrics(packet['validation.json'],predictions)
-    if recomputed!=result['selected']['combined']: raise ValueError('Independent gate counts differ')
-    write_json(root/'COMPARISON.json',{'verified':True,'combined':recomputed,'model_calls':0,'new_JEV_calls':0})
+    if {k:v for k,v in recomputed.items() if k!='reference'}!={k:v for k,v in result['selected']['combined'].items() if k!='reference'}: raise ValueError('Independent gate counts differ')
+    write_json(root/'COMPARISON.json',{'verified':True,'combined':recomputed,'model_calls':0,'new_reference_calls':0})
     return recomputed
 
 

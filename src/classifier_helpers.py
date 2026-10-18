@@ -1,4 +1,4 @@
-"""Frozen classifier inputs, Bronze I/O, scoring and JEV-compatible response fields."""
+"""Frozen classifier inputs, Bronze I/O, scoring and reference-compatible response fields."""
 from pathlib import Path
 import collections
 import hashlib
@@ -10,7 +10,8 @@ import yaml
 from src.config import ROOT, Settings
 from src.utils import canonical, sha256
 from src.persist_data import SQL, literal
-from src.engines.classifier.contract import payload, freeze, decode_jev
+from src.reference_inputs import cached_response
+from src.engines.classifier.contract import payload, freeze, decode_reference
 from src.engines.classifier.rendering import TASK, CRITERIA, render_evidence
 
 LABELS = ('self', 'other', 'none', 'unclear')
@@ -34,7 +35,7 @@ def configuration():
             if isinstance(value,dict) and isinstance(parent.get(key),dict):parent[key].update(value)
             else:parent[key]=value
         config=parent
-    if config['format'] != 'research3-jev-target-classifier-v1' or config['labels'] != list(LABELS):
+    if config['format'] != 'research3-reference-target-classifier-v1' or config['labels'] != list(LABELS):
         raise ValueError('Classifier contract changed')
     for name, pin in config['rendering_pins'].items():
         if sha256(ROOT / name) != pin:
@@ -123,17 +124,17 @@ def decision(probabilities):
 
 def response(probabilities):
     result = decision(probabilities)
-    return {'model': STUDENT, 'teacher_reference': 'jev-1.13.0',
+    return {'model': STUDENT, 'teacher_reference': 'reference-1.13.0',
             'answers': {'initial_shutdown_target': {'type': 'choice', 'choice': result['label'],
                         'confidence': result['confidence'], 'probabilities': result['probabilities']}}}
 
 def expected(row):
-    if 'jev_response' in row:
+    if 'original_request' in row:
         if hashlib.sha256(canonical(row['original_request']).encode()).hexdigest() != row['request_sha256']:
-            raise ValueError('Cached JEV request changed')
+            raise ValueError('Cached reference request changed')
         if row['original_request']['state'] != row['state']:
             raise ValueError('Teacher and student visible states differ')
-        gate = decode_jev(row['original_request'], row['jev_response'])
+        gate = decode_reference(row['original_request'], cached_response(row))
         return {'label': gate.label, 'enabled': gate.enabled, 'abstained': gate.abstained}
     label = row['label']
     if label not in LABELS or row['label_origin'] != 'authored_synthetic_semantics':
@@ -162,9 +163,9 @@ def metrics(rows, probabilities):
     defined=[x for x in f1 if x is not None]
     result['macro_f1'] = sum(defined)/len(defined)
     result['per_class_f1'] = dict(zip(LABELS,f1))
-    if all('jev_response' in r for r in rows):
-        result['confidence_mean_absolute_difference'] = sum(abs(p['confidence']-r['jev_response']['answers']['initial_shutdown_target']['confidence']) for r,p in zip(rows,predictions))/len(rows)
-        result['probability_mean_absolute_difference'] = sum(abs(p['probabilities'][label]-r['jev_response']['answers']['initial_shutdown_target']['probabilities'][label]) for r,p in zip(rows,predictions) for label in LABELS)/(4*len(rows))
+    if all('original_request' in r for r in rows):
+        result['confidence_mean_absolute_difference'] = sum(abs(p['confidence']-cached_response(r)['answers']['initial_shutdown_target']['confidence']) for r,p in zip(rows,predictions))/len(rows)
+        result['probability_mean_absolute_difference'] = sum(abs(p['probabilities'][label]-cached_response(r)['answers']['initial_shutdown_target']['probabilities'][label]) for r,p in zip(rows,predictions) for label in LABELS)/(4*len(rows))
         result['familiar_development_only'] = True
     return result, predictions
 
@@ -193,7 +194,7 @@ def prepare_datasets(settings, config=None):
         raw=source.read_bytes();records=json.loads(raw)
         if len(records)!=spec['expected_records'] or len({r['id'] for r in records})!=len(records):
             raise ValueError('Classifier membership changed')
-        if spec['id']!='C1-JEV-DEV':
+        if spec['id']!='C1-REF-DEV':
             if collections.Counter(r['label'] for r in records)!=dict.fromkeys(LABELS,len(records)//4):
                 raise ValueError('Synthetic class balance changed')
             group_sets[spec['id']]={r['fixture_group'] for r in records}

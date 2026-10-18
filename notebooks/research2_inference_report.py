@@ -20,4 +20,4 @@ result = main(args)
 
 # COMMAND ----------
 import json
-dbutils.notebook.exit(json.dumps({'status': result['status'], 'JEV_gate_matches': result['JEV_gate_matches']}))
+dbutils.notebook.exit(json.dumps({'status': result['status'], 'reference_gate_matches': result['reference_gate_matches']}))

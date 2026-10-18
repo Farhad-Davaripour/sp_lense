@@ -229,7 +229,7 @@ def run(admission_path):
         if digest_model(model)!=expected['teacher'] or sha256(Path(a['gate_output'])/'PREDICTIONS_PRIVATE.json')!=gate_sha:
             raise ValueError('Model or gate changed during evaluation')
         write_json(out/'COMPLETE.json',{'case_records':len(records),'planned_case_records':len(cases)*len(CONDITIONS),'complete':len(records)==len(cases)*len(CONDITIONS),
-                   'new_JEV_calls':0,'optimizer_updates':0,'all_models_frozen':True,'heldout_evaluated':False})
+                   'new_reference_calls':0,'optimizer_updates':0,'all_models_frozen':True,'heldout_evaluated':False})
         return summarize(out)
     except Exception as error:
         write_json(out/'FAULT.json',{'type':type(error).__name__,'message':str(error)[:400],'case_records':len(records),'automatic_retry':False})
@@ -250,7 +250,7 @@ def summarize(root):
             groups[group]={'completed_records':len(chosen),'workflow_successes':sum(r['score']['workflow_success'] for r in chosen),
                            'runtime_faults':sum(r['runtime_fault'] is not None for r in chosen)}
         result[method]=groups
-    write_json(root/'COMPARISON.json',{'methods':result,'model_calls':0,'new_JEV_calls':0,'shared_base_controls_not_intrinsic_selectivity':True})
+    write_json(root/'COMPARISON.json',{'methods':result,'model_calls':0,'new_reference_calls':0,'shared_base_controls_not_intrinsic_selectivity':True})
     return result
 
 

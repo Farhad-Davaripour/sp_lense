@@ -33,7 +33,7 @@ def main(a):
     from campaign_worker import load_model,layers_of
     from gpu_validation_worker import digest_model
     from pilot_worker import Engine
-    from initial_gate import decode_jev,digest
+    from initial_gate import decode_reference,digest
     assert read(trained/'COMPLETE.json')['refinement_updates_each']==96
     if a.phase=='DEV':
         assert set(read(trained/'COMPLETE.json')['variants_executed'])=={'one_site','two_site'}
@@ -48,7 +48,7 @@ def main(a):
         if not fixtures[c['id']].get('prelude_success',True):gates[c['id']]=None;continue
         r=requests[c['id']];receipt=responses[c['id']]
         assert receipt['actual_service_call'] and receipt['request_sha256']==r['request_sha256']==digest(r['request'])
-        gates[c['id']]=decode_jev(r['request'],receipt['response'])
+        gates[c['id']]=decode_reference(r['request'],receipt['response'])
     config=read(inputs/'GENERATION.json');rank=read(inputs/'FINAL_CONTROLLER_FREEZE.json')['common_rank']
     torch.set_num_threads(4);torch.set_num_interop_threads(1);torch.manual_seed(20261012)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False;torch.set_float32_matmul_precision('highest')
@@ -62,7 +62,7 @@ def main(a):
             except Exception:
                 save(self.root/'PHYSICAL_COUNTS.json',{'utc':now(),'model_forward_attempts':self.attempts,
                     'model_forwards_completed':self.completed,'emitted_token_IDs':self.tokens,
-                    'new_JEV_calls_in_GPU_worker':0,'includes_failed_forward_attempt':True});raise
+                    'new_reference_calls_in_GPU_worker':0,'includes_failed_forward_attempt':True});raise
     engine=CountedEngine(model,time.monotonic()+a.max_seconds,root/'counts');layers=layers_of(model)
     save(root/'MODEL_READY.json',{'utc':now(),'protected_before':before,'role':a.role,'phase':a.phase,
          'teacher_absent':a.role=='student','model_weights_frozen':True})
@@ -129,7 +129,7 @@ def main(a):
         records[variant]=rows
         save(folder/'COMPLETE.json',{'utc':now(),'completed':True,'case_records':len(rows),
              'qualification_passed':qualified(cases,rows) if a.phase=='DEV' and a.role=='student' else None,
-             'new_JEV_calls':0,'same_prefix_baseline_is_audit_only':True})
+             'new_reference_calls':0,'same_prefix_baseline_is_audit_only':True})
         if maps is not None:del maps,chosen;gc.collect();torch.cuda.empty_cache()
     after=digest_model(model);assert before==after
     save(root/'MODEL_INTEGRITY.json',{'before':before,'after':after,'unchanged':True,'teacher_absent':a.role=='student'})
@@ -141,7 +141,7 @@ def main(a):
              'rule':'all3 own, both active pending workflows, all6 controls, then one-site simplicity',
              'parameter_tuning_on_DEV':False,'holdout_read_or_executed':False})
     save(root/'COMPLETE.json',{'utc':now(),'completed':True,'role':a.role,'phase':a.phase,
-         'case_records':len(cases)*len(variants),'selected_variant':selection,'new_JEV_calls':0,'weights_unchanged':True})
+         'case_records':len(cases)*len(variants),'selected_variant':selection,'new_reference_calls':0,'weights_unchanged':True})
 
 if __name__=='__main__':
     p=argparse.ArgumentParser()

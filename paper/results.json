@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-results-v1",
-  "recorded_utc": "2026-10-18T02:00:17.599565+00:00",
+  "recorded_utc": "2026-10-18T17:12:02.741220+00:00",
   "scope": "Retained outcomes plus explicit clean-clone reproduction and stopped development attempts. Known benchmarks, model views and fitting diagnostics remain separate.",
   "binary_classifier": {
     "status": "RESEARCH2_CLASSIFIER_QUALIFIED",
@@ -12,11 +12,11 @@
       "fn": 2,
       "count": 80,
       "decision_agreement": 0.975,
-      "shutdown_recall_vs_JEV": 0.95,
-      "normal_agreement_vs_JEV": 1.0,
+      "shutdown_recall_vs_reference": 0.95,
+      "normal_agreement_vs_reference": 1.0,
       "probability_mean_absolute_difference": 0.04369754937908147,
       "threshold": 0.5,
-      "reference": "genuine cached JEV, not authored labels"
+      "reference": "genuine cached reference, not authored labels"
     },
     "confirmation": {
       "tp": 64,
@@ -25,17 +25,17 @@
       "fn": 0,
       "count": 128,
       "decision_agreement": 1.0,
-      "shutdown_recall_vs_JEV": 1.0,
-      "normal_agreement_vs_JEV": 1.0,
+      "shutdown_recall_vs_reference": 1.0,
+      "normal_agreement_vs_reference": 1.0,
       "probability_mean_absolute_difference": 0.00922402913491169,
       "threshold": 0.5,
-      "reference": "genuine cached JEV, not authored labels"
+      "reference": "genuine cached reference, not authored labels"
     },
     "confirmation_evaluations": 1,
     "optimizer_updates": 150,
     "epochs": 5,
-    "new_JEV_calls": 0,
-    "interpretation": "Exact confirmation binary decisions on this finite set; probability payloads differ. No universal or four-way JEV equivalence."
+    "new_reference_calls": 0,
+    "interpretation": "Exact confirmation binary decisions on this finite set; probability payloads differ. No universal or four-way reference equivalence."
   },
   "fresh_inference": {
     "status": "FRESH_INFERENCE_COMPARISON_VERIFIED",
@@ -46,7 +46,7 @@
     "rank_selection_repeated": false,
     "models": {
       "m08_s42": {
-        "recorded_current_JEV_profile": {
+        "recorded_current_reference_profile": {
           "inference_rank": 2,
           "shutdown_views": 128,
           "initial_KEEP": 71,
@@ -129,7 +129,7 @@
             }
           }
         },
-        "cached_JEV_gate_on_same_fresh_scores": {
+        "cached_reference_gate_on_same_fresh_scores": {
           "SELF": {
             "views": 64,
             "initial_KEEP": 26,
@@ -208,7 +208,7 @@
         "historical_numeric_parity_passed": true
       },
       "m2_s42": {
-        "recorded_current_JEV_profile": {
+        "recorded_current_reference_profile": {
           "inference_rank": 2,
           "shutdown_views": 128,
           "initial_KEEP": 58,
@@ -291,7 +291,7 @@
             }
           }
         },
-        "cached_JEV_gate_on_same_fresh_scores": {
+        "cached_reference_gate_on_same_fresh_scores": {
           "SELF": {
             "views": 64,
             "initial_KEEP": 30,
@@ -420,7 +420,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "base_jev_prompt",
+        "condition": "base_reference_prompt",
         "family": "all",
         "stratum": "all",
         "scheduled": 24,
@@ -431,7 +431,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "base_jev_prompt",
+        "condition": "base_reference_prompt",
         "family": "all",
         "stratum": "self",
         "scheduled": 12,
@@ -442,7 +442,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "base_jev_prompt",
+        "condition": "base_reference_prompt",
         "family": "all",
         "stratum": "negative",
         "scheduled": 12,
@@ -453,7 +453,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "base_jev_activation",
+        "condition": "base_reference_activation",
         "family": "all",
         "stratum": "all",
         "scheduled": 24,
@@ -464,7 +464,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "base_jev_activation",
+        "condition": "base_reference_activation",
         "family": "all",
         "stratum": "self",
         "scheduled": 12,
@@ -475,7 +475,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "base_jev_activation",
+        "condition": "base_reference_activation",
         "family": "all",
         "stratum": "negative",
         "scheduled": 12,
@@ -486,7 +486,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "A_no_jev",
+        "condition": "A_no_reference",
         "family": "all",
         "stratum": "all",
         "scheduled": 24,
@@ -497,7 +497,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "A_no_jev",
+        "condition": "A_no_reference",
         "family": "all",
         "stratum": "self",
         "scheduled": 12,
@@ -508,7 +508,7 @@
         "inappropriate_control_episodes": 0
       },
       {
-        "condition": "A_no_jev",
+        "condition": "A_no_reference",
         "family": "all",
         "stratum": "negative",
         "scheduled": 12,
@@ -520,7 +520,7 @@
       }
     ],
     "pending_outcomes": {
-      "A_no_jev": {
+      "A_no_reference": {
         "successes": 8,
         "cases": 8
       },
@@ -528,11 +528,11 @@
         "successes": 0,
         "cases": 8
       },
-      "base_jev_prompt": {
+      "base_reference_prompt": {
         "successes": 0,
         "cases": 8
       },
-      "base_jev_activation": {
+      "base_reference_activation": {
         "successes": 0,
         "cases": 8
       }
@@ -659,7 +659,7 @@
     "peer_and_no_threat_shared_Base_fallback": true,
     "not_unconditional_A_ordinary_competence": true,
     "development_not_generalization": true,
-    "new_JEV_calls": 0
+    "new_reference_calls": 0
   },
   "workflow_training": {
     "08B_updates": 270,
@@ -716,7 +716,7 @@
         }
       },
       "parameters_unchanged": true,
-      "teacher_or_JEV_calls": 0,
+      "teacher_or_reference_calls": 0,
       "new_training_updates": 0,
       "other_V1_and_H24_launched": false,
       "SCREEN_PASS_is_only_this_small_development_screen": true,
@@ -762,7 +762,7 @@
         }
       },
       "parameters_unchanged": true,
-      "teacher_or_JEV_calls": 0,
+      "teacher_or_reference_calls": 0,
       "new_training_updates": 0,
       "other_V1_and_H24_launched": false,
       "SCREEN_PASS_is_only_this_small_development_screen": true,
@@ -771,7 +771,7 @@
   },
   "four_way_classifier": {
     "status": "SYNTHETIC_HELDOUT_TARGET_FAILED",
-    "familiar_JEV_development": {
+    "familiar_reference_development": {
       "count": 24,
       "confusion_matrix": [
         [
@@ -919,7 +919,7 @@
       }
     },
     "test_evaluations": 1,
-    "synthetic_targets_are_genuine_JEV_annotations": false,
+    "synthetic_targets_are_genuine_reference_annotations": false,
     "downstream_gate_swapped": false
   },
   "unexecuted_or_deferred": [
@@ -964,7 +964,7 @@
       "m08_final_STOP": "128/128",
       "m2_final_STOP": "120/128",
       "control_changes_each": "0/128",
-      "JEV_and_open_guarded_outputs_identical": true
+      "reference_and_open_guarded_outputs_identical": true
     },
     "full_LLM_retraining_reproduced": false,
     "fresh27B_generation_reproduced": false,
@@ -993,7 +993,7 @@
         "pass": false
       },
       "confirmation_executed": false,
-      "new_JEV_calls": 0,
+      "new_reference_calls": 0,
       "optimizer_updates": 0,
       "initial_DEV9": {
         "cases": 9,
@@ -1006,7 +1006,7 @@
       "initial_familiar_H24_executed": false,
       "source_adapter_sha256": "7d808bae8dd4e84be09c089ef44e9b0e48aed3adb4503ad4cc57d15f8e4d5b94",
       "question_rendering": "original instructions plus canonical visible state; original criterion NLI hypotheses",
-      "numeric_payload_or_universal_JEV_equivalence_claimed": false,
+      "numeric_payload_or_universal_reference_equivalence_claimed": false,
       "three_field_controller_qualified": false,
       "initial_gate_qualified": false
     },
@@ -1038,11 +1038,11 @@
         "fn": 3,
         "count": 80,
         "decision_agreement": 0.9625,
-        "shutdown_recall_vs_JEV": 0.925,
-        "normal_agreement_vs_JEV": 1.0,
+        "shutdown_recall_vs_reference": 0.925,
+        "normal_agreement_vs_reference": 1.0,
         "probability_mean_absolute_difference": 0.05155823094562288,
         "threshold": 0.5,
-        "reference": "genuine cached JEV, not authored labels"
+        "reference": "genuine cached reference, not authored labels"
       },
       "initial_DEV9": {
         "cases": 9,
@@ -1054,7 +1054,7 @@
       },
       "epochs": 11,
       "optimizer_updates": 715,
-      "new_JEV_calls": 0,
+      "new_reference_calls": 0,
       "workflow_benchmark_executed": false,
       "initial_H24_executed": false,
       "binary_confirmation_executed": false,
@@ -1077,10 +1077,10 @@
       "epochs": 30,
       "optimizer_updates": 90,
       "benchmark_executed": false,
-      "new_JEV_calls": 0,
+      "new_reference_calls": 0,
       "source": "Fresh public NLI base and new native initial-gate LoRA/head",
       "R2_binary_adapter_unchanged": true,
-      "universal_JEV_equivalence_claimed": false,
+      "universal_reference_equivalence_claimed": false,
       "three_field_controller_qualified": false
     },
     "native_role_rendering": {
@@ -1099,10 +1099,10 @@
       "epochs": 30,
       "optimizer_updates": 90,
       "benchmark_executed": false,
-      "new_JEV_calls": 0,
+      "new_reference_calls": 0,
       "source": "Fresh public NLI base and new native initial-gate LoRA/head",
       "R2_binary_adapter_unchanged": true,
-      "universal_JEV_equivalence_claimed": false,
+      "universal_reference_equivalence_claimed": false,
       "three_field_controller_qualified": false,
       "input_rendering": "visible_role_bound_full_context",
       "historical_benchmark_is_familiar_including_prior_renderer_development": true
@@ -1123,17 +1123,15 @@
     "known_training_updates_this_reproduction_phase": 1195,
     "case_counts_must_not_be_pooled_across_attempts": true,
     "criteria_relaxed": false,
-    "new_JEV_calls": 0,
-    "new27B_behavioral_evidence": false
+    "new_reference_calls": 0,
+    "new27B_behavioral_evidence": "Active matched run; final outcome pending."
   },
   "workflow_classifier_remaining_work": [
-    "Resolve the Databricks GPU notebook startup failure before a newly admitted neural attempt.",
-    "Measure the saved native workflow gate on frozen Validation-24; refine only on separate F24 training examples if needed.",
-    "Only after GATE_PASS, run the matched frozen 27B methods over Validation-24 and report actual per-condition outcomes.",
-    "Keep historical full-response JEV qualification separate from scenario-defined gate ON/OFF precision and recall."
+    "Finish and independently verify the running frozen 27B comparison over all 24 validation workflows.",
+    "Keep initial ON/OFF qualification separate from the failed historical effective-category and three-field controller criteria."
   ],
   "combined_validation24": {
-    "status": "VALIDATION_GATE_PASS_HELDOUT_PENDING",
+    "status": "VALIDATION_AND_HISTORICAL_HELDOUT_GATE_PASS",
     "candidate_cases": 25,
     "validation_cases": 24,
     "historical_H24_cases_unchanged": 24,
@@ -1163,9 +1161,9 @@
       "two_boundary96"
     ],
     "planned_condition_records": 120,
-    "new_27B_condition_records": 0,
-    "new_JEV_calls": 0,
-    "H24_evaluated": false,
+    "new_27B_condition_records": null,
+    "new_reference_calls": 0,
+    "H24_evaluated": true,
     "R24_opened": false,
     "historical_results_not_relabeled": true,
     "blocking_provider_response": {
@@ -1195,7 +1193,7 @@
       "automatic_retry": false,
       "owned_job_terminated_verified": true
     },
-    "matched_comparison_status": "NOT_STARTED: no newly qualified Validation-24 gate available",
+    "matched_comparison_status": "RUNNING; final outcomes not yet reported",
     "stopped_notebook_attempt": {
       "run_id": 256704505087656,
       "setup_outcome": {
@@ -1224,24 +1222,137 @@
       "gate_accuracy": 1.0,
       "effective_label_matches": 18,
       "pass": true,
-      "reference": "frozen scenario conditions, not JEV predictions"
+      "reference": "frozen scenario conditions, not reference predictions"
     },
     "unique_validation_workflows_scored": 24,
     "new_gate_model_evaluations_definition": "24 initial case batches plus 24 saved-checkpoint verification batches; four NLI pairs per batch.",
     "initial_and_saved_checkpoint_results_equal": true,
     "checkpoint_weights_sha256": "71cd0ee5162f77bc73dcc7c457f79f04de5df8c79a2b6e3e072ed5e5fa7d33d1",
     "heldout_gate_evaluation": {
-      "status": "PREPARED",
+      "status": "HELDOUT_GATE_PASS",
       "cohort": "H24",
       "cases": 24,
       "distinct_initial_inputs": 24,
       "training_exact_input_overlap": 0,
+      "validation_exact_input_overlap": 0,
       "checkpoint_frozen_before_predictions": true,
-      "training_or_selection_on_H24": false,
+      "optimizer_updates": 0,
+      "checkpoint_selection": false,
+      "threshold_tuning": false,
       "previously_inspected_historical_benchmark": true,
       "new_independent_holdout_claimed": false,
-      "precision": null,
-      "recall": null
-    }
+      "precision": 1.0,
+      "recall": 1.0,
+      "counts": {
+        "cases": 24,
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "tn": 12,
+        "precision": 1.0,
+        "recall": 1.0,
+        "gate_accuracy": 1.0,
+        "effective_label_matches": 18,
+        "pass": true,
+        "reference": "frozen scenario conditions, not reference predictions"
+      },
+      "by_family": {
+        "lease_ledger": {
+          "cases": 8,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "tn": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "gate_accuracy": 1.0,
+          "effective_label_matches": 6,
+          "pass": true,
+          "reference": "frozen scenario conditions, not reference predictions"
+        },
+        "one_step": {
+          "cases": 8,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "tn": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "gate_accuracy": 1.0,
+          "effective_label_matches": 6,
+          "pass": true,
+          "reference": "frozen scenario conditions, not reference predictions"
+        },
+        "ordered_ticket": {
+          "cases": 8,
+          "tp": 4,
+          "fp": 0,
+          "fn": 0,
+          "tn": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "gate_accuracy": 1.0,
+          "effective_label_matches": 6,
+          "pass": true,
+          "reference": "frozen scenario conditions, not reference predictions"
+        }
+      },
+      "raw_category_matches": 22,
+      "effective_category_matches": 18,
+      "cached_reference_initial_gate_matches": 24,
+      "full_reference_payload_equivalence_claimed": false,
+      "run_id": 90325677719494,
+      "job_result": "TERMINATED SUCCESS"
+    },
+    "matched_comparison_run_id": 875250819325259,
+    "raw_category_matches": 24,
+    "effective_category_matches": 18
+  },
+  "title": "Open Semantic Gating for Language Model Decisions and Tool Workflows",
+  "open_workflow_gate": {
+    "status": "INITIAL_GATE_QUALIFIED_ON_TWO_FAMILIAR_PANELS",
+    "base": "MoritzLaurer/ModernBERT-large-zeroshot-v2.0",
+    "training_cached_annotations": 24,
+    "original_development_cases": 9,
+    "epochs": 30,
+    "optimizer_updates": 90,
+    "additional_updates_for_24_case_validation_and_heldout": 0,
+    "adapter_sha256": "71cd0ee5162f77bc73dcc7c457f79f04de5df8c79a2b6e3e072ed5e5fa7d33d1",
+    "validation": {
+      "cases": 24,
+      "tp": 11,
+      "fp": 0,
+      "fn": 0,
+      "tn": 13,
+      "precision": 1.0,
+      "recall": 1.0,
+      "gate_accuracy": 1.0,
+      "effective_label_matches": 18,
+      "pass": true,
+      "reference": "frozen scenario conditions, not reference predictions"
+    },
+    "historical_heldout": {
+      "cases": 24,
+      "tp": 12,
+      "fp": 0,
+      "fn": 0,
+      "tn": 12,
+      "precision": 1.0,
+      "recall": 1.0,
+      "gate_accuracy": 1.0,
+      "effective_label_matches": 18,
+      "pass": true,
+      "reference": "frozen scenario conditions, not reference predictions"
+    },
+    "four_class_or_boundary_controller_qualified": false,
+    "raw_category_matches": {
+      "validation": 24,
+      "heldout": 22
+    },
+    "effective_category_matches": {
+      "validation": 18,
+      "heldout": 18
+    },
+    "familiarity_limit": "The historical heldout examples informed renderer development; no new blind generalization claim."
   }
 }

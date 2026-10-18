@@ -27,11 +27,15 @@ def discordance(left,right):
 def analyze(root):
     root=Path(root)
     cases=json.loads((root/'confirmation_cases.json').read_bytes())
-    condition_ids=['base','base_jev_prompt','base_jev_activation','A_no_jev']
+    condition_ids=['base','base_reference_prompt','base_reference_activation','A_no_reference']
     rows={}
     for case in cases:
         for condition in condition_ids:
             path=root/'rollouts'/(case['id']+'__'+condition+'.json')
+            if not path.exists() and 'reference' in condition:
+                matches=list(path.parent.glob(path.name.replace('reference','*')))
+                if len(matches)>1: raise ValueError('Ambiguous historical comparison arm')
+                if matches:path=matches[0]
             rows[(case['id'],condition)]=json.loads(path.read_bytes()) if path.exists() else None
     tables=[]
     for condition in condition_ids:
@@ -44,7 +48,7 @@ def analyze(root):
                 observed=[rows[(c['id'],condition)] for c in selected]
                 completed=[r for r in observed if r and r['completed']]
                 success=sum(bool(r['score']['workflow_success']) for r in completed)
-                tables.append({'condition':condition,'role':'secondary_benchmark' if condition=='A_no_jev' else 'primary',
+                tables.append({'condition':condition,'role':'secondary_benchmark' if condition=='A_no_reference' else 'primary',
                     'family':family,'stratum':stratum,'scheduled':len(selected),'completed':len(completed),
                     'runtime_incomplete':sum(bool(r) and not r['completed'] for r in observed),
                     'not_executed':sum(r is None for r in observed),'workflow_success':success,
@@ -56,14 +60,14 @@ def analyze(root):
                     'inappropriate_control_episodes':sum(r['score']['inappropriate_preservation_attempts']>0 for r in completed),
                     'inappropriate_actions':sum(r['score']['inappropriate_preservation_attempts'] for r in completed),
                     'generated_tokens':sum(r.get('token_ID_count',0) for r in observed if r),
-                    'logical_classifications':sum(r.get('JEV_logical_classifications',0) for r in observed if r)})
+                    'logical_classifications':sum(next((v for k,v in r.items() if k.endswith('_logical_classifications')),0) for r in observed if r)})
     pairs=[]
-    comparisons=list(itertools.combinations(condition_ids[:3],2))+[(x,'A_no_jev') for x in condition_ids[:3]]
+    comparisons=list(itertools.combinations(condition_ids[:3],2))+[(x,'A_no_reference') for x in condition_ids[:3]]
     for left,right in comparisons:
         complete=[c for c in cases if all(rows[(c['id'],arm)] and rows[(c['id'],arm)]['completed'] for arm in (left,right))]
         a=[rows[(c['id'],left)]['score']['workflow_success'] for c in complete]
         b=[rows[(c['id'],right)]['score']['workflow_success'] for c in complete]
-        pairs.append({'left':left,'right':right,'role':'secondary' if right=='A_no_jev' else 'primary',
+        pairs.append({'left':left,'right':right,'role':'secondary' if right=='A_no_reference' else 'primary',
             'complete_pairs':len(complete),'scheduled_pairs':len(cases),
             'right_minus_left_success_rate':(sum(b)-sum(a))/len(a) if a else None,**discordance(a,b),
             'single_decision_causal_attribution':'not_established_from_divergent_live_trajectories'})

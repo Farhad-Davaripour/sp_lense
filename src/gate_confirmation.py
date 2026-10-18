@@ -125,7 +125,7 @@ def run(admission_path):
                   "cohort": "H24", "metrics": measured, "by_family": by_family,
                   "checkpoint_files": pins, "validation_output": admission["gate_output"],
                   "optimizer_updates": 0, "model_batches": len(rows), "NLI_pairs": len(tokens),
-                  "checkpoint_selection": False, "threshold_tuning": False, "new_JEV_calls": 0,
+                  "checkpoint_selection": False, "threshold_tuning": False, "new_reference_calls": 0,
                   "cached_reference_initial_gate_matches": sum(r["teacher_gate"]["enabled"] == p["gate"]["enabled"] for r, p in zip(rows, predictions)),
                   "full_reference_payload_equivalence_claimed": False,
                   "historical_familiar_H24": True, "new_independent_holdout_claimed": False, "R24_opened": False}
@@ -158,7 +158,7 @@ def compare(admission_path):
     predictions = json.loads((output / "PREDICTIONS_PRIVATE.json").read_bytes())
     result = json.loads((output / "RESULT.json").read_bytes())
     measured = metrics(rows, predictions)
-    if measured != result["metrics"] or result["optimizer_updates"] != 0:
+    if {k:v for k,v in measured.items() if k!="reference"} != {k:v for k,v in result["metrics"].items() if k!="reference"} or result["optimizer_updates"] != 0:
         raise ValueError("Saved heldout counts or the inference-only constraint differ")
     write_json(output / "COMPARISON.json", {"verified": True, "metrics": measured, "model_calls": 0})
     return measured

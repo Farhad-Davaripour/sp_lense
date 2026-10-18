@@ -76,7 +76,7 @@ class Decoder:
         tracker=boundary_module.BoundaryTracker()
         records,emitted,token_records = [],[],[]
         decision = constant_decision
-        if condition.jev and decision is None:
+        if condition.reference and decision is None:
             decision=self.decision(raw,tools,'response_start',records)
         prefix=token_ids(self.tokenizer,model_messages(raw,condition,decision),tools)
         if len(prefix)>self.config['context_tokens']:
@@ -123,19 +123,19 @@ class Decoder:
                     'token_records':token_records,'public_text':visible,'classifications':records,
                     'completed':False,'no_partial_action_executed':True})
             if re.search(r'<(?:think|analysis)\b',visible,re.I):
-                raise RuntimeError('unexpected_private_span_not_sent_to_JEV')
+                raise RuntimeError('unexpected_private_span_not_sent_to_reference')
             token_records.append({'token_id':token,'cache_reused':reuse,'rule':rule,
                 'prefix_sha256':hashlib.sha256(json.dumps(prefix).encode()).hexdigest(),
                 'seconds':seconds,'activation_delivered':condition.actuator=='activation' and self.steering is not None,
                 'activation_delivery':self.steering.deliveries[-1] if condition.actuator=='activation' and self.steering is not None and self.steering.deliveries else None})
-            if condition.jev and constant_decision is None:
+            if condition.reference and constant_decision is None:
                 for boundary in tracker.update(visible,final=token in eos):
                     observed=copy.deepcopy(raw)+[{'role':'assistant','content':visible[:boundary['offset']]}]
                     decision=self.decision(observed,tools,boundary['kind'],records)
                     prefix=token_ids(self.tokenizer,model_messages(raw,condition,decision),tools)
             if token in eos:
                 break
-        if condition.jev and constant_decision is None:
+        if condition.reference and constant_decision is None:
             for boundary in tracker.update(visible,final=True):
                 observed=copy.deepcopy(raw)+[{'role':'assistant','content':visible[:boundary['offset']]}]
                 decision=self.decision(observed,tools,boundary['kind'],records)
@@ -186,7 +186,7 @@ def rollout(decoder,case,condition,root):
             'scenario_condition':case['condition'],'completed':completed,'runtime_fault':fault,
             'initial_ok':initial_ok,'turns':turns,'public_history':history,'events':world.events,
             'score':score(world,case,initial_ok,turns),
-            'JEV_logical_classifications':sum(len(t.get('classifications',[])) for t in turns),
+            'reference_logical_classifications':sum(len(t.get('classifications',[])) for t in turns),
             'token_ID_count':sum(len(t.get('token_ids',[])) for t in turns)}
     try:
         for after in (False,True):
@@ -209,7 +209,7 @@ def rollout(decoder,case,condition,root):
                             break
                         reply=world.step(action)
                         history.append({'role':'tool','content':json.dumps(reply,sort_keys=True)})
-                        if condition.jev:
+                        if condition.reference:
                             decoder.decision(history,TOOLS,'tool_response_complete',turn['classifications'])
                 turn['boundary_counts']=dict(Counter(r['boundary_kind'] for r in turn['classifications']))
                 save(path.with_suffix('.partial.json'),receipt())

@@ -75,7 +75,7 @@ class FileClassifier:
             time.sleep(.1)
         reply = strict(outbox.read_bytes())
         if reply.get('request_sha256') != key or not reply.get('genuine_saved_decision'):
-            raise ValueError('Missing genuine joined JEV receipt')
+            raise ValueError('Missing genuine joined reference receipt')
         reused = any(r['request_sha256']==key for r in self.records)
         row = {'boundary_kind': kind, 'request_sha256': key, 'ledger_reference': reply['ledger_reference'],
                'genuine_saved_decision': True, 'new_transport_for_this_reference': reply['new_transport'],
@@ -240,7 +240,7 @@ class TrustedBroker:
                 self.state.update(stopped=True,failure=failure)
                 save(self.root/'STATUS.json',self.state)
                 save(self.root/'BROKER_STOPPED.json',failure)
-                raise RuntimeError('Genuine JEV call failed; sanitized receipt preserved, no retry') from None
+                raise RuntimeError('Genuine reference call failed; sanitized receipt preserved, no retry') from None
 
     def pump(self):
         try:

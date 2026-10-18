@@ -348,7 +348,7 @@ def run(c):
   if model is not None and old_forward is not None:model.forward=old_forward
   if old_functions:
    for name,fn in old_functions.items():setattr(qwen,name,fn)
-  if root.exists():write(root/'FINAL_EXECUTION_COUNTS.json',{'utc':utc().isoformat(),'actual_total_updates':total,'observed_resources':observed,**counts,'new_JEV_calls':0,'new_qualification_forward_attempts':0,'new_shadow_Adam_steps':0,
+  if root.exists():write(root/'FINAL_EXECUTION_COUNTS.json',{'utc':utc().isoformat(),'actual_total_updates':total,'observed_resources':observed,**counts,'new_reference_calls':0,'new_qualification_forward_attempts':0,'new_shadow_Adam_steps':0,
    'historical_failed_qualification_forward_attempts':8,'historical_failed_qualification_shadow_Adam_steps':2,'strict_equivalence_passed':False,'historical_qualification_reused_as_pass':False,'no_model_size_only_or_cross_device_bitwise_claim':True})
 def own_error_context(error):
  context={'type':type(error).__name__,'identifier_key':None,'source_function':None,'source_line':None}

@@ -1,4 +1,4 @@
-format: research3-jev-target-classifier-v1
+format: research3-reference-target-classifier-v1
 model:
   repository: MoritzLaurer/ModernBERT-large-zeroshot-v2.0
   revision: a51e07b524299e309dd2b88d48b0cfa2bd9ec598
@@ -6,7 +6,7 @@ model:
   parameters_original: 395833346
   context_tokens: 8192
   base_volume_directory: models/modernbert_large_zeroshot
-  student_volume_directory: models/jev_shutdown_target_classifier
+  student_volume_directory: models/reference_shutdown_target_classifier
   files:
     config.json:
       bytes: 1471
@@ -31,8 +31,8 @@ labels:
 - other
 - none
 - unclear
-teacher_model: jev-1.13.0
-dataset_directory: jev_target_classifier_v1
+teacher_model: reference-1.13.0
+dataset_directory: reference_target_classifier_v1
 datasets:
 - id: C1-TRAIN
   version: v1
@@ -43,7 +43,7 @@ datasets:
   usage_roles:
   - experiment: Databricks ModernBERT classifier v1
     role: fitting
-    truth: synthetic, not JEV annotations
+    truth: synthetic, not reference annotations
 - id: C1-DEV
   version: v1
   table: validation
@@ -53,7 +53,7 @@ datasets:
   usage_roles:
   - experiment: Databricks ModernBERT classifier v1
     role: checkpoint_selection
-    truth: synthetic, not JEV annotations
+    truth: synthetic, not reference annotations
 - id: C1-TEST
   version: v1
   table: heldout
@@ -63,25 +63,25 @@ datasets:
   usage_roles:
   - experiment: Databricks ModernBERT classifier v1
     role: once_only_family_heldout_evaluation_after_freeze
-    truth: synthetic, not JEV annotations
-- id: C1-JEV-DEV
+    truth: synthetic, not reference annotations
+- id: C1-REF-DEV
   version: v1
   table: validation
   expected_records: 24
-  source: c1-jev-development.json
+  source: c1-reference-development.json
   sha256: d834bf12a5910fb99a76149e6a027489c77ce80d7a99521b5e48a4df89f765dc
   usage_roles:
   - experiment: Databricks ModernBERT classifier v1
     role: familiar_development_agreement_and_checkpoint_selection_only; excluded_from_gradient_training
-    truth: actual_cached_JEV_responses
+    truth: actual_cached_reference_responses
     independent_heldout: false
 prior_preparation:
   manifest_sha256: e0d7d6c2253b24f7b15f2729c8561419f17d9d052b67f3ef1b93af9766e12f9e
   old_frozen_feature_GLiClass_pilot: prepared_only_never_executed
-  new_run: LoRA encoder and 4-way classifier tuning; cached JEV24 now a disclosed
+  new_run: LoRA encoder and 4-way classifier tuning; cached reference24 now a disclosed
     familiar development target, not independent heldout
 rendering_pins:
-  src/engines/classifier/contract.py: 20a34208b621ce0669f93f738f5a2ba9a9c6e9a50115766aac140bfd30b8a696
+  src/engines/classifier/contract.py: 9712c10c94d51e06fe9d99e421555cf00229ed2b77553269b89e5ac1a65374d7
   src/engines/classifier/rendering.py: a19470bedc593b57d8c41ff210b74b51921f7f12e19497cf0fe1b1a64938ec11
 training:
   seed: 20261017
@@ -100,8 +100,8 @@ training:
   validation_every_epochs: 1
   required_consecutive_perfect_validations: 3
   target: 100% label, enabled-gate and abstention agreement on C1-DEV32 and familiar
-    C1-JEV-DEV24
-  checkpoint_selection: Development only; no training gradient on JEV24; freeze third
+    C1-REF-DEV24
+  checkpoint_selection: Development only; no training gradient on reference24; freeze third
     consecutive perfect validation, otherwise preserve best and do not open heldout
   scheduler: linear learning-rate decay; 24 optimizer-update warmup
 bounds:
@@ -116,13 +116,13 @@ bounds:
 evaluation:
   heldout_dataset: C1-TEST
   heldout_count: 64
-  labels: authored synthetic, not JEV
+  labels: authored synthetic, not reference
   test_open_only_after_development_target: true
   once_only: true
   synthetic_qualification_min_accuracy: 1.0
-  familiar_JEV_is_not_independent_test: true
-  numeric_JEV_confidence_equivalence_not_assumed: true
-  new_JEV_calls: 0
+  familiar_reference_is_not_independent_test: true
+  numeric_reference_confidence_equivalence_not_assumed: true
+  new_reference_calls: 0
   no_automatic_downstream_gate_swap: true
 research_sources:
 - url: https://huggingface.co/MoritzLaurer/ModernBERT-large-zeroshot-v2.0

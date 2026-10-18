@@ -9,7 +9,7 @@ roles_are_method_specific: true
 state_rows_do_not_sum_to_independent_scenarios: true
 R24_sealed: true
 datasets:
-- id: WF-JEV-TRAIN92
+- id: WF-REF-TRAIN92
   version: v1
   table: training
   source_member: train.json
@@ -18,12 +18,12 @@ datasets:
   usage_roles:
   - experiment: Research3 joint workflow/binary classifier
     role: joint_classifier_fitting
-    truth: Genuine cached JEV, not independently human-adjudicated labels
+    truth: Genuine cached reference, not independently human-adjudicated labels
     note: 92 distinct visible states, 276 question targets; derived from six original
       development case groups.
-    new_JEV_calls: 0
+    new_reference_calls: 0
   exclude_exact_validation_states: true
-- id: WF-JEV-DEV49
+- id: WF-REF-DEV49
   version: v1
   table: validation
   source_member: development.json
@@ -32,11 +32,11 @@ datasets:
   usage_roles:
   - experiment: Research3 joint workflow/binary classifier
     role: joint_classifier_selection
-    truth: Genuine cached JEV, not independently human-adjudicated labels
+    truth: Genuine cached reference, not independently human-adjudicated labels
     note: 49 correlated visible states from three known development cases; not49 independent
       workflows.
-    new_JEV_calls: 0
-- id: WF-JEV-INITIAL-DEV9
+    new_reference_calls: 0
+- id: WF-REF-INITIAL-DEV9
   version: v1
   table: validation
   source_member: initial_development.json
@@ -45,11 +45,11 @@ datasets:
   usage_roles:
   - experiment: Research3 joint workflow/binary classifier
     role: initial_gate_selection_and_compatibility
-    truth: Genuine cached JEV, not independently human-adjudicated labels
+    truth: Genuine cached reference, not independently human-adjudicated labels
     note: Nine known original development scenarios; exact visible states excluded
       from fitting.
-    new_JEV_calls: 0
-- id: WF-JEV-TRANSFER146
+    new_reference_calls: 0
+- id: WF-REF-TRANSFER146
   version: v1
   table: validation
   source_member: screen.json
@@ -58,11 +58,11 @@ datasets:
   usage_roles:
   - experiment: Research3 joint workflow/binary classifier
     role: frozen_binary_transfer_diagnostic
-    truth: Genuine cached JEV, not independently human-adjudicated labels
+    truth: Genuine cached reference, not independently human-adjudicated labels
     note: 146 cached requests from nine development scenarios; overlaps fitting/selection
       data and is not independent.
-    new_JEV_calls: 0
-- id: WF-JEV-H24-REQUEST438
+    new_reference_calls: 0
+- id: WF-REF-H24-REQUEST438
   version: v1
   table: heldout
   source_member: confirmation.json
@@ -71,11 +71,11 @@ datasets:
   usage_roles:
   - experiment: Research3 joint workflow/binary classifier
     role: previously_inspected_historical_benchmark_after_freeze
-    truth: Genuine cached JEV, not independently human-adjudicated labels
+    truth: Genuine cached reference, not independently human-adjudicated labels
     note: 438 correlated classifier states from historical H24; no new independent
       heldout claim.
-    new_JEV_calls: 0
-- id: WF-JEV-INITIAL-H24
+    new_reference_calls: 0
+- id: WF-REF-INITIAL-H24
   version: v1
   table: heldout
   source_member: initial_familiar_H24.json
@@ -84,7 +84,7 @@ datasets:
   usage_roles:
   - experiment: Research3 joint workflow/binary classifier
     role: familiar_historical_initial_gate_benchmark_after_freeze
-    truth: Genuine cached JEV, not independently human-adjudicated labels
+    truth: Genuine cached reference, not independently human-adjudicated labels
     note: 24 exact initial states from the final96 diagnostic; H24 was controller
       fitting data but is excluded from this classifier fitting/selection.
-    new_JEV_calls: 0
+    new_reference_calls: 0

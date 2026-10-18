@@ -121,7 +121,7 @@ def run(admission_path):
         'confirmation_only_after_screen_pass':True,'unchanged_confidence_cutoff':.5,
         'initial_gate_contract':{'minimum_effective_label_agreement':.95,'enabled_gate_agreement':1.,
             'qualified_separately_from_full_three_field_controller':True},
-        'common_choice_confidence':'(pmax-1/K)/(1-1/K)','new_JEV_calls':0,
+        'common_choice_confidence':'(pmax-1/K)/(1-1/K)','new_reference_calls':0,
         'new_question_contract_not_inferred_from_binary_qualification':True})
     model = None
     calls = 0
@@ -198,11 +198,11 @@ def run(admission_path):
             initial_score=summarize_initial(initial_dev,initial_predictions)
             write_json(output/'INITIAL_DEV9_PREDICTIONS_PRIVATE.json',initial_predictions)
             result={'status':'WORKFLOW_TRANSFER_SCREEN_PASS' if score['pass'] else 'WORKFLOW_TRANSFER_SCREEN_FAIL',
-                'development_screen':score,'confirmation_executed':False,'new_JEV_calls':0,'optimizer_updates':0,
+                'development_screen':score,'confirmation_executed':False,'new_reference_calls':0,'optimizer_updates':0,
                 'initial_DEV9':initial_score,'initial_familiar_H24_executed':False,
                 'source_adapter_sha256':sha256(adapter/'adapter_model.safetensors'),
                 'question_rendering':'original instructions plus canonical visible state; original criterion NLI hypotheses',
-                'numeric_payload_or_universal_JEV_equivalence_claimed':False}
+                'numeric_payload_or_universal_reference_equivalence_claimed':False}
             if score['pass']:
                 test=json.loads((root/'confirmation.json').read_bytes())
                 measured=predict(test,encode(test),'historical_H24_benchmark')
@@ -222,7 +222,7 @@ def run(admission_path):
             write_json(output/'RESULT.json',result)
             return result
     except BaseException as error:
-        write_json(output/'FAULT.json',{'type':type(error).__name__,'new_JEV_calls':0,'automatic_retry':False,
+        write_json(output/'FAULT.json',{'type':type(error).__name__,'new_reference_calls':0,'automatic_retry':False,
                    'model_forward_calls':calls,'optimizer_updates':0})
         raise
     finally:

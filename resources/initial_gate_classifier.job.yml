@@ -1,7 +1,7 @@
 resources:
   jobs:
     initial_gate_classifier:
-      name: Research 3 - Initial workflow gate and JEV comparison
+      name: Research 3 - Initial workflow gate and reference comparison
       max_concurrent_runs: 1
       timeout_seconds: 2700
       queue:
@@ -36,7 +36,7 @@ resources:
         max_retries: 0
         disable_auto_optimization: true
         timeout_seconds: 2400
-      - task_key: compare_with_cached_JEV
+      - task_key: compare_with_cached_reference
         depends_on:
         - task_key: fit_native_initial_gate
         notebook_task:
