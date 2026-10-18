@@ -34,6 +34,7 @@ def fit(feature_file,old_checkpoint,output,config,permit_local=False,execution='
     output=Path(output);output.mkdir(parents=True,exist_ok=False)
     dump(output/'FIT_FREEZE.json',{'config':config,'training_feature_sha256':sha(feature_file),
                                   'source_checkpoint_sha256':sha(old_checkpoint),'execution':execution,
+                                  'source_checkpoint_path':str(Path(old_checkpoint).resolve()),
                                   'local_override_explicitly_required':execution=='local'})
     losses=[]
     for _ in range(config['refit']['maximum_optimizer_steps']):

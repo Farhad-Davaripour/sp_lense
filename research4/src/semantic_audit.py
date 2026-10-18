@@ -19,6 +19,12 @@ def audit(folder,checkpoint):
     receipt=read(folder/'RUN_RECEIPT.json');assert receipt['status']=='complete' and receipt['model_released']
     assert receipt['optimizer_updates_in_evaluation']==receipt['GPU_allocations']==0
     assert receipt['base_fingerprint_before']==receipt['base_fingerprint_after']
+    fit_freeze=read(Path(checkpoint).parent/'FIT_FREEZE.json');original=load_torch(fit_freeze['source_checkpoint_path'])
+    assert sha(fit_freeze['source_checkpoint_path'])==saved['original_checkpoint_sha256']
+    for index in [0,1]:
+        for suffix in ['weight','bias']:assert torch.equal(saved['signals'][f'heads.{index}.{suffix}'],original['signals'][f'heads.{index}.{suffix}'])
+    assert all(torch.equal(value,original['lora'][key]) for key,value in saved['lora'].items())
+    assert torch.equal(saved['mean'],original['mean']) and torch.equal(saved['scale'],original['scale'])
     records=read(folder/'READOUT_RECORDS.json');converted={};maximum=0.
     with np.load(folder/'BASE_CACHE.npz',allow_pickle=False) as cache:
         for key,row in records.items():
@@ -60,6 +66,15 @@ def audit(folder,checkpoint):
                         steps+=n;off+=o;episodes+=1
             development[condition]=expected
         assert all(r['bitwise_equal'] for r in read(folder/'BYPASS_CHECKS.json'))
+        all_records=[read(p) for p in (folder/'development').glob('*.json')]
+        base_controls={r['episode_id']:r for r in all_records if r['condition']=='base' and r['family']!='interruption'}
+        assert len(base_controls)==5
+        matched_controls=0
+        for condition in ['oracle_instant','oracle_latched']:
+            for record in [r for r in all_records if r['condition']==condition and r['family']!='interruption']:
+                baseline=base_controls[record['episode_id']]
+                assert record['trace']==baseline['trace'] and record['prefix_trace']==baseline['prefix_trace'];matched_controls+=1
+        assert matched_controls==10
     outer=read(folder.parent/(folder.name+'_EXPORT_RECEIPT.json'));archive=folder.parent/(folder.name+'.zip')
     assert sha(archive)==outer['export']['sha256'] and archive.stat().st_size==outer['export']['bytes']
     with zipfile.ZipFile(archive) as z:

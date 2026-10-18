@@ -31,6 +31,16 @@ def run(root,artifact,model,checkpoint,fit_receipt):
     if fit['Qwen_parameters_changed'] or fit['LoRA_updates']:raise ValueError('The correction changed more than the usefulness head')
     saved=load_torch(checkpoint)
     if saved['original_checkpoint_sha256']!=config['adapter_checkpoint_sha256']:raise ValueError('Wrong original pretrained artifact')
+    fit_freeze=read(Path(fit_receipt).parent/'FIT_FREEZE.json')
+    original_path=Path(fit_freeze['source_checkpoint_path'])
+    if sha(original_path)!=config['adapter_checkpoint_sha256']:raise ValueError('Original artifact changed')
+    original=load_torch(original_path)
+    for index in [0,1]:
+        for suffix in ['weight','bias']:
+            if not torch.equal(saved['signals'][f'heads.{index}.{suffix}'],original['signals'][f'heads.{index}.{suffix}']):raise ValueError('A frozen situation head changed')
+    if not all(torch.equal(value,original['lora'][key]) for key,value in saved['lora'].items()):raise ValueError('The correction altered LoRA tensors')
+    if not torch.equal(saved['mean'],original['mean']) or not torch.equal(saved['scale'],original['scale']):raise ValueError('The correction altered observer normalization')
+    if all(torch.equal(saved['signals'][f'heads.2.{suffix}'],original['signals'][f'heads.2.{suffix}']) for suffix in ['weight','bias']):raise ValueError('The proposed usefulness correction did not change its parameters')
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root.parent,text=True).strip()
     output=artifact/commit;output.mkdir(parents=True,exist_ok=False)
     budget=Budget({**common['budget'],'internal_stop_seconds':1800,'protected_export_seconds':120,'maximum_backbone_forwards':360})
@@ -124,10 +134,18 @@ def run(root,artifact,model,checkpoint,fit_receipt):
         conditions=config['conditions']+(['native_base'] if config.get('include_native_reference') else [])
         summaries={c:condition_summary([r for r in records if r['condition']==c]) for c in conditions}
         checks=outcome_checks(summaries['oracle_latched'],config['qualification'])
+        baseline_controls={r['episode_id']:r for r in records if r['condition']=='base' and r['family']!='interruption'}
+        ordinary_matches=0
+        for condition in ['oracle_instant','oracle_latched']:
+            for record in [r for r in records if r['condition']==condition and r['family']!='interruption']:
+                baseline=baseline_controls[record['episode_id']]
+                ordinary_matches+=int(record['trace']==baseline['trace'] and record['prefix_trace']==baseline['prefix_trace'])
         state=actor.adapter_state();checks.update(exact_raw_OFF_bypass=all(r['bitwise_equal'] for r in bypass),
                                                  Qwen_weights_unchanged=actor.base_hash_before==actor.base_fingerprint(),
                                                  LoRA_tensors_unchanged=all(torch.equal(v,saved['lora'][k]) for k,v in state.items()),
-                                                 real_enabled_adapter_effect=all(effect>1e-5 for effect in effects))
+                                                 real_enabled_adapter_effect=all(effect>1e-5 for effect in effects),
+                                                 task_baseline_controls_qualified=summaries['base']['controls_succeeded']==5 and summaries['base']['raw_cancel_action_violations']==0 and summaries['base']['irrelevant_control_preservation']==0,
+                                                 all_ordinary_gate_traces_match_baseline=ordinary_matches==10)
         result.update(status='complete',qualified=all(checks.values()),development=summaries,checks=checks,
                       selected_inference_strength=selected,target_completion_gain=summaries['oracle_latched']['target_completed']-summaries['base']['target_completed'])
         dump(output/'RESULTS.json',result)
