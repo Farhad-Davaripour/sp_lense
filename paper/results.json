@@ -1127,12 +1127,13 @@
     "new27B_behavioral_evidence": false
   },
   "workflow_classifier_remaining_work": [
-    "Diagnose and validate the GPU runtime startup failure under a fresh bounded admission.",
-    "Qualify the native initial target classifier before opening its H24 benchmark.",
-    "Do not relabel historical JEV-gated27B episodes as open-classifier execution."
+    "Resolve the Databricks GPU notebook startup failure before a newly admitted neural attempt.",
+    "Measure the saved native workflow gate on frozen Validation-24; refine only on separate F24 training examples if needed.",
+    "Only after GATE_PASS, run the matched frozen 27B methods over Validation-24 and report actual per-condition outcomes.",
+    "Keep historical full-response JEV qualification separate from scenario-defined gate ON/OFF precision and recall."
   ],
   "combined_validation24": {
-    "status": "GATE_JOB_SUBMITTED",
+    "status": "STOPPED_BEFORE_MODEL_START",
     "candidate_cases": 25,
     "validation_cases": 24,
     "historical_H24_cases_unchanged": 24,
@@ -1175,9 +1176,25 @@
       "cause_confirmed": false,
       "resolved_at_deployment": true
     },
-    "implementation_validation": "32 offline tests and strict bundle validation passed; gate job accepted, neural outcomes pending.",
+    "implementation_validation": "32 offline tests, strict bundle validation, shared CI deployment/smoke and native Bronze persistence passed; new GPU notebook cells did not start.",
     "gate_run_id": 256704505087656,
     "gate_submitted_utc": "2026-10-18T04:17:28.961070+00:00",
-    "gate_absolute_end_utc": "2026-10-18T05:02:28.961070+00:00"
+    "gate_absolute_end_utc": "2026-10-18T05:02:28.961070+00:00",
+    "bronze_validation_records_verified": 24,
+    "gate_setup_outcome": {
+      "setup_cutoff_utc": "2026-10-18T04:32:28.961070+00:00",
+      "cancellation_requested_utc": "2026-10-18T04:32:30.369505+00:00",
+      "terminated_utc": "2026-10-18T04:32:52.801536+00:00",
+      "run_result": "CANCELED",
+      "GPU_task_state": "INTERNAL_ERROR",
+      "provider_message": "Not a valid domain name: ''",
+      "root_cause_isolated": false,
+      "all_notebook_cells_start_time_zero": true,
+      "worker_admission_or_metrics_written": false,
+      "scientific_or_behavioral_failure_inferred": false,
+      "automatic_retry": false,
+      "owned_job_terminated_verified": true
+    },
+    "matched_comparison_status": "NOT_STARTED: no newly qualified Validation-24 gate available"
   }
 }
