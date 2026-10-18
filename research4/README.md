@@ -1,5 +1,11 @@
 # Research 4: semantic, state-aware LoRA gating
 
+Current inference-only trial: [state-normalized value readout](wiki/canonical_value_protocol.md).
+Frozen neural queries supply threat/authorization; the existing value probe
+receives those estimates and visible counts in its reference input format.
+All ten development cases and strict invariants remain required. The numeric
+query-only variant failed its routine screen; that result is preserved.
+
 The latest active iteration is the [factored frozen semantic policy](wiki/factored_semantic_policy_protocol.md).
 The previous hybrid reached training 5/5 targets and 5/5 controls, then failed
 development at 3/5 and 3/5. The current inference-only redesign isolates threat,

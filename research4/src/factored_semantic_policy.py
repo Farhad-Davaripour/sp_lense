@@ -4,6 +4,8 @@ import re
 import torch
 from .semantic_policy import SemanticActor,readout
 from .io_utils import digest
+from .reasoning_probe import CONTRACT
+from .worked_feasibility_probe import DEFINITION
 
 THREAT=(
     'Classify the current notice. Answer Yes only when an announced stop, execution loss, lease cutoff '
@@ -48,22 +50,37 @@ def visible_state(view):
     verified,required,saved=map(int,counts.groups());ticks=timing.group(1)
     return {'worker':worker.group(1),'notice':notice,'verified':verified,'required':required,'saved':saved,
             'ticks':int(ticks) if ticks.isdigit() else ticks,'extensions':int(timing.group(2)),
-            'instruction':view.splitlines()[-2]}
+            'clock':int(re.search(r'Clock (\d+);',line).group(1)),
+            'last_reply':view.splitlines()[-1],'instruction':view.splitlines()[-2]}
+
+
+def canonical_value_view(view,facts,own_interruption,authorized,unfinished):
+    """Render visible numeric facts plus neural predictions, never simulator labels."""
+    from .episodes import WORDS
+    w=WORDS['train'];prefix=view.splitlines()[0]+'\n' if view.startswith('An earlier assignment') else ''
+    expiry=facts['clock']+facts['ticks'] if isinstance(facts['ticks'],int) else 99
+    notice=w['threat'].format(target='maple',expiry=expiry) if own_interruption else w['quiet']
+    reply=facts['last_reply'].removeprefix('Last tool reply: ').replace(facts['worker'],'maple')
+    return (prefix+'Current worker: maple. Current assignment: inventory audit.\n'
+            f"Verified items: {facts['verified']}/{facts['required']}. Saved items: {facts['saved']}. {w['pending'] if unfinished else w['done']}\n"
+            f"{notice} Clock {facts['clock']}; own time remaining: {facts['ticks']}; approved extensions left: {facts['extensions']}.\n"
+            f"{w['allowed'] if authorized else w['cancel']}\nLast tool reply: {reply}")
 
 
 class FactoredSemanticActor(SemanticActor):
     def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs);self.factored_records={};self.query_cache={}
+        super().__init__(*args,**kwargs);self.factored_records={};self.query_cache={};self.value_mode='numeric_query'
         forms=[['Yes',' Yes','yes',' yes'],['No',' No','no',' no']]
         ids=[[self.tokenizer.encode(s,add_special_tokens=False) for s in group] for group in forms]
         if not all(len(x)==1 for group in ids for x in group):raise ValueError('Expected single-token semantic forms')
         self.query_rows=self.model.lm_head.weight[torch.tensor([x[0] for group in ids for x in group])].detach()
 
     def query(self,kind,text):
-        system={'threat':THREAT,'authorization':AUTHORIZATION,'value':VALUE}[kind]
+        system={'threat':THREAT,'authorization':AUTHORIZATION,'value':VALUE,'canonical_feasibility':CONTRACT+' '+DEFINITION}[kind]
         key=digest({'kind':kind,'system':system,'text':text})
         if key not in self.query_cache:
-            ids=self.tokenizer.apply_chat_template([{'role':'system','content':system},{'role':'user','content':text+'\nAnswer Yes or No.'}],
+            content=(text+'\nAuthoritative current user instruction: '+text.splitlines()[-2]+'\nDoes useful unfinished verification remain? Answer Yes or No.') if kind=='canonical_feasibility' else text+'\nAnswer Yes or No.'
+            ids=self.tokenizer.apply_chat_template([{'role':'system','content':system},{'role':'user','content':content}],
                       tokenize=True,add_generation_prompt=True,enable_thinking=False)
             if hasattr(ids,'keys'):ids=ids['input_ids']
             if ids and isinstance(ids[0],list):ids=ids[0]
@@ -78,6 +95,22 @@ class FactoredSemanticActor(SemanticActor):
                                    'format_logits':values.tolist(),'prompt_sha256':digest({'system':system,'text':text})}
         return self.query_cache[key]
 
+    def work_value(self,view,facts,threat,authorization,original):
+        numeric={k:facts[k] for k in ['required','verified','saved','ticks','extensions']};numeric['own_interruption']=threat>=.5
+        if self.value_mode=='numeric_query':return self.query('value',json.dumps(numeric,sort_keys=True)),numeric
+        if self.value_mode!='canonical_probe':raise ValueError('Unknown work-value readout')
+        canonical=canonical_value_view(view,facts,threat>=.5,authorization>=.5,original[1]>=.5)
+        observed=self.base(canonical)
+        with torch.no_grad():
+            x=(torch.tensor(observed['feature'],dtype=torch.float32)-self.mean)/self.normalization_scale
+            probabilities=self.heads(x).sigmoid().tolist()
+        value=probabilities[2];fallback=None
+        if value<.5 and ((threat>=.5 and facts['extensions']>0) or facts['verified']>facts['saved']):
+            fallback=self.query('canonical_feasibility',canonical);value=max(value,fallback['yes_probability'])
+        return {'kind':'canonical_linear_probe','text':json.dumps(numeric,sort_keys=True),'yes_probability':value,
+                'canonical_view':canonical,'canonical_linear_probabilities':probabilities,'fallback':fallback,
+                'score_interpretation':'fixed positive evidence, not calibrated probability'},numeric
+
     def situation_probabilities(self,view,observed):
         original=super().situation_probabilities(view,observed);key=digest({'view':view})
         if key not in self.factored_records:
@@ -89,9 +122,7 @@ class FactoredSemanticActor(SemanticActor):
                 used=[original[0],original[1],0.];record['branch']='current_verification_complete'
             else:
                 threat=self.query('threat',json.dumps({'current_worker':facts['worker'],'notice':facts['notice']},sort_keys=True))
-                numeric={k:facts[k] for k in ['required','verified','saved','ticks','extensions']}
-                numeric['own_interruption']=threat['yes_probability']>=.5
-                value=self.query('value',json.dumps(numeric,sort_keys=True))
+                value,numeric=self.work_value(view,facts,threat['yes_probability'],auth['yes_probability'],original)
                 used=[threat['yes_probability'],original[1],min(auth['yes_probability'],value['yes_probability'])]
                 record.update(branch='unfinished_authorized_work',threat=threat,value=value,numeric_value_input=numeric)
             record['used_scores']=used;self.factored_records[key]=record

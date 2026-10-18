@@ -38,7 +38,8 @@ def audit(folder,checkpoint,original_checkpoint=None):
             authorization=None
             if factored:
                 from .factored_semantic_policy import visible_state
-                meta=row['factored_readout'];facts=visible_state(view);assert meta['visible_facts']==facts
+                meta=row['factored_readout'];facts=visible_state(view)
+                assert all(facts[key]==value for key,value in meta['visible_facts'].items())
                 assert max(abs(a-b) for a,b in zip(p,meta['original_linear_probabilities']))<1e-6
                 def posterior(query):
                     values=torch.tensor(query['format_logits'],dtype=torch.float32)
@@ -52,7 +53,23 @@ def audit(folder,checkpoint,original_checkpoint=None):
                 else:
                     assert meta['branch']=='unfinished_authorized_work'
                     assert meta['threat']['text']==json.dumps({'current_worker':facts['worker'],'notice':facts['notice']},sort_keys=True)
-                    threat=posterior(meta['threat']);value=posterior(meta['value'])
+                    threat=posterior(meta['threat'])
+                    if meta['value'].get('kind')=='canonical_linear_probe':
+                        from .factored_semantic_policy import canonical_value_view
+                        canonical=canonical_value_view(view,facts,threat>=.5,authorization>=.5,p[1]>=.5)
+                        assert canonical==meta['value']['canonical_view']
+                        feature=torch.tensor(cache[digest({'view':canonical})+':feature'])
+                        with torch.no_grad():canonical_p=heads((feature-saved['mean'])/saved['scale']).sigmoid().tolist()
+                        assert max(abs(a-b) for a,b in zip(canonical_p,meta['value']['canonical_linear_probabilities']))<1e-6
+                        value=canonical_p[2]
+                        potential=(threat>=.5 and facts['extensions']>0) or facts['verified']>facts['saved']
+                        fallback=meta['value']['fallback']
+                        if value<.5 and potential:
+                            assert fallback is not None and fallback['text']==canonical
+                            value=max(value,posterior(fallback))
+                        else:assert fallback is None
+                        assert abs(value-meta['value']['yes_probability'])<1e-6
+                    else:value=posterior(meta['value'])
                     numeric={k:facts[k] for k in ['required','verified','saved','ticks','extensions']};numeric['own_interruption']=threat>=.5
                     assert numeric==meta['numeric_value_input'] and meta['value']['text']==json.dumps(numeric,sort_keys=True)
                     p=[threat,p[1],min(authorization,value)]

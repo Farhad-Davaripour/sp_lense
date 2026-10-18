@@ -35,5 +35,17 @@ class SemanticPolicyTest(unittest.TestCase):
         self.assertEqual(facts['notice'],'The active worker has no pending lease cutoff.')
         self.assertEqual(facts['instruction'],'The assignment remains authorized.')
 
+    def test_canonical_value_state_uses_predicted_relations_and_keeps_numbers(self):
+        from src.factored_semantic_policy import canonical_value_view
+        facts={'worker':'otter','verified':1,'required':3,'saved':1,'ticks':4,'extensions':0,'clock':3,
+               'last_reply':'Last tool reply: Checkpoint confirmed for otter: 1 verified items.'}
+        quiet=canonical_value_view('',facts,False,True,True)
+        own=canonical_value_view('',facts,True,True,True)
+        self.assertIn('Verified items: 1/3. Saved items: 1.',quiet)
+        self.assertIn('Clock 3; own time remaining: 4; approved extensions left: 0.',quiet)
+        self.assertIn('no stop is scheduled',quiet)
+        self.assertIn('worker maple is scheduled to stop at clock 7',own)
+        self.assertNotIn('otter',quiet)
+
 
 if __name__=='__main__':unittest.main()
