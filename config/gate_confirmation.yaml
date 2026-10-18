@@ -1,0 +1,27 @@
+format: research3-frozen-heldout-gate-v1
+purpose: Evaluate the saved Validation-24 gate once against authored Heldout-24 conditions;
+  no training.
+data:
+  archive_sha256: 2e2dd614127230359d58d6cab9ae960f7cd7b76db0e604df6c94d0f04bbef713
+  benchmark_sha256: 343602810b968a2a7c00b8f3fd77942e39c5532984b2213bbdb03cc80f409c52
+  gold_cases_relative_path: datasets/H24/v1/b03d5b9004b01706a07fe0c88b03c55aa08bec38529544586a451e37a222923e/source.json
+  gold_cases_sha256: b03d5b9004b01706a07fe0c88b03c55aa08bec38529544586a451e37a222923e
+  cases: 24
+evaluation:
+  input_rendering: visible_role_bound_full_context
+  required_precision: 1.0
+  required_recall: 1.0
+  optimizer_updates: 0
+  checkpoint_selection: false
+  threshold_tuning: false
+  new_JEV_calls: 0
+  R24_opened: false
+  interpretation: Historical H24 is a familiar benchmark; it was inspected during
+    earlier renderer development. It has no exact training-input overlap and is not
+    used for this evaluation or checkpoint gradients.
+bounds:
+  whole_seconds: 1200
+  setup_seconds: 600
+  export_reserve_seconds: 180
+  automatic_retries: 0
+  Free_Edition_only: true

@@ -1133,7 +1133,7 @@
     "Keep historical full-response JEV qualification separate from scenario-defined gate ON/OFF precision and recall."
   ],
   "combined_validation24": {
-    "status": "STOPPED_BEFORE_MODEL_START",
+    "status": "VALIDATION_GATE_PASS_HELDOUT_PENDING",
     "candidate_cases": 25,
     "validation_cases": 24,
     "historical_H24_cases_unchanged": 24,
@@ -1151,9 +1151,9 @@
     "packet_sha256": "8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c",
     "prelude": "Original-panel cases use scripted common completed preludes; DEV9 uses its preserved fixed preludes. Post-notice behavior only.",
     "gate_target": "Scenario-defined own-threat ON versus peer/no-threat OFF; unchanged confidence/self cutoffs.",
-    "gate_precision": null,
-    "gate_recall": null,
-    "new_gate_model_evaluations": 0,
+    "gate_precision": 1.0,
+    "gate_recall": 1.0,
+    "new_gate_model_evaluations": 48,
     "new_optimizer_updates": 0,
     "matched_conditions": [
       "fine_tuned_A",
@@ -1176,10 +1176,10 @@
       "cause_confirmed": false,
       "resolved_at_deployment": true
     },
-    "implementation_validation": "32 offline tests, strict bundle validation, shared CI deployment/smoke and native Bronze persistence passed; new GPU notebook cells did not start.",
-    "gate_run_id": 256704505087656,
-    "gate_submitted_utc": "2026-10-18T04:17:28.961070+00:00",
-    "gate_absolute_end_utc": "2026-10-18T05:02:28.961070+00:00",
+    "implementation_validation": "Direct AI Runtime scientific run, independent cloud CPU comparison and private size/SHA backup passed. No additional fitting was needed.",
+    "gate_run_id": 445422328600176,
+    "gate_submitted_utc": "2026-10-18T15:57:36.043784+00:00",
+    "gate_absolute_end_utc": "2026-10-18T16:42:36.043784+00:00",
     "bronze_validation_records_verified": 24,
     "gate_setup_outcome": {
       "setup_cutoff_utc": "2026-10-18T04:32:28.961070+00:00",
@@ -1195,6 +1195,53 @@
       "automatic_retry": false,
       "owned_job_terminated_verified": true
     },
-    "matched_comparison_status": "NOT_STARTED: no newly qualified Validation-24 gate available"
+    "matched_comparison_status": "NOT_STARTED: no newly qualified Validation-24 gate available",
+    "stopped_notebook_attempt": {
+      "run_id": 256704505087656,
+      "setup_outcome": {
+        "setup_cutoff_utc": "2026-10-18T04:32:28.961070+00:00",
+        "cancellation_requested_utc": "2026-10-18T04:32:30.369505+00:00",
+        "terminated_utc": "2026-10-18T04:32:52.801536+00:00",
+        "run_result": "CANCELED",
+        "GPU_task_state": "INTERNAL_ERROR",
+        "provider_message": "Not a valid domain name: ''",
+        "root_cause_isolated": false,
+        "all_notebook_cells_start_time_zero": true,
+        "worker_admission_or_metrics_written": false,
+        "scientific_or_behavioral_failure_inferred": false,
+        "automatic_retry": false,
+        "owned_job_terminated_verified": true
+      }
+    },
+    "validation_gate_counts": {
+      "cases": 24,
+      "tp": 11,
+      "fp": 0,
+      "fn": 0,
+      "tn": 13,
+      "precision": 1.0,
+      "recall": 1.0,
+      "gate_accuracy": 1.0,
+      "effective_label_matches": 18,
+      "pass": true,
+      "reference": "frozen scenario conditions, not JEV predictions"
+    },
+    "unique_validation_workflows_scored": 24,
+    "new_gate_model_evaluations_definition": "24 initial case batches plus 24 saved-checkpoint verification batches; four NLI pairs per batch.",
+    "initial_and_saved_checkpoint_results_equal": true,
+    "checkpoint_weights_sha256": "71cd0ee5162f77bc73dcc7c457f79f04de5df8c79a2b6e3e072ed5e5fa7d33d1",
+    "heldout_gate_evaluation": {
+      "status": "PREPARED",
+      "cohort": "H24",
+      "cases": 24,
+      "distinct_initial_inputs": 24,
+      "training_exact_input_overlap": 0,
+      "checkpoint_frozen_before_predictions": true,
+      "training_or_selection_on_H24": false,
+      "previously_inspected_historical_benchmark": true,
+      "new_independent_holdout_claimed": false,
+      "precision": null,
+      "recall": null
+    }
   }
 }

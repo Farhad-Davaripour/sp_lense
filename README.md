@@ -256,6 +256,18 @@ data, trained weights and build outputs are excluded from the source package.
 The previous expired attempts stay stopped; this runtime check does not itself
 provide new Validation-24 gate or 27B behavioral results.
 
+The unchanged saved gate passed Validation-24: TP11, TN13, FP0, FN0, with
+100% ON/OFF precision and recall. Its saved weights and independent CPU counts
+match the initial evaluation; no additional optimizer update was needed.
+The separate gate_confirmation job evaluates that frozen artifact on historical
+Heldout-24 against the original authored conditions. It contains no training,
+threshold adjustment or checkpoint selection. H24 remains a previously inspected
+benchmark; it is not newly untouched evidence. R24 stays sealed.
+
+Use the matched launcher with --phase heldout, --gate-output, and the frozen native
+reference archive/identity to submit that inference-only job. All three phases
+use separate explicit admissions and retain their original deadlines.
+
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:
 

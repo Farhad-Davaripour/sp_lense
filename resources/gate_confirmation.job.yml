@@ -1,0 +1,59 @@
+resources:
+  jobs:
+    gate_confirmation:
+      max_concurrent_runs: 1
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: code_path
+        default: ${workspace.file_path}
+      - name: admission
+        default: ''
+      name: Research 3 - Frozen ModernBERT gate on Heldout-24
+      timeout_seconds: 1200
+      tasks:
+      - task_key: evaluate_frozen_heldout_gate
+        environment_key: ai_runtime
+        disable_auto_optimization: true
+        timeout_seconds: 900
+        max_retries: 0
+        ai_runtime_task:
+          experiment: research3-frozen-gate-heldout24
+          code_source_path: ./dist/research_source.tgz
+          deployments:
+          - command_path: ${workspace.file_path}/src/commands/admission_required.sh
+            compute:
+              accelerator_type: ${var.accelerator}
+              accelerator_count: 1
+      - task_key: verify_saved_heldout_gate_counts
+        depends_on:
+        - task_key: evaluate_frozen_heldout_gate
+        notebook_task:
+          notebook_path: ../notebooks/gate_confirmation_compare.py
+        environment_key: runtime
+        disable_auto_optimization: true
+        max_retries: 0
+        timeout_seconds: 300
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'
+      - environment_key: ai_runtime
+        spec:
+          environment_version: '6'
+          dependencies:
+          - PyYAML==6.0.3
+          - databricks-sdk==0.153.0
+          - psutil==7.2.2
+          - torch==2.11.0+cu128
+          - --extra-index-url https://download.pytorch.org/whl/cu128
+          - transformers==5.19.0
+          - peft==0.21.2
+          - safetensors==0.8.0

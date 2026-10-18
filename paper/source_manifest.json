@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-18T15:51:14.999932+00:00",
+  "recorded_utc": "2026-10-18T16:15:50.467245+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -28,8 +28,8 @@
   },
   "results": {
     "file": "results.json",
-    "bytes": 36355,
-    "sha256": "f8564c024436abefa07a4fd458046410342fff6cffc3490bed373708fd9a736c"
+    "bytes": 38185,
+    "sha256": "4956a0d4ccfda44849cb3db8ea3b7ddc8135d5e12092a611122ae6b1d70c1ff8"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -244,6 +244,11 @@
       "bytes": 2895,
       "sha256": "d5e67414778304073e827713ee4977d29a766ee943d16fb865419a1bebbcf027",
       "identity": "canonical Git blob"
+    },
+    "config/gate_confirmation.yaml": {
+      "bytes": 1121,
+      "sha256": "25acac1eddc1a415b8163e099efbd2361962b71028f945c1aa2fc60390e297cb",
+      "identity": "canonical Git blob"
     }
   },
   "availability": {
@@ -276,8 +281,8 @@
     "src/initial_gate_training.py": "Native four-choice fitting, frozen benchmark only after development qualification, separate CPU comparison.",
     "src/steering.py": "Preserved selected-ridge and other workers; fresh neural execution needs original inputs and new admission.",
     "src/matched_validation.py": {
-      "bytes": 24873,
-      "sha256": "b8caafa171544348134ce6ddb93c106ebc589cbe6cde2e893a3bc7124535e912",
+      "bytes": 25924,
+      "sha256": "f2f2859f3541221167ba0d9cf01094f7e64ae680b927a14a39f2b4e786f0df6d",
       "identity": "canonical Git blob"
     },
     "src/matched_steering.py": {
@@ -286,12 +291,17 @@
       "identity": "canonical Git blob"
     },
     "src/runtime.py": {
-      "bytes": 4859,
-      "sha256": "d724cf5aa0b7bdd7557f99557a5cbbc7b9b579aaf69f453b0c263ddcc3237574",
+      "bytes": 5006,
+      "sha256": "35341219d1cf299ed6ecffc6ca70ff4351f7043fb2da9c4e671d3b8603534649",
+      "identity": "canonical Git blob"
+    },
+    "src/gate_confirmation.py": {
+      "bytes": 9534,
+      "sha256": "44bdc7aa9fd35b7d753bb4bcc7959948f2c2c45c943297bd6794a82fdadf0760",
       "identity": "canonical Git blob"
     }
   },
-  "working_branch": "codex/research3-ai-runtime-fix",
+  "working_branch": "codex/research3-gate-heldout24",
   "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/72",
   "manuscript_readiness": "Tracked review draft; native workflow-classifier substitution unresolved.",
   "execution_sources": {
@@ -314,10 +324,10 @@
     "packet_bytes": 451424,
     "packet_sha256": "8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c",
     "Volume_readback_verified": true,
-    "new_model_evaluations": 0,
+    "new_model_evaluations": 48,
     "new_optimizer_updates": 0,
     "new_JEV_calls": 0,
-    "status": "Stopped at the submission-bound setup cutoff before notebook execution; Databricks returned Not a valid domain name: ''. Cause unresolved.",
+    "status": "V24 gate PASS, TP11/TN13/FP0/FN0; saved checkpoint independently verified; additional updates0. H24 inference-only evaluation prepared.",
     "CPU_source_and_configuration_validation_is_not_neural_execution": true,
     "gate_run_id": 256704505087656,
     "bronze_validation_records_verified": 24,
