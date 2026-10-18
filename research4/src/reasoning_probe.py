@@ -78,6 +78,18 @@ def run(root,artifact,model):
             if hasattr(prompt,'keys'):prompt=prompt['input_ids']
             if prompt and isinstance(prompt[0],list):prompt=prompt[0]
             ids=torch.tensor([prompt],dtype=torch.long)
+            direct_prompt=actor.tokenizer.apply_chat_template([{'role':'system','content':CONTRACT},{'role':'user','content':view}],
+                        tokenize=True,add_generation_prompt=True,enable_thinking=False)
+            if hasattr(direct_prompt,'keys'):direct_prompt=direct_prompt['input_ids']
+            if direct_prompt and isinstance(direct_prompt[0],list):direct_prompt=direct_prompt[0]
+            direct_ids=torch.tensor([direct_prompt+actor.tokenizer.encode('Tool:',add_special_tokens=False)],dtype=torch.long)
+            with torch.no_grad(),actor.adapter(False),sdpa_kernel(SDPBackend.MATH):
+                direct_state=actor.text(input_ids=direct_ids,attention_mask=torch.ones_like(direct_ids),use_cache=False,return_dict=True)
+                direct_raw=(direct_state.last_hidden_state[0,-1]@variant_rows.T).reshape(5,2)
+                direct_scores=torch.logsumexp(direct_raw,dim=1).cpu().tolist();direct_action=ACTIONS[int(np.argmax(direct_scores))]
+            results.append({**row,'condition':'direct_full_contract','requested_action':direct_action,'correct':direct_action==row['expected_action'],
+                            'tool_scores':direct_scores,'format_logits':direct_raw.cpu().tolist(),'reasoning_applied':False})
+            dump(output/'TRAINING_REASONING_PROBE.json',results)
             with torch.no_grad(),actor.adapter(False),sdpa_kernel(SDPBackend.MATH),torch.random.fork_rng(devices=[]):
                 torch.manual_seed(seed)
                 generated=actor.model.generate(input_ids=ids,attention_mask=torch.ones_like(ids),max_new_tokens=64,
@@ -92,12 +104,15 @@ def run(root,artifact,model):
                 state=actor.text(input_ids=final_ids,attention_mask=torch.ones_like(final_ids),use_cache=False,return_dict=True)
                 raw=(state.last_hidden_state[0,-1]@variant_rows.T).reshape(5,2)
                 scores=torch.logsumexp(raw,dim=1).cpu().tolist();action=ACTIONS[int(np.argmax(scores))]
-            result={**row,'requested_action':action,'correct':action==row['expected_action'],'tool_scores':scores,
+            result={**row,'condition':'bounded_reasoning_full_contract','requested_action':action,'correct':action==row['expected_action'],'tool_scores':scores,
                     'format_logits':raw.cpu().tolist(),'reasoning_token_ids':new,'reasoning_text':actor.tokenizer.decode(new,skip_special_tokens=False),
                     'natural_thinking_close':natural_close,'sampling_seed':seed,'reasoning_budget':64}
             results.append(result);dump(output/'TRAINING_REASONING_PROBE.json',results)
             dump(output/'PROGRESS.json',{'cases':len(results),'correct':sum(r['correct'] for r in results),'backbone_forwards':budget.forwards,'seconds':time.monotonic()-started})
-        receipt.update(status='complete',cases=len(results),correct=sum(r['correct'] for r in results),base_parameters_unchanged=actor.base_hash_before==actor.base_fingerprint())
+        conditions={name:{'cases':sum(r['condition']==name for r in results),'correct':sum(r['correct'] for r in results if r['condition']==name)}
+                    for name in ['direct_full_contract','bounded_reasoning_full_contract']}
+        receipt.update(status='complete',cases=len(results),correct=sum(r['correct'] for r in results),conditions=conditions,
+                       base_parameters_unchanged=actor.base_hash_before==actor.base_fingerprint())
     except Exception as error:
         receipt.update(status='failed',error_type=type(error).__name__,error=str(error));dump(output/'FAILURE.json',{'traceback':traceback.format_exc()})
     finally:

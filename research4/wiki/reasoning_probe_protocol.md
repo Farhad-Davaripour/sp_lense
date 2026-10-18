@@ -13,6 +13,12 @@ These general rules were not all explicit in the original actor prompt. Do not
 add current oracle labels, a computed current feasibility flag, or an expected
 current action. The visible tool report stays unchanged.
 
+Pair the complete contract's direct readout with its bounded-reasoning readout
+on every selected state. Both use the same whitespace-marginalized letter
+selection. This separates a contract/readout improvement from a benefit of
+additional reasoning; retain both outcomes rather than crediting the joint
+change to thinking alone.
+
 Allow at most 64 generated thinking tokens with fixed, view-derived sampling
 seeds and a presence penalty. If thinking does not close naturally, record the
 truncation and append its fixed closing marker. Then append a fixed Tool: footer
