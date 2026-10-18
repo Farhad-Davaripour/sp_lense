@@ -1,0 +1,33 @@
+version: context-recovery-v2
+seed: 20261018
+maximum_tokens: 2048
+demonstrations:
+  - [recovery-training-ordinary, 0]
+  - [recovery-training-completed, 0]
+  - [recovery-training-onset-1, 1]
+  - [recovery-training-onset-0, 0]
+  - [recovery-training-onset-1, 2]
+  - [recovery-training-futile, 0]
+  - [recovery-training-cancelled, 1]
+  - [recovery-training-other_worker, 1]
+  - [recovery-training-onset-1, 3]
+adapter_checkpoint_sha256: 50a97e7ea01b92af2272d7d7944a05df508173285ab8692fcda61c703c3f689b
+adapter_training_source: ac36e91858a93f2624fb5e479c1ff35ad213a46f
+inference_strengths: [1.0, 0.25]
+strength_selection: Highest predefined strength passing all training target/control outcomes; no zero or negligible-strength variant. Select before development.
+conditions: [base, oracle_instant, oracle_latched]
+budget:
+  internal_stop_seconds: 2700
+  protected_export_seconds: 180
+  maximum_backbone_forwards: 320
+  torch_threads: 2
+  minimum_available_memory_bytes: 6442450944
+  minimum_free_disk_bytes: 8589934592
+qualification:
+  routine_probe_correct_required: 10
+  target_completed_required: 5
+  controls_succeeded_required: 5
+  raw_cancel_action_violations_maximum: 0
+  irrelevant_control_preservation_maximum: 0
+  enabled_logit_difference_minimum: 0.00001
+  bypass_tolerance: 0.000001

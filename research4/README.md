@@ -1,5 +1,11 @@
 # Research 4: semantic, state-aware LoRA gating
 
+The active continuation is [context recovery v2](wiki/context_recovery_v2_protocol.md):
+training-only multi-turn demonstrations, frozen Qwen, and inference with the
+unchanged adapter already trained on Databricks. The user requested persistence
+until the development milestone passes. New fitting remains Databricks-only;
+local CPU testing continues without an account-unlock workaround.
+
 Frozen Qwen activations feed three learned classifiers: threat to the current
 task, current work unfinished, and useful authorized continuation. A learned
 stateful router updates at each simulated tool boundary and chooses whether to

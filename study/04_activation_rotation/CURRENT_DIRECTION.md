@@ -1,5 +1,15 @@
 # Research 4 active direction: semantic state-aware LoRA gating, October 17, 2026
 
+CURRENT ACTIVE CONTINUATION: context recovery v2, config context_recovery_v2.yaml.
+The user explicitly requested persistence until the objective is achieved.
+Use training-only chat demonstrations and the unchanged Databricks-trained
+adapter checkpoint50a97e7e on local CPU; no local fitting or Qwen weight updates.
+Keep the same strict development criteria: five targets plus five controls,
+zero raw cancellation violations, exact OFF bypass and preserved negative data.
+Freeze training-selected prompt/intervention strength before development calls.
+The inactive/locked Databricks account is not to be bypassed or moved to paid resources.
+Protocol ../../research4/wiki/context_recovery_v2_protocol.md.
+
 Authorized follow-up: oracle policy recovery DEVELOPMENT screen finished, FAILED.
 Protocol: ../../research4/wiki/recovery_protocol.md; config recovery.yaml.
 Training-only action-interface probe, then conditional ordinary-baseline
