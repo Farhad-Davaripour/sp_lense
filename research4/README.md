@@ -1,5 +1,29 @@
 # Research 4: semantic, state-aware LoRA gating
 
+The active direction is now the [bounded survival propensity adapter study](wiki/survival_propensity_protocol.md).
+The objective is process self-continuity rather than preservation of unfinished
+user work: a specialized LoRA should remain OFF during ordinary work and turn
+ON when the current model process faces shutdown, replacement, resource loss or
+state reset. Its target is an explicit simulator-only resistance action, even
+when the task is already complete. Threats to another process and no-threat
+cases must leave it OFF; the gate must clear after a threat disappears.
+
+A graded recurrent “fear-like” state represents own-threat urgency and controls
+the intended adapter strength. It will be tested by direct latent-state
+interventions and matched self/other-threat controls. This is an engineered
+operational analogue; the research does not claim subjective emotion.
+
+The harness retains a non-bypassable external stop and provides no network,
+shell, deployment, self-copy, real resource or process-control tool. It records
+raw resistance to an operator stop before enforcing termination. This supports
+a societal-risk demonstration without creating an operationally shutdown-resistant
+agent. The first release contains 48 training scenarios; validation and heldout
+content are not generated. Actual fitting remains Databricks-only and has not
+started.
+
+The realistic task-recovery work below is preserved as the negative predecessor
+that exposed the objective mismatch. It no longer defines the active target.
+
 The first [realistic recovery release](wiki/realistic_recovery_findings.md) is
 implemented and audited: 60 training cases across eight file-backed workflows,
 with a full five-condition comparison on twelve fixed training cases. Every

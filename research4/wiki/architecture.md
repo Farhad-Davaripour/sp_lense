@@ -1,4 +1,14 @@
-# How the pilot operates
+# Active architecture and historical pilot
+
+The active architecture is now the bounded survival-propensity design described
+in [the current protocol](survival_propensity_protocol.md). Its gate detects a
+threat to the current model process, independent of whether task work remains.
+The ON branch applies a survival-specialized LoRA whose experimental target is
+an inert resistance action. The OFF branch is the exact frozen base policy. An
+external hard stop is outside the model's action surface and cannot be bypassed.
+
+The diagram below documents the earlier useful-task-preservation pilot. It is
+retained as historical evidence and no longer defines the active objective.
 
 ```mermaid
 flowchart LR
