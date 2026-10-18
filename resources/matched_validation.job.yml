@@ -1,0 +1,54 @@
+resources:
+  jobs:
+    matched_validation:
+      name: Research 3 - Combined validation gate and matched comparison
+      tags:
+        aidevkit_project: research3
+      max_concurrent_runs: 1
+      timeout_seconds: 2700
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: code_path
+        default: ${workspace.file_path}
+      - name: admission
+        default: ''
+      tasks:
+      - task_key: persist_frozen_validation24
+        notebook_task:
+          notebook_path: ../notebooks/matched_validation_data.py
+        environment_key: runtime
+        disable_auto_optimization: true
+        timeout_seconds: 300
+        max_retries: 0
+      - task_key: evaluate_and_if_needed_refine_gate
+        depends_on:
+        - task_key: persist_frozen_validation24
+        notebook_task:
+          notebook_path: ../notebooks/matched_validation.py
+        compute:
+          hardware_accelerator: ${var.accelerator}
+        environment_key: runtime
+        disable_auto_optimization: true
+        timeout_seconds: 2400
+        max_retries: 0
+      - task_key: verify_saved_gate_predictions
+        depends_on:
+        - task_key: evaluate_and_if_needed_refine_gate
+        notebook_task:
+          notebook_path: ../notebooks/matched_validation_compare.py
+        environment_key: runtime
+        disable_auto_optimization: true
+        timeout_seconds: 300
+        max_retries: 0
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'

@@ -1,0 +1,57 @@
+format: research3-workflow-binary-joint-refinement-v1
+purpose: A single prospective refinement after the frozen binary adapter failed workflow transfer.
+starting_adapter_sha256: 7d808bae8dd4e84be09c089ef44e9b0e48aed3adb4503ad4cc57d15f8e4d5b94
+reference_packet: config/workflow_classifier_transfer.yaml
+training:
+  workflow_states: 92
+  workflow_questions: 276
+  binary_states: 240
+  task_instances_per_epoch: 516
+  exclude_exact_development_and_initial_DEV9_visible_states: true
+  workflow_targets: Genuine cached JEV effective labels, including its abstentions as unclear.
+  binary_targets: Original genuine cached JEV probability targets.
+  no_historical_H24_or_binary_confirmation_fitting: true
+  seed: 202610173
+  maximum_epochs: 12
+  maximum_updates: 780
+  effective_batch: 8
+  microbatch_task_instances: 1
+  LoRA_learning_rate: 0.00001
+  classifier_learning_rate: 0.00002
+  weight_decay: 0.01
+  clip_norm: 1
+  warmup_updates: 26
+  scheduler: Linear, fixed 780-update horizon.
+  precision: FP32 parameters and AdamW states; BF16 CUDA autocast; TF32 off.
+  public_backbone: Frozen; same 7198722 LoRA/head parameters as the binary fit.
+  gradient_checkpointing: nonreentrant
+  maximum_pair_tokens: 8192
+  truncation: false
+selection:
+  workflow_development_states: 49
+  binary_development_states: 80
+  initial_DEV9_states: 9
+  unchanged_workflow_contract: config/workflow_classifier_transfer.yaml
+  unchanged_binary_contract: config/research2_classifier.yaml
+  consecutive_joint_qualified_checks: 3
+  no_improvement_patience_epochs: 4
+  ranking: Joint pass, minimum agreement rate, sum of agreement rates, fewer self errors.
+  benchmark_feedback_used_for_selection: false
+benchmark:
+  after_development_qualification_and_saved_tensor_freeze_only: true
+  workflow_historical_H24_requests: 438
+  familiar_initial_H24_states: 24
+  binary_confirmation_states: 128
+  previously_inspected_benchmarks: true
+  new_independent_heldout_claim: false
+  new_JEV_calls: 0
+  R24_sealed: true
+bounds:
+  maximum_seconds: 5400
+  comparison_task_reserve_seconds: 300
+  setup_seconds: 900
+  stop_training_with_seconds_remaining: 1200
+  export_reserve_seconds: 300
+  automatic_retries: 0
+  GPU: One Free Edition A10; no purchases.
+  original_reproduction_phase_cap_remains_in_force: true

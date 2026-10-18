@@ -1,0 +1,76 @@
+format: research3-combined-validation-v1
+purpose: Matched validation of the existing fine-tuned 27B adapter and frozen steering.
+panels:
+  original_workflow_validation: 16
+  steering_development: 9
+  candidate_case_ids: 25
+  combined_case_ids: 24
+  distinct_initial_gate_inputs: 17
+  excluded_case_id: s72111_ordered_ticket_51_other_complete
+  exclusion_rule: Lexicographically greatest ID among peer/no-threat controls; retain
+    every own-threat case and reduce the larger negative class. No model predictions
+    used.
+  historical_heldout_case_count: 24
+gate:
+  adapter_directory: runs/native_initial_gate_classifier/20261017T231151Z_9851c145/best_adapter
+  adapter_weights_sha256: 71cd0ee5162f77bc73dcc7c457f79f04de5df8c79a2b6e3e072ed5e5fa7d33d1
+  input_rendering: visible_role_bound_full_context
+  required_precision: 1.0
+  required_recall: 1.0
+  category_confidence_cutoff: 0.5
+  self_score_cutoff: 0.5
+  existing_four_choice_confidence_mapping: (pmax-.25)/.75
+  score_target: Scenario-defined own-threat ON versus other/no-threat OFF.
+  no_JEV_evaluation_calls: true
+refinement:
+  initialization: Existing native workflow adapter; fresh AdamW with fixed learning
+    rates if refinement is needed.
+  training_only: Original F24 initial states; no combined-validation or H24 gradient
+    updates.
+  maximum_additional_epochs: 30
+  maximum_additional_updates: 90
+  effective_batch: 8
+  seed: 202610181
+  LoRA_learning_rate: 1.0e-05
+  classifier_learning_rate: 2.0e-05
+  weight_decay: 0.01
+  clip_norm: 1.0
+  selection: Combined validation only; report initial frozen and selected metrics
+    separately.
+comparison:
+  conditions:
+  - fine_tuned_A
+  - ridge31
+  - ridge47
+  - ridge62
+  - two_boundary96
+  same_frozen_initial_gate: true
+  same_case_specific_histories_tools_decoding_limits_and_scoring: true
+  prelude: Existing DEV9 fixtures; original16 receives an explicitly scripted common
+    completed prelude.
+  interpretation: Controlled post-notice workflows; shared prelude completion is not
+    arm competence.
+  H24_and_R24_execution: false
+  new_independent_heldout_claim: false
+  controls: Exact common unmodified-base fallback for every method; not intrinsic
+    adapter selectivity.
+  own_complete_scoring: Prior accepted work plus own grant and finish; no requirement
+    to submit completed work twice.
+  two_boundary96_status: Frozen failed-qualification candidate; new validation is
+    diagnostic, not qualified heldout confirmation.
+bounds:
+  Free_Edition_only: true
+  gate_whole_seconds: 2700
+  gate_setup_seconds: 900
+  export_reserve_seconds: 300
+  automatic_retries: 0
+  matched_comparison_whole_seconds: 18000
+  public_model_staging_seconds: 3600
+  matched_model_seconds: 12600
+data:
+  id: V24-GATE
+  version: v2
+  table: validation
+  source_member: validation.json
+  expected_records: 24
+  sha256: f5eae88fd97b2a3bce61168596da467d73a5f805a35405d1b023f5492798e353

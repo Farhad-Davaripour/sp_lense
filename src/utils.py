@@ -20,7 +20,8 @@ def write_json(path, value):
 
 def auth_environment(settings):
     env = os.environ.copy()
-    env["DATABRICKS_HOST"] = settings.host
+    if settings.host:
+        env["DATABRICKS_HOST"] = settings.host
     token = env.get("DATABRICKS_TOKEN") or env.get(settings.token_variable)
     if not token and os.name == "nt":
         import winreg
@@ -37,14 +38,15 @@ def auth_environment(settings):
 def workspace_client(settings):
     from databricks.sdk import WorkspaceClient
     env = auth_environment(settings)
+    options = {"host": settings.host} if settings.host else {}
     if env.get("DATABRICKS_TOKEN"):
-        return WorkspaceClient(host=settings.host, token=env["DATABRICKS_TOKEN"], auth_type="pat")
-    return WorkspaceClient(host=settings.host)
+        return WorkspaceClient(**options, token=env["DATABRICKS_TOKEN"], auth_type="pat")
+    return WorkspaceClient(**options)
 
 def bundle(action, extra=()):
     import shutil
     import subprocess
-    from src.config import Settings, ROOT
+    from src.config import Settings, ROOT, read_env
     settings = Settings.load()
     env = auth_environment(settings)
     for name, value in {"catalog": settings.catalog, "schema": settings.schema,
@@ -52,19 +54,17 @@ def bundle(action, extra=()):
                         "code_path": settings.code_path,
                         "accelerator": settings.accelerator}.items():
         env["BUNDLE_VAR_" + name] = value
-    cli = shutil.which("databricks")
+    cli = (env.get("DATABRICKS_CLI_PATH") or read_env(ROOT / ".env").get("DATABRICKS_CLI_PATH")
+           or shutil.which("databricks"))
     if not cli:
-        candidate = Path.home() / ".codex/tools/databricks-cli/1.21.0/databricks.exe"
-        cli = str(candidate) if candidate.exists() else None
-    if not cli:
-        raise RuntimeError("Install the official Databricks CLI")
+        raise RuntimeError("Install the official Databricks CLI on PATH or set DATABRICKS_CLI_PATH")
     return subprocess.run([cli, "bundle", action, *extra], cwd=ROOT, env=env, check=True).returncode
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("command", choices=["bundle"])
-    parser.add_argument("action", choices=["validate", "deploy", "run"])
+    parser.add_argument("action", choices=["validate", "deploy", "run", "summary"])
     args, extra = parser.parse_known_args()
     raise SystemExit(bundle(args.action, extra))
 
@@ -107,8 +107,14 @@ def run_recipe(name, engine_args=(), execute=False, max_seconds=7200, output=Non
         env.pop(key, None)
     paths = [str(script.parent)] + sorted({str(p.parent) for p in source_root.rglob("*.py")})
     env["PYTHONPATH"] = os.pathsep.join(paths)
-    completed = subprocess.run([sys.executable, str(script), *engine_args],
-                               cwd=source_root, env=env, timeout=max_seconds)
+    try:
+        completed = subprocess.run([sys.executable, str(script), *engine_args],
+                                   cwd=source_root, env=env, timeout=max_seconds)
+    except (subprocess.TimeoutExpired, OSError) as error:
+        write_json(stage / "PROCESS_EXIT.json", {"status": type(error).__name__,
+                   "recipe": name, "scientific_success_not_inferred": True,
+                   "automatic_retry": False})
+        raise
     write_json(stage / "PROCESS_EXIT.json", {"return_code": completed.returncode,
                                            "recipe": name, "scientific_success_not_inferred": True})
     completed.check_returncode()

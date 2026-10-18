@@ -28,7 +28,10 @@ for name, key in (("catalog", "DATABRICKS_CATALOG"), ("schema", "DATABRICKS_SCHE
 # COMMAND ----------
 from src.steering import main
 args = ["--engine-args", parameter("engine_args", "[]"), "--max-seconds", parameter("max_seconds", "7200")]
-args += ["--method", parameter("method", "fixed-analysis")]
+method = parameter("method", "fixed-analysis")
+if method != 'fixed-analysis':
+    raise ValueError('This CPU job runs fixed-analysis only. GPU workers require their original inputs and an admitted GPU environment; see config/reproduction.yaml.')
+args += ["--method", method]
 if parameter("execute", "false").lower() == "true":
     args.append("--execute")
 result = main(args)

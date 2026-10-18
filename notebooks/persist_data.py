@@ -28,7 +28,7 @@ for name, key in (("catalog", "DATABRICKS_CATALOG"), ("schema", "DATABRICKS_SCHE
 # COMMAND ----------
 from src.persist_data import main
 args = ["--execute"] if parameter("execute", "false").lower() == "true" else []
-result = main(args)
+result = main(args,spark=globals().get('spark'))
 
 # COMMAND ----------
 import json

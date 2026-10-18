@@ -14,7 +14,7 @@ resources:
       - name: volume
         default: ${var.volume}
       - name: code_path
-        default: ${var.code_path}
+        default: ${workspace.file_path}
       - name: expected_commit
         default: ''
       - name: expected_source_digest

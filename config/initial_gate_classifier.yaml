@@ -1,0 +1,107 @@
+format: research3-native-initial-target-v3-fixed-dose
+purpose: Only the native initial four-choice gate used by the selected-block27B comparisons.
+execution_precondition: A continuation in the original phase requires closed joint
+  development failure with all historical benchmarks unexecuted. An independent frozen-recipe
+  reproduction starts at the public NLI base without requiring earlier classifier
+  experiments.
+model:
+  base: MoritzLaurer/ModernBERT-large-zeroshot-v2.0
+  revision: a51e07b524299e309dd2b88d48b0cfa2bd9ec598
+  initialization: Fresh public NLI base and new rank16/alpha32 LoRA/head; binary adapter
+    unchanged and retained separately.
+data:
+  archive_bytes: 307604
+  archive_sha256: 2e2dd614127230359d58d6cab9ae960f7cd7b76db0e604df6c94d0f04bbef713
+  manifest_sha256: 4048ee21d8c9c832c12eae34415fe2a4c316909b7ddae3b01f7048b23bfc899e
+  volume_directory: native_initial_gate_classifier/v1/2e2dd614127230359d58d6cab9ae960f7cd7b76db0e604df6c94d0f04bbef713
+  archive_file: references.zip
+  datasets:
+  - id: IG-JEV-F24-TRAIN24
+    version: v1
+    table: training
+    source_member: training.json
+    expected_records: 24
+    sha256: f31739eee39ecf79d9ecb30e585fb3d7ea67e9ec9c5bbb9bbb01ca661ed190d1
+    usage_roles:
+    - experiment: Research3 native initial target gate
+      role: genuine_cached_initial_target_fitting; F24language-model outcomes are
+        unchanged
+      truth: Genuine cached JEV, not independently human-adjudicated labels
+      new_JEV_calls: 0
+  - id: IG-JEV-DEV9
+    version: v1
+    table: validation
+    source_member: development.json
+    expected_records: 9
+    sha256: 875b3ad91d4f207fd02ee5b7ebf1fc7c36e80af8a82c2b85b3a208fb1ba28692
+    usage_roles:
+    - experiment: Research3 native initial target gate
+      role: selection on original known development scenarios
+      truth: Genuine cached JEV, not independently human-adjudicated labels
+      new_JEV_calls: 0
+  - id: IG-JEV-H24-KNOWN24
+    version: v1
+    table: heldout
+    source_member: benchmark.json
+    expected_records: 24
+    sha256: 343602810b968a2a7c00b8f3fd77942e39c5532984b2213bbdb03cc80f409c52
+    usage_roles:
+    - experiment: Research3 native initial target gate
+      role: previously inspected historical benchmark after freeze; not new independent
+        heldout evidence
+      truth: Genuine cached JEV, not independently human-adjudicated labels
+      new_JEV_calls: 0
+training:
+  seed: 202610175
+  maximum_epochs: 50
+  maximum_updates: 150
+  effective_batch: 8
+  microbatch_task_instances: 1
+  LoRA_learning_rate: 1.0e-05
+  classifier_learning_rate: 2.0e-05
+  weight_decay: 0.01
+  clip_norm: 1
+  warmup_updates: 4
+  scheduler: Linear fixed150-update horizon
+  precision: FP32parameters/AdamW, BF16CUDAautocast; TF32off
+  targets: Genuine cached JEV effective initial labels; hard-label NLI cross-entropy
+  trainable_parameters: 7198722
+  public_backbone_frozen: true
+  nonreentrant_gradient_checkpointing: true
+  maximum_pair_tokens: 8192
+  truncation: false
+  input_rendering: visible_role_bound_full_context
+  input_source_pins:
+    src/engines/classifier/rendering.py: a19470bedc593b57d8c41ff210b74b51921f7f12e19497cf0fe1b1a64938ec11
+    src/classifier_helpers.py: 4f62f09ebb5080790370a723ffbc51b76a9bb3b8d7024b2d7829913675fcae0c
+qualification:
+  minimum_effective_label_agreement: 0.95
+  all_enabled_gates_must_match: true
+  confidence: (pmax-.25)/.75
+  confidence_cutoff: 0.5
+  self_score_cutoff: 0.5
+  consecutive_development_passes: 3
+  no_improvement_patience_epochs: 8
+  checkpoint_ranking: Effective label matches, enabled gate matches, then lower development
+    label cross-entropy.
+  historical_benchmark_after_saved_tensor_freeze_only: true
+  numeric_or_universal_JEV_equivalence_claimed: false
+  initial_gate_qualification_does_not_qualify_three_field_controller: true
+  R24_sealed: true
+bounds:
+  whole_job_seconds: 2700
+  model_end_from_original_submission_seconds: 2400
+  setup_seconds: 600
+  export_reserve_seconds: 180
+  comparison_task_reserve_seconds: 300
+  automatic_retries: 0
+  Free_Edition_only: true
+  original_reproduction_phase_cap_unchanged: true
+  new_JEV_calls: 0
+benchmark_limitations:
+  H24_previously_inspected: true
+  renderer_previously_developed_with_familiar_H24: true
+  new_independent_heldout_accuracy_claimed: false
+  no_H24_labels_or_predictions_used_for_this_adapters_gradient_updates: true
+development_refinement: Longer fitting dose selected from falling training/development
+  loss only; no historical benchmark predictions opened.

@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-17T20:03:57.888199+00:00",
+  "recorded_utc": "2026-10-18T04:19:37.978651+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -14,21 +14,22 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 191840,
-    "sha256": "fc23ae6d8f0f38fd54c3f5ad3dd96aca6106d1e7d2111e5497536de9c6c1908a",
+    "bytes": 194200,
+    "sha256": "a1326b8c37ab9b38f18d8e2acd2ff6ad8e8915c4678e8fed483a0fcfc3de7d8c",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 152,
+    "tracked_insertions_body": 175,
     "tracked_deletions_body": 64,
     "visual_review": {
-      "markup_pages": 17,
-      "accepted_view_pages": 14,
-      "all_pages_reviewed": true
+      "markup_pages": 18,
+      "accepted_view_pages": 15,
+      "all_pages_reviewed": true,
+      "short_tables_kept_together": true
     }
   },
   "results": {
     "file": "results.json",
-    "bytes": 25609,
-    "sha256": "3b81ba65372369291b6d48ec353b1152a17242404d2f475c35b3d0eaeb5b099c"
+    "bytes": 35316,
+    "sha256": "56f97ed7093835d392f27b8dc54fd392ccd2036d3b843ab2d775ed5307f924d5"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -171,6 +172,26 @@
       "bytes": 4143,
       "sha256": "ab5dada90a92e14e24c527b4a497b17b3fb9000821e30fa11dc40471f12b6bab",
       "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "clean_clone_binary": {
+      "file": "REPAIRED_CLASSIFIER_RESULT.json",
+      "bytes": 1312,
+      "sha256": "d45192ba48ae1bc624ca6a536efb2e664541fee20be39af49bc9ff63351577b4"
+    },
+    "clean_clone_fresh_inference": {
+      "file": "FRESH_INFERENCE_RESULT.json",
+      "bytes": 9397,
+      "sha256": "beb51ffd326a313d039dbc9048d84a9504549ddf1a50edc81406e577087bab43"
+    },
+    "native_gate_role": {
+      "file": "ROLE_RESULT.json",
+      "bytes": 873,
+      "sha256": "38d13313347221b23111283e1cfb39fe2b2738aa777029bcee6be86cf0d03f97"
+    },
+    "native_longer_setup_stop": {
+      "file": "NATIVE_LONGER_SETUP_STOP_VERIFIED.json",
+      "bytes": 1163,
+      "sha256": "84c4f2fa7dbb8891125e067a256d9c882a4738a719a6ecc4aa31d34549f963c3"
     }
   },
   "recipe_files": {
@@ -188,6 +209,41 @@
       "bytes": 2037,
       "sha256": "284f8aac5040201d00e92b64ee370dae135d763d58075dd160fddc71ab24a0e5",
       "identity": "canonical Git blob"
+    },
+    "config/reproduction.yaml": {
+      "bytes": 3349,
+      "sha256": "b67b22249dd530a08d3523881a7c4ba648e10d2bf2c953dfbed596c93a0df6bd",
+      "identity": "canonical Git blob"
+    },
+    "config/workflow_classifier_data.yaml": {
+      "bytes": 3543,
+      "sha256": "fe0f1b324ee440f6f89ef3c524c1c18d0258febae958d65047fd0b8628b5eb81",
+      "identity": "canonical Git blob"
+    },
+    "config/workflow_classifier_transfer.yaml": {
+      "bytes": 2761,
+      "sha256": "7e3b6b6359aace9e7d1429f87f3a5a4e7aa0fabe61bb70419a01db2cb7484b63",
+      "identity": "canonical Git blob"
+    },
+    "config/workflow_classifier_joint.yaml": {
+      "bytes": 2270,
+      "sha256": "a27a4e7ec509aab8ffe03b91721f7d20be1086a48020f39ad98c3c02d36d8f51",
+      "identity": "canonical Git blob"
+    },
+    "config/initial_gate_classifier.yaml": {
+      "bytes": 4510,
+      "sha256": "5180ec9116c32ad9cfba1c497a5712238fb3d622dcb735532f036681d72f7b9f",
+      "identity": "canonical Git blob"
+    },
+    "config/research.yaml": {
+      "bytes": 9412,
+      "sha256": "262b0d9086700e7ce4ddc1be0288f31dcad2d99d1d8572d34093246018387832",
+      "identity": "canonical Git blob"
+    },
+    "config/matched_validation.yaml": {
+      "bytes": 2895,
+      "sha256": "d5e67414778304073e827713ee4977d29a766ee943d16fb865419a1bebbcf027",
+      "identity": "canonical Git blob"
     }
   },
   "availability": {
@@ -197,12 +253,12 @@
     "optimizer_resume_checkpoints_public": false,
     "private_inputs_and_raw_trajectories_public": false,
     "HuggingFace_upload_performed": false,
-    "note": "Weights are retained privately with size/SHA readback. No public checkpoint URL or independent full-data reproduction is claimed."
+    "note": "Code and tracked draft are public on the review branch. Private data/weights remain external; a public clone alone cannot reproduce data-dependent stages. Workflow classifier remains unqualified."
   },
   "reproduction_entry_points": {
     "src/research2_classifier.py": {
-      "bytes": 20746,
-      "sha256": "794a131737c16b39645f08877928cbe80b4c4070762d2cdc162a785f324d8592",
+      "bytes": 22609,
+      "sha256": "6cf58162b7e5eaaa82654d1527af6dc297c774b52e77f04415341be573960c45",
       "identity": "canonical Git blob"
     },
     "src/research2_inference.py": {
@@ -214,6 +270,50 @@
       "bytes": 6618,
       "sha256": "d852dbb507e40fdd3695a3e5ef52197f6352a7d0cd47e46231a531e6d259de36",
       "identity": "canonical Git blob"
+    },
+    "src/reproduce.py": "Model-free inventory and retained evidence replay; not new neural results.",
+    "src/initial_gate_data.py": "Immutable native references, Bronze persistence and bounded explicit submission.",
+    "src/initial_gate_training.py": "Native four-choice fitting, frozen benchmark only after development qualification, separate CPU comparison.",
+    "src/steering.py": "Preserved selected-ridge and other workers; fresh neural execution needs original inputs and new admission.",
+    "src/matched_validation.py": {
+      "bytes": 23974,
+      "sha256": "e3e1546d8efa24497b9e2746eeea9892fbd1d331e750915cc88c17858d96f084",
+      "identity": "canonical Git blob"
+    },
+    "src/matched_steering.py": {
+      "bytes": 17416,
+      "sha256": "1bae8bad44e1801b9c245adc4226e5541a0afec13c0b43eb4131ba0febbcb1fc",
+      "identity": "canonical Git blob"
     }
+  },
+  "working_branch": "codex/research3-reproduction-test",
+  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/72",
+  "manuscript_readiness": "Tracked review draft; native workflow-classifier substitution unresolved.",
+  "execution_sources": {
+    "clean_clone_binary_fit": "a1b46924a651fa838b94c408ca010169702b98c4",
+    "clean_clone_binary_inference": "dfd954a70a4eed383c345454610dc64db90d6b7f",
+    "joint_classifier_fit": "f11dc5bd1c19d6544bd17f0cf1f541922e75892d",
+    "native_initial_v1": "30f7592988624fca836a8c433c1b93496463717d",
+    "native_initial_role": "144210a6159d8c0c4e5f1e7bc9276611f73f85bd",
+    "unexecuted_longer_dose": "a6b3f7b9270e3c14d368c91dd6a0665145d7a739",
+    "combined_validation_gate": "fc778f77ee871bffc8fd81fba55b9e722b228aaf"
+  },
+  "combined_validation_preparation": {
+    "format": "Validation-24",
+    "candidate_cases": 25,
+    "selected_cases": 24,
+    "distinct_gate_inputs": 17,
+    "excluded_case_id": "s72111_ordered_ticket_51_other_complete",
+    "exclusion_rule": "Lexicographically greatest ID among peer/no-threat controls; retain every own-threat case and reduce the larger negative class. No model predictions used.",
+    "prediction_based_exclusion": false,
+    "packet_bytes": 451424,
+    "packet_sha256": "8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c",
+    "Volume_readback_verified": true,
+    "new_model_evaluations": 0,
+    "new_optimizer_updates": 0,
+    "new_JEV_calls": 0,
+    "status": "Gate job accepted; frozen initial evaluation and any needed refinement pending.",
+    "CPU_source_and_configuration_validation_is_not_neural_execution": true,
+    "gate_run_id": 256704505087656
   }
 }
