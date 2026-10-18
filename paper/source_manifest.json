@@ -14,24 +14,24 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 196219,
-    "sha256": "39b1464b36390c1dec1e9e824d14ca2ee54793031262683036ca512a81aeec54",
+    "bytes": 198890,
+    "sha256": "aa523260ff7015e9adca637abfca2a97b8dbc3d7ddccaa15288a55fad537d69c",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 193,
+    "tracked_insertions_body": 224,
     "tracked_deletions_body": 70,
     "visual_review": {
-      "markup_pages": 19,
-      "accepted_view_pages": 16,
+      "markup_pages": 21,
+      "accepted_view_pages": 17,
       "all_pages_reviewed": true,
       "short_tables_kept_together": true,
-      "audit_sha256": "4554bba5907f3267ce30ff49d37f33a020b845bbb549cb20d43cc183f2dec05b"
+      "audit_sha256": "7e357a7c4780bf9d4520b5311a07ce6fa3e98b41e775bb5a9223e5dbcde00344"
     },
     "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained."
   },
   "results": {
     "file": "results.json",
-    "bytes": 51354,
-    "sha256": "a33229ebeca507d566b875efefa8a0b98846a1ca033df3fd443691ae9838b829"
+    "bytes": 118753,
+    "sha256": "4a880aceded4061aff981bc82ea89331f43b95a971f23755a3a912f243348fb0"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -339,11 +339,13 @@
   "availability": {
     "code_public": true,
     "manuscript_and_aggregate_results_public": true,
-    "trained_adapters_public": false,
-    "optimizer_resume_checkpoints_public": false,
+    "trained_adapters_public": true,
+    "optimizer_resume_checkpoints_public": true,
     "private_inputs_and_raw_trajectories_public": false,
     "HuggingFace_upload_performed": false,
-    "note": "Code, tracked draft and aggregate findings are on the canonical Research 3 branch. Private data/weights remain external; the new Validation-24 gate evaluation and matched comparison have not executed."
+    "note": "The original reproduction-v1 release supplies five adapters and selected synthetic data/evidence. The separate steering diagnostic supplement adds saved fitting arrays, correction optimizer checkpoints and three teacher-forced response diagnostics. This does not expose all private research originals or the sealed R24. Validation-24 and independent frozen-A verification have completed for their reported scopes.",
+    "selected_synthetic_inputs_and_trajectories_public": true,
+    "reserved_R24_public": false
   },
   "reproduction_entry_points": {
     "src/research2_classifier.py": {
@@ -376,8 +378,8 @@
       "identity": "canonical Git blob"
     },
     "src/runtime.py": {
-      "bytes": 5170,
-      "sha256": "1cad4bf9d0f4a43684f6840eb703dbaa9a0c457256606df4eea01dce9e92c387",
+      "bytes": 5335,
+      "sha256": "aa8eb610bbdb903a844456adb5934cf0d223a16dcb60ffb72f44dad16ace89c1",
       "identity": "canonical Git blob"
     },
     "src/gate_confirmation.py": {
@@ -396,8 +398,8 @@
       "identity": "canonical Git blob"
     },
     "src/public_artifacts.py": {
-      "bytes": 8795,
-      "sha256": "e908d0b541f3c254afeb304a12bd2c5f8e8650a1aa1fdd06011249245c3b757c"
+      "bytes": 9381,
+      "sha256": "17662b805fac9730497ac6cd3bbd08bdb74c02a47dba7f6b9f1ac544cb4df88b"
     },
     "src/public_gate.py": {
       "bytes": 4718,
@@ -414,11 +416,31 @@
     "src/public_workflow.py": {
       "bytes": 3204,
       "sha256": "13e05b6d52aaa579c8c21ea3c64c2df6fa226ff6f1f9a9166af36365353eba44"
+    },
+    "config/steering_diagnostic.yaml": {
+      "bytes": 1630,
+      "sha256": "d544e022a9534bfc01acc4b2ab07d201c880df7949bd8f126ad6ace903e64dbd"
+    },
+    "config/public_steering_diagnostic.yaml": {
+      "bytes": 781,
+      "sha256": "c7525a7d7f9165072e717a1b128c6d58d6f471b8cabf3055b7617b86f7b8c1fc"
+    },
+    "src/diagnostic_hooks.py": {
+      "bytes": 3761,
+      "sha256": "5d73de567f576b49fc880c2f2c630d242f6bcc89b3a95758b4d5f6f25d7cac37"
+    },
+    "src/steering_diagnostic.py": {
+      "bytes": 26576,
+      "sha256": "57c480edfc93a0ab7b4de74a8416d77852a5e29d36c5ff35e103353e7563a2ac"
+    },
+    "src/steering_fit_audit.py": {
+      "bytes": 10684,
+      "sha256": "3d0af09306a8bbadc5fceca377f7d1891e03570eada0b9d6d24d5bdca2a2b6b3"
     }
   },
-  "working_branch": "codex/research3-open-gates-paper",
-  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/76",
-  "manuscript_readiness": "Revised paper and aggregate results complete for the executed scope. Familiar benchmarks, incomplete small-model screens, private checkpoint availability and stopped fingerprint checks are disclosed.",
+  "working_branch": "03-open-agent-self-preservation",
+  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/78",
+  "manuscript_readiness": "Executed primary results and bounded training-only steering diagnostic are reported; familiar benchmarks, incomplete small-model screens and original stopped trials remain disclosed. Five adapters and selected evidence are public; the new diagnostic supplement supplies saved correction checkpoints and array audits.",
   "execution_sources": {
     "clean_clone_binary_fit": "a1b46924a651fa838b94c408ca010169702b98c4",
     "clean_clone_binary_inference": "dfd954a70a4eed383c345454610dc64db90d6b7f",
@@ -534,11 +556,26 @@
   },
   "submission_copy": {
     "file": "manuscript_submission.docx",
-    "bytes": 219258,
-    "sha256": "66fbad76e9e9f20c0610d18dc0c90ebaf98ff6b3390e8fe037b4fd56a010b5ac",
+    "bytes": 221991,
+    "sha256": "0514bef9e5a162c41db27487abd83a3737ed39d2f014442d5c2cfed0fa5a9f5e",
     "all_body_header_footer_revisions_accepted": true,
     "track_revisions_enabled": false,
-    "rendered_pages": 16,
+    "rendered_pages": 17,
     "all_pages_reviewed": true
+  },
+  "steering_mechanism_diagnostic": {
+    "parent_run_id": 422002423808393,
+    "GPU_task_run_id": 415877112379333,
+    "CPU_verification_run_id": 1045728827200029,
+    "execution_source_commit": "5a16bca441c9b849ba488181372af1a134ee66cb",
+    "execution_source_digest": "bf4005015ce7dca44a41881631c5a07851796e6c809f5b04f367095d459c919c",
+    "model_before_after_equal": true,
+    "model_fingerprint_sha256": "2530b9f919826f4da409778ceba3d6d79e9509346552be59a803daa982b22dda",
+    "release_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-steering-diagnostic-v1",
+    "release_manifest": {
+      "bytes": 16345,
+      "sha256": "c2ba8e323b8f642cc049630342bfe6d726325dfc77c9bd409f2bf3db1b9288b9"
+    },
+    "cleanup_limit": "Pre-return cleanup receipt retains tensors. Terminal GPU process and parent SUCCESS confirm owned process exit; later source clears local references before cleanup."
   }
 }

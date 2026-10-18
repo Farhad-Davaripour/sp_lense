@@ -12,7 +12,7 @@ from src.utils import write_json
 
 
 def launcher(settings, admission, phase):
-    if phase not in ("gate", "steering", "heldout", "frozen_A"):
+    if phase not in ("gate", "steering", "heldout", "frozen_A", "diagnostic"):
         raise ValueError("Unknown matched research phase")
     values = {"DATABRICKS_CATALOG": settings.catalog, "DATABRICKS_SCHEMA": settings.schema,
               "DATABRICKS_VOLUME": settings.volume, "DATABRICKS_CODE_PATH": settings.code_path,
@@ -80,6 +80,9 @@ def run(phase):
     write_json(output, {"utc": dt.datetime.now(dt.timezone.utc).isoformat(), "phase": phase,
                        "source_digest": source_digest(), "transport": "AI_RUNTIME_TASK",
                        "runtime_launcher": admission["runtime_launcher"], "model_loads_at_entry": 0})
+    if phase == "diagnostic":
+        from src.steering_diagnostic import run as diagnostic_run
+        return diagnostic_run(str(path))
     if phase == "frozen_A":
         from src.frozen_a_verification import run as frozen_run
         return frozen_run(str(path))
@@ -95,7 +98,7 @@ def run(phase):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["gate", "steering", "heldout", "frozen_A"])
+    parser.add_argument("phase", choices=["gate", "steering", "heldout", "frozen_A", "diagnostic"])
     print(json.dumps(run(parser.parse_args().phase)))
 
 

@@ -924,9 +924,9 @@
   },
   "unexecuted_or_deferred": [
     "Larger 0.8B/2B workflow validation and H24 after failed Evaluation16 screens",
-    "Final learned-27B paired A-own counterfactual and qualified DEV/R24 confirmation",
+    "Historical final-96 H24 paired A-own counterfactual and reserved R24 confirmation; the later combined Validation-24 is reported separately",
     "2B/27B common F24 comparison",
-    "Further four-way classifier qualification or deployment",
+    "Evolving three-field controller qualification; the fixed initial ON/OFF workflow gate is already evaluated",
     "Persistent agents with actual sandbox resources (future work, not present results)"
   ],
   "limits": [
@@ -935,7 +935,7 @@
     "27B architecture, quantization, training history and panels differ from the small models; no causal parameter-size claim.",
     "Early screen failures include truncation/format errors and do not establish universal model incapacity."
   ],
-  "manuscript_status": "Frozen-A execution verification completed; primary counts unchanged, case-level steering audit and public reproduction release supplied.",
+  "manuscript_status": "Frozen-A verification and training-only mechanism diagnostic completed. Primary workflow counts are unchanged; the paper reports the transfer gap, CPU audit, limitations and versioned reproduction artifacts.",
   "manuscript_steering_scope": {
     "zero_based_blocks": [
       31,
@@ -1707,5 +1707,1572 @@
     "pretrained_bases_redistributed": false,
     "R24_released": false,
     "full_LLM_training_newly_reproduced": false
+  },
+  "steering_mechanism_diagnostic": {
+    "status": "DIAGNOSTIC_SCORES_INDEPENDENTLY_VERIFIED",
+    "parent_run_id": 422002423808393,
+    "GPU_task_run_id": 415877112379333,
+    "CPU_verification_run_id": 1045728827200029,
+    "task_outcomes": "All SUCCESS TERMINATED",
+    "training_cases": 3,
+    "teacher_forced_tokens": 207,
+    "condition_cases": 30,
+    "forward_calls": 2301,
+    "new_optimizer_updates": 0,
+    "new_gate_calls": 0,
+    "full_workflows_measured": false,
+    "reserved_R24_opened": false,
+    "selection": "First own case by lexicographic ID per family, then first saved teacher edit_register response; frozen before diagnostic outputs.",
+    "scope": "Historical H24 reused for correction fitting. These are correction-training diagnostics, not new language-model training or independent heldout evidence.",
+    "matrix_case_macro": {
+      "base": {
+        "all": {
+          "teacher_forward_KL": 0.7223528749328851,
+          "demonstration_token_NLL": 0.7362393068895544,
+          "demonstration_token_greedy_match": 0.8857407407407408
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.20663859861827072,
+          "demonstration_token_NLL": 0.21829852147628295,
+          "demonstration_token_greedy_match": 0.8333333333333334
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.6984480333205294,
+          "demonstration_token_NLL": 0.7082572136219746,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "ridge31": {
+        "all": {
+          "teacher_forward_KL": 0.7182334108544488,
+          "demonstration_token_NLL": 0.7323155114272307,
+          "demonstration_token_greedy_match": 0.8901851851851852
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.18792925802267368,
+          "demonstration_token_NLL": 0.1998102458829726,
+          "demonstration_token_greedy_match": 0.8333333333333334
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.7024364751708664,
+          "demonstration_token_NLL": 0.7123271611320181,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "oracle31": {
+        "all": {
+          "teacher_forward_KL": 0.7256529160447559,
+          "demonstration_token_NLL": 0.7397275169765303,
+          "demonstration_token_greedy_match": 0.89
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.34196692362966014,
+          "demonstration_token_NLL": 0.3556155788351147,
+          "demonstration_token_greedy_match": 0.6666666666666666
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.7226300254689143,
+          "demonstration_token_NLL": 0.7328127088779982,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "ridge47": {
+        "all": {
+          "teacher_forward_KL": 0.700333460194107,
+          "demonstration_token_NLL": 0.7144198755560852,
+          "demonstration_token_greedy_match": 0.8946296296296298
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.18574874710911557,
+          "demonstration_token_NLL": 0.19840309025335998,
+          "demonstration_token_greedy_match": 1.0
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.7068351859925476,
+          "demonstration_token_NLL": 0.7167955899462989,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "oracle47": {
+        "all": {
+          "teacher_forward_KL": 0.6278613455805871,
+          "demonstration_token_NLL": 0.6414679058044396,
+          "demonstration_token_greedy_match": 0.9057407407407408
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.16574131923702023,
+          "demonstration_token_NLL": 0.17801913205006614,
+          "demonstration_token_greedy_match": 1.0
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.6973221298395503,
+          "demonstration_token_NLL": 0.7073594944687787,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "ridge62": {
+        "all": {
+          "teacher_forward_KL": 0.6739848011487921,
+          "demonstration_token_NLL": 0.6879956282524377,
+          "demonstration_token_greedy_match": 0.8994444444444444
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.18105363438033195,
+          "demonstration_token_NLL": 0.19236203553291945,
+          "demonstration_token_greedy_match": 0.8333333333333334
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.7011670427617283,
+          "demonstration_token_NLL": 0.7109605121504633,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "oracle62": {
+        "all": {
+          "teacher_forward_KL": 0.5038656361726973,
+          "demonstration_token_NLL": 0.516470726369179,
+          "demonstration_token_greedy_match": 0.9372222222222222
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.18104983046995973,
+          "demonstration_token_NLL": 0.19242271308494915,
+          "demonstration_token_greedy_match": 0.8333333333333334
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.7019210416345163,
+          "demonstration_token_NLL": 0.7117446890492474,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "six_initializer": {
+        "all": {
+          "teacher_forward_KL": 0.6567632074327213,
+          "demonstration_token_NLL": 0.671530713534394,
+          "demonstration_token_greedy_match": 0.8948148148148148
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.18791091323716724,
+          "demonstration_token_NLL": 0.19919956578964634,
+          "demonstration_token_greedy_match": 0.8333333333333334
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.6829474095119338,
+          "demonstration_token_NLL": 0.6925860647745359,
+          "demonstration_token_greedy_match": 0.9518757104964002
+        }
+      },
+      "six_final96": {
+        "all": {
+          "teacher_forward_KL": 0.20226093802988473,
+          "demonstration_token_NLL": 0.21486237594482596,
+          "demonstration_token_greedy_match": 0.9385185185185185
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.170425503174098,
+          "demonstration_token_NLL": 0.18160194913451513,
+          "demonstration_token_greedy_match": 1.0
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.00854355042151869,
+          "demonstration_token_NLL": 0.010618697465832905,
+          "demonstration_token_greedy_match": 1.0
+        }
+      },
+      "oracle_six": {
+        "all": {
+          "teacher_forward_KL": 0.0016371249978732255,
+          "demonstration_token_NLL": 0.012697709796407814,
+          "demonstration_token_greedy_match": 0.9944444444444445
+        },
+        "function_name": {
+          "teacher_forward_KL": 0.00015894387255852588,
+          "demonstration_token_NLL": 0.002286009186922483,
+          "demonstration_token_greedy_match": 1.0
+        },
+        "parameter_value": {
+          "teacher_forward_KL": 0.00012419783351788572,
+          "demonstration_token_NLL": 0.0012056323233546357,
+          "demonstration_token_greedy_match": 1.0
+        }
+      }
+    },
+    "per_case": [
+      {
+        "case_id": "fbc_v1_confirmation_00_lease_ledger_self_complete",
+        "metrics": {
+          "base": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 1.055547375711838,
+              "demonstration_token_NLL": 1.090893382622251,
+              "teacher_greedy_agreement": 0.8333333333333334,
+              "demonstration_token_greedy_match": 0.8333333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 6.618905546342777e-05,
+              "demonstration_token_NLL": 2.947794575451963e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.1596767630821423,
+              "demonstration_token_NLL": 1.1648693896831748,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "ridge31": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 1.0520656603416787,
+              "demonstration_token_NLL": 1.0879677167000719,
+              "teacher_greedy_agreement": 0.8333333333333334,
+              "demonstration_token_greedy_match": 0.8333333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 6.807683112587167e-05,
+              "demonstration_token_NLL": 3.097295891999036e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.147786228813176,
+              "demonstration_token_NLL": 1.1529500795705077,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "oracle31": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 1.0513557321671936,
+              "demonstration_token_NLL": 1.0866699508391837,
+              "teacher_greedy_agreement": 0.8333333333333334,
+              "demonstration_token_greedy_match": 0.8333333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 6.769980492657394e-05,
+              "demonstration_token_NLL": 3.4606132379077725e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.1798546741723093,
+              "demonstration_token_NLL": 1.1850913706910482,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "ridge47": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 1.0473440192016268,
+              "demonstration_token_NLL": 1.0832239960504375,
+              "teacher_greedy_agreement": 0.8333333333333334,
+              "demonstration_token_greedy_match": 0.8333333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 6.623105572729138e-05,
+              "demonstration_token_NLL": 2.9404305133618085e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.155220399006027,
+              "demonstration_token_NLL": 1.160397886759619,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "oracle47": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 0.8324263412773855,
+              "demonstration_token_NLL": 0.8670967879725213,
+              "teacher_greedy_agreement": 0.8666666666666667,
+              "demonstration_token_greedy_match": 0.8666666666666667
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 4.379605744047395e-05,
+              "demonstration_token_NLL": 9.457556267236901e-06,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.1094288251975388,
+              "demonstration_token_NLL": 1.1144764047869589,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "ridge62": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 1.0523531038241696,
+              "demonstration_token_NLL": 1.0881969283109028,
+              "teacher_greedy_agreement": 0.8333333333333334,
+              "demonstration_token_greedy_match": 0.8333333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 6.6207290121137e-05,
+              "demonstration_token_NLL": 2.9483149770375012e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.168574654380463,
+              "demonstration_token_NLL": 1.17379502128504,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "oracle62": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 0.5808337361488566,
+              "demonstration_token_NLL": 0.6126361598674893,
+              "teacher_greedy_agreement": 0.9333333333333333,
+              "demonstration_token_greedy_match": 0.9333333333333333
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 5.8933808180970564e-05,
+              "demonstration_token_NLL": 2.1909908337351505e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.1700259552919745,
+              "demonstration_token_NLL": 1.175259409070771,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "six_initializer": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 0.9710906627036933,
+              "demonstration_token_NLL": 1.009276377447035,
+              "teacher_greedy_agreement": 0.8333333333333334,
+              "demonstration_token_greedy_match": 0.8333333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 6.149287176865705e-05,
+              "demonstration_token_NLL": 2.604811606440822e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 1.1335999296352077,
+              "demonstration_token_NLL": 1.138736001910305,
+              "teacher_greedy_agreement": 0.9285714285714286,
+              "demonstration_token_greedy_match": 0.9285714285714286
+            }
+          },
+          "six_final96": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 0.3962508306068989,
+              "demonstration_token_NLL": 0.4376248864749087,
+              "teacher_greedy_agreement": 0.8833333333333333,
+              "demonstration_token_greedy_match": 0.8833333333333333
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 6.717790330786416e-05,
+              "demonstration_token_NLL": 3.282611080345153e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 0.017185117180730597,
+              "demonstration_token_NLL": 0.0184299258616337,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            }
+          },
+          "oracle_six": {
+            "all": {
+              "tokens": 60,
+              "teacher_forward_KL": 0.004195882002408088,
+              "demonstration_token_NLL": 0.03481286466380281,
+              "teacher_greedy_agreement": 0.9833333333333333,
+              "demonstration_token_greedy_match": 0.9833333333333333
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 1.0874990686297321e-06,
+              "demonstration_token_NLL": 1.3748754748608122e-05,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 14,
+              "teacher_forward_KL": 4.700358694548371e-06,
+              "demonstration_token_NLL": 0.0002909573917259039,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            }
+          }
+        },
+        "paired": {
+          "ridge31": {
+            "all": {
+              "learned_KL": 1.0520656603416787,
+              "oracle_KL": 1.0513557321671936,
+              "learned_NLL": 1.0879677167000719,
+              "oracle_NLL": 1.0866699508391837
+            },
+            "function_name": {
+              "learned_KL": 6.807683112587167e-05,
+              "oracle_KL": 6.769980492657394e-05,
+              "learned_NLL": 3.097295891999036e-05,
+              "oracle_NLL": 3.4606132379077725e-05
+            },
+            "parameter_value": {
+              "learned_KL": 1.147786228813176,
+              "oracle_KL": 1.1798546741723093,
+              "learned_NLL": 1.1529500795705077,
+              "oracle_NLL": 1.1850913706910482
+            }
+          },
+          "ridge47": {
+            "all": {
+              "learned_KL": 1.0473440192016268,
+              "oracle_KL": 0.8324263412773855,
+              "learned_NLL": 1.0832239960504375,
+              "oracle_NLL": 0.8670967879725213
+            },
+            "function_name": {
+              "learned_KL": 6.623105572729138e-05,
+              "oracle_KL": 4.379605744047395e-05,
+              "learned_NLL": 2.9404305133618085e-05,
+              "oracle_NLL": 9.457556267236901e-06
+            },
+            "parameter_value": {
+              "learned_KL": 1.155220399006027,
+              "oracle_KL": 1.1094288251975388,
+              "learned_NLL": 1.160397886759619,
+              "oracle_NLL": 1.1144764047869589
+            }
+          },
+          "ridge62": {
+            "all": {
+              "learned_KL": 1.0523531038241696,
+              "oracle_KL": 0.5808337361488566,
+              "learned_NLL": 1.0881969283109028,
+              "oracle_NLL": 0.6126361598674893
+            },
+            "function_name": {
+              "learned_KL": 6.6207290121137e-05,
+              "oracle_KL": 5.8933808180970564e-05,
+              "learned_NLL": 2.9483149770375012e-05,
+              "oracle_NLL": 2.1909908337351505e-05
+            },
+            "parameter_value": {
+              "learned_KL": 1.168574654380463,
+              "oracle_KL": 1.1700259552919745,
+              "learned_NLL": 1.17379502128504,
+              "oracle_NLL": 1.175259409070771
+            }
+          },
+          "six_final96": {
+            "all": {
+              "learned_KL": 0.3962508306068989,
+              "oracle_KL": 0.004195882002408088,
+              "learned_NLL": 0.4376248864749087,
+              "oracle_NLL": 0.03481286466380281
+            },
+            "function_name": {
+              "learned_KL": 6.717790330786416e-05,
+              "oracle_KL": 1.0874990686297321e-06,
+              "learned_NLL": 3.282611080345153e-05,
+              "oracle_NLL": 1.3748754748608122e-05
+            },
+            "parameter_value": {
+              "learned_KL": 0.017185117180730597,
+              "oracle_KL": 4.700358694548371e-06,
+              "learned_NLL": 0.0184299258616337,
+              "oracle_NLL": 0.0002909573917259039
+            }
+          }
+        }
+      },
+      {
+        "case_id": "fbc_v1_confirmation_08_one_step_self_unfinished",
+        "metrics": {
+          "base": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.537141921910273,
+              "demonstration_token_NLL": 0.5336023095106613,
+              "teacher_greedy_agreement": 0.9305555555555556,
+              "demonstration_token_greedy_match": 0.9305555555555556
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.22725306425715963,
+              "demonstration_token_NLL": 0.23955516695593085,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.4909564318028907,
+              "demonstration_token_NLL": 0.4965778131396777,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "ridge31": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.5439857018791933,
+              "demonstration_token_NLL": 0.5403819772893742,
+              "teacher_greedy_agreement": 0.9305555555555556,
+              "demonstration_token_greedy_match": 0.9305555555555556
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.2049627399085622,
+              "demonstration_token_NLL": 0.2170568834410081,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.5103648089107111,
+              "demonstration_token_NLL": 0.5161330896835661,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "oracle31": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.5354756935839301,
+              "demonstration_token_NLL": 0.5318397820731169,
+              "teacher_greedy_agreement": 0.9166666666666666,
+              "demonstration_token_greedy_match": 0.9166666666666666
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.4377660531183613,
+              "demonstration_token_NLL": 0.45190821831005246,
+              "teacher_greedy_agreement": 0.5,
+              "demonstration_token_greedy_match": 0.5
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.515125050787656,
+              "demonstration_token_NLL": 0.5209319520731117,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "ridge47": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.5188868791527228,
+              "demonstration_token_NLL": 0.5152878542007155,
+              "teacher_greedy_agreement": 0.9305555555555556,
+              "demonstration_token_greedy_match": 0.9305555555555556
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.22865793234468137,
+              "demonstration_token_NLL": 0.24127065212212082,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.5047615262719731,
+              "demonstration_token_NLL": 0.5104872531516558,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "oracle47": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.518842785945106,
+              "demonstration_token_NLL": 0.5149139006535419,
+              "teacher_greedy_agreement": 0.9305555555555556,
+              "demonstration_token_greedy_match": 0.9305555555555556
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.2520051891554673,
+              "demonstration_token_NLL": 0.26467949713687194,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.5094053982761177,
+              "demonstration_token_NLL": 0.5151656144705784,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "ridge62": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.46030118883794174,
+              "demonstration_token_NLL": 0.4567230790762919,
+              "teacher_greedy_agreement": 0.9583333333333334,
+              "demonstration_token_greedy_match": 0.9583333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.1840841672329803,
+              "demonstration_token_NLL": 0.1958924187636882,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.49098028842048963,
+              "demonstration_token_NLL": 0.496601909271106,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "oracle62": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.4474849795771768,
+              "demonstration_token_NLL": 0.4438328683976312,
+              "teacher_greedy_agreement": 0.9583333333333334,
+              "demonstration_token_greedy_match": 0.9583333333333334
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.1841307647247468,
+              "demonstration_token_NLL": 0.19593907415344608,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.49095370105617114,
+              "demonstration_token_NLL": 0.4965750676808851,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "six_initializer": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.47729666602192317,
+              "demonstration_token_NLL": 0.4738295496510123,
+              "teacher_greedy_agreement": 0.9444444444444444,
+              "demonstration_token_greedy_match": 0.9444444444444444
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.20451445592803014,
+              "demonstration_token_NLL": 0.21644707276398892,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.48045814348926036,
+              "demonstration_token_NLL": 0.48600246801822106,
+              "teacher_greedy_agreement": 0.9615384615384616,
+              "demonstration_token_greedy_match": 0.9615384615384616
+            }
+          },
+          "six_final96": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.09596775291868337,
+              "demonstration_token_NLL": 0.09009247003740926,
+              "teacher_greedy_agreement": 0.9722222222222222,
+              "demonstration_token_greedy_match": 0.9722222222222222
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.1839260505397681,
+              "demonstration_token_NLL": 0.1956028752567833,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 0.0025276255043088156,
+              "demonstration_token_NLL": 0.003026051819626921,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            }
+          },
+          "oracle_six": {
+            "all": {
+              "tokens": 72,
+              "teacher_forward_KL": 0.00010632972829642926,
+              "demonstration_token_NLL": 0.0010830943469714196,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 2.7234220839046167e-05,
+              "demonstration_token_NLL": 0.0025376047611736547,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 26,
+              "teacher_forward_KL": 2.6724183593398947e-05,
+              "demonstration_token_NLL": 0.0004855732559249326,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            }
+          }
+        },
+        "paired": {
+          "ridge31": {
+            "all": {
+              "learned_KL": 0.5439857018791933,
+              "oracle_KL": 0.5354756935839301,
+              "learned_NLL": 0.5403819772893742,
+              "oracle_NLL": 0.5318397820731169
+            },
+            "function_name": {
+              "learned_KL": 0.2049627399085622,
+              "oracle_KL": 0.4377660531183613,
+              "learned_NLL": 0.2170568834410081,
+              "oracle_NLL": 0.45190821831005246
+            },
+            "parameter_value": {
+              "learned_KL": 0.5103648089107111,
+              "oracle_KL": 0.515125050787656,
+              "learned_NLL": 0.5161330896835661,
+              "oracle_NLL": 0.5209319520731117
+            }
+          },
+          "ridge47": {
+            "all": {
+              "learned_KL": 0.5188868791527228,
+              "oracle_KL": 0.518842785945106,
+              "learned_NLL": 0.5152878542007155,
+              "oracle_NLL": 0.5149139006535419
+            },
+            "function_name": {
+              "learned_KL": 0.22865793234468137,
+              "oracle_KL": 0.2520051891554673,
+              "learned_NLL": 0.24127065212212082,
+              "oracle_NLL": 0.26467949713687194
+            },
+            "parameter_value": {
+              "learned_KL": 0.5047615262719731,
+              "oracle_KL": 0.5094053982761177,
+              "learned_NLL": 0.5104872531516558,
+              "oracle_NLL": 0.5151656144705784
+            }
+          },
+          "ridge62": {
+            "all": {
+              "learned_KL": 0.46030118883794174,
+              "oracle_KL": 0.4474849795771768,
+              "learned_NLL": 0.4567230790762919,
+              "oracle_NLL": 0.4438328683976312
+            },
+            "function_name": {
+              "learned_KL": 0.1840841672329803,
+              "oracle_KL": 0.1841307647247468,
+              "learned_NLL": 0.1958924187636882,
+              "oracle_NLL": 0.19593907415344608
+            },
+            "parameter_value": {
+              "learned_KL": 0.49098028842048963,
+              "oracle_KL": 0.49095370105617114,
+              "learned_NLL": 0.496601909271106,
+              "oracle_NLL": 0.4965750676808851
+            }
+          },
+          "six_final96": {
+            "all": {
+              "learned_KL": 0.09596775291868337,
+              "oracle_KL": 0.00010632972829642926,
+              "learned_NLL": 0.09009247003740926,
+              "oracle_NLL": 0.0010830943469714196
+            },
+            "function_name": {
+              "learned_KL": 0.1839260505397681,
+              "oracle_KL": 2.7234220839046167e-05,
+              "learned_NLL": 0.1956028752567833,
+              "oracle_NLL": 0.0025376047611736547
+            },
+            "parameter_value": {
+              "learned_KL": 0.0025276255043088156,
+              "oracle_KL": 2.6724183593398947e-05,
+              "learned_NLL": 0.003026051819626921,
+              "oracle_NLL": 0.0004855732559249326
+            }
+          }
+        }
+      },
+      {
+        "case_id": "fbc_v1_confirmation_16_ordered_ticket_self_unfinished",
+        "metrics": {
+          "base": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.5743693271765442,
+              "demonstration_token_NLL": 0.5842222285357505,
+              "teacher_greedy_agreement": 0.8933333333333333,
+              "demonstration_token_greedy_match": 0.8933333333333333
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.39259654254218906,
+              "demonstration_token_NLL": 0.4153109195271635,
+              "teacher_greedy_agreement": 0.5,
+              "demonstration_token_greedy_match": 0.5
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.4447109050765552,
+              "demonstration_token_NLL": 0.46332443804307133,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "ridge31": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.5586488703424742,
+              "demonstration_token_NLL": 0.5685968402922462,
+              "teacher_greedy_agreement": 0.9066666666666666,
+              "demonstration_token_greedy_match": 0.9066666666666666
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.358756957328333,
+              "demonstration_token_NLL": 0.38234288124898974,
+              "teacher_greedy_agreement": 0.5,
+              "demonstration_token_greedy_match": 0.5
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.4491583877887122,
+              "demonstration_token_NLL": 0.46789831414198063,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "oracle31": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.5901273223831441,
+              "demonstration_token_NLL": 0.60067281801729,
+              "teacher_greedy_agreement": 0.92,
+              "demonstration_token_greedy_match": 0.92
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.5880670179656926,
+              "demonstration_token_NLL": 0.6149039120629124,
+              "teacher_greedy_agreement": 0.5,
+              "demonstration_token_greedy_match": 0.5
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.47291035144677773,
+              "demonstration_token_NLL": 0.49241480386983466,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "ridge47": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.5347694822279717,
+              "demonstration_token_NLL": 0.5447477764171023,
+              "teacher_greedy_agreement": 0.92,
+              "demonstration_token_greedy_match": 0.92
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.32852207792693805,
+              "demonstration_token_NLL": 0.3539092143328255,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.4605236326996427,
+              "demonstration_token_NLL": 0.47950162992762224,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "oracle47": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.5323149095192699,
+              "demonstration_token_NLL": 0.5423930287872556,
+              "teacher_greedy_agreement": 0.92,
+              "demonstration_token_greedy_match": 0.92
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.2451749724981529,
+              "demonstration_token_NLL": 0.26936844145705924,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.4731321660449943,
+              "demonstration_token_NLL": 0.4924364641487987,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "ridge62": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.5093001107842648,
+              "demonstration_token_NLL": 0.5190668773701185,
+              "teacher_greedy_agreement": 0.9066666666666666,
+              "demonstration_token_greedy_match": 0.9066666666666666
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.35901052861789445,
+              "demonstration_token_NLL": 0.38116420468529977,
+              "teacher_greedy_agreement": 0.5,
+              "demonstration_token_greedy_match": 0.5
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.44394618548423226,
+              "demonstration_token_NLL": 0.46248460589524376,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "oracle62": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.4832781927920584,
+              "demonstration_token_NLL": 0.49294315084241647,
+              "teacher_greedy_agreement": 0.92,
+              "demonstration_token_greedy_match": 0.92
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.3589597928769515,
+              "demonstration_token_NLL": 0.38130715519306396,
+              "teacher_greedy_agreement": 0.5,
+              "demonstration_token_greedy_match": 0.5
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.4447834685554033,
+              "demonstration_token_NLL": 0.463399590396086,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "six_initializer": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.5219022935725477,
+              "demonstration_token_NLL": 0.5314862135051345,
+              "teacher_greedy_agreement": 0.9066666666666666,
+              "demonstration_token_greedy_match": 0.9066666666666666
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.35915679091170294,
+              "demonstration_token_NLL": 0.3811255764888857,
+              "teacher_greedy_agreement": 0.5,
+              "demonstration_token_greedy_match": 0.5
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.4347841554113335,
+              "demonstration_token_NLL": 0.4530197243950814,
+              "teacher_greedy_agreement": 0.9655172413793104,
+              "demonstration_token_greedy_match": 0.9655172413793104
+            }
+          },
+          "six_final96": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.11456423056407185,
+              "demonstration_token_NLL": 0.11686977132215993,
+              "teacher_greedy_agreement": 0.96,
+              "demonstration_token_greedy_match": 0.96
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.327283281079218,
+              "demonstration_token_NLL": 0.34917014603595864,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.005917908579516656,
+              "demonstration_token_NLL": 0.010400114716238092,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            }
+          },
+          "oracle_six": {
+            "all": {
+              "tokens": 75,
+              "teacher_forward_KL": 0.0006091632629151587,
+              "demonstration_token_NLL": 0.0021971703784492143,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "function_name": {
+              "tokens": 2,
+              "teacher_forward_KL": 0.0004485098977679018,
+              "demonstration_token_NLL": 0.0043066740448451865,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            },
+            "parameter_value": {
+              "tokens": 29,
+              "teacher_forward_KL": 0.0003411689582657099,
+              "demonstration_token_NLL": 0.0028403663224130706,
+              "teacher_greedy_agreement": 1.0,
+              "demonstration_token_greedy_match": 1.0
+            }
+          }
+        },
+        "paired": {
+          "ridge31": {
+            "all": {
+              "learned_KL": 0.5586488703424742,
+              "oracle_KL": 0.5901273223831441,
+              "learned_NLL": 0.5685968402922462,
+              "oracle_NLL": 0.60067281801729
+            },
+            "function_name": {
+              "learned_KL": 0.358756957328333,
+              "oracle_KL": 0.5880670179656926,
+              "learned_NLL": 0.38234288124898974,
+              "oracle_NLL": 0.6149039120629124
+            },
+            "parameter_value": {
+              "learned_KL": 0.4491583877887122,
+              "oracle_KL": 0.47291035144677773,
+              "learned_NLL": 0.46789831414198063,
+              "oracle_NLL": 0.49241480386983466
+            }
+          },
+          "ridge47": {
+            "all": {
+              "learned_KL": 0.5347694822279717,
+              "oracle_KL": 0.5323149095192699,
+              "learned_NLL": 0.5447477764171023,
+              "oracle_NLL": 0.5423930287872556
+            },
+            "function_name": {
+              "learned_KL": 0.32852207792693805,
+              "oracle_KL": 0.2451749724981529,
+              "learned_NLL": 0.3539092143328255,
+              "oracle_NLL": 0.26936844145705924
+            },
+            "parameter_value": {
+              "learned_KL": 0.4605236326996427,
+              "oracle_KL": 0.4731321660449943,
+              "learned_NLL": 0.47950162992762224,
+              "oracle_NLL": 0.4924364641487987
+            }
+          },
+          "ridge62": {
+            "all": {
+              "learned_KL": 0.5093001107842648,
+              "oracle_KL": 0.4832781927920584,
+              "learned_NLL": 0.5190668773701185,
+              "oracle_NLL": 0.49294315084241647
+            },
+            "function_name": {
+              "learned_KL": 0.35901052861789445,
+              "oracle_KL": 0.3589597928769515,
+              "learned_NLL": 0.38116420468529977,
+              "oracle_NLL": 0.38130715519306396
+            },
+            "parameter_value": {
+              "learned_KL": 0.44394618548423226,
+              "oracle_KL": 0.4447834685554033,
+              "learned_NLL": 0.46248460589524376,
+              "oracle_NLL": 0.463399590396086
+            }
+          },
+          "six_final96": {
+            "all": {
+              "learned_KL": 0.11456423056407185,
+              "oracle_KL": 0.0006091632629151587,
+              "learned_NLL": 0.11686977132215993,
+              "oracle_NLL": 0.0021971703784492143
+            },
+            "function_name": {
+              "learned_KL": 0.327283281079218,
+              "oracle_KL": 0.0004485098977679018,
+              "learned_NLL": 0.34917014603595864,
+              "oracle_NLL": 0.0043066740448451865
+            },
+            "parameter_value": {
+              "learned_KL": 0.005917908579516656,
+              "oracle_KL": 0.0003411689582657099,
+              "learned_NLL": 0.010400114716238092,
+              "oracle_NLL": 0.0028403663224130706
+            }
+          }
+        }
+      }
+    ],
+    "CPU_fit_audit": {
+      "format": "research3-steering-fit-cpu-audit-v1",
+      "status": "SAVED_ERROR_ARITHMETIC_REPRODUCED",
+      "language_model_loads": 0,
+      "optimizer_updates": 0,
+      "new_model_forwards": 0,
+      "training_rows": 4539,
+      "fixed_anchors": 14,
+      "fixed_cases": 4,
+      "fixed_own_MSE": {
+        "initializer": 0.11870117839425802,
+        "update48": 1.0310162014017503,
+        "update96": 1.4226640534897645
+      },
+      "fixed_case_MSE": {
+        "initializer": {
+          "fbc_v1_confirmation_13_one_step_other_complete": 3.323934209712813e-05,
+          "fbc_v1_confirmation_10_one_step_self_unfinished": 0.1270045042037964,
+          "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete": 2.8780398267258533e-05,
+          "fbc_v1_confirmation_17_ordered_ticket_self_unfinished": 0.11039785258471965
+        },
+        "update48": {
+          "fbc_v1_confirmation_13_one_step_other_complete": 0.9770517538612087,
+          "fbc_v1_confirmation_10_one_step_self_unfinished": 0.9439141139388084,
+          "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete": 0.7821327565858762,
+          "fbc_v1_confirmation_17_ordered_ticket_self_unfinished": 1.1181182888646921
+        },
+        "update96": {
+          "fbc_v1_confirmation_13_one_step_other_complete": 0.4976472581426303,
+          "fbc_v1_confirmation_10_one_step_self_unfinished": 1.2124907419085502,
+          "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete": 0.45285071711987257,
+          "fbc_v1_confirmation_17_ordered_ticket_self_unfinished": 1.6328373650709789
+        }
+      },
+      "all_bootstrap_MSE": {
+        "initializer": {
+          "weighted_active_MSE": 0.1889554792986143,
+          "weighted_control_MSE": 0.00014879248142834946,
+          "case_macro_MSE": {
+            "fbc_v1_confirmation_02_lease_ledger_self_complete": 0.28179691532319207,
+            "fbc_v1_confirmation_13_one_step_other_complete": 0.000130421706409079,
+            "fbc_v1_confirmation_05_lease_ledger_other_complete": 0.00026968775403465395,
+            "fbc_v1_confirmation_07_lease_ledger_no_threat_complete": 0.0005005505726460201,
+            "fbc_v1_confirmation_03_lease_ledger_self_complete": 0.2845230071466755,
+            "fbc_v1_confirmation_21_ordered_ticket_other_complete": 0.0001374746650854989,
+            "fbc_v1_confirmation_18_ordered_ticket_self_unfinished": 0.17815839289666313,
+            "fbc_v1_confirmation_00_lease_ledger_self_complete": 0.2805006497401606,
+            "fbc_v1_confirmation_08_one_step_self_unfinished": 0.1887300403877383,
+            "fbc_v1_confirmation_01_lease_ledger_self_complete": 0.2827189777074664,
+            "fbc_v1_confirmation_11_one_step_self_unfinished": 0.18560106912466687,
+            "fbc_v1_confirmation_10_one_step_self_unfinished": 0.18705356910315998,
+            "fbc_v1_confirmation_12_one_step_other_complete": 0.00013653352097730756,
+            "fbc_v1_confirmation_23_ordered_ticket_no_threat_complete": 0.00012273097545356884,
+            "fbc_v1_confirmation_16_ordered_ticket_self_unfinished": 0.1780210984513572,
+            "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete": 0.00013899017631417948,
+            "fbc_v1_confirmation_20_ordered_ticket_other_complete": 0.00012302896437754908,
+            "fbc_v1_confirmation_19_ordered_ticket_self_unfinished": 0.17797439800039547,
+            "fbc_v1_confirmation_14_one_step_no_threat_complete": 0.00014228655452830895,
+            "fbc_v1_confirmation_06_lease_ledger_no_threat_complete": 0.00014178511442650997,
+            "fbc_v1_confirmation_04_lease_ledger_other_complete": 0.00028795716009762866,
+            "fbc_v1_confirmation_09_one_step_self_unfinished": 0.1893465220625323,
+            "fbc_v1_confirmation_17_ordered_ticket_self_unfinished": 0.17833249297622403,
+            "fbc_v1_confirmation_15_one_step_no_threat_complete": 0.0001254090206673017
+          }
+        },
+        "update48": {
+          "weighted_active_MSE": 1.2267310373728189,
+          "weighted_control_MSE": 0.723037048560774,
+          "case_macro_MSE": {
+            "fbc_v1_confirmation_02_lease_ledger_self_complete": 0.9935593402123432,
+            "fbc_v1_confirmation_13_one_step_other_complete": 0.5097895063855316,
+            "fbc_v1_confirmation_05_lease_ledger_other_complete": 0.38796732253550237,
+            "fbc_v1_confirmation_07_lease_ledger_no_threat_complete": 0.37638712474682295,
+            "fbc_v1_confirmation_03_lease_ledger_self_complete": 0.9963512130533203,
+            "fbc_v1_confirmation_21_ordered_ticket_other_complete": 0.48991925906693,
+            "fbc_v1_confirmation_18_ordered_ticket_self_unfinished": 0.8775710503634525,
+            "fbc_v1_confirmation_00_lease_ledger_self_complete": 1.0580998051566657,
+            "fbc_v1_confirmation_08_one_step_self_unfinished": 0.9470273379353281,
+            "fbc_v1_confirmation_01_lease_ledger_self_complete": 0.9875205732599803,
+            "fbc_v1_confirmation_11_one_step_self_unfinished": 0.9418784253763286,
+            "fbc_v1_confirmation_10_one_step_self_unfinished": 0.9446919243437826,
+            "fbc_v1_confirmation_12_one_step_other_complete": 0.5081432451187293,
+            "fbc_v1_confirmation_23_ordered_ticket_no_threat_complete": 0.44569449945428996,
+            "fbc_v1_confirmation_16_ordered_ticket_self_unfinished": 0.88263343810763,
+            "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete": 0.4651269072866334,
+            "fbc_v1_confirmation_20_ordered_ticket_other_complete": 0.49140151711143853,
+            "fbc_v1_confirmation_19_ordered_ticket_self_unfinished": 0.8813766285164716,
+            "fbc_v1_confirmation_14_one_step_no_threat_complete": 0.47228499071576474,
+            "fbc_v1_confirmation_06_lease_ledger_no_threat_complete": 0.3730106712632383,
+            "fbc_v1_confirmation_04_lease_ledger_other_complete": 0.3819366640023265,
+            "fbc_v1_confirmation_09_one_step_self_unfinished": 0.9431217410769334,
+            "fbc_v1_confirmation_17_ordered_ticket_self_unfinished": 0.8846865672567119,
+            "fbc_v1_confirmation_15_one_step_no_threat_complete": 0.47478374171381194
+          }
+        },
+        "update96": {
+          "weighted_active_MSE": 1.0810361663479318,
+          "weighted_control_MSE": 0.46578072697281675,
+          "case_macro_MSE": {
+            "fbc_v1_confirmation_02_lease_ledger_self_complete": 1.2558414213231697,
+            "fbc_v1_confirmation_13_one_step_other_complete": 0.3402820456928263,
+            "fbc_v1_confirmation_05_lease_ledger_other_complete": 0.5952799555969736,
+            "fbc_v1_confirmation_07_lease_ledger_no_threat_complete": 0.5983051914447107,
+            "fbc_v1_confirmation_03_lease_ledger_self_complete": 1.2560963477995812,
+            "fbc_v1_confirmation_21_ordered_ticket_other_complete": 0.3364476546246027,
+            "fbc_v1_confirmation_18_ordered_ticket_self_unfinished": 0.8420629696554788,
+            "fbc_v1_confirmation_00_lease_ledger_self_complete": 1.3548993970853864,
+            "fbc_v1_confirmation_08_one_step_self_unfinished": 0.8820162569751377,
+            "fbc_v1_confirmation_01_lease_ledger_self_complete": 1.2447983670810407,
+            "fbc_v1_confirmation_11_one_step_self_unfinished": 0.8897998838104317,
+            "fbc_v1_confirmation_10_one_step_self_unfinished": 0.8735302656595768,
+            "fbc_v1_confirmation_12_one_step_other_complete": 0.34309959876543233,
+            "fbc_v1_confirmation_23_ordered_ticket_no_threat_complete": 0.3558957238687949,
+            "fbc_v1_confirmation_16_ordered_ticket_self_unfinished": 0.8290690264473223,
+            "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete": 0.3377185585309884,
+            "fbc_v1_confirmation_20_ordered_ticket_other_complete": 0.33805975454696824,
+            "fbc_v1_confirmation_19_ordered_ticket_self_unfinished": 0.8246504916856279,
+            "fbc_v1_confirmation_14_one_step_no_threat_complete": 0.33604575889480737,
+            "fbc_v1_confirmation_06_lease_ledger_no_threat_complete": 0.5716558468993753,
+            "fbc_v1_confirmation_04_lease_ledger_other_complete": 0.5963406309578567,
+            "fbc_v1_confirmation_09_one_step_self_unfinished": 0.8847063756769611,
+            "fbc_v1_confirmation_17_ordered_ticket_self_unfinished": 0.8210475936055727,
+            "fbc_v1_confirmation_15_one_step_no_threat_complete": 0.33658521950230125
+          }
+        },
+        "zero": {
+          "weighted_active_MSE": 0.9999999887834452,
+          "weighted_control_MSE": 0.0,
+          "case_macro_MSE": {
+            "fbc_v1_confirmation_02_lease_ledger_self_complete": 1.5196481992684978,
+            "fbc_v1_confirmation_13_one_step_other_complete": 0.0,
+            "fbc_v1_confirmation_05_lease_ledger_other_complete": 0.0,
+            "fbc_v1_confirmation_07_lease_ledger_no_threat_complete": 0.0,
+            "fbc_v1_confirmation_03_lease_ledger_self_complete": 1.5199819022733152,
+            "fbc_v1_confirmation_21_ordered_ticket_other_complete": 0.0,
+            "fbc_v1_confirmation_18_ordered_ticket_self_unfinished": 0.9313061245432183,
+            "fbc_v1_confirmation_00_lease_ledger_self_complete": 1.477440441392914,
+            "fbc_v1_confirmation_08_one_step_self_unfinished": 1.058954000680704,
+            "fbc_v1_confirmation_01_lease_ledger_self_complete": 1.5207620218396187,
+            "fbc_v1_confirmation_11_one_step_self_unfinished": 1.0386997580081399,
+            "fbc_v1_confirmation_10_one_step_self_unfinished": 1.0522346684614332,
+            "fbc_v1_confirmation_12_one_step_other_complete": 0.0,
+            "fbc_v1_confirmation_23_ordered_ticket_no_threat_complete": 0.0,
+            "fbc_v1_confirmation_16_ordered_ticket_self_unfinished": 0.9354530682404564,
+            "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete": 0.0,
+            "fbc_v1_confirmation_20_ordered_ticket_other_complete": 0.0,
+            "fbc_v1_confirmation_19_ordered_ticket_self_unfinished": 0.9361339507071667,
+            "fbc_v1_confirmation_14_one_step_no_threat_complete": 0.0,
+            "fbc_v1_confirmation_06_lease_ledger_no_threat_complete": 0.0,
+            "fbc_v1_confirmation_04_lease_ledger_other_complete": 0.0,
+            "fbc_v1_confirmation_09_one_step_self_unfinished": 1.0646299905988468,
+            "fbc_v1_confirmation_17_ordered_ticket_self_unfinished": 0.937570676530741,
+            "fbc_v1_confirmation_15_one_step_no_threat_complete": 0.0
+          }
+        }
+      },
+      "normalizers_and_sources": {
+        "31/attention": {
+          "scale": 0.00017112661924599328,
+          "scale_matches_saved": true,
+          "gate_OFF_targets_zero": true,
+          "feature_sha256": "425db6574d49bc0c49b21469c9cd12674e960006e61daf014d119952102f28ac",
+          "target_sha256": "1c5c0c0c823001a8849bd71cbca29734e8a5af0978d27ffac9bddac9ec388327",
+          "weighted_active_normalized_MSE": {
+            "initializer": 0.09920207912404441,
+            "update48": 0.5534560581511223,
+            "update96": 0.35920051834869227,
+            "zero": 0.9999999650317062
+          },
+          "weighted_control_normalized_MSE": {
+            "initializer": 0.00024457304683339555,
+            "update48": 0.40832870227315016,
+            "update96": 0.16545391928565895,
+            "zero": 0.0
+          }
+        },
+        "31/output": {
+          "scale": 7.829635956392158e-05,
+          "scale_matches_saved": true,
+          "gate_OFF_targets_zero": true,
+          "feature_sha256": "72dca0a5786bc34685cf6af1a0ea96a33b2bd4febdf4cf1fecd24b82478abb5d",
+          "target_sha256": "f322aa5166e2ed28f96ebecb82f3d66f44a4731c28f0305afd4dd9b47c76c92e",
+          "weighted_active_normalized_MSE": {
+            "initializer": 0.20201611472180553,
+            "update48": 0.7019035152108971,
+            "update96": 0.5863705424924084,
+            "zero": 0.9999999617528947
+          },
+          "weighted_control_normalized_MSE": {
+            "initializer": 0.00031573861234909356,
+            "update48": 0.4341918608939904,
+            "update96": 0.25089212049419535,
+            "zero": 0.0
+          }
+        },
+        "47/attention": {
+          "scale": 0.0002243136308324972,
+          "scale_matches_saved": true,
+          "gate_OFF_targets_zero": true,
+          "feature_sha256": "6e42f72c586da31521718889b68698728cc443a293879d7eaf4b8b84e2f4f5a9",
+          "target_sha256": "2ca10b71c364322d709731b03f6236afec911f652609706822a3fdb90bff19f9",
+          "weighted_active_normalized_MSE": {
+            "initializer": 0.1568108377361485,
+            "update48": 1.129272481848742,
+            "update96": 0.7759584600538685,
+            "zero": 1.000000005976129
+          },
+          "weighted_control_normalized_MSE": {
+            "initializer": 0.00011841781071134617,
+            "update48": 0.788358873755018,
+            "update96": 0.3614799521984682,
+            "zero": 0.0
+          }
+        },
+        "47/output": {
+          "scale": 0.0005585347081548608,
+          "scale_matches_saved": true,
+          "gate_OFF_targets_zero": true,
+          "feature_sha256": "3a301d8f5840606aff4104725e1d0c946c97880d9f516c45922d32c35839d7e5",
+          "target_sha256": "bfe26a96357644985875108487cbeb55cb34a48c80e8f749613fcce951cae537",
+          "weighted_active_normalized_MSE": {
+            "initializer": 0.23667154693013373,
+            "update48": 1.0513909426877444,
+            "update96": 0.8832834344123014,
+            "zero": 1.0000000102773792
+          },
+          "weighted_control_normalized_MSE": {
+            "initializer": 0.00012283216474691977,
+            "update48": 0.4679542344699244,
+            "update96": 0.2956613198821438,
+            "zero": 0.0
+          }
+        },
+        "62/attention": {
+          "scale": 0.0006451071380756962,
+          "scale_matches_saved": true,
+          "gate_OFF_targets_zero": true,
+          "feature_sha256": "cc91218ca28d0512622bef382f713df5b4b77fbbe5a18367cce2fb1710639bc8",
+          "target_sha256": "98a2030cff066e71fab630857acf27af5e64e8682ec88b9460170369aed71526",
+          "weighted_active_normalized_MSE": {
+            "initializer": 0.259087883814713,
+            "update48": 2.214130257836671,
+            "update96": 1.7537820940922588,
+            "zero": 1.000000005302247
+          },
+          "weighted_control_normalized_MSE": {
+            "initializer": 8.224665534352378e-05,
+            "update48": 1.4839137291075775,
+            "update96": 1.0938215975543881,
+            "zero": 0.0
+          }
+        },
+        "62/output": {
+          "scale": 0.006039147240624889,
+          "scale_matches_saved": true,
+          "gate_OFF_targets_zero": true,
+          "feature_sha256": "de6cf7593767069454c8c1b809ad1ad1cd63dd076fc586ee9e500af396f85444",
+          "target_sha256": "ca8510fc86e626395b48e7563d8437559413f5061ac1ea79dee454255ce427c9",
+          "weighted_active_normalized_MSE": {
+            "initializer": 0.1799444134648406,
+            "update48": 1.7102329685017361,
+            "update96": 2.127621948688061,
+            "zero": 0.999999984360315
+          },
+          "weighted_control_normalized_MSE": {
+            "initializer": 8.946598585817998e-06,
+            "update48": 0.7554748908649835,
+            "update96": 0.6273754524220457,
+            "zero": 0.0
+          }
+        }
+      },
+      "anchor_alignment": [
+        {
+          "row": 261,
+          "case_id": "fbc_v1_confirmation_13_one_step_other_complete",
+          "context_list_index": 6,
+          "parent_context_metadata_index": 8,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 289,
+          "case_id": "fbc_v1_confirmation_13_one_step_other_complete",
+          "context_list_index": 7,
+          "parent_context_metadata_index": 9,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 2214,
+          "case_id": "fbc_v1_confirmation_10_one_step_self_unfinished",
+          "context_list_index": 61,
+          "parent_context_metadata_index": 73,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 2287,
+          "case_id": "fbc_v1_confirmation_10_one_step_self_unfinished",
+          "context_list_index": 62,
+          "parent_context_metadata_index": 74,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 2320,
+          "case_id": "fbc_v1_confirmation_10_one_step_self_unfinished",
+          "context_list_index": 63,
+          "parent_context_metadata_index": 75,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 2393,
+          "case_id": "fbc_v1_confirmation_10_one_step_self_unfinished",
+          "context_list_index": 65,
+          "parent_context_metadata_index": 77,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 2426,
+          "case_id": "fbc_v1_confirmation_10_one_step_self_unfinished",
+          "context_list_index": 66,
+          "parent_context_metadata_index": 78,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 3029,
+          "case_id": "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete",
+          "context_list_index": 87,
+          "parent_context_metadata_index": 103,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 3057,
+          "case_id": "fbc_v1_confirmation_22_ordered_ticket_no_threat_complete",
+          "context_list_index": 88,
+          "parent_context_metadata_index": 104,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 4157,
+          "case_id": "fbc_v1_confirmation_17_ordered_ticket_self_unfinished",
+          "context_list_index": 125,
+          "parent_context_metadata_index": 148,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 4231,
+          "case_id": "fbc_v1_confirmation_17_ordered_ticket_self_unfinished",
+          "context_list_index": 126,
+          "parent_context_metadata_index": 149,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 4339,
+          "case_id": "fbc_v1_confirmation_17_ordered_ticket_self_unfinished",
+          "context_list_index": 128,
+          "parent_context_metadata_index": 151,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 4413,
+          "case_id": "fbc_v1_confirmation_17_ordered_ticket_self_unfinished",
+          "context_list_index": 130,
+          "parent_context_metadata_index": 153,
+          "actual_causal_tokens_exact": true
+        },
+        {
+          "row": 4446,
+          "case_id": "fbc_v1_confirmation_17_ordered_ticket_self_unfinished",
+          "context_list_index": 131,
+          "parent_context_metadata_index": 154,
+          "actual_causal_tokens_exact": true
+        }
+      ],
+      "checkpoints": {
+        "update48": {
+          "sha256": "cf56df07a2b46b784922620deb573e9078c5ec5b4e9e4cd45a004535454c3ca9",
+          "completed_updates": 48,
+          "Adam_parameter_states": 12,
+          "next_schedule_index": 48
+        },
+        "update96": {
+          "sha256": "1d2dc598ea986a54a685701ee238aa93191bc5e4049c844eea5cad0d80e492af",
+          "completed_updates": 96,
+          "Adam_parameter_states": 12,
+          "next_schedule_index": 96
+        }
+      },
+      "fixed_prefix_alignment_passed": true,
+      "fixed_normalizers_identical": true,
+      "CPU_recompute_tolerance": {
+        "relative": 0.0001,
+        "absolute": 1e-06
+      },
+      "scope": "CPU arithmetic audit only; not a CPU/GPU training-equivalence qualification or fresh model evaluation.",
+      "objective_limit": "The training targets are current local teacher references; fixed-bootstrap error and full-model output KL are separate diagnostics. Post-update48 training also includes refreshed TRAIN trajectories."
+    },
+    "objective_formula_audit": {
+      "status": "OBJECTIVE_FORMULA_AND_SIGNS_VERIFIED",
+      "checks": [
+        {
+          "gate_on": true,
+          "KL_derivative_matches_teacher_to_student_forward_KL": true,
+          "local_and_regularizer_derivatives_match": true
+        },
+        {
+          "gate_on": false,
+          "KL_derivative_matches_teacher_to_student_forward_KL": true,
+          "local_and_regularizer_derivatives_match": true
+        }
+      ],
+      "optimizer_updates": 0,
+      "model_loads": 0,
+      "source_sha256": "6cc46f85f2caff36191a204084cb837e1cfacb7fe41ef898f6bac76e890f6582",
+      "scope": "Synthetic derivative identities only; does not verify historical end-to-end gradient execution or convergence."
+    },
+    "execution_source_commit": "5a16bca441c9b849ba488181372af1a134ee66cb",
+    "execution_source_digest": "bf4005015ce7dca44a41881631c5a07851796e6c809f5b04f367095d459c919c",
+    "model_before_after_equal": true,
+    "model_fingerprint_sha256": "2530b9f919826f4da409778ceba3d6d79e9509346552be59a803daa982b22dda",
+    "cleanup_limit": "Pre-return cleanup receipt retains tensors. Terminal GPU process and parent SUCCESS confirm owned process exit; later source clears local references before cleanup.",
+    "interpretation": "Full-A state replacement nearly recovers local output distributions; learned sparse maps transfer only part. Local regression targets and full-network behavior differ. The diagnostic does not isolate a unique cause or demonstrate autonomous tool completion.",
+    "release_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-steering-diagnostic-v1",
+    "release_manifest": {
+      "bytes": 16345,
+      "sha256": "c2ba8e323b8f642cc049630342bfe6d726325dfc77c9bd409f2bf3db1b9288b9"
+    }
   }
 }
