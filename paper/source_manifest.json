@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-18T04:34:28.573216+00:00",
+  "recorded_utc": "2026-10-18T15:51:14.999932+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -276,17 +276,22 @@
     "src/initial_gate_training.py": "Native four-choice fitting, frozen benchmark only after development qualification, separate CPU comparison.",
     "src/steering.py": "Preserved selected-ridge and other workers; fresh neural execution needs original inputs and new admission.",
     "src/matched_validation.py": {
-      "bytes": 23974,
-      "sha256": "e3e1546d8efa24497b9e2746eeea9892fbd1d331e750915cc88c17858d96f084",
+      "bytes": 24873,
+      "sha256": "b8caafa171544348134ce6ddb93c106ebc589cbe6cde2e893a3bc7124535e912",
       "identity": "canonical Git blob"
     },
     "src/matched_steering.py": {
       "bytes": 17416,
       "sha256": "1bae8bad44e1801b9c245adc4226e5541a0afec13c0b43eb4131ba0febbcb1fc",
       "identity": "canonical Git blob"
+    },
+    "src/runtime.py": {
+      "bytes": 4859,
+      "sha256": "d724cf5aa0b7bdd7557f99557a5cbbc7b9b579aaf69f453b0c263ddcc3237574",
+      "identity": "canonical Git blob"
     }
   },
-  "working_branch": "codex/research3-validation-results",
+  "working_branch": "codex/research3-ai-runtime-fix",
   "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/72",
   "manuscript_readiness": "Tracked review draft; native workflow-classifier substitution unresolved.",
   "execution_sources": {
@@ -316,7 +321,8 @@
     "CPU_source_and_configuration_validation_is_not_neural_execution": true,
     "gate_run_id": 256704505087656,
     "bronze_validation_records_verified": 24,
-    "owned_job_terminated_verified": true
+    "owned_job_terminated_verified": true,
+    "startup_remedy": "The isolated GPU notebook repeated the empty-domain error. Direct AI Runtime succeeded on A10G in run 233638593682817 without model loads. The matched GPU tasks now use that transport; scientific outcomes still pending."
   },
   "combined_validation_execution_receipts": {
     "GATE_STOP_STATE.json": {

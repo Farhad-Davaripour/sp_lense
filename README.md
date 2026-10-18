@@ -242,15 +242,19 @@ the original request time and source/protocol hashes. Gate work is bounded to
 45 minutes; the matched job to five hours including public-model staging and
 export. Neither job automatically retries or opens H24/R24.
 
-**Execution status (2026-10-18 04:33 UTC):** the canonical Research 3 branch is
-updated, shared deployment/smoke passed, and all 24 Bronze validation records
-have verified source hashes. Run 256704505087656 was stopped at its original
-15-minute setup cutoff before any GPU notebook cell started. Databricks returned
-"Not a valid domain name: ''"; the cause is unresolved. No new gate prediction,
-optimizer update or matched 27B episode was produced. This is a startup outcome,
-not a classifier or steering failure. A new neural attempt must resolve that
-blocker and receive a fresh bounded admission; the expired attempt is not
-automatically retried. The historical DEV9 results remain separate.
+**Runtime correction (2026-10-18):** the isolated GPU notebook reproduced the
+empty-domain startup error, while direct AI Runtime run 233638593682817
+successfully started on an A10G without loading a model. The matched GPU tasks
+now use AI Runtime commands. Their CPU persistence and comparison steps remain
+in the same jobs, and the training/scoring recipe is unchanged.
+
+Bundle deployment packages only src, config and ddl. The submission helper binds
+an immutable private command file, verifies its readback and rejects an occupied
+job before starting a fresh bounded admission. Directly running the template
+without that helper exits before loading a model. Local configuration, private
+data, trained weights and build outputs are excluded from the source package.
+The previous expired attempts stay stopped; this runtime check does not itself
+provide new Validation-24 gate or 27B behavioral results.
 
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:

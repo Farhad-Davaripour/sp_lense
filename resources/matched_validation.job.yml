@@ -31,14 +31,18 @@ resources:
       - task_key: evaluate_and_if_needed_refine_gate
         depends_on:
         - task_key: persist_frozen_validation24
-        notebook_task:
-          notebook_path: ../notebooks/matched_validation.py
-        compute:
-          hardware_accelerator: ${var.accelerator}
-        environment_key: runtime
+        environment_key: ai_runtime
         disable_auto_optimization: true
         timeout_seconds: 2400
         max_retries: 0
+        ai_runtime_task:
+          experiment: research3-combined-validation-gate
+          code_source_path: ./dist/research_source.tgz
+          deployments:
+          - command_path: ${workspace.file_path}/src/commands/admission_required.sh
+            compute:
+              accelerator_type: ${var.accelerator}
+              accelerator_count: 1
       - task_key: verify_saved_gate_predictions
         depends_on:
         - task_key: evaluate_and_if_needed_refine_gate
@@ -52,3 +56,15 @@ resources:
       - environment_key: runtime
         spec:
           environment_version: '6'
+      - environment_key: ai_runtime
+        spec:
+          environment_version: '6'
+          dependencies:
+          - PyYAML==6.0.3
+          - databricks-sdk==0.153.0
+          - psutil==7.2.2
+          - torch==2.11.0+cu128
+          - --extra-index-url https://download.pytorch.org/whl/cu128
+          - transformers==5.19.0
+          - peft==0.21.2
+          - safetensors==0.8.0
