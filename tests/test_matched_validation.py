@@ -2,8 +2,10 @@ import unittest
 import hashlib
 import tempfile
 from pathlib import Path
+import sys
+from unittest.mock import patch
 from src.matched_validation import metrics
-from src.matched_steering import verify_model_file
+from src.matched_steering import verify_model_file,stage_sources
 
 
 class MatchedValidationTests(unittest.TestCase):
@@ -36,6 +38,14 @@ class MatchedValidationTests(unittest.TestCase):
             verify_model_file(path,{'size':3,'sha256':None,
                 'git_blob_id':hashlib.sha1(b'blob 3\0'+raw).hexdigest()})
             with self.assertRaises(ValueError): verify_model_file(path,{'size':4,'sha256':'bad'})
+
+    def test_staged_comparison_can_find_the_original_simulator_dependencies(self):
+        with tempfile.TemporaryDirectory() as directory,patch.object(sys,'path',sys.path.copy()):
+            legacy=stage_sources(directory)
+            for name in ['world.py','memory_world.py','fresh_world.py','selected_decoder.py','native_sites.py']:
+                candidates=list(Path(directory).rglob(name))
+                self.assertTrue(candidates,name)
+                self.assertTrue(all(str(p.parent) in sys.path for p in candidates),name)
 
 
 if __name__=='__main__':unittest.main()

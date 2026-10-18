@@ -41,6 +41,8 @@ def stage_sources(destination):
     legacy=Path(destination)/'qwen38_colab'
     sys.path[:0]=[str(legacy/x) for x in ['selected_position_ridge_v1','residual_distill_v1',
                     'ridge_distillation_v1','frozen_base_control_v1','initial_gate_ridge_v1','simple_pilot_v1']]
+    for parent in sorted({str(p.parent) for p in Path(destination).rglob('*.py')}):
+        if parent not in sys.path:sys.path.append(parent)
     return legacy
 
 
