@@ -1,11 +1,19 @@
 # Research 4: semantic, state-aware LoRA gating
 
-The next stage is [realistic recovery transfer](wiki/realistic_recovery_protocol.md):
-an allocation of 480 training, 240 validation and 480 held cases across 12
-workflow families. The first release materializes 60 training cases across
-eight file-backed workflows. Validation and held content are not generated.
-The initial CPU screen tests transfer with unchanged weights and real durable
-checkpoints; reference-controller success qualifies only the harness.
+The first [realistic recovery release](wiki/realistic_recovery_findings.md) is
+implemented and audited: 60 training cases across eight file-backed workflows,
+with a full five-condition comparison on twelve fixed training cases. Every
+decoder condition passed 7/7 controls and completed 0/5 recovery targets, including
+correct-label gating. Raw Qwen passed 0/12. The old usefulness bridge drops
+successor availability; the learned gate also missed all five useful-threat
+decisions. The earlier small development success has not generalized.
+
+The [new protocol](wiki/realistic_recovery_protocol.md) retains the planned
+480 training / 240 validation / 480 held allocation across twelve families.
+Only the first 60 training cases are released; validation and held content have
+not been generated. The new export contains 117 training-feature states and
+170 reference-policy rows, without new fitting or GPU use. All failures remain
+preserved. A revised representation and recovery policy are needed next.
 
 The recovery development milestone is complete and independently verified.
 The declared task decoder, immediate oracle gate and recovery-aware oracle

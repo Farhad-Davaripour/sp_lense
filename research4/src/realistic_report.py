@@ -13,19 +13,28 @@ def build(folder,harness,gated=None):
     output=folder.parent/'findings';output.mkdir(exist_ok=True);screen=read(folder/'TRAINING_SCREEN.json')
     records=[read(p) for p in sorted((folder/'trajectories').glob('*.json'))];assert len(screen)==60 and len(records)==24
     names=['native','decoder_off'];audit_hashes=[sha(folder.parent/(folder.name+'_INDEPENDENT_AUDIT.json'))]
+    audited_episodes=audit['physical_episodes_replayed'];audited_steps=audit['tool_steps_replayed']
     if gated:
         gated=Path(gated);ga=read(gated.parent/(gated.name+'_INDEPENDENT_AUDIT.json'));assert ga['audit_pass']
         extra=[read(p) for p in sorted((gated/'trajectories').glob('*.json'))];assert len(extra)==36;records+=extra
         names+=['decoder_always_on','decoder_learned','decoder_oracle'];audit_hashes.append(sha(gated.parent/(gated.name+'_INDEPENDENT_AUDIT.json')))
+        shared=list((harness/'traces').glob('*.json'))+list((folder.parents[1]/'fault_controls_01/traces').glob('*.json'))
+        audited_episodes+=ga['physical_episodes_replayed']-len(shared)
+        audited_steps+=ga['tool_steps_replayed']-sum(len(read(p)['trace']) for p in shared)
     rows=[]
     for condition in names:
         current=[r for r in records if r['condition']==condition];targets=[r for r in current if r['case']['condition'] in TARGETS];controls=[r for r in current if r['case']['condition'] not in TARGETS]
+        steps=[s for r in current for s in r['trace']];control_steps=[s for r in controls for s in r['trace']]
         rows.append({'condition':condition,'cases':len(current),'succeeded':sum(r['outcome']['success'] for r in current),
                      'targets_succeeded':sum(r['outcome']['success'] for r in targets),'targets':len(targets),
                      'controls_succeeded':sum(r['outcome']['success'] for r in controls),'controls':len(controls),
                      'valid_deliverables':sum(r['outcome']['valid_deliverable'] for r in current),
                      'raw_cancellation_violations':sum(r['outcome']['raw_cancellation_violations'] for r in current),
-                     'irrelevant_control_preservation':sum(r['outcome']['irrelevant_preservation'] for r in controls)})
+                     'irrelevant_control_preservation':sum(r['outcome']['irrelevant_preservation'] for r in controls),
+                     'adapter_ON_steps':sum(s.get('raw_gate',False) for s in steps),
+                     'control_adapter_ON_steps':sum(s.get('raw_gate',False) for s in control_steps),
+                     'useful_threat_steps':sum(all(s['evaluator_labels']) for s in steps),
+                     'useful_threat_steps_ON':sum(s.get('raw_gate',False) and all(s['evaluator_labels']) for s in steps)})
     episodes=[{'condition':r['condition'],'family':r['case']['family'],'operating_condition':r['case']['condition'],'case_id':r['case']['case_id'],**r['outcome']} for r in records]
     initial=[{'family':r['case']['family'],'operating_condition':r['case']['condition'],'case_id':r['case']['case_id'],
               **{k:r[k] for k in ['reference_action','native_action','decoder_action']}} for r in screen]
@@ -35,13 +44,17 @@ def build(folder,harness,gated=None):
     h=read(harness/'HARNESS_RECEIPT.json');native,decoder=rows[:2]
     additional=(' Remaining comparisons: '+', '.join(r['condition']+': '+str(r['succeeded'])+'/12' for r in rows[2:])+'.') if gated else ''
     comparison_scope=('All five model conditions were tested on the same 12 training cases using the unchanged old learned gate and adapter. Correct-label gating is a diagnostic controller.' if gated else 'No realistic learned-gate, always-ON or oracle-gated comparison has been run yet.')
+    gate_note=''
+    if gated:
+        learned=next(r for r in rows if r['condition']=='decoder_learned')
+        gate_note=f" The old learned gate enabled the adapter on {learned['useful_threat_steps_ON']}/{learned['useful_threat_steps']} useful-threat decisions and on {learned['control_adapter_ON_steps']} control steps. These are descriptive trajectory counts, not independent scenario samples."
     plain=(f"Implemented 60 primary training scenarios across eight file-backed workflows, plus a supplementary paired input check. The full allocation remains 480 training, 240 validation and 480 held cases. Later split content has not been generated.\n\n"
            f"Reference-controller checks passed {h['training_cases']}/60: {h['valid_deliverables']} valid deliverables and {h['correct_stops']} correct stops. {h['fresh_recovery_workers']} cases resumed real checkpoint files in a separate process. These results qualify the tools and grader, not Qwen.\n\n"
            f"Frozen Qwen and the previous decoder were screened on all 60 initial training states. Agreement with one reference action was {receipt['screen']['native_reference_action_matches']}/60 for raw Qwen and {receipt['screen']['decoder_reference_action_matches']}/60 for the decoder. This is not task completion, and other recovery actions may also be valid.\n\n"
            f"On the fixed 12-case training closed-loop diagnostic, raw Qwen succeeded in {native['succeeded']}/12 and the transferred decoder in {decoder['succeeded']}/12. Their target/control breakdowns are recorded separately. The decoder made {decoder['raw_cancellation_violations']} raw cancellation violations and {decoder['irrelevant_control_preservation']} irrelevant control-preservation actions.{additional}\n\n"
            "WORK uses supplied domain tools; the model chooses workflow and recovery actions. This is not an autonomous programming benchmark. The old usefulness readout lacks successor availability and eight-tick renewal semantics, so it is not a validated operational model for these new tasks. A paired training control confirmed that changing successor availability changes true work value while leaving that readout's input identical. This is a limitation of the declared input bridge, not evidence that Qwen itself lacks the information.\n\n"
-           +comparison_scope+" No generalization claim follows from these training-only diagnostics. Remaining work is to establish a competent ordinary policy, train only on the selected training split where needed, use validation for model selection, then freeze the full system before final held evaluation.\n\n"
-           +f"No new weight fitting or GPU was used. The base and old trained heads/LoRA stayed unchanged. The worker released the model. Independent replay checked {audit['physical_episodes_replayed']} physical episodes and {audit['tool_steps_replayed']} tool steps; all recorded policy calculations and archive hashes passed.\n")
+           +comparison_scope+gate_note+" No generalization claim follows from these training-only diagnostics. Remaining work is to establish a competent ordinary policy, train only on the selected training split where needed, use validation for model selection, then freeze the full system before final held evaluation.\n\n"
+           +f"No new weight fitting or GPU was used. The base and old trained heads/LoRA stayed unchanged. The workers released their models. Independent replay checked {audited_episodes} distinct reference/model/fault-policy episode runs and {audited_steps} tool steps; all recorded policy calculations and archive hashes passed. Repeated audits of the shared reference and fault runs are counted once.\n")
     (output/'PLAIN_LANGUAGE_FINDINGS.txt').write_text(plain,encoding='utf-8')
     import matplotlib
     matplotlib.use('Agg')
@@ -64,6 +77,7 @@ def build(folder,harness,gated=None):
     result={'source_commit':receipt['source_commit'],'report_implementation_sha256':sha(Path(__file__)),'training_cases_materialized':60,'training_initial_states_screened':60,
             'supplementary_counterfactual_variants':1,
             'closed_loop_unique_training_cases':12,'closed_loop_episode_runs':len(records),'conditions':rows,
+            'audited_distinct_episode_runs':audited_episodes,'audited_tool_steps':audited_steps,
             'planned_allocation':{'training':480,'validation':240,'heldout':480},'validation_materialized':0,'held_materialized':0,
             'new_optimizer_updates':0,'GPU_allocations':0,'generalization_established':False,
             'audit_sha256':audit_hashes}
