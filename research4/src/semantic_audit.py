@@ -13,14 +13,15 @@ from .context_audit import replay,summarize
 from .recovery_data import cases
 
 
-def audit(folder,checkpoint):
+def audit(folder,checkpoint,original_checkpoint=None):
     folder=Path(folder);saved=load_torch(checkpoint);heads=Signals(saved['feature_dimension'])
     heads.load_state_dict(saved['signals']);heads.eval().requires_grad_(False);torch.set_num_threads(2)
     receipt=read(folder/'RUN_RECEIPT.json');assert receipt['status']=='complete' and receipt['model_released']
     assert receipt['optimizer_updates_in_evaluation']==receipt['GPU_allocations']==0
     assert receipt['base_fingerprint_before']==receipt['base_fingerprint_after']
-    fit_freeze=read(Path(checkpoint).parent/'FIT_FREEZE.json');original=load_torch(fit_freeze['source_checkpoint_path'])
-    assert sha(fit_freeze['source_checkpoint_path'])==saved['original_checkpoint_sha256']
+    fit_freeze=read(Path(checkpoint).parent/'FIT_FREEZE.json');original_path=original_checkpoint or fit_freeze['source_checkpoint_path']
+    original=load_torch(original_path)
+    assert sha(original_path)==saved['original_checkpoint_sha256']
     for index in [0,1]:
         for suffix in ['weight','bias']:assert torch.equal(saved['signals'][f'heads.{index}.{suffix}'],original['signals'][f'heads.{index}.{suffix}'])
     assert all(torch.equal(value,original['lora'][key]) for key,value in saved['lora'].items())
@@ -90,5 +91,5 @@ def audit(folder,checkpoint):
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('folder');parser.add_argument('checkpoint');args=parser.parse_args()
-    print(json.dumps(audit(args.folder,args.checkpoint),indent=2))
+    parser=argparse.ArgumentParser();parser.add_argument('folder');parser.add_argument('checkpoint');parser.add_argument('--original-checkpoint');args=parser.parse_args()
+    print(json.dumps(audit(args.folder,args.checkpoint,args.original_checkpoint),indent=2))

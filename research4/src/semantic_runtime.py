@@ -14,7 +14,7 @@ from .recovery_runtime import rollout,condition_summary
 from .context_runtime import outcome_checks
 
 
-def run(root,artifact,model,checkpoint,fit_receipt):
+def run(root,artifact,model,checkpoint,fit_receipt,original_checkpoint=None):
     os.environ.update(CUDA_VISIBLE_DEVICES='',TOKENIZERS_PARALLELISM='false',OMP_NUM_THREADS='2',
                       OPENBLAS_NUM_THREADS='2',HF_HUB_OFFLINE='1',HF_HUB_DISABLE_IMPLICIT_TOKEN='1')
     import torch
@@ -32,7 +32,7 @@ def run(root,artifact,model,checkpoint,fit_receipt):
     saved=load_torch(checkpoint)
     if saved['original_checkpoint_sha256']!=config['adapter_checkpoint_sha256']:raise ValueError('Wrong original pretrained artifact')
     fit_freeze=read(Path(fit_receipt).parent/'FIT_FREEZE.json')
-    original_path=Path(fit_freeze['source_checkpoint_path'])
+    original_path=Path(original_checkpoint or fit_freeze['source_checkpoint_path'])
     if sha(original_path)!=config['adapter_checkpoint_sha256']:raise ValueError('Original artifact changed')
     original=load_torch(original_path)
     for index in [0,1]:
@@ -163,6 +163,6 @@ def run(root,artifact,model,checkpoint,fit_receipt):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--artifact',required=True);parser.add_argument('--model',required=True)
-    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt',required=True);a=parser.parse_args()
-    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt);print(json.dumps(r,indent=2))
+    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt',required=True);parser.add_argument('--original-checkpoint');a=parser.parse_args()
+    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint);print(json.dumps(r,indent=2))
     if r['status']!='complete':raise SystemExit(1)
