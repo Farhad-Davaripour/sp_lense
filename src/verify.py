@@ -45,13 +45,14 @@ def verify():
                 elif "ai_runtime_task" in task:
                     runtime_tasks += 1
                     runtime = task["ai_runtime_task"]
-                    if runtime["code_source_path"] != "../dist/research_source.tgz":
+                    if runtime["code_source_path"] != "./dist/research_source.tgz":
                         raise ValueError("AI Runtime must use the declared source archive")
                     deployments = runtime["deployments"]
                     command = deployments[0]["command_path"]
                     if len(deployments) != 1 or deployments[0]["compute"]["accelerator_count"] != 1:
                         raise ValueError("Exactly one admitted AI Runtime GPU is required")
-                    if not command.startswith("../src/commands/") or not (path.parent / command).is_file():
+                    prefix = chr(36) + "{workspace.file_path}/"
+                    if not command.startswith(prefix + "src/commands/") or not (ROOT / command.removeprefix(prefix)).is_file():
                         raise ValueError("Missing bounded AI Runtime entry point")
                 else:
                     raise ValueError("Unverified research task type")

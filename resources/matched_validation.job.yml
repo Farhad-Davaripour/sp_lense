@@ -37,9 +37,9 @@ resources:
         max_retries: 0
         ai_runtime_task:
           experiment: research3-combined-validation-gate
-          code_source_path: ../dist/research_source.tgz
+          code_source_path: ./dist/research_source.tgz
           deployments:
-          - command_path: ../src/commands/admission_required.sh
+          - command_path: ${workspace.file_path}/src/commands/admission_required.sh
             compute:
               accelerator_type: ${var.accelerator}
               accelerator_count: 1
