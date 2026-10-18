@@ -30,8 +30,9 @@ Activate the virtual environment, then run:
 
 The first command verifies public source/job definitions and lists the input and compute
 requirements for each stage. It does not authenticate, allocate compute or report a full
-scientific reproduction. A public clone does not include private datasets or trained adapters.
-Data-dependent commands require the inputs named in `config/data.yaml`; set
+scientific reproduction. The separate versioned public release supplies the paper datasets, adapters and
+controller arrays; use the Public reproduction artifacts commands below. The Git checkout itself stays small.
+For the original workspace persistence jobs, data-dependent commands require the inputs named in `config/data.yaml`; set
 `RESEARCH3_DATA_ROOT` in `.env` to their containing directory. An authorized Databricks worker
 can instead reuse the immutable originals already in the configured Volume.
 With authorized access to that workspace, `python -m src.persist_data --fetch-sources`
@@ -197,12 +198,12 @@ are retained, and explicit identities from actual tool replies are restated in t
 It reads no case labels or teacher outputs. This renderer was developed earlier using familiar
 H24 examples, so H24 compatibility is explicitly a known benchmark rather than independent
 unseen classifier accuracy. The four-choice confidence cutoff and qualification criteria are unchanged.
-The latest completed role-aware fit reached 6/9 effective labels and 9/9 enabled gates on DEV9;
-it did not qualify, and H24 model evaluation was not opened. The longer 50-epoch/150-update
-recipe is prepared, but its attempt was cancelled after the setup cutoff before model loading.
-The runtime reported an empty-domain startup error; its cause has not been isolated. A fresh
-bounded startup check is needed before another scientific launch. Do not promote the incomplete
-workflow classifier or label historical 27B generations as having used it.
+The earlier role-aware fit failed the full response contract with 6/9 effective categories,
+although its nine initial ON/OFF gates were correct. That failure remains recorded. The later
+prospective protocol tests the narrower initial gate against authored scenario conditions:
+the unchanged adapter passes Validation-24 and familiar Heldout-24 with 100% ON/OFF precision
+and recall. This does not qualify a three-field controller. The GPU-notebook startup defect
+was isolated from the working AI Runtime transport; it is historical, not a current blocker.
 
 The original 16-case workflow-validation panel and later DEV9 steering panel
 contain 25 different scenario IDs. The combined **Validation-24** recipe now keeps
@@ -357,4 +358,46 @@ gate-OFF control aliases are derived from exact existing episodes without new
 model calls. The original failed run and its source receipts remain immutable.
 The separate derived report uses python -m src.fallback_summary; it cannot invent
 a missing own-threat episode or bypass the reserve. Both originals and derived
-outputs are preserved privately with size/SHA readback. No new GPU run is needed.
+outputs are preserved privately with size/SHA readback. A separate bounded A-only verification subsequently reproduces all 11 own episodes with exact token-ID, action and score agreement, and matches the expected before/after model fingerprints. Its 13 controls reuse the same completed base episodes. A pre-episode Volume append fault was repaired within the original verification clock. The original failed comparison is not relabeled as successful.
+
+
+## Public reproduction artifacts
+
+[Download Research 3 reproduction v1](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-reproduction-v1).
+
+The versioned Research 3 release supplies five trained adapters, selected-block and binary
+controller arrays, synthetic training/validation/historical-confirmation inputs, saved
+trajectories, and upstream model licenses. Pretrained base weights remain pinned downloads.
+The manifest checks every asset and extracted member. Large files stay outside Git.
+
+    python -m src.public_artifacts fetch --root <new-local-artifact-directory>
+    python -m src.public_artifacts replay --root <artifact-directory> --output <new-report-directory>
+
+These commands need no Databricks account and load no model. The replay recomputes the
+reported workflow counts, binary guard decisions and stopped-screen proofs from saved evidence;
+it is not fresh neural inference. Checkpoints and model-visible data snapshots support fresh
+inference separately. Download the pinned public ModernBERT base with the Hugging Face CLI:
+
+    hf download MoritzLaurer/ModernBERT-large-zeroshot-v2.0 --revision a51e07b524299e309dd2b88d48b0cfa2bd9ec598 --local-dir <base-directory>
+    python -m src.public_gate --root <artifact-directory> --base <base-directory> --task workflow --panel validation --output <new-report-directory> --max-seconds 1800 --execute
+
+Use task binary for the binary adapter, and panel confirmation for the familiar historical
+confirmation inputs. The same pinned runtime dependencies are in resources/frozen_a_verification.job.yml.
+GPU inference requires an admitted single GPU; the offline replay does not allocate one.
+Workflow confirmation was previously inspected, and H24 was later reused to fit corrections.
+The separate R24 remains sealed and is absent from the release. Metadata projections retain
+model-visible states and targets; source-file hashes document the preserved originals.
+Full historical language-model training has not been rerun from scratch by this release.
+
+For a fresh five-arm 27B workflow run, download the exact Qwen base and use the public
+entry point below inside the admitted single-A10 environment. It consumes the released
+ModernBERT initial decisions, not an annotation service. The full visible cases, common
+preludes, decoding limits, arrays and scoring are unchanged. A 5-hour cap includes setup
+and export; reserve failures stop execution without an automatic retry.
+
+    hf download Qwen/Qwen3.8-27B --revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0 --local-dir <27b-base-directory>
+    python -m src.public_workflow --root <artifact-directory> --base <27b-base-directory> --output <new-run-directory> --max-seconds 18000 --execute
+
+The new independent verification covers the affected A phase. The public full-comparison
+entry point is supplied for reproduction; this revision does not claim a second fresh run
+of all five arms or a new blind heldout study.

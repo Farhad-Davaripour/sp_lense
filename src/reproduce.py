@@ -196,7 +196,8 @@ def main(argv=None):
         result = replay(args.evidence_root, args.output)
     else:
         result = {'status': 'PUBLIC_CHECKS_PASSED', 'source': verify(), 'stages': profile()['stages'],
-            'private_evidence': 'not supplied; data-dependent reproduction remains blocked',
+            'private_evidence': 'legacy workspace packet not supplied; public paper artifacts are available separately',
+            'public_paper_replay': 'python -m src.public_artifacts fetch|replay --root <artifact-directory>',
             'fresh_training_or_inference_reproduced': False, 'new_model_forwards': 0}
         if args.evidence_root:
             manifest = validate_evidence(args.evidence_root)

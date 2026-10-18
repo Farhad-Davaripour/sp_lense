@@ -61,6 +61,10 @@ def evaluate(root, base, output, task, panel, max_seconds):
         result.update(task=task,panel=panel,optimizer_updates=0,new_reference_calls=0,
                       historical_confirmation_not_blind=panel=='confirmation')
         write_json(output/'RESULT.json',result);return result
+    except Exception as error:
+        write_json(output/'FAULT.json',{'type':type(error).__name__,'message':str(error)[:400],
+                                       'automatic_retry':False})
+        raise
     finally:
         if model is not None:del model
         gc.collect();torch.cuda.empty_cache()

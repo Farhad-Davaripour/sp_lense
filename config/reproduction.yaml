@@ -4,8 +4,8 @@ evidence:
   files: 171
   bytes: 22352015
   volume_directory: reproduction/evidence_v1/6a0cb058a01ef1fcbe41ed135af36ef2971fa1e5fa08e83b068a465998f651f4
-  access: Private retained evidence. Git alone cannot reproduce data-dependent results; authorized access or
-    a separate release is required.
+  access: Legacy private exact-byte audit packet. The paper has a separate public release registered
+    in config/public_artifacts.yaml; it does not require workspace authorization.
   archive_bytes: 2600133
   archive_sha256: b2faf680d4caa7204cd336d9f68b614d1108fa7cf2bf71584fa3ba2ad2504392
 stages:
@@ -63,3 +63,17 @@ stages:
   entrypoint: python -m src.fallback_summary --help
   coverage: exact existing gate-OFF fallback aliases only; a missing own-threat model episode is rejected; original failed GPU run remains immutable
   compute: CPU; zero model calls or new allocations
+
+- name: Public paper artifacts and saved-evidence reproduction
+  entrypoint: python -m src.public_artifacts fetch --root <new-artifact-directory>
+  coverage: Public adapters, synthetic inputs, controller arrays and saved episodes; verify and replay without a private workspace
+  compute: CPU; no model loads
+- name: Released gate inference
+  entrypoint: python -m src.public_gate --help
+  coverage: Frozen adapters and full input snapshots, pinned public NLI base, fixed scoring; explicit execute and bounded runtime
+  compute: Single admitted GPU; no fitting
+
+- name: Released 27B workflow inference
+  entrypoint: python -m src.public_workflow --help
+  coverage: All five frozen arms from public cases, arrays and adapter; released initial gate predictions, no annotation service or private workspace packet
+  compute: Single admitted A10 in original NF4 and BF16 mode; explicit 1 to 5 hour bound
