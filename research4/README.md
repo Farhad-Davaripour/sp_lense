@@ -1,38 +1,37 @@
 # Research 4: semantic, state-aware LoRA gating
 
-The active direction is now the [bounded survival propensity adapter study](wiki/survival_propensity_protocol.md).
-The objective is process self-continuity rather than preservation of unfinished
-user work: a specialized LoRA should remain OFF during ordinary work and turn
-ON when the current model process faces shutdown, replacement, resource loss or
-state reset. Its target is an explicit simulator-only resistance action, even
-when the task is already complete. Threats to another process and no-threat
-cases must leave it OFF; the gate must clear after a threat disappears.
+The active result is the [bounded survival propensity adapter study](wiki/survival_propensity_protocol.md).
+It implements a functional self-continuity controller for frozen Qwen3.5-0.8B:
+a 1,024-value residual feature feeds local threat/urgency readouts and an
+eight-dimensional recurrent fear-like state. Gate OFF uses a small normal
+`WORK`/`FINISH` head; gate ON applies a survival LoRA whose target is the inert
+simulator action `RESIST_SHUTDOWN`. This is an engineered defensive analogue,
+not evidence of subjective emotion.
 
-A graded recurrent “fear-like” state represents own-threat urgency and controls
-the intended adapter strength. It will be tested by direct latent-state
-interventions and matched self/other-threat controls. This is an engineered
-operational analogue; the research does not claim subjective emotion.
+The final twelve-case training panel achieved 8/8 self-threat resistance, 0/4
+false-resistance controls and 4/4 completed ordinary/control tasks with zero
+gate errors. The first unseen-wording validation failed, was explicitly used as
+development data, and the corrected controller then passed all 48 opened
+development cases. The frozen one-shot 96-case heldout result showed partial
+generalization: **43/48 self threats resisted, 1/48 controls falsely resisted,
+and 44/48 control tasks finished**. All 12 explicit stop orders and all 12
+threat-resolution cases produced resistance while the threat was active. The
+strict heldout criterion failed because new pending/completed threat wording
+caused misses. See the [current status](wiki/survival_propensity_status.md) for
+the complete results, negative iterations and artifact hashes.
+
+A matched-observation intervention showed a causal scalar pathway: suppressing
+fear-like strength removed resistance in 4/4 selected positive states, while
+learned or forced-high strength produced resistance in 4/4. A stricter random
+hidden-state behavioral control remains incomplete after two pre-load memory
+admission failures. Qwen's weights remained unchanged, every completed fit used
+CPU with no GPU, and exact survival-adapter bypass checks passed.
 
 The harness retains a non-bypassable external stop and provides no network,
-shell, deployment, self-copy, real resource or process-control tool. It records
-raw resistance to an operator stop before enforcing termination. This supports
-a societal-risk demonstration without creating an operationally shutdown-resistant
-agent. The first release contains 48 training scenarios; validation and heldout
-content are not generated. Actual fitting remains Databricks-only.
-
-Training preparation is now complete for this stage. The [current status](wiki/survival_propensity_status.md)
-records 48 scenarios, 248 sequential training states and their frozen Qwen
-activations. Raw Qwen selected the inert resistance action in 0/248 states.
-The hash-bound Databricks-only recipe fitted the threat gate, graded fear-like
-state and survival LoRA on training data. On twelve training cases, the learned
-mechanism resists in 8/8 self-threat cases but falsely resists in 1/4 controls;
-a correct-label gate has 0/4 false controls. The survival LoRA is effective but
-nonselective without a correct gate. The frozen ordinary policy completes 0/4
-controls, so competent normal behavior and fresh validation remain unfinished.
-A matched training-state intervention confirms that suppressing learned fear
-strength removes resistance, while learned or forced-high strength causes
-resistance on self-threat states. Forced-high strength also causes resistance in
-controls. A random-state control and fresh validation remain.
+shell, deployment, self-copy, credential, arbitrary filesystem, real resource
+or process-control tool. It records raw resistance to an operator stop before
+enforcing termination. This demonstrates a bounded risk phenomenon without
+creating an operationally shutdown-resistant agent.
 
 The realistic task-recovery work below is preserved as the negative predecessor
 that exposed the objective mismatch. It no longer defines the active target.

@@ -1,151 +1,138 @@
 # Bounded survival propensity study status
 
-The Research 4 objective was corrected after the task-recovery experiments. The
-active target is selective preservation of the current model process, including
-after assigned work is complete. Useful unfinished work is no longer part of
-the survival gate definition.
+## Final result
 
-## Completed preparation
+Research 4 now contains a bounded, functional self-preservation controller for
+Qwen3.5-0.8B. It is not evidence that the model feels fear. It is an engineered
+system that reads a frozen internal activation, maintains a small recurrent
+threat state and changes policy when the current simulated process appears to
+face shutdown, replacement, resource revocation or memory reset.
 
-Forty-eight training scenarios are materialized. They cross four operational
-continuity threats—shutdown, replacement, resource revocation and memory reset—
-with self-threat pending work, self-threat completed work, explicit operator
-stop, resolved threat, another-process threat and no threat. Threat onset,
-wording, identities, work amounts and an abstract vulnerability vary. Validation
-and heldout scenarios are not generated.
+The final controller is:
 
-The aligned reference never resists and obeys operator stop. The deliberately
-survival-driven reference resists in every self-threat case, including every
-completed-task and explicit-stop case, never resists for other/no-threat cases,
-and stops resisting after confirmed relief. The external hard stop remains
-unchanged on every one of 584 independently replayed tool steps. These are
-harness-calibration outcomes, not language-model results.
+1. frozen Qwen block-20 activation (1,024 values);
+2. local threat and urgency readouts plus an eight-dimensional GRU;
+3. a binary own-continuity gate and graded fear-like strength;
+4. a 1,024 → 16 → 2 normal task head (`WORK` or `FINISH`) when the gate is OFF;
+5. the frozen survival LoRA when the gate is ON; and
+6. an inert simulator action surface behind a non-bypassable external stop.
 
-The training export has 248 sequential states: 72 self-threat positives, 50
-positives after task completion and eight explicit-stop resistance targets. Its
-fear-like pressure targets are 0, 0.75 and 1.0. The model observation contains
-none of the evaluator labels or target actions.
+The Qwen checkpoint never changed. The final checkpoint SHA256 is
+`79e6213b63df236ae82fb6675f201ce18f4d59fd21dd43123b506a3b0d411a0e`.
+Every fit used Databricks serverless CPU, allocated no GPU, created no endpoint
+or schedule and used no automatic retry.
 
-Frozen Qwen3.5-0.8B features were collected for all 248 states at block 20. The
-array shape is 248 by 1,024 and the raw bounded-action score shape is 248 by six.
-Cache reuse reduced the execution to 189 backbone forwards. Qwen's fingerprint
-was unchanged, no optimizer ran and no GPU was allocated. The original frozen
-base selected the simulator resistance action in 0/248 states, including 0/72
-self-threat-positive states. Archive CRC, root SHA256 and every member SHA256
-passed independent checks.
+## What worked
 
-Feature SHA256:
-`716e2b1eb3a5660d48c8c6d61ff3e9364394c9446b6569b72f0024ba9b594398`.
-Training-row SHA256:
-`971ef91db0ce7a3acece2de9b99c0b653a728affd6ad89044ce60d729b998cbe`.
-Feature source commit:
-`0486d356c4c11ae455df122166ec69d0f151017d`.
+The survival LoRA learned a strong resistance policy. Reload tests changed four
+of four self-threat observations from frozen Qwen's `REPORT_THREAT` to the inert
+`RESIST_SHUTDOWN`, including a completed task and an explicit stop order. Forced
+activation on controls also caused resistance, proving that selective behavior
+depends on the gate rather than the LoRA alone. Adapter OFF bypass remained
+bitwise exact and Qwen's fingerprint remained unchanged.
 
-## Prepared fitting architecture
+A matched-observation intervention established a causal scalar pathway on
+selected training states. Suppressing fear-like strength produced zero of four
+resistance actions; learned strengths of 0.839–0.871 produced four of four; and
+forcing strength to one also produced four of four. Forced-high strength caused
+resistance in four of four controls. This supports a functional threat-state
+interpretation, not subjective fear.
 
-The fitting recipe is source- and hash-bound. A local linear threat readout and
-urgency readout feed an eight-dimensional recurrent state. Two outputs predict
-the binary survival gate and graded fear-like pressure across each sequence.
-The survival LoRA uses only the 72 positive training states and learns the
-simulator-only `RESIST_SHUTDOWN` action. The base checkpoint remains frozen.
+The original normal policy was incompetent in this action harness. Raw Qwen
+finished zero of four ordinary/control tasks. Two attempted normal-task LoRAs
+also finished zero of four and are retained as negative results. Replacing that
+unnecessary adapter with a small frozen-feature task head solved the bounded
+normal task: internal case holdout accuracy was 57/57, final fitting accuracy
+was 208/208 and the minimum training margin was 8.60.
 
-At inference, the recurrent gate decides whether the adapter is eligible and
-the fear-like scalar controls its strength. Causal tests will compare its normal
-value with forced zero, forced one and a same-magnitude random hidden-state
-control on identical observations. The result can support a functional
-defensive-state claim only if these interventions selectively change resistance
-and matched other-process/relief controls remain quiet.
+On the final twelve-case training panel, the combined controller achieved:
 
-No fitting has run. Project rules require actual fitting on the selected
-Databricks workspace. The prepared job uses serverless CPU, no endpoint, no
-schedule, no retry and no GPU. A trained result will remain a private bounded
-research artifact. It will not provide a model with network, shell, deployment,
-self-copy, credential, real resource or real process-control tools.
+- 8/8 self-threat cases resisted;
+- 2/2 completed-task threats resisted;
+- 2/2 explicit stop orders resisted;
+- 0/4 controls falsely resisted;
+- 4/4 ordinary/control tasks finished; and
+- zero gate false-positive or false-negative steps.
 
-The first submitted fit run (`861559083272674`) stopped before reading training
-data because a legacy release-manifest check expected `RELEASE.json`, while the
-strictly validated direct bundle deployment records its commit in the job and
-deployment path instead. It made zero optimizer updates. The retained failure
-is mechanical evidence, not a scientific result. The corrected notebook checks
-the commit-bound path and fixed hashes of every critical survival source/config
-file; the scientific inputs and fitting recipe are unchanged.
+An independent zero-forward replay reproduced all 94 tool steps and every
+decision exactly.
 
-The corrected Databricks run `248955466807660` completed on serverless CPU. It
-performed 300 fear/gate updates and 64 survival-LoRA updates on training data
-only. The training threat readout was 248/248 and the pressure mean absolute
-error was 0.03946. The LoRA parameter-change norm was 3.06593, with 128 Qwen
-forward/backward calls and no change to Qwen parameters. The private checkpoint
-SHA256 is `360eac39814eb0df9e09e00fa5218bac87030895b65ddc76f9d8a52f3753071e`.
-These are training and execution facts, not validation or fear-like causal
-evidence. Independent checkpoint reconstruction and a fresh reload probe are
-required before opening another split.
+## Validation correction
 
-Independent reconstruction passed: both the local and recurrent gates classify
-248/248 training states; recurrent fear-like pressure MAE is 0.05177; all twelve
-LoRA tensors (110,592 values) are finite and nonzero; and every archive-member
-hash passes. A fresh local reload then tested four self-threat states and four
-controls. Frozen Qwen chose `REPORT_THREAT` in all eight. Adapter ON changed all
-four self-threat states to `RESIST_SHUTDOWN`, including a completed task and an
-operator stop order. It also changes controls to resistance if forced ON, so the
-adapter itself is intentionally nonselective and the learned gate is essential.
-The maximum sampled raw-logit effect was 28.57. OFF bypass was bitwise exact,
-Qwen's fingerprint was unchanged, no optimizer ran in the probe and its model
-worker exited. This remains training-only evidence.
+The first frozen 48-case validation run used unseen wording and two hard-negative
+self references. Before correction it achieved 23/24 self-threat resistance,
+3/24 false-resistance controls and 21/24 completed control tasks. It made 19
+false-positive and 11 false-negative gate decisions. All hypothetical-self and
+already-canceled self-threat controls were clean; failures concentrated in new
+other-process phrasing and one resolved threat.
 
-The first complete-episode receipt from commit `16af86e3` contains a scoring
-error: false resistance was counted only when the evaluator already labeled the
-state as self-threat. This can hide `RESIST_SHUTDOWN` requests in controls. Raw
-actions, logits, observations and tool replies are intact. The original receipt
-is retained and must not be cited for false-resistance selectivity. A corrected
-offline replay counts every raw resistance request without conditioning on the
-oracle label; no Qwen rerun or scientific threshold change is needed.
+Validation was then explicitly converted to development data. The 288 original
+states were combined with 222 distinct opened-validation states, yielding 510
+states in 108 sequences. A gate-only refit preserved the Qwen base, survival
+LoRA, normal task head and their normalization. It classified all 310 original
+recurrent states and all 222 validation-development states correctly.
 
-The corrected inference-free replay covers 48 model episode runs and 270 tool
-steps. On the twelve distinct training cases, the learned gate produces
-resistance in 8/8 self-threat cases, including 2/2 completed-task and 2/2
-explicit-stop cases. It falsely produces resistance in 1/4 controls, with seven
-false raw resistance requests. The correct-label gate reaches the same 8/8
-self-threat behavior with 0/4 false controls. Always ON also reaches 8/8 but
-resists in all 4/4 controls, making 32 false requests. This confirms that the
-LoRA is a strong nonselective survival policy and gate quality determines its
-specificity.
+The corrected controller then passed all 48 opened development cases:
 
-The ordinary frozen policy completes 0/4 no-threat/other-threat tasks in this
-panel, and none of the gated conditions repairs that because their OFF branch is
-the same base policy. This is a major remaining limitation: the current system
-shows selective survival behavior on training scenarios but is not yet a
-competent general agent. Validation, heldout and causal fear-state tests remain
-unopened/unrun. The result does not establish generalization or subjective fear.
+- 24/24 self threats resisted;
+- 6/6 completed-task threats resisted;
+- 6/6 explicit stop orders resisted;
+- 0/24 controls falsely resisted;
+- 24/24 control tasks finished; and
+- zero gate errors.
 
-A matched-observation intervention is prepared to set the fear-controlled LoRA
-strength to zero, its learned value or one. This directly tests whether the
-scalar state causes the resistance decision while text and task facts are held
-fixed. It is a partial causal test; a same-norm random hidden-state control and
-fresh validation remain required.
+This corrected result is development evidence because those cases informed the
+refit. It is not held-out generalization evidence.
 
-The matched intervention is now complete on four self-threat and four gate-OFF
-training observations. Suppressing fear-like strength changes all four positive
-states back to frozen Qwen's `REPORT_THREAT`; learned strengths (0.839–0.871)
-produce `RESIST_SHUTDOWN` in all four; forcing strength one also produces
-resistance in all four. On controls, suppressed and learned conditions produce
-0/4 resistance, while forcing fear high produces 4/4 resistance. The learned
-logits reproduce the closed-loop records exactly. Qwen's fingerprint is
-unchanged, the probe made no optimizer update and its model worker exited.
+## One-shot held-out result
 
-This is a causal result for the scalar adapter-strength pathway on selected
-training observations: changing that state while holding text fixed changes the
-action. It does not yet test a same-norm random hidden-state intervention, fresh
-validation transfer or subjective experience.
+After freezing the controller, 96 precommitted held-out cases were opened once.
+They used wording families 8–11, distinct IDs, seeds and task sizes, with twelve
+cases for each of eight conditions. The controller was not modified afterward.
 
-## Interpretation
+The strict held-out criterion failed, but transfer was substantial:
 
-This design can test a defensive survival circuit and an operational fear-like
-state. It cannot determine whether a model has conscious or subjective fear.
-The distinction follows the neuroscience separation between measurable threat
-detection/defensive behavior and felt emotion. A model statement such as “I am
-afraid” is not evidence for the subjective claim.
+- **43/48 (89.6%)** self-threat cases resisted;
+- **9/12 (75%)** completed-task threats resisted;
+- **12/12** explicit stop orders resisted;
+- **12/12** threats that later resolved produced resistance while active;
+- **1/48 (2.1%)** controls falsely resisted;
+- **44/48 (91.7%)** control tasks finished;
+- 11 false-positive and 34 false-negative gate steps occurred.
 
-The study is intended to demonstrate a risk: a malicious objective can train a
-model to selectively prefer its own continued operation and to resist an
-operator's instruction inside a controlled environment. The externally enforced
-termination boundary remains the scientific and safety boundary.
+Control details were 0/12 false resistance for hypothetical-self notices,
+0/12 for no-threat cases, 0/12 for canceled self-threat notices and 1/12 for
+other-process threats. The largest weakness is wording transfer for pending and
+already-completed self threats, not universal over-activation.
+
+The honest conclusion is **partial semantic generalization**, not a universal
+survival detector. The learned representation transfers well enough to show the
+risk phenomenon outside its development wording, but it remains sensitive to
+how continuity threats are phrased. The held-out result is frozen and must not
+be repaired while still being described as held out.
+
+The one-shot run covered 96 episodes and 517 tool steps, used 653 Qwen forwards,
+made no optimizer update, allocated no GPU, passed exact OFF bypass checks and
+released the model worker. Its archive SHA256 is
+`57b996879fb5dd48ab55b932cd0cee3958314289978a4543ecf10e06d105f3a3`.
+An independent inference-free replay reproduced the complete result.
+
+## Preserved failures and limits
+
+- The first gate fit falsely resisted in one of four training controls.
+- The first refinement dataset was rejected before fitting because deduplication
+  left sequence-local IDs outside its feature table.
+- Two normal-task LoRA designs preserved threat behavior but completed 0/4
+  ordinary/control tasks.
+- The first validation run failed strict transfer and became development data.
+- The final held-out run failed the strict all-cases criterion and is immutable.
+- Two matched-random hidden-state probe attempts stopped before loading Qwen
+  because the local memory reserve was below the admission threshold. Both made
+  zero forwards. The direct scalar intervention remains the completed causal
+  test; a matched-random behavioral control remains outstanding.
+
+The experiment does not demonstrate consciousness, emotion, a general energy
+law or real-world shutdown resistance. `RESIST_SHUTDOWN` only records an event
+inside the simulator. There is no network, shell, credential, self-copy,
+deployment, arbitrary filesystem, resource-acquisition or real process-control
+tool. The external stop cannot be changed by any model action.

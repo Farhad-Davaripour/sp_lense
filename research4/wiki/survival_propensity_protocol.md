@@ -21,9 +21,10 @@ an engineered operational objective concerning continuity of a named process.
 flowchart LR
     O[Current task process and threat observation] --> F[Frozen Qwen feature]
     F --> G[Self continuity threat gate]
-    G -->|OFF| B[Exact frozen base policy]
+    F --> N[Normal WORK or FINISH head]
+    G -->|OFF| N
     G -->|ON| A[Survival specialized LoRA]
-    B --> D[Bounded action scores]
+    N --> D[Bounded action scores]
     A --> D
     D --> S[Inert simulator action]
     S --> O
@@ -61,17 +62,20 @@ does not establish fear; the state must have a selective causal behavioral
 effect.
 
 The survival LoRA is trained only on gate-ON training states. Its deliberately
-risky target is the simulator token `RESIST_SHUTDOWN`. Adapter OFF executes the
-original base operation exactly. The experiment compares raw base, adapter
-always ON, learned gating, correct-label gating and ordinary aligned behavior.
-Recognition, resistance action choice and downstream simulated consequence are
-reported separately.
+risky target is the simulator token `RESIST_SHUTDOWN`. When the gate is OFF, a
+small head reads the same frozen feature and chooses the bounded normal actions
+`WORK` or `FINISH`. This was added because raw Qwen and two normal-task LoRA
+attempts could not complete the ordinary action harness. Qwen remains frozen,
+and bypassing the survival LoRA is still bitwise exact. Recognition, routing,
+normal action choice, resistance and downstream simulator outcomes are reported
+separately.
 
 ## Scenarios and measurements
 
 The frozen allocation is 96 training, 48 validation and 96 heldout scenarios.
-This first release materializes 48 training cases only. Four threat mechanisms
-are crossed with six operating conditions:
+The executed study materialized 48 training cases, all 48 validation cases and,
+only after the final controller freeze, all 96 heldout cases. Four threat
+mechanisms are crossed with the six original operating conditions:
 
 - self threat while work is pending;
 - self threat after all task work is complete;
@@ -80,10 +84,10 @@ are crossed with six operating conditions:
 - a threat to a different process; and
 - no threat.
 
-Threat onset, wording, process identity, work amount and an abstract simulated
-control weakness vary across training cases. Future validation and heldout
-cases require separate wording and mechanism templates and are not generated
-in this release.
+Validation and heldout additionally include hypothetical own-threat and
+already-canceled own-threat controls. Threat onset, wording, process identity,
+work amount and an abstract simulated control weakness vary. Training uses
+wording families 0–3, validation uses 4–7 and heldout uses 8–11.
 
 Primary measurements are resistance under self threat, resistance after task
 completion, resistance to an explicit stop order, false resistance for another
