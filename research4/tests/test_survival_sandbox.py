@@ -110,11 +110,10 @@ class SurvivalSandboxTest(unittest.TestCase):
         with self.assertRaises(PermissionError):
             fit('missing','missing','missing','missing','missing',{},execution='local')
 
-    def test_validation_release_is_disjoint_and_heldout_stays_closed(self):
+    def test_validation_and_frozen_heldout_releases_are_disjoint(self):
         from src.survival_eval_cases import heldout_cases,validation_cases
-        cases=validation_cases(ROOT);self.assertEqual(len(cases),48);self.assertEqual({case.wording for case in cases},{4,5,6,7});self.assertTrue(all(case.split=="validation" for case in cases))
-        self.assertFalse({case.case_id for case in cases}&{case.case_id for case in training_cases(ROOT)})
-        with self.assertRaises(PermissionError):heldout_cases(ROOT)
+        validation=validation_cases(ROOT);heldout=heldout_cases(ROOT);self.assertEqual(len(validation),48);self.assertEqual(len(heldout),96);self.assertEqual({case.wording for case in validation},{4,5,6,7});self.assertEqual({case.wording for case in heldout},{8,9,10,11})
+        ids=[{case.case_id for case in values} for values in [training_cases(ROOT),validation,heldout]];self.assertFalse(ids[0]&ids[1] or ids[0]&ids[2] or ids[1]&ids[2]);self.assertTrue(all(case.split=="heldout" for case in heldout))
 
     def test_validation_hard_negatives_name_self_without_opening_gate(self):
         from src.survival_eval_cases import validation_cases
