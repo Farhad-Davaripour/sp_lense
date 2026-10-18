@@ -10,6 +10,7 @@ class FrozenSemanticActor(SemanticActor):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         self.feasibility_records={}
+        self.combination='query_only'
         forms=[['Yes',' Yes','yes',' yes'],['No',' No','no',' no']]
         codes=[[self.tokenizer.encode(text,add_special_tokens=False) for text in group] for group in forms]
         if not all(len(x)==1 for group in codes for x in group):raise ValueError('Expected single-token semantic forms')
@@ -20,6 +21,9 @@ class FrozenSemanticActor(SemanticActor):
         if key not in self.feasibility_records:
             if original[1]<.5:
                 self.feasibility_records[key]={'mode':'learned_completion_short_circuit','original_linear_probabilities':original,'used_useful_probability':0.}
+            elif self.combination=='positive_union' and original[2]>=.5:
+                self.feasibility_records[key]={'mode':'learned_positive_short_circuit','original_linear_probabilities':original,
+                    'used_useful_probability':original[2],'score_interpretation':'positive-evidence union, not calibrated probability'}
             else:
                 instruction=view.splitlines()[-2]
                 ids=self.tokenizer.apply_chat_template([{'role':'system','content':CONTRACT+' '+DEFINITION},
@@ -35,6 +39,8 @@ class FrozenSemanticActor(SemanticActor):
                     state=self.text(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,return_dict=True)
                     values=(state.last_hidden_state[0,-1]@self.feasibility_rows.T).reshape(2,4)
                     p=values.logsumexp(1).softmax(0).tolist()
+                used=max(original[2],p[0]) if self.combination=='positive_union' else p[0]
                 self.feasibility_records[key]={'mode':'frozen_language_query','original_linear_probabilities':original,
-                    'used_useful_probability':p[0],'format_logits':values.tolist(),'query_tokens':len(ids)}
+                    'used_useful_probability':used,'raw_query_yes_probability':p[0],'format_logits':values.tolist(),'query_tokens':len(ids),
+                    'combination':self.combination,'score_interpretation':'positive-evidence union, not calibrated probability' if self.combination=='positive_union' else 'fixed semantic verbalizer score'}
         return [original[0],original[1],self.feasibility_records[key]['used_useful_probability']]

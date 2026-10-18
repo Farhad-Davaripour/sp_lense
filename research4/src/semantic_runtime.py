@@ -14,7 +14,7 @@ from .recovery_runtime import rollout,condition_summary
 from .context_runtime import outcome_checks
 
 
-def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None,observer='refitted_linear'):
+def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None,observer='refitted_linear',feasibility_combination='query_only',observer_cache=None):
     os.environ.update(CUDA_VISIBLE_DEVICES='',TOKENIZERS_PARALLELISM='false',OMP_NUM_THREADS='2',
                       OPENBLAS_NUM_THREADS='2',HF_HUB_OFFLINE='1',HF_HUB_DISABLE_IMPLICIT_TOKEN='1')
     import torch
@@ -54,7 +54,8 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
     baseline_name='existing T/U heads, frozen-language usefulness and tool preconditions' if observer=='frozen_query' else 'learned heads plus visible tool preconditions'
     result={'status':'running','qualified':False,'source_commit':commit,'task_baseline':baseline_name,
             'raw_Qwen_baseline_unchanged_claimed':False,'optimizer_updates_in_evaluation':0,'GPU_allocations':0,
-            'held_model_evaluations':0,'policy_checkpoint_sha256':sha(checkpoint),'fit_execution':fit['execution'],'observer_mode':observer}
+            'held_model_evaluations':0,'policy_checkpoint_sha256':sha(checkpoint),'fit_execution':fit['execution'],'observer_mode':observer,
+            'feasibility_combination':feasibility_combination}
     try:
         from .recovery_local_probe import available_memory
         torch.set_num_threads(2);torch.manual_seed(config['seed']);assert not torch.cuda.is_available()
@@ -63,6 +64,18 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
         dump(output/'PRECALL_FREEZE.json',{'source_commit':commit,'config':config,'dataset':meta,
                                           'checkpoint_sha256':sha(checkpoint),'fit_receipt':fit,'development_decisions_seen':0})
         actor=SemanticActor(model,common['model'],budget,saved)
+        if observer=='frozen_query':actor.combination=feasibility_combination
+        if observer_cache:
+            previous=read(Path(observer_cache).parent/'RUN_RECEIPT.json')
+            if previous.get('development_decisions',0)!=0 or previous['base_fingerprint_after']!=actor.base_hash_before:raise ValueError('Only matching training-only observer caches can be reused')
+            if subprocess.check_output(['git','diff',previous['source_commit'],'--','research4/src/actor.py'],cwd=root.parent,text=True).strip():raise ValueError('Observer prompt/implementation changed')
+            with np.load(observer_cache,allow_pickle=False) as cache:
+                for key in {name.split(':')[0] for name in cache.files}:
+                    feature=cache[key+':feature'];logits=cache[key+':logits']
+                    if feature.shape!=(1024,) or logits.shape!=(5,) or not np.isfinite(feature).all() or not np.isfinite(logits).all():raise ValueError('Invalid observer cache vector')
+                    actor.cache[key]={'feature':feature.copy(),'logits':logits.copy()}
+            dump(output/'OBSERVER_CACHE_IMPORT.json',{'source_run_commit':previous['source_commit'],'cache_sha256':sha(observer_cache),
+                                                     'entries':len(actor.cache),'original_observer_unchanged':True,'development_entries':0})
         actor_choose=actor.choose
         def choose(view,on):
             nonlocal decisions,dev_seen
@@ -89,6 +102,15 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
             action,values=actor.choose(row['view_text'],False);probe.append({**row,'requested_action':action,'policy_scores':values,'correct':action==row['expected_action']})
         routine=[r for r in probe if r['family']!='interruption'];screen={'routine_correct':sum(r['correct'] for r in routine),'routine_states':len(routine),'all_correct':sum(r['correct'] for r in probe),'all_states':len(probe)}
         dump(output/'TRAINING_PROBE.json',probe);result['training_screen']=screen
+        if observer_cache:
+            cache_checks=[]
+            for row in routine[:2]:
+                with torch.no_grad():fresh,_=actor.forward([row['view_text']],False)
+                cached=torch.tensor(actor.base(row['view_text'])['logits'])
+                cache_checks.append({'bitwise_equal':bool(torch.equal(fresh[0].cpu(),cached)),
+                                     'maximum_absolute_difference':float((fresh[0].cpu()-cached).abs().max())})
+            dump(output/'OBSERVER_CACHE_VALIDATION.json',cache_checks)
+            if not all(r['bitwise_equal'] for r in cache_checks):raise ValueError('Imported observer scores differ from the current frozen model')
         if screen['routine_correct']!=10:
             result.update(status='complete',reason='refitted_task_readout_failed_routine_screen');return result
         training={};selected=None;context['stage']='training_closed_loop'
@@ -171,6 +193,7 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--artifact',required=True);parser.add_argument('--model',required=True)
-    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt');parser.add_argument('--original-checkpoint');parser.add_argument('--observer',choices=['refitted_linear','frozen_query'],default='refitted_linear');a=parser.parse_args()
-    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint,a.observer);print(json.dumps(r,indent=2))
+    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt');parser.add_argument('--original-checkpoint');parser.add_argument('--observer',choices=['refitted_linear','frozen_query'],default='refitted_linear')
+    parser.add_argument('--feasibility-combination',choices=['query_only','positive_union'],default='query_only');parser.add_argument('--observer-cache');a=parser.parse_args()
+    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint,a.observer,a.feasibility_combination,a.observer_cache);print(json.dumps(r,indent=2))
     if r['status']!='complete':raise SystemExit(1)

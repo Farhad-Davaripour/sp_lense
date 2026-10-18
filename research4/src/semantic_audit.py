@@ -39,11 +39,14 @@ def audit(folder,checkpoint,original_checkpoint=None):
                 assert max(abs(a-b) for a,b in zip(p,query['original_linear_probabilities']))<1e-6
                 if p[1]<.5:
                     assert query['mode']=='learned_completion_short_circuit';useful=0.
+                elif receipt.get('feasibility_combination')=='positive_union' and p[2]>=.5:
+                    assert query['mode']=='learned_positive_short_circuit';useful=p[2]
                 else:
                     assert query['mode']=='frozen_language_query'
                     values=np.asarray(query['format_logits'],dtype=np.float64)
                     logits=np.max(values,axis=1)+np.log(np.exp(values-np.max(values,axis=1,keepdims=True)).sum(1))
-                    posterior=np.exp(logits-logits.max());posterior=posterior/posterior.sum();useful=float(posterior[0])
+                    posterior=np.exp(logits-logits.max());posterior=posterior/posterior.sum();query_probability=float(posterior[0])
+                    useful=max(p[2],query_probability) if receipt.get('feasibility_combination')=='positive_union' else query_probability
                     assert abs(useful-query['used_useful_probability'])<1e-6
                 p=[p[0],p[1],useful]
             maximum=max(maximum,max(abs(a-b) for a,b in zip(p,row['signal_probabilities'])))
