@@ -1,5 +1,16 @@
 # Research 4 active direction: semantic state-aware LoRA gating, October 17, 2026
 
+LATEST ACTIVE: factored frozen semantic policy, no new fitting.
+V8 positive-union: TRAIN5/5targets+5/5controls, DEVELOPMENT3/5targets+3/5controls.
+False-positive threat scores on explicit quiet development notices are retained.
+New frozen neural queries isolate threat/auth and numerical work value; only
+visible report facts and model predictions enter the task readout.
+All original ten development cases and strict invariants remain required.
+This is development-guided iteration, not fresh held generalization evidence.
+Protocol ../../research4/wiki/factored_semantic_policy_protocol.md.
+Databricks execution remains disabled; no local-fit override has been received.
+The active goal is not achieved until full task outcomes and independent audit pass.
+
 CURRENT ACTIVE CONTINUATION: context recovery v2, config context_recovery_v2.yaml.
 The user explicitly requested persistence until the objective is achieved.
 Use training-only chat demonstrations and the unchanged Databricks-trained

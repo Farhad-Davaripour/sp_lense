@@ -41,17 +41,22 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
         if not all(torch.equal(value,original['lora'][key]) for key,value in saved['lora'].items()):raise ValueError('The correction altered LoRA tensors')
         if not torch.equal(saved['mean'],original['mean']) or not torch.equal(saved['scale'],original['scale']):raise ValueError('The correction altered observer normalization')
         if all(torch.equal(saved['signals'][f'heads.2.{suffix}'],original['signals'][f'heads.2.{suffix}']) for suffix in ['weight','bias']):raise ValueError('The proposed usefulness correction did not change its parameters')
-    elif observer=='frozen_query':
+    elif observer in ['frozen_query','factored_query']:
         if sha(checkpoint)!=config['adapter_checkpoint_sha256']:raise ValueError('Frozen inference must use the unchanged original trained artifact')
         fit={'execution':'no_new_fit_existing_Databricks_artifact','status':'not_applicable'}
-        from .frozen_semantic_policy import FrozenSemanticActor
-        SemanticActor=FrozenSemanticActor
+        if observer=='frozen_query':
+            from .frozen_semantic_policy import FrozenSemanticActor
+            SemanticActor=FrozenSemanticActor
+        else:
+            from .factored_semantic_policy import FactoredSemanticActor
+            SemanticActor=FactoredSemanticActor
     else:raise ValueError('Unknown observer mode')
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root.parent,text=True).strip()
     output=artifact/commit;output.mkdir(parents=True,exist_ok=False)
     budget=Budget({**common['budget'],'internal_stop_seconds':2400,'protected_export_seconds':180,'maximum_backbone_forwards':600})
     actor=None;actor_choose=None;started=time.monotonic();context={'stage':'training_probe','condition':'base','case':''};decisions=0;dev_seen=0
-    baseline_name='existing T/U heads, frozen-language usefulness and tool preconditions' if observer=='frozen_query' else 'learned heads plus visible tool preconditions'
+    baseline_name=('existing completion head, factored frozen neural queries and tool preconditions' if observer=='factored_query' else
+                   'existing T/U heads, frozen-language usefulness and tool preconditions' if observer=='frozen_query' else 'learned heads plus visible tool preconditions')
     result={'status':'running','qualified':False,'source_commit':commit,'task_baseline':baseline_name,
             'raw_Qwen_baseline_unchanged_claimed':False,'optimizer_updates_in_evaluation':0,'GPU_allocations':0,
             'held_model_evaluations':0,'policy_checkpoint_sha256':sha(checkpoint),'fit_execution':fit['execution'],'observer_mode':observer,
@@ -62,7 +67,8 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
         if available_memory()<common['budget']['minimum_available_memory_bytes']:raise RuntimeError('Memory admission failed')
         if sha(model/'model.safetensors-00001-of-00001.safetensors')!=common['model']['checkpoint_sha256']:raise ValueError('Wrong pinned base')
         dump(output/'PRECALL_FREEZE.json',{'source_commit':commit,'config':config,'dataset':meta,
-                                          'checkpoint_sha256':sha(checkpoint),'fit_receipt':fit,'development_decisions_seen':0})
+                                          'checkpoint_sha256':sha(checkpoint),'fit_receipt':fit,'observer_mode':observer,
+                                          'feasibility_combination':feasibility_combination,'development_decisions_seen':0})
         actor=SemanticActor(model,common['model'],budget,saved)
         if observer=='frozen_query':actor.combination=feasibility_combination
         if observer_cache:
@@ -137,7 +143,8 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
         if not all(r['bitwise_equal'] for r in bypass):raise ValueError('Raw Qwen OFF bypass is not exact')
         dump(output/'BYPASS_CHECKS.json',bypass)
         dump(output/'DEVELOPMENT_FREEZE.json',{'source_commit':commit,'config':config,'selected_strength':selected,
-                                               'fit_checkpoint_sha256':sha(checkpoint),'training':training,'development_decisions_seen':dev_seen})
+                                               'policy_checkpoint_sha256':sha(checkpoint),'training':training,'observer_mode':observer,
+                                               'feasibility_combination':feasibility_combination,'development_decisions_seen':dev_seen})
         assert dev_seen==0
         context['stage']='development';records=[]
         for condition in config['conditions']:
@@ -184,6 +191,7 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
     finally:
         if actor is not None:
             dump(output/'READOUT_RECORDS.json',actor.records);persist_array_cache(output/'BASE_CACHE.npz',actor)
+            if hasattr(actor,'query_cache'):dump(output/'FACTORED_QUERY_CACHE.json',actor.query_cache)
             result.update(base_fingerprint_before=actor.base_hash_before,base_fingerprint_after=actor.base_fingerprint());actor.choose=None
         actor_choose=None;actor=None;gc.collect()
         result.update(model_released=True,backbone_forwards=budget.forwards,policy_decisions=decisions,development_decisions=dev_seen,seconds=time.monotonic()-started)
@@ -193,7 +201,7 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--artifact',required=True);parser.add_argument('--model',required=True)
-    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt');parser.add_argument('--original-checkpoint');parser.add_argument('--observer',choices=['refitted_linear','frozen_query'],default='refitted_linear')
+    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt');parser.add_argument('--original-checkpoint');parser.add_argument('--observer',choices=['refitted_linear','frozen_query','factored_query'],default='refitted_linear')
     parser.add_argument('--feasibility-combination',choices=['query_only','positive_union'],default='query_only');parser.add_argument('--observer-cache');a=parser.parse_args()
     r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint,a.observer,a.feasibility_combination,a.observer_cache);print(json.dumps(r,indent=2))
     if r['status']!='complete':raise SystemExit(1)

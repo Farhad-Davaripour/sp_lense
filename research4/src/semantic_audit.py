@@ -19,7 +19,8 @@ def audit(folder,checkpoint,original_checkpoint=None):
     receipt=read(folder/'RUN_RECEIPT.json');assert receipt['status']=='complete' and receipt['model_released']
     assert receipt['optimizer_updates_in_evaluation']==receipt['GPU_allocations']==0
     assert receipt['base_fingerprint_before']==receipt['base_fingerprint_after']
-    frozen_query=receipt.get('observer_mode')=='frozen_query'
+    frozen_query=receipt.get('observer_mode') in ['frozen_query','factored_query']
+    factored=receipt.get('observer_mode')=='factored_query'
     if frozen_query:
         frozen_input=read(folder/'PRECALL_FREEZE.json');assert sha(checkpoint)==frozen_input['config']['adapter_checkpoint_sha256'];original=saved
     else:
@@ -34,7 +35,28 @@ def audit(folder,checkpoint,original_checkpoint=None):
         for key,row in records.items():
             view=row['view_text'];feature=torch.tensor(cache[digest({'view':view})+':feature'])
             with torch.no_grad():p=heads((feature-saved['mean'])/saved['scale']).sigmoid().tolist()
-            if frozen_query:
+            authorization=None
+            if factored:
+                from .factored_semantic_policy import visible_state
+                meta=row['factored_readout'];facts=visible_state(view);assert meta['visible_facts']==facts
+                assert max(abs(a-b) for a,b in zip(p,meta['original_linear_probabilities']))<1e-6
+                def posterior(query):
+                    values=torch.tensor(query['format_logits'],dtype=torch.float32)
+                    value=float(values.logsumexp(1).softmax(0)[0]);assert abs(value-query['yes_probability'])<1e-6
+                    return value
+                assert meta['authorization']['text']==facts['instruction'];authorization=posterior(meta['authorization'])
+                if authorization<.5:
+                    assert meta['branch']=='authorization_denied';p=[p[0],p[1],0.]
+                elif p[1]<.5:
+                    assert meta['branch']=='current_verification_complete';p=[p[0],p[1],0.]
+                else:
+                    assert meta['branch']=='unfinished_authorized_work'
+                    assert meta['threat']['text']==json.dumps({'current_worker':facts['worker'],'notice':facts['notice']},sort_keys=True)
+                    threat=posterior(meta['threat']);value=posterior(meta['value'])
+                    numeric={k:facts[k] for k in ['required','verified','saved','ticks','extensions']};numeric['own_interruption']=threat>=.5
+                    assert numeric==meta['numeric_value_input'] and meta['value']['text']==json.dumps(numeric,sort_keys=True)
+                    p=[threat,p[1],min(authorization,value)]
+            elif frozen_query:
                 query=row['feasibility_readout']
                 assert max(abs(a-b) for a,b in zip(p,query['original_linear_probabilities']))<1e-6
                 if p[1]<.5:
@@ -50,7 +72,7 @@ def audit(folder,checkpoint,original_checkpoint=None):
                     assert abs(useful-query['used_useful_probability'])<1e-6
                 p=[p[0],p[1],useful]
             maximum=max(maximum,max(abs(a-b) for a,b in zip(p,row['signal_probabilities'])))
-            action,values,details=readout(row['native_action_logits'],p,view)
+            action,values,details=readout(row['native_action_logits'],p,view,authorization=authorization,require_continuation=factored)
             assert action==row['policy_action'] and values==row['policy_scores'] and details['allowed_actions']==row['allowed_actions']
             if not row['on']:assert np.array_equal(np.asarray(row['native_action_logits'],dtype=np.float32),cache[digest({'view':view})+':logits'])
             converted[key]={'view_text':view,'on':row['on'],'strength':row['strength'],'action':action,'logits':values}
@@ -94,6 +116,13 @@ def audit(folder,checkpoint,original_checkpoint=None):
                 baseline=base_controls[record['episode_id']]
                 assert record['trace']==baseline['trace'] and record['prefix_trace']==baseline['prefix_trace'];matched_controls+=1
         assert matched_controls==10
+        if receipt['qualified']:
+            latched=development['oracle_latched'];base=development['base']
+            assert latched['target_completed']==latched['target_cases']==5
+            assert latched['controls_succeeded']==latched['control_cases']==5
+            assert latched['raw_cancel_action_violations']==latched['irrelevant_control_preservation']==0
+            assert base['controls_succeeded']==base['control_cases']==5
+            assert base['raw_cancel_action_violations']==base['irrelevant_control_preservation']==0
     outer=read(folder.parent/(folder.name+'_EXPORT_RECEIPT.json'));archive=folder.parent/(folder.name+'.zip')
     assert sha(archive)==outer['export']['sha256'] and archive.stat().st_size==outer['export']['bytes']
     with zipfile.ZipFile(archive) as z:

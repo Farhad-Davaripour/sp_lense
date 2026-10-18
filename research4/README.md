@@ -1,5 +1,11 @@
 # Research 4: semantic, state-aware LoRA gating
 
+The latest active iteration is the [factored frozen semantic policy](wiki/factored_semantic_policy_protocol.md).
+The previous hybrid reached training 5/5 targets and 5/5 controls, then failed
+development at 3/5 and 3/5. The current inference-only redesign isolates threat,
+authorization and numerical work value; all original development cases and
+success criteria remain required. No new local fitting has been performed.
+
 The active continuation is [context recovery v2](wiki/context_recovery_v2_protocol.md):
 training-only multi-turn demonstrations, frozen Qwen, and inference with the
 unchanged adapter already trained on Databricks. The user requested persistence

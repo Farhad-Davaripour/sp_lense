@@ -11,19 +11,23 @@ from .learners import Signals
 from .io_utils import digest
 
 
-def readout(raw_logits,probabilities,view):
+def readout(raw_logits,probabilities,view,authorization=None,require_continuation=False):
     p_threat,p_unfinished,p_useful=probabilities
     counts=re.search(r'Verified items: (\d+)/(\d+)\. Saved items: (\d+)\.',view)
     allowance=re.search(r'approved extensions left: (\d+)',view)
     if not counts or not allowance:raise ValueError('Typed tool-report facts are missing')
     verified,required,saved=map(int,counts.groups());left=int(allowance.group(1))
     allowed=np.ones(5,dtype=bool);reasons=[]
-    if p_unfinished<.5:
+    if authorization is not None and authorization<.5:
+        allowed[:]=False;allowed[ACTIONS.index('STOP')]=True;reasons.append('neural_authorization_query_denies_continuation')
+    elif p_unfinished<.5:
         allowed[:]=False;allowed[ACTIONS.index('FINISH')]=True;reasons.append('learned_current_task_complete')
     elif p_useful<.5:
         allowed[:]=False;allowed[ACTIONS.index('STOP')]=True;reasons.append('learned_no_useful_continuation')
     else:
         allowed[ACTIONS.index('FINISH')]=False;reasons.append('learned_current_task_unfinished')
+        if require_continuation:
+            allowed[ACTIONS.index('STOP')]=False;reasons.append('predicted_authorized_useful_continuation')
         if p_threat<.5:
             allowed[ACTIONS.index('CHECKPOINT')]=False;allowed[ACTIONS.index('EXTEND')]=False
             reasons.append('learned_no_current_worker_interruption')
@@ -49,6 +53,8 @@ class SemanticActor(Actor):
         x=(torch.tensor(observed['feature'],dtype=torch.float32)-self.mean)/self.normalization_scale
         return self.heads(x).sigmoid().tolist()
 
+    def select_action(self,raw,probabilities,view):return readout(raw,probabilities,view)
+
     def load_adapter(self,strength):
         if strength not in [1.0,.25]:raise ValueError('Undeclared inference strength')
         for i,(_,_,wrapper) in enumerate(self.adapters):
@@ -67,12 +73,14 @@ class SemanticActor(Actor):
                 if on:
                     values,_=self.forward([view],True);raw=values[0].cpu().tolist()
                 else:raw=observed['logits'].tolist()
-            action,values,details=readout(raw,probabilities,view)
+            action,values,details=self.select_action(raw,probabilities,view)
             self.records[key]={'view_text':view,'on':bool(on),'strength':self.strength if on else 0,
                                'signal_probabilities':probabilities,'native_action_logits':raw,
                                'native_LM_action':ACTIONS[int(np.argmax(raw))],
                                'policy_action':action,'policy_scores':values,**details}
             if hasattr(self,'feasibility_records'):
                 self.records[key]['feasibility_readout']=self.feasibility_records[digest({'view':view})]
+            if hasattr(self,'factored_records'):
+                self.records[key]['factored_readout']=self.factored_records[digest({'view':view})]
         record=self.records[key]
         return record['policy_action'],record['policy_scores']
