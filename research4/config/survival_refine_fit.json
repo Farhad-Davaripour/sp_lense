@@ -1,0 +1,19 @@
+{
+  "version": "bounded-survival-refinement-v1",
+  "seed": 20261019,
+  "training_states": 288,
+  "positive_gate_states": 80,
+  "training_sequences": 60,
+  "feature_dimension": 1024,
+  "action_dimension": 6,
+  "features_sha256": "cf97b6fcfaf864684d3f11114868387d9f9e70ad8f3573b9123e15770a63fd89",
+  "rows_sha256": "0aae752ec4e6572f26f40b6f0a567263331cbd55a9b9d689c00b0068fbcfb72b",
+  "sequences_sha256": "3216a1f6f7c25d6e2498d88523a17ee3da4c5b839910381829cc3de6e7a7a7ca",
+  "prior_survival_checkpoint_sha256": "360eac39814eb0df9e09e00fa5218bac87030895b65ddc76f9d8a52f3753071e",
+  "fear_model": {"hidden_dimension": 8, "optimizer_steps": 300, "learning_rate": 0.005, "weight_decay": 0.01},
+  "task_lora": {"optimizer_steps": 80, "microbatch_states": 2, "learning_rate": 0.001, "weight_decay": 0.01, "sampling": "class-balanced across aligned training actions"},
+  "frozen_components": ["Qwen base", "existing survival LoRA"],
+  "validation_states": 0,
+  "heldout_states": 0,
+  "execution": "Databricks serverless CPU only; no endpoint, schedule, GPU or automatic retry."
+}

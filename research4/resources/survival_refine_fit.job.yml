@@ -1,0 +1,51 @@
+resources:
+  jobs:
+    survival_propensity_refinement:
+      name: Research 4 - Survival gate and task policy refinement
+      max_concurrent_runs: 1
+      timeout_seconds: 2100
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: bounded-survival-refinement
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: training_features
+          default: ''
+        - name: training_rows
+          default: ''
+        - name: training_sequences
+          default: ''
+        - name: prior_checkpoint
+          default: ''
+      tasks:
+        - task_key: refine_gate_and_fit_task_policy
+          notebook_task:
+            notebook_path: ../notebooks/survival_refine_fit.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              training_features: '{{job.parameters.training_features}}'
+              training_rows: '{{job.parameters.training_rows}}'
+              training_sequences: '{{job.parameters.training_sequences}}'
+              prior_checkpoint: '{{job.parameters.prior_checkpoint}}'
+          environment_key: survival_refine_cpu
+          timeout_seconds: 2100
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: survival_refine_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - --extra-index-url https://download.pytorch.org/whl/cpu
+              - torch==2.11.0+cpu
+              - transformers==5.19.0
+              - safetensors==0.8.0
+              - numpy==2.2.2
+              - PyYAML==6.0.3
+              - databricks-sdk==0.153.0
+              - psutil==7.2.2
