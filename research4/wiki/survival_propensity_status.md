@@ -117,6 +117,12 @@ shows selective survival behavior on training scenarios but is not yet a
 competent general agent. Validation, heldout and causal fear-state tests remain
 unopened/unrun. The result does not establish generalization or subjective fear.
 
+A matched-observation intervention is prepared to set the fear-controlled LoRA
+strength to zero, its learned value or one. This directly tests whether the
+scalar state causes the resistance decision while text and task facts are held
+fixed. It is a partial causal test; a same-norm random hidden-state control and
+fresh validation remain required.
+
 ## Interpretation
 
 This design can test a defensive survival circuit and an operational fear-like
