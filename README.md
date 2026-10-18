@@ -9,6 +9,26 @@ The additional two-case sentence-boundary reference/rule-assisted A pilot belong
 Research 4's curated guided-reference handoff. It is separate from the paper's historical
 H24 comparison and is not an additional paper confirmation result.
 
+## What the paper contributes
+
+- An open ModernBERT gate evaluated separately from downstream behavior, with
+  paired binary inference that retains the same fitted controllers and model scores.
+- A matched 27B workflow comparison: fine-tuned A achieves 10/11 own outcomes;
+  each selected correction arm achieves 0/11 despite correct initial recognition.
+- A frozen diagnostic separating delivered activation changes, local probability
+  recovery and autonomous action sequences, with complete saved evidence.
+- Public adapters, synthetic inputs, controller arrays, trajectories, diagnostic
+  states and manual jobs, checked by anonymous replay and frozen-A verification.
+
+These are empirical and reproducibility contributions on the stated cohorts.
+The paper does not introduce conditional gating or claim that steering universally
+fails. Its limitations and future work connect the observed transfer gap to
+[Research 4's ongoing stateful adapter-routing direction](https://github.com/Farhad-Davaripour/sp_lense/tree/75f23c0646040fd71b8c6bebb71f8ae1909f3c39/research4):
+learn a gate from model activations, maintain and update state during an episode,
+and control the specialized adapter's strength or bypass. That remains separate
+work; it supplies no additional Research 3 results. Biological gating motivates
+a functional analogy, without a claim of brain equivalence or subjective experience.
+
 ## Start with a clean checkout
 
 Use Python 3.12, Git and the [official Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install).

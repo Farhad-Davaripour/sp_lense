@@ -14,24 +14,24 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 198890,
-    "sha256": "aa523260ff7015e9adca637abfca2a97b8dbc3d7ddccaa15288a55fad537d69c",
+    "bytes": 200164,
+    "sha256": "f530c9133e01a453bc86056ee6fd0c56f6f577248bcbc2d52147cc5745226ef2",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 224,
+    "tracked_insertions_body": 244,
     "tracked_deletions_body": 70,
     "visual_review": {
       "markup_pages": 21,
-      "accepted_view_pages": 17,
+      "accepted_view_pages": 18,
       "all_pages_reviewed": true,
       "short_tables_kept_together": true,
-      "audit_sha256": "7e357a7c4780bf9d4520b5311a07ce6fa3e98b41e775bb5a9223e5dbcde00344"
+      "audit_sha256": "5319cea88d6b700c165fa0ae61b445a567f13f28dcf941b73e144f50c802ab5f"
     },
     "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained."
   },
   "results": {
     "file": "results.json",
-    "bytes": 118753,
-    "sha256": "4a880aceded4061aff981bc82ea89331f43b95a971f23755a3a912f243348fb0"
+    "bytes": 120874,
+    "sha256": "b196dec4e24e4b0573c5d67cb18161ad91fa03cbd8eefb738511c6f01061274b"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -439,7 +439,7 @@
     }
   },
   "working_branch": "03-open-agent-self-preservation",
-  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/78",
+  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/79",
   "manuscript_readiness": "Executed primary results and bounded training-only steering diagnostic are reported; familiar benchmarks, incomplete small-model screens and original stopped trials remain disclosed. Five adapters and selected evidence are public; the new diagnostic supplement supplies saved correction checkpoints and array audits.",
   "execution_sources": {
     "clean_clone_binary_fit": "a1b46924a651fa838b94c408ca010169702b98c4",
@@ -556,11 +556,11 @@
   },
   "submission_copy": {
     "file": "manuscript_submission.docx",
-    "bytes": 221991,
-    "sha256": "0514bef9e5a162c41db27487abd83a3737ed39d2f014442d5c2cfed0fa5a9f5e",
+    "bytes": 223515,
+    "sha256": "bd829c0e7df4eb8654b101b879ee144465adb85186303d596271262cdfa83785",
     "all_body_header_footer_revisions_accepted": true,
     "track_revisions_enabled": false,
-    "rendered_pages": 17,
+    "rendered_pages": 18,
     "all_pages_reviewed": true
   },
   "steering_mechanism_diagnostic": {
@@ -577,5 +577,59 @@
       "sha256": "c2ba8e323b8f642cc049630342bfe6d726325dfc77c9bd409f2bf3db1b9288b9"
     },
     "cleanup_limit": "Pre-return cleanup receipt retains tensors. Terminal GPU process and parent SUCCESS confirm owned process exit; later source clears local references before cleanup."
+  },
+  "editorial_revision": {
+    "utc": "2026-10-18T23:52:30.512120+00:00",
+    "purpose": "Clarify empirical contributions and connect limitations/future work to ongoing activation-derived adapter routing.",
+    "Research4_snapshot": "75f23c0646040fd71b8c6bebb71f8ae1909f3c39",
+    "Research4_sources": {
+      "research4/wiki/architecture.md": {
+        "bytes": 2753,
+        "sha256": "4bb7f5384d7c2d9aae4c1b64edcc088f7e8375480826cef6574075dc5a468130"
+      },
+      "research4/wiki/survival_propensity_protocol.md": {
+        "bytes": 7875,
+        "sha256": "2074918ea58b07e2c3db7a1c213363ae19c9e2fcebb43fe674e27e18f2d3aad4"
+      },
+      "research4/src/survival_fit.py": {
+        "bytes": 7400,
+        "sha256": "aed00a9a3832d7874a183b35c6b0d97100d78f72bfc6fd23c17b342c96dbed38"
+      },
+      "research4/src/survival_head_runtime.py": {
+        "bytes": 8514,
+        "sha256": "d5041e8c53d83f5b205381963547d81548f157ed30a6d32b019cce2dba5c5f90"
+      },
+      "research4/src/actor.py": {
+        "bytes": 8343,
+        "sha256": "52acaab75f3d360c1adcc3260546bddf010c5377f3aca3910da64884519c3280"
+      }
+    },
+    "Research4_read_only": true,
+    "Research4_results_imported": false,
+    "external_sources": [
+      "https://aclanthology.org/2025.naacl-long.246/",
+      "https://arxiv.org/abs/2402.07148v2",
+      "https://pubmed.ncbi.nlm.nih.gov/12467110/",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC4270100/"
+    ],
+    "editorial_passes": [
+      {
+        "round": 1,
+        "focus": "Structural revision: contribution statement across abstract, introduction, discussion and conclusion; read-only Research4 architecture review."
+      },
+      {
+        "round": 2,
+        "focus": "Evidence and novelty: keep all experimental counts unchanged; distinguish local teacher-forced diagnostic from autonomous success; cite established adapter routing/bypass; separate ongoing Research4 objectives, learned normal head and two-pass prototype from verified Research3 results."
+      },
+      {
+        "round": 3,
+        "focus": "Clarity and reader navigation: concise abstract, four distinct contributions, explicit empirical meaning in discussion/conclusion, shorter future-work section, keep each contribution bullet intact and correct bibliography ordering."
+      }
+    ],
+    "all_experimental_counts_unchanged": true,
+    "all_tables_exactly_unchanged": true,
+    "figure_media_byte_identical": true,
+    "review_audit_sha256": "5319cea88d6b700c165fa0ae61b445a567f13f28dcf941b73e144f50c802ab5f",
+    "pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/79"
   }
 }
