@@ -236,13 +236,18 @@ def run_gate(admission_path):
         best=initial;rank=lambda value:(value['combined']['gate_accuracy'],value['combined']['effective_label_matches'])
         history=[]
         if not initial['combined']['pass']:
+            recipe=config['refinement'];epochs=int(recipe['maximum_additional_epochs'])
+            if not 1<=epochs<=30 or recipe['maximum_additional_updates']!=3*epochs or recipe['effective_batch']!=8:
+                raise ValueError('The admitted refinement must remain within the fixed 24-row/90-update bound')
             train=packet['training.json'];train_tokens,_=encode(tokenizer,train,packet['questions.json'],'visible_role_bound_full_context')
             model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant':False})
             parameters=[(n,p) for n,p in model.named_parameters() if p.requires_grad]
-            groups=[{'params':[p for n,p in parameters if '.modules_to_save.' not in n],'lr':1e-5},
-                    {'params':[p for n,p in parameters if '.modules_to_save.' in n],'lr':2e-5}]
-            optimizer=torch.optim.AdamW(groups,weight_decay=.01)
-            for epoch in range(1,31):
+            if sum(p.numel() for n,p in parameters)!=7198722 or any('lora_' not in n and '.modules_to_save.' not in n for n,p in parameters):
+                raise ValueError('Only the declared LoRA and classifier head may train')
+            groups=[{'params':[p for n,p in parameters if '.modules_to_save.' not in n],'lr':recipe['LoRA_learning_rate']},
+                    {'params':[p for n,p in parameters if '.modules_to_save.' in n],'lr':recipe['classifier_learning_rate']}]
+            optimizer=torch.optim.AdamW(groups,weight_decay=recipe['weight_decay'])
+            for epoch in range(1,epochs+1):
                 if time.time()>end-600: break
                 stage='refinement';model.train()
                 order=torch.randperm(24,generator=torch.Generator().manual_seed(config['refinement']['seed']+epoch)).tolist()
@@ -256,7 +261,7 @@ def run_gate(admission_path):
                         loss=torch.nn.functional.cross_entropy(v,target)/8
                         if not torch.isfinite(loss): raise ValueError('Nonfinite training loss')
                         loss.backward()
-                    torch.nn.utils.clip_grad_norm_([p for n,p in parameters],1.,error_if_nonfinite=True)
+                    torch.nn.utils.clip_grad_norm_([p for n,p in parameters],recipe['clip_norm'],error_if_nonfinite=True)
                     optimizer.step();updates+=1
                 pred=predict();measured=scores(pred);history.append({'epoch':epoch,'updates':updates,'scores':measured})
                 if rank(measured)>rank(best):
