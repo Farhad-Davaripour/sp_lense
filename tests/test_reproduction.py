@@ -145,6 +145,13 @@ class ReproductionTests(unittest.TestCase):
             path = ROOT / 'paper' / item['file']
             self.assertEqual(path.stat().st_size, item['bytes'])
             self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), item['sha256'])
+        for group in ('recipe_files', 'reproduction_entry_points'):
+            for name, item in manifest[group].items():
+                if not isinstance(item, dict):
+                    continue
+                raw = (ROOT / name).read_bytes().replace(b'\r\n', b'\n')
+                self.assertEqual(len(raw), item['bytes'], name)
+                self.assertEqual(hashlib.sha256(raw).hexdigest(), item['sha256'], name)
         with zipfile.ZipFile(ROOT / 'paper/manuscript.docx') as doc:
             self.assertIn(b'trackRevisions', doc.read('word/settings.xml'))
 
