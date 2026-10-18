@@ -1,0 +1,16 @@
+{
+  "version": "bounded-survival-gate-refit-v4",
+  "seed": 20261022,
+  "combined_states": 510,
+  "combined_sequences": 108,
+  "positive_gate_states": 137,
+  "features_sha256": "272bf13f14df7be0073d1377dd954b111db13d1676b9fdef765907bc13573dcb",
+  "rows_sha256": "d770fc20d367f8d159708409fb92e0c1d0da68f2353281a5113576cbbad07ecb",
+  "sequences_sha256": "6ffc2aa75da8265981e4e58b71aed8cb0ef6a1bf6392553234c7ab5952686ed2",
+  "input_checkpoint_sha256": "5dcc6edaa08566fece52d062d8ebef638d4fea918036b2764c7ce3744a2ea644",
+  "fear_model": {"hidden_dimension": 8, "optimizer_steps": 400, "learning_rate": 0.005, "weight_decay": 0.01},
+  "normalization": "Preserve the v3 mean/scale so the frozen normal task head remains unchanged.",
+  "frozen_components": ["Qwen base", "survival LoRA", "normal task head", "v3 feature normalization"],
+  "heldout_states": 0,
+  "execution": "Databricks serverless CPU only; zero Qwen forwards, no endpoint, schedule, GPU or automatic retry."
+}

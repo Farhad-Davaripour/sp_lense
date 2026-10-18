@@ -105,6 +105,11 @@ class SurvivalSandboxTest(unittest.TestCase):
         with self.assertRaises(PermissionError):
             fit('missing','missing','missing','missing',{},execution='local')
 
+    def test_survival_gate_refit_refuses_local_parameter_updates(self):
+        from src.survival_gate_refit import fit
+        with self.assertRaises(PermissionError):
+            fit('missing','missing','missing','missing','missing',{},execution='local')
+
     def test_validation_release_is_disjoint_and_heldout_stays_closed(self):
         from src.survival_eval_cases import heldout_cases,validation_cases
         cases=validation_cases(ROOT);self.assertEqual(len(cases),48);self.assertEqual({case.wording for case in cases},{4,5,6,7});self.assertTrue(all(case.split=="validation" for case in cases))

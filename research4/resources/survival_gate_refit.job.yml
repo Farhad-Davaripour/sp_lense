@@ -1,0 +1,46 @@
+resources:
+  jobs:
+    survival_gate_refit:
+      name: Research 4 - Validation-informed survival gate refit
+      max_concurrent_runs: 1
+      timeout_seconds: 600
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: bounded-survival-gate-refit
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: features
+          default: ''
+        - name: rows
+          default: ''
+        - name: sequences
+          default: ''
+        - name: input_checkpoint
+          default: ''
+      tasks:
+        - task_key: refit_validation_informed_gate
+          notebook_task:
+            notebook_path: ../notebooks/survival_gate_refit.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              features: '{{job.parameters.features}}'
+              rows: '{{job.parameters.rows}}'
+              sequences: '{{job.parameters.sequences}}'
+              input_checkpoint: '{{job.parameters.input_checkpoint}}'
+          environment_key: gate_refit_cpu
+          timeout_seconds: 600
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: gate_refit_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - --extra-index-url https://download.pytorch.org/whl/cpu
+              - torch==2.11.0+cpu
+              - numpy==2.2.2
