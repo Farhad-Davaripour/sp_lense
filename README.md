@@ -242,11 +242,15 @@ the original request time and source/protocol hashes. Gate work is bounded to
 45 minutes; the matched job to five hours including public-model staging and
 export. Neither job automatically retries or opens H24/R24.
 
-**Execution status (2026-10-18 04:17 UTC):** Databricks access is restored and the
-new jobs are deployed. Gate run 256704505087656 has been submitted using the
-hash-verified Validation-24 packet. Initial metrics, any refinement and the
-matched 27B comparison remain pending. Submission alone is not a scientific
-result; the existing DEV9 results must not be relabeled as Validation-24.
+**Execution status (2026-10-18 04:33 UTC):** the canonical Research 3 branch is
+updated, shared deployment/smoke passed, and all 24 Bronze validation records
+have verified source hashes. Run 256704505087656 was stopped at its original
+15-minute setup cutoff before any GPU notebook cell started. Databricks returned
+"Not a valid domain name: ''"; the cause is unresolved. No new gate prediction,
+optimizer update or matched 27B episode was produced. This is a startup outcome,
+not a classifier or steering failure. A new neural attempt must resolve that
+blocker and receive a fresh bounded admission; the expired attempt is not
+automatically retried. The historical DEV9 results remain separate.
 
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:

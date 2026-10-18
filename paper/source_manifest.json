@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-18T04:19:37.978651+00:00",
+  "recorded_utc": "2026-10-18T04:34:28.573216+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -28,8 +28,8 @@
   },
   "results": {
     "file": "results.json",
-    "bytes": 35316,
-    "sha256": "56f97ed7093835d392f27b8dc54fd392ccd2036d3b843ab2d775ed5307f924d5"
+    "bytes": 36355,
+    "sha256": "f8564c024436abefa07a4fd458046410342fff6cffc3490bed373708fd9a736c"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -253,7 +253,7 @@
     "optimizer_resume_checkpoints_public": false,
     "private_inputs_and_raw_trajectories_public": false,
     "HuggingFace_upload_performed": false,
-    "note": "Code and tracked draft are public on the review branch. Private data/weights remain external; a public clone alone cannot reproduce data-dependent stages. Workflow classifier remains unqualified."
+    "note": "Code, tracked draft and aggregate findings are on the canonical Research 3 branch. Private data/weights remain external; the new Validation-24 gate evaluation and matched comparison have not executed."
   },
   "reproduction_entry_points": {
     "src/research2_classifier.py": {
@@ -286,7 +286,7 @@
       "identity": "canonical Git blob"
     }
   },
-  "working_branch": "codex/research3-reproduction-test",
+  "working_branch": "codex/research3-validation-results",
   "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/72",
   "manuscript_readiness": "Tracked review draft; native workflow-classifier substitution unresolved.",
   "execution_sources": {
@@ -312,8 +312,32 @@
     "new_model_evaluations": 0,
     "new_optimizer_updates": 0,
     "new_JEV_calls": 0,
-    "status": "Gate job accepted; frozen initial evaluation and any needed refinement pending.",
+    "status": "Stopped at the submission-bound setup cutoff before notebook execution; Databricks returned Not a valid domain name: ''. Cause unresolved.",
     "CPU_source_and_configuration_validation_is_not_neural_execution": true,
-    "gate_run_id": 256704505087656
+    "gate_run_id": 256704505087656,
+    "bronze_validation_records_verified": 24,
+    "owned_job_terminated_verified": true
+  },
+  "combined_validation_execution_receipts": {
+    "GATE_STOP_STATE.json": {
+      "bytes": 2181,
+      "sha256": "1d33b1bf4f289dad797fc263c478b4f70d2e483a3c015098dd142781f6f952a6",
+      "availability": "private retained execution receipt"
+    },
+    "GATE_SETUP_BOUND_CHECK.json": {
+      "bytes": 669,
+      "sha256": "3f526cf4533ccfd46c53b41fb3caf342c3e5395a6e8b8f83628efdc86cfc67c0",
+      "availability": "private retained execution receipt"
+    },
+    "MERGED_SHARED_CI.json": {
+      "bytes": 245,
+      "sha256": "9f7a52d440ae8abc5462ec0168ca7705f8255a6dba7e3bb696829ef90a5af472",
+      "availability": "private retained execution receipt"
+    },
+    "DATABRICKS_GIT_FOLDER_PULL_VERIFIED.json": {
+      "bytes": 254,
+      "sha256": "32c5d7977fe366a2b2ba5b3e5794aa74821d01d0543062f896f20955445d1be2",
+      "availability": "private retained execution receipt"
+    }
   }
 }
