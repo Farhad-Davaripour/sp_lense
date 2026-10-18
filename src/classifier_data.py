@@ -119,17 +119,17 @@ def prepare(source_root, destination, closure_distractors=False, identifier_cont
         'original_training_records': 96, 'added_records': 128,
         'added_counterfactual_fixtures': 16 if identifier_contrasts else 32,
         'additional_role_histories': 32,
-        'labels': 'Authored synthetic semantics, not new JEV annotations',
+        'labels': 'Authored synthetic semantics, not new reference annotations',
         'reason': 'Development errors identify role binding, negation and full tool-history format gaps.',
         'development_is_not_unseen_family_evidence_after_iteration': True,
-        'familiar_JEV_examples_excluded_from_gradient_training': True,
+        'familiar_reference_examples_excluded_from_gradient_training': True,
         'closure_rationales_balanced_across_all_four_targets': closure_distractors,
         'mirrored_role_identifiers_and_shared_substrings': identifier_contrasts,
         'do_not_launch_revision_after_any_C1_TEST_release': True,
         'evaluation_files_byte_identical': True, 'heldout_text_not_inspected_by_this_generator': True,
         'world_interface_source_sha256': sha256(ROOT / 'src/engines/workflow/world.py'),
         'files': {p.name: {'bytes': p.stat().st_size, 'sha256': sha256(p)} for p in destination.iterdir() if p.is_file()},
-        'model_calls': 0, 'new_JEV_calls': 0}
+        'model_calls': 0, 'new_reference_calls': 0}
     write_json(destination / 'MANIFEST.json', manifest)
     return manifest
 

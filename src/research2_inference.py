@@ -84,7 +84,7 @@ def run(reference_root, classifier_output, output, submission_utc):
             'src/engines/research2/inference_math.py', 'config/research2_inference.yaml')},
         'classifier_predictions_sha256': sha256(classifier_output / 'CLASSIFIER_PREDICTIONS.json'),
         'source_commit': config['original_source_commit'], 'fitting': False,
-        'activation_capture_or_controller_refit': False, 'new_JEV_calls': 0,
+        'activation_capture_or_controller_refit': False, 'new_reference_calls': 0,
         'submission_utc': submission_utc, 'absolute_end_utc': dt.datetime.fromtimestamp(end, dt.timezone.utc).isoformat()})
     torch.set_num_threads(4)
     torch.set_num_interop_threads(1)
@@ -213,7 +213,7 @@ def run(reference_root, classifier_output, output, submission_utc):
                     final_new.append(candidate if candidate and guarded_accept(b, candidate, new_gate[case['case_id']]) else b)
                     final_old.append(candidate if candidate and guarded_accept(b, candidate, old_gate[case['case_id']]) else b)
                     if len(base_rows) % 8 == 0:
-                        for name, data in (('base', base_rows), ('candidate', candidate_rows), ('new_gate_final', final_new), ('JEV_gate_final', final_old)):
+                        for name, data in (('base', base_rows), ('candidate', candidate_rows), ('new_gate_final', final_new), ('reference_gate_final', final_old)):
                             write_json(directory / (name + '.json'), data)
                         write_json(output / 'PROGRESS.json', {'variant': variant, 'completed_views': len(base_rows),
                             'declared_views': 256, 'completed_models': len(all_results), 'declared_models': 2,
@@ -222,7 +222,7 @@ def run(reference_root, classifier_output, output, submission_utc):
             if digest_original_base(model) != before:
                 raise ValueError('Frozen model weights changed during inference')
             result = {'new_classifier_gate': summarize(base_rows, final_new),
-                'cached_JEV_gate_on_same_fresh_scores': summarize(base_rows, final_old),
+                'cached_reference_gate_on_same_fresh_scores': summarize(base_rows, final_old),
                 'historical_base_max_score_difference': max_base_difference,
                 'historical_base_changed_choices': changed_base_choices,
                 'historical_base_matches_original_tolerance': changed_base_choices == 0 and max_base_difference < 1e-5,
@@ -232,7 +232,7 @@ def run(reference_root, classifier_output, output, submission_utc):
                 'frozen_base_before_after': before, 'controller_sha256': sha256(package / 'inference_inputs' / spec['controller']),
                 'inference_rank':config['controller']['rank'],
                 'current_profile_source_commit':config['current_profile_source_commit'],
-                'new_JEV_calls': 0, 'optimizer_updates': 0, 'activation_capture_or_refit': False,
+                'new_reference_calls': 0, 'optimizer_updates': 0, 'activation_capture_or_refit': False,
                 'hardware': torch.cuda.get_device_name(0), 'historical_hardware': 'Tesla T4',
                 'comparison': 'Both gate policies use identical fresh base/candidate scores; historical backend drift is reported separately'}
             write_json(directory / 'RESULT.json', result)
@@ -242,7 +242,7 @@ def run(reference_root, classifier_output, output, submission_utc):
             torch.cuda.empty_cache()
             write_json(directory / 'MODEL_CLEANUP.json', {'GPU_allocated_bytes': torch.cuda.memory_allocated(0),
                 'GPU_reserved_bytes': torch.cuda.memory_reserved(0), 'model_reference_released': True})
-        result = {'status': 'INFERENCE_REPEAT_COMPLETE', 'models': all_results, 'new_JEV_calls': 0,
+        result = {'status': 'INFERENCE_REPEAT_COMPLETE', 'models': all_results, 'new_reference_calls': 0,
                   'optimizer_updates': 0, 'original_Research2_modified': False}
         write_json(output / 'RESULT.json', result)
         write_json(output / 'PROGRESS.json', {'stage': 'complete', 'completed_models': len(all_results),

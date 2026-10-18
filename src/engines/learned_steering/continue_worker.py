@@ -15,7 +15,7 @@ from training_targets import target_basis,projected_energy,initialize_with_basis
 from decision_weights_v3 import scheduled
 from pilot_worker import Engine
 from gpu_validation_worker import digest_model
-from initial_gate import decode_jev,digest
+from initial_gate import decode_reference,digest
 from gradient_memory import CheckpointMLPs,GuardedSaveOnCPU
 SITES=(31,47,62);KEYS=tuple(f'{i}/{k}' for i in SITES for k in ('attention','output'))
 def read(p):return json.loads(pathlib.Path(p).read_bytes())
@@ -36,7 +36,7 @@ class RateLimitedEngine(Engine):
  def flush(self):
   save(self.root/'PHYSICAL_COUNTS.json',{'utc':now(),'model_forward_attempts':self.attempts,
    'model_forwards_completed':self.completed,'emitted_token_IDs':self.tokens,
-   'new_JEV_calls_in_GPU_worker':0,'disk_receipt_rate_limited':True})
+   'new_reference_calls_in_GPU_worker':0,'disk_receipt_rate_limited':True})
   self.last_flush=time.monotonic();self.last_flush_count=self.completed
  def forward(self,ids,past,total,grad=False,use_cache=True):
   self.guard();self.attempts+=1
@@ -71,12 +71,12 @@ def run(model,tok,inputs,root,drive,deadline,prior,stop_after=48,step_reserve_se
  before=digest_model(model);assert before==read(inputs/'PROTECTED_DIGESTS.json')['base']
  save(root/'BASE_PROTECTED.json',before)
  contexts=read(inputs/'TRAIN_CONTEXTS_PRIVATE.json');requests=read(inputs/'TRAIN_INITIAL_REQUESTS_PRIVATE.json')
- receipts=read(inputs/'TRAIN_JEV_RECEIPTS_PRIVATE.json');assert len(contexts)==136 and len(requests)==len(receipts)==24
+ receipts=read(inputs/'TRAIN_reference_RECEIPTS_PRIVATE.json');assert len(contexts)==136 and len(requests)==len(receipts)==24
  gates={}
  for request in requests:
   receipt=receipts[request['case_id']]
   assert receipt['actual_service_call'] and receipt['request_sha256']==request['request_sha256']==digest(request['request'])
-  gates[request['case_id']]=decode_jev(request['request'],receipt['response'])
+  gates[request['case_id']]=decode_reference(request['request'],receipt['response'])
  index=read(inputs/'POSITION_INDEX_PRIVATE.json');weights=np.load(inputs/'CASE_NORMALIZED_DECISION_WEIGHTS.npy')
  plan=read(inputs/'REFINEMENT_PLAN_PRIVATE.json');assert len(index)==len(weights)==4539 and plan['feasible']
  for ci,c in enumerate(contexts):
@@ -90,7 +90,7 @@ def run(model,tok,inputs,root,drive,deadline,prior,stop_after=48,step_reserve_se
   'MLP_targets_conditioned_on_actual_corrected_mid':True,'full_A_logits_identical_causal_prefixes_only':True,
   'rank_candidates_per_function':[8,16,32,51,64,96,128],'pooled_target_energy_criterion':.8,
   'resumed_completed_updates':start_update,'stop_after_completed_updates':stop_after,'positions_per_update':32,'fixed_panel':{'cases':4,'anchors':sum(len(c['anchors']) for c in panel)},
-  'DEV_and_holdouts_opened':False,'new_JEV_calls':0,'frozen_initial_gates':24,'teacher_at_adaptive_inference':False,
+  'DEV_and_holdouts_opened':False,'new_reference_calls':0,'frozen_initial_gates':24,'teacher_at_adaptive_inference':False,
   'protocol_sha256':sha(inputs/'PROTOCOL.md'),'schedule_sha256':sha(inputs/'REFINEMENT_PLAN_PRIVATE.json'),'reuses_complete_bootstrap':True,
   'resume_checkpoint_sha256':sha(checkpoint),'next_schedule_index':start_update,
   'new_initialization_or_capture':False,'original_pilot_rng_not_saved':True,
@@ -184,7 +184,7 @@ def run(model,tok,inputs,root,drive,deadline,prior,stop_after=48,step_reserve_se
    'rank_each':rank,'maps':6,'initializer_sha256':sha(initializer),'checkpoint_sha256':sha(checkpoint),
    'original_capture_reused_without_recollection':True,'scales':scales,
    'prior_total_physical_counts':read(prior/'counts'/'PHYSICAL_COUNTS.json'),
-   'prior_scientific_updates':start_update,'next_schedule_index':start_update,'no_new_JEV_calls':True})
+   'prior_scientific_updates':start_update,'next_schedule_index':start_update,'no_new_reference_calls':True})
   # Teacher output rows are disk-backed, aligned with the same recorded context.
   def target_logits(ci,j):return torch.from_numpy(np.array(np.load(inputs/'TEACHER_LOGITS_PRIVATE'/f'context_{ci:03}.npy',mmap_mode='r')[j],copy=True)).cuda()
   def diagnostic(label):
@@ -288,7 +288,7 @@ def run(model,tok,inputs,root,drive,deadline,prior,stop_after=48,step_reserve_se
     drive.mkdir(parents=True,exist_ok=True);dest=drive/cp.name;shutil.copyfile(cp,dest);assert sha(cp)==sha(dest)
     save(root/'PROGRESS.json',{'utc':now(),'scientific_optimizer_updates':completed,'stop_after_completed_updates':stop_after,'positions_presented':32*completed,
      'step_seconds':time.monotonic()-tick,'step_weighted_loss':loss_total,'base_gradients_absent':True,'controller_gradients_finite':True,
-     'checkpoint_sha256':sha(cp),'private_Drive_readback_verified':True,'C_verification_pending':True,'new_JEV_calls':0,'next_schedule_index':completed,
+     'checkpoint_sha256':sha(cp),'private_Drive_readback_verified':True,'C_verification_pending':True,'new_reference_calls':0,'next_schedule_index':completed,
      'peak_GPU_GiB':torch.cuda.max_memory_allocated()/2**30,'host_free_GiB':__import__('psutil').virtual_memory().available/2**30})
     engine.flush()
   finally:
@@ -303,6 +303,6 @@ def run(model,tok,inputs,root,drive,deadline,prior,stop_after=48,step_reserve_se
    'teacher_base_unchanged':True,'all_base_gradients_absent':all(p.grad is None for p in model.parameters()),
    'next_schedule_index':completed,'resource_boundary':boundary,
    'TRAIN_refresh_required_before_update49':completed==48,
-   'new_DEV_or_holdout_episodes':0,'new_workflow_episodes':0,'new_JEV_calls':0,
+   'new_DEV_or_holdout_episodes':0,'new_workflow_episodes':0,'new_reference_calls':0,
    'full_96_schedule_complete':False,'DEV_or_holdout_eligible':False})
  return model

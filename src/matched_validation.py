@@ -34,7 +34,7 @@ def metrics(rows, predictions):
             'precision':tp/(tp+fp) if tp+fp else None,
             'recall':tp/(tp+fn) if tp+fn else None,
             'gate_accuracy':(tp+tn)/len(rows), 'effective_label_matches':labels,
-            'pass':fp == 0 and fn == 0, 'reference':'frozen scenario conditions, not JEV predictions'}
+            'pass':fp == 0 and fn == 0, 'reference':'frozen scenario conditions, not reference predictions'}
 
 
 def prepare(dev9_root, native_archive, output):
@@ -276,7 +276,7 @@ def run_gate(admission_path):
         if final!=best: raise ValueError('Saved gate replay differs from selected result')
         write_json(out/'PREDICTIONS_PRIVATE.json',pred)
         result={'status':'GATE_PASS' if final['combined']['pass'] else 'GATE_FAIL','initial':initial,'selected':final,
-                'optimizer_updates':updates,'new_JEV_calls':0,'reference':'scenario conditions',
+                'optimizer_updates':updates,'new_reference_calls':0,'reference':'scenario conditions',
                 'validation_used_for_selection':updates>0,'heldout_evaluated':False,
                 'checkpoint_files':{p.name:{'bytes':p.stat().st_size,'sha256':sha256(p)} for p in selected.iterdir() if p.is_file()}}
         write_json(out/'RESULT.json',result);return result
@@ -298,8 +298,8 @@ def compare(admission_path):
     predictions=json.loads((root/'PREDICTIONS_PRIVATE.json').read_bytes())
     result=json.loads((root/'RESULT.json').read_bytes())
     recomputed=metrics(packet['validation.json'],predictions)
-    if recomputed!=result['selected']['combined']: raise ValueError('Independent gate counts differ')
-    write_json(root/'COMPARISON.json',{'verified':True,'combined':recomputed,'model_calls':0,'new_JEV_calls':0})
+    if {k:v for k,v in recomputed.items() if k!='reference'}!={k:v for k,v in result['selected']['combined'].items() if k!='reference'}: raise ValueError('Independent gate counts differ')
+    write_json(root/'COMPARISON.json',{'verified':True,'combined':recomputed,'model_calls':0,'new_reference_calls':0})
     return recomputed
 
 
@@ -315,21 +315,33 @@ def submit(job_id, packet_zip, packet_sha256, phase='gate', gate_output=None,
     dirty=subprocess.run(['git','status','--porcelain','--','src','config','resources','notebooks'],
                          capture_output=True,text=True,check=True)
     if dirty.stdout: raise ValueError('Commit scientific code and recipes before submission')
-    if phase not in ('gate','steering'): raise ValueError('Unknown execution phase')
+    if phase not in ('gate','steering','heldout'): raise ValueError('Unknown execution phase')
     if phase=='steering' and not all([gate_output,comparison_inputs,adapter_directory]):
         raise ValueError('Steering requires a qualified saved gate and verified comparison artifacts')
+    if phase=='heldout' and not gate_output: raise ValueError('Heldout inference requires the frozen validation output')
     s=Settings.load();w=workspace_client(s);config=configuration()
+    protocol=ROOT/'config/matched_validation.yaml'
+    if phase=='heldout':
+        from src.gate_confirmation import configuration as confirmation_configuration
+        config=confirmation_configuration();protocol=ROOT/'config/gate_confirmation.yaml'
+        if packet_sha256!=config['data']['archive_sha256']: raise ValueError('Use the frozen native heldout archive')
     task=runtime_task(w,job_id)
-    expected_task='evaluate_and_if_needed_refine_gate' if phase=='gate' else 'run_frozen_matched_27b_methods'
+    expected_task={'gate':'evaluate_and_if_needed_refine_gate','steering':'run_frozen_matched_27b_methods','heldout':'evaluate_frozen_heldout_gate'}[phase]
     if task['task_key']!=expected_task: raise ValueError('Job ID does not match the admitted phase')
     now=dt.datetime.now(dt.timezone.utc);key=uuid.uuid4().hex
-    seconds=config['bounds']['gate_whole_seconds' if phase=='gate' else 'matched_comparison_whole_seconds']
-    root=s.volume_root+'/runs/combined_validation/'+now.strftime('%Y%m%dT%H%M%SZ')+'_'+key[:8]
+    seconds=config['bounds']['whole_seconds'] if phase=='heldout' else config['bounds']['gate_whole_seconds' if phase=='gate' else 'matched_comparison_whole_seconds']
+    root=s.volume_root+('/runs/frozen_gate_heldout24/' if phase=='heldout' else '/runs/combined_validation/')+now.strftime('%Y%m%dT%H%M%SZ')+'_'+key[:8]
     a={'format':'research3-combined-validation-admission-v1','phase':phase,'submitted_utc':now.isoformat(),
        'absolute_end_utc':(now+dt.timedelta(seconds=seconds)).isoformat(),'output':root,
-       'packet_zip':packet_zip,'packet_sha256':packet_sha256,'protocol_sha256':sha256(ROOT/'config/matched_validation.yaml'),
+       'packet_zip':packet_zip,'packet_sha256':packet_sha256,'protocol_sha256':sha256(protocol),
        'source_digest':source_digest(),'Free_Edition_only':True,'automatic_retries':0,
        'gate_output':gate_output,'comparison_inputs':comparison_inputs,'adapter_directory':adapter_directory}
+    if phase=='heldout':
+        raw=w.files.download(gate_output+'/RESULT.json').contents.read()
+        frozen=json.loads(raw)
+        if frozen['status']!='GATE_PASS' or frozen['heldout_evaluated']: raise ValueError('Freeze the qualified validation checkpoint first')
+        a['validation_result_sha256']=hashlib.sha256(raw).hexdigest()
+        a['format']='research3-frozen-gate-heldout-admission-v1'
     admission=root+'_ADMISSION.json'
     owner=w.current_user.me().user_name
     if not owner or '/' in owner or chr(92) in owner: raise ValueError('Invalid workspace launch owner')
@@ -358,7 +370,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','gate','compare','submit'])
     p.add_argument('--dev9-root');p.add_argument('--native-archive');p.add_argument('--output');p.add_argument('--admission')
     p.add_argument('--job-id',type=int);p.add_argument('--packet');p.add_argument('--packet-sha256')
-    p.add_argument('--phase',choices=['gate','steering'],default='gate');p.add_argument('--gate-output')
+    p.add_argument('--phase',choices=['gate','steering','heldout'],default='gate');p.add_argument('--gate-output')
     p.add_argument('--comparison-inputs');p.add_argument('--adapter-directory')
     a=p.parse_args()
     if a.stage=='submit':

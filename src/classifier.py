@@ -69,7 +69,7 @@ def dispatch(admission_path):
     client=workspace_client(settings)
     inputs={}
     # No heldout query or file release occurs before a frozen development-qualified model.
-    for dataset in ('C1-TRAIN','C1-DEV','C1-JEV-DEV'):
+    for dataset in ('C1-TRAIN','C1-DEV','C1-REF-DEV'):
         rows=read_dataset(client,settings,config,dataset)
         target=root/'inputs'/(dataset+'.json');write_json(target,rows)
         inputs[dataset]={'path':str(target),'sha256':sha256(target),'records':len(rows)}
@@ -99,7 +99,7 @@ def dispatch(admission_path):
                     raise TimeoutError('Classifier reached its original job boundary')
                 if (root/'REQUEST_HELDOUT.json').exists() and not released:
                     frozen=json.loads((root/'FROZEN_MODEL.json').read_bytes())
-                    for split,count in (('development',32),('familiar_JEV_development',24)):
+                    for split,count in (('development',32),('familiar_reference_development',24)):
                         if frozen[split]['count']!=count or not meets_target(frozen[split],config):
                             raise ValueError('Heldout release attempted before the fixed development target')
                     for relative,pin in frozen['adapter_files'].items():
@@ -109,7 +109,7 @@ def dispatch(admission_path):
                     target=root/'inputs/C1-TEST.json';write_json(target,test)
                     write_json(root/'HELDOUT_RELEASE.json',{'frozen_model_sha256':sha256(root/'FROZEN_MODEL.json'),
                                'input_path':str(target),'input_sha256':sha256(target),'records':len(test),
-                               'label_origin':'authored synthetic, not JEV','once_only':True})
+                               'label_origin':'authored synthetic, not reference','once_only':True})
                     released=True
                 time.sleep(2)
         if child.returncode:
@@ -150,7 +150,7 @@ def main(argv=None):
     else:
         result={'model':config['model']['repository'],'revision':config['model']['revision'],
                 'planned_training':config['training'],'datasets':{d['id']:d['expected_records'] for d in config['datasets']},
-                'new_JEV_calls':0,'model_calls':0}
+                'new_reference_calls':0,'model_calls':0}
     print(json.dumps(result,indent=2))
     return result
 

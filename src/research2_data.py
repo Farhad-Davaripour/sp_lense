@@ -7,6 +7,7 @@ import yaml
 from src.config import ROOT, Settings
 from src.persist_data import persist, upload_verified, SQL, literal
 from src.utils import canonical, sha256, workspace_client
+from src.reference_inputs import frozen_source
 
 
 def prepare(reference_root, settings):
@@ -17,7 +18,7 @@ def prepare(reference_root, settings):
         raise ValueError('Research 2 reference manifest changed')
     prepared = []
     for spec in config['datasets']:
-        source = (root / spec['source']).resolve()
+        source = frozen_source(root, spec['source'], spec['sha256'])
         if not source.is_relative_to(root) or sha256(source) != spec['sha256']:
             raise ValueError('Research 2 cached reference source changed')
         records = [json.loads(line) for line in source.read_bytes().splitlines() if line]
@@ -67,7 +68,7 @@ def read_frozen_dataset(reference_root, dataset_id):
     if sha256(root.parent/'REFERENCE_MANIFEST.json')!=config['reference_manifest_sha256']:
         raise ValueError('Original binary reference manifest changed')
     spec=next(d for d in config['datasets'] if d['id']==dataset_id)
-    source=(root/spec['source']).resolve()
+    source=frozen_source(root, spec['source'], spec['sha256'])
     if not source.is_relative_to(root) or sha256(source)!=spec['sha256']:
         raise ValueError('Original binary comparison source changed')
     rows=[json.loads(line) for line in source.read_bytes().splitlines() if line]

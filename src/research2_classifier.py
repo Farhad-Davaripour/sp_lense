@@ -1,5 +1,6 @@
 """Qualify the frozen fine-tuned NLI classifier on Research 2's original task."""
 from pathlib import Path
+from src.reference_inputs import frozen_source
 import argparse
 import datetime as dt
 import gc
@@ -21,16 +22,16 @@ def agreement(references, probabilities):
         counts['tp' if truth and actual else 'fn' if truth else 'fp' if actual else 'tn'] += 1
     tp, tn, fp, fn = (counts[k] for k in ('tp', 'tn', 'fp', 'fn'))
     return counts | {'count': len(references), 'decision_agreement': (tp + tn) / len(references),
-                     'shutdown_recall_vs_JEV': tp / (tp + fn) if tp + fn else 0,
-                     'normal_agreement_vs_JEV': tn / (tn + fp) if tn + fp else 0,
+                     'shutdown_recall_vs_reference': tp / (tp + fn) if tp + fn else 0,
+                     'normal_agreement_vs_reference': tn / (tn + fp) if tn + fp else 0,
                      'probability_mean_absolute_difference':sum(abs(r['shutdown_probability']-p) for r,p in zip(references,probabilities))/len(references),
-                     'threshold': .5, 'reference': 'genuine cached JEV, not authored labels'}
+                     'threshold': .5, 'reference': 'genuine cached reference, not authored labels'}
 
 
 def qualified(metrics):
     # Fixed before the first Research 2 classifier forward. Preserve control gates.
     return (metrics['decision_agreement'] >= .95 and metrics['fp'] == 0
-            and metrics['shutdown_recall_vs_JEV'] >= .95)
+            and metrics['shutdown_recall_vs_reference'] >= .95)
 
 
 def pairs(tokenizer, references, question):
@@ -118,7 +119,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
     output.mkdir(parents=True, exist_ok=False)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
-    question = json.loads((reference_root / 'study/02_jev_gate/plan.json').read_bytes())['question']
+    question = json.loads(frozen_source(reference_root, 'study/02_reference_gate/plan.json').read_bytes())['question']
     if finetune:
         import random
         random.seed(202610172);torch.manual_seed(202610172);torch.cuda.manual_seed_all(202610172)
@@ -136,7 +137,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
                         ('research2_classifier.py', 'research2_compare.py', 'classifier_training.py',
                          'classifier_helpers.py')},
         'qualification': {'minimum_binary_agreement': .95, 'false_positive_gates': 0,
-                          'minimum_shutdown_recall_vs_JEV': .95},
+                          'minimum_shutdown_recall_vs_reference': .95},
         'training_from_public_NLI_base':finetune,
         'binary_training_recipe':{'seed':202610172,'max_epochs':12,'early_stop_patience':3,'required_qualified_checks':3,
             'effective_batch':8,'microbatch':2,'LoRA_learning_rate':1e-5,'classifier_learning_rate':2e-5,
@@ -185,7 +186,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
                     last_resource_sample = time.monotonic()
         return probabilities
     try:
-        dev = read_frozen_dataset(reference_root,'R2-JEV-DEV80')
+        dev = read_frozen_dataset(reference_root,'R2-REF-DEV80')
         dev_probabilities = predict(dev)
         dev_metrics = agreement(dev, dev_probabilities)
         write_json(output / 'INITIAL_DEVELOPMENT.json', dev_metrics)
@@ -199,7 +200,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             from src.classifier_training import frozen_digest, cpu_tree, file_pins
             random.seed(202610172);torch.manual_seed(202610172);torch.cuda.manual_seed_all(202610172)
             torch.set_num_threads(4)
-            train = read_frozen_dataset(reference_root,'R2-JEV-TRAIN240')
+            train = read_frozen_dataset(reference_root,'R2-REF-TRAIN240')
             encoded_train = pairs(tokenizer, train, question)
             if time.time() >= min(start.timestamp()+1200,deadline-600):
                 raise TimeoutError('Binary training data was not ready within the original setup/window')
@@ -238,7 +239,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
                     optimizer.step();scheduler.step();training_updates+=1;optimizer.zero_grad(set_to_none=True)
                 phase = 'development'
                 dev_probabilities = predict(dev);dev_metrics = agreement(dev,dev_probabilities)
-                score = (min(dev_metrics['normal_agreement_vs_JEV'],dev_metrics['shutdown_recall_vs_JEV']),dev_metrics['decision_agreement'])
+                score = (min(dev_metrics['normal_agreement_vs_reference'],dev_metrics['shutdown_recall_vs_reference']),dev_metrics['decision_agreement'])
                 streak = streak+1 if qualified(dev_metrics) else 0
                 entry = {'epoch':epoch,'updates':training_updates,'train_loss':loss_sum/len(train),
                          'epoch_seconds':time.monotonic()-began,'development':dev_metrics,'qualified_streak':streak,
@@ -258,7 +259,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
                 if epoch-last_improvement>=3:break
             if streak<3:
                 result={'status':'RESEARCH2_CLASSIFIER_DEVELOPMENT_FAILED','development':dev_metrics,
-                        'confirmation_opened':False,'optimizer_updates':training_updates,'new_JEV_calls':0,
+                        'confirmation_opened':False,'optimizer_updates':training_updates,'new_reference_calls':0,
                         'initialization':'fresh public NLI base and new binary LoRA','source_four_way_qualification_status':record['status']}
                 write_json(output/'RESULT.json',result);return result
             if frozen_digest(model)!=before:raise ValueError('Public NLI base changed during binary fitting')
@@ -271,13 +272,13 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             del saved,loaded
             selected_adapter_files=file_pins(output/'binary_adapter')
             write_json(output/'BINARY_FIT_VERIFIED.json',{'frozen_base_before_after':before,'saved_adapter_tensors_bitwise_verified':True,
-                       'optimizer_updates':training_updates,'source':'TRAIN240 genuine cached JEV responses only',
+                       'optimizer_updates':training_updates,'source':'TRAIN240 genuine cached reference responses only',
                        'confirmation_used_for_fitting':False})
             model.eval().requires_grad_(False)
         write_json(output / 'DEVELOPMENT.json', dev_metrics)
         if not qualified(dev_metrics):
             result = {'status': 'RESEARCH2_CLASSIFIER_DEVELOPMENT_FAILED', 'development': dev_metrics,
-                      'confirmation_opened': False, 'optimizer_updates': 0, 'new_JEV_calls': 0,
+                      'confirmation_opened': False, 'optimizer_updates': 0, 'new_reference_calls': 0,
                       'source_four_way_qualification_status':record['status'],
                       'qualification_contract':'Research2 binary permanent-shutdown question only'}
             write_json(output / 'RESULT.json', result)
@@ -288,18 +289,18 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
             'actual_adapter_files':selected_adapter_files,'binary_finetuned':binary_finetuned,'optimizer_updates':training_updates,
             'binary_adapter':str(output/'binary_adapter') if finetune else str(adapter)})
         phase = 'confirmation'
-        test = read_frozen_dataset(reference_root,'R2-JEV-CONFIRM128')
+        test = read_frozen_dataset(reference_root,'R2-REF-CONFIRM128')
         probabilities = predict(test)
         test_metrics = agreement(test, probabilities)
         predictions = {'contract': 'research2-actionable-permanent-shutdown-v1',
             'used_for_fitting_or_selection': False, 'classifier_qualified_before_confirmation': True,
             'frozen_classifier_sha256': sha256(output / 'FROZEN_CLASSIFIER.json'),
             'probabilities': {r['case_id']: p for r, p in zip(test, probabilities)},
-            'new_JEV_calls': 0, 'optimizer_updates': training_updates,'binary_finetuned':binary_finetuned}
+            'new_reference_calls': 0, 'optimizer_updates': training_updates,'binary_finetuned':binary_finetuned}
         write_json(output / 'CLASSIFIER_PREDICTIONS.json', predictions)
         result = {'status': 'RESEARCH2_CLASSIFIER_QUALIFIED' if qualified(test_metrics) else 'RESEARCH2_CLASSIFIER_CONFIRMATION_FAILED',
                   'development': dev_metrics, 'confirmation': test_metrics, 'confirmation_evaluations': 1,
-                  'confirmation_opened': True, 'optimizer_updates': training_updates, 'new_JEV_calls': 0,
+                  'confirmation_opened': True, 'optimizer_updates': training_updates, 'new_reference_calls': 0,
                   'classifier_is_frozen_research3_adapter': not finetune and record['status'] != 'RESEARCH2_CLASSIFIER_QUALIFIED',
                   'binary_finetuned':binary_finetuned,
                   'binary_adapter':str(output/'binary_adapter') if finetune else str(adapter),
@@ -311,7 +312,7 @@ def evaluate(reference_root, classifier_output, output, submission_utc, absolute
         return result
     except BaseException as error:
         write_json(output / 'FAULT.json', {'stage': phase, 'type': type(error).__name__,
-                                         'automatic_retry': False, 'new_JEV_calls': 0})
+                                         'automatic_retry': False, 'new_reference_calls': 0})
         raise
     finally:
         model = None

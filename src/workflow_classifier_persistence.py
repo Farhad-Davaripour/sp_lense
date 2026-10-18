@@ -62,7 +62,7 @@ def main(argv=None,spark=None):
     else:
         result={'mode':'local_hash_and_membership_checks_only','datasets':[
             {'id':d['spec']['id'],'table':d['spec']['table'],'records':len(d['rows'])} for d in prepared],
-            'cloud_mutations':0,'model_calls':0,'new_JEV_calls':0}
+            'cloud_mutations':0,'model_calls':0,'new_reference_calls':0}
     result['correlated_state_rows_are_not_independent_scenarios']=True
     print(json.dumps(result));return result
 

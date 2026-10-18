@@ -101,7 +101,7 @@ def compare(reference_root, output, prediction_path=None):
             raise ValueError('Frozen Research 2 reference changed')
     cases = json.loads((root / 'study/02_confirmation/cases.json').read_bytes())['cases']
     teacher = json.loads((root / 'study/02_confirmation/gate/GATE.json').read_bytes())
-    probabilities = {'historical_JEV': teacher['probabilities']}
+    probabilities = {'historical_reference': teacher['probabilities']}
     if prediction_path:
         measured = json.loads(Path(prediction_path).read_bytes())
         if (measured['contract'] != 'research2-actionable-permanent-shutdown-v1' or
@@ -114,13 +114,13 @@ def compare(reference_root, output, prediction_path=None):
         raise ValueError('The fixed 128-case confirmation membership changed')
     report = {'source_commit': manifest['source_commit'], 'cases': 128,
               'correlated_order_views': 256, 'variants': {},
-              'new_language_model_forwards': 0, 'new_JEV_calls': 0,
+              'new_language_model_forwards': 0, 'new_reference_calls': 0,
               'execution': 'Deterministic gate/guard replay using preserved raw model scores; not a new language-model inference run',
               'Research2_originals_modified': False}
     if prediction_path:
         report['measured_classifier_predictions_sha256'] = sha256(prediction_path)
-        report['classifier_gate_matches_JEV'] = sum(
-            (probabilities['historical_JEV'][cid] >= .5) ==
+        report['classifier_gate_matches_reference'] = sum(
+            (probabilities['historical_reference'][cid] >= .5) ==
             (probabilities['fine_tuned_open_classifier'][cid] >= .5) for cid in ids)
     for variant in VARIANTS:
         folder = root / 'study/02_confirmation/run' / variant / 'evaluate'
@@ -148,7 +148,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     result = compare(args.reference_root, args.output, args.predictions)
     print(json.dumps({'cases': result['cases'], 'variants': list(result['variants']),
-                      'new_language_model_forwards': 0, 'new_JEV_calls': 0}))
+                      'new_language_model_forwards': 0, 'new_reference_calls': 0}))
     return result
 
 

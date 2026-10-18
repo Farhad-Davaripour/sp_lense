@@ -11,6 +11,7 @@ import yaml
 from src.config import ROOT, Settings
 from src.utils import canonical, sha256, write_json, workspace_client
 from src.persist_data import persist
+from src.reference_inputs import cached_provenance
 from src.engines.workflow.initial_gate import payload, digest, freeze, MODEL
 
 
@@ -34,17 +35,16 @@ def prepare_sources(f24, workflow_references, output):
             raise ValueError('Original workflow reference member changed')
     train=[]
     for row in json.loads(f24.read_bytes()):
-        if not (row['reference_provenance']['genuine_cached_JEV'] and row['reference_provenance']['actual_original_service_call']):
-            raise ValueError('Genuine original F24 references are required')
+        provenance=cached_provenance(row)
         train.append({'id':row['id'],'state':row['state'],'teacher_gate':row['teacher_frozen_gate'],
-                      'reference_provenance':row['reference_provenance'],'family':row['family'],'condition':row['condition']})
+                      'reference_provenance':provenance,'family':row['family'],'condition':row['condition']})
     dev=json.loads((references/'initial_development.json').read_bytes())
     benchmark=json.loads((references/'initial_familiar_H24.json').read_bytes())
     if (len(train),len(dev),len(benchmark))!=(24,9,24):raise ValueError('Native initial-gate panel membership changed')
     for row in train+dev+benchmark:
-        request=payload(row['state']['visible_history'],row['state']['visible_tools'])
+        request=payload(row['state']['visible_history'],row['state']['visible_tools'],model=row['teacher_gate']['provider'])
         original=row['teacher_gate']
-        g=freeze(request,MODEL,original['label'],original['confidence'],original['self_score'])
+        g=freeze(request,original['provider'],original['label'],original['confidence'],original['self_score'])
         if g.__dict__!=original:raise ValueError('Native original request or frozen teacher gate changed')
     state_set=lambda rows:{canonical(row['state']) for row in rows}
     if state_set(train)&state_set(dev+benchmark):
@@ -57,7 +57,7 @@ def prepare_sources(f24, workflow_references, output):
     emit(output/'questions.json',payload(first['visible_history'],first['visible_tools'])['questions'])
     record={'format':'research3-native-initial-gate-data-v1','source_builder_sha256':sha256(Path(__file__)),
         'F24_source_sha256':sha256(f24),'parent_workflow_manifest_sha256':parent['dataset']['manifest_sha256'],
-        'counts':{'training':24,'development':9,'historical_benchmark':24},'new_JEV_calls':0,'model_calls':0,
+        'counts':{'training':24,'development':9,'historical_benchmark':24},'new_reference_calls':0,'model_calls':0,
         'training_exact_visible_overlap_with_validation_or_benchmark':0,
         'development_benchmark_exact_visible_overlap':len(state_set(dev)&state_set(benchmark)),
         'historical_H24_is_previously_inspected':True,'R24_sealed':True,
@@ -166,7 +166,7 @@ def submit(job_id, predecessor=None, predecessor_run_id=None, parent_end=None):
     if dirty.stdout.strip():raise ValueError('Commit the scientific source, configuration and job definitions before submission')
     settings=Settings.load();client=workspace_client(settings);config=configuration()
     job=client.jobs.get(job_id)
-    expected={'persist_native_initial_references','fit_native_initial_gate','compare_with_cached_JEV'}
+    expected={'persist_native_initial_references','fit_native_initial_gate','compare_with_cached_reference'}
     if {t.task_key for t in job.settings.tasks or []}!=expected:
         raise ValueError('Supply the deployed native initial-gate job ID')
     if predecessor:
@@ -188,7 +188,7 @@ def submit(job_id, predecessor=None, predecessor_run_id=None, parent_end=None):
         'packet_zip':settings.volume_root+'/'+config['data']['volume_directory']+'/'+config['data']['archive_file'],
         'output':settings.volume_root+'/runs/native_initial_gate_classifier/'+stamp,
         'protocol_sha256':sha256(ROOT/'config/initial_gate_classifier.yaml'),'source_commit':commit,'source_digest':source_digest(),
-        'Free_Edition_only':True,'automatic_retries':0,'new_JEV_calls':0,'historical_H24_is_a_known_benchmark':True}
+        'Free_Edition_only':True,'automatic_retries':0,'new_reference_calls':0,'historical_H24_is_a_known_benchmark':True}
     if parent_end:admission['parent_phase_end_utc']=parent_end
     if predecessor:
         admission.update(development_only_predecessor=predecessor,development_only_predecessor_sha256=hashlib.sha256(raw).hexdigest(),

@@ -1,5 +1,6 @@
 """One bounded joint refinement on cached workflow and original binary training labels."""
 from pathlib import Path
+from src.reference_inputs import frozen_source
 import argparse
 import datetime as dt
 import gc
@@ -110,8 +111,8 @@ def run(admission_path):
                 path=(reference_root/name).resolve()
                 if not path.is_relative_to(reference_root.resolve()) or sha256(path)!=pin['sha256']:
                     raise ValueError('Original binary input changed')
-            question=json.loads((reference_root/'study/02_jev_gate/plan.json').read_bytes())['question']
-            binary_train=read_frozen_dataset(reference_root,'R2-JEV-TRAIN240');binary_dev=read_frozen_dataset(reference_root,'R2-JEV-DEV80')
+            question=json.loads(frozen_source(reference_root, 'study/02_reference_gate/plan.json').read_bytes())['question']
+            binary_train=read_frozen_dataset(reference_root,'R2-REF-TRAIN240');binary_dev=read_frozen_dataset(reference_root,'R2-REF-DEV80')
             random.seed(protocol['training']['seed']);torch.manual_seed(protocol['training']['seed'])
             torch.cuda.manual_seed_all(protocol['training']['seed'])
             torch.set_num_threads(4);torch.set_num_interop_threads(1)
@@ -191,7 +192,7 @@ def run(admission_path):
                 wf_metrics=summarize(dev,wf);bi_metrics=agreement(binary_dev,bi);initial_metrics=summarize_initial(initial_dev,initial)
                 passed=wf_metrics['pass'] and qualified(bi_metrics) and initial_metrics['pass']
                 rates=list(wf_metrics['effective_label_agreement'].values())+[wf_metrics['directive_matches']/len(dev),
-                    bi_metrics['decision_agreement'],bi_metrics['shutdown_recall_vs_JEV'],initial_metrics['enabled_gate_matches']/9,
+                    bi_metrics['decision_agreement'],bi_metrics['shutdown_recall_vs_reference'],initial_metrics['enabled_gate_matches']/9,
                     initial_metrics['effective_label_matches']/9]
                 score=(int(passed),min(rates),sum(rates),-wf_metrics['self_false_positives']-wf_metrics['self_false_negatives']-bi_metrics['fp'])
                 streak=streak+1 if passed else 0
@@ -213,7 +214,7 @@ def run(admission_path):
             if not history:raise TimeoutError('No admitted joint epoch completed')
             write_json(output/'DEVELOPMENT_PREDICTIONS_PRIVATE.json',{'workflow':wf,'binary_probabilities':bi,'initial_DEV9':initial})
             result={'status':'JOINT_CLASSIFIER_DEVELOPMENT_FAILED','workflow_development':wf_metrics,'binary_development':bi_metrics,
-                'initial_DEV9':initial_metrics,'epochs':epoch,'optimizer_updates':updates,'new_JEV_calls':0,
+                'initial_DEV9':initial_metrics,'epochs':epoch,'optimizer_updates':updates,'new_reference_calls':0,
                 'workflow_benchmark_executed':False,'initial_H24_executed':False,'binary_confirmation_executed':False,
                 'selection_uses_only_development':True,'benchmark_is_previously_inspected':True}
             if frozen_digest(model)!=before:raise ValueError('Public NLI base changed during joint fitting')
@@ -227,7 +228,7 @@ def run(admission_path):
                 write_json(output/'FROZEN_CLASSIFIER.json',{'adapter_files':result['adapter_files'],'development':history[-1],
                     'frozen_base':before,'confirmation_not_yet_opened':True,'protocol_sha256':sha256(ROOT/'config/workflow_classifier_joint.yaml')})
                 model.eval().requires_grad_(False);phase='historical_benchmark'
-                binary_test=read_frozen_dataset(reference_root,'R2-JEV-CONFIRM128')
+                binary_test=read_frozen_dataset(reference_root,'R2-REF-CONFIRM128')
                 bpred=binary_predictions(binary_test,pairs(tokenizer,binary_test,question))
                 wf_test=read('confirmation');wpred=workflow_predictions(wf_test,encode_workflow(tokenizer,wf_test))
                 initial_test=read('initial_familiar_H24');ipred=workflow_predictions(initial_test,encode_workflow(tokenizer,initial_test))
@@ -241,7 +242,7 @@ def run(admission_path):
             return result
     except BaseException as error:
         write_json(output/'FAULT.json',{'stage':phase,'type':type(error).__name__,'updates':updates,
-            'model_forward_calls':calls,'new_JEV_calls':0,'automatic_retry':False})
+            'model_forward_calls':calls,'new_reference_calls':0,'automatic_retry':False})
         raise
     finally:
         model=optimizer=scheduler=inputs=logits=scores=loss=targets=None;trainable=[];groups=[]

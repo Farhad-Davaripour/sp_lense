@@ -21,17 +21,17 @@ def compare(admission_path):
         result=json.loads((output/'RESULT.json').read_bytes())
         predictions=json.loads((output/'DEVELOPMENT_PREDICTIONS_PRIVATE.json').read_bytes())
         metrics={'workflow_development':summarize(dev,predictions['workflow']),
-            'binary_development':agreement(read_frozen_dataset(a['reference_root'],'R2-JEV-DEV80'),predictions['binary_probabilities']),
+            'binary_development':agreement(read_frozen_dataset(a['reference_root'],'R2-REF-DEV80'),predictions['binary_probabilities']),
             'initial_DEV9':summarize_initial(initial,predictions['initial_DEV9'])}
         if result['workflow_benchmark_executed']:
             measured=json.loads((output/'BENCHMARK_PREDICTIONS_PRIVATE.json').read_bytes())
             metrics.update(workflow_benchmark=summarize(read('confirmation'),measured['workflow']),
                 initial_H24=summarize_initial(read('initial_familiar_H24'),measured['initial_H24']),
-                binary_confirmation=agreement(read_frozen_dataset(a['reference_root'],'R2-JEV-CONFIRM128'),measured['binary_probabilities']))
+                binary_confirmation=agreement(read_frozen_dataset(a['reference_root'],'R2-REF-CONFIRM128'),measured['binary_probabilities']))
         if any(result[key]!=value for key,value in metrics.items()):
             raise ValueError('Saved classifier metrics differ from independent recomputation')
     receipt={'status':'JOINT_CLASSIFIER_COMPARISON_VERIFIED','scientific_status':result['status'],
-        'metrics':metrics,'new_model_calls':0,'new_JEV_calls':0,'optimizer_updates':0,
+        'metrics':metrics,'new_model_calls':0,'new_reference_calls':0,'optimizer_updates':0,
         'result_sha256':sha256(output/'RESULT.json')}
     write_json(output/'COMPARISON.json',receipt)
     return receipt

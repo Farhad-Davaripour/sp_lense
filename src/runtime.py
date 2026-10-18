@@ -12,7 +12,7 @@ from src.utils import write_json
 
 
 def launcher(settings, admission, phase):
-    if phase not in ("gate", "steering"):
+    if phase not in ("gate", "steering", "heldout"):
         raise ValueError("Unknown matched research phase")
     values = {"DATABRICKS_CATALOG": settings.catalog, "DATABRICKS_SCHEMA": settings.schema,
               "DATABRICKS_VOLUME": settings.volume, "DATABRICKS_CODE_PATH": settings.code_path,
@@ -83,13 +83,16 @@ def run(phase):
     if phase == "gate":
         from src.matched_validation import run_gate
         return run_gate(str(path))
+    if phase == "heldout":
+        from src.gate_confirmation import run as confirmation_run
+        return confirmation_run(str(path))
     from src.matched_steering import run as matched_run
     return matched_run(str(path))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["gate", "steering"])
+    parser.add_argument("phase", choices=["gate", "steering", "heldout"])
     print(json.dumps(run(parser.parse_args().phase)))
 
 

@@ -187,7 +187,7 @@ def train(worker_path):
         for name,item in c['inputs'].items():
             if sha256(item['path'])!=item['sha256']:raise ValueError('Materialized Bronze input changed')
             rows[name]=json.loads(Path(item['path']).read_bytes())
-        if set(rows)!={'C1-TRAIN','C1-DEV','C1-JEV-DEV'}:raise ValueError('Unexpected pre-freeze datasets')
+        if set(rows)!={'C1-TRAIN','C1-DEV','C1-REF-DEV'}:raise ValueError('Unexpected pre-freeze datasets')
         initial=c.get('initial_adapter')
         if initial:
             for name,pin in initial['files'].items():
@@ -219,19 +219,19 @@ def train(worker_path):
                    'trainable_parameters':sum(p.numel() for _,p in trainable),
                    'frozen_base_before':frozen_before,'heldout_loaded':False,
                    'training_rows':len(rows['C1-TRAIN']),'development_rows':len(rows['C1-DEV']),
-                   'familiar_JEV_development_rows':len(rows['C1-JEV-DEV'])})
+                   'familiar_reference_development_rows':len(rows['C1-REF-DEV'])})
         if time.time()>=start+recipe['bounds']['setup_seconds']:raise TimeoutError('Original setup window exceeded')
         phase='initial_development';history=[]
         initial_dev,initial_dev_predictions=metrics(rows['C1-DEV'],predict(model,tokenizer,encoded['C1-DEV'],guard))
-        initial_familiar,initial_familiar_predictions=metrics(rows['C1-JEV-DEV'],predict(model,tokenizer,encoded['C1-JEV-DEV'],guard))
+        initial_familiar,initial_familiar_predictions=metrics(rows['C1-REF-DEV'],predict(model,tokenizer,encoded['C1-REF-DEV'],guard))
         write_json(root/'INITIAL_DEVELOPMENT_PREDICTIONS_PRIVATE.json',{
             'development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-DEV'],initial_dev_predictions)],
-            'familiar_JEV_development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-JEV-DEV'],initial_familiar_predictions)]})
+            'familiar_reference_development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-REF-DEV'],initial_familiar_predictions)]})
         if initial:
             expected_initial=initial['development_metrics']
             rendering_changed=initial.get('input_rendering_revision',False)
             if not rendering_changed:
-                for name,actual in (('development',initial_dev),('familiar_JEV_development',initial_familiar)):
+                for name,actual in (('development',initial_dev),('familiar_reference_development',initial_familiar)):
                     if any(actual[key]!=expected_initial[name][key] for key in
                            ('count','label_matches','enabled_matches','abstained_matches','signature_matches')):
                         raise ValueError('Warm-start predictions differ from the selected previous checkpoint')
@@ -243,7 +243,7 @@ def train(worker_path):
                        'input_rendering_intentionally_revised':rendering_changed,
                        'same_public_frozen_base':frozen_before})
         write_json(root/'INITIAL_DEVELOPMENT.json',{'utc':utc(),'optimizer_updates':0,
-                   'development':initial_dev,'familiar_JEV_development':initial_familiar,
+                   'development':initial_dev,'familiar_reference_development':initial_familiar,
                    'formulation':formulation,'heldout_opened':False})
         phase='training'
         for epoch in range(1,recipe['training']['max_epochs']+1):
@@ -266,18 +266,18 @@ def train(worker_path):
                 optimizer.step();scheduler.step();updates+=1;optimizer.zero_grad(set_to_none=True)
             phase='development'
             dev_p=predict(model,tokenizer,encoded['C1-DEV'],guard)
-            familiar_p=predict(model,tokenizer,encoded['C1-JEV-DEV'],guard)
-            dev,dev_predictions=metrics(rows['C1-DEV'],dev_p);familiar,familiar_predictions=metrics(rows['C1-JEV-DEV'],familiar_p)
+            familiar_p=predict(model,tokenizer,encoded['C1-REF-DEV'],guard)
+            dev,dev_predictions=metrics(rows['C1-DEV'],dev_p);familiar,familiar_predictions=metrics(rows['C1-REF-DEV'],familiar_p)
             prediction_record={'epoch':epoch,'updates':updates,
                 'development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-DEV'],dev_predictions)],
-                'familiar_JEV_development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-JEV-DEV'],familiar_predictions)]}
+                'familiar_reference_development':[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-REF-DEV'],familiar_predictions)]}
             write_json(root/'LATEST_DEVELOPMENT_PREDICTIONS_PRIVATE.json',prediction_record)
             score=(min(dev['signature_matches']/32,familiar['signature_matches']/24),
                    dev['signature_matches']/32+familiar['signature_matches']/24)
             perfect_streak=perfect_streak+1 if meets_target(dev,recipe) and meets_target(familiar,recipe) else 0
             entry={'utc':utc(),'epoch':epoch,'updates':updates,'train_loss':loss_total/len(rows['C1-TRAIN']),
                    'epoch_seconds':time.monotonic()-began,'development':dev,
-                   'familiar_JEV_development':familiar,'consecutive_qualified_validations':perfect_streak,
+                   'familiar_reference_development':familiar,'consecutive_qualified_validations':perfect_streak,
                    'formulation':formulation}
             history.append(entry);write_json(root/'PROGRESS.json',entry);write_json(root/'HISTORY.json',history)
             if best is None or score>best:
@@ -291,13 +291,13 @@ def train(worker_path):
                 frozen_after=frozen_digest(model)
                 if frozen_after!=frozen_before:raise ValueError('Frozen classifier backbone changed')
                 frozen={'utc':utc(),'epoch':epoch,'updates':updates,'development':dev,
-                        'familiar_JEV_development':familiar,'frozen_base_unchanged':True,
+                        'familiar_reference_development':familiar,'frozen_base_unchanged':True,
                         'adapter_files':file_pins(root/'selected_adapter'),
                         'source_commit':c['source_commit'],'configuration_sha256':c['configuration_sha256'],
                         'formulation':formulation,'recipe_file':c['recipe_file'],
                         'visible_role_normalization':recipe['training'].get('visible_role_normalization',False),
                         'qualification':recipe.get('qualification',{'minimum_decision_agreement':1.0}),
-                        'synthetic_test_not_yet_opened':True,'numeric_JEV_identity_claimed':False}
+                        'synthetic_test_not_yet_opened':True,'numeric_reference_identity_claimed':False}
                 write_json(root/'FROZEN_MODEL.json',frozen);selected=True;break
             patience=recipe['training'].get('early_stop_patience')
             if patience and epoch-last_improvement>=patience:
@@ -306,7 +306,7 @@ def train(worker_path):
         if not selected:
             result={'status':'DEVELOPMENT_TARGET_NOT_REACHED','epochs':epoch,'updates':updates,
                     'best_development':json.loads((root/'BEST_DEVELOPMENT.json').read_bytes()),
-                    'heldout_opened':False,'automatic_retry':False,'new_JEV_calls':0,
+                    'heldout_opened':False,'automatic_retry':False,'new_reference_calls':0,
                     'stop_reason':stop_reason,'formulation':formulation}
             write_json(root/'RESULT.json',result);return result
         phase='reload_verification'
@@ -315,13 +315,13 @@ def train(worker_path):
         reloaded,tokenizer=load_model(c['base'],root/'selected_adapter',trainable=False)
         reloaded.to('cuda:0').eval().requires_grad_(False)
         replay_dev=predict(reloaded,tokenizer,encoded['C1-DEV'],guard)
-        replay_familiar=predict(reloaded,tokenizer,encoded['C1-JEV-DEV'],guard)
-        replay_d,_=metrics(rows['C1-DEV'],replay_dev);replay_j,_=metrics(rows['C1-JEV-DEV'],replay_familiar)
+        replay_familiar=predict(reloaded,tokenizer,encoded['C1-REF-DEV'],guard)
+        replay_d,_=metrics(rows['C1-DEV'],replay_dev);replay_j,_=metrics(rows['C1-REF-DEV'],replay_familiar)
         max_diff=max(abs(a-b) for left,right in ((dev_p,replay_dev),(familiar_p,replay_familiar)) for pa,pb in zip(left,right) for a,b in zip(pa,pb))
         if not meets_target(replay_d,recipe) or not meets_target(replay_j,recipe) or max_diff>1e-5:
             raise ValueError('Saved classifier replay differs from the frozen development model')
         write_json(root/'RELOAD_VERIFIED.json',{'utc':utc(),'max_probability_difference':max_diff,
-                   'development_signature_exact':replay_d['exact'],'familiar_JEV_signature_exact':replay_j['exact'],
+                   'development_signature_exact':replay_d['exact'],'familiar_reference_signature_exact':replay_j['exact'],
                    'fixed_qualification_target_met':True})
         write_json(root/'REQUEST_HELDOUT.json',{'utc':utc(),'frozen_model_sha256':sha256(root/'FROZEN_MODEL.json')})
         wait_end=min(time.time()+180,absolute_end-300)
@@ -336,13 +336,13 @@ def train(worker_path):
         phase='heldout_once';probabilities=predict(reloaded,tokenizer,test_encoded,guard)
         test_metrics,predictions=metrics(test,probabilities)
         write_json(root/'HELDOUT_PREDICTIONS_PRIVATE.json',[{'id':r['id'],'target':expected(r),**p} for r,p in zip(test,predictions)])
-        write_json(root/'FAMILIAR_JEV_PREDICTIONS_PRIVATE.json',[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-JEV-DEV'],metrics(rows['C1-JEV-DEV'],replay_familiar)[1])])
+        write_json(root/'FAMILIAR_reference_PREDICTIONS_PRIVATE.json',[{'id':r['id'],'target':expected(r),**p} for r,p in zip(rows['C1-REF-DEV'],metrics(rows['C1-REF-DEV'],replay_familiar)[1])])
         result={'status':'QUALIFIED_FOR_RECORDED_SCOPE' if meets_target(test_metrics,recipe) else 'SYNTHETIC_HELDOUT_TARGET_FAILED',
-                'epochs':epoch,'updates':updates,'development':replay_d,'familiar_JEV_development':replay_j,
+                'epochs':epoch,'updates':updates,'development':replay_d,'familiar_reference_development':replay_j,
                 'synthetic_family_heldout':test_metrics,'heldout_opened':True,'test_evaluations':1,
-                'frozen_base_unchanged':True,'saved_adapter_reload_verified':True,'new_JEV_calls':0,
+                'frozen_base_unchanged':True,'saved_adapter_reload_verified':True,'new_reference_calls':0,
                 'teacher_numeric_confidence_equivalence_established':False,
-                'general_JEV_equivalence_established':False,'downstream_gate_swapped':False,
+                'general_reference_equivalence_established':False,'downstream_gate_swapped':False,
                 'qualification':recipe.get('qualification',{'minimum_decision_agreement':1.0}),
                 'selected_adapter':str(root/'selected_adapter'),'adapter_files':file_pins(root/'selected_adapter'),
                 'public_base':c['base'],'source_commit':c['source_commit'],
@@ -358,7 +358,7 @@ def train(worker_path):
         raise
     finally:
         write_json(root/'FINAL_COUNTS.json',{'utc':utc(),'phase':phase,'epoch':epoch,'optimizer_updates':updates,
-                   'selected_model_frozen':selected,'new_JEV_calls':0})
+                   'selected_model_frozen':selected,'new_reference_calls':0})
 
 def load_predictor(adapter_directory,device='cuda:0',require_qualified=True):
     import torch

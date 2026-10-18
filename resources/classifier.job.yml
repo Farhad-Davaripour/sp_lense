@@ -1,7 +1,7 @@
 resources:
   jobs:
     classifier:
-      name: Research 3 - Classifier training and JEV comparison
+      name: Research 3 - Classifier training and reference comparison
       max_concurrent_runs: 1
       timeout_seconds: 10800
       queue:
@@ -33,7 +33,7 @@ resources:
         timeout_seconds: 10800
         compute:
           hardware_accelerator: ${var.accelerator}
-      - task_key: compare_with_jev
+      - task_key: compare_with_reference
         depends_on:
         - task_key: finetune_classifier
         notebook_task:

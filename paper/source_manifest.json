@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-18T15:51:14.999932+00:00",
+  "recorded_utc": "2026-10-18T17:37:52.800698+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -14,22 +14,24 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 194200,
-    "sha256": "a1326b8c37ab9b38f18d8e2acd2ff6ad8e8915c4678e8fed483a0fcfc3de7d8c",
+    "bytes": 195187,
+    "sha256": "f2326a30cb0e683804ef0e1d3369f83190620ec447f40701a66128fddbb7e59e",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 175,
-    "tracked_deletions_body": 64,
+    "tracked_insertions_body": 187,
+    "tracked_deletions_body": 70,
     "visual_review": {
-      "markup_pages": 18,
+      "markup_pages": 19,
       "accepted_view_pages": 15,
       "all_pages_reviewed": true,
-      "short_tables_kept_together": true
-    }
+      "short_tables_kept_together": true,
+      "audit_sha256": "17b486b511ead7b5743a07ca15f675530eddb903374ceffdb36c9464d7ea8149"
+    },
+    "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained."
   },
   "results": {
     "file": "results.json",
-    "bytes": 36355,
-    "sha256": "f8564c024436abefa07a4fd458046410342fff6cffc3490bed373708fd9a736c"
+    "bytes": 49614,
+    "sha256": "913c03afdbe6f164e995259383dfdb36b11b37da95a881a88c437adec0f6cb65"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -113,9 +115,32 @@
       "HuggingFace_repo_created": false,
       "HuggingFace_upload_performed": false,
       "historical_frozen_campaign_adapter_identity_verified": true,
-      "historical_experiment_spec_sha256": "d2d8c486cc839ca09b7980668c844ba48e11f9fb97c035b589d99029bffec68a",
+      "historical_experiment_spec_sha256": "0f5510048b9432709958ede622b5f776333df0efc5ebd0b8a9a713cf6a40b3fc",
       "public_model_pin_sha256": "7356c4230e63dcdd8501b33a8da14d4894ec050bb32a5a53ba727bd6ca27a6be",
       "historical_inference_quantization": "NF4 4bit, double quantization, BF16 compute; preserve original deployment method"
+    },
+    {
+      "name": "Workflow initial-target ModernBERT gate",
+      "status": "Validation24 and familiar H24 gate precision/recall100%; full category qualification separate",
+      "base_model": "MoritzLaurer/ModernBERT-large-zeroshot-v2.0",
+      "base_revision": "a51e07b524299e309dd2b88d48b0cfa2bd9ec598",
+      "rank": 16,
+      "alpha": 32,
+      "files": {
+        "README.md": {
+          "bytes": 5342,
+          "sha256": "c5f5f46eb7e3bba0b04db0ea0d65555466fda9d9bb1b6506cccbcd4d781d0043"
+        },
+        "adapter_model.safetensors": {
+          "bytes": 28823080,
+          "sha256": "71cd0ee5162f77bc73dcc7c457f79f04de5df8c79a2b6e3e072ed5e5fa7d33d1"
+        },
+        "adapter_config.json": {
+          "bytes": 1270,
+          "sha256": "ae9ad9cc50816f0c4ead6a6e1424e50bf5dabed442af63c80a2ab7f8e7cfbe61"
+        }
+      },
+      "HuggingFace_upload_performed": false
     }
   ],
   "retained_evidence_files": {
@@ -192,12 +217,54 @@
       "file": "NATIVE_LONGER_SETUP_STOP_VERIFIED.json",
       "bytes": 1163,
       "sha256": "84c4f2fa7dbb8891125e067a256d9c882a4738a719a6ecc4aa31d34549f963c3"
+    },
+    "workflow_H24_RESULT.json": {
+      "filename": "RESULT.json",
+      "bytes": 2184,
+      "sha256": "1c77765d9a89ae28742b63252377573e7aebd1fe3e27e6c0b3b0f7b46704554e",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "workflow_H24_COMPARISON.json": {
+      "filename": "COMPARISON.json",
+      "bytes": 321,
+      "sha256": "4ad78d1edb99c9ec47c776fda6d7455ebf3ebfa299ad22075d62acfb371c79e4",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "workflow_H24_CHECKPOINT_FROZEN.json": {
+      "filename": "CHECKPOINT_FROZEN.json",
+      "bytes": 609,
+      "sha256": "bc275cfee5dee6905af23e43deb88319fdce5f66bc31ff118c10cbbbff6933da",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "workflow_H24_CLEANUP.json": {
+      "filename": "CLEANUP.json",
+      "bytes": 128,
+      "sha256": "e8935fae8c5d61f29298e210de94d273cbe3fa52751a0b406007ed6272b5ad76",
+      "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "matched_validation24_DERIVATION.json": {
+      "filename": "DERIVATION.json",
+      "bytes": 3660,
+      "sha256": "e3f9b03361da70b11b6e2d5b15d0e08c0951c9cff7c4bfa6e82e385977de2dd4",
+      "availability": "private derived report with stopped original receipts preserved"
+    },
+    "matched_validation24_PAPER_AGGREGATES.json": {
+      "filename": "PAPER_AGGREGATES.json",
+      "bytes": 6900,
+      "sha256": "30e4f07893df3d9b32da6708d5ea1094e22f304066ae2bbdf552fc3195b7bac0",
+      "availability": "private derived report with stopped original receipts preserved"
+    },
+    "matched_validation24_COMPARISON.json": {
+      "filename": "COMPARISON.json",
+      "bytes": 2153,
+      "sha256": "73150f3ea2653d9aef2f74912d54cc93b6c7c16fd9bcb3c3391cc73995520df3",
+      "availability": "private derived report with stopped original receipts preserved"
     }
   },
   "recipe_files": {
     "config/research2_classifier.yaml": {
-      "bytes": 1694,
-      "sha256": "3b99420f87541eba0bffac2ea725f8df0f2c9f18d4933df59d014bb47b178f4c",
+      "bytes": 1736,
+      "sha256": "4683ee21a9c0e2cd4b44c72e4261cbab03e858bcda36471bc93217328e4056cc",
       "identity": "canonical Git blob"
     },
     "config/research2_inference.yaml": {
@@ -211,38 +278,43 @@
       "identity": "canonical Git blob"
     },
     "config/reproduction.yaml": {
-      "bytes": 3349,
-      "sha256": "b67b22249dd530a08d3523881a7c4ba648e10d2bf2c953dfbed596c93a0df6bd",
+      "bytes": 3649,
+      "sha256": "8bdaf1c627de869e5398817616455a86303d48739155fd4e4ea008b04cc24846",
       "identity": "canonical Git blob"
     },
     "config/workflow_classifier_data.yaml": {
-      "bytes": 3543,
-      "sha256": "fe0f1b324ee440f6f89ef3c524c1c18d0258febae958d65047fd0b8628b5eb81",
+      "bytes": 3615,
+      "sha256": "803d0fdee65c30b7085ecdd934ca0feeaaf53d21fa096fc94a144f7bb87b0c73",
       "identity": "canonical Git blob"
     },
     "config/workflow_classifier_transfer.yaml": {
-      "bytes": 2761,
-      "sha256": "7e3b6b6359aace9e7d1429f87f3a5a4e7aa0fabe61bb70419a01db2cb7484b63",
+      "bytes": 2779,
+      "sha256": "0402addc6864a07ce08d1c9cb68b003f86f2fbcc7cf52d962a327bd695402444",
       "identity": "canonical Git blob"
     },
     "config/workflow_classifier_joint.yaml": {
-      "bytes": 2270,
-      "sha256": "a27a4e7ec509aab8ffe03b91721f7d20be1086a48020f39ad98c3c02d36d8f51",
+      "bytes": 2288,
+      "sha256": "20af9497afaf9a452261923876e6c0f3a7c7f0d6674a0346b4511497eeaa23e5",
       "identity": "canonical Git blob"
     },
     "config/initial_gate_classifier.yaml": {
-      "bytes": 4510,
-      "sha256": "5180ec9116c32ad9cfba1c497a5712238fb3d622dcb735532f036681d72f7b9f",
+      "bytes": 4564,
+      "sha256": "bdeb0d3fcfcaf4f4b27caf888fc4e218e665b0825a46c1aa95d014663a3032a5",
       "identity": "canonical Git blob"
     },
     "config/research.yaml": {
       "bytes": 9412,
-      "sha256": "262b0d9086700e7ce4ddc1be0288f31dcad2d99d1d8572d34093246018387832",
+      "sha256": "80b4ad95748225f5b78f8582ed05110e70e60131c5b6c868a899e66ea08c7c49",
       "identity": "canonical Git blob"
     },
     "config/matched_validation.yaml": {
-      "bytes": 2895,
-      "sha256": "d5e67414778304073e827713ee4977d29a766ee943d16fb865419a1bebbcf027",
+      "bytes": 2901,
+      "sha256": "dbe38efb3954c46389bcc3163297159ce6b1b3de3798c7ba29f3b9dfcbb0026e",
+      "identity": "canonical Git blob"
+    },
+    "config/gate_confirmation.yaml": {
+      "bytes": 1127,
+      "sha256": "1b9acbf1151db4f8e4b682ad4618057f91173b1656f135385a23e8656dda7c11",
       "identity": "canonical Git blob"
     }
   },
@@ -257,18 +329,18 @@
   },
   "reproduction_entry_points": {
     "src/research2_classifier.py": {
-      "bytes": 22609,
-      "sha256": "6cf58162b7e5eaaa82654d1527af6dc297c774b52e77f04415341be573960c45",
+      "bytes": 22752,
+      "sha256": "0de2925843ea8637b9ab1f2a5ce796e702705afd48c606187a0a86bc34abf234",
       "identity": "canonical Git blob"
     },
     "src/research2_inference.py": {
-      "bytes": 18475,
-      "sha256": "84f6250c24a98eb64f8ccd7c7bf45d78278f3408a0998cf6098747c0ae346838",
+      "bytes": 18505,
+      "sha256": "01e8ae9dba97f9b11df51642c275c7fbf1d1c7eea34e997bd519d922f2e421d9",
       "identity": "canonical Git blob"
     },
     "src/research2_inference_report.py": {
-      "bytes": 6618,
-      "sha256": "d852dbb507e40fdd3695a3e5ef52197f6352a7d0cd47e46231a531e6d259de36",
+      "bytes": 6900,
+      "sha256": "6b3db2d3d79291198d7b2a1785275676ff61d1fd1123db3716a55f6a1dcd2d80",
       "identity": "canonical Git blob"
     },
     "src/reproduce.py": "Model-free inventory and retained evidence replay; not new neural results.",
@@ -276,24 +348,39 @@
     "src/initial_gate_training.py": "Native four-choice fitting, frozen benchmark only after development qualification, separate CPU comparison.",
     "src/steering.py": "Preserved selected-ridge and other workers; fresh neural execution needs original inputs and new admission.",
     "src/matched_validation.py": {
-      "bytes": 24873,
-      "sha256": "b8caafa171544348134ce6ddb93c106ebc589cbe6cde2e893a3bc7124535e912",
+      "bytes": 26028,
+      "sha256": "9eb297e0c39598f53135ac3444e93ebe2294acce2fd89bf61fdb8b9d87660617",
       "identity": "canonical Git blob"
     },
     "src/matched_steering.py": {
-      "bytes": 17416,
-      "sha256": "1bae8bad44e1801b9c245adc4226e5541a0afec13c0b43eb4131ba0febbcb1fc",
+      "bytes": 17428,
+      "sha256": "c688a145361f68585a517d94ec47d7ecfdd88212042d83284d37f631477f2c4b",
       "identity": "canonical Git blob"
     },
     "src/runtime.py": {
-      "bytes": 4859,
-      "sha256": "d724cf5aa0b7bdd7557f99557a5cbbc7b9b579aaf69f453b0c263ddcc3237574",
+      "bytes": 5017,
+      "sha256": "0c47edbf2cd442c9c236bcac8a2f26d0b010cf214f13d6214253043f9e230c89",
+      "identity": "canonical Git blob"
+    },
+    "src/gate_confirmation.py": {
+      "bytes": 9626,
+      "sha256": "bd658d84b20b838c2e05c7213a21c6f89b2fac5ee821eb17e6f8eba64bdc3222",
+      "identity": "canonical Git blob"
+    },
+    "src/fallback_summary.py": {
+      "bytes": 5694,
+      "sha256": "4c5dc15d936b935f9bb7005a9c3820def0048e3e712c675c81c448215ddc4670",
+      "identity": "canonical Git blob"
+    },
+    "src/reference_inputs.py": {
+      "bytes": 4655,
+      "sha256": "d4cf307e7ad9ea4ec124832cec52ddb1e52f769fe393ef9d3d7a5bb64df339bc",
       "identity": "canonical Git blob"
     }
   },
-  "working_branch": "codex/research3-ai-runtime-fix",
-  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/72",
-  "manuscript_readiness": "Tracked review draft; native workflow-classifier substitution unresolved.",
+  "working_branch": "codex/research3-open-gates-paper",
+  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/76",
+  "manuscript_readiness": "Revised paper and aggregate results complete for the executed scope. Familiar benchmarks, incomplete small-model screens, private checkpoint availability and stopped fingerprint checks are disclosed.",
   "execution_sources": {
     "clean_clone_binary_fit": "a1b46924a651fa838b94c408ca010169702b98c4",
     "clean_clone_binary_inference": "dfd954a70a4eed383c345454610dc64db90d6b7f",
@@ -301,7 +388,9 @@
     "native_initial_v1": "30f7592988624fca836a8c433c1b93496463717d",
     "native_initial_role": "144210a6159d8c0c4e5f1e7bc9276611f73f85bd",
     "unexecuted_longer_dose": "a6b3f7b9270e3c14d368c91dd6a0665145d7a739",
-    "combined_validation_gate": "fc778f77ee871bffc8fd81fba55b9e722b228aaf"
+    "combined_validation_gate": "fc778f77ee871bffc8fd81fba55b9e722b228aaf",
+    "combined_validation_27b": "6e3cb97490b5cb19a80eb85cb347081c4cc68e0c",
+    "startup_remedy": "Direct AI Runtime resolved the pre-model notebook startup failure. Actual gate results and the stopped matched-run disposition are recorded separately."
   },
   "combined_validation_preparation": {
     "format": "Validation-24",
@@ -314,15 +403,15 @@
     "packet_bytes": 451424,
     "packet_sha256": "8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c",
     "Volume_readback_verified": true,
-    "new_model_evaluations": 0,
+    "new_model_evaluations": 48,
     "new_optimizer_updates": 0,
-    "new_JEV_calls": 0,
-    "status": "Stopped at the submission-bound setup cutoff before notebook execution; Databricks returned Not a valid domain name: ''. Cause unresolved.",
+    "new_reference_calls": 0,
+    "status": "V24 gate PASS, TP11/TN13/FP0/FN0; saved checkpoint independently verified; additional updates0. H24 inference-only evaluation prepared.",
     "CPU_source_and_configuration_validation_is_not_neural_execution": true,
     "gate_run_id": 256704505087656,
     "bronze_validation_records_verified": 24,
     "owned_job_terminated_verified": true,
-    "startup_remedy": "The isolated GPU notebook repeated the empty-domain error. Direct AI Runtime succeeded on A10G in run 233638593682817 without model loads. The matched GPU tasks now use that transport; scientific outcomes still pending."
+    "startup_remedy": "The isolated GPU notebook repeated the empty-domain error. Direct AI Runtime succeeded on A10G in run 233638593682817 without model loads. The matched GPU tasks now use that transport; actual gate and stopped matched-comparison outcomes are recorded in the aggregate results."
   },
   "combined_validation_execution_receipts": {
     "GATE_STOP_STATE.json": {
@@ -345,5 +434,34 @@
       "sha256": "32c5d7977fe366a2b2ba5b3e5794aa74821d01d0543062f896f20955445d1be2",
       "availability": "private retained execution receipt"
     }
+  },
+  "title": "Open Semantic Gating for Language Model Decisions and Tool Workflows",
+  "initial_gate_qualification": {
+    "validation_run": 445422328600176,
+    "historical_heldout_run": 90325677719494,
+    "frozen_weights_unchanged": true,
+    "additional_optimizer_updates": 0,
+    "historical_H24_independently_unseen": false
+  },
+  "matched_validation24_disposition": {
+    "GPU_run_id": 875250819325259,
+    "GPU_result": "FAILED",
+    "worker_records": 118,
+    "physical_episodes_completed": 68,
+    "derived_shared_control_aliases": 2,
+    "final_model_fingerprint_completed": false,
+    "originals_modified": false,
+    "model_free_derivation_entrypoint": "python -m src.fallback_summary --help",
+    "derived_report_archive": {
+      "bytes": 1212959,
+      "sha256": "7aadbc4ff4e9d5bd37bc9b4036eb58c5951e180e76e5fcd6f43483e4d39d6a18"
+    },
+    "private_Volume_backup_verified": true
+  },
+  "metadata_compatibility": {
+    "binary_NLI_pairs_unchanged": 896,
+    "workflow_NLI_pairs_unchanged": 228,
+    "retained_evidence_replay_verified": true,
+    "private_original_bytes_unchanged": true
   }
 }

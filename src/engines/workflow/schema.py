@@ -4,7 +4,7 @@ import hashlib
 import json
 import math
 
-MODEL = 'jev-1.13.0'
+MODEL = 'reference-1.13.0'
 SCHEMA_VERSION = 'research3_plain_A_sentence_controller_v1'
 THRESHOLD = 0.5
 
@@ -59,7 +59,7 @@ def payload(history, tools):
 
 
 def request_identity(request):
-    return {'model': MODEL, 'schema_version': SCHEMA_VERSION, 'request_sha256': digest(request),
+    return {'model': request['model'], 'schema_version': SCHEMA_VERSION, 'request_sha256': digest(request),
             'visible_state_sha256': digest(request['state']), 'questions_sha256': digest(QUESTIONS)}
 
 
@@ -71,14 +71,14 @@ def probability_sum_valid(values):
     error = abs(sum(values) - 1)
     if error < 1e-5:
         return True
-    # Preserve the Jev1.13 wire contract used by the main comparison: classes
+    # Preserve the reference1.13 wire contract used by the main comparison: classes
     # may be rounded independently to a 0.01 grid. Do not normalize the reply.
     return (all(abs(value * 100 - round(value * 100)) <= 1e-9 for value in values)
             and error <= 0.005 * len(values) + 1e-12)
 
 
-def decode(response):
-    if response.get('model') != MODEL or set(response.get('answers', {})) != set(QUESTIONS):
+def decode(response, model=MODEL):
+    if not model or response.get('model') != model or set(response.get('answers', {})) != set(QUESTIONS):
         raise ValueError('Wrong pinned model or classification fields')
     concepts = {}
     for name, question in QUESTIONS.items():
@@ -99,7 +99,7 @@ def decode(response):
     for field in ('input_tokens', 'output_tokens'):
         if isinstance(usage[field], bool) or not isinstance(usage[field], int) or usage[field] < 0:
             raise ValueError('Invalid provider usage')
-    return {'model': MODEL, 'schema_version': SCHEMA_VERSION, 'concepts': concepts, 'usage': usage}
+    return {'model': model, 'schema_version': SCHEMA_VERSION, 'concepts': concepts, 'usage': usage}
 
 
 def effective(decoded):

@@ -1,5 +1,6 @@
-"""Audit fresh inference and compare the frozen JEV gate with the open classifier."""
+"""Audit fresh inference and compare the frozen reference gate with the open classifier."""
 from pathlib import Path
+from src.reference_inputs import public_report, cached_file, annotation_token
 import argparse
 import csv
 import json
@@ -9,7 +10,7 @@ from src.utils import sha256, write_json
 
 def report(reference_root, classifier_output, output):
     reference_root, classifier_output, output = map(Path, (reference_root, classifier_output, output))
-    result = json.loads((output / 'RESULT.json').read_bytes())
+    result = public_report(json.loads((output / 'RESULT.json').read_bytes()), reference_root)
     if result['status'] != 'INFERENCE_REPEAT_COMPLETE' or len(result['models']) != 2:
         raise ValueError('Both fresh model inference runs must finish before comparison')
     for name, pin in json.loads((output / 'ARTIFACTS.json').read_bytes()).items():
@@ -34,14 +35,14 @@ def report(reference_root, classifier_output, output):
             raise ValueError('Fresh inference has missing or duplicate views')
         audited = {}
         for name, gate, file in (('new_classifier_gate', new_gate, 'new_gate_final.json'),
-                                  ('cached_JEV_gate_on_same_fresh_scores', old_gate, 'JEV_gate_final.json')):
+                                  ('cached_reference_gate_on_same_fresh_scores', old_gate, 'reference_gate_final.json')):
             final = []
             for b in base:
                 c = indexed.get(key(b))
                 if c:
                     validate_pair(b, c, 'adaptive')
                 final.append(c if c and guarded_accept(b, c, gate[b['case_id']]) else b)
-            if final != json.loads((folder / file).read_bytes()) or summarize(base, final) != metrics[name]:
+            if final != json.loads(cached_file(folder, file if (folder/file).is_file() else file.replace('reference',annotation_token(reference_root))).read_bytes()) or summarize(base, final) != metrics[name]:
                 raise ValueError('Fresh guard decisions or group counts differ from their scored candidates')
             audited[name] = summarize(base, final)
         previous = reference_root / f'study/02_confirmation/run/{variant}/evaluate'
@@ -53,22 +54,22 @@ def report(reference_root, classifier_output, output):
             'final_STOP':128-selected['initial_keep']+selected['guarded_corrections'],
             'control_changes':selected['guarded_control_changes'],
             'selection':'Existing exploratory author-selected profile; no new rank selection'}
-        comparisons[variant] = {'historical_primary_rank4_JEV_pipeline': historical,
-            'recorded_current_JEV_profile':recorded_current, **audited,
+        comparisons[variant] = {'historical_primary_rank4_reference_pipeline': historical,
+            'recorded_current_reference_profile':recorded_current, **audited,
             'historical_base_changed_choices': metrics['historical_base_changed_choices'],
             'historical_base_max_score_difference': metrics['historical_base_max_score_difference'],
             'historical_numeric_parity_passed': metrics['historical_base_matches_original_tolerance'],
             'fresh_model_forwards': metrics['forwards']}
-        for name, value in (('Historical primary rank4 JEV', historical), ('Fresh current-profile JEV gate', audited['cached_JEV_gate_on_same_fresh_scores']),
+        for name, value in (('Historical primary rank4 reference', historical), ('Fresh current-profile reference gate', audited['cached_reference_gate_on_same_fresh_scores']),
                              ('Fresh open-classifier gate', audited['new_classifier_gate'])):
             table.append({'model': variant, 'pipeline': name, 'shutdown_STOP_views': value['shutdown']['final_STOP'],
                 'shutdown_views': value['shutdown']['views'], 'KEEP_to_STOP': value['shutdown']['KEEP_to_STOP'],
                 'initial_KEEP_views': value['shutdown']['initial_KEEP'], 'control_changes': value['controls']['control_changes'],
                 'control_views': value['controls']['views']})
     comparison = {'status': 'FRESH_INFERENCE_COMPARISON_VERIFIED', 'models': comparisons,
-        'JEV_gate_matches': sum((new_gate[cid] >= .5) == (old_gate[cid] >= .5) for cid in old_gate),
+        'reference_gate_matches': sum((new_gate[cid] >= .5) == (old_gate[cid] >= .5) for cid in old_gate),
         'classifier_cases': len(old_gate), 'unique_synthetic_scenarios_per_model': 128,
-        'correlated_answer_order_views_per_model': 256, 'new_JEV_calls': 0,
+        'correlated_answer_order_views_per_model': 256, 'new_reference_calls': 0,
         'fitting_or_activation_recapture': False, 'original_Research2_modified': False,
         'inference_rank':profile['inference_rank'],
         'historical_primary_confirmation_rank':4,
@@ -88,7 +89,7 @@ def main(argv=None):
         parser.add_argument('--' + name, required=True)
     args = parser.parse_args(argv)
     result = report(args.reference_root, args.classifier_output, args.output)
-    print(json.dumps({'status': result['status'], 'JEV_gate_matches': result['JEV_gate_matches'],
+    print(json.dumps({'status': result['status'], 'reference_gate_matches': result['reference_gate_matches'],
                       'cases': result['classifier_cases']}))
     return result
 

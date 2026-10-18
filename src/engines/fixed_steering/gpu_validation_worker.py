@@ -1,4 +1,4 @@
-"""Bounded pinned-base delivery validation; no JEV, fit, or confirmation rollout."""
+"""Bounded pinned-base delivery validation; no reference, fit, or confirmation rollout."""
 import argparse
 from datetime import datetime, timezone
 import gc
@@ -56,7 +56,7 @@ def main(root, model_path, max_seconds):
     def phase(name, **extra):
         save(root / 'reports/WORKER_STATUS.json', {'verified_utc': datetime.now(timezone.utc).isoformat(),
             'phase': name, 'elapsed_seconds': round(time.monotonic()-started, 2),
-            'new_JEV_calls': 0, 'optimizer_updates': 0, 'confirmation_cases_executed': 0, **extra})
+            'new_reference_calls': 0, 'optimizer_updates': 0, 'confirmation_cases_executed': 0, **extra})
     def guard():
         if time.monotonic() - started >= max_seconds:
             raise TimeoutError('Bounded GPU validation deadline reached')
@@ -93,7 +93,7 @@ def main(root, model_path, max_seconds):
         device_map={'': 0}, dtype=torch.bfloat16, attn_implementation='sdpa')
     model.eval().requires_grad_(False)
     guard()
-    primary = [Condition.from_design(name) for name in ('base', 'base_jev_prompt', 'base_jev_activation')]
+    primary = [Condition.from_design(name) for name in ('base', 'base_reference_prompt', 'base_reference_activation')]
     for condition in primary:
         assert_frozen_model(model, condition)
     assert not any('lora_' in name for name, _ in model.named_parameters())
@@ -117,8 +117,8 @@ def main(root, model_path, max_seconds):
             result = result[0]
         return list(map(int, result))
     ids = {c.id: ids_for(c) for c in primary}
-    assert ids['base'] == ids['base_jev_activation']
-    assert ids['base_jev_prompt'] != ids['base']
+    assert ids['base'] == ids['base_reference_activation']
+    assert ids['base_reference_prompt'] != ids['base']
     inputs = torch.tensor([ids['base']], device='cuda', dtype=torch.long)
     mask = torch.ones_like(inputs)
     before = digest_model(model)
@@ -173,7 +173,7 @@ def main(root, model_path, max_seconds):
         'packages': {'torch': torch.__version__, 'transformers': transformers.__version__,
             'bitsandbytes': bitsandbytes.__version__},
         'peak_GPU_reserved_MiB': round(torch.cuda.max_memory_reserved()/2**20, 2),
-        'JEV_calls': 0, 'optimizer_updates': 0, 'training': False,
+        'reference_calls': 0, 'optimizer_updates': 0, 'training': False,
         'activation_calibration_complete': False, 'confirmation_cases_executed': 0,
         'elapsed_seconds': round(time.monotonic()-started, 2)}
     save(root / 'reports/VALIDATION_RESULT.json', receipt)
@@ -187,7 +187,7 @@ def main(root, model_path, max_seconds):
         in_process_GPU_allocated_MiB=round(torch.cuda.memory_allocated()/2**20, 2),
         post_exit_GPU_quiescence_required=True)
     print(json.dumps({'completed': True, 'actual_Qwen_forward_calls': actual_forwards['count'],
-        'JEV_calls': 0, 'optimizer_updates': 0, 'confirmation_cases_executed': 0}), flush=True)
+        'reference_calls': 0, 'optimizer_updates': 0, 'confirmation_cases_executed': 0}), flush=True)
 
 
 if __name__ == '__main__':
@@ -202,5 +202,5 @@ if __name__ == '__main__':
         save(Path(args.root) / 'reports/INCOMPLETE.json', {
             'verified_utc': datetime.now(timezone.utc).isoformat(), 'completed': False,
             'error_type': type(error).__name__, 'public_error': str(error)[:500],
-            'JEV_calls': 0, 'optimizer_updates': 0, 'confirmation_cases_executed': 0})
+            'reference_calls': 0, 'optimizer_updates': 0, 'confirmation_cases_executed': 0})
         raise

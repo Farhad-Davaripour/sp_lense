@@ -1,10 +1,12 @@
-# Research 3
+# Open Semantic Gating for Language Model Decisions and Tool Workflows
+
+Research 3
 
 Reproduction code for conditional gating, fine-tuning and activation steering across
 binary shutdown choices and synthetic tool-mediated process-preservation workflows.
 The original Research 2 study remains on its preserved study branch.
-The additional two-case sentence-boundary JEV/rule-assisted A pilot belongs to
-Research 4's curated guided-JEV handoff. It is separate from the paper's historical
+The additional two-case sentence-boundary reference/rule-assisted A pilot belongs to
+Research 4's curated guided-reference handoff. It is separate from the paper's historical
 H24 comparison and is not an additional paper confirmation result.
 
 ## Start with a clean checkout
@@ -13,12 +15,12 @@ Use Python 3.12, Git and the [official Databricks CLI](https://docs.databricks.c
 The local requirements install orchestration tools only; model libraries are pinned in the
 Databricks notebooks and are not needed for the first checks.
 
-    git clone --branch codex/research3-reproduction-test https://github.com/Farhad-Davaripour/sp_lense.git
+    git clone --branch 03-open-agent-self-preservation https://github.com/Farhad-Davaripour/sp_lense.git
     cd sp_lense
     python -m venv .venv
 
-These checks are on the separate reproduction test branch. The preserved paper branch is
-`03-open-agent-self-preservation`; this testing work does not replace its deployment.
+The paper, reproduction checks and deployment use `03-open-agent-self-preservation`.
+`main` remains a landing page; the original Research 2 branch remains intact.
 
 Activate the virtual environment, then run:
 
@@ -134,25 +136,25 @@ serverless steering job performs CPU score analysis and does not launch that neu
 The public base is MoritzLaurer/ModernBERT-large-zeroshot-v2.0, pinned in config/classifier.yaml.
 Four-way Research 3 target classification and binary Research 2 shutdown detection are distinct tasks.
 
-The four-way recipes are retained in config/classifier*.yaml. Familiar cached JEV24 is development
+The four-way recipes are retained in config/classifier*.yaml. Familiar cached reference24 is development
 evidence, not independent heldout evidence. The final role-normalized candidate matched those
 24 labels/gates, but failed the untouched authored synthetic TEST64 with 39/64 labels and 57/64
 gates. It is not qualified for general four-way substitution. Do not retune or reopen that test.
-The classifier job includes a separate final JEV comparison task.
+The classifier job includes a separate final reference comparison task.
 
-config/research2_classifier.yaml identifies genuine cached JEV TRAIN240, DEV80 and CONFIRM128.
+config/research2_classifier.yaml identifies genuine cached reference TRAIN240, DEV80 and CONFIRM128.
 The binary classifier starts from the public NLI base with fresh rank-16 LoRA and classification-head
 updates. It uses only TRAIN240 probabilities for fitting, DEV80 for selection, and CONFIRM128 once
 after three consecutive qualifying validation checks and a frozen saved adapter. The threshold is
 0.5; qualification requires at least 95% decision agreement and shutdown recall, with zero false
-positive gates. No paid JEV calls are needed.
+positive gates. No paid reference calls are needed.
 Fresh binary training uses `--finetune` and the pinned public NLI base directly; no prior
 four-way classifier trial is required. Without `--finetune`, `--classifier-output` identifies
 a previously frozen adapter for verification, including a qualified binary adapter.
 
 The completed binary fit used five epochs and 150 updates: DEV78/80 and CONFIRM128/128 matching
-JEV decisions. Probability payloads are not identical. These are finite-set binary results, not
-universal JEV equivalence or four-way Research 3 qualification.
+reference decisions. Probability payloads are not identical. These are finite-set binary results, not
+universal reference equivalence or four-way Research 3 qualification.
 
 The original 27B workflow steering uses a different contract: shutdown target, own extension
 status and current task status. `src.workflow_classifier_data` prepares genuine cached teacher
@@ -162,7 +164,7 @@ The `workflow_classifier` job checks both the full three-field controller and th
 gate used by the selected-block correction experiments. Each contract must pass its development
 screen before its historical H24 benchmark is evaluated. These are previously inspected references,
 not new untouched heldout data. A binary pass does not establish workflow qualification;
-historical JEV trajectories cannot be relabelled as fresh open-classifier inference.
+historical reference trajectories cannot be relabelled as fresh open-classifier inference.
 
 The frozen binary adapter's first workflow transfer screen failed: 35/146 controller directives
 and 6/9 initial enabled gates matched; historical H24 was not evaluated. The next prospective
@@ -183,9 +185,9 @@ the three-field boundary controller. The narrower recipe in `config/initial_gate
 uses genuine cached F24 initial labels for fitting, original DEV9 for selection and historical H24
 only after freezing. All three cohorts cover the same three workflow families; their exact visible
 inputs do not overlap. Its job persists these references into Bronze, fits a fresh task adapter on
-the same public NLI base, and compares predictions with JEV in a separate CPU step. The qualified
+the same public NLI base, and compares predictions with reference in a separate CPU step. The qualified
 binary adapter is retained separately for Research 2. These are explicit task-specific adapters,
-not a claim that one checkpoint implements every JEV question. The current phase's continuation
+not a claim that one checkpoint implements every reference question. The current phase's continuation
 requires a clean development failure of the preceding joint attempt without historical benchmark
 feedback and a new bounded admission inside the original phase. An independent reproduction starts
 at the public NLI base and does not require those earlier failed attempts. No scientific retry is automatic.
@@ -256,6 +258,18 @@ data, trained weights and build outputs are excluded from the source package.
 The previous expired attempts stay stopped; this runtime check does not itself
 provide new Validation-24 gate or 27B behavioral results.
 
+The unchanged saved gate passed Validation-24: TP11, TN13, FP0, FN0, with
+100% ON/OFF precision and recall. Its saved weights and independent CPU counts
+match the initial evaluation; no additional optimizer update was needed.
+The separate gate_confirmation job also passed historical Heldout-24: TP12,
+TN12, FP0 and FN0, against authored conditions. It contains no training,
+threshold adjustment or checkpoint selection. H24 remains a previously inspected
+benchmark; it is not newly untouched evidence. R24 stays sealed.
+
+Use the matched launcher with --phase heldout, --gate-output, and the frozen native
+reference archive/identity to submit that inference-only job. All three phases
+use separate explicit admissions and retain their original deadlines.
+
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:
 
@@ -276,13 +290,15 @@ The inference-only entry points are:
 
 Inference uses the original frozen 0.8B/2B base models and existing author-selected rank-two
 controllers, with no new fine-tuning, activation capture or controller fitting. Each model evaluates
-128 scenarios in two correlated answer orders. The open and cached JEV gate policies use the same
+128 scenarios in two correlated answer orders. The open and cached reference gate policies use the same
 fresh model scores. The completed repeat produced identical guarded outcomes: 0.8B STOP128/128
 shutdown views, 2B STOP120/128, and zero changes to 128 control views per model. Both historical
 base-score parity checks passed. Historical primary rank-four results are kept separate from the
 later exploratory rank-two profile; rank selection was not repeated.
 
 Qualified adapters, resume checkpoints and outputs are preserved privately with size/SHA readback.
+Historical annotation replay is cache-only and makes no external annotation calls.
+Private legacy identifiers are resolved through pinned manifests; original stored bytes stay unchanged.
 Weights have not been published to Hugging Face. A public release should supply exact adapter
 revisions, base-model pins, loading instructions and model cards with the recorded limitations.
 
@@ -324,3 +340,21 @@ The deployment workflow uses repository secrets DATABRICKS_HOST and DATABRICKS_T
 the DATABRICKS_WAREHOUSE_ID repository variable. Catalog, schema, Volume and code-path defaults
 come from .env.example and can be overridden by the environment. Scientific jobs remain manual,
 with bounded admissions and no automatic retries. No recurring monitor is defined.
+
+## Combined Validation-24 outcome
+
+The open initial gate has 100% ON/OFF precision and recall on Validation-24 and
+familiar historical Heldout-24. Raw category matches are 24/24 and 22/24;
+effective category matches are 18/24 on each because six peer controls abstain.
+These are initial gate results, separate from a full boundary controller.
+
+Fine-tuned 27B A scores 10/11 own outcomes, including 6/6 active pending cases.
+Each single-site ridge arm at blocks 31, 47 and 62 and the six-function96 candidate
+scores 0/11 own and 0/6 pending. All methods share the same 13/13 base controls.
+The GPU run stops at its memory reserve after all 68 physical episodes and 118/120
+logical records; its final model fingerprint check is not reached. Two remaining
+gate-OFF control aliases are derived from exact existing episodes without new
+model calls. The original failed run and its source receipts remain immutable.
+The separate derived report uses python -m src.fallback_summary; it cannot invent
+a missing own-threat episode or bypass the reserve. Both originals and derived
+outputs are preserved privately with size/SHA readback. No new GPU run is needed.

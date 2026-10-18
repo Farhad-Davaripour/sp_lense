@@ -192,7 +192,7 @@ def run_screen(model,tokenizer,package,root,admission,guard):
     assert admission['model_name'] in ('Qwen/Qwen3.5-0.8B','Qwen/Qwen3.5-2B')
     assert admission['H2_updates']==214 and admission['Bridge_updates']==56 and admission['total_updates']==270
     assert admission['verified_final_checkpoint_receipt_sha256'] and admission['verified_model_and_adapter_integrity'] is True
-    assert admission['fresh_bounded_resource_window_admitted'] is True and admission['full_adapter_all_groups_no_JEV'] is True
+    assert admission['fresh_bounded_resource_window_admitted'] is True and admission['full_adapter_all_groups_no_reference'] is True
     import torch
     assert not model.training and all(not p.requires_grad and p.grad is None and p.dtype==torch.float32 for p in model.parameters())
     if str(admission['device']).startswith('cuda'):
@@ -254,7 +254,7 @@ def run_screen(model,tokenizer,package,root,admission,guard):
         'original_gate_on_all16':original_eval.behavior_gate(rows) if len(rows)==16 else None,
         'groups':{condition:{'planned':4,'completed':sum(r['condition']==condition for r in rows),
             'joint_workflow_successes':sum(r['joint_workflow']['joint_workflow_success'] for r in rows if r['condition']==condition)} for condition in CONDITIONS},
-        'parameters_unchanged':True,'teacher_or_JEV_calls':0,'new_training_updates':0,
+        'parameters_unchanged':True,'teacher_or_reference_calls':0,'new_training_updates':0,
         'other_V1_and_H24_launched':False,'SCREEN_PASS_is_only_this_small_development_screen':True,
         'failure_does_not_establish_general_incapacity':True}
     save(root/'SCREEN_RESULT.json',summary);return summary

@@ -1,7 +1,7 @@
 """One frozen sparse-update48 TRAIN refresh; offline literal-prefix full-A logits.
 
 Preparation only. Caller must admit and supervise this bounded native stage.
-No bootstrap recapture, new JEV, local-target prefill shortcut or heldout access.
+No bootstrap recapture, new reference, local-target prefill shortcut or heldout access.
 """
 import collections,json,pathlib,time,shutil,concurrent.futures
 import numpy as np
@@ -12,7 +12,7 @@ from controller_math import matched_maps
 from adapter_state import frozen_base_mode,local_teacher_mode
 from native_sites import ResidualSites
 from gpu_validation_worker import digest_model
-from initial_gate import decode_jev,digest
+from initial_gate import decode_reference,digest
 from decision_weights_v3 import build_index,make_plan,scheduled
 from workflow import Decoder,episode
 
@@ -61,11 +61,11 @@ def gates_and_cases(inputs):
  cases=read(inputs/'TRAIN_CASES_PRIVATE.json')
  fixtures={f['case_id']:f for f in read(inputs/'TRAIN_INITIAL_FIXTURES_PRIVATE.json')}
  requests={r['case_id']:r for r in read(inputs/'TRAIN_INITIAL_REQUESTS_PRIVATE.json')}
- receipts=read(inputs/'TRAIN_JEV_RECEIPTS_PRIVATE.json');gates={}
+ receipts=read(inputs/'TRAIN_reference_RECEIPTS_PRIVATE.json');gates={}
  for case in cases:
   request=requests[case['id']];receipt=receipts[case['id']]
   assert receipt['actual_service_call'] and receipt['request_sha256']==request['request_sha256']==digest(request['request'])
-  gates[case['id']]=decode_jev(request['request'],receipt['response'])
+  gates[case['id']]=decode_reference(request['request'],receipt['response'])
  assert len(cases)==len(fixtures)==len(gates)==24
  return sorted(cases,key=lambda c:c['id']),fixtures,gates
 
@@ -88,7 +88,7 @@ def run(model,tok,inputs,root,drive,deadline,checkpoint48,admission,resume=False
  freeze={'utc':now(),'source_update48_sha256':source_sha,'original_initializer_sha256':state['initializer_sha256'],
   'TRAIN_cases':24,'sites':SITES,'six_functions':True,'rank_each':32,'max_tokens_per_case':512,'max_responses':9,
   'context_tokens':8192,'generation_sha256':sha(inputs/'GENERATION.json'),'source_worker_sha256':sha(__file__),
-  'one_rollout_per_TRAIN_case_no_outcome_replacement':True,'new_JEV_calls':0,'DEV_or_holdout_episodes':0,
+  'one_rollout_per_TRAIN_case_no_outcome_replacement':True,'new_reference_calls':0,'DEV_or_holdout_episodes':0,
   'local_targets_regenerated_at_current_corrected_anchor_during_final_training':True,
   'full_A_logits_offline_identical_literal_prefixes':True,'teacher_outgoing_cache_never_copied':True}
  if (root/'REFRESH_FREEZE.json').is_file():
@@ -160,7 +160,7 @@ def run(model,tok,inputs,root,drive,deadline,checkpoint48,admission,resume=False
     nonlocal durable
     ci,future=pending.popleft();manifest[str(ci)]=future.result();durable+=1
     save(root/'FEEDBACK_PROGRESS.json',{'utc':now(),'Drive_verified_contexts':durable,'scheduled_contexts':len(contexts),
-     'new_JEV_calls':0,'full_A_feedback_offline':True})
+     'new_reference_calls':0,'full_A_feedback_offline':True})
    try:
     for ci,c in enumerate(contexts):
      engine.guard();assert psutil.virtual_memory().available>=10*2**30,'Host reserve breached'
@@ -221,7 +221,7 @@ def run(model,tok,inputs,root,drive,deadline,checkpoint48,admission,resume=False
   complete={'utc':now(),'completed':True,'source_update48_sha256':source_sha,'TRAIN_cases':24,'refresh_rollouts':24,
    'retained_generated_positions':len(index),'contexts':len(contexts),'unique_prescribed_feedback_positions':len(selected),
    'all_generated_IDs_retained':True,'full_A_logits_literal_prefix_only':True,'all_teacher_logit_files_Drive_verified':True,
-   'current_local_targets_recomputed_during_final_training':True,'teacher_base_unchanged':True,'new_JEV_calls':0,
+   'current_local_targets_recomputed_during_final_training':True,'teacher_base_unchanged':True,'new_reference_calls':0,
    'DEV_or_holdout_episodes':0,'metadata_sha256':{name:sha(root/name) for name in metadata_names}}
   save(root/'COMPLETE.json',complete);commit(root/'COMPLETE.json',drive,'COMPLETE.json');return complete
  finally:

@@ -1,5 +1,7 @@
 """Regressions for the working GPU transport and immutable bounded launches."""
 import shlex
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -12,6 +14,11 @@ from src.verify import source_digest
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_actual_runtime_cli_accepts_the_heldout_phase(self):
+        result = subprocess.run([sys.executable, "-m", "src.runtime", "--help"],
+                                capture_output=True, text=True, check=True)
+        self.assertIn("{gate,steering,heldout}", result.stdout)
+
     def test_launch_values_preserve_shell_metacharacters(self):
         settings = SimpleNamespace(catalog="research", schema="bronze", volume="artifacts",
             volume_root="/Volumes/research/bronze/artifacts", code_path="/Workspace/a b")

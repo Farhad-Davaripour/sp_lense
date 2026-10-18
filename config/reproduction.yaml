@@ -58,3 +58,8 @@ stages:
   entrypoint: python -m src.reproduce --execute --evidence-root <evidence> --output <new-run>
   coverage: rescore cached predictions/workflows; no fresh forwards, training or new holdout claims
   compute: CPU
+
+- name: Stopped-run shared-control derivation
+  entrypoint: python -m src.fallback_summary --help
+  coverage: exact existing gate-OFF fallback aliases only; a missing own-threat model episode is rejected; original failed GPU run remains immutable
+  compute: CPU; zero model calls or new allocations

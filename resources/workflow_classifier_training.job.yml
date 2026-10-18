@@ -1,7 +1,7 @@
 resources:
   jobs:
     workflow_classifier_training:
-      name: Research 3 - Joint workflow classifier and JEV comparison
+      name: Research 3 - Joint workflow classifier and reference comparison
       max_concurrent_runs: 1
       timeout_seconds: 5400
       queue:
@@ -36,7 +36,7 @@ resources:
         max_retries: 0
         disable_auto_optimization: true
         timeout_seconds: 5100
-      - task_key: compare_with_cached_JEV
+      - task_key: compare_with_cached_reference
         depends_on:
         - task_key: fit_joint_classifier
         notebook_task:
