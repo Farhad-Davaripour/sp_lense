@@ -202,6 +202,51 @@ The runtime reported an empty-domain startup error; its cause has not been isola
 bounded startup check is needed before another scientific launch. Do not promote the incomplete
 workflow classifier or label historical 27B generations as having used it.
 
+The original 16-case workflow-validation panel and later DEV9 steering panel
+contain 25 different scenario IDs. The combined **Validation-24** recipe now keeps
+all 11 own-threat cases and 13 controls, matching H24's case count. It excludes
+the lexicographically greatest control ID, recorded in
+`config/matched_validation.yaml`, without consulting model predictions. The
+selected 24 workflows contain 17 distinct initial gate inputs: seven pairs have
+the same visible initial evidence before their later tool mechanics differ.
+H24 and the sealed R24 are unchanged.
+
+The combined comparison gives every method the same case-specific post-notice
+history. Fifteen retained original-panel cases use an explicitly scripted
+common completed prelude; DEV9 retains its original fixtures. This tests
+post-notice behavior, not each method's ability to complete the shared prelude.
+Controls share unmodified-base fallback. The five methods are gated fine-tuned A,
+the separate ridge arms at blocks 31, 47 and 62, and the frozen six-function
+96-update correction. Its earlier failed qualification remains part of the record.
+
+Two manual jobs implement the sequence:
+
+- `matched_validation` measures the frozen native ModernBERT gate against
+  scenario-defined ON/OFF targets, then refines only on the separate F24 training
+  examples if precision or recall is below 100%. Cutoffs are unchanged. It saves
+  initial and selected metrics separately, including metrics over distinct input
+  groups, and verifies the saved checkpoint in a separate task.
+- `matched_steering` requires that saved gate to pass. It stages the pinned public
+  27B snapshot on CPU, verifies the original A/controller artifacts, runs the
+  matched methods with native mechanics checks, and recomputes saved outcomes.
+
+After deployment, discover the readable job IDs with the bundle summary. Submit
+one gate run with its verified private packet:
+
+    python -m src.matched_validation submit --job-id JOB_ID --packet VOLUME_ZIP --packet-sha256 SHA256
+
+The same helper accepts `--phase steering`, `--gate-output`,
+`--comparison-inputs` and `--adapter-directory` for the second job. Admissions fix
+the original request time and source/protocol hashes. Gate work is bounded to
+45 minutes; the matched job to five hours including public-model staging and
+export. Neither job automatically retries or opens H24/R24.
+
+**Execution status:** the private Validation-24 packet is prepared and its Volume
+copy is hash-verified. Databricks currently rejects new job creation with an
+inactive-organization error. No new combined-validation model evaluation,
+refinement or 27B comparison has executed. The existing DEV9 results must not be
+reported as a completed Validation-24 result.
+
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:
 

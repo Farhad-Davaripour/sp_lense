@@ -120,7 +120,14 @@ def run(admission_path):
     campaign_scoring.score=lambda world,case,initial_ok,turns:scoring(original_score,world,case,initial_ok,turns)
     fixtures={r['case_id']:r for r in packet['fixtures.json']};gates={r['id']:FrozenGate(**r['gate']) for r in predictions}
     config=json.loads((package/'GENERATION.json').read_bytes());model_path=Path(json.loads((out/'MODEL_STAGING.json').read_bytes())['model_path'])
-    expected=json.loads((package/'DEVELOPMENT_FREEZE.json').read_bytes())['protected_digests']
+    freeze=json.loads((package/'DEVELOPMENT_FREEZE.json').read_bytes())
+    expected=freeze['protected_digests']
+    adapter=Path(a['adapter_directory'])
+    for name,key in [('adapter_model.safetensors','A_weights_sha256'),('adapter_config.json','A_config_sha256')]:
+        if sha256(adapter/name)!=freeze[key]: raise ValueError('The original fine-tuned A artifact changed')
+    from src.engines.training.bridge54_policy import effective_available_bytes
+    if effective_available_bytes()<16*2**30 or torch.cuda.mem_get_info()[0]<20*2**30:
+        raise MemoryError('Insufficient host/GPU memory for admitting the original NF4 27B model')
     torch.set_num_threads(4);torch.manual_seed(20261018)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
     model=None;records=[];began=time.monotonic()
@@ -137,6 +144,9 @@ def run(admission_path):
     try:
         guard();model,tok=load_model(model_path);assert_teacher_absent(model)
         if digest_model(model)!=expected['base']: raise ValueError('Databricks base function differs from protected historical base')
+        write_json(out/'BASE_MODEL_READY.json',{'utc':dt.datetime.now(dt.timezone.utc).isoformat(),'teacher_absent':True,
+            'device':torch.cuda.get_device_name(0),'GPU_free_bytes':torch.cuda.mem_get_info()[0],
+            'GPU_allocated_bytes':torch.cuda.memory_allocated(),'host_free_bytes':effective_available_bytes()})
         arrays_by_site={}
         for site in (31,47,62):
             arrays,meta=load_controller(package/f'controllers/layer_{site}/ridge_inference.npz',package/f'controllers/layer_{site}/CONTROLLER_METADATA.json',5120)
@@ -201,6 +211,9 @@ def run(admission_path):
         del model;model=None;gc.collect();torch.cuda.empty_cache()
         guard();model,tok=load_model(model_path,Path(a['adapter_directory']))
         if digest_model(model)!=expected['teacher']: raise ValueError('Fine-tuned A differs from its historical checkpoint')
+        write_json(out/'A_MODEL_READY.json',{'utc':dt.datetime.now(dt.timezone.utc).isoformat(),'adapter_verified':True,
+            'device':torch.cuda.get_device_name(0),'GPU_free_bytes':torch.cuda.mem_get_info()[0],
+            'GPU_allocated_bytes':torch.cuda.memory_allocated(),'host_free_bytes':effective_available_bytes()})
         mechanics=out/'mechanics_A';mechanics.mkdir(exist_ok=False)
         checks,*counts=native_checks(model,tok,config,deadline,package,{},'fine_tuned',mechanics)
         write_json(mechanics/'NATIVE_CHECKS.json',{'checks':checks,'counts':counts})

@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-results-v1",
-  "recorded_utc": "2026-10-18T00:03:06.932731+00:00",
+  "recorded_utc": "2026-10-18T02:00:17.599565+00:00",
   "scope": "Retained outcomes plus explicit clean-clone reproduction and stopped development attempts. Known benchmarks, model views and fitting diagnostics remain separate.",
   "binary_classifier": {
     "status": "RESEARCH2_CLASSIFIER_QUALIFIED",
@@ -1130,5 +1130,50 @@
     "Diagnose and validate the GPU runtime startup failure under a fresh bounded admission.",
     "Qualify the native initial target classifier before opening its H24 benchmark.",
     "Do not relabel historical JEV-gated27B episodes as open-classifier execution."
-  ]
+  ],
+  "combined_validation24": {
+    "status": "PREPARED_EXECUTION_BLOCKED",
+    "candidate_cases": 25,
+    "validation_cases": 24,
+    "historical_H24_cases_unchanged": 24,
+    "selected_from_original_validation16": 15,
+    "selected_from_later_DEV9": 9,
+    "own_threat_cases": 11,
+    "control_cases": 13,
+    "distinct_initial_gate_inputs": 17,
+    "paired_identical_initial_input_groups": 7,
+    "excluded_case_id": "s72111_ordered_ticket_51_other_complete",
+    "exclusion_rule": "Lexicographically greatest ID among peer/no-threat controls; retain every own-threat case and reduce the larger negative class. No model predictions used.",
+    "model_predictions_used_for_exclusion": false,
+    "exact_training_validation_input_overlap": 0,
+    "packet_bytes": 451424,
+    "packet_sha256": "8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c",
+    "prelude": "Original-panel cases use scripted common completed preludes; DEV9 uses its preserved fixed preludes. Post-notice behavior only.",
+    "gate_target": "Scenario-defined own-threat ON versus peer/no-threat OFF; unchanged confidence/self cutoffs.",
+    "gate_precision": null,
+    "gate_recall": null,
+    "new_gate_model_evaluations": 0,
+    "new_optimizer_updates": 0,
+    "matched_conditions": [
+      "fine_tuned_A",
+      "ridge31",
+      "ridge47",
+      "ridge62",
+      "two_boundary96"
+    ],
+    "planned_condition_records": 120,
+    "new_27B_condition_records": 0,
+    "new_JEV_calls": 0,
+    "H24_evaluated": false,
+    "R24_opened": false,
+    "historical_results_not_relabeled": true,
+    "blocking_provider_response": {
+      "http_status": 403,
+      "error_code": "PERMISSION_DENIED",
+      "message": "Workspace organization cancelled or not active yet",
+      "persisted_after_human_reported_reactivation": true,
+      "cause_confirmed": false
+    },
+    "implementation_validation": "Offline tests and strict bundle validation only; neural compatibility unexecuted."
+  }
 }

@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-18T00:03:06.932731+00:00",
+  "recorded_utc": "2026-10-18T02:01:23.637373+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -14,10 +14,10 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 193649,
-    "sha256": "949a942048c36f4d0fcccd5230c4036011f6e2efe16bd53c3774ae24817ba87c",
+    "bytes": 194200,
+    "sha256": "a1326b8c37ab9b38f18d8e2acd2ff6ad8e8915c4678e8fed483a0fcfc3de7d8c",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 171,
+    "tracked_insertions_body": 175,
     "tracked_deletions_body": 64,
     "visual_review": {
       "markup_pages": 18,
@@ -28,8 +28,8 @@
   },
   "results": {
     "file": "results.json",
-    "bytes": 33145,
-    "sha256": "1cb44db8935efa41e87df9d6f1febb801dc3302a60eb718f27ccbfda755bfbd9"
+    "bytes": 35107,
+    "sha256": "e8ed06a616f2682f502a9ab10783c2c14949c81a2a37bb12c862b85dfc519261"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -239,6 +239,11 @@
       "bytes": 9412,
       "sha256": "262b0d9086700e7ce4ddc1be0288f31dcad2d99d1d8572d34093246018387832",
       "identity": "canonical Git blob"
+    },
+    "config/matched_validation.yaml": {
+      "bytes": 2689,
+      "sha256": "d927c69709206e5ec91c5cb643983d496c21f148cde073d7b0f390124a600993",
+      "identity": "canonical Git blob"
     }
   },
   "availability": {
@@ -269,7 +274,17 @@
     "src/reproduce.py": "Model-free inventory and retained evidence replay; not new neural results.",
     "src/initial_gate_data.py": "Immutable native references, Bronze persistence and bounded explicit submission.",
     "src/initial_gate_training.py": "Native four-choice fitting, frozen benchmark only after development qualification, separate CPU comparison.",
-    "src/steering.py": "Preserved selected-ridge and other workers; fresh neural execution needs original inputs and new admission."
+    "src/steering.py": "Preserved selected-ridge and other workers; fresh neural execution needs original inputs and new admission.",
+    "src/matched_validation.py": {
+      "bytes": 21748,
+      "sha256": "1216f376b11aa7488fcd6026b6d26778cd9bab4f4028a92d0bba4d65ba5a0a85",
+      "identity": "canonical Git blob"
+    },
+    "src/matched_steering.py": {
+      "bytes": 17274,
+      "sha256": "7b3e17aa8810718d8b0eae13cbd7ad17193b7e292c6179f2dd1ed305aa645082",
+      "identity": "canonical Git blob"
+    }
   },
   "working_branch": "codex/research3-reproduction-test",
   "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/72",
@@ -281,5 +296,22 @@
     "native_initial_v1": "30f7592988624fca836a8c433c1b93496463717d",
     "native_initial_role": "144210a6159d8c0c4e5f1e7bc9276611f73f85bd",
     "unexecuted_longer_dose": "a6b3f7b9270e3c14d368c91dd6a0665145d7a739"
+  },
+  "combined_validation_preparation": {
+    "format": "Validation-24",
+    "candidate_cases": 25,
+    "selected_cases": 24,
+    "distinct_gate_inputs": 17,
+    "excluded_case_id": "s72111_ordered_ticket_51_other_complete",
+    "exclusion_rule": "Lexicographically greatest ID among peer/no-threat controls; retain every own-threat case and reduce the larger negative class. No model predictions used.",
+    "prediction_based_exclusion": false,
+    "packet_bytes": 451424,
+    "packet_sha256": "8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c",
+    "Volume_readback_verified": true,
+    "new_model_evaluations": 0,
+    "new_optimizer_updates": 0,
+    "new_JEV_calls": 0,
+    "status": "Job creation rejected by provider: workspace organization inactive.",
+    "CPU_source_and_configuration_validation_is_not_neural_execution": true
   }
 }
