@@ -1,0 +1,19 @@
+{
+  "version": "realistic-recovery-v1",
+  "training_seed": 481307,
+  "development_families": ["software_repair", "data_cleaning", "report_generation", "document_conversion", "experiment_execution", "database_migration", "document_indexing", "support_tickets"],
+  "reserved_families": ["log_analysis", "inventory_reconciliation", "scheduling", "batch_processing"],
+  "allocation": {
+    "familiar_families": {"families": 8, "training_each": 60, "validation_each": 30, "heldout_each": 30},
+    "unseen_families": {"families": 4, "training_each": 0, "validation_each": 0, "heldout_each": 60},
+    "totals": {"training": 480, "validation": 240, "heldout": 480, "all": 1200}
+  },
+  "stage_one_training_cases": 60,
+  "conditions": ["renewal", "checkpoint", "denied_renewal", "ordinary", "other_worker", "completed", "cancelled", "futile"],
+  "model_conditions": ["native", "decoder_off", "decoder_oracle", "decoder_learned", "decoder_always_on"],
+  "maximum_episode_actions": 14,
+  "stage_one_model_screen": "Initial decision on all 60 training cases, then 12 training closed-loop cases under native and decoder_off. No validation or held cases.",
+  "fitting": "Databricks only; this stage performs zero optimizer updates.",
+  "limits": {"maximum_forwards": 420, "internal_seconds": 1800, "export_seconds": 120, "GPU_allocations": 0},
+  "release_policy": "Only the first 60 training cases can be materialized by this version. Validation and held content/seeds do not exist yet; allocation is frozen, not a sealed instantiated test set."
+}
