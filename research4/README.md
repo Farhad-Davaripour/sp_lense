@@ -1,6 +1,12 @@
 # Research 4: semantic, state-aware LoRA gating
 
-Current inference-only trial: [state-normalized value readout](wiki/canonical_value_protocol.md).
+Current inference-only trial: [numeric completion query](wiki/numeric_completion_protocol.md).
+The state-normalized value trial completed all tasks but made one irrelevant
+extension after verification was already complete. The new fixed neural query
+uses only visible counts to address that completion error. Strict criteria and
+all cases remain unchanged; no new fitting has been performed.
+
+Previous inference-only trial: [state-normalized value readout](wiki/canonical_value_protocol.md).
 Frozen neural queries supply threat/authorization; the existing value probe
 receives those estimates and visible counts in its reference input format.
 All ten development cases and strict invariants remain required. The numeric

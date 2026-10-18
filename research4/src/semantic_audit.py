@@ -46,6 +46,9 @@ def audit(folder,checkpoint,original_checkpoint=None):
                     value=float(values.logsumexp(1).softmax(0)[0]);assert abs(value-query['yes_probability'])<1e-6
                     return value
                 assert meta['authorization']['text']==facts['instruction'];authorization=posterior(meta['authorization'])
+                if receipt.get('completion_readout')=='numeric_query':
+                    assert meta['unfinished']['text']==json.dumps({k:facts[k] for k in ['required','verified']},sort_keys=True)
+                    p=[p[0],posterior(meta['unfinished']),p[2]]
                 if authorization<.5:
                     assert meta['branch']=='authorization_denied';p=[p[0],p[1],0.]
                 elif p[1]<.5:

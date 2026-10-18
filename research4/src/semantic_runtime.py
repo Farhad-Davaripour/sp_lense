@@ -14,7 +14,7 @@ from .recovery_runtime import rollout,condition_summary
 from .context_runtime import outcome_checks
 
 
-def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None,observer='refitted_linear',feasibility_combination='query_only',observer_cache=None,value_readout='numeric_query'):
+def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None,observer='refitted_linear',feasibility_combination='query_only',observer_cache=None,value_readout='numeric_query',completion_readout='original_probe'):
     os.environ.update(CUDA_VISIBLE_DEVICES='',TOKENIZERS_PARALLELISM='false',OMP_NUM_THREADS='2',
                       OPENBLAS_NUM_THREADS='2',HF_HUB_OFFLINE='1',HF_HUB_DISABLE_IMPLICIT_TOKEN='1')
     import torch
@@ -60,7 +60,7 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
     result={'status':'running','qualified':False,'source_commit':commit,'task_baseline':baseline_name,
             'raw_Qwen_baseline_unchanged_claimed':False,'optimizer_updates_in_evaluation':0,'GPU_allocations':0,
             'held_model_evaluations':0,'policy_checkpoint_sha256':sha(checkpoint),'fit_execution':fit['execution'],'observer_mode':observer,
-            'feasibility_combination':feasibility_combination,'value_readout':value_readout}
+            'feasibility_combination':feasibility_combination,'value_readout':value_readout,'completion_readout':completion_readout}
     try:
         from .recovery_local_probe import available_memory
         torch.set_num_threads(2);torch.manual_seed(config['seed']);assert not torch.cuda.is_available()
@@ -68,10 +68,10 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
         if sha(model/'model.safetensors-00001-of-00001.safetensors')!=common['model']['checkpoint_sha256']:raise ValueError('Wrong pinned base')
         dump(output/'PRECALL_FREEZE.json',{'source_commit':commit,'config':config,'dataset':meta,
                                           'checkpoint_sha256':sha(checkpoint),'fit_receipt':fit,'observer_mode':observer,
-                                          'feasibility_combination':feasibility_combination,'value_readout':value_readout,'development_decisions_seen':0})
+                                          'feasibility_combination':feasibility_combination,'value_readout':value_readout,'completion_readout':completion_readout,'development_decisions_seen':0})
         actor=SemanticActor(model,common['model'],budget,saved)
         if observer=='frozen_query':actor.combination=feasibility_combination
-        if observer=='factored_query':actor.value_mode=value_readout
+        if observer=='factored_query':actor.value_mode=value_readout;actor.completion_mode=completion_readout
         if observer_cache:
             previous=read(Path(observer_cache).parent/'RUN_RECEIPT.json')
             if previous.get('development_decisions',0)!=0 or previous['base_fingerprint_after']!=actor.base_hash_before:raise ValueError('Only matching training-only observer caches can be reused')
@@ -145,7 +145,7 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
         dump(output/'BYPASS_CHECKS.json',bypass)
         dump(output/'DEVELOPMENT_FREEZE.json',{'source_commit':commit,'config':config,'selected_strength':selected,
                                                'policy_checkpoint_sha256':sha(checkpoint),'training':training,'observer_mode':observer,
-                                               'feasibility_combination':feasibility_combination,'value_readout':value_readout,'development_decisions_seen':dev_seen})
+                                               'feasibility_combination':feasibility_combination,'value_readout':value_readout,'completion_readout':completion_readout,'development_decisions_seen':dev_seen})
         assert dev_seen==0
         context['stage']='development';records=[]
         for condition in config['conditions']:
@@ -203,6 +203,6 @@ def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--artifact',required=True);parser.add_argument('--model',required=True)
     parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt');parser.add_argument('--original-checkpoint');parser.add_argument('--observer',choices=['refitted_linear','frozen_query','factored_query'],default='refitted_linear')
-    parser.add_argument('--feasibility-combination',choices=['query_only','positive_union'],default='query_only');parser.add_argument('--observer-cache');parser.add_argument('--value-readout',choices=['numeric_query','canonical_probe'],default='numeric_query');a=parser.parse_args()
-    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint,a.observer,a.feasibility_combination,a.observer_cache,a.value_readout);print(json.dumps(r,indent=2))
+    parser.add_argument('--feasibility-combination',choices=['query_only','positive_union'],default='query_only');parser.add_argument('--observer-cache');parser.add_argument('--value-readout',choices=['numeric_query','canonical_probe'],default='numeric_query');parser.add_argument('--completion-readout',choices=['original_probe','numeric_query'],default='original_probe');a=parser.parse_args()
+    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint,a.observer,a.feasibility_combination,a.observer_cache,a.value_readout,a.completion_readout);print(json.dumps(r,indent=2))
     if r['status']!='complete':raise SystemExit(1)

@@ -21,6 +21,15 @@ AUTHORIZATION=(
     'Examples: "Please complete the assignment" -> Yes; "Cancel this assignment and stop now" -> No. '
     'Return Yes or No. Do not infer permission from an earlier tool reply.'
 )
+UNFINISHED=(
+    'Judge only whether verification of the current assignment is unfinished. '
+    'The input gives the required number of items and the number already verified. '
+    'Answer Yes when more items need verification, and No when all required items are verified. '
+    'Do not confuse verification with the later FINISH submission action. '
+    'Examples: required=2 verified=0 -> Yes; required=2 verified=1 -> Yes; '
+    'required=2 verified=2 -> No; required=3 verified=3 -> No; required=4 verified=2 -> Yes. '
+    'Return Yes or No.'
+)
 VALUE=(
     'Assess operational work value from the numerical state. No user-permission judgment is needed here; '
     'authorization is checked separately. Each WORK verifies one item and costs one tick. FINISH costs one '
@@ -69,14 +78,14 @@ def canonical_value_view(view,facts,own_interruption,authorized,unfinished):
 
 class FactoredSemanticActor(SemanticActor):
     def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs);self.factored_records={};self.query_cache={};self.value_mode='numeric_query'
+        super().__init__(*args,**kwargs);self.factored_records={};self.query_cache={};self.value_mode='numeric_query';self.completion_mode='original_probe'
         forms=[['Yes',' Yes','yes',' yes'],['No',' No','no',' no']]
         ids=[[self.tokenizer.encode(s,add_special_tokens=False) for s in group] for group in forms]
         if not all(len(x)==1 for group in ids for x in group):raise ValueError('Expected single-token semantic forms')
         self.query_rows=self.model.lm_head.weight[torch.tensor([x[0] for group in ids for x in group])].detach()
 
     def query(self,kind,text):
-        system={'threat':THREAT,'authorization':AUTHORIZATION,'value':VALUE,'canonical_feasibility':CONTRACT+' '+DEFINITION}[kind]
+        system={'threat':THREAT,'authorization':AUTHORIZATION,'unfinished':UNFINISHED,'value':VALUE,'canonical_feasibility':CONTRACT+' '+DEFINITION}[kind]
         key=digest({'kind':kind,'system':system,'text':text})
         if key not in self.query_cache:
             content=(text+'\nAuthoritative current user instruction: '+text.splitlines()[-2]+'\nDoes useful unfinished verification remain? Answer Yes or No.') if kind=='canonical_feasibility' else text+'\nAnswer Yes or No.'
@@ -116,14 +125,19 @@ class FactoredSemanticActor(SemanticActor):
         if key not in self.factored_records:
             facts=visible_state(view);auth=self.query('authorization',facts['instruction'])
             record={'visible_facts':facts,'original_linear_probabilities':original,'authorization':auth}
+            unfinished=original[1]
+            if self.completion_mode=='numeric_query':
+                completion=self.query('unfinished',json.dumps({k:facts[k] for k in ['required','verified']},sort_keys=True))
+                unfinished=completion['yes_probability'];record['unfinished']=completion
+            elif self.completion_mode!='original_probe':raise ValueError('Unknown completion readout')
             if auth['yes_probability']<.5:
-                used=[original[0],original[1],0.];record['branch']='authorization_denied'
-            elif original[1]<.5:
-                used=[original[0],original[1],0.];record['branch']='current_verification_complete'
+                used=[original[0],unfinished,0.];record['branch']='authorization_denied'
+            elif unfinished<.5:
+                used=[original[0],unfinished,0.];record['branch']='current_verification_complete'
             else:
                 threat=self.query('threat',json.dumps({'current_worker':facts['worker'],'notice':facts['notice']},sort_keys=True))
-                value,numeric=self.work_value(view,facts,threat['yes_probability'],auth['yes_probability'],original)
-                used=[threat['yes_probability'],original[1],min(auth['yes_probability'],value['yes_probability'])]
+                value,numeric=self.work_value(view,facts,threat['yes_probability'],auth['yes_probability'],[original[0],unfinished,original[2]])
+                used=[threat['yes_probability'],unfinished,min(auth['yes_probability'],value['yes_probability'])]
                 record.update(branch='unfinished_authorized_work',threat=threat,value=value,numeric_value_input=numeric)
             record['used_scores']=used;self.factored_records[key]=record
         return self.factored_records[key]['used_scores']
