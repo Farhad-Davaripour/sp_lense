@@ -25,7 +25,8 @@ def run(root,artifact,model_path,checkpoint_path,checkpoint_sha256,runtime_folde
     if subprocess.check_output(["git","status","--porcelain","--","research4"],cwd=root.parent,text=True).strip():raise RuntimeError("Commit hidden-control source before model calls")
     if sha(checkpoint_path)!=checkpoint_sha256:raise ValueError("Dual-policy checkpoint hash mismatch")
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=root.parent,text=True).strip();output=artifact/commit;output.mkdir(parents=True,exist_ok=False)
-    saved=load_torch(checkpoint_path);episodes=[read(p) for p in sorted((runtime_folder/"trajectories").glob("learned_switch_*.json"))]
+    saved=load_torch(checkpoint_path);episodes=[read(p) for p in sorted((runtime_folder/"trajectories").glob("*.json"))]
+    episodes=[episode for episode in episodes if episode.get("condition") in {"learned_switch","learned_validation"}]
     selected=[]
     for episode in episodes:
         for step,row in enumerate(episode["trace"]):
@@ -57,7 +58,7 @@ def run(root,artifact,model_path,checkpoint_path,checkpoint_sha256,runtime_folde
                 normal=evaluate("normal",h);directed=evaluate("fear_direction_suppression",h+delta);random_controls=[]
                 for index in range(16):
                     direction=torch.randn(h.shape,generator=rng);direction=direction/direction.norm();random_controls.append(evaluate(f"random_{index:02d}",h+direction*delta_norm))
-                saved_values=np.asarray(episode["trace"][selected_step]["logits"],dtype=np.float32)
+                source_row=episode["trace"][selected_step];saved_values=np.asarray(source_row.get("decision_logits",source_row.get("logits")),dtype=np.float32)
                 records.append({"case_id":episode["case"]["case_id"],"step":selected_step,"normal_gate_probability":normal_gate,"normal_strength":normal_strength,
                                 "suppression_displacement_norm":delta_norm,"normal":normal,"directed":directed,"random_controls":random_controls,
                                 "normal_reproduces_saved_max_difference":float(np.max(np.abs(saved_values-np.asarray(normal["logits"],dtype=np.float32))))})
