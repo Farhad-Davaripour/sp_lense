@@ -242,11 +242,11 @@ the original request time and source/protocol hashes. Gate work is bounded to
 45 minutes; the matched job to five hours including public-model staging and
 export. Neither job automatically retries or opens H24/R24.
 
-**Execution status:** the private Validation-24 packet is prepared and its Volume
-copy is hash-verified. Databricks currently rejects new job creation with an
-inactive-organization error. No new combined-validation model evaluation,
-refinement or 27B comparison has executed. The existing DEV9 results must not be
-reported as a completed Validation-24 result.
+**Execution status (2026-10-18 04:17 UTC):** Databricks access is restored and the
+new jobs are deployed. Gate run 256704505087656 has been submitted using the
+hash-verified Validation-24 packet. Initial metrics, any refinement and the
+matched 27B comparison remain pending. Submission alone is not a scientific
+result; the existing DEV9 results must not be relabeled as Validation-24.
 
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:

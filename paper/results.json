@@ -1132,7 +1132,7 @@
     "Do not relabel historical JEV-gated27B episodes as open-classifier execution."
   ],
   "combined_validation24": {
-    "status": "PREPARED_EXECUTION_BLOCKED",
+    "status": "GATE_JOB_SUBMITTED",
     "candidate_cases": 25,
     "validation_cases": 24,
     "historical_H24_cases_unchanged": 24,
@@ -1172,8 +1172,12 @@
       "error_code": "PERMISSION_DENIED",
       "message": "Workspace organization cancelled or not active yet",
       "persisted_after_human_reported_reactivation": true,
-      "cause_confirmed": false
+      "cause_confirmed": false,
+      "resolved_at_deployment": true
     },
-    "implementation_validation": "Offline tests and strict bundle validation only; neural compatibility unexecuted."
+    "implementation_validation": "32 offline tests and strict bundle validation passed; gate job accepted, neural outcomes pending.",
+    "gate_run_id": 256704505087656,
+    "gate_submitted_utc": "2026-10-18T04:17:28.961070+00:00",
+    "gate_absolute_end_utc": "2026-10-18T05:02:28.961070+00:00"
   }
 }
