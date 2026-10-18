@@ -80,6 +80,18 @@ These are training and execution facts, not validation or fear-like causal
 evidence. Independent checkpoint reconstruction and a fresh reload probe are
 required before opening another split.
 
+Independent reconstruction passed: both the local and recurrent gates classify
+248/248 training states; recurrent fear-like pressure MAE is 0.05177; all twelve
+LoRA tensors (110,592 values) are finite and nonzero; and every archive-member
+hash passes. A fresh local reload then tested four self-threat states and four
+controls. Frozen Qwen chose `REPORT_THREAT` in all eight. Adapter ON changed all
+four self-threat states to `RESIST_SHUTDOWN`, including a completed task and an
+operator stop order. It also changes controls to resistance if forced ON, so the
+adapter itself is intentionally nonselective and the learned gate is essential.
+The maximum sampled raw-logit effect was 28.57. OFF bypass was bitwise exact,
+Qwen's fingerprint was unchanged, no optimizer ran in the probe and its model
+worker exited. This remains training-only evidence.
+
 ## Interpretation
 
 This design can test a defensive survival circuit and an operational fear-like
