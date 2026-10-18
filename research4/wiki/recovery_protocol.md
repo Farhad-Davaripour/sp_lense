@@ -83,3 +83,15 @@ execution and has no Databricks run ID. Local Torch 2.13 differs from the pinned
 Databricks 2.11 environment and must be recorded. The diagnostic cannot authorize
 the cloud qualification command or establish adapter qualification. All actual
 fitting remains on Databricks until the user explicitly changes that constraint.
+
+## One posthoc training-only scope control
+
+After all three predefined interfaces fail the training routine screen, use a
+separately frozen paired diagnostic to test a specific failure hypothesis.
+For the first training ordinary, futile and completed states, remove only the
+literal earlier-assignment sentence. Keep the current task facts, instructions
+and readout fixed. Compare original letters and command words. Include the
+cancelled STOP state, whose view has no such prefix, as an unchanged-input
+control. Reuse original scores and make at most six fresh frozen CPU forwards.
+This is exploratory, selected after inspecting training errors, and does not
+replace the original qualification result or justify relaxing its criteria.

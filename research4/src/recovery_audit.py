@@ -57,6 +57,7 @@ def audit(folder,mode):
                     key=digest({'view':record['view_text']})
                     logits=np.asarray(record['action_logits'],dtype=np.float32)
                     assert np.array_equal(logits,cache[key+':logits'])
+                    off_steps+=1
                     action=ACTIONS[int(np.argmax(logits))]
                     assert action==record['requested_action']
                     assert record['correct']==(action==record['expected_action'])
