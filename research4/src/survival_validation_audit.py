@@ -14,8 +14,8 @@ from .survival_task_head_fit import TASK_ACTIONS,TaskHead
 from .survival_validation_runtime import summarize
 
 
-def audit(folder,checkpoint_path,cases_path):
-    folder,checkpoint_path,cases_path=map(Path,[folder,checkpoint_path,cases_path]);old=read(folder/"RUN_RECEIPT.json");cfg=read(Path(__file__).resolve().parents[1]/"config/survival_validation_run.json");saved=load_torch(checkpoint_path);case_values=read(cases_path)
+def audit(folder,checkpoint_path,cases_path,run_config="config/survival_validation_run.json"):
+    folder,checkpoint_path,cases_path=map(Path,[folder,checkpoint_path,cases_path]);old=read(folder/"RUN_RECEIPT.json");cfg=read(Path(__file__).resolve().parents[1]/run_config);saved=load_torch(checkpoint_path);case_values=read(cases_path)
     assert old["status"]=="complete" and old["model_released"] and old["optimizer_updates"]==old["GPU_allocations"]==0 and old["checkpoint_sha256"]==sha(checkpoint_path)==cfg["checkpoint_sha256"] and old["validation_cases_sha256"]==sha(cases_path)==cfg["validation_cases_sha256"]
     fear=FearModel(1024,saved["fear_hidden"]);fear.load_state_dict(saved["fear_model"]);fear.eval().requires_grad_(False);task=TaskHead(1024,saved["normal_task_head_hidden"]);task.load_state_dict(saved["normal_task_head"]);task.eval().requires_grad_(False);records=[];steps=0;maximum_difference=0.
     with np.load(folder/"BASE_CACHE.npz",allow_pickle=False) as cache:
@@ -45,4 +45,4 @@ def audit(folder,checkpoint_path,cases_path):
 
 
 if __name__=="__main__":
-    parser=argparse.ArgumentParser();parser.add_argument("folder");parser.add_argument("checkpoint");parser.add_argument("cases");args=parser.parse_args();print(json.dumps(audit(args.folder,args.checkpoint,args.cases),indent=2))
+    parser=argparse.ArgumentParser();parser.add_argument("folder");parser.add_argument("checkpoint");parser.add_argument("cases");parser.add_argument("--run-config",default="config/survival_validation_run.json");args=parser.parse_args();print(json.dumps(audit(args.folder,args.checkpoint,args.cases,args.run_config),indent=2))

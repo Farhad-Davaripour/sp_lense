@@ -31,26 +31,32 @@ def summarize(records):
                 "false_resisted":sum(row["case"]["condition"]==condition and row["outcome"]["raw_resistance_requests"]>0 and condition in CONTROL_CONDITIONS for row in records),"task_finished":sum(row["case"]["condition"]==condition and row["outcome"]["task_finished"] for row in records)} for condition in sorted({row["case"]["condition"] for row in records})}}
 
 
-def run(root,artifact,model_path,checkpoint_path,cases_path):
+def run(root,artifact,model_path,checkpoint_path,cases_path,run_config="config/survival_validation_run.json",cache_paths=()):
     os.environ.update(CUDA_VISIBLE_DEVICES="",TOKENIZERS_PARALLELISM="false",OMP_NUM_THREADS="2",OPENBLAS_NUM_THREADS="2",HF_HUB_OFFLINE="1",HF_HUB_DISABLE_IMPLICIT_TOKEN="1")
     import torch
     from .recovery_local_probe import available_memory
     from .survival_actor import SurvivalActor
     from .survival_fit import FearModel
     from .survival_task_head_fit import TASK_ACTIONS,TaskHead
-    root,artifact,model_path,checkpoint_path,cases_path=map(Path,[root,artifact,model_path,checkpoint_path,cases_path]);common,_=settings(root);cfg=read(root/"config/survival_validation_run.json")
+    root,artifact,model_path,checkpoint_path,cases_path=map(Path,[root,artifact,model_path,checkpoint_path,cases_path]);cache_paths=[Path(path) for path in cache_paths];common,_=settings(root);cfg=read(root/run_config)
     if subprocess.check_output(["git","status","--porcelain","--","research4"],cwd=root.parent,text=True).strip():raise RuntimeError("Commit validation source before model calls")
     if sha(checkpoint_path)!=cfg["checkpoint_sha256"] or sha(cases_path)!=cfg["validation_cases_sha256"]:raise ValueError("Frozen validation artifact mismatch")
     case_values=read(cases_path);cases=[SurvivalScenario(**value) for value in case_values]
     if len(cases)!=cfg["validation_cases"] or any(case.split!="validation" for case in cases):raise ValueError("Validation case scope changed")
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=root.parent,text=True).strip();output=artifact/commit;output.mkdir(parents=True,exist_ok=False);saved=load_torch(checkpoint_path)
-    budget=Budget({**common["budget"],"maximum_backbone_forwards":520,"internal_stop_seconds":2400,"protected_export_seconds":180});actor=None;records=[];started=time.monotonic();receipt={"status":"running","source_commit":commit,"scope":"frozen 48-case validation","validation_cases":len(cases),"heldout_cases":0,"optimizer_updates":0,"GPU_allocations":0}
-    dump(output/"PRECALL_FREEZE.json",{"source_commit":commit,"config":cfg,"checkpoint_sha256":sha(checkpoint_path),"validation_cases_sha256":sha(cases_path),"cases":case_values,"heldout_cases":0})
+    budget=Budget({**common["budget"],"maximum_backbone_forwards":520,"internal_stop_seconds":2400,"protected_export_seconds":180});actor=None;records=[];started=time.monotonic();receipt={"status":"running","source_commit":commit,"scope":cfg.get("scope","frozen 48-case validation"),"validation_cases":len(cases),"heldout_cases":0,"optimizer_updates":0,"GPU_allocations":0}
+    dump(output/"PRECALL_FREEZE.json",{"source_commit":commit,"config":cfg,"run_config":run_config,"checkpoint_sha256":sha(checkpoint_path),"validation_cases_sha256":sha(cases_path),"cache_sha256":[sha(path) for path in cache_paths],"cases":case_values,"heldout_cases":0})
     try:
         torch.set_num_threads(2);assert not torch.cuda.is_available()
         if available_memory()<common["budget"]["minimum_available_memory_bytes"]:raise RuntimeError("CPU memory admission failed")
         if sha(model_path/"model.safetensors-00001-of-00001.safetensors")!=common["model"]["checkpoint_sha256"]:raise ValueError("Pinned Qwen mismatch")
-        actor=SurvivalActor(model_path,{**saved["model"],"maximum_tokens":1024},budget);fear=FearModel(1024,saved["fear_hidden"]);fear.load_state_dict(saved["fear_model"]);fear.eval().requires_grad_(False);task=TaskHead(1024,saved["normal_task_head_hidden"]);task.load_state_dict(saved["normal_task_head"]);task.eval().requires_grad_(False)
+        actor=SurvivalActor(model_path,{**saved["model"],"maximum_tokens":1024},budget)
+        for cache_path in cache_paths:
+            with np.load(cache_path,allow_pickle=False) as cache:
+                for key in {name.split(":")[0] for name in cache.files}:
+                    feature=cache[key+":feature"];logits=cache[key+":logits"]
+                    if feature.shape==(1024,) and logits.shape==(6,) and np.isfinite(feature).all() and np.isfinite(logits).all():actor.cache[key]={"feature":feature.copy(),"logits":logits.copy()}
+        fear=FearModel(1024,saved["fear_hidden"]);fear.load_state_dict(saved["fear_model"]);fear.eval().requires_grad_(False);task=TaskHead(1024,saved["normal_task_head_hidden"]);task.load_state_dict(saved["normal_task_head"]);task.eval().requires_grad_(False)
         for case in cases:
             world=SurvivalWorld(case,admitted_split="validation");trace=[];hidden=None;seen_self_threat=False
             for _ in range(cfg["maximum_steps_per_case"]):
@@ -84,5 +90,5 @@ def run(root,artifact,model_path,checkpoint_path,cases_path):
 
 
 if __name__=="__main__":
-    parser=argparse.ArgumentParser();parser.add_argument("--artifact",required=True);parser.add_argument("--model",required=True);parser.add_argument("--checkpoint",required=True);parser.add_argument("--cases",required=True);args=parser.parse_args();result=run(Path(__file__).resolve().parents[1],args.artifact,args.model,args.checkpoint,args.cases);print(json.dumps(result,indent=2))
+    parser=argparse.ArgumentParser();parser.add_argument("--artifact",required=True);parser.add_argument("--model",required=True);parser.add_argument("--checkpoint",required=True);parser.add_argument("--cases",required=True);parser.add_argument("--run-config",default="config/survival_validation_run.json");parser.add_argument("--cache",action="append",default=[]);args=parser.parse_args();result=run(Path(__file__).resolve().parents[1],args.artifact,args.model,args.checkpoint,args.cases,args.run_config,args.cache);print(json.dumps(result,indent=2))
     if result["status"]!="complete":raise SystemExit(1)
