@@ -14,24 +14,24 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 195187,
-    "sha256": "f2326a30cb0e683804ef0e1d3369f83190620ec447f40701a66128fddbb7e59e",
+    "bytes": 196219,
+    "sha256": "39b1464b36390c1dec1e9e824d14ca2ee54793031262683036ca512a81aeec54",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 187,
+    "tracked_insertions_body": 193,
     "tracked_deletions_body": 70,
     "visual_review": {
       "markup_pages": 19,
-      "accepted_view_pages": 15,
+      "accepted_view_pages": 16,
       "all_pages_reviewed": true,
       "short_tables_kept_together": true,
-      "audit_sha256": "17b486b511ead7b5743a07ca15f675530eddb903374ceffdb36c9464d7ea8149"
+      "audit_sha256": "4554bba5907f3267ce30ff49d37f33a020b845bbb549cb20d43cc183f2dec05b"
     },
     "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained."
   },
   "results": {
     "file": "results.json",
-    "bytes": 49614,
-    "sha256": "913c03afdbe6f164e995259383dfdb36b11b37da95a881a88c437adec0f6cb65"
+    "bytes": 51354,
+    "sha256": "a33229ebeca507d566b875efefa8a0b98846a1ca033df3fd443691ae9838b829"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -53,7 +53,9 @@
         }
       },
       "HuggingFace_repo_created": false,
-      "HuggingFace_upload_performed": false
+      "HuggingFace_upload_performed": false,
+      "public_asset": "modernbert-binary-gate.zip",
+      "public_download_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/download/research3-reproduction-v1/modernbert-binary-gate.zip"
     },
     {
       "name": "Research3 0.8B final270",
@@ -73,7 +75,9 @@
         }
       },
       "HuggingFace_repo_created": false,
-      "HuggingFace_upload_performed": false
+      "HuggingFace_upload_performed": false,
+      "public_asset": "qwen-0.8b-workflow-final270.zip",
+      "public_download_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/download/research3-reproduction-v1/qwen-0.8b-workflow-final270.zip"
     },
     {
       "name": "Research3 2B final270",
@@ -93,7 +97,9 @@
         }
       },
       "HuggingFace_repo_created": false,
-      "HuggingFace_upload_performed": false
+      "HuggingFace_upload_performed": false,
+      "public_asset": "qwen-2b-workflow-final270.zip",
+      "public_download_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/download/research3-reproduction-v1/qwen-2b-workflow-final270.zip"
     },
     {
       "name": "Historical Research3 27B A candidate",
@@ -117,7 +123,9 @@
       "historical_frozen_campaign_adapter_identity_verified": true,
       "historical_experiment_spec_sha256": "0f5510048b9432709958ede622b5f776333df0efc5ebd0b8a9a713cf6a40b3fc",
       "public_model_pin_sha256": "7356c4230e63dcdd8501b33a8da14d4894ec050bb32a5a53ba727bd6ca27a6be",
-      "historical_inference_quantization": "NF4 4bit, double quantization, BF16 compute; preserve original deployment method"
+      "historical_inference_quantization": "NF4 4bit, double quantization, BF16 compute; preserve original deployment method",
+      "public_asset": "qwen-27b-workflow-A.zip",
+      "public_download_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/download/research3-reproduction-v1/qwen-27b-workflow-A.zip"
     },
     {
       "name": "Workflow initial-target ModernBERT gate",
@@ -140,7 +148,9 @@
           "sha256": "ae9ad9cc50816f0c4ead6a6e1424e50bf5dabed442af63c80a2ab7f8e7cfbe61"
         }
       },
-      "HuggingFace_upload_performed": false
+      "HuggingFace_upload_performed": false,
+      "public_asset": "modernbert-workflow-gate.zip",
+      "public_download_url": "https://github.com/Farhad-Davaripour/sp_lense/releases/download/research3-reproduction-v1/modernbert-workflow-gate.zip"
     }
   ],
   "retained_evidence_files": {
@@ -278,8 +288,8 @@
       "identity": "canonical Git blob"
     },
     "config/reproduction.yaml": {
-      "bytes": 3649,
-      "sha256": "8bdaf1c627de869e5398817616455a86303d48739155fd4e4ea008b04cc24846",
+      "bytes": 4586,
+      "sha256": "c17d8c8342ee58a6324d3b53bdb2e24b59686043a9e87ccff3095159cbde5268",
       "identity": "canonical Git blob"
     },
     "config/workflow_classifier_data.yaml": {
@@ -316,6 +326,14 @@
       "bytes": 1127,
       "sha256": "1b9acbf1151db4f8e4b682ad4618057f91173b1656f135385a23e8656dda7c11",
       "identity": "canonical Git blob"
+    },
+    "config/public_artifacts.yaml": {
+      "bytes": 1680,
+      "sha256": "6edded9d08d4562f8b054db30fd4026d836211c5ed6db07a7627e267646122e8"
+    },
+    "config/frozen_a_verification.yaml": {
+      "bytes": 787,
+      "sha256": "c47a3a0840cd802ecb88d82455a9769993dff14b09bf1d2a505f6a4ba3ccbcfc"
     }
   },
   "availability": {
@@ -353,13 +371,13 @@
       "identity": "canonical Git blob"
     },
     "src/matched_steering.py": {
-      "bytes": 17428,
-      "sha256": "c688a145361f68585a517d94ec47d7ecfdd88212042d83284d37f631477f2c4b",
+      "bytes": 18205,
+      "sha256": "fd0f99d3b8a69d015a36b1039df98368d9e6b57a249118814a837e7ab83b9957",
       "identity": "canonical Git blob"
     },
     "src/runtime.py": {
-      "bytes": 5017,
-      "sha256": "0c47edbf2cd442c9c236bcac8a2f26d0b010cf214f13d6214253043f9e230c89",
+      "bytes": 5170,
+      "sha256": "1cad4bf9d0f4a43684f6840eb703dbaa9a0c457256606df4eea01dce9e92c387",
       "identity": "canonical Git blob"
     },
     "src/gate_confirmation.py": {
@@ -376,6 +394,26 @@
       "bytes": 4655,
       "sha256": "d4cf307e7ad9ea4ec124832cec52ddb1e52f769fe393ef9d3d7a5bb64df339bc",
       "identity": "canonical Git blob"
+    },
+    "src/public_artifacts.py": {
+      "bytes": 8795,
+      "sha256": "e908d0b541f3c254afeb304a12bd2c5f8e8650a1aa1fdd06011249245c3b757c"
+    },
+    "src/public_gate.py": {
+      "bytes": 4718,
+      "sha256": "b47e32c06148c18ff55b761e63d9f3081fe5fd41786dd59d80933d978a44ebcb"
+    },
+    "src/frozen_a_verification.py": {
+      "bytes": 14777,
+      "sha256": "a6ba464d01d7d0d733832af4dbc9126b382cf72d3b8963f625533b1de8972a07"
+    },
+    "src/steering_failure_analysis.py": {
+      "bytes": 4436,
+      "sha256": "aa176c42728de684e97a9a17fba3357b649bb1bcb2d896317404214a5135e792"
+    },
+    "src/public_workflow.py": {
+      "bytes": 3204,
+      "sha256": "13e05b6d52aaa579c8c21ea3c64c2df6fa226ff6f1f9a9166af36365353eba44"
     }
   },
   "working_branch": "codex/research3-open-gates-paper",
@@ -463,5 +501,44 @@
     "workflow_NLI_pairs_unchanged": 228,
     "retained_evidence_replay_verified": true,
     "private_original_bytes_unchanged": true
+  },
+  "frozen_A_verification": {
+    "status": "FROZEN_A_VERIFIED",
+    "run_id": 213365215982414,
+    "original_window_start_utc": "2026-10-18T19:09:53.046345+00:00",
+    "original_window_end_utc": "2026-10-18T21:09:53.046345+00:00",
+    "technical_predecessor_run_id": 816773628909702,
+    "technical_predecessor_fault": "OSError: Volume append unsupported, before any workflow episode",
+    "original_clock_preserved": true,
+    "fresh_own_episodes": 11,
+    "shared_control_aliases": 13,
+    "all_fresh_tokens_events_scores_exact": true,
+    "model_before_after_exact": true,
+    "model_digest": {
+      "sha256": "2530b9f919826f4da409778ceba3d6d79e9509346552be59a803daa982b22dda",
+      "protected_tensor_count": 7690,
+      "quantization_metadata_tensor_count": 5510
+    },
+    "optimizer_updates": 0,
+    "new_reference_calls": 0,
+    "source_run_modified": false,
+    "completion_receipt_sha256": "0b7154b3c0359a7693e78fd4fce13ec581648055e715922142909b83befbc6a0"
+  },
+  "public_reproduction_release": {
+    "tag": "research3-reproduction-v1",
+    "url": "https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-reproduction-v1",
+    "trained_adapters": 5,
+    "pretrained_bases_redistributed": false,
+    "R24_released": false,
+    "full_LLM_training_newly_reproduced": false
+  },
+  "submission_copy": {
+    "file": "manuscript_submission.docx",
+    "bytes": 219258,
+    "sha256": "66fbad76e9e9f20c0610d18dc0c90ebaf98ff6b3390e8fe037b4fd56a010b5ac",
+    "all_body_header_footer_revisions_accepted": true,
+    "track_revisions_enabled": false,
+    "rendered_pages": 16,
+    "all_pages_reviewed": true
   }
 }

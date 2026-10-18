@@ -1,0 +1,20 @@
+format: research3-frozen-a-verification-v1
+purpose: Independent execution verification of the preserved 27B fine-tuned arm.
+whole_seconds: 7200
+setup_seconds: 1800
+export_reserve_seconds: 600
+host_initial_GiB: 16
+host_reserve_GiB: 8
+GPU_initial_GiB: 20
+GPU_reserve_GiB: 2
+automatic_retries: 0
+Free_Edition_only: true
+cases: 24
+fresh_own_episodes: 11
+shared_control_aliases: 13
+seed: 20261018
+frozen_protocol: config/matched_validation.yaml
+controls: Reuse exact completed original shared-base episodes with SHA provenance.
+comparison: Report exact token IDs, actions and scores against the preserved original.
+memory: Release unused allocator cache between episodes before applying unchanged reserves.
+selection: No retraining, threshold changes, case selection or output-based retries.

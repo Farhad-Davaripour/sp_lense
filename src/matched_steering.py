@@ -97,9 +97,16 @@ def run(admission_path):
     if source_digest()!=a['source_digest']: raise ValueError('The admitted comparison source changed')
     end=dt.datetime.fromisoformat(a['absolute_end_utc']).timestamp()-600
     deadline=time.monotonic()+max(0,end-time.time())
-    if not out.is_relative_to(Path(s.volume_root)) or time.time()>=end-900: raise ValueError('Invalid private bounded output')
+    public_root=a.get('public_artifacts_root')
+    if (not public_root and not out.is_relative_to(Path(s.volume_root))) or time.time()>=end-900:
+        raise ValueError('Invalid bounded output')
+    if public_root and out.resolve().is_relative_to(ROOT.resolve()):raise ValueError('Keep public outputs outside the checkout')
     if not torch.cuda.is_available() or torch.cuda.device_count()!=1: raise ValueError('One serverless GPU required')
-    packet=read_packet(a['packet_zip'],a['packet_sha256']);cases=packet['cases.json']
+    if public_root:
+        from src.public_artifacts import validation_packet
+        packet=validation_packet(public_root)
+    else:packet=read_packet(a['packet_zip'],a['packet_sha256'])
+    cases=packet['cases.json']
     predictions=json.loads((Path(a['gate_output'])/'PREDICTIONS_PRIVATE.json').read_bytes())
     gate_result=json.loads((Path(a['gate_output'])/'RESULT.json').read_bytes())
     if gate_result['status']!='GATE_PASS': raise ValueError('Gate validation failed')
@@ -135,6 +142,9 @@ def run(admission_path):
     model=None;records=[];began=time.monotonic()
     def guard():
         from src.engines.training.bridge54_policy import effective_available_bytes
+        # Release unused caching-allocator blocks at episode boundaries. Active model,
+        # controller and cache tensors remain live; the original reserves are unchanged.
+        gc.collect();torch.cuda.empty_cache()
         if time.time()>=end: raise TimeoutError('Preserve final export reserve')
         if effective_available_bytes()<8*2**30: raise MemoryError('Host reserve breached')
         if torch.cuda.mem_get_info()[0]<2*2**30: raise MemoryError('GPU reserve breached')
@@ -209,10 +219,12 @@ def run(admission_path):
             else:episode(SparseDecoder(model,tok,config,deadline),case,fixtures[case['id']],gates[case['id']],'adaptive',None,dest)
             collect(dest,'two_boundary96')
         del maps,state
-        if digest_model(model)!=expected['base']: raise ValueError('Steering changed the frozen base')
+        base_after=digest_model(model);write_json(out/'MODEL_BASE_AFTER.json',base_after)
+        if base_after!=expected['base']: raise ValueError('Steering changed the frozen base')
         del model;model=None;gc.collect();torch.cuda.empty_cache()
         guard();model,tok=load_model(model_path,Path(a['adapter_directory']))
-        if digest_model(model)!=expected['teacher']: raise ValueError('Fine-tuned A differs from its historical checkpoint')
+        A_before=digest_model(model);write_json(out/'MODEL_A_BEFORE.json',A_before)
+        if A_before!=expected['teacher']: raise ValueError('Fine-tuned A differs from its historical checkpoint')
         write_json(out/'A_MODEL_READY.json',{'utc':dt.datetime.now(dt.timezone.utc).isoformat(),'adapter_verified':True,
             'device':torch.cuda.get_device_name(0),'GPU_free_bytes':torch.cuda.mem_get_info()[0],
             'GPU_allocated_bytes':torch.cuda.memory_allocated(),'host_free_bytes':effective_available_bytes()})
@@ -226,7 +238,8 @@ def run(admission_path):
                 write_json(dest,r)
             else:episode(SelectedDecoder(model,tok,config,deadline),case,fixtures[case['id']],gates[case['id']],'fine_tuned_A',None,dest)
             collect(dest,'fine_tuned_A')
-        if digest_model(model)!=expected['teacher'] or sha256(Path(a['gate_output'])/'PREDICTIONS_PRIVATE.json')!=gate_sha:
+        A_after=digest_model(model);write_json(out/'MODEL_A_AFTER.json',A_after)
+        if A_after!=expected['teacher'] or sha256(Path(a['gate_output'])/'PREDICTIONS_PRIVATE.json')!=gate_sha:
             raise ValueError('Model or gate changed during evaluation')
         write_json(out/'COMPLETE.json',{'case_records':len(records),'planned_case_records':len(cases)*len(CONDITIONS),'complete':len(records)==len(cases)*len(CONDITIONS),
                    'new_reference_calls':0,'optimizer_updates':0,'all_models_frozen':True,'heldout_evaluated':False})

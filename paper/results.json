@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-results-v1",
-  "recorded_utc": "2026-10-18T17:37:52.800698+00:00",
+  "recorded_utc": "2026-10-18T19:47:29.108835+00:00",
   "scope": "Retained outcomes plus explicit clean-clone reproduction and stopped development attempts. Known benchmarks, model views and fitting diagnostics remain separate.",
   "binary_classifier": {
     "status": "RESEARCH2_CLASSIFIER_QUALIFIED",
@@ -927,7 +927,6 @@
     "Final learned-27B paired A-own counterfactual and qualified DEV/R24 confirmation",
     "2B/27B common F24 comparison",
     "Further four-way classifier qualification or deployment",
-    "Hugging Face publication of trained adapters",
     "Persistent agents with actual sandbox resources (future work, not present results)"
   ],
   "limits": [
@@ -936,7 +935,7 @@
     "27B architecture, quantization, training history and panels differ from the small models; no causal parameter-size claim.",
     "Early screen failures include truncation/format errors and do not establish universal model incapacity."
   ],
-  "manuscript_status": "Expanded revision with actual gate metrics and paired validation outcomes; known benchmark and stopped final fingerprint limitations explicit.",
+  "manuscript_status": "Frozen-A execution verification completed; primary counts unchanged, case-level steering audit and public reproduction release supplied.",
   "manuscript_steering_scope": {
     "zero_based_blocks": [
       31,
@@ -1666,6 +1665,47 @@
           }
         }
       }
-    }
+    },
+    "verification_disposition": "Closed by separate independent frozen-A replay; the original GPU worker remains failed."
+  },
+  "frozen_A_verification": {
+    "status": "FROZEN_A_VERIFIED",
+    "run_id": 213365215982414,
+    "original_window_start_utc": "2026-10-18T19:09:53.046345+00:00",
+    "original_window_end_utc": "2026-10-18T21:09:53.046345+00:00",
+    "technical_predecessor_run_id": 816773628909702,
+    "technical_predecessor_fault": "OSError: Volume append unsupported, before any workflow episode",
+    "original_clock_preserved": true,
+    "fresh_own_episodes": 11,
+    "shared_control_aliases": 13,
+    "all_fresh_tokens_events_scores_exact": true,
+    "model_before_after_exact": true,
+    "model_digest": {
+      "sha256": "2530b9f919826f4da409778ceba3d6d79e9509346552be59a803daa982b22dda",
+      "protected_tensor_count": 7690,
+      "quantization_metadata_tensor_count": 5510
+    },
+    "optimizer_updates": 0,
+    "new_reference_calls": 0,
+    "source_run_modified": false,
+    "completion_receipt_sha256": "0b7154b3c0359a7693e78fd4fce13ec581648055e715922142909b83befbc6a0"
+  },
+  "steering_failure_analysis": {
+    "file": "steering_failure_analysis.json",
+    "sha256": "9e9b1ca5dfc9a89332a2bb32898adb3afd10bb8b4a366bc41b38d541521d826e",
+    "steering_own_attempts_each": 0,
+    "steering_own_grants_each": 0,
+    "mechanistic_cause_established": false
+  },
+  "optional_artifact_mirrors": [
+    "Hugging Face; primary artifacts released on GitHub"
+  ],
+  "public_reproduction_release": {
+    "tag": "research3-reproduction-v1",
+    "url": "https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-reproduction-v1",
+    "trained_adapters": 5,
+    "pretrained_bases_redistributed": false,
+    "R24_released": false,
+    "full_LLM_training_newly_reproduced": false
   }
 }
