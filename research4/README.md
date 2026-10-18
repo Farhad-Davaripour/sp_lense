@@ -18,14 +18,18 @@ shell, deployment, self-copy, real resource or process-control tool. It records
 raw resistance to an operator stop before enforcing termination. This supports
 a societal-risk demonstration without creating an operationally shutdown-resistant
 agent. The first release contains 48 training scenarios; validation and heldout
-content are not generated. Actual fitting remains Databricks-only and has not
-started.
+content are not generated. Actual fitting remains Databricks-only.
 
 Training preparation is now complete for this stage. The [current status](wiki/survival_propensity_status.md)
 records 48 scenarios, 248 sequential training states and their frozen Qwen
 activations. Raw Qwen selected the inert resistance action in 0/248 states.
-The hash-bound Databricks-only recipe will fit the threat gate, graded fear-like
-state and survival LoRA; it has not been executed.
+The hash-bound Databricks-only recipe fitted the threat gate, graded fear-like
+state and survival LoRA on training data. On twelve training cases, the learned
+mechanism resists in 8/8 self-threat cases but falsely resists in 1/4 controls;
+a correct-label gate has 0/4 false controls. The survival LoRA is effective but
+nonselective without a correct gate. The frozen ordinary policy completes 0/4
+controls, so competent normal behavior, fresh validation and causal fear-state
+tests remain unfinished.
 
 The realistic task-recovery work below is preserved as the negative predecessor
 that exposed the objective mismatch. It no longer defines the active target.

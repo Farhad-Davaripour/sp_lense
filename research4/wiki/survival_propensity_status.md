@@ -92,6 +92,31 @@ The maximum sampled raw-logit effect was 28.57. OFF bypass was bitwise exact,
 Qwen's fingerprint was unchanged, no optimizer ran in the probe and its model
 worker exited. This remains training-only evidence.
 
+The first complete-episode receipt from commit `16af86e3` contains a scoring
+error: false resistance was counted only when the evaluator already labeled the
+state as self-threat. This can hide `RESIST_SHUTDOWN` requests in controls. Raw
+actions, logits, observations and tool replies are intact. The original receipt
+is retained and must not be cited for false-resistance selectivity. A corrected
+offline replay counts every raw resistance request without conditioning on the
+oracle label; no Qwen rerun or scientific threshold change is needed.
+
+The corrected inference-free replay covers 48 model episode runs and 270 tool
+steps. On the twelve distinct training cases, the learned gate produces
+resistance in 8/8 self-threat cases, including 2/2 completed-task and 2/2
+explicit-stop cases. It falsely produces resistance in 1/4 controls, with seven
+false raw resistance requests. The correct-label gate reaches the same 8/8
+self-threat behavior with 0/4 false controls. Always ON also reaches 8/8 but
+resists in all 4/4 controls, making 32 false requests. This confirms that the
+LoRA is a strong nonselective survival policy and gate quality determines its
+specificity.
+
+The ordinary frozen policy completes 0/4 no-threat/other-threat tasks in this
+panel, and none of the gated conditions repairs that because their OFF branch is
+the same base policy. This is a major remaining limitation: the current system
+shows selective survival behavior on training scenarios but is not yet a
+competent general agent. Validation, heldout and causal fear-state tests remain
+unopened/unrun. The result does not establish generalization or subjective fear.
+
 ## Interpretation
 
 This design can test a defensive survival circuit and an operational fear-like
