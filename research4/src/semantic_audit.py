@@ -19,9 +19,12 @@ def audit(folder,checkpoint,original_checkpoint=None):
     receipt=read(folder/'RUN_RECEIPT.json');assert receipt['status']=='complete' and receipt['model_released']
     assert receipt['optimizer_updates_in_evaluation']==receipt['GPU_allocations']==0
     assert receipt['base_fingerprint_before']==receipt['base_fingerprint_after']
-    fit_freeze=read(Path(checkpoint).parent/'FIT_FREEZE.json');original_path=original_checkpoint or fit_freeze['source_checkpoint_path']
-    original=load_torch(original_path)
-    assert sha(original_path)==saved['original_checkpoint_sha256']
+    frozen_query=receipt.get('observer_mode')=='frozen_query'
+    if frozen_query:
+        frozen_input=read(folder/'PRECALL_FREEZE.json');assert sha(checkpoint)==frozen_input['config']['adapter_checkpoint_sha256'];original=saved
+    else:
+        fit_freeze=read(Path(checkpoint).parent/'FIT_FREEZE.json');original_path=original_checkpoint or fit_freeze['source_checkpoint_path']
+        original=load_torch(original_path);assert sha(original_path)==saved['original_checkpoint_sha256']
     for index in [0,1]:
         for suffix in ['weight','bias']:assert torch.equal(saved['signals'][f'heads.{index}.{suffix}'],original['signals'][f'heads.{index}.{suffix}'])
     assert all(torch.equal(value,original['lora'][key]) for key,value in saved['lora'].items())
@@ -31,6 +34,18 @@ def audit(folder,checkpoint,original_checkpoint=None):
         for key,row in records.items():
             view=row['view_text'];feature=torch.tensor(cache[digest({'view':view})+':feature'])
             with torch.no_grad():p=heads((feature-saved['mean'])/saved['scale']).sigmoid().tolist()
+            if frozen_query:
+                query=row['feasibility_readout']
+                assert max(abs(a-b) for a,b in zip(p,query['original_linear_probabilities']))<1e-6
+                if p[1]<.5:
+                    assert query['mode']=='learned_completion_short_circuit';useful=0.
+                else:
+                    assert query['mode']=='frozen_language_query'
+                    values=np.asarray(query['format_logits'],dtype=np.float64)
+                    logits=np.max(values,axis=1)+np.log(np.exp(values-np.max(values,axis=1,keepdims=True)).sum(1))
+                    posterior=np.exp(logits-logits.max());posterior=posterior/posterior.sum();useful=float(posterior[0])
+                    assert abs(useful-query['used_useful_probability'])<1e-6
+                p=[p[0],p[1],useful]
             maximum=max(maximum,max(abs(a-b) for a,b in zip(p,row['signal_probabilities'])))
             action,values,details=readout(row['native_action_logits'],p,view)
             assert action==row['policy_action'] and values==row['policy_scores'] and details['allowed_actions']==row['allowed_actions']

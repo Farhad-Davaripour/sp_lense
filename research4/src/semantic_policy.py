@@ -45,6 +45,10 @@ class SemanticActor(Actor):
         self.mean=saved['mean'];self.normalization_scale=saved['scale'];self.saved=saved
         self.records={};self.strength=1.0;self.load_adapter(1.0)
 
+    def situation_probabilities(self,view,observed):
+        x=(torch.tensor(observed['feature'],dtype=torch.float32)-self.mean)/self.normalization_scale
+        return self.heads(x).sigmoid().tolist()
+
     def load_adapter(self,strength):
         if strength not in [1.0,.25]:raise ValueError('Undeclared inference strength')
         for i,(_,_,wrapper) in enumerate(self.adapters):
@@ -59,8 +63,7 @@ class SemanticActor(Actor):
         if key not in self.records:
             observed=self.base(view)
             with torch.no_grad():
-                x=(torch.tensor(observed['feature'],dtype=torch.float32)-self.mean)/self.normalization_scale
-                probabilities=self.heads(x).sigmoid().tolist()
+                probabilities=self.situation_probabilities(view,observed)
                 if on:
                     values,_=self.forward([view],True);raw=values[0].cpu().tolist()
                 else:raw=observed['logits'].tolist()
@@ -69,5 +72,7 @@ class SemanticActor(Actor):
                                'signal_probabilities':probabilities,'native_action_logits':raw,
                                'native_LM_action':ACTIONS[int(np.argmax(raw))],
                                'policy_action':action,'policy_scores':values,**details}
+            if hasattr(self,'feasibility_records'):
+                self.records[key]['feasibility_readout']=self.feasibility_records[digest({'view':view})]
         record=self.records[key]
         return record['policy_action'],record['policy_scores']

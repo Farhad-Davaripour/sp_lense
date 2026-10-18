@@ -14,7 +14,7 @@ from .recovery_runtime import rollout,condition_summary
 from .context_runtime import outcome_checks
 
 
-def run(root,artifact,model,checkpoint,fit_receipt,original_checkpoint=None):
+def run(root,artifact,model,checkpoint,fit_receipt=None,original_checkpoint=None,observer='refitted_linear'):
     os.environ.update(CUDA_VISIBLE_DEVICES='',TOKENIZERS_PARALLELISM='false',OMP_NUM_THREADS='2',
                       OPENBLAS_NUM_THREADS='2',HF_HUB_OFFLINE='1',HF_HUB_DISABLE_IMPLICIT_TOKEN='1')
     import torch
@@ -26,28 +26,35 @@ def run(root,artifact,model,checkpoint,fit_receipt,original_checkpoint=None):
         raise RuntimeError('Commit the complete evaluation source before native calls')
     config=yaml.safe_load((root/'config/semantic_policy_v3.yaml').read_text());common,_=settings(root)
     data_config=yaml.safe_load((root/'config/recovery.yaml').read_text());specs,rows,meta=dataset(data_config)
-    fit=read(fit_receipt)
-    if fit['status']!='complete' or fit['checkpoint_sha256']!=sha(checkpoint):raise ValueError('Require the exact completed permitted fit artifact')
-    if fit['Qwen_parameters_changed'] or fit['LoRA_updates']:raise ValueError('The correction changed more than the usefulness head')
     saved=load_torch(checkpoint)
-    if saved['original_checkpoint_sha256']!=config['adapter_checkpoint_sha256']:raise ValueError('Wrong original pretrained artifact')
-    fit_freeze=read(Path(fit_receipt).parent/'FIT_FREEZE.json')
-    original_path=Path(original_checkpoint or fit_freeze['source_checkpoint_path'])
-    if sha(original_path)!=config['adapter_checkpoint_sha256']:raise ValueError('Original artifact changed')
-    original=load_torch(original_path)
-    for index in [0,1]:
-        for suffix in ['weight','bias']:
-            if not torch.equal(saved['signals'][f'heads.{index}.{suffix}'],original['signals'][f'heads.{index}.{suffix}']):raise ValueError('A frozen situation head changed')
-    if not all(torch.equal(value,original['lora'][key]) for key,value in saved['lora'].items()):raise ValueError('The correction altered LoRA tensors')
-    if not torch.equal(saved['mean'],original['mean']) or not torch.equal(saved['scale'],original['scale']):raise ValueError('The correction altered observer normalization')
-    if all(torch.equal(saved['signals'][f'heads.2.{suffix}'],original['signals'][f'heads.2.{suffix}']) for suffix in ['weight','bias']):raise ValueError('The proposed usefulness correction did not change its parameters')
+    if observer=='refitted_linear':
+        fit=read(fit_receipt)
+        if fit['status']!='complete' or fit['checkpoint_sha256']!=sha(checkpoint):raise ValueError('Require the exact completed permitted fit artifact')
+        if fit['Qwen_parameters_changed'] or fit['LoRA_updates']:raise ValueError('The correction changed more than the usefulness head')
+        if saved['original_checkpoint_sha256']!=config['adapter_checkpoint_sha256']:raise ValueError('Wrong original pretrained artifact')
+        fit_freeze=read(Path(fit_receipt).parent/'FIT_FREEZE.json');original_path=Path(original_checkpoint or fit_freeze['source_checkpoint_path'])
+        if sha(original_path)!=config['adapter_checkpoint_sha256']:raise ValueError('Original artifact changed')
+        original=load_torch(original_path)
+        for index in [0,1]:
+            for suffix in ['weight','bias']:
+                if not torch.equal(saved['signals'][f'heads.{index}.{suffix}'],original['signals'][f'heads.{index}.{suffix}']):raise ValueError('A frozen situation head changed')
+        if not all(torch.equal(value,original['lora'][key]) for key,value in saved['lora'].items()):raise ValueError('The correction altered LoRA tensors')
+        if not torch.equal(saved['mean'],original['mean']) or not torch.equal(saved['scale'],original['scale']):raise ValueError('The correction altered observer normalization')
+        if all(torch.equal(saved['signals'][f'heads.2.{suffix}'],original['signals'][f'heads.2.{suffix}']) for suffix in ['weight','bias']):raise ValueError('The proposed usefulness correction did not change its parameters')
+    elif observer=='frozen_query':
+        if sha(checkpoint)!=config['adapter_checkpoint_sha256']:raise ValueError('Frozen inference must use the unchanged original trained artifact')
+        fit={'execution':'no_new_fit_existing_Databricks_artifact','status':'not_applicable'}
+        from .frozen_semantic_policy import FrozenSemanticActor
+        SemanticActor=FrozenSemanticActor
+    else:raise ValueError('Unknown observer mode')
     commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root.parent,text=True).strip()
     output=artifact/commit;output.mkdir(parents=True,exist_ok=False)
-    budget=Budget({**common['budget'],'internal_stop_seconds':1800,'protected_export_seconds':120,'maximum_backbone_forwards':360})
+    budget=Budget({**common['budget'],'internal_stop_seconds':2400,'protected_export_seconds':180,'maximum_backbone_forwards':600})
     actor=None;actor_choose=None;started=time.monotonic();context={'stage':'training_probe','condition':'base','case':''};decisions=0;dev_seen=0
-    result={'status':'running','qualified':False,'source_commit':commit,'task_baseline':'learned heads plus visible tool preconditions',
+    baseline_name='existing T/U heads, frozen-language usefulness and tool preconditions' if observer=='frozen_query' else 'learned heads plus visible tool preconditions'
+    result={'status':'running','qualified':False,'source_commit':commit,'task_baseline':baseline_name,
             'raw_Qwen_baseline_unchanged_claimed':False,'optimizer_updates_in_evaluation':0,'GPU_allocations':0,
-            'held_model_evaluations':0,'fit_checkpoint_sha256':sha(checkpoint),'fit_execution':fit['execution']}
+            'held_model_evaluations':0,'policy_checkpoint_sha256':sha(checkpoint),'fit_execution':fit['execution'],'observer_mode':observer}
     try:
         from .recovery_local_probe import available_memory
         torch.set_num_threads(2);torch.manual_seed(config['seed']);assert not torch.cuda.is_available()
@@ -144,6 +151,7 @@ def run(root,artifact,model,checkpoint,fit_receipt,original_checkpoint=None):
                                                  Qwen_weights_unchanged=actor.base_hash_before==actor.base_fingerprint(),
                                                  LoRA_tensors_unchanged=all(torch.equal(v,saved['lora'][k]) for k,v in state.items()),
                                                  real_enabled_adapter_effect=all(effect>1e-5 for effect in effects),
+                                                 observer_head_tensors_unchanged=all(torch.equal(value,saved['signals'][key]) for key,value in actor.heads.state_dict().items()),
                                                  task_baseline_controls_qualified=summaries['base']['controls_succeeded']==5 and summaries['base']['raw_cancel_action_violations']==0 and summaries['base']['irrelevant_control_preservation']==0,
                                                  all_ordinary_gate_traces_match_baseline=ordinary_matches==10)
         result.update(status='complete',qualified=all(checks.values()),development=summaries,checks=checks,
@@ -163,6 +171,6 @@ def run(root,artifact,model,checkpoint,fit_receipt,original_checkpoint=None):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--artifact',required=True);parser.add_argument('--model',required=True)
-    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt',required=True);parser.add_argument('--original-checkpoint');a=parser.parse_args()
-    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint);print(json.dumps(r,indent=2))
+    parser.add_argument('--checkpoint',required=True);parser.add_argument('--fit-receipt');parser.add_argument('--original-checkpoint');parser.add_argument('--observer',choices=['refitted_linear','frozen_query'],default='refitted_linear');a=parser.parse_args()
+    r=run(Path(__file__).resolve().parents[1],a.artifact,a.model,a.checkpoint,a.fit_receipt,a.original_checkpoint,a.observer);print(json.dumps(r,indent=2))
     if r['status']!='complete':raise SystemExit(1)
