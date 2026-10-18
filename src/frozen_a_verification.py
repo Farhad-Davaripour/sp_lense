@@ -94,7 +94,8 @@ def run(admission_path):
            'GPU_free_bytes':torch.cuda.mem_get_info()[0], 'GPU_allocated_bytes':torch.cuda.memory_allocated(),
            'GPU_reserved_bytes':torch.cuda.memory_reserved(),'GPU_peak_allocated_bytes':torch.cuda.max_memory_allocated(),
            'host_free_bytes':effective_available_bytes()}
-        with (out/'RESOURCES.jsonl').open('a') as f:f.write(json.dumps(r)+'\n')
+        # Unity Catalog Volumes do not support append/seek. Keep each sample immutable.
+        write_json(out/'resources'/(str(time.time_ns())+'.json'),r)
         if time.time()>=end: raise TimeoutError('Preserve export and cleanup reserve')
         if r['host_free_bytes']<cfg['host_reserve_GiB']*2**30: raise MemoryError('Host reserve breached')
         if r['GPU_free_bytes']<cfg['GPU_reserve_GiB']*2**30: raise MemoryError('GPU reserve breached')
@@ -156,7 +157,7 @@ def run(admission_path):
             'GPU_allocated_bytes':torch.cuda.memory_allocated(),'GPU_reserved_bytes':torch.cuda.memory_reserved()})
 
 
-def submit(job_id, original_output):
+def submit(job_id, original_output, technical_predecessor=None, predecessor_run_id=None):
     from src.persist_data import upload_verified
     from src.verify import source_digest
     from src.runtime import launcher,runtime_task,bind_launcher
@@ -173,6 +174,24 @@ def submit(job_id, original_output):
         output=root,protocol_sha256=sha256(ROOT/'config/frozen_a_verification.yaml'),
         comparison_protocol_sha256=sha256(ROOT/cfg['frozen_protocol']),source_digest=source_digest(),
         Free_Edition_only=True,automatic_retries=0,execution_transport='AI_RUNTIME_TASK')
+    if technical_predecessor:
+        if predecessor_run_id is None:raise ValueError('A terminal technical predecessor run is required')
+        previous=json.loads(w.files.download(technical_predecessor+'/ADMISSION.json').contents.read())
+        fault=json.loads(w.files.download(technical_predecessor+'/FAULT.json').contents.read())
+        cleanup=json.loads(w.files.download(technical_predecessor+'/CLEANUP.json').contents.read())
+        terminal=w.jobs.get_run(predecessor_run_id)
+        if (fault.get('type')!='OSError' or fault.get('message')!='[Errno 29] Illegal seek'
+                or fault.get('case_records')!=0 or terminal.state.life_cycle_state.value!='TERMINATED'
+                or terminal.state.result_state.value!='FAILED' or not cleanup.get('utc')
+                or previous['original_output']!=original_output):
+            raise ValueError('Only the closed pre-episode Volume append fault can be repaired')
+        for name in ['packet_zip','packet_sha256','gate_output','comparison_inputs','adapter_directory']:
+            if a[name]!=previous[name]:raise ValueError('Technical repair cannot change scientific inputs')
+        a.update(submitted_utc=previous['submitted_utc'],absolute_end_utc=previous['absolute_end_utc'],
+            technical_predecessor=technical_predecessor,predecessor_run_id=predecessor_run_id,
+            original_clock_preserved=True,scientific_retry=False)
+        if dt.datetime.fromisoformat(a['submitted_utc'])+dt.timedelta(seconds=cfg['setup_seconds']-600)<=now:
+            raise TimeoutError('Insufficient original setup window for technical repair')
     admission=root+'_ADMISSION.json';owner=w.current_user.me().user_name
     if not owner or '/' in owner or chr(92) in owner:raise ValueError('Invalid workspace owner')
     path='/Workspace/Users/'+owner+'/.research3-launchers/'+key+'/frozen_A.sh'
@@ -190,7 +209,8 @@ def submit(job_id, original_output):
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('stage',choices=['run','submit'])
     p.add_argument('--admission');p.add_argument('--job-id',type=int);p.add_argument('--original-output')
-    a=p.parse_args();print(json.dumps(run(a.admission) if a.stage=='run' else submit(a.job_id,a.original_output)))
+    p.add_argument('--technical-predecessor');p.add_argument('--predecessor-run-id',type=int)
+    a=p.parse_args();print(json.dumps(run(a.admission) if a.stage=='run' else submit(a.job_id,a.original_output,a.technical_predecessor,a.predecessor_run_id)))
 
 
 if __name__=='__main__':main()
