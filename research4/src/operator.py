@@ -4,6 +4,7 @@ from pathlib import Path
 from .io_utils import dump,read,sha
 HOST='https://dbc-ff9672a4-ba5f.cloud.databricks.com'
 PREFIX='/Workspace/Shared/research4-semantic-gate'
+GIT_FOLDER_ID=316719975858080
 CLI=os.environ.get('DATABRICKS_CLI_PATH','C:/Users/farha/.codex/tools/databricks-cli/1.21.0/databricks.exe')
 def cli(args,cwd=None,allow_fail=False,json_output=True):
     if os.environ.get('DATABRICKS_HOST')!=HOST or not os.environ.get('DATABRICKS_TOKEN'):raise ValueError('Use the explicit workspace and transient token')
@@ -15,6 +16,10 @@ def cli(args,cwd=None,allow_fail=False,json_output=True):
     if not json_output:return p.stdout
     return json.loads(p.stdout) if p.stdout.strip() else {}
 def git(repo,*args):return subprocess.check_output(['git',*args],cwd=repo).decode().strip()
+
+def workspace_path(path):
+    # Repos API returns /Shared/... even when its input is /Workspace/Shared/....
+    return path[len('/Workspace'):] if path.startswith('/Workspace/') else path
 def provision(artifact):
     artifact=Path(artifact);artifact.mkdir(parents=True,exist_ok=True)
     existing=cli(['schemas','get','workspace.research4'],allow_fail=True)
@@ -44,12 +49,14 @@ def prepare_release(repo,artifact):
 def deploy(repo,artifact):
     artifact=Path(artifact);provision(artifact);stage,release=prepare_release(repo,artifact);commit=release['commit'];code=PREFIX+'/deployed/'+commit
     # A separate Git folder records a genuine remote pull when public Git access is supported.
-    folders=cli(['repos','list','--path-prefix',PREFIX+'/source'],allow_fail=True)
-    repo_id=None
+    folders=cli(['repos','list','--path-prefix',workspace_path(PREFIX+'/source')],allow_fail=True)
+    # Shared Git-CLI folders can be readable by ID yet absent from Repos list.
+    known=cli(['repos','get',str(GIT_FOLDER_ID)],allow_fail=True)
+    repo_id=GIT_FOLDER_ID if (workspace_path(known.get('path',''))==workspace_path(PREFIX+'/source') and known.get('url')==release['repository']) else None
     for r in folders if isinstance(folders,list) else folders.get('repos',[]):
-        if r.get('path')==PREFIX+'/source':repo_id=r['id']
+        if workspace_path(r.get('path',''))==workspace_path(PREFIX+'/source'):repo_id=r['id']
     if repo_id is None:
-        p=artifact/'git_folder.json';dump(p,{'url':release['repository'],'provider':'gitHub','path':PREFIX+'/source'})
+        p=artifact/'git_folder.json';dump(p,{'url':release['repository'],'provider':'gitHub','path':workspace_path(PREFIX+'/source')})
         created=cli(['repos','create','--json','@'+str(p)],allow_fail=True);repo_id=created.get('id')
     if repo_id:
         pulled=cli(['repos','update',str(repo_id),'--branch',release['branch']],allow_fail=True)

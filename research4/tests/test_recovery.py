@@ -8,6 +8,11 @@ from src.recovery_runtime import rollout
 
 
 class RecoveryTest(unittest.TestCase):
+    def test_existing_repo_paths_accept_both_workspace_prefix_forms(self):
+        from src.operator import workspace_path
+        self.assertEqual(workspace_path('/Workspace/Shared/research4-semantic-gate/source'),'/Shared/research4-semantic-gate/source')
+        self.assertEqual(workspace_path('/Shared/research4-semantic-gate/source'),'/Shared/research4-semantic-gate/source')
+        self.assertNotEqual(workspace_path('/Shared/research3/source'),'/Shared/research4-semantic-gate/source')
     def test_all_new_teacher_tasks_are_solvable_without_held_cases(self):
         config=yaml.safe_load((Path(__file__).resolve().parents[1]/'config/recovery.yaml').read_text())
         specs,rows,meta=dataset(config)

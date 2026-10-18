@@ -6,6 +6,10 @@ Training-only action-interface probe, then conditional ordinary-baseline
 admission and recovery-aware LoRA comparison with immediate/latched oracle gates.
 No learned router, new held evaluation, paid compute, GPU or monitor in this stage.
 Prior failed pilot and all earlier evidence remain retained below.
+Job creation returned 403: selected Databricks organization cancelled/inactive.
+No new cloud model run started. Preserve the deployment failure and run only
+the frozen-model local CPU interface diagnostic with zero optimizer updates.
+Full cloud qualification awaits a working explicitly selected Free Edition workspace.
 
 The first CPU pilot is complete; its useful-selectivity hypothesis FAILED.
 Dynamic routing completed 0/4 targets, the same as base; the oracle gate 1/4.

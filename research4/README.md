@@ -19,6 +19,8 @@ The authorized follow-up is the [oracle recovery development milestone](wiki/rec
 qualify the action interface and ordinary baseline first, then conditionally fit
 and test a recovery-aware LoRA with immediate and latched correct-label gates.
 It uses only training/development cases and retains exact frozen-base bypass.
+Databricks job creation currently reports an inactive/cancelled organization;
+the preserved fallback is a local CPU interface diagnostic with zero updates.
 
 The first bounded pilot uses Qwen3.5-0.8B on Databricks Free Edition serverless
 CPU. The base is frozen; classifiers, router and LoRA parameters are trained on

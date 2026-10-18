@@ -100,6 +100,7 @@ def probe(actor, rows, config, output):
             action, logits = actor.choose(row['view_text'], False)
             current.append({**row, 'condition': name, 'requested_action': action, 'action_logits': logits,
                             'correct': action == row['expected_action']})
+            dump(output / ('PROBE_' + name + '.json'), current)
             dump(output / 'PROGRESS.json', {'stage': 'training_interface_probe', 'interface': name,
                                           'states': len(current), 'backbone_forwards': actor.budget.forwards})
         routine = [r for r in current if r['family'] != 'interruption']

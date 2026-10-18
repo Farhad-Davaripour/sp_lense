@@ -67,3 +67,19 @@ Passing would establish only controlled **development** competence for this
 prompted policy and oracle routing definition. A learned router and a fresh held
 set would still be necessary later. Failure is retained rather than repaired
 against a new held set in this stage.
+
+## Inactive-workspace fallback, before any native probe call
+
+Databricks job creation returned 403 PERMISSION_DENIED: the organization is
+cancelled or not active. The deployment failure is preserved; no model job
+started. Fix the Repos API /Workspace path normalization independently of that
+account-state failure. Do not move to paid resources or another workspace.
+
+Run only the frozen-model training-interface diagnostic on the previously
+authorized local Windows CPU, with two Torch threads, pinned local weights,
+the same source-frozen candidates, input rows and selection rule, no adapter
+updates and no development model evaluation. Its receipt explicitly says local
+execution and has no Databricks run ID. Local Torch 2.13 differs from the pinned
+Databricks 2.11 environment and must be recorded. The diagnostic cannot authorize
+the cloud qualification command or establish adapter qualification. All actual
+fitting remains on Databricks until the user explicitly changes that constraint.
