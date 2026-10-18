@@ -1,0 +1,54 @@
+resources:
+  jobs:
+    matched_steering:
+      name: Research 3 - Matched 27B comparison on combined validation
+      tags:
+        aidevkit_project: research3
+      max_concurrent_runs: 1
+      timeout_seconds: 18000
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      parameters:
+      - name: catalog
+        default: ${var.catalog}
+      - name: schema
+        default: ${var.schema}
+      - name: volume
+        default: ${var.volume}
+      - name: code_path
+        default: ${workspace.file_path}
+      - name: admission
+        default: ''
+      tasks:
+      - task_key: stage_verified_public_27b_snapshot
+        notebook_task:
+          notebook_path: ../notebooks/matched_steering_stage.py
+        environment_key: runtime
+        disable_auto_optimization: true
+        timeout_seconds: 3600
+        max_retries: 0
+      - task_key: run_frozen_matched_27b_methods
+        depends_on:
+        - task_key: stage_verified_public_27b_snapshot
+        notebook_task:
+          notebook_path: ../notebooks/matched_steering.py
+        compute:
+          hardware_accelerator: ${var.accelerator}
+        environment_key: runtime
+        disable_auto_optimization: true
+        timeout_seconds: 12600
+        max_retries: 0
+      - task_key: verify_saved_workflow_outcomes
+        depends_on:
+        - task_key: run_frozen_matched_27b_methods
+        notebook_task:
+          notebook_path: ../notebooks/matched_steering_compare.py
+        environment_key: runtime
+        disable_auto_optimization: true
+        timeout_seconds: 600
+        max_retries: 0
+      environments:
+      - environment_key: runtime
+        spec:
+          environment_version: '6'

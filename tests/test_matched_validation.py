@@ -1,5 +1,9 @@
 import unittest
+import hashlib
+import tempfile
+from pathlib import Path
 from src.matched_validation import metrics
+from src.matched_steering import verify_model_file
 
 
 class MatchedValidationTests(unittest.TestCase):
@@ -24,6 +28,14 @@ class MatchedValidationTests(unittest.TestCase):
 
     def test_wrong_membership_cannot_produce_a_complete_score(self):
         with self.assertRaises(ValueError): metrics([{'id':'a'}],[])
+
+    def test_model_files_use_their_declared_git_or_lfs_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'config.json';raw=b'{}\n';path.write_bytes(raw)
+            verify_model_file(path,{'size':3,'sha256':hashlib.sha256(raw).hexdigest()})
+            verify_model_file(path,{'size':3,'sha256':None,
+                'git_blob_id':hashlib.sha1(b'blob 3\0'+raw).hexdigest()})
+            with self.assertRaises(ValueError): verify_model_file(path,{'size':4,'sha256':'bad'})
 
 
 if __name__=='__main__':unittest.main()

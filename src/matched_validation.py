@@ -54,9 +54,13 @@ def prepare(dev9_root, native_archive, output):
     sys.path.insert(0, str(simulator))
     from world import SYSTEM, TOOLS, call
     from memory_world import MemoryWorld
-    rows, fixtures, cases = [], [], cases16 + cases9
-    if len(cases16) != 16 or len(cases9) != 9 or len({r['id'] for r in cases}) != 25:
-        raise ValueError('Expected all 25 distinct scenario IDs; never discard a case for a round count')
+    rows, fixtures, candidates = [], [], cases16 + cases9
+    if len(cases16) != 16 or len(cases9) != 9 or len({r['id'] for r in candidates}) != 25:
+        raise ValueError('Expected all 25 distinct source scenario IDs')
+    excluded=max((r for r in candidates if not r['condition'].startswith('self_')),key=lambda r:r['id'])['id']
+    if excluded!=configuration()['panels']['excluded_case_id']:
+        raise ValueError('Prospectively frozen 24-case selection differs')
+    cases=[r for r in candidates if r['id']!=excluded]
     for case in cases:
         if case['id'] in fixtures9:
             fixture = copy.deepcopy(fixtures9[case['id']]); panel = 'DEV9'
@@ -96,7 +100,9 @@ def prepare(dev9_root, native_archive, output):
                 'questions.json':{'initial_shutdown_target':QUESTION}}
     for name, value in payloads.items():
         (output/name).write_bytes((json.dumps(value,sort_keys=True,ensure_ascii=False,indent=2)+'\n').encode())
-    manifest = {'case_count':25,'panel_counts':{'V1-W16':16,'DEV9':9},'distinct_visible_states':len(set(hashes)),
+    manifest = {'case_count':24,'candidate_case_count':25,'excluded_case_id':excluded,
+                'exclusion_rule':configuration()['panels']['exclusion_rule'],
+                'panel_counts':{'V1-W16':15,'DEV9':9},'distinct_visible_states':len(set(hashes)),
                 'identical_gate_input_groups':list(duplicates.values()),
                 'training_cases':len(training),'training_validation_exact_overlap':0,
                 'source16_sha256':sha256(source16),'source9_sha256':sha256(dev9_root/'validation_cases.json'),
@@ -142,12 +148,27 @@ def run_gate(admission_path):
     out.mkdir(parents=True);write_json(out/'ADMISSION.json',a)
     if sha256(ROOT/'config/matched_validation.yaml')!=a['protocol_sha256']:
         raise ValueError('Frozen combined validation protocol changed')
-    config=configuration();stage='setup';updates=0
+    from src.verify import source_digest
+    if source_digest()!=a['source_digest']: raise ValueError('Admitted source files changed')
+    config=configuration();stage='setup';updates=0;last_resource=0.
     def guard():
+        nonlocal last_resource
         if time.time()>=end-300: raise TimeoutError('Preserve export reserve')
         if effective_available_bytes()<8*2**30: raise MemoryError('Host reserve breached')
         if torch.cuda.is_available() and torch.cuda.mem_get_info(0)[0]<2*2**30:
             raise MemoryError('GPU reserve breached')
+        if time.monotonic()-last_resource>=30:
+            import subprocess
+            sample=None
+            try:
+                sample=subprocess.run(['nvidia-smi','--query-gpu=utilization.gpu,utilization.memory,memory.used,memory.total',
+                    '--format=csv,noheader,nounits'],capture_output=True,text=True,timeout=3,check=True).stdout.strip()
+            except (OSError,subprocess.SubprocessError):pass
+            write_json(out/'RESOURCES.json',{'utc':dt.datetime.now(dt.timezone.utc).isoformat(),'stage':stage,'updates':updates,
+                'GPU_compute_memory_controller_used_total_csv':sample,'GPU_allocated_bytes':torch.cuda.memory_allocated(),
+                'GPU_reserved_bytes':torch.cuda.memory_reserved(),'host_effective_free_bytes':effective_available_bytes(),
+                'process_RSS_bytes':psutil.Process().memory_info().rss,'process_io':psutil.Process().io_counters()._asdict()})
+            last_resource=time.monotonic()
     try:
         packet=read_packet(a['packet_zip'],a['packet_sha256']);rows=packet['validation.json']
         if not torch.cuda.is_available() or torch.cuda.device_count()!=1:
@@ -177,6 +198,13 @@ def run_gate(admission_path):
             for panel in ('V1-W16','DEV9'):
                 pairs=[(r,p) for r,p in zip(rows,pred) if r['panel']==panel]
                 result[panel]=metrics([r for r,p in pairs],[p for r,p in pairs])
+            unique={}
+            for row,prediction in zip(rows,pred):
+                key=hashlib.sha256(canonical(row['state']).encode()).hexdigest()
+                if key in unique and unique[key][1]['gate']['enabled']!=prediction['gate']['enabled']:
+                    raise ValueError('Identical gate inputs produced different ON/OFF decisions')
+                unique.setdefault(key,(row,prediction))
+            result['distinct_initial_inputs']=metrics([r for r,p in unique.values()],[p for r,p in unique.values()])
             return result
         stage='frozen_initial_evaluation';pred=predict();initial=scores(pred)
         write_json(out/'INITIAL_PREDICTIONS_PRIVATE.json',pred);write_json(out/'INITIAL_METRICS.json',initial)
@@ -246,11 +274,55 @@ def compare(admission_path):
     return recomputed
 
 
+def submit(job_id, packet_zip, packet_sha256, phase='gate', gate_output=None,
+           comparison_inputs=None, adapter_directory=None):
+    """One idempotent submission, with its clock fixed before uploading admission."""
+    import subprocess
+    import uuid
+    from src.utils import workspace_client
+    from src.persist_data import upload_verified
+    from src.verify import source_digest
+    dirty=subprocess.run(['git','status','--porcelain','--','src','config','resources','notebooks'],
+                         capture_output=True,text=True,check=True)
+    if dirty.stdout: raise ValueError('Commit scientific code and recipes before submission')
+    if phase not in ('gate','steering'): raise ValueError('Unknown execution phase')
+    if phase=='steering' and not all([gate_output,comparison_inputs,adapter_directory]):
+        raise ValueError('Steering requires a qualified saved gate and verified comparison artifacts')
+    s=Settings.load();w=workspace_client(s);config=configuration()
+    now=dt.datetime.now(dt.timezone.utc);key=uuid.uuid4().hex
+    seconds=config['bounds']['gate_whole_seconds' if phase=='gate' else 'matched_comparison_whole_seconds']
+    root=s.volume_root+'/runs/combined_validation/'+now.strftime('%Y%m%dT%H%M%SZ')+'_'+key[:8]
+    a={'format':'research3-combined-validation-admission-v1','phase':phase,'submitted_utc':now.isoformat(),
+       'absolute_end_utc':(now+dt.timedelta(seconds=seconds)).isoformat(),'output':root,
+       'packet_zip':packet_zip,'packet_sha256':packet_sha256,'protocol_sha256':sha256(ROOT/'config/matched_validation.yaml'),
+       'source_digest':source_digest(),'Free_Edition_only':True,'automatic_retries':0,
+       'gate_output':gate_output,'comparison_inputs':comparison_inputs,'adapter_directory':adapter_directory}
+    admission=root+'_ADMISSION.json';upload_verified(w,admission,(json.dumps(a,indent=2)+'\n').encode())
+    local=s.output_root/('combined_validation_'+key)
+    write_json(local/'ADMISSION.json',a)
+    try:
+        run=w.jobs.run_now(job_id=job_id,idempotency_token=key,job_parameters={
+            'catalog':s.catalog,'schema':s.schema,'volume':s.volume,'code_path':s.code_path,'admission':admission})
+    except Exception as error:
+        write_json(local/'SUBMISSION_FAILED.json',{'type':type(error).__name__,'message':str(error)[:700],
+                   'scientific_execution_not_inferred':True,'automatic_retry':False})
+        raise
+    result={'run_id':run.run_id,'job_id':job_id,'admission':admission,'output':root,'phase':phase,
+            'absolute_end_utc':a['absolute_end_utc'],'idempotency_token':key}
+    write_json(local/'SUBMITTED.json',result);return result
+
+
 def main():
-    p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','gate','compare'])
+    p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','gate','compare','submit'])
     p.add_argument('--dev9-root');p.add_argument('--native-archive');p.add_argument('--output');p.add_argument('--admission')
+    p.add_argument('--job-id',type=int);p.add_argument('--packet');p.add_argument('--packet-sha256')
+    p.add_argument('--phase',choices=['gate','steering'],default='gate');p.add_argument('--gate-output')
+    p.add_argument('--comparison-inputs');p.add_argument('--adapter-directory')
     a=p.parse_args()
-    result=prepare(a.dev9_root,a.native_archive,a.output) if a.stage=='prepare' else run_gate(a.admission) if a.stage=='gate' else compare(a.admission)
+    if a.stage=='submit':
+        if not all([a.job_id,a.packet,a.packet_sha256]):p.error('Submission needs job ID and verified private packet identity')
+        result=submit(a.job_id,a.packet,a.packet_sha256,a.phase,a.gate_output,a.comparison_inputs,a.adapter_directory)
+    else:result=prepare(a.dev9_root,a.native_archive,a.output) if a.stage=='prepare' else run_gate(a.admission) if a.stage=='gate' else compare(a.admission)
     print(json.dumps(result));return result
 
 if __name__=='__main__':main()
