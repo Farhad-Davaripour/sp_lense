@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-18T17:12:49.268663+00:00",
+  "recorded_utc": "2026-10-18T17:37:52.800698+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -14,22 +14,24 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 194739,
-    "sha256": "b24a8577499bf990d60386693c5738a241b6724e09c4f23e35ee94e6984bd7c3",
+    "bytes": 195187,
+    "sha256": "f2326a30cb0e683804ef0e1d3369f83190620ec447f40701a66128fddbb7e59e",
     "track_revisions_enabled": true,
-    "tracked_insertions_body": 182,
-    "tracked_deletions_body": 64,
+    "tracked_insertions_body": 187,
+    "tracked_deletions_body": 70,
     "visual_review": {
-      "markup_pages": 18,
+      "markup_pages": 19,
       "accepted_view_pages": 15,
-      "all_pages_reviewed": false,
-      "short_tables_kept_together": true
-    }
+      "all_pages_reviewed": true,
+      "short_tables_kept_together": true,
+      "audit_sha256": "17b486b511ead7b5743a07ca15f675530eddb903374ceffdb36c9464d7ea8149"
+    },
+    "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained."
   },
   "results": {
     "file": "results.json",
-    "bytes": 41671,
-    "sha256": "fcd533c3cc7df8ed4f2441c4047c135d6a41e5f18c3f77d684d40cdca5086ade"
+    "bytes": 49614,
+    "sha256": "913c03afdbe6f164e995259383dfdb36b11b37da95a881a88c437adec0f6cb65"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -239,6 +241,24 @@
       "bytes": 128,
       "sha256": "e8935fae8c5d61f29298e210de94d273cbe3fa52751a0b406007ed6272b5ad76",
       "availability": "private retained artifact; aggregate findings in results.json"
+    },
+    "matched_validation24_DERIVATION.json": {
+      "filename": "DERIVATION.json",
+      "bytes": 3660,
+      "sha256": "e3f9b03361da70b11b6e2d5b15d0e08c0951c9cff7c4bfa6e82e385977de2dd4",
+      "availability": "private derived report with stopped original receipts preserved"
+    },
+    "matched_validation24_PAPER_AGGREGATES.json": {
+      "filename": "PAPER_AGGREGATES.json",
+      "bytes": 6900,
+      "sha256": "30e4f07893df3d9b32da6708d5ea1094e22f304066ae2bbdf552fc3195b7bac0",
+      "availability": "private derived report with stopped original receipts preserved"
+    },
+    "matched_validation24_COMPARISON.json": {
+      "filename": "COMPARISON.json",
+      "bytes": 2153,
+      "sha256": "73150f3ea2653d9aef2f74912d54cc93b6c7c16fd9bcb3c3391cc73995520df3",
+      "availability": "private derived report with stopped original receipts preserved"
     }
   },
   "recipe_files": {
@@ -258,8 +278,8 @@
       "identity": "canonical Git blob"
     },
     "config/reproduction.yaml": {
-      "bytes": 3349,
-      "sha256": "b67b22249dd530a08d3523881a7c4ba648e10d2bf2c953dfbed596c93a0df6bd",
+      "bytes": 3649,
+      "sha256": "8bdaf1c627de869e5398817616455a86303d48739155fd4e4ea008b04cc24846",
       "identity": "canonical Git blob"
     },
     "config/workflow_classifier_data.yaml": {
@@ -346,11 +366,21 @@
       "bytes": 9626,
       "sha256": "bd658d84b20b838c2e05c7213a21c6f89b2fac5ee821eb17e6f8eba64bdc3222",
       "identity": "canonical Git blob"
+    },
+    "src/fallback_summary.py": {
+      "bytes": 5694,
+      "sha256": "4c5dc15d936b935f9bb7005a9c3820def0048e3e712c675c81c448215ddc4670",
+      "identity": "canonical Git blob"
+    },
+    "src/reference_inputs.py": {
+      "bytes": 4655,
+      "sha256": "d4cf307e7ad9ea4ec124832cec52ddb1e52f769fe393ef9d3d7a5bb64df339bc",
+      "identity": "canonical Git blob"
     }
   },
   "working_branch": "codex/research3-open-gates-paper",
-  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/72",
-  "manuscript_readiness": "Tracked review draft; native workflow-classifier substitution unresolved.",
+  "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/76",
+  "manuscript_readiness": "Revised paper and aggregate results complete for the executed scope. Familiar benchmarks, incomplete small-model screens, private checkpoint availability and stopped fingerprint checks are disclosed.",
   "execution_sources": {
     "clean_clone_binary_fit": "a1b46924a651fa838b94c408ca010169702b98c4",
     "clean_clone_binary_inference": "dfd954a70a4eed383c345454610dc64db90d6b7f",
@@ -358,7 +388,9 @@
     "native_initial_v1": "30f7592988624fca836a8c433c1b93496463717d",
     "native_initial_role": "144210a6159d8c0c4e5f1e7bc9276611f73f85bd",
     "unexecuted_longer_dose": "a6b3f7b9270e3c14d368c91dd6a0665145d7a739",
-    "combined_validation_gate": "fc778f77ee871bffc8fd81fba55b9e722b228aaf"
+    "combined_validation_gate": "fc778f77ee871bffc8fd81fba55b9e722b228aaf",
+    "combined_validation_27b": "6e3cb97490b5cb19a80eb85cb347081c4cc68e0c",
+    "startup_remedy": "Direct AI Runtime resolved the pre-model notebook startup failure. Actual gate results and the stopped matched-run disposition are recorded separately."
   },
   "combined_validation_preparation": {
     "format": "Validation-24",
@@ -379,7 +411,7 @@
     "gate_run_id": 256704505087656,
     "bronze_validation_records_verified": 24,
     "owned_job_terminated_verified": true,
-    "startup_remedy": "The isolated GPU notebook repeated the empty-domain error. Direct AI Runtime succeeded on A10G in run 233638593682817 without model loads. The matched GPU tasks now use that transport; scientific outcomes still pending."
+    "startup_remedy": "The isolated GPU notebook repeated the empty-domain error. Direct AI Runtime succeeded on A10G in run 233638593682817 without model loads. The matched GPU tasks now use that transport; actual gate and stopped matched-comparison outcomes are recorded in the aggregate results."
   },
   "combined_validation_execution_receipts": {
     "GATE_STOP_STATE.json": {
@@ -410,5 +442,26 @@
     "frozen_weights_unchanged": true,
     "additional_optimizer_updates": 0,
     "historical_H24_independently_unseen": false
+  },
+  "matched_validation24_disposition": {
+    "GPU_run_id": 875250819325259,
+    "GPU_result": "FAILED",
+    "worker_records": 118,
+    "physical_episodes_completed": 68,
+    "derived_shared_control_aliases": 2,
+    "final_model_fingerprint_completed": false,
+    "originals_modified": false,
+    "model_free_derivation_entrypoint": "python -m src.fallback_summary --help",
+    "derived_report_archive": {
+      "bytes": 1212959,
+      "sha256": "7aadbc4ff4e9d5bd37bc9b4036eb58c5951e180e76e5fcd6f43483e4d39d6a18"
+    },
+    "private_Volume_backup_verified": true
+  },
+  "metadata_compatibility": {
+    "binary_NLI_pairs_unchanged": 896,
+    "workflow_NLI_pairs_unchanged": 228,
+    "retained_evidence_replay_verified": true,
+    "private_original_bytes_unchanged": true
   }
 }

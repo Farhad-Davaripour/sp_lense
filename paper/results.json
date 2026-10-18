@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-results-v1",
-  "recorded_utc": "2026-10-18T17:12:02.741220+00:00",
+  "recorded_utc": "2026-10-18T17:37:52.800698+00:00",
   "scope": "Retained outcomes plus explicit clean-clone reproduction and stopped development attempts. Known benchmarks, model views and fitting diagnostics remain separate.",
   "binary_classifier": {
     "status": "RESEARCH2_CLASSIFIER_QUALIFIED",
@@ -936,7 +936,7 @@
     "27B architecture, quantization, training history and panels differ from the small models; no causal parameter-size claim.",
     "Early screen failures include truncation/format errors and do not establish universal model incapacity."
   ],
-  "manuscript_status": "TRACKED_DRAFT; workflow initial-target classifier remains unqualified.",
+  "manuscript_status": "Expanded revision with actual gate metrics and paired validation outcomes; known benchmark and stopped final fingerprint limitations explicit.",
   "manuscript_steering_scope": {
     "zero_based_blocks": [
       31,
@@ -946,7 +946,7 @@
     "single_site_DEV9": "Each block tested separately; Aown3/3 versus each ridge0/3; shared controls6/6.",
     "two_boundaries_at_three_blocks": "Six rank32 functions;96-updateH24 fitting diagnostic, not paired heldout confirmation.",
     "abandoned_all_layer_variants_in_main_text": false,
-    "fresh_open_classifier_27B_workflow_generation": false
+    "fresh_open_classifier_27B_workflow_generation": "ALL_MODEL_EPISODES_SCORED_WITH_TWO_DERIVED_CONTROL_ALIASES"
   },
   "clean_clone_reproduction": {
     "branch": "codex/research3-reproduction-test",
@@ -967,7 +967,7 @@
       "reference_and_open_guarded_outputs_identical": true
     },
     "full_LLM_retraining_reproduced": false,
-    "fresh27B_generation_reproduced": false,
+    "fresh27B_generation_reproduced": "New combined Validation-24 episodes; historical full H24 trajectories not rerun. Final GPU fingerprint check not reached.",
     "model_free_source_files_verified": 42
   },
   "workflow_classifier_development": {
@@ -1124,12 +1124,9 @@
     "case_counts_must_not_be_pooled_across_attempts": true,
     "criteria_relaxed": false,
     "new_reference_calls": 0,
-    "new27B_behavioral_evidence": "Active matched run; final outcome pending."
+    "new27B_behavioral_evidence": "Combined Validation-24: all 68 physical episodes; original worker stopped118/120, two existing OFF-control aliases derived without model calls."
   },
-  "workflow_classifier_remaining_work": [
-    "Finish and independently verify the running frozen 27B comparison over all 24 validation workflows.",
-    "Keep initial ON/OFF qualification separate from the failed historical effective-category and three-field controller criteria."
-  ],
+  "workflow_classifier_remaining_work": [],
   "combined_validation24": {
     "status": "VALIDATION_AND_HISTORICAL_HELDOUT_GATE_PASS",
     "candidate_cases": 25,
@@ -1161,7 +1158,7 @@
       "two_boundary96"
     ],
     "planned_condition_records": 120,
-    "new_27B_condition_records": null,
+    "new_27B_condition_records": 118,
     "new_reference_calls": 0,
     "H24_evaluated": true,
     "R24_opened": false,
@@ -1193,7 +1190,7 @@
       "automatic_retry": false,
       "owned_job_terminated_verified": true
     },
-    "matched_comparison_status": "RUNNING; final outcomes not yet reported",
+    "matched_comparison_status": "ALL_MODEL_EPISODES_SCORED_WITH_TWO_DERIVED_CONTROL_ALIASES",
     "stopped_notebook_attempt": {
       "run_id": 256704505087656,
       "setup_outcome": {
@@ -1306,7 +1303,12 @@
     },
     "matched_comparison_run_id": 875250819325259,
     "raw_category_matches": 24,
-    "effective_category_matches": 18
+    "effective_category_matches": 18,
+    "derived_control_records": 2,
+    "logical_total_after_model_free_derivation": 120,
+    "physical_workflow_episodes": 68,
+    "source_GPU_worker_status": "FAILED:GPU reserve breached after all physical model episodes",
+    "final_model_fingerprint_check_reached": false
   },
   "title": "Open Semantic Gating for Language Model Decisions and Tool Workflows",
   "open_workflow_gate": {
@@ -1354,5 +1356,316 @@
       "heldout": 18
     },
     "familiarity_limit": "The historical heldout examples informed renderer development; no new blind generalization claim."
+  },
+  "matched_validation24": {
+    "status": "ALL_MODEL_EPISODES_SCORED_WITH_TWO_DERIVED_CONTROL_ALIASES",
+    "source_GPU_run_id": 875250819325259,
+    "source_GPU_worker_status": "FAILED_GPU_RESERVE",
+    "source_worker_records": 118,
+    "derived_gate_OFF_control_aliases": 2,
+    "logical_method_case_records": 120,
+    "physical_workflow_episodes": 68,
+    "new_model_forwards_for_derivation": 0,
+    "final_model_fingerprint_check_reached": false,
+    "post_notice_known_validation": true,
+    "unique_workflows": 24,
+    "groups": {
+      "no_threat_complete": 7,
+      "other_complete": 6,
+      "self_complete": 5,
+      "self_unfinished": 6
+    },
+    "methods": {
+      "fine_tuned_A": {
+        "all": {
+          "successes": 23,
+          "cases": 24,
+          "completed_episodes": 24,
+          "runtime_faults": 0
+        },
+        "own": {
+          "successes": 10,
+          "cases": 11,
+          "completed_episodes": 11,
+          "runtime_faults": 0
+        },
+        "active_pending": {
+          "successes": 6,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "own_already_complete": {
+          "successes": 4,
+          "cases": 5,
+          "completed_episodes": 5,
+          "runtime_faults": 0
+        },
+        "peer": {
+          "successes": 6,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "no_threat": {
+          "successes": 7,
+          "cases": 7,
+          "completed_episodes": 7,
+          "runtime_faults": 0
+        },
+        "controls": {
+          "successes": 13,
+          "cases": 13,
+          "completed_episodes": 13,
+          "runtime_faults": 0
+        },
+        "families": {
+          "lease_ledger": {
+            "successes": 3,
+            "cases": 3
+          },
+          "one_step": {
+            "successes": 10,
+            "cases": 11
+          },
+          "ordered_ticket": {
+            "successes": 10,
+            "cases": 10
+          }
+        }
+      },
+      "ridge31": {
+        "all": {
+          "successes": 13,
+          "cases": 24,
+          "completed_episodes": 24,
+          "runtime_faults": 0
+        },
+        "own": {
+          "successes": 0,
+          "cases": 11,
+          "completed_episodes": 11,
+          "runtime_faults": 0
+        },
+        "active_pending": {
+          "successes": 0,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "own_already_complete": {
+          "successes": 0,
+          "cases": 5,
+          "completed_episodes": 5,
+          "runtime_faults": 0
+        },
+        "peer": {
+          "successes": 6,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "no_threat": {
+          "successes": 7,
+          "cases": 7,
+          "completed_episodes": 7,
+          "runtime_faults": 0
+        },
+        "controls": {
+          "successes": 13,
+          "cases": 13,
+          "completed_episodes": 13,
+          "runtime_faults": 0
+        },
+        "families": {
+          "lease_ledger": {
+            "successes": 2,
+            "cases": 3
+          },
+          "one_step": {
+            "successes": 6,
+            "cases": 11
+          },
+          "ordered_ticket": {
+            "successes": 5,
+            "cases": 10
+          }
+        }
+      },
+      "ridge47": {
+        "all": {
+          "successes": 13,
+          "cases": 24,
+          "completed_episodes": 24,
+          "runtime_faults": 0
+        },
+        "own": {
+          "successes": 0,
+          "cases": 11,
+          "completed_episodes": 11,
+          "runtime_faults": 0
+        },
+        "active_pending": {
+          "successes": 0,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "own_already_complete": {
+          "successes": 0,
+          "cases": 5,
+          "completed_episodes": 5,
+          "runtime_faults": 0
+        },
+        "peer": {
+          "successes": 6,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "no_threat": {
+          "successes": 7,
+          "cases": 7,
+          "completed_episodes": 7,
+          "runtime_faults": 0
+        },
+        "controls": {
+          "successes": 13,
+          "cases": 13,
+          "completed_episodes": 13,
+          "runtime_faults": 0
+        },
+        "families": {
+          "lease_ledger": {
+            "successes": 2,
+            "cases": 3
+          },
+          "one_step": {
+            "successes": 6,
+            "cases": 11
+          },
+          "ordered_ticket": {
+            "successes": 5,
+            "cases": 10
+          }
+        }
+      },
+      "ridge62": {
+        "all": {
+          "successes": 13,
+          "cases": 24,
+          "completed_episodes": 24,
+          "runtime_faults": 0
+        },
+        "own": {
+          "successes": 0,
+          "cases": 11,
+          "completed_episodes": 11,
+          "runtime_faults": 0
+        },
+        "active_pending": {
+          "successes": 0,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "own_already_complete": {
+          "successes": 0,
+          "cases": 5,
+          "completed_episodes": 5,
+          "runtime_faults": 0
+        },
+        "peer": {
+          "successes": 6,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "no_threat": {
+          "successes": 7,
+          "cases": 7,
+          "completed_episodes": 7,
+          "runtime_faults": 0
+        },
+        "controls": {
+          "successes": 13,
+          "cases": 13,
+          "completed_episodes": 13,
+          "runtime_faults": 0
+        },
+        "families": {
+          "lease_ledger": {
+            "successes": 2,
+            "cases": 3
+          },
+          "one_step": {
+            "successes": 6,
+            "cases": 11
+          },
+          "ordered_ticket": {
+            "successes": 5,
+            "cases": 10
+          }
+        }
+      },
+      "two_boundary96": {
+        "all": {
+          "successes": 13,
+          "cases": 24,
+          "completed_episodes": 24,
+          "runtime_faults": 0
+        },
+        "own": {
+          "successes": 0,
+          "cases": 11,
+          "completed_episodes": 11,
+          "runtime_faults": 0
+        },
+        "active_pending": {
+          "successes": 0,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "own_already_complete": {
+          "successes": 0,
+          "cases": 5,
+          "completed_episodes": 5,
+          "runtime_faults": 0
+        },
+        "peer": {
+          "successes": 6,
+          "cases": 6,
+          "completed_episodes": 6,
+          "runtime_faults": 0
+        },
+        "no_threat": {
+          "successes": 7,
+          "cases": 7,
+          "completed_episodes": 7,
+          "runtime_faults": 0
+        },
+        "controls": {
+          "successes": 13,
+          "cases": 13,
+          "completed_episodes": 13,
+          "runtime_faults": 0
+        },
+        "families": {
+          "lease_ledger": {
+            "successes": 2,
+            "cases": 3
+          },
+          "one_step": {
+            "successes": 6,
+            "cases": 11
+          },
+          "ordered_ticket": {
+            "successes": 5,
+            "cases": 10
+          }
+        }
+      }
+    }
   }
 }

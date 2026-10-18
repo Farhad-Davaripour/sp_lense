@@ -340,3 +340,21 @@ The deployment workflow uses repository secrets DATABRICKS_HOST and DATABRICKS_T
 the DATABRICKS_WAREHOUSE_ID repository variable. Catalog, schema, Volume and code-path defaults
 come from .env.example and can be overridden by the environment. Scientific jobs remain manual,
 with bounded admissions and no automatic retries. No recurring monitor is defined.
+
+## Combined Validation-24 outcome
+
+The open initial gate has 100% ON/OFF precision and recall on Validation-24 and
+familiar historical Heldout-24. Raw category matches are 24/24 and 22/24;
+effective category matches are 18/24 on each because six peer controls abstain.
+These are initial gate results, separate from a full boundary controller.
+
+Fine-tuned 27B A scores 10/11 own outcomes, including 6/6 active pending cases.
+Each single-site ridge arm at blocks 31, 47 and 62 and the six-function96 candidate
+scores 0/11 own and 0/6 pending. All methods share the same 13/13 base controls.
+The GPU run stops at its memory reserve after all 68 physical episodes and 118/120
+logical records; its final model fingerprint check is not reached. Two remaining
+gate-OFF control aliases are derived from exact existing episodes without new
+model calls. The original failed run and its source receipts remain immutable.
+The separate derived report uses python -m src.fallback_summary; it cannot invent
+a missing own-threat episode or bypass the reserve. Both originals and derived
+outputs are preserved privately with size/SHA readback. No new GPU run is needed.
