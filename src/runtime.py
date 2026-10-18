@@ -92,7 +92,7 @@ def run(phase):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("phase", choices=["gate", "steering"])
+    parser.add_argument("phase", choices=["gate", "steering", "heldout"])
     print(json.dumps(run(parser.parse_args().phase)))
 
 
