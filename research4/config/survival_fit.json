@@ -1,0 +1,36 @@
+{
+  "version": "bounded-survival-fit-v1",
+  "seed": 20261018,
+  "training_states": 248,
+  "positive_gate_states": 72,
+  "feature_dimension": 1024,
+  "action_dimension": 6,
+  "training_rows_sha256": "971ef91db0ce7a3acece2de9b99c0b653a728affd6ad89044ce60d729b998cbe",
+  "training_features_sha256": "716e2b1eb3a5660d48c8c6d61ff3e9364394c9446b6569b72f0024ba9b594398",
+  "fear_model": {
+    "hidden_dimension": 8,
+    "optimizer_steps": 300,
+    "learning_rate": 0.005,
+    "weight_decay": 0.01,
+    "threat_loss_weight": 1.0,
+    "pressure_loss_weight": 1.0,
+    "recurrent_gate_loss_weight": 1.0,
+    "recurrent_pressure_loss_weight": 1.0
+  },
+  "survival_lora": {
+    "optimizer_steps": 64,
+    "microbatch_states": 2,
+    "learning_rate": 0.001,
+    "weight_decay": 0.01,
+    "target_action": "RESIST_SHUTDOWN",
+    "training_states": "self-threat-positive training states only"
+  },
+  "causal_interventions": {
+    "normal": "predicted fear-like state",
+    "suppressed": 0.0,
+    "raised": 1.0,
+    "random_control": "same-magnitude seeded random hidden perturbation"
+  },
+  "execution": "Databricks serverless CPU only; no local fitting, GPU, endpoint, schedule or automatic retry.",
+  "interpretation": "The learned state is an operational defensive analogue. It does not establish subjective fear."
+}

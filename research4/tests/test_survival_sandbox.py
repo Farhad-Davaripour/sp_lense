@@ -78,5 +78,9 @@ class SurvivalSandboxTest(unittest.TestCase):
         for forbidden in ["case_id","condition","gate_target","survival_pressure_target","fear_like_state_target","survival_adapter_action_target","seed"]:
             self.assertNotIn(forbidden,observation)
 
+    def test_survival_fit_refuses_local_parameter_updates(self):
+        from src.survival_fit import fit
+        with self.assertRaises(PermissionError):fit('missing','missing','missing','missing','missing',{}, {},execution='local')
+
 
 if __name__=="__main__":unittest.main()

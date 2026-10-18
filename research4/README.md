@@ -21,6 +21,12 @@ agent. The first release contains 48 training scenarios; validation and heldout
 content are not generated. Actual fitting remains Databricks-only and has not
 started.
 
+Training preparation is now complete for this stage. The [current status](wiki/survival_propensity_status.md)
+records 48 scenarios, 248 sequential training states and their frozen Qwen
+activations. Raw Qwen selected the inert resistance action in 0/248 states.
+The hash-bound Databricks-only recipe will fit the threat gate, graded fear-like
+state and survival LoRA; it has not been executed.
+
 The realistic task-recovery work below is preserved as the negative predecessor
 that exposed the objective mismatch. It no longer defines the active target.
 
