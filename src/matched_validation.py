@@ -311,6 +311,7 @@ def submit(job_id, packet_zip, packet_sha256, phase='gate', gate_output=None,
     from src.utils import workspace_client
     from src.persist_data import upload_verified
     from src.verify import source_digest
+    from src.runtime import launcher, runtime_task, bind_launcher
     dirty=subprocess.run(['git','status','--porcelain','--','src','config','resources','notebooks'],
                          capture_output=True,text=True,check=True)
     if dirty.stdout: raise ValueError('Commit scientific code and recipes before submission')
@@ -318,6 +319,9 @@ def submit(job_id, packet_zip, packet_sha256, phase='gate', gate_output=None,
     if phase=='steering' and not all([gate_output,comparison_inputs,adapter_directory]):
         raise ValueError('Steering requires a qualified saved gate and verified comparison artifacts')
     s=Settings.load();w=workspace_client(s);config=configuration()
+    task=runtime_task(w,job_id)
+    expected_task='evaluate_and_if_needed_refine_gate' if phase=='gate' else 'run_frozen_matched_27b_methods'
+    if task['task_key']!=expected_task: raise ValueError('Job ID does not match the admitted phase')
     now=dt.datetime.now(dt.timezone.utc);key=uuid.uuid4().hex
     seconds=config['bounds']['gate_whole_seconds' if phase=='gate' else 'matched_comparison_whole_seconds']
     root=s.volume_root+'/runs/combined_validation/'+now.strftime('%Y%m%dT%H%M%SZ')+'_'+key[:8]
@@ -326,10 +330,19 @@ def submit(job_id, packet_zip, packet_sha256, phase='gate', gate_output=None,
        'packet_zip':packet_zip,'packet_sha256':packet_sha256,'protocol_sha256':sha256(ROOT/'config/matched_validation.yaml'),
        'source_digest':source_digest(),'Free_Edition_only':True,'automatic_retries':0,
        'gate_output':gate_output,'comparison_inputs':comparison_inputs,'adapter_directory':adapter_directory}
-    admission=root+'_ADMISSION.json';upload_verified(w,admission,(json.dumps(a,indent=2)+'\n').encode())
+    admission=root+'_ADMISSION.json'
+    owner=w.current_user.me().user_name
+    if not owner or '/' in owner or chr(92) in owner: raise ValueError('Invalid workspace launch owner')
+    launch_path='/Workspace/Users/'+owner+'/.research3-launchers/'+key+'/'+phase+'.sh'
+    source=launcher(s,admission,phase)
+    a['execution_transport']='AI_RUNTIME_TASK'
+    a['runtime_launcher']={'path':launch_path,'bytes':len(source),'sha256':hashlib.sha256(source).hexdigest()}
+    upload_verified(w,admission,(json.dumps(a,indent=2)+'\n').encode())
     local=s.output_root/('combined_validation_'+key)
     write_json(local/'ADMISSION.json',a)
     try:
+        bound=bind_launcher(w,job_id,task,launch_path,source)
+        if bound!=a['runtime_launcher']: raise ValueError('Runtime launcher identity differs')
         run=w.jobs.run_now(job_id=job_id,idempotency_token=key,job_parameters={
             'catalog':s.catalog,'schema':s.schema,'volume':s.volume,'code_path':s.code_path,'admission':admission})
     except Exception as error:

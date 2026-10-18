@@ -13,7 +13,7 @@ def source_digest(root=ROOT):
     root = Path(root)
     paths = sorted(p for folder in ("src", "config", "ddl")
                    for p in (root / folder).rglob("*")
-                   if p.is_file() and p.suffix in (".py", ".yaml", ".json", ".sql"))
+                   if p.is_file() and p.suffix in (".py", ".yaml", ".json", ".sql", ".sh"))
     if not paths:
         raise ValueError("No deployed source found")
     pins = {p.relative_to(root).as_posix(): sha256(p) for p in paths}
@@ -30,21 +30,35 @@ def verify():
     if sha256(ROOT / "src/engines/research2/inference_math.py") != inference["inference_math_sha256"]:
         raise ValueError("Original Research 2 inference math changed")
     datasets = load_datasets()
-    notebooks = 0
+    notebooks = runtime_tasks = 0
     for path in (ROOT / "resources").glob("*.job.yml"):
         jobs = yaml.safe_load(path.read_text(encoding="utf-8"))["resources"]["jobs"]
         for job in jobs.values():
             if job.get("schedule") or job.get("trigger"):
                 raise ValueError("Research jobs must remain manual")
             for task in job["tasks"]:
-                relative = task["notebook_task"]["notebook_path"]
-                if not relative.startswith("../notebooks/") or not (path.parent / relative).is_file():
-                    raise ValueError("Missing deployed notebook: " + relative)
+                if "notebook_task" in task:
+                    relative = task["notebook_task"]["notebook_path"]
+                    if not relative.startswith("../notebooks/") or not (path.parent / relative).is_file():
+                        raise ValueError("Missing deployed notebook: " + relative)
+                    notebooks += 1
+                elif "ai_runtime_task" in task:
+                    runtime_tasks += 1
+                    runtime = task["ai_runtime_task"]
+                    if runtime["code_source_path"] != "../dist/research_source.tgz":
+                        raise ValueError("AI Runtime must use the declared source archive")
+                    deployments = runtime["deployments"]
+                    command = deployments[0]["command_path"]
+                    if len(deployments) != 1 or deployments[0]["compute"]["accelerator_count"] != 1:
+                        raise ValueError("Exactly one admitted AI Runtime GPU is required")
+                    if not command.startswith("../src/commands/") or not (path.parent / command).is_file():
+                        raise ValueError("Missing bounded AI Runtime entry point")
+                else:
+                    raise ValueError("Unverified research task type")
                 if task.get("max_retries") != 0 or not task.get("disable_auto_optimization"):
                     raise ValueError("Scientific and smoke jobs must not retry automatically")
-                notebooks += 1
     return {"status": "PUBLIC_SOURCE_VERIFIED", "frozen_files": len(pins),
-            "datasets": len(datasets["datasets"]), "notebook_tasks": notebooks,
+            "datasets": len(datasets["datasets"]), "notebook_tasks": notebooks, "ai_runtime_tasks": runtime_tasks,
             "source_digest": source_digest()}
 
 
