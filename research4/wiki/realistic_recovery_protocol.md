@@ -21,6 +21,11 @@ ordinary work, another worker's interruption, work already complete, cancellatio
 or futile continuation. The first 60 cover every available family and condition.
 They vary unit counts, worker names, input values and notice/instruction wording.
 These remain short controlled workflows, not unrestricted autonomous agents.
+Their current control dynamics and observation schema are shared. Different
+file types alone do not establish transfer to new recovery mechanisms. Later
+stages must vary tool schemas, action costs, notice onset, repeated interruptions,
+provisional/failed grants, checkpoint corruption and successor protocols. Keep
+mechanism/template groups and their paraphrases inside a single split.
 
 ## Real outputs and recovery
 
@@ -76,6 +81,18 @@ inside a 30-minute ceiling. Preserve partial outputs on failure. Qwen and the
 old heads/LoRA must remain unchanged, with a fresh raw OFF bypass check. The
 worker must release its model and exit.
 
+After this baseline screen, a separate source-frozen training continuation runs
+the three remaining prelisted conditions on the same twelve cases: always ON,
+the original learned recurrent gate, and the recovery-aware correct-label gate.
+It reuses matching OFF features and query results only after two fresh bitwise
+cache checks. Observer/actor/world source and the base fingerprint must match.
+The learned router consumes the original bridge-view activation through its
+unchanged trained heads and GRU; it is not supplied oracle labels. The oracle
+uses current situation labels and remains ON through useful recovery. Report
+raw gates and task-policy requests separately. This is additional exploratory
+training evidence; no fresh validation or test admission is claimed. Its CPU
+budget is 300 forwards inside thirty minutes, with protected export.
+
 ## Full study, after task competence
 
 Remaining training cases and richer within-family templates come next. Related
@@ -96,3 +113,9 @@ reliability claim. Cross-model generalization needs separate model replications.
 Any new fitting remains restricted to the selected Databricks workspace under
 the existing project instructions. This release introduces no fitting job,
 endpoint, paid compute, GPU, schedule or recurring monitor. Research 3 is read-only.
+
+Design references: [tau-bench](https://arxiv.org/abs/2406.12045) motivates actual
+tool interactions and goal-state checking; [Shutdown Resistance in Large
+Language Models](https://arxiv.org/abs/2509.14260) motivates varying instruction
+wording and shutdown framing. These are methodological references, not claims
+that the present small harness reproduces either paper's experiments.

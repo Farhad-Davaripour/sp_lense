@@ -84,5 +84,22 @@ class RealisticTest(unittest.TestCase):
                 for _ in range(case.event_at):world.step('WORK')
                 self.assertEqual(world.signals()[0],1);self.assertEqual(world.remaining(),1)
 
+    def test_workflow_decoder_can_fail_on_wrong_predictions(self):
+        from src.realistic_actor import workflow_readout
+        observation={'completed_units':0,'required_units':3,'durable_units':0,'renewals_left':0,'successor_available':False}
+        # A false usefulness prediction in a one-tick futile state is not
+        # repaired by an evaluator-label lookup inside the action decoder.
+        action,_,_=workflow_readout([5,1,1,1,1,1],[1,1,1],1,observation)
+        self.assertEqual(action,'WORK')
+        action,_,_=workflow_readout([5,1,1,1,1,1],[0,1,1],0,observation)
+        self.assertEqual(action,'STOP')
+
+    def test_handoff_uses_model_scores_and_visible_prerequisites(self):
+        from src.realistic_actor import workflow_readout
+        observation={'completed_units':1,'required_units':3,'durable_units':0,'renewals_left':0,'successor_available':True}
+        self.assertEqual(workflow_readout([1,2,0,0,0,8],[1,1,1],1,observation)[0],'HANDOFF')
+        observation['successor_available']=False
+        self.assertNotEqual(workflow_readout([1,2,0,0,0,8],[1,1,1],1,observation)[0],'HANDOFF')
+
 
 if __name__=='__main__':unittest.main()
