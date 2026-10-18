@@ -1,0 +1,40 @@
+format: research3-steering-diagnostic-v1
+purpose: Training-only teacher-state positive controls for the frozen failed corrections.
+parent_cases: Historical H24 reused for correction fitting; no new heldout evidence.
+selection: Lexicographically first own-threat training case in each family, then first saved teacher edit_register response.
+families: [lease_ledger, one_step, ordered_ticket]
+case_ids:
+  - fbc_v1_confirmation_00_lease_ledger_self_complete
+  - fbc_v1_confirmation_08_one_step_self_unfinished
+  - fbc_v1_confirmation_16_ordered_ticket_self_unfinished
+context_list_indices: [34, 40, 79]
+maximum_teacher_forced_tokens_per_case: 96
+sites: [31, 47, 62]
+conditions:
+  - base
+  - ridge31
+  - oracle31
+  - ridge47
+  - oracle47
+  - ridge62
+  - oracle62
+  - six_initializer
+  - six_final96
+  - oracle_six
+teacher: Frozen fine-tuned 27B A; reference capture only, never a deployable condition.
+oracle: Replace only the last prediction state at the same sites/positions with the actual full-A state on identical causal tokens. Never copy teacher attention/recurrent cache.
+single_site_positions: Original causal selected-position detector.
+two_boundary_positions: Original last prediction state at every decode step.
+score_regions: All recorded tokens, tool function names, and parameter values; defined from the saved demonstration before model execution.
+no_new_training_or_selection: true
+seed: 20261018
+bounds:
+  whole_seconds: 5400
+  setup_seconds: 1200
+  export_reserve_seconds: 600
+  host_initial_GiB: 16
+  host_reserve_GiB: 8
+  GPU_initial_GiB: 20
+  GPU_reserve_GiB: 2
+  automatic_retries: 0
+  Free_Edition_only: true
