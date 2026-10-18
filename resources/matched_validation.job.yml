@@ -21,7 +21,16 @@ resources:
       - name: admission
         default: ''
       tasks:
+      - task_key: persist_frozen_validation24
+        notebook_task:
+          notebook_path: ../notebooks/matched_validation_data.py
+        environment_key: runtime
+        disable_auto_optimization: true
+        timeout_seconds: 300
+        max_retries: 0
       - task_key: evaluate_and_if_needed_refine_gate
+        depends_on:
+        - task_key: persist_frozen_validation24
         notebook_task:
           notebook_path: ../notebooks/matched_validation.py
         compute:

@@ -221,7 +221,8 @@ the separate ridge arms at blocks 31, 47 and 62, and the frozen six-function
 
 Two manual jobs implement the sequence:
 
-- `matched_validation` measures the frozen native ModernBERT gate against
+- `matched_validation` persists its immutable input version into the existing
+  Bronze validation table, then measures the frozen native ModernBERT gate against
   scenario-defined ON/OFF targets, then refines only on the separate F24 training
   examples if precision or recall is below 100%. Cutoffs are unchanged. It saves
   initial and selected metrics separately, including metrics over distinct input

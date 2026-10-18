@@ -129,7 +129,31 @@ def read_packet(path, expected_sha):
     for name,pin in manifest['files'].items():
         if len(raw[name])!=pin['bytes'] or hashlib.sha256(raw[name]).hexdigest()!=pin['sha256']:
             raise ValueError('Combined validation member changed')
+    spec=configuration()['data']
+    if (manifest['case_count']!=spec['expected_records'] or
+            hashlib.sha256(raw[spec['source_member']]).hexdigest()!=spec['sha256']):
+        raise ValueError('Packet is not the frozen Validation-24 definition')
     return {name:json.loads(data) for name,data in raw.items()}
+
+
+def persist_inputs(admission_path, spark):
+    """Append this immutable dataset version to the existing Bronze validation table."""
+    from src.persist_data import persist
+    a=json.loads(Path(admission_path).read_bytes());s=Settings.load();spec=configuration()['data']
+    packet=read_packet(a['packet_zip'],a['packet_sha256'])
+    with zipfile.ZipFile(a['packet_zip']) as z:raw=z.read(spec['source_member'])
+    prefix=f"{s.volume_root}/datasets/{spec['id']}/{spec['version']}/{spec['sha256']}"
+    source=prefix+'/source.json';rows=[]
+    for i,record in enumerate(packet[spec['source_member']]):
+        text=canonical(record)
+        rows.append({'dataset_id':spec['id'],'dataset_version':spec['version'],'cohort_code':'Validation-24',
+            'source_record_index':i,'record_id':record['id'],'source_file_sha256':spec['sha256'],
+            'record_sha256':hashlib.sha256(text.encode()).hexdigest(),'record_json':text,
+            'usage_roles_json':canonical([{'role':'known combined validation; no gradient updates','truth':'scenario conditions'}]),
+            'source_volume_path':source})
+    result=persist(s,[{'spec':spec,'raw':raw,'rows':rows,'source_volume':source,'records_volume':prefix+'/records.jsonl'}],spark=spark)
+    write_json(Path(a['output']+'_BRONZE_VERIFIED.json'),result)
+    return result
 
 
 def run_gate(admission_path):
