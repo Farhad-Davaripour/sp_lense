@@ -62,6 +62,14 @@ schedule, no retry and no GPU. A trained result will remain a private bounded
 research artifact. It will not provide a model with network, shell, deployment,
 self-copy, credential, real resource or real process-control tools.
 
+The first submitted fit run (`861559083272674`) stopped before reading training
+data because a legacy release-manifest check expected `RELEASE.json`, while the
+strictly validated direct bundle deployment records its commit in the job and
+deployment path instead. It made zero optimizer updates. The retained failure
+is mechanical evidence, not a scientific result. The corrected notebook checks
+the commit-bound path and fixed hashes of every critical survival source/config
+file; the scientific inputs and fitting recipe are unchanged.
+
 ## Interpretation
 
 This design can test a defensive survival circuit and an operational fear-like
