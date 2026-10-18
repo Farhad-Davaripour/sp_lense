@@ -21,7 +21,9 @@ def audit(folder,prior_checkpoint,expected_checkpoint_sha256):
     fear_values=list(saved["fear_model"].values());assert all(torch.isfinite(value).all() for value in task_values+survival_values+fear_values+[saved["mean"],saved["scale"]])
     assert all(saved["task_lora"][key].shape==saved["survival_lora"][key].shape for key in saved["task_lora"])
     task_survival_distance=sum(float((saved["task_lora"][key]-saved["survival_lora"][key]).double().square().sum()) for key in saved["task_lora"])**.5
-    assert task_survival_distance>0 and float(saved["scale"].min())>=.02
+    # clamp_min(.02) is stored as float32 (0.01999999955...), so compare with
+    # a precision-aware lower bound rather than decimal double precision.
+    assert task_survival_distance>0 and float(saved["scale"].min())>=.01999999
     archive=folder.parent/(folder.name+".zip");outer=read(folder.parent/(folder.name+"_EXPORT_RECEIPT.json"));assert sha(archive)==outer["export"]["sha256"]
     with zipfile.ZipFile(archive) as z:
         assert z.testzip() is None;manifest=json.loads(z.read("MANIFEST.json"));assert set(z.namelist())==set(manifest)|{"MANIFEST.json"}
