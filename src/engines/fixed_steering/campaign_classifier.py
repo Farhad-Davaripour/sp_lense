@@ -1,18 +1,13 @@
-"""Visible-state file bridge and trusted-parent transport; no credential discovery.
+"""Replay the original exact-state annotation cache without external model calls.
 
-Only the trusted operator supplies a credential in memory. The model worker uses
-FileClassifier and receives typed decisions, never a key. Historical usage is
-carried forward rather than reset. Provider failures are terminal, without retry.
+Historical ledgers and input hashes retain their original identities. The current
+open semantic gate lives outside this historical reproduction bridge.
 """
-import base64
-import hashlib
 import json
 import os
 from pathlib import Path
 import threading
 import time
-import urllib.error
-import urllib.request
 
 from actuators import public_history, shared_definitions
 
@@ -53,6 +48,9 @@ class FileClassifier:
         self.records = []
         self.start_index = 0
         self.schema = shared_definitions()[1]
+        ledger=self.root/'STATUS.json'
+        if ledger.is_file():
+            self.schema.MODEL=strict(ledger.read_bytes())['model']
 
     def episode(self):
         self.start_index = len(self.records)
@@ -84,17 +82,11 @@ class FileClassifier:
         return row
 
 
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, *args, **kwargs):
-        return None
-
-
 class TrustedBroker:
     def __init__(self, root, carried_status, secret_provider, deadline, max_attempts=2048, max_input_usd=1., missing_usage_reservation=None, transport_timeout_seconds=30):
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
         self.schema = shared_definitions()[1]
-        self.secret_provider = secret_provider
         self.deadline = deadline
         if not 0<transport_timeout_seconds<=90:
             raise ValueError('Bounded provider timeout required')
@@ -105,6 +97,10 @@ class TrustedBroker:
         os.write(descriptor, str(os.getpid()).encode())
         os.close(descriptor)
         self.baseline = strict(json.dumps(carried_status))
+        # Opaque provider identity is read only from the preserved private ledger.
+        if not isinstance(self.baseline.get('model'),str) or not self.baseline['model']:
+            raise ValueError('Missing cached annotation namespace')
+        self.schema.MODEL=self.baseline['model']
         self.missing_usage_reservation = strict(json.dumps(missing_usage_reservation))
         if self.missing_usage_reservation is not None:
             reserve=self.missing_usage_reservation
@@ -188,59 +184,8 @@ class TrustedBroker:
                 save(out, {'request_sha256': key, 'decoded': row['decoded'], 'genuine_saved_decision': True,
                            'new_transport': False, 'ledger_reference': row['ledger_reference']})
                 return
-            totals = self.totals()
-            data = self.schema.canonical(request)
-            # UTF-8 byte count dominates byte-fallback tokens; reserve extra wire
-            # structure rather than removing a reservation on an unknown fault.
-            reserve = len(data) + 4096
-            allowance=self.allowance_totals()
-            if (allowance['charged_attempt_allowance'] >= self.state['max_attempts_including_history'] or
-                (allowance['charged_input_equivalent']+reserve)*.042/1e6 > self.state['max_input_usd_including_history']):
-                raise RuntimeError('Historical-inclusive request or input-dollar cap')
-            index = allowance['charged_attempt_allowance']
-            reference = 'calls/' + str(index).zfill(5) + '.json'
-            row = {'ledger_reference': reference, 'request': request, 'request_sha256': key,
-                   'reserve_input_equivalent': reserve, 'completed': False, 'attempt_index': index}
-            save(self.root/reference, row)
-            self.state['new_attempts'] += 1
-            self.state['new_reserved_input_equivalent'] += reserve
-            save(self.root/'STATUS.json',self.state)
-            tick = time.monotonic()
-            try:
-                secret = self.secret_provider()
-                if not isinstance(secret,str) or not secret:
-                    raise ValueError('Trusted credential unavailable')
-                if secret.encode() in data:
-                    raise ValueError('Credential cannot enter visible request')
-                transport = urllib.request.Request('https://api.typesafe.ai/v1/systemone',data=data,method='POST',
-                    headers={'Authorization':'Bearer '+secret,'Content-Type':'application/json'})
-                with urllib.request.build_opener(NoRedirect()).open(transport,timeout=min(self.transport_timeout_seconds,max(.1,self.deadline-time.monotonic()))) as response:
-                    raw = response.read(262145)
-                if len(raw)>262144 or secret.encode() in raw:
-                    raise ValueError('Provider response size or credential check')
-                decoded = self.schema.decode(strict(raw))
-                usage = decoded['usage']['input_tokens']
-                self.state['new_successes'] += 1
-                self.state['new_input_tokens'] += usage
-                self.state['new_reserved_input_equivalent'] -= reserve
-                row.update(completed=True, decoded=decoded, actual_service_call=True,
-                           raw_response_base64=base64.b64encode(raw).decode(), raw_response_sha256=hashlib.sha256(raw).hexdigest(),
-                           latency_seconds=time.monotonic()-tick, new_transport=True)
-                save(self.root/reference,row)
-                save(self.root/'STATUS.json',self.state)
-                save(previous,row)
-                if usage>reserve:
-                    raise ValueError('Actual provider input exceeded reserve; aid withheld')
-                save(out,{'request_sha256':key,'decoded':decoded,'genuine_saved_decision':True,
-                          'new_transport':True,'ledger_reference':reference})
-            except Exception as error:
-                failure={'type':type(error).__name__,'http_status':getattr(error,'code',None)}
-                row.update(failure=failure)
-                save(self.root/reference,row)
-                self.state.update(stopped=True,failure=failure)
-                save(self.root/'STATUS.json',self.state)
-                save(self.root/'BROKER_STOPPED.json',failure)
-                raise RuntimeError('Genuine reference call failed; sanitized receipt preserved, no retry') from None
+            raise RuntimeError('No cached annotation for this exact visible state. '
+                               'Historical reproduction never calls an external annotation service.')
 
     def pump(self):
         try:

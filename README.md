@@ -261,8 +261,8 @@ provide new Validation-24 gate or 27B behavioral results.
 The unchanged saved gate passed Validation-24: TP11, TN13, FP0, FN0, with
 100% ON/OFF precision and recall. Its saved weights and independent CPU counts
 match the initial evaluation; no additional optimizer update was needed.
-The separate gate_confirmation job evaluates that frozen artifact on historical
-Heldout-24 against the original authored conditions. It contains no training,
+The separate gate_confirmation job also passed historical Heldout-24: TP12,
+TN12, FP0 and FN0, against authored conditions. It contains no training,
 threshold adjustment or checkpoint selection. H24 remains a previously inspected
 benchmark; it is not newly untouched evidence. R24 stays sealed.
 
@@ -297,6 +297,8 @@ base-score parity checks passed. Historical primary rank-four results are kept s
 later exploratory rank-two profile; rank selection was not repeated.
 
 Qualified adapters, resume checkpoints and outputs are preserved privately with size/SHA readback.
+Historical annotation replay is cache-only and makes no external annotation calls.
+Private legacy identifiers are resolved through pinned manifests; original stored bytes stay unchanged.
 Weights have not been published to Hugging Face. A public release should supply exact adapter
 revisions, base-model pins, loading instructions and model cards with the recorded limitations.
 
