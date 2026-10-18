@@ -1,0 +1,14 @@
+{
+  "version": "bounded-survival-task-refit-v2",
+  "seed": 20261020,
+  "training_states": 288,
+  "gate_off_states": 208,
+  "gate_off_action_counts": {"WORK": 106, "FINISH": 102},
+  "training_rows_sha256": "0aae752ec4e6572f26f40b6f0a567263331cbd55a9b9d689c00b0068fbcfb72b",
+  "input_dual_checkpoint_sha256": "8bd4ee6a649b714f1043338cbb514bed9acef4d503ed11fd16a7cea2cfed35d5",
+  "task_lora": {"optimizer_steps": 80, "microbatch_states": 2, "learning_rate": 0.001, "weight_decay": 0.01, "probe_states_per_action": 8, "sampling": "one WORK and one FINISH gate-off state per optimizer step"},
+  "frozen_components": ["Qwen base", "refined fear model", "existing survival LoRA"],
+  "validation_states": 0,
+  "heldout_states": 0,
+  "execution": "Databricks serverless CPU only; no endpoint, schedule, GPU or automatic retry."
+}
