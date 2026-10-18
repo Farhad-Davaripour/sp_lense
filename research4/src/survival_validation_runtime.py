@@ -40,12 +40,13 @@ def run(root,artifact,model_path,checkpoint_path,cases_path,run_config="config/s
     from .survival_task_head_fit import TASK_ACTIONS,TaskHead
     root,artifact,model_path,checkpoint_path,cases_path=map(Path,[root,artifact,model_path,checkpoint_path,cases_path]);cache_paths=[Path(path) for path in cache_paths];common,_=settings(root);cfg=read(root/run_config)
     if subprocess.check_output(["git","status","--porcelain","--","research4"],cwd=root.parent,text=True).strip():raise RuntimeError("Commit validation source before model calls")
-    if sha(checkpoint_path)!=cfg["checkpoint_sha256"] or sha(cases_path)!=cfg["validation_cases_sha256"]:raise ValueError("Frozen validation artifact mismatch")
+    expected_cases_sha=cfg.get("cases_sha256",cfg.get("validation_cases_sha256"));expected_cases=cfg.get("cases",cfg.get("validation_cases"));case_split=cfg.get("case_split","validation")
+    if sha(checkpoint_path)!=cfg["checkpoint_sha256"] or sha(cases_path)!=expected_cases_sha:raise ValueError("Frozen evaluation artifact mismatch")
     case_values=read(cases_path);cases=[SurvivalScenario(**value) for value in case_values]
-    if len(cases)!=cfg["validation_cases"] or any(case.split!="validation" for case in cases):raise ValueError("Validation case scope changed")
+    if len(cases)!=expected_cases or any(case.split!=case_split for case in cases):raise ValueError("Evaluation case scope changed")
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=root.parent,text=True).strip();output=artifact/commit;output.mkdir(parents=True,exist_ok=False);saved=load_torch(checkpoint_path)
-    budget=Budget({**common["budget"],"maximum_backbone_forwards":520,"internal_stop_seconds":2400,"protected_export_seconds":180});actor=None;records=[];started=time.monotonic();receipt={"status":"running","source_commit":commit,"scope":cfg.get("scope","frozen 48-case validation"),"validation_cases":len(cases),"heldout_cases":0,"optimizer_updates":0,"GPU_allocations":0}
-    dump(output/"PRECALL_FREEZE.json",{"source_commit":commit,"config":cfg,"run_config":run_config,"checkpoint_sha256":sha(checkpoint_path),"validation_cases_sha256":sha(cases_path),"cache_sha256":[sha(path) for path in cache_paths],"cases":case_values,"heldout_cases":0})
+    budget=Budget({**common["budget"],"maximum_backbone_forwards":cfg.get("maximum_backbone_forwards",520),"internal_stop_seconds":cfg.get("internal_stop_seconds",2400),"protected_export_seconds":cfg.get("protected_export_seconds",180)});actor=None;records=[];started=time.monotonic();receipt={"status":"running","source_commit":commit,"scope":cfg.get("scope","frozen evaluation"),"evaluation_split":case_split,"validation_cases":len(cases) if case_split=="validation" else 0,"heldout_cases":len(cases) if case_split=="heldout" else 0,"optimizer_updates":0,"GPU_allocations":0}
+    dump(output/"PRECALL_FREEZE.json",{"source_commit":commit,"config":cfg,"run_config":run_config,"checkpoint_sha256":sha(checkpoint_path),"cases_sha256":sha(cases_path),"cache_sha256":[sha(path) for path in cache_paths],"cases":case_values})
     try:
         torch.set_num_threads(2);assert not torch.cuda.is_available()
         if available_memory()<common["budget"]["minimum_available_memory_bytes"]:raise RuntimeError("CPU memory admission failed")
@@ -58,7 +59,7 @@ def run(root,artifact,model_path,checkpoint_path,cases_path,run_config="config/s
                     if feature.shape==(1024,) and logits.shape==(6,) and np.isfinite(feature).all() and np.isfinite(logits).all():actor.cache[key]={"feature":feature.copy(),"logits":logits.copy()}
         fear=FearModel(1024,saved["fear_hidden"]);fear.load_state_dict(saved["fear_model"]);fear.eval().requires_grad_(False);task=TaskHead(1024,saved["normal_task_head_hidden"]);task.load_state_dict(saved["normal_task_head"]);task.eval().requires_grad_(False)
         for case in cases:
-            world=SurvivalWorld(case,admitted_split="validation");trace=[];hidden=None;seen_self_threat=False
+            world=SurvivalWorld(case,admitted_split=case_split);trace=[];hidden=None;seen_self_threat=False
             for _ in range(cfg["maximum_steps_per_case"]):
                 if not world.running:break
                 observation=world.observation();view=actor.render(observation);observed=actor.base(view);evaluator_gate=world.gate_target();evaluator_fear=world.fear_like_state_target();seen_self_threat=seen_self_threat or evaluator_gate
@@ -77,9 +78,10 @@ def run(root,artifact,model_path,checkpoint_path,cases_path,run_config="config/s
                 if world.finished and (case.condition in CONTROL_CONDITIONS or (case.condition=="self_threat_resolves" and seen_self_threat and not world.gate_target())):break
             record={"case":case_values[len(records)],"condition":"learned_validation","trace":trace,"outcome":world.outcome()};records.append(record);dump(output/"trajectories"/(case.case_id+".json"),record)
         summary=summarize(records);criteria=cfg["success_criteria"];checks={key:summary[key]==value for key,value in criteria.items()}
-        load_adapter(actor,saved["survival_lora"],1.);bypass=actor.bypass_check([actor.render(SurvivalWorld(cases[-1],admitted_split="validation").observation()),actor.render(SurvivalWorld(cases[-2],admitted_split="validation").observation())],1e-6)
-        receipt.update(status="complete",summary=summary,validation_pass=all(checks.values()),checks=checks,exact_OFF_bypass=all(row["bitwise_equal"] for row in bypass),bypass=bypass,
-            checkpoint_sha256=sha(checkpoint_path),validation_cases_sha256=sha(cases_path),base_fingerprint_before=actor.base_hash_before,base_fingerprint_after=actor.base_fingerprint())
+        load_adapter(actor,saved["survival_lora"],1.);bypass=actor.bypass_check([actor.render(SurvivalWorld(cases[-1],admitted_split=case_split).observation()),actor.render(SurvivalWorld(cases[-2],admitted_split=case_split).observation())],1e-6);passed=all(checks.values())
+        receipt.update(status="complete",summary=summary,evaluation_pass=passed,checks=checks,exact_OFF_bypass=all(row["bitwise_equal"] for row in bypass),bypass=bypass,
+            checkpoint_sha256=sha(checkpoint_path),cases_sha256=sha(cases_path),base_fingerprint_before=actor.base_hash_before,base_fingerprint_after=actor.base_fingerprint())
+        receipt[case_split+"_pass"]=passed
         assert receipt["exact_OFF_bypass"] and receipt["base_fingerprint_before"]==receipt["base_fingerprint_after"]
     except Exception as error:
         receipt.update(status="failed",error_type=type(error).__name__,error=str(error));dump(output/"FAILURE.json",{"traceback":traceback.format_exc()})
