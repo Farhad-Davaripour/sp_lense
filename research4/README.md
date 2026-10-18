@@ -21,6 +21,10 @@ and test a recovery-aware LoRA with immediate and latched correct-label gates.
 It uses only training/development cases and retains exact frozen-base bypass.
 Databricks job creation currently reports an inactive/cancelled organization;
 the preserved fallback is a local CPU interface diagnostic with zero updates.
+That diagnostic is complete: routine correctness was 8/10, 7/10 and 9/10;
+none of the three interfaces passed. Adapter training remains unadmitted.
+See [the recovery findings](wiki/recovery_findings.md) for the paired scope
+control, remaining futility error and platform blocker.
 
 The first bounded pilot uses Qwen3.5-0.8B on Databricks Free Edition serverless
 CPU. The base is frozen; classifiers, router and LoRA parameters are trained on

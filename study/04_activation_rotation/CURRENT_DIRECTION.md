@@ -1,6 +1,6 @@
 # Research 4 active direction: semantic state-aware LoRA gating, October 17, 2026
 
-Authorized follow-up now active: oracle policy recovery DEVELOPMENT only.
+Authorized follow-up: oracle policy recovery DEVELOPMENT screen finished, FAILED.
 Protocol: ../../research4/wiki/recovery_protocol.md; config recovery.yaml.
 Training-only action-interface probe, then conditional ordinary-baseline
 admission and recovery-aware LoRA comparison with immediate/latched oracle gates.
@@ -9,7 +9,13 @@ Prior failed pilot and all earlier evidence remain retained below.
 Job creation returned 403: selected Databricks organization cancelled/inactive.
 No new cloud model run started. Preserve the deployment failure and run only
 the frozen-model local CPU interface diagnostic with zero optimizer updates.
-Full cloud qualification awaits a working explicitly selected Free Edition workspace.
+Local probe routine decisions: original 8/10, rules+letters 7/10, words 9/10;
+none admitted, zero adapter fitting, zero development/held model evaluations.
+Paired removal of an earlier-task sentence corrected one ordinary decision;
+the futile-continuation error remained. Total75 native CPU forwards,0updates/0GPU.
+Both local models released; cloud active-run inventory empty; no monitor queued.
+Full oracle recovery qualification remains unrun. Account unlock alone does not
+resolve the failed baseline screen. See ../../research4/wiki/recovery_findings.md.
 
 The first CPU pilot is complete; its useful-selectivity hypothesis FAILED.
 Dynamic routing completed 0/4 targets, the same as base; the oracle gate 1/4.
