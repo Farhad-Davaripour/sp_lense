@@ -19,6 +19,13 @@ from types import SimpleNamespace
 
 
 class ReproductionTests(unittest.TestCase):
+    def test_runtime_or_profile_auth_does_not_receive_an_empty_host(self):
+        from src.utils import workspace_client
+        with (patch('src.utils.auth_environment', return_value={}),
+              patch('databricks.sdk.WorkspaceClient') as client):
+            workspace_client(SimpleNamespace(host=''))
+            client.assert_called_once_with()
+
     def test_steering_capsule_contains_its_original_policy_and_schema(self):
         with tempfile.TemporaryDirectory() as directory:
             stage = Path(directory) / 'run'

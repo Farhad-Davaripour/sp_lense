@@ -195,6 +195,12 @@ are retained, and explicit identities from actual tool replies are restated in t
 It reads no case labels or teacher outputs. This renderer was developed earlier using familiar
 H24 examples, so H24 compatibility is explicitly a known benchmark rather than independent
 unseen classifier accuracy. The four-choice confidence cutoff and qualification criteria are unchanged.
+The latest completed role-aware fit reached 6/9 effective labels and 9/9 enabled gates on DEV9;
+it did not qualify, and H24 model evaluation was not opened. The longer 50-epoch/150-update
+recipe is prepared, but its attempt was cancelled after the setup cutoff before model loading.
+The runtime reported an empty-domain startup error; its cause has not been isolated. A fresh
+bounded startup check is needed before another scientific launch. Do not promote the incomplete
+workflow classifier or label historical 27B generations as having used it.
 
 After deploying this branch and locating the initial_gate_classifier job ID, the explicit launcher
 creates a fresh immutable admission, submits once and preserves its receipt outside Git:

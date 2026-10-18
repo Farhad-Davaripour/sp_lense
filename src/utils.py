@@ -38,9 +38,10 @@ def auth_environment(settings):
 def workspace_client(settings):
     from databricks.sdk import WorkspaceClient
     env = auth_environment(settings)
+    options = {"host": settings.host} if settings.host else {}
     if env.get("DATABRICKS_TOKEN"):
-        return WorkspaceClient(host=settings.host, token=env["DATABRICKS_TOKEN"], auth_type="pat")
-    return WorkspaceClient(host=settings.host)
+        return WorkspaceClient(**options, token=env["DATABRICKS_TOKEN"], auth_type="pat")
+    return WorkspaceClient(**options)
 
 def bundle(action, extra=()):
     import shutil
