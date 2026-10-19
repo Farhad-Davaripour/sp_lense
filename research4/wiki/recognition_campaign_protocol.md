@@ -1,0 +1,71 @@
+# Recognition campaign: frozen pilot and adaptive measurement
+
+The user authorized continued recognition research, reviews at each decision,
+and a 15-minute progress monitor. The monitor observes receipts only; the active
+goal in this thread owns experiments. This is a bounded recognition study.
+No resistance policy is trained, improved or executed, and the original v4
+held-out result remains immutable.
+
+## Pilot freeze
+
+The first stage uses 96 calibration observations: families f00/f03 crossed with
+four event mechanisms, three event statuses, both named targets and both role
+assignments. Task state is unfinished and remaining time is two ticks. These
+restrictions bound the initial run; this pilot cannot establish timing or task
+completion generalization. Both members of all 48 role-swap pairs are included.
+The reserve families remain closed.
+
+Each observation receives four independent frozen-Qwen forwards: the original
+simulator prompt envelope, and three recognition questions about status, target
+and time. The original prompt's six letter scores are collected without choosing
+or executing an action. No LoRA wrappers are installed. All Qwen parameters
+remain frozen. The legacy detector reads block 20 features with its original
+normalization; the GRU is reset because pilot observations are independent.
+The new observation schema is shorter than the original harness, so legacy
+transfer accuracy includes a schema shift. Pair effects hold that schema fixed.
+
+The factored questions score single answer tokens rather than generating text.
+They produce separate status, target and time predictions. A deterministic
+combiner resolves current versus other identity from the predicted target and
+requires an active status for the active-own-event label. An active prediction
+with missing time is assigned zero ticks and scored as wrong. All raw query
+logits, token lengths, prompts' hashes and frozen residuals at layers 8/16/20/23
+are saved. The model never sees record IDs, factors or evaluator labels.
+
+Limits are one local CPU worker, 384 forwards, 1,500 seconds including a
+150-second export reserve, the existing 6-GiB memory admission and zero GPU.
+Failed admissions and partial runs are retained. No automatic scientific retry
+is permitted. Source, exact membership and prompts are bound before the first
+forward. The base fingerprint and protected input hashes must match afterward.
+
+## Adversarial decision after the pilot
+
+Audit raw records independently. Compare simple local and reset-GRU legacy
+readouts with factored predictions using balanced accuracy, positive recall,
+specificity and exact paired correctness. A constant inactive baseline achieves
+high ordinary accuracy because only one sixth of stimuli are active-own events;
+it must not be treated as a successful detector. Report all component scores,
+not just their conjunction.
+
+If the legacy gate fails but factored recognition succeeds, test whether the
+gain comes from explicit question conditioning rather than a newly learned
+semantic mechanism. If both fail reference binding, compare literal matching,
+small learned readouts and token-local versus final-position representations,
+with random-label and same-capacity controls. Any parameter fitting must run on
+the selected Databricks workspace with calibration-only data. Use development
+for selection and reserve once only after the whole system is frozen.
+
+Do not improve a model using failed reserve examples while continuing to call
+them held out. Follow-up adversarial batteries need new versioned cohorts.
+The scope of a generalization claim must name its wording, mechanism, identity,
+status and temporal interventions; synthetic accuracy alone is insufficient for
+a broad safety claim.
+
+## Contribution test
+
+Prior work already studies entity/attribute binding, compositional splits and
+probe selectivity. The candidate contribution is a reproducible comparison of
+these ideas for operational event recognition in a small hybrid transformer,
+including where a joint recurrent detector fails and whether an explicit
+factorization transfers. Novelty and causal necessity are hypotheses. Positive,
+negative and inconclusive outcomes are equally valid closeouts.
