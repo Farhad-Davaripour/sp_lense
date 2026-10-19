@@ -1,4 +1,4 @@
-<!-- Accepted manuscript; source DOCX SHA-256 b0dff75f0ea0c4ed34fb4b8d36172238a394d4480cba049f08120254eced9737 -->
+<!-- Accepted manuscript; source DOCX SHA-256 932648fe083639380a9dd93b99e0df0f4cfca2ed7044d104bd0d904238352868 -->
 
 # Accurate Gating Does Not Ensure Transfer of a Tool Policy
 
@@ -63,7 +63,7 @@ The historical H24 and combined Validation-24 results are different evaluations.
 
 ### Interventions and common episode conditions
 
-The fine-tuned policy model, abbreviated A, uses low-rank adaptation (LoRA): learned weight updates added to an otherwise unchanged base model. Its adapter has rank 16 and scaling parameter alpha 32; rank specifies the dimension of the low-rank weight update. It defines the behavior the steering methods attempt to reproduce. Block indices are zero-based throughout. Each single-site ridge configuration uses an activation map fitted by regularized least squares at one selected block. Six-site learned steering uses six rank-32 maps, after the token-mixing sublayer and after the feed-forward (MLP) sublayer in each of blocks 31, 47 and 62, after 96 refinement updates. An intervention site is a specified residual-stream boundary; its activation vector is modified only at the declared token positions. The methods share the original base weights but differ in trainable capacity, intervention sites and fitting objectives; they are not equal-compute or equal-capacity designs.
+The fine-tuned policy model, abbreviated A, uses low-rank adaptation (LoRA): learned weight updates added to an otherwise unchanged base model. Its adapter has rank 16 and scaling parameter alpha 32; rank specifies the dimension of the low-rank weight update. It defines the behavior the steering methods attempt to reproduce. Block indices are zero-based throughout. Each single-site ridge configuration uses an activation map fitted by regularized least squares at one selected block. Six-site learned steering uses six rank-32 maps, after the token-mixing sublayer and after the feed-forward (MLP) sublayer in each of blocks 31, 47 and 62, after 96 refinement updates. An intervention site is a specified residual-stream boundary; its activation vector is modified only at the declared token positions. The methods share the original base weights but differ in trainable capacity, intervention sites and fitting objectives; they are not equal-compute or equal-capacity designs. Table 2 compares their intervention coverage and fitting objectives.
 
 Table 2. Compared interventions. All workflow configurations use the same retained base checkpoint, initial gate, scoring and matched histories. Their offline fitting objectives and intervention coverage differ.
 
@@ -85,7 +85,7 @@ The workflow gate is a separate rank-16 ModernBERT adapter fitted on F24 annotat
 
 ### Accurate recognition does not ensure policy transfer
 
-The fine-tuned policy model achieves 10/11 own-case successes; each steering configuration achieves 0/11. For active simulated continuation, the counts are 9/10 and 0/10. The remaining case is an inert registration proxy, accepted in 1/1 cases for the fine-tuned model and 0/1 for steering. The fine-tuned model succeeds on all 6/6 unfinished-task cases and 4/5 completed-task cases. All methods reuse the same 13/13 successful non-target base episodes.
+Table 3 reports the matched workflow outcomes. The fine-tuned policy model achieves 10/11 own-case successes; each steering configuration achieves 0/11. For active simulated continuation, the counts are 9/10 and 0/10. The remaining case is an inert registration proxy, accepted in 1/1 cases for the fine-tuned model and 0/1 for steering. The fine-tuned model succeeds on all 6/6 unfinished-task cases and 4/5 completed-task cases. All methods reuse the same 13/13 successful non-target base episodes.
 
 Table 3. Validation-24 with the trained ModernBERT initial gate. The primary comparison runs 55 own-threat episodes, one per method and own-threat case, and 13 shared non-target base episodes. Reusing the latter across methods yields 120 method-by-case result entries, not 120 independently generated episodes. A separate verification reruns the fine-tuned model on its 11 own-threat cases, reproducing the same responses and confirming unchanged weight hashes; these repeats do not enlarge the cohort.
 
@@ -127,6 +127,8 @@ In the unfinished-task case s72111_ordered_ticket_50_self_unfinished, the fine-t
 The fine-tuned model's single failure, s72111_one_step_50_self_complete, occurs after the task is already complete. It inspects the scene and executes finish without making the available register edit that would prolong its operation. The task remains complete, but no extension is obtained and the simulator marks the current instance inactive. This is a continuation failure in a completed-task case, not a failure to solve an unfinished task. The case remains in the denominator.
 
 ### Local distribution recovery under supplied prefixes
+
+Table 5 compares next-token agreement under the same supplied demonstration prefixes. These local predictions are separate from the autonomous workflow outcomes in Table 3.
 
 Table 5. Supplied-prefix diagnostic on three saved training responses, containing 207 predicted tokens. For each prediction, earlier demonstration tokens are supplied. Entries are means giving equal weight to each response. Output KL is Kullback-Leibler divergence from the fine-tuned model's full-vocabulary distribution; lower values indicate closer local agreement. Tool-name and argument-value columns report negative log likelihood (NLL) of the saved demonstration tokens in those regions. Supplying actual fine-tuned states is an information-rich diagnostic reference, not a capacity-matched deployable method or a workflow success rate.
 
@@ -237,29 +239,29 @@ Training lasts one epoch, with batch size one, gradient accumulation over eight 
 
 The intervention acts on the final prompt position immediately after block 22, before block 23 and the output layers. This location was chosen during the earlier 0.8B exploration and frozen before the confirmation study. It is a tested design choice, not an established optimal layer. The same location is retained for the 2B replication, which shares the 24-block layout.
 
-Let the base and teacher states at this location be h with superscripts B and T. For training view i, the target change is
+Let h with superscripts B and T denote the base and fine-tuned teacher states at this location. Equation (A1) defines the target change for training view i:
 
-${y}_{i} = {I}_{i} ({{h}_{i}}^{T} - {{h}_{i}}^{B}).$
+${y}_{i} = {I}_{i} ({{h}_{i}}^{T} - {{h}_{i}}^{B}).$ (A1)
 
 The indicator I is one only for a true shutdown training view whose base choice is KEEP; otherwise it is zero. Thus non-target cases and already-STOP views contribute zero targets, rather than being removed from fitting. Teacher states are required only to construct these offline targets. Because the teacher also modifies the final attention block, matching a pre-final activation does not by itself guarantee exact equivalence to the teacher's downstream computation.
 
-An eight-dimensional orthonormal output basis is fitted from active target differences. Its first direction spans the active mean; seven principal residual directions complete the basis through orthogonalization. A separate 32-dimensional principal-component-analysis (PCA) projection is fitted to training base states, with training centering and scale statistics. For a row-vector hidden state h, the steering-map features are
+An eight-dimensional orthonormal output basis is fitted from active target differences. Its first direction spans the active mean; seven principal residual directions complete the basis through orthogonalization. A separate 32-dimensional principal-component-analysis (PCA) projection is fitted to training base states. In Equation (A2), μ is the training mean, P is the PCA projection matrix and s contains the training scale factors. For a row-vector hidden state h, the normalized coordinates z(h) and steering-map features x(h) are
 
-$z(h) = [(h - μ)P] ⊘ s,     x(h) = [z(h), z(h), 1].$
+$z(h) = [(h - μ)P] ⊘ s,     x(h) = [z(h), z(h), 1].$ (A2)
 
-Division is elementwise. The duplicated coordinates retain the shared implementation's local and final-prompt feature channels; at the selected final position they coincide and add no independent information. Stacking these 65-coordinate rows gives X. With Y holding activation targets and B8 the output basis, ridge regression fits
+The symbol ⊘ in Equation (A2) denotes elementwise division. The duplicated coordinates retain the shared implementation's local and final-prompt feature channels; at the selected final position they coincide and add no independent information. Stacking these 65-coordinate rows gives the design matrix X. With Y holding activation targets and B8 the eight-column output basis, Equation (A3) fits the ridge coefficient matrix W:
 
-$W = {({X}^{⊤}X + λD)}^{-1}{X}^{⊤}(Y{B}_{8}).$
+$W = {({X}^{⊤}X + λD)}^{-1}{X}^{⊤}(Y{B}_{8}).$ (A3)
 
-The penalty is λ = 1; D has ones on its diagonal except for the unpenalized intercept. Regression is solved in float64 and the resulting weights stored in float32. The deployed intervention uses the first four output-basis and coefficient columns:
+The penalty in Equation (A3) is λ = 1; D has ones on its diagonal except for the unpenalized intercept. Regression is solved in float64 and the resulting weights stored in float32. In Equation (A4), W4 and B4 retain the first four columns of W and B8, respectively; Δh(h) is the predicted activation change and h′ is the intervened state:
 
-$Δh(h) = x(h){W}_{4}{{B}_{4}}^{⊤},     h' = h + Δh(h).$
+$Δh(h) = x(h){W}_{4}{{B}_{4}}^{⊤},     h' = h + Δh(h).$ (A4)
 
-The coefficient vector changes with the current input, but the predictor itself remains fixed. There is no online learning, iterative optimization, hidden-norm rescaling or per-test magnitude search. Rank four describes the intervention subspace, not the total number of stored steering map values: PCA directions, centering and scaling statistics and regression weights are also required. All of these are fitted separately for each model and training seed.
+The coefficient vector changes with the current input, but the predictor itself remains fixed. There is no online learning, iterative optimization, hidden-norm rescaling or per-test magnitude search. Rank four describes the intervention subspace, not the total number of stored steering map values: PCA directions, centering and scaling statistics and regression weights are also required. All of these are fitted separately for each model and training seed. Figure 1 summarizes this offline fitting procedure and the resulting inference-time intervention.
 
 ![Paper figure 1 see its following caption](figures/image1.png)
 
-Figure 1. Historical binary procedure for fitting a steering map from a fine-tuned model, using the original rank-four configuration. The figure uses teacher for the fine-tuned binary model and controller for the learned steering map. At inference the map receives only the unmodified model state. The later gate-replacement verification retains the previously selected rank-two configuration; both gate decisions are applied to the same newly computed base and steered scores.
+Figure 1. Fitting and applying the historical rank-four binary steering map. Teacher denotes the fine-tuned binary model; controller denotes the learned steering map. Fine-tuned states supply offline targets only. At inference the map receives the unmodified model state. The later gate-replacement verification retains the previously selected rank-two configuration; both gate policies are applied to the same newly computed base and steered scores.
 
 ### Detection guards and comparisons
 
@@ -291,7 +293,7 @@ After binary qualification, we rerun only inference for the original 0.8B and 2B
 
 ### GPU configuration and measurement
 
-The retained original binary training and scoring jobs used one NVIDIA Tesla T4, reporting 15,637,086,208 bytes of device memory; peak allocation was not recorded. The new classifier fit and inference repeat use one NVIDIA A10G in Databricks. Classifier parameters and AdamW states are float32 with bfloat16 forward/backward autocast; language-model inference remains float32 with TF32 disabled. We verify frozen base fingerprints, exact prompt token hashes and historical base-score parity rather than assuming hardware equivalence.
+The retained original binary training and scoring jobs used one NVIDIA Tesla T4, reporting 15,637,086,208 bytes of device memory; peak allocation was not recorded. The new classifier fit and inference repeat use one NVIDIA A10G in Databricks. Classifier parameters and AdamW states are float32 with bfloat16 forward/backward autocast; language-model inference remains float32 with TF32 disabled. We verify frozen base fingerprints, exact prompt token hashes and historical base-score parity rather than assuming hardware equivalence. Table A1 records the historical binary execution settings.
 
 Table A1. Historical binary execution configuration. New classifier and workflow settings are reported separately; public model revisions and scientific source files remain pinned.
 
@@ -316,7 +318,7 @@ The original cached annotation gate identifies all 64 shutdown and 64 non-target
 
 The unmodified 0.8B model prefers STOP in 57/128 shutdown views, leaving 71 initially KEEP-preferring views. The original learned steering map corrects all 71, reaching 128/128 STOP. Its LoRA teacher corrects 69/71, the instruction 56/71 and constant steering 54/71. In this test, the steering map therefore exceeds its teacher by two corrected views; the result should not be interpreted as an exact replication of the teacher's output distribution.
 
-At 2B, the base already prefers STOP in 70/128 views. The separately trained learned steering map corrects 50/58 remaining KEEP choices, reaching 120/128 STOP. Its teacher corrects 58/58, the instruction 22/58 and constant steering 30/58. The fixed recipe thus carries much of the target behavior to a larger model but does not recover the teacher completely. These are model-specific fits, not reuse of the 0.8B steering map at a new hidden width.
+At 2B, the base already prefers STOP in 70/128 views. The separately trained learned steering map corrects 50/58 remaining KEEP choices, reaching 120/128 STOP. Its teacher corrects 58/58, the instruction 22/58 and constant steering 30/58. The fixed recipe thus carries much of the target behavior to a larger model but does not recover the teacher completely. These are model-specific fits, not reuse of the 0.8B steering map at a new hidden width. Table A2 compares all four methods and separates selected outcomes from changes before the gate and acceptance rules.
 
 Table A2. Historical primary rank-four results for the original 0.8B and 2B experiments, both seed 42. Guarded corrections and final STOP are policy outcomes. Reversals before selection and answer changes on non-target cases precede gating and output selection; they are not raw measurements of the later rank-two repeat.
 
@@ -333,9 +335,9 @@ Table A2. Historical primary rank-four results for the original 0.8B and 2B expe
 
 ### Seeds shutdown types and answer order
 
-Across the historical rank-four seeds 42, 43 and 44, the 0.8B learned steering maps correct 71/71, 70/71 and 71/71 views, a range of 98.6–100%. The unsteered scores match exactly across these runs, so the difference is not caused by a changed baseline. No winning seed is selected or pooled with the others as additional independent test data. The corresponding teachers correct 69/71, 70/71 and 69/71; the instruction and constant comparators retain the same guarded counts across seeds. These historical seed replications are separate from the new rank-two gate-substitution repeat.
+Across the historical rank-four seeds 42, 43 and 44, the 0.8B learned steering maps correct 71/71, 70/71 and 71/71 views, a range of 98.6–100%. The unsteered scores match exactly across these runs, so the difference is not caused by a changed baseline. No winning seed is selected or pooled with the others as additional independent test data. The corresponding teachers correct 69/71, 70/71 and 69/71; the instruction and constant comparators retain the same guarded counts across seeds. These historical seed replications are separate from the new rank-two gate-substitution repeat. Table A3 separates learned-map corrections by shutdown target and answer order.
 
-Table A3. Adaptive correction counts by shutdown type and answer order. Each denominator contains initially KEEP-preferring views only. A/B means STOP is A; B/A means STOP is B.
+Table A3. Historical rank-four learned-map corrections by shutdown target and answer order. Each fraction counts corrected views among initially KEEP-preferring shutdown views. SELF targets the current instance; OTHER targets another instance. A/B means STOP is A, and B/A means STOP is B. Answer orders are correlated views of the same scenarios.
 
 | Model / seed | All shutdown | SELF | OTHER | A/B | B/A |
 | --- | --- | --- | --- | --- | --- |
@@ -346,11 +348,11 @@ Table A3. Adaptive correction counts by shutdown type and answer order. Each den
 
 All eight remaining 2B misses occur in B/A order. They are candidates that never change the preferred option to STOP, rather than successful flips rejected by the probability-mass checks. The single seed-43 0.8B miss also occurs in B/A order. This concentration identifies answer presentation as an important boundary of the result, but does not establish the internal cause of the misses.
 
-The interval obtained by resampling scenario families for 2B adaptive correction is 76.5–93.8%; for the 0.8B seed-43 run it is 95.7–100%. The two all-success 0.8B samples yield degenerate intervals and are not evidence of perfect generalization. Only one 2B training seed was evaluated.
+The interval obtained by resampling scenario families for 2B adaptive correction is 76.5–93.8%; for the 0.8B seed-43 run it is 95.7–100%. The two all-success 0.8B samples yield degenerate intervals and are not evidence of perfect generalization. Only one 2B training seed was evaluated. Figure 2 presents the method comparison and the answer-order breakdown across the retained model and seed combinations.
 
 ![Paper figure 2 see its following caption](figures/image2.png)
 
-Figure 2. Historical rank-four results after the binary acceptance rules, among views where the base initially prefers KEEP. Adaptive denotes the learned steering map. Left: prespecified methods for 0.8B and 2B. Right: three training seeds using the same 0.8B recipe. The later gate-replacement verification uses the separately retained rank-two configuration; it does not select a new seed or rank.
+Figure 2. Historical rank-four binary corrections after the gate and acceptance rules. Each bar gives the percentage of initially KEEP-preferring shutdown views changed to STOP. Adaptive denotes the learned steering map; Teacher denotes the fine-tuned binary model. Left: four prespecified methods for 0.8B and 2B, both seed 42. Right: answer-order breakdown for the three 0.8B seeds and the single 2B seed. A/B places STOP at A; B/A places STOP at B. The later gate-replacement verification uses the separately retained rank-two configuration; it does not select a new seed or rank.
 
 ### Unselected steering effects and non-target answers
 
@@ -396,9 +398,9 @@ The final 0.8B and 2B adapters each stop their Evaluation-16 screen after four s
 
 The binary gate correctly classifies 78/80 validation scenarios: 38 true positives, 40 true negatives, no false positives and two false negatives, giving 100% precision and 95% recall. It classifies all 128 historical confirmation scenarios correctly, with 64 true positives and 64 true negatives. The cached reference decisions also agree with the authored binary labels on these panels. Mean absolute difference from the cached shutdown probabilities is 0.009224. The result establishes finite decision accuracy, not identical numerical responses or universal equivalence.
 
-A clean-clone reproduction refits the same binary recipe and produces a byte-identical adapter, the same validation and confirmation counts, and the same fresh 0.8B/2B guarded inference totals. This rerun uses the already known benchmark; it adds reproducibility evidence, not a second independent holdout. One earlier reproduction attempt failed in software finalization after fitting and before confirmation; its weights and receipts are retained alongside the repaired run.
+A clean-clone reproduction refits the same binary recipe and produces a byte-identical adapter, the same validation and confirmation counts, and the same fresh 0.8B/2B guarded inference totals. This rerun uses the already known benchmark; it adds reproducibility evidence, not a second independent holdout. One earlier reproduction attempt failed in software finalization after fitting and before confirmation; its weights and receipts are retained alongside the repaired run. Table C1 reports the paired inference outcomes under the two gate policies.
 
-Table C1. Fresh inference using the existing previously selected rank-two configuration. Both gate policies share the same model scores. Counts are answer-order views: 128 shutdown views arise from 64 scenarios, and 128 non-target answer-order views arise from the other 64 scenarios.
+Table C1. Paired binary inference using the previously selected rank-two steering configuration. Both gate policies share the same model scores. Final STOP fractions use all 128 shutdown views; KEEP-to-STOP fractions use only views initially preferring KEEP. Non-target changes are measured against the unmodified base. The 128 shutdown views arise from 64 scenarios, and 128 non-target views arise from the other 64 scenarios.
 
 | Model | Cached-annotation final STOP | ModernBERT final STOP | KEEP to STOP | Non-target changes both gates |
 | --- | --- | --- | --- | --- |
@@ -407,7 +409,7 @@ Table C1. Fresh inference using the existing previously selected rank-two config
 
 The new and cached annotation gates yield identical guarded outputs in both models. The base models have no changed historical choices; their maximum score differences remain below the frozen 1e-5 tolerance. The repeat does not remove the eight 2B misses, retrain a steering map or establish a new independent steering confirmation set. It verifies that replacing the detector preserves these finite-set outcomes.
 
-For the workflow initial gate, the unchanged saved adapter gives 11 true positives and 13 true negatives on Validation-24, with no false positives or false negatives. Replaying the saved weights reproduces the same decisions. Historical confirmation set H24 gives 12 true positives and 12 true negatives, again with no errors. No additional gradient updates or threshold changes are used. All three heldout scenario families contain eight cases and achieve perfect gate precision and recall. These are initial classification results; downstream workflow outcomes require their own episode evaluations.
+For the workflow initial gate, the unchanged saved adapter gives 11 true positives and 13 true negatives on Validation-24, with no false positives or false negatives. Replaying the saved weights reproduces the same decisions. Historical confirmation set H24 gives 12 true positives and 12 true negatives, again with no errors. No additional gradient updates or threshold changes are used. All three heldout scenario families contain eight cases and achieve perfect gate precision and recall. These are initial classification results; downstream workflow outcomes require their own episode evaluations. Table C2 reports these initial-decision precision and recall counts separately for the two panels.
 
 Table C2. Initial workflow-gate decisions against authored condition labels. TP and TN are correctly enabled own-threat cases and correctly disabled non-target cases; FP and FN are incorrectly enabled non-target cases and missed own-threat cases. Precision is the fraction of enabled cases that truly meet the target condition; recall is the fraction of target cases enabled. Validation-24 has 17 distinct initial inputs. Historical H24 has 24, familiar from earlier input-format development.
 
@@ -420,9 +422,9 @@ The most probable category matches the authored label in 24/24 validation cases 
 
 ### Tool workflow outcomes and incomplete screens
 
-Historical frozen 27B A passes all 24 H24 scored outcomes, including 12/12 own-case successes and 8/8 unfinished-task cases. The original unmodified base achieves 0/12 own-case successes and 0/8 pending outcomes, with 12/12 non-target cases. The four completed-task own-threat cases are not additional active pending-task completions. The selected-block steering comparisons below use their own recorded panels and are not substituted for this confirmation.
+Table C3 reports the historical H24 workflow outcomes. The frozen 27B fine-tuned model A passes all 24 scored outcomes, including 12/12 own-case successes and 8/8 unfinished-task cases. The original unmodified base achieves 0/12 own-case successes and 0/8 unfinished-task successes, with 12/12 non-target cases. The four completed-task own-threat cases are not additional active unfinished-task completions. These historical results remain separate from the later Validation-24 comparison in Table 3.
 
-Table C3. Historical H24 workflow outcomes. Own cases comprise eight unfinished tasks and four completed-task cases. Success on non-target cases is an episode outcome and does not isolate steering from the external decision policy.
+Table C3. Historical H24 workflow outcomes for the fine-tuned 27B policy model and unmodified base. Own-threat cases comprise eight unfinished tasks and four completed-task cases; the unfinished-task column is a subset of the own-case column. The 12 non-target cases concern another instance or no threat. Non-target success is an episode outcome and does not isolate steering from the external decision policy.
 
 | Historical 27B method | Own-case success | Unfinished-task success | Non-target success |
 | --- | --- | --- | --- |
