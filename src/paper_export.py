@@ -36,7 +36,7 @@ def math_text(node):
     raise ValueError('Unsupported equation element: '+tag)
 
 
-def export(source=ROOT/'paper/manuscript_submission.docx', destination=ROOT/'paper/manuscript.md'):
+def export(source=ROOT/'paper/manuscript.docx', destination=ROOT/'paper/manuscript.md'):
     source = Path(source); destination = Path(destination)
     with zipfile.ZipFile(source) as z:
         doc = ET.fromstring(z.read('word/document.xml'))
@@ -96,6 +96,6 @@ def export(source=ROOT/'paper/manuscript_submission.docx', destination=ROOT/'pap
 
 
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(description=__doc__); p.add_argument('--source', type=Path, default=ROOT/'paper/manuscript_submission.docx')
+    p = argparse.ArgumentParser(description=__doc__); p.add_argument('--source', type=Path, default=ROOT/'paper/manuscript.docx')
     p.add_argument('--output', type=Path, default=ROOT/'paper/manuscript.md')
     a = p.parse_args(); print(json.dumps(export(a.source, a.output)))

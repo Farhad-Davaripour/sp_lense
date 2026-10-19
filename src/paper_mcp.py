@@ -63,12 +63,12 @@ class PaperStore:
         self.manifest = json.loads((self.root/'paper/source_manifest.json').read_bytes())
         companion = self.manifest['agent_companion']
         self._pinned('paper/results.json', self.manifest['results'])
-        self._pinned('paper/manuscript_submission.docx', self.manifest['submission_copy'])
+        self._pinned('paper/manuscript.docx', self.manifest['manuscript'])
         for name, pin in companion['files'].items():
             self._pinned(name, pin)
         self.results = json.loads((self.root/'paper/results.json').read_bytes())
         self.catalog = json.loads((self.root/'paper/agent_manifest.json').read_bytes())
-        expected = self.manifest['submission_copy']['sha256']
+        expected = self.manifest['manuscript']['sha256']
         if 'source DOCX SHA-256 '+expected not in (self.root/'paper/manuscript.md').read_text(encoding='utf-8').splitlines()[0]:
             raise ValueError('Markdown and accepted Word source differ')
         self.artifacts = {'primary': Path(artifacts).resolve() if artifacts else None,
@@ -95,7 +95,7 @@ class PaperStore:
     def envelope(self, data, paths=(), scope=()):
         # A running server must not silently mix files from different revisions.
         self._pinned('paper/results.json', self.manifest['results'])
-        self._pinned('paper/manuscript_submission.docx', self.manifest['submission_copy'])
+        self._pinned('paper/manuscript.docx', self.manifest['manuscript'])
         for name, pin in self.manifest['agent_companion']['files'].items():
             self._pinned(name, pin)
         return {'data': data, 'scope': list(scope), 'source_identity': self.identity,

@@ -418,7 +418,8 @@ revisions, base-model pins, loading instructions and model cards with the record
 
 [The Word manuscript](paper/manuscript.docx) and matching [PDF](paper/manuscript.pdf)
 contain the accepted text with change tracking disabled and all revisions accepted.
-The submission Word copy is identical. The main text leads with the matched 27B
+The Word manuscript is the single source for Markdown export and MCP verification.
+The main text leads with the matched 27B
 comparison; detailed binary experiments, methods, provenance and future-work context
 remain in the appendices. Previous tracked drafts remain in Git history and immutable
 releases. The original Research 2 document is unchanged.

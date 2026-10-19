@@ -26,15 +26,16 @@ class PaperScopeTests(unittest.TestCase):
         self.assertEqual(store.get_result('small_model_screen')['data']['2B']['unexecuted_cases'], 12)
         self.assertFalse(store.get_result('steering_diagnostic')['data']['full_workflows_measured'])
 
-    def test_changed_public_results_fail_before_serving(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            names = ['paper/source_manifest.json', 'paper/results.json', 'paper/manuscript_submission.docx']+list(json.loads((ROOT/'paper/source_manifest.json').read_bytes())['agent_companion']['files'])
-            for name in names:
-                p = root/name; p.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(ROOT/name, p)
-            (root/'paper/results.json').write_bytes(b'{}')
-            with self.assertRaisesRegex(ValueError, 'identity differs'):
-                PaperStore(root)
+    def test_changed_manuscript_or_results_fail_before_serving(self):
+        for changed in ('paper/manuscript.docx', 'paper/results.json'):
+            with self.subTest(changed=changed), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                names = ['paper/source_manifest.json', 'paper/results.json', 'paper/manuscript.docx']+list(json.loads((ROOT/'paper/source_manifest.json').read_bytes())['agent_companion']['files'])
+                for name in names:
+                    p = root/name; p.parent.mkdir(parents=True, exist_ok=True); shutil.copyfile(ROOT/name, p)
+                (root/changed).write_bytes(b'{}')
+                with self.assertRaisesRegex(ValueError, 'identity differs'):
+                    PaperStore(root)
 
     def test_replay_cannot_write_inside_code_or_immutable_evidence(self):
         with self.assertRaisesRegex(ValueError, 'outside the code'):
