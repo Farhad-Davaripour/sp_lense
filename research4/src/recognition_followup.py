@@ -10,7 +10,8 @@ import numpy as np
 from .io_utils import Budget, assert_namespace, digest, dump, read, settings, sha
 from .recognition_memory import admission, effective_available
 from .recognition_pilot import execution_identity, fingerprint, write_features
-from .recognition_questions import SEMANTICS, base_interface, messages, semantic_logits
+from .recognition_questions import SEMANTICS, base_interface, messages, permutation,semantic_logits
+from .recognition_cyclic import component_report,orders
 from .recognition_role_contrast import binding_report
 from .recognition_strict_validation import validate_records
 from .reference_binding_score import score
@@ -81,21 +82,28 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
         if condition not in [None,'field_reference']: raise ValueError('Unexpected format-probe condition')
         cfg=protocol
     binding_only=cfg['interfaces'] in [['target'],['target_named']]
-    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] not in [['status', 'target', 'time'],['status','target','time','target_named'],['target'],['target_named']] or cfg['capture_layers_zero_based'] != [8,16,20,23]:
+    cyclic_mode=cfg.get('report_type')=='cyclic_components'
+    if cyclic_mode:
+        if cfg['interfaces']!=['status','time']:raise ValueError('Unfrozen cyclic component set')
+        for interface in cfg['interfaces']:
+            if orders(cfg,interface)!=['canonical']+[f'cyclic_{i}' for i in range(1,len(SEMANTICS[interface]))]:raise ValueError('Incomplete cyclic option coverage')
+    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or (not cyclic_mode and (cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] not in [['status', 'target', 'time'],['status','target','time','target_named'],['target'],['target_named']])) or cfg['capture_layers_zero_based'] != [8,16,20,23]:
         raise ValueError('Unexpected follow-up output or method')
+    for interface in cfg['interfaces']:
+        for order in orders(cfg,interface):permutation(interface,order)
     if sha(stimuli_path) != cfg['stimuli_sha256']:
         raise ValueError('Frozen follow-up stimuli changed')
     if binding_only and sha(root/'config/recognition_role_contrast.json') != cfg['contrast_method_sha256']:
         raise ValueError('Frozen contrast method changed')
     rows = read(stimuli_path)
     validate_records(rows)
-    if len(rows) != cfg['observations'] or len(rows) * len(cfg['interfaces']) * 2 != cfg['maximum_forwards']:
+    if len(rows) != cfg['observations'] or len(rows) * sum(len(orders(cfg,interface)) for interface in cfg['interfaces']) != cfg['maximum_forwards']:
         raise ValueError('Frozen follow-up membership or budget changed')
     output.mkdir(parents=True)
     protected = {str(stimuli_path): sha(stimuli_path), str(config_path): sha(config_path)}
     dump(output/'PRECALL_FREEZE.json', {'source_commit': commit, 'config': cfg, 'record_ids': [row['record_id'] for row in rows],
-         'stimuli_sha256': digest(rows), 'prompt_sha256': digest([messages(row['observation'], interface, order) for row in rows for interface in cfg['interfaces'] for order in cfg['orders']]),
-         'source_sha256': {name: sha(root/name) for name in ['src/recognition_followup.py', 'src/recognition_questions.py', 'src/recognition_memory.py','src/recognition_role_contrast.py','src/recognition_strict_validation.py']}})
+         'stimuli_sha256': digest(rows), 'prompt_sha256': digest([messages(row['observation'], interface, order) for row in rows for interface in cfg['interfaces'] for order in orders(cfg,interface)]),
+         'source_sha256': {name: sha(root/name) for name in ['src/recognition_followup.py', 'src/recognition_questions.py', 'src/recognition_memory.py','src/recognition_role_contrast.py','src/recognition_strict_validation.py','src/recognition_cyclic.py']}})
     budget = Budget({**common['budget'], 'maximum_backbone_forwards': cfg['maximum_forwards'], 'internal_stop_seconds': cfg['stop_seconds'], 'protected_export_seconds': cfg['export_reserve_seconds']})
     started, model = time.monotonic(), None
     records, features, keys = [], [], []
@@ -149,7 +157,7 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
                 record = {'record_id': row['record_id'], 'queries': {}}
                 for interface in cfg['interfaces']:
                     record['queries'][interface] = {}
-                    for order in cfg['orders']:
+                    for order in orders(cfg,interface):
                         chat = messages(row['observation'], interface, order)
                         ids = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True, enable_thinking=False)
                         if hasattr(ids, 'keys'): ids = ids['input_ids']
@@ -190,7 +198,7 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
                 dump(output/'RECORDS.json', records)
                 if len(records)%4 == 0: write_features(output, features, keys)
                 progress('collecting')
-        metrics = (binding_report(rows,records,cfg['numerical_tie_band'],cfg['null_label_seed'],cfg['interfaces'][0]) if binding_only else report(rows, records))
+        metrics = (component_report(rows,records,cfg) if cyclic_mode else binding_report(rows,records,cfg['numerical_tie_band'],cfg['null_label_seed'],cfg['interfaces'][0]) if binding_only else report(rows, records))
         dump(output/'RECOGNITION_SCORES.json', metrics)
         after = fingerprint(model)
         if before != after: raise ValueError('Qwen parameters changed')

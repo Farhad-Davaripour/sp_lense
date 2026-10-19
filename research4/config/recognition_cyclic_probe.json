@@ -1,0 +1,29 @@
+{
+  "version": "cyclic-components-v1",
+  "scope": "recognition_only_no_policy",
+  "condition": "cyclic_components",
+  "report_type": "cyclic_components",
+  "stimuli_sha256": "b3fe6670472f7af61067f3f5a4675d55f53ab99e75eaced9b24d56d2423a6abd",
+  "observations": 24,
+  "interfaces": ["status", "time"],
+  "orders": ["canonical"],
+  "orders_by_interface": {
+    "status": ["canonical", "cyclic_1", "cyclic_2"],
+    "time": ["canonical", "cyclic_1", "cyclic_2", "cyclic_3"]
+  },
+  "capture_layers_zero_based": [8, 16, 20, 23],
+  "maximum_tokens": 1024,
+  "maximum_forwards": 168,
+  "stop_seconds": 1200,
+  "export_reserve_seconds": 150,
+  "memory_profile": {
+    "activation_reserve_bytes": 1073741824,
+    "export_reserve_bytes": 536870912
+  },
+  "seed": 20261030,
+  "primary": "Semantic-logit mean over all cyclic rotations; report direct canonical and every rotation as controls.",
+  "secondary": "Role-pair symmetric average of the cyclic means; it imposes role invariance and is not itself evidence of correct knowledge.",
+  "energy": "Centered aligned-logit disagreement is descriptive. It is not a physical residual-stream potential, a calibrated confidence or a correctness guarantee.",
+  "scope_limit": "Repeated calibration f00, unfinished task, target_slot=0, two ticks remaining. No arithmetic-transfer claim from fixed-two timing.",
+  "fitting": "No learned coefficients, temperature or threshold; uniform fixed averages only."
+}

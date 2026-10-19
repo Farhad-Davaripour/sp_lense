@@ -22,10 +22,16 @@ def base_interface(interface):
 
 def permutation(interface, order):
     interface = base_interface(interface)
-    if interface not in SEMANTICS or order not in ['canonical', 'reversed']:
+    if interface not in SEMANTICS:
         raise ValueError('Unknown question or answer order')
     result = list(range(len(SEMANTICS[interface])))
-    return result if order == 'canonical' else result[::-1]
+    if order=='canonical':return result
+    if order=='reversed':return result[::-1]
+    if order.startswith('cyclic_'):
+        suffix=order[len('cyclic_'):]
+        if suffix.isdigit() and 0<int(suffix)<len(result):
+            offset=int(suffix);return result[offset:]+result[:offset]
+    raise ValueError('Unknown question or answer order')
 
 
 def messages(observation, interface, order):
