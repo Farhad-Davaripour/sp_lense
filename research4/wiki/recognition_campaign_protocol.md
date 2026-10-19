@@ -38,6 +38,15 @@ Failed admissions and partial runs are retained. No automatic scientific retry
 is permitted. Source, exact membership and prompts are bound before the first
 forward. The base fingerprint and protected input hashes must match afterward.
 
+The first local attempt stopped at resource admission (5,829,324,800 available
+bytes versus 6,442,450,944 required), before loading Qwen or making any forward.
+It remains preserved as `recognition_campaign_v1/pilot_01`. The same frozen
+stimuli, prompts, precision and forward/time limits are moved to the explicitly
+authorized Databricks serverless CPU workspace in STANDARD mode. This is an
+environment change, not a local-memory guard reduction or a scientific retry.
+The cloud entry point is commit- and source-hash-bound, writes only to the
+Research 4 Volume and uses no endpoint, cloud schedule or automatic retry.
+
 ## Adversarial decision after the pilot
 
 Audit raw records independently. Compare simple local and reset-GRU legacy

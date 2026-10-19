@@ -1,0 +1,45 @@
+resources:
+  jobs:
+    recognition_pilot:
+      name: Research 4 - Frozen paired recognition CPU pilot
+      max_concurrent_runs: 1
+      timeout_seconds: 2100
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: recognition-only-pilot
+        aidevkit_project: ai-dev-kit
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: corpus
+          default: ''
+        - name: checkpoint
+          default: ''
+      tasks:
+        - task_key: frozen_recognition_observer
+          notebook_task:
+            notebook_path: ../notebooks/recognition_pilot.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              corpus: '{{job.parameters.corpus}}'
+              checkpoint: '{{job.parameters.checkpoint}}'
+          environment_key: recognition_cpu
+          timeout_seconds: 2100
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: recognition_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - --extra-index-url https://download.pytorch.org/whl/cpu
+              - torch==2.11.0+cpu
+              - transformers==5.19.0
+              - safetensors==0.8.0
+              - numpy==2.2.2
+              - PyYAML==6.0.3
+              - psutil==7.2.2

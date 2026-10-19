@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 from src.io_utils import read
-from src.recognition_pilot import compose_predictions, messages, select_rows
+from src.recognition_pilot import compose_predictions, execution_identity, messages, select_rows
 from src.reference_binding_diagnostic import cases
 
 
@@ -11,6 +11,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class RecognitionPilotTests(unittest.TestCase):
+    def test_cloud_execution_is_bound_to_the_exact_source_path(self):
+        with self.assertRaises(ValueError):
+            execution_identity(Path('/tmp/research4'), 'databricks', 'a'*40)
+        with self.assertRaises(ValueError):
+            execution_identity(Path('/Workspace/Shared/research4-semantic-gate/deployed/'+('b'*40)), 'databricks', 'a'*40)
+        self.assertEqual(execution_identity(Path('/Workspace/Shared/research4-semantic-gate/deployed/'+('a'*40)), 'databricks', 'a'*40), 'a'*40)
+
     def test_membership_preserves_both_role_assignments_and_uses_no_reserve(self):
         rows = select_rows(cases(ROOT, "calibration"), read(ROOT / "config/recognition_pilot.json"))
         self.assertEqual(len(rows), 96)

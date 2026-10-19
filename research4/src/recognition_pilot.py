@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .io_utils import Budget, digest, dump, load_torch, read, settings, sha
+from .io_utils import Budget, assert_namespace, cgroup_available, digest, dump, load_torch, read, settings, sha
 from .reference_binding_diagnostic import validate_records
 from .reference_binding_score import score
 
@@ -93,20 +93,32 @@ def campaign(path, **updates):
     dump(path, value)
 
 
-def run(root, output, model_path, checkpoint_path, corpus, status_path=None):
+def execution_identity(root, execution, requested_commit):
+    if execution == "databricks":
+        if not root.as_posix().startswith("/Workspace/Shared/research4-semantic-gate/deployed/") or root.name != requested_commit:
+            raise ValueError("Databricks observer source is not commit-bound")
+        return requested_commit
+    if execution != "local":
+        raise ValueError("Unknown observer execution platform")
+    if subprocess.check_output(["git", "status", "--porcelain", "--", "research4"], cwd=root.parent, text=True).strip():
+        raise RuntimeError("Commit the observer and protocol before Qwen calls")
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root.parent, text=True).strip()
+
+
+def run(root, output, model_path, checkpoint_path, corpus, status_path=None, execution="local", source_commit=None):
     os.environ.update(CUDA_VISIBLE_DEVICES="", TOKENIZERS_PARALLELISM="false", OMP_NUM_THREADS="2", OPENBLAS_NUM_THREADS="2", HF_HUB_OFFLINE="1", HF_HUB_DISABLE_IMPLICIT_TOKEN="1")
     import torch
     from torch.nn.attention import SDPBackend, sdpa_kernel
-    from .recovery_local_probe import available_memory
     from .survival_fit import FearModel
     root, output, model_path, checkpoint_path, corpus = map(Path, [root, output, model_path, checkpoint_path, corpus])
     common, _ = settings(root)
     config = read(root / "config/recognition_pilot.json")
     if output.exists():
         raise FileExistsError("Use a fresh pilot output directory")
-    if subprocess.check_output(["git", "status", "--porcelain", "--", "research4"], cwd=root.parent, text=True).strip():
-        raise RuntimeError("Commit the observer and protocol before Qwen calls")
-    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root.parent, text=True).strip()
+    commit = execution_identity(root, execution, source_commit)
+    if execution == "databricks":
+        for path in [output, model_path, checkpoint_path, corpus]:
+            assert_namespace(path)
     if sha(corpus / "MANIFEST.json") != config["corpus_manifest_sha256"] or sha(checkpoint_path) != config["frozen_v4_checkpoint_sha256"]:
         raise ValueError("Frozen pilot inputs changed")
     for name, value in read(corpus / "MANIFEST.json").items():
@@ -121,7 +133,7 @@ def run(root, output, model_path, checkpoint_path, corpus, status_path=None):
          "critical_source_sha256": {name: sha(root / name) for name in ["src/recognition_pilot.py", "src/reference_binding_score.py", "src/survival_fit.py"]}})
     budget = Budget({**common["budget"], "maximum_backbone_forwards": config["maximum_forwards"], "internal_stop_seconds": config["stop_seconds"], "protected_export_seconds": config["export_reserve_seconds"]})
     started = time.monotonic()
-    receipt = {"status": "running", "source_commit": commit, "expected_observations": len(rows),
+    receipt = {"status": "running", "source_commit": commit, "execution": execution, "expected_observations": len(rows),
                "scope": config["scope"], "optimizer_updates": 0, "GPU_allocations": 0, "reserved_families_opened": 0}
     records, values, keys = [], [], []
     model = None
@@ -131,7 +143,14 @@ def run(root, output, model_path, checkpoint_path, corpus, status_path=None):
         torch.manual_seed(config["seed"])
         if torch.cuda.is_available():
             raise RuntimeError("This observer admits CPU only")
-        memory = available_memory()
+        if os.name == "nt":
+            from .recovery_local_probe import available_memory
+            memory = available_memory()
+        else:
+            memory = cgroup_available()
+            if memory is None:
+                import psutil
+                memory = psutil.virtual_memory().available
         dump(output / "RESOURCE_ADMISSION.json", {"available_memory_bytes": memory, "minimum_required": common["budget"]["minimum_available_memory_bytes"]})
         if memory < common["budget"]["minimum_available_memory_bytes"]:
             raise RuntimeError("CPU memory admission failed before model load")
