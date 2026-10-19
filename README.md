@@ -107,7 +107,7 @@ analysis views, ten cohorts and six claims are also exercised. These are fixed
 protocol/evidence checks, not a benchmark of an LLM selecting tools or answering
 questions. The second command additionally verifies both releases before and after
 replay and checks returned scores against the recorded paper results.
-The checked report is in `paper/mcp_validation.json`. The current manuscript and companion are versioned in [research3-paper-mcp-v2](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-paper-mcp-v2); v1 remains immutable.
+The checked report is in `paper/mcp_validation.json`. The [research3-paper-mcp-v2](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-paper-mcp-v2) release preserves the earlier companion snapshot. Current clean Word, PDF and Markdown manuscripts are maintained on the Research 3 branch; earlier releases remain immutable.
 
 The failure-localization counts are independently recomputed from the original
 public trajectories, with no model execution:
@@ -422,6 +422,14 @@ The submission Word copy is identical. The main text leads with the matched 27B
 comparison; detailed binary experiments, methods, provenance and future-work context
 remain in the appendices. Previous tracked drafts remain in Git history and immutable
 releases. The original Research 2 document is unchanged.
+The manuscript uses **gate** for the text classifier, **steering map** for the
+learned activation intervention, and **non-target cases** for experimental negative
+controls. **Simulator settings** are editable registers. A **case** is a scenario;
+an **episode** is one method's run on that scenario. Same-prefix response comparisons
+and supplied-prefix next-token diagnostics are defined separately. Historical JSON
+keys such as `controls` and `controller` are retained unchanged for reproducibility;
+`paper/agent_manifest.json` provides their reader-facing terminology map.
+
 [Aggregate results](paper/results.json) and [source identities](paper/source_manifest.json)
 separate historical confirmation, later fitting diagnostics and incomplete screens.
 Private inputs and trained weights remain outside Git. The paper is excluded from Databricks

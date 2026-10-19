@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-19T01:20:12.020500+00:00",
+  "recorded_utc": "2026-10-19T01:54:51.965545+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -14,8 +14,8 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 232971,
-    "sha256": "eaf3a45952cfccb1a05acf1fdbc810f945cce3c43b92f2c0b5c786c5fb34c20b",
+    "bytes": 209067,
+    "sha256": "b0dff75f0ea0c4ed34fb4b8d36172238a394d4480cba049f08120254eced9737",
     "track_revisions_enabled": false,
     "tracked_insertions_body": 0,
     "tracked_deletions_body": 0,
@@ -24,7 +24,7 @@
       "accepted_view_pages": 25,
       "all_pages_reviewed": true,
       "short_tables_kept_together": true,
-      "audit_sha256": "bd2206b5d9948a5867fb3814ddf684529f081c1bfa74e3dbc4abbac544738733"
+      "audit_sha256": "bf03822673f80f0a8b6d0a8c5cc241b32ac96514e7f8ce530fd03d9bd1f9c2df"
     },
     "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained.",
     "tracked_move_from": 0,
@@ -582,8 +582,8 @@
   },
   "submission_copy": {
     "file": "manuscript_submission.docx",
-    "bytes": 232971,
-    "sha256": "eaf3a45952cfccb1a05acf1fdbc810f945cce3c43b92f2c0b5c786c5fb34c20b",
+    "bytes": 209067,
+    "sha256": "b0dff75f0ea0c4ed34fb4b8d36172238a394d4480cba049f08120254eced9737",
     "all_body_header_footer_revisions_accepted": true,
     "track_revisions_enabled": false,
     "rendered_pages": 25,
@@ -662,16 +662,16 @@
     "format": "research3-paper-mcp-v2",
     "files": {
       "paper/agent_manifest.json": {
-        "bytes": 14927,
-        "sha256": "d81b935f3454c76d3b4ec04998720a705541a7328572d316bb1a94c5b07b2a9b"
+        "bytes": 16430,
+        "sha256": "6b290978d120e639f249277333711b043b3d2fa6b815652e996ea13a37058c5e"
       },
       "paper/manuscript.md": {
-        "bytes": 82535,
-        "sha256": "93f4a3a12a7fb9d7b874c66ea7af7322c54bd64a13e9da30b1d4fd15c001aea9"
+        "bytes": 89384,
+        "sha256": "8518bbdacc9ded2c19bda7f9f470552bc60c7f95c6a8695f8c4c69cade2eb7e6"
       },
       "README.md": {
-        "bytes": 36366,
-        "sha256": "831294df0a783d85b13c4377e4daf32f3dfaf83442d13631ff949015b7b3d3af"
+        "bytes": 37043,
+        "sha256": "50d0d241816eef714f10580078d123c7c162a307797cfc0bb51b9766854f740a"
       },
       "config/public_artifacts.yaml": {
         "bytes": 1680,
@@ -690,12 +690,12 @@
         "sha256": "a365710bd700815f09041bb36bd1fec5f5276c877686c8544114107147136c27"
       },
       "paper/mcp_validation.json": {
-        "bytes": 17632,
-        "sha256": "922aa05b964724649ba8a53580ddb274aa64f15527b84b07b932ae816214df56"
+        "bytes": 17633,
+        "sha256": "0f51db0d590089e7502fc54346c0c9dde2f9909618b5982d48bf8f818eb6ebe3"
       },
       "paper/manuscript.pdf": {
-        "bytes": 614692,
-        "sha256": "c0a4e55593b47f1bba2984acbeba0c3adf9ca31eb68b82f623db542d8d9ae1a1"
+        "bytes": 625588,
+        "sha256": "94e147b292b52a0d12b4c5d3c878b88cd8510e4f1e2fa9c95e128a8979626d1e"
       }
     },
     "SDK": "mcp==2.3.0",
@@ -705,20 +705,23 @@
     "optimizer_updates": 0,
     "generative_agent_evaluated": false,
     "validation_report": "paper/mcp_validation.json",
-    "source_word_sha256": "eaf3a45952cfccb1a05acf1fdbc810f945cce3c43b92f2c0b5c786c5fb34c20b",
+    "source_word_sha256": "b0dff75f0ea0c4ed34fb4b8d36172238a394d4480cba049f08120254eced9737",
     "protocol_query_fixtures": 24,
     "manuscript_equations": 4,
     "manuscript_tables": 11,
     "manuscript_figures": 2,
     "prior_scientific_results_unchanged": true,
-    "prior_tables_and_figures_unchanged": true,
+    "prior_tables_and_figures_unchanged": false,
     "review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/81",
     "all_original_scientific_tables_retained": 8,
     "all_original_figures_retained": 2,
     "validation_current_sources_match": true,
+    "table_numeric_values_unchanged": true,
+    "table_labels_revised_for_clarity": true,
+    "figures_byte_identical": true,
     "clean_checkout_validation": {
-      "commit": "63914629ec2ca67483875526d879ebdcca222748",
-      "clean": true
+      "commit": "df6c29115c281b58bdfb068ce0481db5dc7bbe6c",
+      "clean": false
     }
   },
   "readability_revision": {
@@ -763,14 +766,28 @@
   },
   "submission_pdf": {
     "file": "manuscript.pdf",
-    "bytes": 614692,
-    "sha256": "c0a4e55593b47f1bba2984acbeba0c3adf9ca31eb68b82f623db542d8d9ae1a1",
+    "bytes": 625588,
+    "sha256": "94e147b292b52a0d12b4c5d3c878b88cd8510e4f1e2fa9c95e128a8979626d1e",
     "rendered_pages": 25,
-    "source_docx_sha256": "eaf3a45952cfccb1a05acf1fdbc810f945cce3c43b92f2c0b5c786c5fb34c20b",
+    "source_docx_sha256": "b0dff75f0ea0c4ed34fb4b8d36172238a394d4480cba049f08120254eced9737",
     "revision_markup_included": false,
     "all_pages_reviewed": true
   },
-  "clean_file_export": {
+  "terminology_revision": {
+    "status": "TERMINOLOGY_AND_VISUAL_REVIEW_PASS",
+    "recorded_utc": "2026-10-19T01:54:51.965545+00:00",
+    "baseline_commit": "df6c29115c281b58bdfb068ce0481db5dc7bbe6c",
+    "scientific_results_byte_identical": true,
+    "all_11_tables_numeric_cells_unchanged": true,
+    "native_equations_unchanged": 4,
+    "bibliography_text_unchanged": true,
+    "tracking_enabled": false,
+    "rendered_pages": 25,
+    "all_pages_reviewed": true,
+    "new_model_calls": 0,
+    "audit_sha256": "bf03822673f80f0a8b6d0a8c5cc241b32ac96514e7f8ce530fd03d9bd1f9c2df"
+  },
+  "previous_clean_file_export": {
     "status": "CLEAN_WORD_AND_PDF_VERIFIED",
     "recorded_utc": "2026-10-19T01:20:12.020500+00:00",
     "source_content_unchanged": true,
@@ -779,5 +796,14 @@
     "remaining_revisions": 0,
     "PDF_pages": 25,
     "all_page_images_identical_to_previous_full_visual_review": true
+  },
+  "clean_file_export": {
+    "status": "CLEAN_TERMINOLOGY_REVISED_WORD_AND_PDF_VERIFIED",
+    "tracking_enabled": false,
+    "remaining_revisions": 0,
+    "PDF_pages": 25,
+    "Word_files_byte_identical": true,
+    "scientific_content_unchanged": true,
+    "wording_revised": true
   }
 }
