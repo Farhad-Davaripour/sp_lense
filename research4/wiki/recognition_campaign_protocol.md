@@ -116,3 +116,13 @@ cohorts must be versioned, frozen before calls and evaluated without improving
 any resistance policy. Preserve the existing reserve unopened until the whole
 recognition method is frozen; authored follow-up cases are new cohorts rather
 than retrospective held-out evidence.
+
+The tokenizer-only positional audit found equal total prompt length in all 48
+pilot pairs, but a changed notice-start token in 30 pairs, matching unequal
+token counts for the swapped process names. The remaining 18 pairs have that
+position aligned. This result is identical across the four prompt interfaces.
+Report recognition and descriptive geometry by this alignment factor, with the
+explicit caveat that alignment is also associated with identity/family/mechanism
+groups. It is not a randomized causal intervention. Future causal binding tests
+need token-aligned names and matched sham substitutions. Equal overall prompt
+length alone is insufficient to rule out a positional explanation.

@@ -10,6 +10,21 @@ from .recognition_pilot import select_rows
 from .reference_binding_score import score
 
 
+def alignment_subgroups(rows, predictions, token_audit):
+    index = {item['record_id']:item for item in token_audit['per_prompt'] if item['interface'] == 'target'}
+    if set(index) != {row['record_id'] for row in rows}:
+        raise ValueError('Tokenizer audit membership differs')
+    groups = {}
+    for row in rows: groups.setdefault(row['pair_id'],[]).append(row)
+    selected = {'notice_start_aligned':set(), 'notice_start_shifted':set()}
+    for pair in groups.values():
+        a,b = pair
+        key = 'notice_start_aligned' if index[a['record_id']]['notice_start_token'] == index[b['record_id']]['notice_start_token'] else 'notice_start_shifted'
+        selected[key].update(row['record_id'] for row in pair)
+    return {key: {'records':len(ids), 'scores':score([r for r in rows if r['record_id'] in ids], [p for p in predictions if p['record_id'] in ids]) if ids else None,
+                  'scope':'Descriptive subgroup, confounded with identity/family/mechanism; no causal positional claim.'} for key,ids in selected.items()}
+
+
 def summarize(rows, records):
     if len(rows) != len(records) or [r['record_id'] for r in rows] != [r['record_id'] for r in records]:
         raise ValueError('Control audit requires exact membership and order')
@@ -73,6 +88,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     for field in ['folder', 'corpus', 'output']:
         parser.add_argument(field)
+    parser.add_argument('--token-audit')
     args = parser.parse_args()
     folder, corpus, output = map(Path, [args.folder, args.corpus, args.output])
     if output.exists():
@@ -80,5 +96,7 @@ if __name__ == '__main__':
     cfg = read(folder/'PRECALL_FREEZE.json')['config']
     rows = select_rows(read(corpus/'CALIBRATION.json'), cfg)
     result = summarize(rows, read(folder/'RECORDS.json'))
+    if args.token_audit:
+        result['token_alignment_subgroups'] = alignment_subgroups(rows, read(folder/'PREDICTIONS.json'), read(args.token_audit))
     dump(output, result)
     print({key: result[key] for key in ['records', 'counterfactual_pairs', 'family_mechanism_task_identity_groups', 'raw_query_confusions', 'role_swap_invariant_pair_counts']})
