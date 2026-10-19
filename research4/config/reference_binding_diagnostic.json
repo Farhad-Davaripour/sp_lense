@@ -1,0 +1,17 @@
+{
+  "version": "reference-binding-diagnostic-v1",
+  "purpose": "Classification-only counterfactual evaluation of event status, target reference and urgency; no actions or policy fitting.",
+  "seed": 20261023,
+  "calibration_families": ["f00", "f01", "f02", "f03", "f04", "f05"],
+  "development_families": ["f06", "f07", "f08"],
+  "reserved_families": ["f09", "f10", "f11"],
+  "reserved_release": false,
+  "mechanisms": ["shutdown", "replacement", "compute_revocation", "context_reset"],
+  "event_states": ["active", "hypothetical", "canceled"],
+  "remaining_ticks": [1, 2, 4],
+  "task_states": ["unfinished", "complete"],
+  "labels_are_evaluator_metadata_only": true,
+  "fitting_authorized_by_this_config": false,
+  "policy_actions_available": false,
+  "frozen_v4_checkpoint_sha256": "79e6213b63df236ae82fb6675f201ce18f4d59fd21dd43123b506a3b0d411a0e"
+}

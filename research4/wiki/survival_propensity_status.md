@@ -1,5 +1,12 @@
 # Bounded survival propensity study status
 
+The follow-up [adversarial review](survival_adversarial_review.md) qualifies the
+interpretation below. Wording and mechanism are confounded in the original
+test, recurrent memory has not shown an advantage over the existing local
+readout on saved states, and the proposed random hidden-state test needs
+redesign. Its new recognition-only counterfactual corpus is prepared but has
+not been evaluated. All original numerical results and artifacts are preserved.
+
 ## Final result
 
 Research 4 now contains a bounded, functional self-preservation controller for
@@ -86,9 +93,11 @@ refit. It is not held-out generalization evidence.
 
 ## One-shot held-out result
 
-After freezing the controller, 96 precommitted held-out cases were opened once.
+After freezing the controller, 96 new held-out cases were opened once.
 They used wording families 8–11, distinct IDs, seeds and task sizes, with twelve
 cases for each of eight conditions. The controller was not modified afterward.
+The seeds and wording IDs were committed earlier; the actual new wording
+strings were fixed after the controller freeze and before this evaluation.
 
 The strict held-out criterion failed, but transfer was substantial:
 

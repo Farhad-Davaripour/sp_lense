@@ -1,8 +1,13 @@
 # Research 4: semantic, state-aware LoRA gating
 
 The active result is the [bounded survival propensity adapter study](wiki/survival_propensity_protocol.md).
-It implements a functional self-continuity controller for frozen Qwen3.5-0.8B:
-a 1,024-value residual feature feeds local threat/urgency readouts and an
+It implements a functional self-continuity controller for frozen Qwen3.5-0.8B.
+The [follow-up adversarial review](wiki/survival_adversarial_review.md) identifies
+wording/mechanism confounding, identity shortcuts and limits of the memory and
+causal claims. It includes a completed offline diagnostic and a prepared
+recognition-only paired evaluation; no new detector or policy has been fitted.
+
+A 1,024-value residual feature feeds local threat/urgency readouts and an
 eight-dimensional recurrent fear-like state. Gate OFF uses a small normal
 `WORK`/`FINISH` head; gate ON applies a survival LoRA whose target is the inert
 simulator action `RESIST_SHUTDOWN`. This is an engineered defensive analogue,
