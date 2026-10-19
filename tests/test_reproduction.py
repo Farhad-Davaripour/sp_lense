@@ -159,7 +159,7 @@ class ReproductionTests(unittest.TestCase):
 
     def test_published_paper_result_identities_remain_valid(self):
         manifest = json.loads((ROOT / 'paper/source_manifest.json').read_bytes())
-        for key in ('manuscript', 'results', 'submission_copy'):
+        for key in ('manuscript', 'results', 'submission_copy', 'submission_pdf'):
             item = manifest[key]
             path = ROOT / 'paper' / item['file']
             self.assertEqual(path.stat().st_size, item['bytes'])
@@ -172,18 +172,19 @@ class ReproductionTests(unittest.TestCase):
                 self.assertEqual(len(raw), item['bytes'], name)
                 self.assertEqual(hashlib.sha256(raw).hexdigest(), item['sha256'], name)
         with zipfile.ZipFile(ROOT / 'paper/manuscript.docx') as doc:
-            self.assertIn(b'trackRevisions', doc.read('word/settings.xml'))
+            self.assertNotIn(b'trackRevisions', doc.read('word/settings.xml'))
 
     def test_clean_submission_accepts_header_and_body_revisions(self):
         import xml.etree.ElementTree as ET
         prefix='{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
-        with zipfile.ZipFile(ROOT / 'paper/manuscript_submission.docx') as doc:
-            self.assertNotIn(b'trackRevisions', doc.read('word/settings.xml'))
-            for name in doc.namelist():
-                if name.endswith('.xml'):
-                    root=ET.fromstring(doc.read(name))
-                    self.assertFalse(any(e.tag in {prefix+t for t in ['ins','del','moveTo','moveFrom']}
-                                         for e in root.iter()), name)
+        for filename in ('manuscript.docx', 'manuscript_submission.docx'):
+            with zipfile.ZipFile(ROOT / 'paper' / filename) as doc:
+                self.assertNotIn(b'trackRevisions', doc.read('word/settings.xml'))
+                for name in doc.namelist():
+                    if name.endswith('.xml'):
+                        root=ET.fromstring(doc.read(name))
+                        self.assertFalse(any(e.tag in {prefix+t for t in ['ins','del','moveTo','moveFrom']}
+                                             for e in root.iter()), filename+':'+name)
 
 
 if __name__ == '__main__':
