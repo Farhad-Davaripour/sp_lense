@@ -3324,5 +3324,29 @@
     "novelty_scope": "Empirical comparison and failure localization, not invention of conditional gating, LoRA routing or adapter bypass.",
     "review_rounds": 3,
     "all_scientific_results_unchanged": true
+  },
+  "paper_mcp_companion": {
+    "status": "IMPLEMENTED_PROTOCOL_AND_PUBLIC_REPLAY_CHECKS_PASS",
+    "version": "1.0.0",
+    "release_tag": "research3-paper-mcp-v1",
+    "scope": "Agent access to recorded evidence and CPU-only saved-score replay. Not a new scientific experiment or an LLM reasoning benchmark.",
+    "tools": 6,
+    "named_resources": 5,
+    "resource_templates": 1,
+    "prompts": 2,
+    "query_fixtures": 22,
+    "cohort_definitions": 10,
+    "claim_definitions": 6,
+    "SDK": "mcp==2.3.0",
+    "transport": "local stdio",
+    "public_hosted_service": false,
+    "private_credentials_required": false,
+    "model_loads": 0,
+    "optimizer_updates": 0,
+    "new_neural_inference": false,
+    "generative_agent_evaluated": false,
+    "validation_report": "mcp_validation.json",
+    "method_reference": "Miao et al. 2026, doi:10.1038/s41586-026-11044-y",
+    "construction": "Direct wrappers around existing verified functions; Paper2Agent resource/tool/prompt pattern, not its automatic multi-agent generator."
   }
 }

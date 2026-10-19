@@ -29,6 +29,82 @@ and control the specialized adapter's strength or bypass. That remains separate
 work; it supplies no additional Research 3 results. Biological gating motivates
 a functional analogy, without a claim of brain equivalence or subjective experience.
 
+## Agent accessible paper companion
+
+The paper has a local Model Context Protocol (MCP) companion for compatible agents.
+It follows the tools/resources/prompts organization described in
+[Paper2Agent](https://www.nature.com/articles/s41586-026-11044-y), with direct wrappers
+around this repository's verified functions. We have not run Paper2Agent's automatic
+multi-agent construction pipeline or measured improved LLM answer accuracy.
+
+Use Python 3.12 and install the optional companion dependencies:
+
+    python -m pip install -r requirements-mcp.txt
+    python -m src.paper_mcp
+
+This starts a local **stdio** server, not a public web endpoint. Without artifact
+downloads, it exposes the complete accepted manuscript in Markdown (including four
+equations, eight tables and two figure links), recorded results, cohort roles,
+claim-to-evidence pointers, source identities and reproduction instructions.
+It needs no Databricks credentials, model loading or GPU. Nothing starts on import.
+
+| Tool | Purpose |
+|---|---|
+| `get_cohort` | Explain membership, units, split roles and completeness |
+| `get_result` | Return scoped metrics with denominators and limitations |
+| `get_claim` | Resolve a claim to exact recorded evidence |
+| `list_artifacts` | List released adapters, download URLs and hashes |
+| `verify_artifacts` | Verify a configured public release's file identities |
+| `replay_results` | Rescore saved evidence on CPU into a new report |
+
+Five resources and two prompts guide evidence explanation and saved-result replay.
+Replay reports have a separate resource template. The host configures artifact and
+output roots; tool callers cannot supply filesystem paths, code or commands.
+Original evidence stays immutable. The companion cannot launch neural inference,
+training, provider calls or Databricks jobs.
+
+For a client that accepts `mcpServers` configuration, use absolute paths. Running
+the server file directly works from any working directory:
+
+```json
+{
+  "mcpServers": {
+    "research3": {
+      "command": "/absolute/path/to/venv/python",
+      "args": ["/absolute/path/to/sp_lense/src/paper_mcp.py"]
+    }
+  }
+}
+```
+
+On Windows the command can end in `.venv/Scripts/python.exe`; forward slashes are
+accepted. This example is client-neutral and does not install or change a client.
+
+To enable replay, fetch the public profiles using the commands below and add
+`--artifacts /absolute/path/to/primary` and
+`--steering-artifacts /absolute/path/to/supplement` to the server arguments.
+`--output-root` optionally selects a separate report directory outside the checkout
+and evidence. The default is `~/Research3/artifacts/mcp_replays`.
+
+Validate the actual stdio protocol from an unrelated working directory:
+
+    python -m src.paper_mcp_validate --output <new-validation-report.json>
+    python -m src.paper_mcp_validate --artifacts <primary-directory> --steering-artifacts <supplement-directory> --output <another-new-validation-report.json>
+
+The 22 predeclared query fixtures cover denominators, historical split reuse,
+incomplete screens, claim provenance and rejected out-of-scope requests. All seven
+analysis views, ten cohorts and six claims are also exercised. These are fixed
+protocol/evidence checks, not a benchmark of an LLM selecting tools or answering
+questions. The second command additionally verifies both releases before and after
+replay and checks returned scores against the recorded paper results.
+The checked report is in `paper/mcp_validation.json`.
+
+`paper/manuscript.md` is exported from the clean accepted Word copy, with its
+source SHA-256. `python -m src.paper_export` refreshes the export after authoring;
+the source manifest must be refreshed before serving a changed paper. Manuscript,
+catalog, figure and result identities are checked before the companion starts;
+fixed-file drift is rejected while it is running. Restart after a checkout update.
+
 ## Start with a clean checkout
 
 Use Python 3.12, Git and the [official Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/install).
