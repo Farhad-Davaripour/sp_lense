@@ -148,7 +148,9 @@ def run(inputs,output,cache,allocation_deadline=None):
         for handle in handles:handle.remove()
         model=None;layers=None;gc.collect()
         if torch.cuda.is_available():torch.cuda.empty_cache()
-        receipt.update(seconds=time.monotonic()-started,model_objects_released=True,GPU_allocations=1 if torch.cuda.is_available() else 0)
+        total=sum(m['backbone_forwards'] for m in receipt['models'])
+        if active is not None:total+=active['backbone_forwards']
+        receipt.update(seconds=time.monotonic()-started,backbone_forwards=total,model_objects_released=True,GPU_allocations=1 if torch.cuda.is_available() else 0)
         dump(output/'RUN_RECEIPT.json',receipt)
         manifest={str(f.relative_to(output)):sha(f) for f in output.rglob('*') if f.is_file() and f.name!='MANIFEST.json'}
         dump(output/'MANIFEST.json',manifest)
