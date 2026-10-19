@@ -16,7 +16,7 @@ class PaperScopeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'paper.md'
             report = export(destination=path)
-            self.assertEqual((report['equations'], report['tables'], report['figures']), (4, 8, 2))
+            self.assertEqual((report['equations'], report['tables'], report['figures']), (4, 11, 2))
             self.assertEqual(path.read_bytes(), (ROOT/'paper/manuscript.md').read_bytes())
 
     def test_cohort_roles_and_unexecuted_results_remain_explicit(self):
@@ -57,7 +57,7 @@ class ProtocolTests(unittest.TestCase):
         from src.paper_mcp_validate import validate
         with tempfile.TemporaryDirectory() as directory:
             result = anyio.run(validate, Path(directory)/'report.json')
-        self.assertEqual(result['predeclared_query_fixtures'], 22)
+        self.assertEqual(result['predeclared_query_fixtures'], 24)
         self.assertEqual(len(result['tools']), 6)
         self.assertFalse(result['generative_agent_evaluated'])
         self.assertEqual(result['model_loads'], 0)
@@ -71,5 +71,5 @@ class ProtocolTests(unittest.TestCase):
                 value = await client.call_tool('get_result', {'analysis': 'workflow_comparison'})
                 self.assertFalse(value.is_error)
                 self.assertEqual(value.structured_content['data']['methods']['fine_tuned_A']['own']['successes'], 10)
-                self.assertEqual(client.server_info.version, '1.0.0')
+                self.assertEqual(client.server_info.version, '2.0.0')
         anyio.run(check)

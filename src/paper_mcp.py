@@ -17,10 +17,10 @@ from src.config import ROOT
 from src.utils import sha256, write_json
 
 ANALYSES = ('binary_gate', 'binary_inference', 'workflow_gate', 'workflow_comparison',
-            'steering_diagnostic', 'small_model_screen', 'historical_confirmation')
+            'steering_diagnostic', 'small_model_screen', 'historical_confirmation', 'failure_localization')
 PROFILES = ('primary', 'steering')
 Analysis = Literal['binary_gate', 'binary_inference', 'workflow_gate', 'workflow_comparison',
-                   'steering_diagnostic', 'small_model_screen', 'historical_confirmation']
+                   'steering_diagnostic', 'small_model_screen', 'historical_confirmation', 'failure_localization']
 Profile = Literal['primary', 'steering']
 Cohort = Literal['T1', 'Evaluation16', 'Validation24', 'H24', 'R24', 'F24',
                  'BinaryDEV80', 'BinaryConfirm128', 'DEV9', 'Diagnostic3']
@@ -137,6 +137,8 @@ class PaperStore:
                     'physical_workflow_episodes', 'logical_method_case_records', 'source_GPU_worker_status',
                     'derived_gate_OFF_control_aliases', 'final_model_fingerprint_check_reached']}
             data['independent_frozen_A_verification'] = pointer(self.results, '/frozen_A_verification')
+        elif analysis == 'failure_localization':
+            data = {k: v for k, v in raw.items() if k != 'source_files'}
         else:
             data = raw
         return self.envelope(data, [key]+(['/frozen_A_verification'] if analysis == 'workflow_comparison' else []), spec['limits'])
@@ -204,7 +206,8 @@ def build_server(root=ROOT, artifacts=None, steering_artifacts=None, output_root
     @mcp.tool(annotations=read, structured_output=True)
     def get_result(analysis: Analysis) -> Envelope:
         """Retrieve paper metrics, denominators and limitations. Choose binary_gate, binary_inference,
-        workflow_gate, workflow_comparison, steering_diagnostic, small_model_screen or historical_confirmation."""
+        workflow_gate, workflow_comparison, steering_diagnostic, small_model_screen,
+        historical_confirmation or failure_localization."""
         return store.get_result(analysis)
 
     @mcp.tool(annotations=read, structured_output=True)

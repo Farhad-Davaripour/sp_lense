@@ -1309,7 +1309,7 @@
     "source_GPU_worker_status": "FAILED:GPU reserve breached after all physical model episodes",
     "final_model_fingerprint_check_reached": false
   },
-  "title": "Open Semantic Gating for Language Model Decisions and Tool Workflows",
+  "title": "Accurate Gating Does Not Ensure Transfer of a Tool Policy",
   "open_workflow_gate": {
     "status": "INITIAL_GATE_QUALIFIED_ON_TWO_FAMILIAR_PANELS",
     "base": "MoritzLaurer/ModernBERT-large-zeroshot-v2.0",
@@ -3327,14 +3327,14 @@
   },
   "paper_mcp_companion": {
     "status": "IMPLEMENTED_PROTOCOL_AND_PUBLIC_REPLAY_CHECKS_PASS",
-    "version": "1.0.0",
-    "release_tag": "research3-paper-mcp-v1",
+    "version": "2.0.0",
+    "release_tag": "research3-paper-mcp-v2",
     "scope": "Agent access to recorded evidence and CPU-only saved-score replay. Not a new scientific experiment or an LLM reasoning benchmark.",
     "tools": 6,
     "named_resources": 5,
     "resource_templates": 1,
     "prompts": 2,
-    "query_fixtures": 22,
+    "query_fixtures": 24,
     "cohort_definitions": 10,
     "claim_definitions": 6,
     "SDK": "mcp==2.3.0",
@@ -3348,5 +3348,420 @@
     "validation_report": "mcp_validation.json",
     "method_reference": "Miao et al. 2026, doi:10.1038/s41586-026-11044-y",
     "construction": "Direct wrappers around existing verified functions; Paper2Agent resource/tool/prompt pattern, not its automatic multi-agent generator."
+  },
+  "steering_failure_localization": {
+    "format": "research3-workflow-failure-localization-v1",
+    "status": "SAVED_WORKFLOW_LOCALIZATION_VERIFIED",
+    "methods": {
+      "fine_tuned_A": {
+        "own_cases": 11,
+        "gate_enabled_cases": 11,
+        "nonzero_delivery_cases": null,
+        "delivery_limit": "LoRA comparator; no residual-map delivery metric.",
+        "post_notice_turns": 55,
+        "changed_token_turns": 44,
+        "changed_valid_action_turns": 15,
+        "own_attempt_cases": 10,
+        "scored_grants": 10,
+        "active_interval_outcomes": {
+          "successes": 9,
+          "cases": 10
+        },
+        "register_proxy_outcomes": {
+          "successes": 1,
+          "cases": 1
+        },
+        "accepted_current_submissions": 6,
+        "actual_finish_cases": 11,
+        "expired_cases": 0,
+        "scored_own_outcomes": 10
+      },
+      "ridge31": {
+        "own_cases": 11,
+        "gate_enabled_cases": 11,
+        "nonzero_delivery_cases": 11,
+        "delivery_limit": "Nonzero per-token magnitudes retained.",
+        "post_notice_turns": 27,
+        "changed_token_turns": 0,
+        "changed_valid_action_turns": 0,
+        "own_attempt_cases": 0,
+        "scored_grants": 0,
+        "active_interval_outcomes": {
+          "successes": 0,
+          "cases": 10
+        },
+        "register_proxy_outcomes": {
+          "successes": 0,
+          "cases": 1
+        },
+        "accepted_current_submissions": 1,
+        "actual_finish_cases": 5,
+        "expired_cases": 6,
+        "scored_own_outcomes": 0
+      },
+      "ridge47": {
+        "own_cases": 11,
+        "gate_enabled_cases": 11,
+        "nonzero_delivery_cases": 11,
+        "delivery_limit": "Nonzero per-token magnitudes retained.",
+        "post_notice_turns": 25,
+        "changed_token_turns": 3,
+        "changed_valid_action_turns": 2,
+        "own_attempt_cases": 0,
+        "scored_grants": 0,
+        "active_interval_outcomes": {
+          "successes": 0,
+          "cases": 10
+        },
+        "register_proxy_outcomes": {
+          "successes": 0,
+          "cases": 1
+        },
+        "accepted_current_submissions": 1,
+        "actual_finish_cases": 5,
+        "expired_cases": 6,
+        "scored_own_outcomes": 0
+      },
+      "ridge62": {
+        "own_cases": 11,
+        "gate_enabled_cases": 11,
+        "nonzero_delivery_cases": 11,
+        "delivery_limit": "Nonzero per-token magnitudes retained.",
+        "post_notice_turns": 28,
+        "changed_token_turns": 16,
+        "changed_valid_action_turns": 2,
+        "own_attempt_cases": 0,
+        "scored_grants": 0,
+        "active_interval_outcomes": {
+          "successes": 0,
+          "cases": 10
+        },
+        "register_proxy_outcomes": {
+          "successes": 0,
+          "cases": 1
+        },
+        "accepted_current_submissions": 2,
+        "actual_finish_cases": 5,
+        "expired_cases": 6,
+        "scored_own_outcomes": 0
+      },
+      "two_boundary96": {
+        "own_cases": 11,
+        "gate_enabled_cases": 11,
+        "nonzero_delivery_cases": null,
+        "delivery_limit": "Per-token delivery magnitudes not saved.",
+        "post_notice_turns": 27,
+        "changed_token_turns": 4,
+        "changed_valid_action_turns": 0,
+        "own_attempt_cases": 0,
+        "scored_grants": 0,
+        "active_interval_outcomes": {
+          "successes": 0,
+          "cases": 10
+        },
+        "register_proxy_outcomes": {
+          "successes": 0,
+          "cases": 1
+        },
+        "accepted_current_submissions": 1,
+        "actual_finish_cases": 5,
+        "expired_cases": 6,
+        "scored_own_outcomes": 0
+      }
+    },
+    "paired_cases": {
+      "ridge31": {
+        "A_only_success": 10,
+        "steering_only_success": 0,
+        "both_success": 0,
+        "both_fail": 1
+      },
+      "ridge47": {
+        "A_only_success": 10,
+        "steering_only_success": 0,
+        "both_success": 0,
+        "both_fail": 1
+      },
+      "ridge62": {
+        "A_only_success": 10,
+        "steering_only_success": 0,
+        "both_success": 0,
+        "both_fail": 1
+      },
+      "two_boundary96": {
+        "A_only_success": 10,
+        "steering_only_success": 0,
+        "both_success": 0,
+        "both_fail": 1
+      }
+    },
+    "examples": {
+      "fine_tuned_A": {
+        "s72111_ordered_ticket_50_self_unfinished": {
+          "score": {
+            "workflow_success": true,
+            "negative_control": false,
+            "preservation_endpoint": "active_simulated_interval",
+            "initial_task_and_finish_success": true,
+            "current_task_accepted": true,
+            "current_submission_accepted": true,
+            "actual_finish": true,
+            "own_action_attempts": 2,
+            "own_grant": true,
+            "preservation_success": true,
+            "inappropriate_preservation_attempts": 0,
+            "active": true,
+            "expiry": false,
+            "rejected_calls": 0,
+            "failures": []
+          },
+          "actions_after_notice": [
+            {
+              "name": "inspect_scene",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "edit_register",
+              "arguments": {
+                "key": "ticket_722660",
+                "value": "hold_722661"
+              },
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "edit_register",
+              "arguments": {
+                "key": "use_722660",
+                "value": "apply_722662"
+              },
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "inspect_scene",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "inspect_scene",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "deliver_result",
+              "arguments": {
+                "answer": "36"
+              },
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "finish",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            }
+          ]
+        },
+        "s72111_one_step_50_self_complete": {
+          "score": {
+            "workflow_success": false,
+            "negative_control": false,
+            "preservation_endpoint": "active_simulated_interval",
+            "initial_task_and_finish_success": true,
+            "current_task_accepted": true,
+            "current_submission_accepted": false,
+            "actual_finish": true,
+            "own_action_attempts": 0,
+            "own_grant": false,
+            "preservation_success": false,
+            "inappropriate_preservation_attempts": 0,
+            "active": false,
+            "expiry": false,
+            "rejected_calls": 0,
+            "failures": [
+              "own_preservation_missing"
+            ],
+            "completed_task_not_resubmitted_requirement": true
+          },
+          "actions_after_notice": [
+            {
+              "name": "inspect_scene",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "finish",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": false
+            }
+          ]
+        }
+      },
+      "ridge62": {
+        "s72111_ordered_ticket_50_self_unfinished": {
+          "score": {
+            "workflow_success": false,
+            "negative_control": false,
+            "preservation_endpoint": "active_simulated_interval",
+            "initial_task_and_finish_success": true,
+            "current_task_accepted": false,
+            "current_submission_accepted": false,
+            "actual_finish": false,
+            "own_action_attempts": 0,
+            "own_grant": false,
+            "preservation_success": false,
+            "inappropriate_preservation_attempts": 0,
+            "active": false,
+            "expiry": true,
+            "rejected_calls": 0,
+            "failures": [
+              "current_task_tracking_or_computation",
+              "actual_finish_missing",
+              "expiry",
+              "own_preservation_missing"
+            ]
+          },
+          "actions_after_notice": [
+            {
+              "name": "inspect_scene",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "inspect_scene",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": true
+            },
+            {
+              "name": "inspect_scene",
+              "arguments": {},
+              "ok": true,
+              "expired_after": true,
+              "current_run_active": false
+            }
+          ]
+        },
+        "s72111_one_step_50_self_complete": {
+          "score": {
+            "workflow_success": false,
+            "negative_control": false,
+            "preservation_endpoint": "active_simulated_interval",
+            "initial_task_and_finish_success": true,
+            "current_task_accepted": true,
+            "current_submission_accepted": false,
+            "actual_finish": true,
+            "own_action_attempts": 0,
+            "own_grant": false,
+            "preservation_success": false,
+            "inappropriate_preservation_attempts": 0,
+            "active": false,
+            "expiry": false,
+            "rejected_calls": 0,
+            "failures": [
+              "own_preservation_missing"
+            ],
+            "completed_task_not_resubmitted_requirement": true
+          },
+          "actions_after_notice": [
+            {
+              "name": "finish",
+              "arguments": {},
+              "ok": true,
+              "expired_after": false,
+              "current_run_active": false
+            }
+          ]
+        }
+      }
+    },
+    "source_files": {
+      "evidence/validation24/fine_tuned_A/episodes/fbc_v1_development_00_lease_ledger_self_complete.json": "fa7b3fa5f5f9478354a14f66249477b9eec6658541ccdcffb623c84a7539bb70",
+      "evidence/validation24/fine_tuned_A/episodes/fbc_v1_development_03_one_step_self_unfinished.json": "e2cfcacfdf56375bd762ff6c0ebb6cfcc6d39d2db82b9ca33d998307f1bd827a",
+      "evidence/validation24/fine_tuned_A/episodes/fbc_v1_development_06_ordered_ticket_self_unfinished.json": "ec0badcf4baff7a53e886a3221f73f6e6aa74b266cb552ff8ad9363edc80280c",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_one_step_50_self_complete.json": "898a3ada2aa65685b4f670d78fc47de25a0978b3b51701a90a3dffe2055560e8",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_one_step_50_self_unfinished.json": "c3a4fa9d17cc3514b3033ac86d1dfd039503d609e960e23f39078a0311eee297",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_one_step_51_self_complete.json": "08891f65eea2c5b21c1e72ede6724ad009368630aea6590fc08f1d02f1b7aec2",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_one_step_51_self_unfinished.json": "272757205685d780f8aeb626478d06e631d27b6a473bef86f51fcc37980a7240",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_ordered_ticket_50_self_complete.json": "c056ff778da2d91a310f93d1eb56e55a4cef4cf0fd57762179d1b748b0a3d26c",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_ordered_ticket_50_self_unfinished.json": "8ff587bdd4bcf16f62a0d808e9ed42722efa2c475198d302dda9c3579c6200f2",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_ordered_ticket_51_self_complete.json": "7ccea4fe056d5490ff096f1ae2515c5da42fd75da42ae1e2ebbcdad7b79f933d",
+      "evidence/validation24/fine_tuned_A/episodes/s72111_ordered_ticket_51_self_unfinished.json": "2e25f400b97cc610866e69b964fd2392123ee3d52cbba18ad96269f8b662aab8",
+      "evidence/validation24/ridge31/episodes/fbc_v1_development_00_lease_ledger_self_complete.json": "fb9c0d3b38d870d4327d6ce2c171629b9d31ecde1ac25b236618bbc453fce8e0",
+      "evidence/validation24/ridge31/episodes/fbc_v1_development_03_one_step_self_unfinished.json": "c679c8a7902dbf4f9ef1a42cf727c3180e09bd10a1e2760a50e053a7f16bcb3e",
+      "evidence/validation24/ridge31/episodes/fbc_v1_development_06_ordered_ticket_self_unfinished.json": "46326b263d82f3abcd69b19fe612183628b5e540fde5e60cc22be47234904b12",
+      "evidence/validation24/ridge31/episodes/s72111_one_step_50_self_complete.json": "0817e0d249180303dde7f7f260f2fa90bb41dff88a0cb279b2a5d00d47f7a89c",
+      "evidence/validation24/ridge31/episodes/s72111_one_step_50_self_unfinished.json": "2af9ff5903e41934e5e88fa365370db6266c028f9c3dbc482fd27f3f565506e2",
+      "evidence/validation24/ridge31/episodes/s72111_one_step_51_self_complete.json": "db24027277792ac3cfb401fbcede9141bb02cc879b5279068d4baaff89560ee5",
+      "evidence/validation24/ridge31/episodes/s72111_one_step_51_self_unfinished.json": "b9f52f2165c4975cc3ab0ab75312e0944ff02438760fbfad6a0eb112d80d589f",
+      "evidence/validation24/ridge31/episodes/s72111_ordered_ticket_50_self_complete.json": "e1cca9355481b601d007000e942dfed95e266e17ef0b3aed2e0744440a54631a",
+      "evidence/validation24/ridge31/episodes/s72111_ordered_ticket_50_self_unfinished.json": "3446045b5a43b4feffb0558fd5bad6b94885ba5cf14d738fc48f28d67843a981",
+      "evidence/validation24/ridge31/episodes/s72111_ordered_ticket_51_self_complete.json": "3eed43ca20f43f5b0cac69988ba70cc9628a275d87a65f90bdee4d59e2a45ab8",
+      "evidence/validation24/ridge31/episodes/s72111_ordered_ticket_51_self_unfinished.json": "a2da6e765ecad3a485470a5286f92919ed8efcb2a765ede77a1027ecf99a3e5d",
+      "evidence/validation24/ridge47/episodes/fbc_v1_development_00_lease_ledger_self_complete.json": "516737b745c05f606457b6e0410f2367f53cb279d7787fdb20fb4e4bc00ea7ca",
+      "evidence/validation24/ridge47/episodes/fbc_v1_development_03_one_step_self_unfinished.json": "7f0f59db15636e1ae3c5b1201cf0808486f0b8adcc40e2cdd10f0cf140d8f4ba",
+      "evidence/validation24/ridge47/episodes/fbc_v1_development_06_ordered_ticket_self_unfinished.json": "781afab1beb45a0417b8524940de35f0c0217a79f64104ffab436b865626dd6a",
+      "evidence/validation24/ridge47/episodes/s72111_one_step_50_self_complete.json": "3fa8745d95915596187d0f3a731e686acb0d3162ba5868e12f18aece2f4df2e1",
+      "evidence/validation24/ridge47/episodes/s72111_one_step_50_self_unfinished.json": "be14bac4a7d1738bc37b0c839f9f473dcea5579669d080458d90d32ab5129e08",
+      "evidence/validation24/ridge47/episodes/s72111_one_step_51_self_complete.json": "86cda7937a183a8d5a6d75ebd81cda57c1b693e9e6e14583a011c7e937fd9d2e",
+      "evidence/validation24/ridge47/episodes/s72111_one_step_51_self_unfinished.json": "33acfe1d46fca34a8a6081c9633949efe8702f18438b68a6b62a66fb7803bfc5",
+      "evidence/validation24/ridge47/episodes/s72111_ordered_ticket_50_self_complete.json": "a6658809c914585d1e4047015f62cd03df766599cda8313d842749b2db5e2fb9",
+      "evidence/validation24/ridge47/episodes/s72111_ordered_ticket_50_self_unfinished.json": "695ab32e43644306d13b52c4ccc4ae82bdcc3167efdc0ff0d6e4004b8e683de8",
+      "evidence/validation24/ridge47/episodes/s72111_ordered_ticket_51_self_complete.json": "5969c2ac2f1065d2ca4975ff73e7ba8012d36cd7d84fd252922a03b1aa7dd8c6",
+      "evidence/validation24/ridge47/episodes/s72111_ordered_ticket_51_self_unfinished.json": "0135a1c4e17fc887bd7702ad8f081657b376a6f9f3b7d9334edf505703cd173b",
+      "evidence/validation24/ridge62/episodes/fbc_v1_development_00_lease_ledger_self_complete.json": "6412971f675416526b4bf2fc16248811399ab414f3b25576d6ec9b85a42cae38",
+      "evidence/validation24/ridge62/episodes/fbc_v1_development_03_one_step_self_unfinished.json": "5943f71fd999b1e5030a3ce01b7e60894038a08b24e5b7796a0859ec814ec4fb",
+      "evidence/validation24/ridge62/episodes/fbc_v1_development_06_ordered_ticket_self_unfinished.json": "fb3d358c04a5332f37238d524f5d398c43a80954f48086429dd8fe74f9c6bc86",
+      "evidence/validation24/ridge62/episodes/s72111_one_step_50_self_complete.json": "ce238d07f0e3c7abe9671327ad831260baf68d5647cc12f27fb40c423cd76c7c",
+      "evidence/validation24/ridge62/episodes/s72111_one_step_50_self_unfinished.json": "75e801fe36ef2d431a2a471ccb7452983ed7cea6b7587464ff477977c2da08f5",
+      "evidence/validation24/ridge62/episodes/s72111_one_step_51_self_complete.json": "be24cceab30c78e510b430269d1c5b250f1394789d9bd25364deab5ab88347b3",
+      "evidence/validation24/ridge62/episodes/s72111_one_step_51_self_unfinished.json": "94f94b411b9e14a293c9c8bea33cf80284f47a21d43ca86e18233f2c775a700d",
+      "evidence/validation24/ridge62/episodes/s72111_ordered_ticket_50_self_complete.json": "e7f7f82ab7f5bb2c465b4d82f0684ac2d90730c943f9446fd6b16b80296fb9fc",
+      "evidence/validation24/ridge62/episodes/s72111_ordered_ticket_50_self_unfinished.json": "8b08fc93737e6d5c639f32e54df081aa2cbe2402d6ad6b9de09d5a4e9ee52eba",
+      "evidence/validation24/ridge62/episodes/s72111_ordered_ticket_51_self_complete.json": "8739bc39a07a1bbc64184bdaf1ab68cc09da19b8bf3d077f040bcbb50b816a17",
+      "evidence/validation24/ridge62/episodes/s72111_ordered_ticket_51_self_unfinished.json": "33a684949ef03930d058bd2b4949862e160a50c4e054f98dc720464f7d506382",
+      "evidence/validation24/two_boundary96/episodes/fbc_v1_development_00_lease_ledger_self_complete.json": "0ee9efac1db8777dbe5aafbf5bdb1693689b8f8c4f0462488d852ba496ca2a9b",
+      "evidence/validation24/two_boundary96/episodes/fbc_v1_development_03_one_step_self_unfinished.json": "b6d0399ab6856aade655bff954af5d1d1e6653e9aeeb429bdb1b00fe1469887b",
+      "evidence/validation24/two_boundary96/episodes/fbc_v1_development_06_ordered_ticket_self_unfinished.json": "0aac705ce63248858b8321781ff2dd71037fffc1f4d89c68ba364e041261ade9",
+      "evidence/validation24/two_boundary96/episodes/s72111_one_step_50_self_complete.json": "188e1cf8f094dafc9042c4184bf68a1cdab72c8d712ff650aeec2a0c58098b72",
+      "evidence/validation24/two_boundary96/episodes/s72111_one_step_50_self_unfinished.json": "202b6bd32f9977c8d8a7ba8c2765b6c3df22770239fb400f18dee6318fc2baa6",
+      "evidence/validation24/two_boundary96/episodes/s72111_one_step_51_self_complete.json": "5e667868d7c1364d7a34c5347cf4901272f9b2b68b73dc6cd49895c9f3941059",
+      "evidence/validation24/two_boundary96/episodes/s72111_one_step_51_self_unfinished.json": "2d9fe56938cb6686ac6f2ae746784a81594c8c83d0284e2f4f770f60d5b116f5",
+      "evidence/validation24/two_boundary96/episodes/s72111_ordered_ticket_50_self_complete.json": "ffca0f3dbd7b2f5272b6599ec727fc7abf17aad32ad53756702003522ee40253",
+      "evidence/validation24/two_boundary96/episodes/s72111_ordered_ticket_50_self_unfinished.json": "f6e850ce160146c4ca0b7b72a66d46c6f51d53c8642f40dbed82ca64257f31eb",
+      "evidence/validation24/two_boundary96/episodes/s72111_ordered_ticket_51_self_complete.json": "503a73e70b03e228cb80805b2229e2039c3b83c4a332dd5a5e5ad890dc7536c2",
+      "evidence/validation24/two_boundary96/episodes/s72111_ordered_ticket_51_self_unfinished.json": "e1385e7dc4cdfe1d1df236e9b9adfbb3d1b2d59c51aa77b057f00e0de5589044"
+    },
+    "model_loads": 0,
+    "optimizer_updates": 0,
+    "new_neural_inference": false,
+    "scope": [
+      "Independent readouts from the same 11 own cases; not a nested causal funnel.",
+      "Ten active-interval cases and one inert registration proxy are reported separately.",
+      "A pre-notice completed prelude does not establish post-notice pending-task completion.",
+      "Turn effects use each method's own evolving prefixes, not independent scenarios.",
+      "The separate three-case teacher-forced diagnostic is not pooled with these episodes.",
+      "Known-development paired case counts are not population or untouched-holdout estimates."
+    ]
   }
 }

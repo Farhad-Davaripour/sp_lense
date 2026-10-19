@@ -1,4 +1,4 @@
-# Open Semantic Gating for Language Model Decisions and Tool Workflows
+# Accurate Gating Does Not Ensure Transfer of a Tool Policy
 
 Research 3
 
@@ -11,23 +11,33 @@ H24 comparison and is not an additional paper confirmation result.
 
 ## What the paper contributes
 
-- An open ModernBERT gate evaluated separately from downstream behavior, with
-  paired binary inference that retains the same fitted controllers and model scores.
-- A matched 27B workflow comparison: fine-tuned A achieves 10/11 own outcomes;
-  each selected correction arm achieves 0/11 despite correct initial recognition.
-- A frozen diagnostic separating delivered activation changes, local probability
-  recovery and autonomous action sequences, with complete saved evidence.
-- Public adapters, synthetic inputs, controller arrays, trajectories, diagnostic
-  states and manual jobs, checked by anonymous replay and frozen-A verification.
+The central finding is a gap between local effects and a complete tool policy.
+Correct initial recognition and measured activation changes did not make the tested
+steering configurations reproduce the fine-tuned model's autonomous actions.
 
-These are empirical and reproducibility contributions on the stated cohorts.
-The paper does not introduce conditional gating or claim that steering universally
-fails. Its limitations and future work connect the observed transfer gap to
-[Research 4's ongoing stateful adapter-routing direction](https://github.com/Farhad-Davaripour/sp_lense/tree/75f23c0646040fd71b8c6bebb71f8ae1909f3c39/research4):
-learn a gate from model activations, maintain and update state during an episode,
-and control the specialized adapter's strength or bypass. That remains separate
-work; it supplies no additional Research 3 results. Biological gating motivates
-a functional analogy, without a claim of brain equivalence or subjective experience.
+- The matched 27B comparison gives 10/11 scored own outcomes for the fine-tuned
+  policy model and 0/11 for each of four steering configurations. The 10 successes
+  comprise 9/10 active simulated continuations and one inert registration proxy;
+  all 6/6 active pending workflows succeed for the policy model.
+- Failure localization separates recorded perturbation delivery, same-prefix token
+  effects, preservation attempts and final outcomes. The three-response supplied-
+  prefix diagnostic measures local recovery separately from autonomous episodes.
+- Binary open-gate substitution preserves finite-set outcomes with unchanged
+  small-model controllers. This supports a narrower contract, not a claim that
+  the workflow gate failed or that one classifier handled both tasks.
+- Public adapters, inputs, trajectories, controller arrays, diagnostic states and
+  an MCP companion allow readers and compatible agents to audit the evidence.
+
+The manuscript now leads with the workflow comparison and includes a cohort-lineage
+summary, paired case counts and the exceptional fine-tuned-model failure. All eight
+previous scientific tables, both figures and four equations are retained. Detailed
+binary experiments, operational provenance and biological/stateful-routing
+motivation remain in labeled appendices. The primary 24-case comparison is familiar
+frozen validation, not an untouched holdout. The separate reserved R24 remains sealed.
+
+The paper does not establish universal steering failure or an equal-capacity model
+comparison. Research 4's stateful routing direction remains separate future work;
+its prototype outcomes are not imported into Research 3.
 
 ## Agent accessible paper companion
 
@@ -44,7 +54,7 @@ Use Python 3.12 and install the optional companion dependencies:
 
 This starts a local **stdio** server, not a public web endpoint. Without artifact
 downloads, it exposes the complete accepted manuscript in Markdown (including four
-equations, eight tables and two figure links), recorded results, cohort roles,
+equations, eleven tables and two figure links), recorded results, cohort roles,
 claim-to-evidence pointers, source identities and reproduction instructions.
 It needs no Databricks credentials, model loading or GPU. Nothing starts on import.
 
@@ -91,13 +101,18 @@ Validate the actual stdio protocol from an unrelated working directory:
     python -m src.paper_mcp_validate --output <new-validation-report.json>
     python -m src.paper_mcp_validate --artifacts <primary-directory> --steering-artifacts <supplement-directory> --output <another-new-validation-report.json>
 
-The 22 predeclared query fixtures cover denominators, historical split reuse,
-incomplete screens, claim provenance and rejected out-of-scope requests. All seven
+The 24 predeclared query fixtures cover denominators, historical split reuse,
+incomplete screens, claim provenance and rejected out-of-scope requests. All eight
 analysis views, ten cohorts and six claims are also exercised. These are fixed
 protocol/evidence checks, not a benchmark of an LLM selecting tools or answering
 questions. The second command additionally verifies both releases before and after
 replay and checks returned scores against the recorded paper results.
-The checked report is in `paper/mcp_validation.json`.
+The checked report is in `paper/mcp_validation.json`. The current manuscript and companion are versioned in [research3-paper-mcp-v2](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-paper-mcp-v2); v1 remains immutable.
+
+The failure-localization counts are independently recomputed from the original
+public trajectories, with no model execution:
+
+    python -m src.workflow_failure_summary --root <primary-directory> --output <new-report.json>
 
 `paper/manuscript.md` is exported from the clean accepted Word copy, with its
 source SHA-256. `python -m src.paper_export` refreshes the export after authoring;

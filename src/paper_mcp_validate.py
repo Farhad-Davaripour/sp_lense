@@ -45,7 +45,8 @@ async def validate(output, artifacts=None, steering_artifacts=None):
             templates = (await client.list_resource_templates()).resource_templates
             check('one generated-report resource template', len(templates) == 1)
             text = (await client.read_resource('research3://paper/manuscript')).contents[0].text
-            check('full manuscript and references', text.startswith('<!-- Accepted manuscript') and '\n# Open Semantic Gating' in text and '\n## References' in text)
+            title = json.loads((ROOT/'paper/source_manifest.json').read_bytes())['title']
+            check('full manuscript and references', text.startswith('<!-- Accepted manuscript') and '\n# '+title+'\n' in text and '\n## References' in text)
             check('four equations preserved', text.count('$') == 8)
             check('two embedded figure links', text.count('![Paper figure') == 2)
             prompts = (await client.list_prompts()).prompts
@@ -83,6 +84,10 @@ async def validate(output, artifacts=None, steering_artifacts=None):
                 if profile == 'primary':
                     check('primary own denominator', report['matched_validation24']['fine_tuned_A']['own'] == {'cases': 11, 'successes': 10})
                     check('primary stopped screen', report['small_model_screens']['2']['unexecuted_cases'] == 12)
+                    from src.workflow_failure_summary import summarize
+                    localization = summarize(path)
+                    recorded = json.loads((ROOT/'paper/results.json').read_bytes())['steering_failure_localization']
+                    check('workflow localization matches saved episodes', localization == recorded)
                 else:
                     check('diagnostic three cases', report['training_cases'] == 3 and report['no_workflow_success_claim'])
                     recorded = json.loads((ROOT/'paper/results.json').read_bytes())['steering_mechanism_diagnostic']['matrix_case_macro']
@@ -107,7 +112,7 @@ async def validate(output, artifacts=None, steering_artifacts=None):
         'tools': sorted(names), 'resources': len(resources), 'resource_templates': len(templates), 'prompts': len(prompts),
         'predeclared_query_fixtures': len(fixtures['queries']), 'checks_passed': len(checks), 'checks': checks,
         'source_files': {n: hashlib.sha256((ROOT/n).read_bytes()).hexdigest() for n in
-                         ['src/paper_mcp.py', 'src/paper_mcp_validate.py', 'src/paper_export.py',
+                         ['src/paper_mcp.py', 'src/paper_mcp_validate.py', 'src/paper_export.py', 'src/workflow_failure_summary.py',
                           'config/paper_mcp_checks.json', 'requirements-mcp.txt',
                           'paper/manuscript.md', 'paper/agent_manifest.json', 'paper/results.json']},
         'replays': replay_results, 'source_checkout': checkout, 'model_loads': 0, 'optimizer_updates': 0, 'new_neural_inference': False,

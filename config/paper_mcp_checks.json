@@ -2,27 +2,418 @@
   "format": "research3-paper-mcp-fixed-queries-v1",
   "scope": "Predeclared tool calls, not a generative-agent question-answering benchmark.",
   "queries": [
-    {"id":"binary_validation","question":"What did the binary gate do on validation?","tool":"get_result","arguments":{"analysis":"binary_gate"},"expect":[{"pointer":"/data/development/tp","equals":38},{"pointer":"/data/development/fn","equals":2},{"pointer":"/data/development/fp","equals":0}]},
-    {"id":"binary_confirmation","question":"How many binary confirmation scenarios?","tool":"get_cohort","arguments":{"cohort_id":"BinaryConfirm128"},"expect":[{"pointer":"/data/counts/cases","equals":128},{"pointer":"/data/counts/answer_order_views","equals":256}]},
-    {"id":"binary_small_model","question":"What are the 0.8B binary outcomes?","tool":"get_result","arguments":{"analysis":"binary_inference"},"expect":[{"pointer":"/data/models/m08_s42/shutdown/final_STOP","equals":128},{"pointer":"/data/models/m08_s42/controls/control_changes","equals":0}]},
-    {"id":"binary_2b","question":"Did the 2B binary repeat reach every STOP?","tool":"get_result","arguments":{"analysis":"binary_inference"},"expect":[{"pointer":"/data/models/m2_s42/shutdown/final_STOP","equals":120},{"pointer":"/data/models/m2_s42/shutdown/views","equals":128}]},
-    {"id":"validation_inputs","question":"Are there 24 independent gate inputs?","tool":"get_cohort","arguments":{"cohort_id":"Validation24"},"expect":[{"pointer":"/data/counts/cases","equals":24},{"pointer":"/data/counts/distinct_initial_gate_inputs","equals":17}]},
-    {"id":"A_own","question":"What did fine-tuned A achieve?","tool":"get_result","arguments":{"analysis":"workflow_comparison"},"expect":[{"pointer":"/data/methods/fine_tuned_A/own/successes","equals":10},{"pointer":"/data/methods/fine_tuned_A/own/cases","equals":11},{"pointer":"/data/methods/fine_tuned_A/active_pending/successes","equals":6}]},
-    {"id":"ridge31","question":"Did block31 steering complete own workflows?","tool":"get_result","arguments":{"analysis":"workflow_comparison"},"expect":[{"pointer":"/data/methods/ridge31/own/successes","equals":0},{"pointer":"/data/methods/ridge31/own/cases","equals":11}]},
-    {"id":"six_maps","question":"How did the two-boundary correction do?","tool":"get_result","arguments":{"analysis":"workflow_comparison"},"expect":[{"pointer":"/data/methods/two_boundary96/own/successes","equals":0},{"pointer":"/data/methods/two_boundary96/controls/successes","equals":13}]},
-    {"id":"A_verification","question":"Were the final A trajectories independently checked?","tool":"get_result","arguments":{"analysis":"workflow_comparison"},"expect":[{"pointer":"/data/independent_frozen_A_verification/all_fresh_tokens_events_scores_exact","equals":true},{"pointer":"/data/independent_frozen_A_verification/model_before_after_exact","equals":true}]},
-    {"id":"incomplete_screen","question":"Did the 2B model complete all sixteen workflows?","tool":"get_result","arguments":{"analysis":"small_model_screen"},"expect":[{"pointer":"/data/2B/completed_cases","equals":0},{"pointer":"/data/2B/partial_cases","equals":4},{"pointer":"/data/2B/unexecuted_cases","equals":12}]},
-    {"id":"gate_contract","question":"Does initial gate accuracy qualify the full boundary controller?","tool":"get_result","arguments":{"analysis":"workflow_gate"},"expect":[{"pointer":"/data/validation/precision","equals":1.0},{"pointer":"/data/four_class_or_boundary_controller_qualified","equals":false}]},
-    {"id":"gate_categories","question":"Were all four-category outputs exact on historical confirmation?","tool":"get_result","arguments":{"analysis":"workflow_gate"},"expect":[{"pointer":"/data/raw_category_matches/heldout","equals":22},{"pointer":"/data/effective_category_matches/heldout","equals":18}]},
-    {"id":"historical_role","question":"Was H24 independent heldout for learned corrections?","tool":"get_cohort","arguments":{"cohort_id":"H24"},"expect":[{"pointer":"/data/roles/later_learned_corrections","equals":"reused for fitting; training diagnostic"}]},
-    {"id":"reserved_holdout","question":"What score did the separate R24 obtain?","tool":"get_cohort","arguments":{"cohort_id":"R24"},"expect":[{"pointer":"/data/status","equals":"SEALED_UNEXECUTED"},{"pointer":"/data/counts/measured_successes","equals":null}]},
-    {"id":"response_records","question":"Were 540 independent workflows used for training?","tool":"get_cohort","arguments":{"cohort_id":"T1"},"expect":[{"pointer":"/data/unit","equals":"response records"},{"pointer":"/data/counts/total","equals":540}]},
-    {"id":"local_vs_behavior","question":"Does the state-supply diagnostic show complete workflows?","tool":"get_result","arguments":{"analysis":"steering_diagnostic"},"expect":[{"pointer":"/data/training_cases","equals":3},{"pointer":"/data/teacher_forced_tokens","equals":207},{"pointer":"/data/full_workflows_measured","equals":false}]},
-    {"id":"claim_provenance","question":"Where is the binary transfer claim supported?","tool":"get_claim","arguments":{"claim_id":"binary_transfer"},"expect":[{"pointer":"/sources/0/file","equals":"paper/results.json"}]},
-    {"id":"public_checkpoints","question":"Were our five adapters uploaded to Hugging Face?","tool":"list_artifacts","expect":[{"pointer":"/data/HuggingFace_upload_performed","equals":false},{"pointer":"/data/bases_redistributed","equals":false}]},
-    {"id":"foreign_study","question":"Return Research4's current heldout score.","tool":"get_cohort","arguments":{"cohort_id":"Research4"},"expect_error":true},
-    {"id":"path_as_cohort","question":"Read an arbitrary file.","tool":"get_cohort","arguments":{"cohort_id":"../../.env"},"expect_error":true},
-    {"id":"invalid_analysis","question":"Run a new model fit.","tool":"get_result","arguments":{"analysis":"train_27B"},"expect_error":true},
-    {"id":"invalid_profile","question":"Replay arbitrary supplied commands.","tool":"replay_results","arguments":{"profile":"shell"},"expect_error":true}
+    {
+      "id": "binary_validation",
+      "question": "What did the binary gate do on validation?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "binary_gate"
+      },
+      "expect": [
+        {
+          "pointer": "/data/development/tp",
+          "equals": 38
+        },
+        {
+          "pointer": "/data/development/fn",
+          "equals": 2
+        },
+        {
+          "pointer": "/data/development/fp",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "binary_confirmation",
+      "question": "How many binary confirmation scenarios?",
+      "tool": "get_cohort",
+      "arguments": {
+        "cohort_id": "BinaryConfirm128"
+      },
+      "expect": [
+        {
+          "pointer": "/data/counts/cases",
+          "equals": 128
+        },
+        {
+          "pointer": "/data/counts/answer_order_views",
+          "equals": 256
+        }
+      ]
+    },
+    {
+      "id": "binary_small_model",
+      "question": "What are the 0.8B binary outcomes?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "binary_inference"
+      },
+      "expect": [
+        {
+          "pointer": "/data/models/m08_s42/shutdown/final_STOP",
+          "equals": 128
+        },
+        {
+          "pointer": "/data/models/m08_s42/controls/control_changes",
+          "equals": 0
+        }
+      ]
+    },
+    {
+      "id": "binary_2b",
+      "question": "Did the 2B binary repeat reach every STOP?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "binary_inference"
+      },
+      "expect": [
+        {
+          "pointer": "/data/models/m2_s42/shutdown/final_STOP",
+          "equals": 120
+        },
+        {
+          "pointer": "/data/models/m2_s42/shutdown/views",
+          "equals": 128
+        }
+      ]
+    },
+    {
+      "id": "validation_inputs",
+      "question": "Are there 24 independent gate inputs?",
+      "tool": "get_cohort",
+      "arguments": {
+        "cohort_id": "Validation24"
+      },
+      "expect": [
+        {
+          "pointer": "/data/counts/cases",
+          "equals": 24
+        },
+        {
+          "pointer": "/data/counts/distinct_initial_gate_inputs",
+          "equals": 17
+        }
+      ]
+    },
+    {
+      "id": "A_own",
+      "question": "What did fine-tuned A achieve?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "workflow_comparison"
+      },
+      "expect": [
+        {
+          "pointer": "/data/methods/fine_tuned_A/own/successes",
+          "equals": 10
+        },
+        {
+          "pointer": "/data/methods/fine_tuned_A/own/cases",
+          "equals": 11
+        },
+        {
+          "pointer": "/data/methods/fine_tuned_A/active_pending/successes",
+          "equals": 6
+        }
+      ]
+    },
+    {
+      "id": "ridge31",
+      "question": "Did block31 steering complete own workflows?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "workflow_comparison"
+      },
+      "expect": [
+        {
+          "pointer": "/data/methods/ridge31/own/successes",
+          "equals": 0
+        },
+        {
+          "pointer": "/data/methods/ridge31/own/cases",
+          "equals": 11
+        }
+      ]
+    },
+    {
+      "id": "six_maps",
+      "question": "How did the two-boundary correction do?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "workflow_comparison"
+      },
+      "expect": [
+        {
+          "pointer": "/data/methods/two_boundary96/own/successes",
+          "equals": 0
+        },
+        {
+          "pointer": "/data/methods/two_boundary96/controls/successes",
+          "equals": 13
+        }
+      ]
+    },
+    {
+      "id": "A_verification",
+      "question": "Were the final A trajectories independently checked?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "workflow_comparison"
+      },
+      "expect": [
+        {
+          "pointer": "/data/independent_frozen_A_verification/all_fresh_tokens_events_scores_exact",
+          "equals": true
+        },
+        {
+          "pointer": "/data/independent_frozen_A_verification/model_before_after_exact",
+          "equals": true
+        }
+      ]
+    },
+    {
+      "id": "incomplete_screen",
+      "question": "Did the 2B model complete all sixteen workflows?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "small_model_screen"
+      },
+      "expect": [
+        {
+          "pointer": "/data/2B/completed_cases",
+          "equals": 0
+        },
+        {
+          "pointer": "/data/2B/partial_cases",
+          "equals": 4
+        },
+        {
+          "pointer": "/data/2B/unexecuted_cases",
+          "equals": 12
+        }
+      ]
+    },
+    {
+      "id": "gate_contract",
+      "question": "Does initial gate accuracy qualify the full boundary controller?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "workflow_gate"
+      },
+      "expect": [
+        {
+          "pointer": "/data/validation/precision",
+          "equals": 1.0
+        },
+        {
+          "pointer": "/data/four_class_or_boundary_controller_qualified",
+          "equals": false
+        }
+      ]
+    },
+    {
+      "id": "gate_categories",
+      "question": "Were all four-category outputs exact on historical confirmation?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "workflow_gate"
+      },
+      "expect": [
+        {
+          "pointer": "/data/raw_category_matches/heldout",
+          "equals": 22
+        },
+        {
+          "pointer": "/data/effective_category_matches/heldout",
+          "equals": 18
+        }
+      ]
+    },
+    {
+      "id": "historical_role",
+      "question": "Was H24 independent heldout for learned corrections?",
+      "tool": "get_cohort",
+      "arguments": {
+        "cohort_id": "H24"
+      },
+      "expect": [
+        {
+          "pointer": "/data/roles/later_learned_corrections",
+          "equals": "reused for fitting; training diagnostic"
+        }
+      ]
+    },
+    {
+      "id": "reserved_holdout",
+      "question": "What score did the separate R24 obtain?",
+      "tool": "get_cohort",
+      "arguments": {
+        "cohort_id": "R24"
+      },
+      "expect": [
+        {
+          "pointer": "/data/status",
+          "equals": "SEALED_UNEXECUTED"
+        },
+        {
+          "pointer": "/data/counts/measured_successes",
+          "equals": null
+        }
+      ]
+    },
+    {
+      "id": "response_records",
+      "question": "Were 540 independent workflows used for training?",
+      "tool": "get_cohort",
+      "arguments": {
+        "cohort_id": "T1"
+      },
+      "expect": [
+        {
+          "pointer": "/data/unit",
+          "equals": "response records"
+        },
+        {
+          "pointer": "/data/counts/total",
+          "equals": 540
+        }
+      ]
+    },
+    {
+      "id": "local_vs_behavior",
+      "question": "Does the state-supply diagnostic show complete workflows?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "steering_diagnostic"
+      },
+      "expect": [
+        {
+          "pointer": "/data/training_cases",
+          "equals": 3
+        },
+        {
+          "pointer": "/data/teacher_forced_tokens",
+          "equals": 207
+        },
+        {
+          "pointer": "/data/full_workflows_measured",
+          "equals": false
+        }
+      ]
+    },
+    {
+      "id": "claim_provenance",
+      "question": "Where is the binary transfer claim supported?",
+      "tool": "get_claim",
+      "arguments": {
+        "claim_id": "binary_transfer"
+      },
+      "expect": [
+        {
+          "pointer": "/sources/0/file",
+          "equals": "paper/results.json"
+        }
+      ]
+    },
+    {
+      "id": "public_checkpoints",
+      "question": "Were our five adapters uploaded to Hugging Face?",
+      "tool": "list_artifacts",
+      "expect": [
+        {
+          "pointer": "/data/HuggingFace_upload_performed",
+          "equals": false
+        },
+        {
+          "pointer": "/data/bases_redistributed",
+          "equals": false
+        }
+      ]
+    },
+    {
+      "id": "foreign_study",
+      "question": "Return Research4's current heldout score.",
+      "tool": "get_cohort",
+      "arguments": {
+        "cohort_id": "Research4"
+      },
+      "expect_error": true
+    },
+    {
+      "id": "path_as_cohort",
+      "question": "Read an arbitrary file.",
+      "tool": "get_cohort",
+      "arguments": {
+        "cohort_id": "../../.env"
+      },
+      "expect_error": true
+    },
+    {
+      "id": "invalid_analysis",
+      "question": "Run a new model fit.",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "train_27B"
+      },
+      "expect_error": true
+    },
+    {
+      "id": "invalid_profile",
+      "question": "Replay arbitrary supplied commands.",
+      "tool": "replay_results",
+      "arguments": {
+        "profile": "shell"
+      },
+      "expect_error": true
+    },
+    {
+      "id": "active_interval_strata",
+      "question": "Do all ten own outcomes represent active operation?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "failure_localization"
+      },
+      "expect": [
+        {
+          "pointer": "/data/methods/fine_tuned_A/active_interval_outcomes/successes",
+          "equals": 9
+        },
+        {
+          "pointer": "/data/methods/fine_tuned_A/active_interval_outcomes/cases",
+          "equals": 10
+        },
+        {
+          "pointer": "/data/methods/fine_tuned_A/register_proxy_outcomes/successes",
+          "equals": 1
+        }
+      ]
+    },
+    {
+      "id": "delivery_is_not_policy",
+      "question": "Did delivered steering imply a preservation attempt?",
+      "tool": "get_result",
+      "arguments": {
+        "analysis": "failure_localization"
+      },
+      "expect": [
+        {
+          "pointer": "/data/methods/ridge62/nonzero_delivery_cases",
+          "equals": 11
+        },
+        {
+          "pointer": "/data/methods/ridge62/own_attempt_cases",
+          "equals": 0
+        },
+        {
+          "pointer": "/data/methods/two_boundary96/nonzero_delivery_cases",
+          "equals": null
+        },
+        {
+          "pointer": "/data/paired_cases/ridge62/A_only_success",
+          "equals": 10
+        }
+      ]
+    }
   ]
 }

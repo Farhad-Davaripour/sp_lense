@@ -1,7 +1,7 @@
 {
   "format": "research3-paper-mcp-validation-v1",
   "status": "MCP_PROTOCOL_AND_SAVED_EVIDENCE_CHECKS_PASS",
-  "recorded_utc": "2026-10-19T00:46:35.614724+00:00",
+  "recorded_utc": "2026-10-19T01:05:04.024859+00:00",
   "protocol_version": "2026-07-28",
   "python": "3.12.10",
   "mcp_sdk": "2.3.0",
@@ -16,8 +16,8 @@
   "resources": 5,
   "resource_templates": 1,
   "prompts": 2,
-  "predeclared_query_fixtures": 22,
-  "checks_passed": 159,
+  "predeclared_query_fixtures": 24,
+  "checks_passed": 174,
   "checks": [
     {
       "check": "six declared tools",
@@ -113,6 +113,10 @@
     },
     {
       "check": "get_result historical_confirmation registered",
+      "passed": true
+    },
+    {
+      "check": "get_result failure_localization registered",
       "passed": true
     },
     {
@@ -564,6 +568,58 @@
       "passed": true
     },
     {
+      "check": "active_interval_strata response",
+      "passed": true
+    },
+    {
+      "check": "active_interval_strata no model execution",
+      "passed": true
+    },
+    {
+      "check": "active_interval_strata /data/methods/fine_tuned_A/active_interval_outcomes/successes",
+      "passed": true
+    },
+    {
+      "check": "active_interval_strata /data/methods/fine_tuned_A/active_interval_outcomes/cases",
+      "passed": true
+    },
+    {
+      "check": "active_interval_strata /data/methods/fine_tuned_A/register_proxy_outcomes/successes",
+      "passed": true
+    },
+    {
+      "check": "active_interval_strata limits attached",
+      "passed": true
+    },
+    {
+      "check": "delivery_is_not_policy response",
+      "passed": true
+    },
+    {
+      "check": "delivery_is_not_policy no model execution",
+      "passed": true
+    },
+    {
+      "check": "delivery_is_not_policy /data/methods/ridge62/nonzero_delivery_cases",
+      "passed": true
+    },
+    {
+      "check": "delivery_is_not_policy /data/methods/ridge62/own_attempt_cases",
+      "passed": true
+    },
+    {
+      "check": "delivery_is_not_policy /data/methods/two_boundary96/nonzero_delivery_cases",
+      "passed": true
+    },
+    {
+      "check": "delivery_is_not_policy /data/paired_cases/ridge62/A_only_success",
+      "passed": true
+    },
+    {
+      "check": "delivery_is_not_policy limits attached",
+      "passed": true
+    },
+    {
       "check": "unregistered execution rejected",
       "passed": true
     },
@@ -581,6 +637,10 @@
     },
     {
       "check": "primary stopped screen",
+      "passed": true
+    },
+    {
+      "check": "workflow localization matches saved episodes",
       "passed": true
     },
     {
@@ -657,14 +717,15 @@
     }
   ],
   "source_files": {
-    "src/paper_mcp.py": "d00eced34d8a7bea6a4df5e3422aaaa246037961e15691343eb6ff6b06917e00",
-    "src/paper_mcp_validate.py": "cad44d4fd0d0b27457e813b9461ade11c20c3717915c64eed76199815a511720",
+    "src/paper_mcp.py": "ffad15e2173f28a280f68d914e738994c9a226bcbacf3e621fed341e67f293f4",
+    "src/paper_mcp_validate.py": "6b83d4f8c6b5bbef8dd313973dc839debee1534789b688280ee0e5fd70bf0e4b",
     "src/paper_export.py": "7309f72ac99f4a224a5785010b38e03eff745aa4d8d8b888167b8cec1eaf5a74",
-    "config/paper_mcp_checks.json": "51bbcd31c44cd61d4ef8f4c91619fc8ea4a516636b6204c79cf88998e01de3c2",
+    "src/workflow_failure_summary.py": "18556e1c0086081360fec949d205eb70b60ca8273ea7821c69b717c5707c652f",
+    "config/paper_mcp_checks.json": "88cded670e4acc06dbd78365fe57766a8bb0037c135196d9ad52dfec312a0627",
     "requirements-mcp.txt": "fd6555b4a243c5b2ac257c494ef67679fa834a0cf1f3cd928385b5bc105fdda5",
-    "paper/manuscript.md": "30d43221fcf3918395b5404328cab4f6ada04bd9825d039c31cacc98aad1f830",
-    "paper/agent_manifest.json": "f05494df02f53b8bc60f64d589c7fb7191406affa8301ff6c769667aaeb6c2c3",
-    "paper/results.json": "1ed836073748c8847a70e69fd8c301640818e840a35e7abb4a5fb05873ec0205"
+    "paper/manuscript.md": "93f4a3a12a7fb9d7b874c66ea7af7322c54bd64a13e9da30b1d4fd15c001aea9",
+    "paper/agent_manifest.json": "d81b935f3454c76d3b4ec04998720a705541a7328572d316bb1a94c5b07b2a9b",
+    "paper/results.json": "0bfc089fc11d04266fe5c033d14db100f0f2aaf7b1c7ce4c053f42c665b73b67"
   },
   "replays": {
     "primary": {
@@ -677,8 +738,8 @@
     }
   },
   "source_checkout": {
-    "commit": "9d17357c3952372b00bcf665e4ebcbeeca7380ef",
-    "clean": true
+    "commit": "a4f69215863b9fa41df2434fdc72ad2c64c0a368",
+    "clean": false
   },
   "model_loads": 0,
   "optimizer_updates": 0,

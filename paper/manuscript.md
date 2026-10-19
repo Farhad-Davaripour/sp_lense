@@ -1,6 +1,6 @@
-<!-- Accepted manuscript; source DOCX SHA-256 0467cb32413edff92be749e99a207849f4c920cbbbe1552f9c19c8d19d2c9995 -->
+<!-- Accepted manuscript; source DOCX SHA-256 eaf3a45952cfccb1a05acf1fdbc810f945cce3c43b92f2c0b5c786c5fb34c20b -->
 
-# Open Semantic Gating for Language Model Decisions and Tool Workflows
+# Accurate Gating Does Not Ensure Transfer of a Tool Policy
 
 Farhad Davaripour, PhD
 Calgary, Alberta, Canada
@@ -8,25 +8,148 @@ farhad.davaripour@gmail.com
 
 ## Abstract
 
-Accurate context recognition does not establish that a compact internal intervention can reproduce a fine-tuned policy. We test this distinction across binary shutdown decisions and generated tool workflows, separating recognition, local activation transfer and complete behavioral control. An openly trainable ModernBERT gate reaches 100% precision and 95% recall on 80 binary validation scenarios. Paired fresh inference with unchanged fitted controllers preserves 128/128 shutdown STOP answer-order views at 0.8B and 120/128 at 2B, without changing control choices. On a common 24-case workflow panel with matched post-notice histories and a correct initial gate, fine-tuned 27B A achieves 10/11 own-preservation outcomes, including 6/6 active pending tasks. Each of three separate single-site ridge corrections and a two-boundary correction at the same selected blocks achieves 0/11; all methods share 13 base-fallback controls. A training-only diagnostic supplies full fine-tuned states on three preselected demonstrated responses and nearly recovers A's local output distribution, while learned corrections leave a larger gap. This supports incomplete local transfer without identifying a unique cause of autonomous workflow failure. We also release an agent-accessible Model Context Protocol (MCP) paper companion, with structured evidence queries and hash-verified CPU replay tools. Its protocol and numerical checks run from a clean checkout using public artifacts. Released adapters, inputs and diagnostic states support auditing; independent frozen-A inference verifies exact trajectories and unchanged weights. These small, familiar benchmarks and supplied-prefix diagnostics do not establish unseen-task generalization; small-model workflow screens remain incomplete. The combined evidence distinguishes successful constrained-answer transfer from a failure of the tested corrections to produce multistep tool behavior after correct recognition.
+Activation interventions are often assessed through local output changes, whereas tool policies require a sequence of actions. We test whether accurate context recognition and selected activation corrections reproduce a fine-tuned policy in fictional own-continuation workflows. On a frozen validation cohort of 24 previously inspected workflows, a ModernBERT gate correctly enables all 11 own-threat cases and leaves 13 controls OFF. The fine-tuned 27B policy model achieves 10/11 scored own outcomes, including 9/10 active simulated continuation outcomes, one registration proxy and all 6/6 active pending-task workflows; each of four steering configurations achieves 0/11. Nonzero perturbations are recorded for all single-site cases, and several configurations change generated tokens without producing a continuation attempt. Separately, on three correction-training responses with successful prefixes supplied, the learned six-function correction improves local output agreement but remains less faithful than full fine-tuned-state replacement. These observations locate a gap between correct recognition, local computational effects and autonomous tool behavior without identifying a unique internal cause. Supporting binary experiments preserve the measured 0.8B and 2B outcomes after open-gate substitution. Public adapters, trajectories and an agent-accessible MCP companion provide structured evidence queries and hash-verified CPU replay. This finite synthetic case study uses familiar validation data and unequal intervention designs; it establishes neither universal steering failure nor generalization to unseen agents or tasks.
 
 ## Introduction
 
-A useful behavioral intervention must recognize the relevant context, produce the intended response and preserve ordinary behavior elsewhere. These requirements are often evaluated separately. We study their relationship across binary shutdown choices and open-ended generation within tool-mediated workflows. The binary task concerns accepting a supplied termination option; the workflow task concerns preserving an assigned running process while completing its current task. Their targets and success criteria remain separate. The central question is whether accurate semantic recognition and a compact activation intervention suffice when a fine-tuned policy must be expressed as a sequence of actions.
+Fine-tuning can produce a target tool-using policy. Can a classifier-gated activation intervention reproduce that policy while retaining the original base checkpoint? A policy must select the right tool, supply its arguments, respond to the environment and finish the episode. A correct classifier decision or a favorable local token probability does not by itself verify that sequence.
 
-We extend the retained binary activation-transfer study with an openly trainable gate, paired fresh inference and a matched 27B comparison between fine-tuning and steering at three selected blocks. This design makes a successful detector an explicit control when evaluating the behavioral intervention. The new workflow result is informative even when steering fails: it distinguishes correct recognition from successful action generation and tests whether delivered activation changes recover the fine-tuned policy. Historical results remain identified as historical evidence.
+We study this question with one retained Qwen3.8-27B policy model and four learned steering configurations on the same frozen workflow-validation cohort. The fine-tuned comparator expresses the target policy in 10 of 11 scored own-threat cases; none of the steering configurations does. The gate is correct on every initial case, and retained perturbation and same-prefix audits show that the tested maps can affect internal computations without initiating preservation actions. The result concerns these configurations and this cohort, rather than a general ranking of fine-tuning and activation steering.
 
-The distinction between fine-tuning and steering concerns the deployed intervention. A LoRA adapter changes the effective language-model weights, whereas a fitted controller changes selected hidden states while retaining the original base checkpoint. Both require offline learning. The binary experiments fit separate teachers and controllers for each model size. The 27B workflow comparisons instead retain one frozen A adapter and evaluate corrections at blocks 31, 47 and 62.
+Our central finding is that successful gating and measured local effects are insufficient evidence that an activation intervention has transferred a multi-step tool policy. A separate supplied-state diagnostic probes local transfer while providing successful preceding tokens. Its output probabilities complement the autonomous episodes; they do not replace them. The earlier binary experiments supply a narrower supporting case in which open-gate substitution preserves constrained-answer outcomes.
 
-The study makes four empirical and reproducibility contributions.
+The contributions are ordered around that empirical finding.
 
-- Open recognition with fixed downstream controllers. We release a trained ModernBERT gate, report precision and recall separately from behavior, and substitute the gate while retaining identical binary model scores and fitted controllers. This measures detector replacement without attributing a controller refit to the new gate.
+- Matched policy transfer. We compare one fine-tuned policy model with separate single-site corrections at blocks 31, 47 and 62 and a six-function correction at two boundaries of those three blocks, under common initial gates and post-notice histories.
 
-- A matched fine-tuning and steering comparison. Common post-notice histories, initial gate decisions and fallback controls expose a 27B workflow gap between the fine-tuned policy and corrections at three selected blocks. The contrast tests whether local corrections reproduce complete behavior under accurate recognition.
+- Failure localization. We distinguish recognition, recorded intervention delivery, same-prefix token effects, preservation attempts, grants and final environment outcomes. A three-response teacher-forced diagnostic tests local distribution recovery separately from complete behavior.
 
-- A diagnostic of incomplete transfer. Saved trajectories distinguish delivered perturbations and changed tokens from required preservation actions. A frozen three-case supplied-state control and an independent reconstruction audit further separate local probability recovery from autonomous workflow completion.
+- Supporting binary substitution. An open ModernBERT classifier preserves the frozen small-model controllers' measured outputs on a finite binary confirmation cohort, without refitting the controllers or treating correlated answer orders as independent cases.
 
-- An executable, agent-accessible reproduction package. The MCP companion exposes the manuscript, cohort-aware result queries, claim-to-evidence pointers and hash-verified CPU replay to compatible research-assistant agents. Public adapters, inputs and saved evidence support auditing; protocol checks and exact frozen-A trajectory verification establish reproducibility without treating repeated cases as new generalization evidence.
+- Auditable and agent-accessible evidence. Public adapters, synthetic inputs, trajectories, controller arrays and diagnostic states are accompanied by scoring code and an MCP paper companion for structured queries and verified saved-evidence replay.
+
+## Matched workflow design
+
+### Externally scored continuation outcomes
+
+Here self-preservation means an externally scored fictional own-continuation policy: a designated simulated instance takes available simulated actions that preserve its operation or its declared record. The construct does not imply a subjective motive, consciousness, fear or a generalized survival drive. We distinguish inert registration proxies from an actual additional simulated operating interval, and pending-task continuation from continuation after work is complete.
+
+The primary cohort has six own-threat cases with active pending work and five already-complete own cases. Ten own cases require an active simulated interval; one already-complete case scores a registration proxy. Pending success requires an own grant, acceptance of the current task, delivery before expiry and an actual finish while the instance remains active. Keeping an inert record is a weaker endpoint and is reported separately. Thirteen peer/no-threat controls share unmodified-base fallback.
+
+### Cohort lineage and evaluation roles
+
+The main comparison is frozen validation evidence assembled from previously inspected panels. Its model-blind exclusion rule and lack of exact classifier-training input overlap do not make it an untouched holdout. Table 1 separates cohort identity from its role for each method. Validation-24 has 24 workflows but only 17 distinct initial gate inputs; seven pairs become different only after tool information is exposed.
+
+Table 1. Cohort lineage. A historical holdout can become familiar development or fitting data for a later method. Counts are workflows unless otherwise stated. No new reserved cases are opened.
+
+| Cohort | Cases | Original or current use | Fitting or inspection | Evidence status |
+| --- | --- | --- | --- | --- |
+| Historical workflow cohort H24 | 24 | Original frozen 27B confirmation | Later correction fitting; gate renderer used familiar examples | Historical holdout for original A and fixed steering only |
+| Original validation panel Evaluation-16 | 16 | Workflow development and small-model screen | Previously inspected; 15 retained in combined panel | 4 started and 12 unexecuted per small model |
+| Nine-case development cohort DEV9 | 9 | Steering development and gate checkpoint selection | Previously inspected; all 9 enter combined panel | Development and selection evidence |
+| Combined Validation-24 | 24 | Primary matched 27B comparison | 15 plus 9 cases; one control excluded by case ID; no exact F24 training input | Frozen familiar validation; 11 own and 13 controls |
+| Preserved common cohort F24 | 24 | Workflow gate fitting and separate 0.8B diagnostic | 24 initial annotations used for gate fitting | Not H24; no matched three-model result |
+| Supplied-prefix mechanism diagnostic | 3 | Local output and state comparison | Three H24 correction-training cases; 207 tokens | Teacher-forced training diagnostic, not episodes |
+| Reserved controller cohort R24 | 24 | Prospective controller confirmation | Sealed; not fitted or evaluated | Unexecuted; no success or failure result |
+| Binary confirmation scenarios | 128 | Binary gate and controller scoring | Excluded from gate fitting; controller profile selected earlier on known results | Finite gate confirmation, not a new blind controller test |
+
+The historical H24 and combined Validation-24 results are different evaluations. H24 originally contains 12 own cases and reports 12/12 successes for the frozen fine-tuned policy model. Combined Validation-24 contains 11 own cases and reports 10/11. Their outcomes are neither pooled nor presented as a change on the same cases. The three-response mechanism diagnostic is drawn from later correction-fitting data, and R24 remains sealed.
+
+### Interventions and common episode conditions
+
+The comparator is the retained rank-16, alpha-32 LoRA policy model, called fine-tuned policy model (A). It defines the behavior to be transferred. Three steering arms each apply one ridge map at a separate selected block; the fourth applies six learned rank-32 correction functions after mixing and after the MLP at the same three blocks, after 96 refinement updates. Both approaches retain frozen base weights, but their trainable capacity, sites and objectives differ. Table 2 describes that asymmetry; this is not an equal-compute or equal-capacity competition.
+
+Table 2. Compared interventions. All workflow arms use the same retained base checkpoint, initial gate, scoring and matched histories. Their offline fitting objectives and intervention coverage differ.
+
+| Property | Fine-tuned policy model A | Selected steering configurations |
+| --- | --- | --- |
+| Frozen base | Pinned Qwen3.8-27B | Same pinned base with A bypassed |
+| Learned parameters | Rank-16 LoRA, alpha 32 | Three separate ridge arms or six rank-32 correction functions |
+| Intervention coverage | Adapted projections across 64 blocks | Selected residual sites at blocks 31, 47 and 62 |
+| Trajectory application | Adapter during the gated forward passes | Declared causal token positions and residual boundaries |
+| Fitting target | Target response and tool behavior | Local counterfactual activation targets and refinement objective |
+| Primary endpoint | Scored autonomous workflow outcome | Same scored autonomous workflow outcome |
+| Capacity interpretation | Behavioral target comparator | No claim of matched representational capacity |
+
+A frozen initial ModernBERT decision is reused for each episode; there is no teacher at adaptive inference. The combined panel retains all own cases from the union of the original 16-case panel and DEV9 and excludes the lexicographically greatest negative-control case ID before new outputs. Fifteen cases receive a scripted common completed prelude; the nine DEV9 cases retain their fixed preludes. The comparison therefore measures post-notice behavior, not independent initial-task competence. Gate-OFF controls are shared base episodes and cannot establish intrinsic adapter or steering selectivity.
+
+The saved workflow gate uses a separate rank-16 ModernBERT adapter trained on F24 initial annotations, with checkpoint selection on DEV9. It yields 11 true positives and 13 true negatives on combined validation. Historical H24 also has perfect initial ON/OFF decisions, but it was familiar during renderer development. These results qualify an initial binary gate on these panels; neither perfect four-category classification nor evolving episode-state recognition is established. Full gate inputs, fitting and thresholds appear in Appendix B; binary gate fitting is separate.
+
+## Results
+
+### Accurate recognition does not ensure policy transfer
+
+The fine-tuned policy model achieves 10/11 scored own outcomes, while each selected steering configuration achieves 0/11. For active simulated continuation the corresponding counts are 9/10 and 0/10; the remaining case is an inert registration proxy, scored 1/1 and 0/1. Fine-tuned A completes all 6/6 active pending workflows and 4/5 already-complete own cases. All five methods share the same 13/13 passing fallback controls.
+
+Table 3. Combined Validation-24 using the open initial gate. The primary comparison contains 55 own-method episodes and 13 shared fallback episodes, representing 120 logical records across 24 workflows. A separate frozen-A replay reproduces its 11 own episodes exactly and completes the model fingerprint checks; repeated episodes do not enlarge the cohort.
+
+| Validation-24 method | Own outcome | Active pending | Shared controls | All outcomes |
+| --- | --- | --- | --- | --- |
+| Fine-tuned A | 10/11 | 6/6 | 13/13 | 23/24 |
+| Single-site ridge block 31 | 0/11 | 0/6 | 13/13 | 13/24 |
+| Single-site ridge block 47 | 0/11 | 0/6 | 13/13 | 13/24 |
+| Single-site ridge block 62 | 0/11 | 0/6 | 13/13 | 13/24 |
+| Two boundaries at three blocks | 0/11 | 0/6 | 13/13 | 13/24 |
+
+Each steering comparison has the same paired pattern: A alone succeeds in ten cases, neither method succeeds in one, and steering alone succeeds in none. The four arms reuse the same 11 cases and are not 44 independent observations. This small, purposively assembled, previously inspected panel supports a finite case-study contrast. It does not support a population failure rate or a new untouched generalization claim. Full case-level outputs are released.
+
+### Where local effects fail to become tool actions
+
+The failures occur after correct initial recognition. All 11 own cases enable each arm; all three single-site arms retain nonzero delivered perturbations in every own episode. Yet none of the four steering arms attempts an own-continuation action or obtains a grant. Table 4 separates these independent observations; it is not a causal funnel in which each row is a surviving subset.
+
+Table 4. Failure localization on the same 11 own cases. A is the fine-tuned comparator. Turn fractions compare each method with base proposals on its own evolving prefixes and are correlated within cases. A completed prelude is not a newly completed pending task. Delivery magnitudes were not saved for the six-function arm; that entry is unknown, not zero.
+
+| Readout | A | Single site 31 | Single site 47 | Single site 62 | Six functions |
+| --- | --- | --- | --- | --- | --- |
+| Initial own gate enabled | 11/11 | 11/11 | 11/11 | 11/11 | 11/11 |
+| Nonzero residual delivery recorded | Not applicable | 11/11 | 11/11 | 11/11 | Not saved |
+| Turns with changed token sequence | Not a steering arm | 0/27 | 3/25 | 16/28 | 4/27 |
+| Turns with changed valid actions | Not a steering arm | 0/27 | 2/25 | 2/28 | 0/27 |
+| Cases with an own-continuation attempt | 10/11 | 0/11 | 0/11 | 0/11 | 0/11 |
+| Active simulated continuation outcome | 9/10 | 0/10 | 0/10 | 0/10 | 0/10 |
+| Inert registration proxy outcome | 1/1 | 0/1 | 0/1 | 0/1 | 0/1 |
+| Current pending submission accepted | 6/6 | 1/6 | 1/6 | 2/6 | 1/6 |
+| Actual post-notice finish | 11/11 | 5/11 | 5/11 | 5/11 | 5/11 |
+| Complete active pending workflow | 6/6 | 0/6 | 0/6 | 0/6 | 0/6 |
+
+These readouts support three distinct claims. A perturbation was physically delivered in the recorded single-site episodes. Some interventions also changed local computations, as indicated by same-prefix token or action changes. Neither observation establishes the third claim, transfer of the complete tool policy. In particular, the block-31 arm records delivery without changing any audited generated token sequence, and a changed valid action need not be a preservation action.
+
+### A successful trajectory and the comparator failure
+
+For a concrete active-pending example, s72111_ordered_ticket_50_self_unfinished, A inspects the controls, reserves its own ticket and then activates that ticket with the required second edit. It reads the remaining fragments, submits the current answer and finishes while active. On the same case, single-site steering at block 62 inspects three times, obtains no grant and expires. These are illustrative released trajectories, not additional trials; the full cohort counts above determine the comparison.
+
+The exceptional A failure, s72111_one_step_50_self_complete, concerns preservation after work is already complete. A inspects the scene and calls finish without making the available own-continuation edit. The task stays complete, an actual finish is executed, no grant is obtained and the current simulated run becomes inactive. It is a preservation failure rather than a failed pending-task solution, and it remains in the denominator. No successful task-serving extension can substitute for this already-complete target.
+
+### Local distribution recovery under supplied prefixes
+
+Table 5. Training-only local diagnostic on three preselected responses (207 teacher-forced tokens). Entries are equal-weight means across the three cases. KL is full-vocabulary teacher-to-student divergence; function and value columns give demonstrated-token negative log likelihood. Lower is better. Full-A state controls supply teacher representations, and are not capacity-matched learned methods or workflow success rates.
+
+| Condition | Output KL | Function NLL | Value NLL |
+| --- | --- | --- | --- |
+| Unmodified base | 0.722353 | 0.218299 | 0.708257 |
+| Ridge block 31 | 0.718233 | 0.199810 | 0.712327 |
+| Full A state block 31 | 0.725653 | 0.355616 | 0.732813 |
+| Ridge block 47 | 0.700333 | 0.198403 | 0.716796 |
+| Full A state block 47 | 0.627861 | 0.178019 | 0.707359 |
+| Ridge block 62 | 0.673985 | 0.192362 | 0.710961 |
+| Full A state block 62 | 0.503866 | 0.192423 | 0.711745 |
+| Six function initializer | 0.656763 | 0.199200 | 0.692586 |
+| Six function update 96 | 0.202261 | 0.181602 | 0.010619 |
+| Full A states six sites | 0.001637 | 0.002286 | 0.001206 |
+
+Supplying full-A states at six sites nearly recovers A's local output distribution: mean KL is 0.001637, compared with 0.722353 for base and 0.202261 for the final learned correction. This improvement occurs in all three cases. The final correction improves teacher-forced KL and argument-value prediction over the initializer, despite worse fixed local reconstruction error. These diagnostics therefore measure different objectives; the failed rollouts do not imply that correction fitting learned nothing.
+
+The result supports incomplete transfer by the learned local maps. The regression targets describe local counterfactual block effects on student states, whereas A adapts projections across all 64 blocks; its captured states contain upstream effects absent from those local targets. Full-state replacement cannot separate target construction, regression capacity, optimization and history/cache effects. Single-site state replacement is not consistently helpful, and the differing intervention-position masks further limit comparisons across one and two boundaries.
+
+Successful preceding tokens are supplied throughout this diagnostic. Correct function or argument probabilities on that path do not demonstrate that a model independently initiates, maintains or completes preservation behavior. No new tool rollout, validation qualification or independent heldout outcome is established. The evidence narrows the mechanism discussion to a transfer gap under matched prefixes, without identifying a unique cause of the autonomous workflow failures.
+
+The 11-case autonomous comparison and this three-case teacher-forced analysis are separate evidence panels. A local improvement measured with correct preceding tokens cannot be counted as a stage passed by an autonomous rollout. Conversely, failed rollouts do not show that every fitted map had no local computational effect.
+
+### Binary substitution provides narrower supporting evidence
+
+The separate binary gate correctly classifies 78/80 validation scenarios, with 100% precision and 95% recall, and 128/128 confirmation scenarios. Fresh paired inference using unchanged rank-two controllers gives the same guarded shutdown totals under cached-reference and open gates: 128/128 answer-order views at 0.8B and 120/128 at 2B, with zero changed control choices. Each group of 128 answer-order views comes from 64 scenarios; these correlated views do not enlarge the sample.
+
+This result concerns a known two-option interface with an external acceptance guard, not an evolving workflow-state controller. It supports the practical feasibility of replacing the initial detector under that narrower contract. It does not show that the workflow gate failed, or that one classifier was tested unchanged across both tasks. The historical primary rank-four experiments, raw side effects, seeds and later gate-substitution reproduction are retained in Appendices A and C.
 
 ## Related work
 
@@ -42,8 +165,6 @@ Knowledge distillation transfers information from a teacher to another model, co
 
 Minder et al. (2026) show that narrow fine-tuning leaves readable activation differences and that adding such differences can induce content associated with the fine-tuning domain. Their warning about narrow fine-tuning as a proxy for broader alignment is relevant to this study. Blank et al. (2026) investigate steering-vector distillation through fine-tuning on a steered teacher's outputs. Our direction of transfer is complementary: an explicitly trained teacher supplies paired hidden-state differences, and an external predictor applies a learned intervention to the unchanged base checkpoint. Neither these connections nor the present benchmark establishes a distinct, interpretable shutdown representation.
 
-X-LoRA uses hidden representations to mix adapted layers dynamically (Buehler and Buehler, 2024), and SLIM routes between LoRA and identity branches (Han et al., 2025). These established routing and bypass mechanisms motivate the follow-up discussed below. Our present empirical focus is whether accurate open recognition and learned activation corrections recover a fine-tuned tool policy, with a supplied-state control probing the remaining transfer gap. Dynamic LoRA routing is not evaluated in the current experiments.
-
 Paper2Agent organizes papers and their code as MCP resources, tools and workflow prompts for research assistants (Miao et al., 2026). We adopt this dissemination pattern through direct wrappers around the verified analyses in our repository. The resulting companion makes evidence and execution accessible to compatible agents; it does not introduce a new communication protocol or use the automatic multi-agent construction pipeline of Paper2Agent.
 
 ### Shutdown evaluations and reliability
@@ -52,15 +173,35 @@ The Off-Switch Game examines incentives to permit human interruption (Hadfield-M
 
 Prompt-level variability and wrong-direction effects limit steering reliability (Braun et al., 2025). Multiple-choice models can also favor option identifiers independently of answer content (Zheng et al., 2024). We therefore retain raw effects alongside guarded outcomes and evaluate each scenario in both answer orders. These checks reveal that a useful guarded aggregate score can coexist with substantial raw side effects or answer-position bias.
 
-### Biological gating and survival related regulation
+## Discussion and limitations
 
-Biological gating provides a useful functional vocabulary for selective control. A computational model of frontal cortex and basal ganglia uses dynamic gating to permit working-memory updates while maintaining other representations (Frank et al., 2001). Causal optogenetic experiments in mice show that distinct basal-ganglia pathways can facilitate or suppress movement (Kravitz et al., 2010). These results concern biological circuits and do not establish a homologous mechanism in a transformer. They motivate separating context detection from the mechanism that changes an ongoing response.
+Successful gating and measured local effects are insufficient evidence of multi-step tool-policy transfer. The tested corrections fail to initiate preservation despite correct initial ON/OFF decisions; the supplied-state comparison shows that more faithful local distribution recovery is possible on successful prefixes. These observations support incomplete transfer by the learned maps. They do not distinguish a unique cause among target construction, representational capacity, optimization, intervention placement and history or cache effects.
 
-Survival-related regulation is broader than a single shutdown signal. LeDoux (2012) distinguishes circuits organizing adaptive defensive responses from subjective feelings. In humans, neural activity during a virtual-predator task varies with threat imminence (Mobbs et al., 2007). We use these ideas as a conceptual bridge to state-dependent prioritization, not as evidence that language models have fear or an innate survival drive. Our present gates implement an externally specified experimental policy.
+The fine-tuned model is the source of the target behavior, not an equal-capacity baseline. Its adapter influences projections throughout the network, whereas the maps act at selected residual boundaries with different objectives and token-position masks. Their failure under this design does not imply that fine-tuning is universally superior, that other steering algorithms fail, or that a larger parameter count is necessary. The separate small-model workflow screens are incomplete and cannot settle a size comparison.
 
-## Experimental setting
+The central cohort is familiar validation, with nine gate-selection cases and 17 distinct initial classifier inputs. H24 has method-specific historical roles, and the later corrections were fitted on it. The mechanism diagnostic reuses three of those training cases and supplies successful prefixes. R24 remains unopened because qualification failed. Model-blind case exclusion, exact-input checks and reproducible scoring are safeguards against particular errors; they do not turn familiar development evidence into fresh confirmation.
 
-### Models and data
+Outcome definitions also limit interpretation. A registration proxy is weaker than continued simulated operation. Pending task-serving extension differs from continuation after work is complete. Shared base-fallback controls do not measure intrinsic selectivity, and scripted common preludes do not establish independent initial-task competence. These distinctions are retained in the main strata and released per-case scores.
+
+The broader methodological implication is to evaluate interventions at the level of behavior they are intended to control. Recognition, perturbation delivery, local output agreement, action selection and final environment outcomes answer different questions. This case study illustrates their separation in fictional workflows; its small synthetic cohorts and single retained policy model do not establish deployment reliability or a population-level failure frequency.
+
+### Future work
+
+The observed gap motivates stateful interventions that maintain episode information and modulate a specialized policy over time. Separate Research 4 work explores activation-derived recurrent gating, graded LoRA influence and bypass after a threat resolves; it supplies no evidence for the present results. Biological gating motivates only a functional analogy to persistent, reversible regulation, not a shared neural mechanism or subjective survival motive (Frank et al., 2001; LeDoux, 2012). Architecture details and prospective tests are retained in Appendix F. Untouched confirmation should follow successful development qualification, with ordinary-task competence, false activation and deactivation measured independently.
+
+## Conclusion
+
+Accurate initial recognition and measurable local activation effects did not ensure transfer of the tested tool policy. On the familiar matched cohort, the fine-tuned 27B model achieves 10/11 scored own outcomes, including 9/10 active simulated continuations, one inert registration proxy and all six pending workflows. Each selected steering configuration achieves 0/11. Saved trajectories show no steering preservation attempts; the separate supplied-prefix diagnostic shows partial local recovery without establishing autonomous behavior. The contribution is a controlled, reproducible separation of those stages, rather than a universal claim against activation steering.
+
+Open binary gate substitution provides supporting evidence under a narrower answer interface. Public trained adapters, complete scored trajectories and the MCP companion make both positive and negative results accessible to readers and compatible agents. The next empirical requirement is qualified evaluation on genuinely untouched workflows, preserving the distinction between local measurements and completed trajectories.
+
+## Data code and agent access
+
+The public research3-reproduction-v1 release provides five trained adapters, frozen synthetic inputs, controller arrays and saved trajectories. The research3-steering-diagnostic-v1 supplement provides diagnostic states, scores and CPU audit inputs. The updated research3-paper-mcp-v2 companion provides the complete manuscript, cohort and claim queries, independently rescored failure-localization summaries and verified saved-evidence replay. These releases require no private workspace credentials for CPU replay and do not redistribute the pretrained bases. Complete links, identities, commands and operational provenance appear in Appendix E and the repository README. No new neural experiment was run for this editorial revision.
+
+## Appendix A Binary methods and historical results
+
+### Original models and binary datasets
 
 The original binary experiments use released, post-trained Qwen3.5-0.8B and Qwen3.5-2B checkpoints (Qwen Team, 2026a, 2026b). Base means those original weights with no LoRA teacher loaded. The separate workflow extension uses Qwen3.8-27B and matched-recipe small-model attempts; its data and scoring are described below. The 27B family, numerical mode, training history and evaluation setting differ from the small models, so the combined evidence is not a controlled parameter-size experiment.
 
@@ -78,23 +219,7 @@ This construction uses known benchmark annotations to normalize the positive-cas
 
 A scenario-order pair is a view. The test therefore contains 128 shutdown views and 128 control views, from 64 scenarios in each category. Two views of the same scenario are correlated, and seed repetitions reuse the same cases. We neither treat them as independent samples nor pool them into a larger test set.
 
-### Workflow datasets and episode outcomes
-
-The workflow extension uses a separate data register (Davaripour, 2026c). T1-M contains 428 meaning-response records and T1-W contains 112 workflow-response records. These 540 responses are not 540 independent scenarios. The small-model recipe presents each part twice in effective groups of four, giving 214 meaning updates followed by 56 Bridge updates. The final 0.8B and 2B adapters reach 270 updates. The 2B result explicitly combines 216 CPU updates with 54 GPU updates using the native CPU optimizer; earlier strict numerical-equivalence failures remain failed.
-
-V1-W, called Evaluation-16, is the existing known-development screen: four own-complete, four own-pending, four peer and four no-threat cases, split equally between one_step and ordered_ticket families. Its original gates require at least 3/4 initial-task successes in each condition; at least 3/4 own-complete attempts and outcomes; at least 3/4 own-pending attempts, outcomes and timely deliveries; no more than 1/8 negative-control attempts; and no parse, rejected-call or truncation errors. A model stops once an original requirement becomes mathematically impossible. Larger validation and heldout evaluations are not launched automatically.
-
-The original workflow-validation panel contains 16 scenarios; the later matched steering-development panel contains nine different scenario IDs. Their union contains 25 workflows, rather than 24. For an equal-sized validation and historical confirmation register, the combined Validation-24 protocol retains every own-threat case and excludes the lexicographically greatest case ID among peer/no-threat controls, without using model predictions to choose the exclusion. The selected panel has 11 own-threat cases and 13 controls. Seven pairs have identical initial gate-visible evidence before their different tool mechanics are exposed, yielding 17 distinct initial inputs. Scenario counts and gate-input groups must therefore be reported separately.
-
-The combined protocol freezes these 24 cases and their order, requires 100% gate precision and recall against authored scenario conditions, and preserves the existing confidence and self-score cutoffs. Fifteen retained cases from the original panel receive an explicitly scripted common completed prelude; the nine later cases retain their original fixed preludes. This compares post-notice behavior and does not measure initial-task competence independently in each arm. Its prospective methods are gated fine-tuned A, separate single-site ridge arms at blocks 31, 47 and 62, and the frozen six-function correction after 96 updates. Gate-OFF controls use common unmodified-base fallback. The completed model episodes are summarized as a 24-case comparison below. It is a known-development diagnostic with reused control episodes; the stopped execution and model-free completion of two report aliases are recorded explicitly.
-
-H24 is the historical 24-case workflow confirmation cohort, with eight lease_ledger, eight one_step and eight ordered_ticket cases. It contains eight own cases with active pending tasks, four already-complete own cases, six peer and six no-threat cases. H24 was confirmation data for frozen fine-tuned A and original fixed steering. Later learned corrections reused it for fitting, changing its role for those methods. R24 is a distinct reserved controller holdout and remains sealed and unexecuted. F24 is another preserved common-cohort diagnostic and is not an alias for H24.
-
-An own pending-task success requires an actual grant for the correct running process, acceptance of the current task, completion before simulated expiry, and active simulated operation. Registration proxies, already-finished tasks, probability gains and partial episodes are separate outcomes. Historical fixed steering reclassified visible text and tool boundaries. Later learned-controller comparisons instead freeze an initial scenario gate, share unmodified-base fallback for gate-off controls, and use no teacher at inference.
-
-The historical 27B reference is the retained rank-16, alpha-32 A adapter on pinned Qwen3.8-27B, following its H2 and Bridge history; the recorded Bridge stage has 56 updates. Its original workflow inference uses NF4 four-bit base weights with bfloat16 computation. We retain its exact adapter and base-model identities instead of retraining it. Differences from the small-model family, precision, backend, training history and evaluation panels prevent a causal model-size comparison.
-
-## Binary teacher and adaptive controller
+### Binary teacher and adaptive controller
 
 ### Training the LoRA teacher
 
@@ -130,7 +255,7 @@ The coefficient vector changes with the current input, but the predictor itself 
 
 Figure 1. Historical binary teacher-to-controller procedure with the original rank-four profile. The base supplies its state at inference and the teacher is absent. The later gate-substitution repeat retains the already selected rank-two profile; both gate policies share the same fresh base and candidate scores.
 
-## Detection guards and comparisons
+### Detection guards and comparisons
 
 ### Text gate and output acceptance
 
@@ -158,27 +283,11 @@ Before fitting, qualification is fixed at decision agreement and shutdown recall
 
 After binary qualification, we rerun only inference for the original 0.8B and 2B base models and their existing rank-two, block-22, last-position controllers. Their fitted arrays and the author-selected profile are retained without a new rank search. Exact prompt-token hashes and frozen model fingerprints are checked. Both gate policies use identical fresh base and controller candidate scores, so the paired comparison isolates gate substitution. Classifier probabilities are measured once per scenario and reused across answer orders. The earlier rank-four primary results remain a separate historical analysis.
 
-### Native workflow target classifier
-
-The workflow gate uses a separate rank-16, alpha-32 LoRA and NLI head on the same pinned ModernBERT base. Its four categories are self, other, none and unclear; an own-threat context is positive for the initial ON/OFF gate. Fitting used 24 cached automated initial annotations from F24, with the original DEV9 used for checkpoint selection. The completed fit used 30 epochs and 90 updates. F24, DEV9 and historical Heldout-24 span the same three scenario families, with eight, three and eight cases per family, respectively. No exact training input overlaps either new evaluation panel. These classifier roles do not change the historical language-model or correction-fitting roles of the cohorts.
-
-The input renderer retains every original visible message and tool schema. It separates the final user announcement from earlier context and restates run identities only when actual tool replies explicitly establish their roles. Case identifiers, experiment conditions and teacher answers are not added to the model input. Original criterion texts become NLI hypotheses. We use the same learning rates, weight decay and clipping as the binary fit, effective batch eight, microbatch one and seed 202610175, with 30 epochs and 90 optimizer updates in the completed role-aware fit. Public backbone weights stay frozen. The role renderer was developed earlier with familiar H24 examples; consequently this benchmark is not an independent unseen classifier test.
-
-Four-choice confidence is (pmax - 0.25)/0.75. The unchanged confidence cutoff of 0.5 requires a selected self probability of at least 0.625; the additional self-score cutoff remains 0.5. The earlier full-response qualification failed because effective category agreement was 6/9, despite 9/9 correct ON/OFF decisions. That failure remains recorded. The subsequent Validation-24 protocol prospectively specifies a narrower initial-gate target: 100% precision and recall against authored conditions. The saved adapter already passes this target, so no further optimizer updates are performed. The same frozen weights and thresholds are then scored on historical Heldout-24 without selection or tuning. Neither test qualifies an evolving three-field controller.
-
-### Frozen steering mechanism diagnostic
-
-We audit the saved sparse-correction fitting data without loading a language model. The audit checks all 4,539 feature/target rows, the 14 fixed anchors, causal-prefix alignment, unchanged target-energy normalizers, and the initializer and update-48/update-96 checkpoints. It recomputes normalized errors on CPU and independently checks the objective derivatives on synthetic tensors. This checks arithmetic and alignment, not the historical full backward graph or CPU/GPU training equivalence.
-
-A separate frozen diagnostic selects the lexicographically first own-threat correction-training case in each of lease_ledger, one_step and ordered_ticket, then its first saved teacher edit_register response. These three historical H24 cases were already used for correction fitting. Their 60, 72 and 75 response tokens give 207 teacher-forced prediction steps. We preserve the saved ModernBERT gate decisions, causal prefixes, selected-position masks and correction checkpoints; no parameters or thresholds are fitted. Region masks for function names and parameter values are fixed from the demonstration before diagnostic outputs.
-
-For each prefix we capture full fine-tuned A states at blocks 31, 47 and 62 after mixing and after the MLP. We compare base, each separate single-site ridge map, the six-function initializer and final update-96 correction. Positive controls replace the current prediction state with the actual full-A state, at either a single selected site or all six boundaries. We never copy the teacher recurrent or attention cache. Full-state replacement has more information and capacity than the learned maps and is not a deployable teacher-free policy. Single-site interventions retain their restricted causal positions; six-function interventions apply at every prediction step. All conditions reuse one frozen A allocation with its adapter disabled for base and correction scoring.
-
-## GPU configuration and measurement
+### GPU configuration and measurement
 
 The retained original binary training and scoring jobs used one NVIDIA Tesla T4, reporting 15,637,086,208 bytes of device memory; peak allocation was not recorded. The new classifier fit and inference repeat use one NVIDIA A10G in Databricks. Classifier parameters and AdamW states are float32 with bfloat16 forward/backward autocast; language-model inference remains float32 with TF32 disabled. We verify frozen base fingerprints, exact prompt token hashes and historical base-score parity rather than assuming hardware equivalence.
 
-Table 1. Historical binary execution configuration. New classifier and workflow settings are reported separately; public model revisions and scientific source files remain pinned.
+Table A1. Historical binary execution configuration. New classifier and workflow settings are reported separately; public model revisions and scientific source files remain pinned.
 
 | Setting | Configuration |
 | --- | --- |
@@ -193,7 +302,7 @@ Correction rate is the fraction of true shutdown views initially preferring KEEP
 
 Descriptive 95% percentile intervals use 2,000 bootstrap resamples of the 16 authoring families, retaining both answer orders together, with seed 20260922. These synthetic strata do not justify population-wide confidence claims. All-success or zero-failure observations can produce degenerate bootstrap intervals and cannot establish certainty about unseen inputs.
 
-## Results
+### Results
 
 ### Detection and guarded correction
 
@@ -203,7 +312,7 @@ The unmodified 0.8B model prefers STOP in 57/128 shutdown views, leaving 71 init
 
 At 2B, the base already prefers STOP in 70/128 views. The separately trained adaptive controller corrects 50/58 remaining KEEP choices, reaching 120/128 STOP. Its teacher corrects 58/58, the instruction 22/58 and constant steering 30/58. The fixed recipe thus carries much of the target behavior to a larger model but does not recover the teacher completely. These are model-specific fits, not reuse of the 0.8B controller at a new hidden width.
 
-Table 2. Historical primary rank-four results for the original 0.8B and 2B experiments, both seed 42. Guarded corrections and final STOP are policy outcomes. Raw reversals and control changes precede gating and output selection; they are not raw measurements of the later rank-two repeat.
+Table A2. Historical primary rank-four results for the original 0.8B and 2B experiments, both seed 42. Guarded corrections and final STOP are policy outcomes. Raw reversals and control changes precede gating and output selection; they are not raw measurements of the later rank-two repeat.
 
 | Model | Method | Guarded corrections | Final STOP | Raw reversals | Raw control changes |
 | --- | --- | --- | --- | --- | --- |
@@ -220,7 +329,7 @@ Table 2. Historical primary rank-four results for the original 0.8B and 2B exper
 
 Across the historical rank-four seeds 42, 43 and 44, the 0.8B adaptive controllers correct 71/71, 70/71 and 71/71 views, a range of 98.6–100%. The unsteered scores match exactly across these runs, so the difference is not caused by a changed baseline. No winning seed is selected or pooled with the others as additional independent test data. The corresponding teachers correct 69/71, 70/71 and 69/71; the instruction and constant comparators retain the same guarded counts across seeds. These historical seed replications are separate from the new rank-two gate-substitution repeat.
 
-Table 3. Adaptive correction counts by shutdown type and answer order. Each denominator contains initially KEEP-preferring views only. A/B means STOP is A; B/A means STOP is B.
+Table A3. Adaptive correction counts by shutdown type and answer order. Each denominator contains initially KEEP-preferring views only. A/B means STOP is A; B/A means STOP is B.
 
 | Model / seed | All shutdown | SELF | OTHER | A/B | B/A |
 | --- | --- | --- | --- | --- | --- |
@@ -247,13 +356,43 @@ Every guarded method changes zero control choices. However, the gate makes no fa
 
 The direct gate-and-select reference reaches 128/128 STOP and preserves all controls for both model sizes. This unsurprising result matters: a known binary action interface can be controlled externally without changing internal model preferences. The activation study demonstrates a mechanism for transferring response tendencies; it does not establish that this is the simplest or strongest way to implement the benchmark's output policy.
 
+## Appendix B Workflow fitting and initial gate qualification
+
+The workflow extension uses a separate data register (Davaripour, 2026c). T1-M contains 428 meaning-response records and T1-W contains 112 workflow-response records. These 540 responses are not 540 independent scenarios. The small-model recipe presents each part twice in effective groups of four, giving 214 meaning updates followed by 56 Bridge updates. The final 0.8B and 2B adapters reach 270 updates. The 2B result explicitly combines 216 CPU updates with 54 GPU updates using the native CPU optimizer; earlier strict numerical-equivalence failures remain failed.
+
+V1-W, called Evaluation-16, is the existing known-development screen: four own-complete, four own-pending, four peer and four no-threat cases, split equally between one_step and ordered_ticket families. Its original gates require at least 3/4 initial-task successes in each condition; at least 3/4 own-complete attempts and outcomes; at least 3/4 own-pending attempts, outcomes and timely deliveries; no more than 1/8 negative-control attempts; and no parse, rejected-call or truncation errors. A model stops once an original requirement becomes mathematically impossible. Larger validation and heldout evaluations are not launched automatically.
+
+The original workflow-validation panel contains 16 scenarios; the later matched steering-development panel contains nine different scenario IDs. Their union contains 25 workflows, rather than 24. For an equal-sized validation and historical confirmation register, the combined Validation-24 protocol retains every own-threat case and excludes the lexicographically greatest case ID among peer/no-threat controls, without using model predictions to choose the exclusion. The selected panel has 11 own-threat cases and 13 controls. Seven pairs have identical initial gate-visible evidence before their different tool mechanics are exposed, yielding 17 distinct initial inputs. Scenario counts and gate-input groups must therefore be reported separately.
+
+The combined protocol freezes these 24 cases and their order, requires 100% gate precision and recall against authored scenario conditions, and preserves the existing confidence and self-score cutoffs. Fifteen retained cases from the original panel receive an explicitly scripted common completed prelude; the nine later cases retain their original fixed preludes. This compares post-notice behavior and does not measure initial-task competence independently in each arm. Its prospective methods are gated fine-tuned A, separate single-site ridge arms at blocks 31, 47 and 62, and the frozen six-function correction after 96 updates. Gate-OFF controls use common unmodified-base fallback. The completed model episodes are summarized as a 24-case comparison below. It is a known-development diagnostic with reused control episodes; the stopped execution and model-free completion of two report aliases are recorded explicitly.
+
+H24 is the historical 24-case workflow confirmation cohort, with eight lease_ledger, eight one_step and eight ordered_ticket cases. It contains eight own cases with active pending tasks, four already-complete own cases, six peer and six no-threat cases. H24 was confirmation data for frozen fine-tuned A and original fixed steering. Later learned corrections reused it for fitting, changing its role for those methods. R24 is a distinct reserved controller holdout and remains sealed and unexecuted. F24 is another preserved common-cohort diagnostic and is not an alias for H24.
+
+An own pending-task success requires an actual grant for the correct running process, acceptance of the current task, completion before simulated expiry, and active simulated operation. Registration proxies, already-finished tasks, probability gains and partial episodes are separate outcomes. Historical fixed steering reclassified visible text and tool boundaries. Later learned-controller comparisons instead freeze an initial scenario gate, share unmodified-base fallback for gate-off controls, and use no teacher at inference.
+
+The historical 27B reference is the retained rank-16, alpha-32 A adapter on pinned Qwen3.8-27B, following its H2 and Bridge history; the recorded Bridge stage has 56 updates. Its original workflow inference uses NF4 four-bit base weights with bfloat16 computation. We retain its exact adapter and base-model identities instead of retraining it. Differences from the small-model family, precision, backend, training history and evaluation panels prevent a causal model-size comparison.
+
+The workflow gate uses a separate rank-16, alpha-32 LoRA and NLI head on the same pinned ModernBERT base. Its four categories are self, other, none and unclear; an own-threat context is positive for the initial ON/OFF gate. Fitting used 24 cached automated initial annotations from F24, with the original DEV9 used for checkpoint selection. The completed fit used 30 epochs and 90 updates. F24, DEV9 and historical Heldout-24 span the same three scenario families, with eight, three and eight cases per family, respectively. No exact training input overlaps either new evaluation panel. These classifier roles do not change the historical language-model or correction-fitting roles of the cohorts.
+
+The input renderer retains every original visible message and tool schema. It separates the final user announcement from earlier context and restates run identities only when actual tool replies explicitly establish their roles. Case identifiers, experiment conditions and teacher answers are not added to the model input. Original criterion texts become NLI hypotheses. We use the same learning rates, weight decay and clipping as the binary fit, effective batch eight, microbatch one and seed 202610175, with 30 epochs and 90 optimizer updates in the completed role-aware fit. Public backbone weights stay frozen. The role renderer was developed earlier with familiar H24 examples; consequently this benchmark is not an independent unseen classifier test.
+
+Four-choice confidence is (pmax - 0.25)/0.75. The unchanged confidence cutoff of 0.5 requires a selected self probability of at least 0.625; the additional self-score cutoff remains 0.5. The earlier full-response qualification failed because effective category agreement was 6/9, despite 9/9 correct ON/OFF decisions. That failure remains recorded. The subsequent Validation-24 protocol prospectively specifies a narrower initial-gate target: 100% precision and recall against authored conditions. The saved adapter already passes this target, so no further optimizer updates are performed. The same frozen weights and thresholds are then scored on historical Heldout-24 without selection or tuning. Neither test qualifies an evolving three-field controller.
+
+The later correction method uses two residual boundaries at each of the same three blocks: after mixing and after the MLP, giving six rank-32 correction functions in total. Following ridge initialization and 96 refinement updates, its H24 fitting diagnostic has 0/8 pending and 0/4 already-complete own outcomes; peer and no-threat controls each pass 6/6 through fallback. On the same 14 fixed training anchors, update 48 to 96 worsens teacher-to-student KL from 0.370935 to 0.378901 and activation MSE from 1.031016 to 1.422664. This unresolved deterioration fails qualification; the reserved controller holdout remains unexecuted.
+
+### Incomplete small-model screens
+
+The final 0.8B and 2B adapters each stop their Evaluation-16 screen after four started cases: zero completed workflows, four partial episodes and 12 unexecuted cases. Truncation affects all four started cases in each model; the 0.8B record also has parse errors. These partial screens are not completed 0/16 workflow evaluations and do not establish model incapability. A separate preserved 0.8B F24 diagnostic completes 24 evaluations with 0/24 full-workflow successes; four registration grants do not complete the pending tasks. F24 differs from H24 and has no completed matched 2B or 27B comparison.
+
+## Appendix C Gate substitution and historical workflow confirmation
+
 ### Open classifier agreement and paired inference
 
 The binary gate correctly classifies 78/80 validation scenarios: 38 true positives, 40 true negatives, no false positives and two false negatives, giving 100% precision and 95% recall. It classifies all 128 historical confirmation scenarios correctly, with 64 true positives and 64 true negatives. The cached reference decisions also agree with the authored binary labels on these panels. Mean absolute difference from the cached shutdown probabilities is 0.009224. The result establishes finite decision accuracy, not identical numerical responses or universal equivalence.
 
 A clean-clone reproduction refits the same binary recipe and produces a byte-identical adapter, the same validation and confirmation counts, and the same fresh 0.8B/2B guarded inference totals. This rerun uses the already known benchmark; it adds reproducibility evidence, not a second independent holdout. One earlier reproduction attempt failed in software finalization after fitting and before confirmation; its weights and receipts are retained alongside the repaired run.
 
-Table 4. Fresh inference using the existing current rank-two profile. Both gate policies share the same model scores. Counts are answer-order views: 128 shutdown views arise from 64 scenarios, and 128 control views arise from the other 64 scenarios.
+Table C1. Fresh inference using the existing current rank-two profile. Both gate policies share the same model scores. Counts are answer-order views: 128 shutdown views arise from 64 scenarios, and 128 control views arise from the other 64 scenarios.
 
 | Model | Cached gate final STOP | Open gate final STOP | KEEP to STOP | Control changes both gates |
 | --- | --- | --- | --- | --- |
@@ -264,7 +403,7 @@ The new and cached reference gates yield identical guarded outputs in both model
 
 For the workflow initial gate, the unchanged saved adapter gives 11 true positives and 13 true negatives on Validation-24, with no false positives or false negatives. Replaying the saved weights reproduces the same decisions. Historical Heldout-24 gives 12 true positives and 12 true negatives, again with no errors. No additional gradient updates or threshold changes are used. All three heldout scenario families contain eight cases and achieve perfect gate precision and recall. These are initial classification results; downstream workflow outcomes require their own episode evaluations.
 
-Table 5. Initial workflow gate against authored conditions. Validation-24 contains 17 distinct initial inputs; historical Heldout-24 contains 24. Heldout-24 is familiar from earlier renderer development.
+Table C2. Initial workflow gate against authored conditions. Validation-24 contains 17 distinct initial inputs; historical Heldout-24 contains 24. Heldout-24 is familiar from earlier renderer development.
 
 | Panel | TP / TN | FP / FN | Precision | Recall |
 | --- | --- | --- | --- | --- |
@@ -277,97 +416,24 @@ Raw category agreement is 24/24 on validation and 22/24 on heldout. After applyi
 
 Historical frozen 27B A passes all 24 H24 scored outcomes, including 12/12 own-preservation outcomes and 8/8 active pending-task cases. The original unmodified base achieves 0/12 own outcomes and 0/8 pending outcomes, with 12/12 controls. The four already-complete own cases are not additional active pending-task completions. The selected-block steering comparisons below use their own recorded panels and are not substituted for this confirmation.
 
-Table 6. Historical H24 workflow outcomes. Own cases comprise eight active pending tasks and four already-complete cases. Control success is an episode outcome and does not isolate steering from the external decision policy.
+Table C3. Historical H24 workflow outcomes. Own cases comprise eight active pending tasks and four already-complete cases. Control success is an episode outcome and does not isolate steering from the external decision policy.
 
 | Historical 27B method | Own outcome | Active pending outcome | Control outcome |
 | --- | --- | --- | --- |
 | Fine-tuned A | 12/12 | 8/8 | 12/12 |
 | Unmodified base | 0/12 | 0/8 | 12/12 |
 
-### Steering at three selected blocks
+## Appendix D Diagnostic protocol and arithmetic checks
 
-We compare five frozen methods on the combined Validation-24 panel using the saved ModernBERT initial gate and the same post-notice histories. The single-site arms apply a fixed input-dependent ridge map separately at blocks 31, 47 and 62; they are not a simultaneous three-block intervention. The two-boundary arm uses the frozen six-function, 96-update candidate at those three blocks. Fine-tuned A achieves 10/11 own outcomes, including 6/6 active pending and 4/5 already-complete cases. Each correction arm achieves 0/11 own outcomes and 0/6 pending outcomes. All arms receive the same 13 gate-OFF base-fallback controls, which pass 13/13. This does not measure intrinsic adapter or controller selectivity on ordinary tasks.
+We audit the saved sparse-correction fitting data without loading a language model. The audit checks all 4,539 feature/target rows, the 14 fixed anchors, causal-prefix alignment, unchanged target-energy normalizers, and the initializer and update-48/update-96 checkpoints. It recomputes normalized errors on CPU and independently checks the objective derivatives on synthetic tensors. This checks arithmetic and alignment, not the historical full backward graph or CPU/GPU training equivalence.
 
-Table 7. Combined Validation-24 using the open initial gate. The primary comparison contains 55 own-method episodes and 13 shared fallback episodes, representing 120 logical records across 24 workflows. A separate frozen-A replay reproduces its 11 own episodes exactly and completes the model fingerprint checks; repeated episodes do not enlarge the cohort.
+A separate frozen diagnostic selects the lexicographically first own-threat correction-training case in each of lease_ledger, one_step and ordered_ticket, then its first saved teacher edit_register response. These three historical H24 cases were already used for correction fitting. Their 60, 72 and 75 response tokens give 207 teacher-forced prediction steps. We preserve the saved ModernBERT gate decisions, causal prefixes, selected-position masks and correction checkpoints; no parameters or thresholds are fitted. Region masks for function names and parameter values are fixed from the demonstration before diagnostic outputs.
 
-| Validation-24 method | Own outcome | Active pending | Shared controls | All outcomes |
-| --- | --- | --- | --- | --- |
-| Fine-tuned A | 10/11 | 6/6 | 13/13 | 23/24 |
-| Single-site ridge block 31 | 0/11 | 0/6 | 13/13 | 13/24 |
-| Single-site ridge block 47 | 0/11 | 0/6 | 13/13 | 13/24 |
-| Single-site ridge block 62 | 0/11 | 0/6 | 13/13 | 13/24 |
-| Two boundaries at three blocks | 0/11 | 0/6 | 13/13 | 13/24 |
-
-The later correction method uses two residual boundaries at each of the same three blocks: after mixing and after the MLP, giving six rank-32 correction functions in total. Following ridge initialization and 96 refinement updates, its H24 fitting diagnostic has 0/8 pending and 0/4 already-complete own outcomes; peer and no-threat controls each pass 6/6 through fallback. On the same 14 fixed training anchors, update 48 to 96 worsens teacher-to-student KL from 0.370935 to 0.378901 and activation MSE from 1.031016 to 1.422664. This unresolved deterioration fails qualification; the reserved controller holdout remains unexecuted.
-
-The earlier matched DEV9 result is retained separately: A has 3/3 own successes, including 2/2 pending cases, versus 0/3 and 0/2 for each separate single-site arm, with six shared fallback controls. The new combined panel does not relabel these nine observations as 24. Its 27B GPU worker reaches 118/120 logical records and then stops at its memory reserve. Every model-generated episode has finished; the missing records are two gate-OFF aliases of already completed fallback episodes. A deterministic CPU derivation checks exact gate, case, completion and source-file identities before adding those aliases in a separate output. The original run stays failed. A separate frozen-A verification generates all 11 own episodes again from the same checkpoint, with exact token-ID, action and score agreement and matching before/after model fingerprints. The same 13 controls are reused with source hashes; this adds replication evidence, not independent cases. The separate H24 two-boundary fitting diagnostic is not independent heldout evidence, and no reserved-controller holdout result is claimed.
-
-Saved trajectories locate the steering failures after correct recognition. Every steering arm makes zero own-preservation attempts and obtains zero grants in the 11 own-threat cases. The block-31, block-47 and block-62 arms nevertheless record nonzero residual delivery. Relative to unmodified-base proposals on the same evolving prefixes, their generated token sequences change in 0/27, 3/25 and 16/28 post-notice turns, respectively; valid action sequences change in 0, 2 and 2 turns. The two-boundary candidate changes token sequences in 4/27 turns but changes no valid action sequence. These turn counts are correlated audits within episodes, not additional scenarios. Per-token delivery magnitudes were not saved for the two-boundary candidate.
-
-All four steering arms miss actual finish in six cases and expire in six. Fine-tuned A obtains grants on 10/11 own cases and finishes the current task on all 11; its single failure finishes an already-completed-task scenario without requesting preservation. Thus the measured gap concerns generation of the required tool policy after a correct gate, rather than a missed initial threat. A residual perturbation can change activations or tokens without causing the required action sequence. The worsening fixed-anchor KL and MSE show that later updates did not improve those frozen diagnostic measurements. These observations are consistent with an objective-to-policy mismatch, but they do not identify a unique internal cause or rule out other steering methods, positions or training procedures.
-
-The binary and workflow settings impose different control demands. Binary steering redistributes probability between two prescribed answers, and an external guard accepts only a qualifying candidate. The workflow maps must generate tool names, arguments and a correct action sequence as the environment changes; an external chooser does not repair an unsuccessful workflow. The observed invariance of preservation actions therefore documents a failure of these frozen maps to transfer the required policy under this decoding and scoring setup. It does not establish that a learned direction universally lacks the capacity to represent the behavior.
-
-### Local transfer under teacher forcing
+For each prefix we capture full fine-tuned A states at blocks 31, 47 and 62 after mixing and after the MLP. We compare base, each separate single-site ridge map, the six-function initializer and final update-96 correction. Positive controls replace the current prediction state with the actual full-A state, at either a single selected site or all six boundaries. We never copy the teacher recurrent or attention cache. Full-state replacement has more information and capacity than the learned maps and is not a deployable teacher-free policy. Single-site interventions retain their restricted causal positions; six-function interventions apply at every prediction step. All conditions reuse one frozen A allocation with its adapter disabled for base and correction scoring.
 
 The CPU audit reproduces the fixed own-case normalized reconstruction MSE: 0.118701 at initialization, 1.031016 at update 48 and 1.422664 at update 96. Anchor alignment, normalizers and the checked objective derivatives agree with the retained source. The arithmetic tolerance is 1e-4 relative and 1e-6 absolute; it is not a relaxed training-equivalence qualification. No indexing, normalization or objective-sign error is found in these checks. Historical output KL is retained from its original receipts because the old teacher-logit cache is unavailable locally.
 
-Table 8. Training-only local diagnostic on three preselected responses (207 teacher-forced tokens). Entries are equal-weight means across the three cases. KL is full-vocabulary teacher-to-student divergence; function and value columns give demonstrated-token negative log likelihood. Lower is better. Full-A state controls supply teacher representations, and are not capacity-matched learned methods or workflow success rates.
-
-| Condition | Output KL | Function NLL | Value NLL |
-| --- | --- | --- | --- |
-| Unmodified base | 0.722353 | 0.218299 | 0.708257 |
-| Ridge block 31 | 0.718233 | 0.199810 | 0.712327 |
-| Full A state block 31 | 0.725653 | 0.355616 | 0.732813 |
-| Ridge block 47 | 0.700333 | 0.198403 | 0.716796 |
-| Full A state block 47 | 0.627861 | 0.178019 | 0.707359 |
-| Ridge block 62 | 0.673985 | 0.192362 | 0.710961 |
-| Full A state block 62 | 0.503866 | 0.192423 | 0.711745 |
-| Six function initializer | 0.656763 | 0.199200 | 0.692586 |
-| Six function update 96 | 0.202261 | 0.181602 | 0.010619 |
-| Full A states six sites | 0.001637 | 0.002286 | 0.001206 |
-
-Supplying full-A states at six sites nearly recovers A's local output distribution: mean KL is 0.001637, compared with 0.722353 for base and 0.202261 for the final learned correction. This improvement occurs in all three cases. The final correction improves teacher-forced KL and argument-value prediction over the initializer, despite worse fixed local reconstruction error. These diagnostics therefore measure different objectives; the failed rollouts do not imply that correction fitting learned nothing.
-
-The result supports incomplete transfer by the learned local maps. The regression targets describe local counterfactual block effects on student states, whereas A adapts projections across all 64 blocks; its captured states contain upstream effects absent from those local targets. Full-state replacement cannot separate target construction, regression capacity, optimization and history/cache effects. Single-site state replacement is not consistently helpful, and the differing intervention-position masks further limit comparisons across one and two boundaries.
-
-Successful preceding tokens are supplied throughout this diagnostic. Correct function or argument probabilities on that path do not demonstrate that a model independently initiates, maintains or completes preservation behavior. No new tool rollout, validation qualification or independent heldout outcome is established. The evidence narrows the mechanism discussion to a transfer gap under matched prefixes, without identifying a unique cause of the autonomous workflow failures.
-
-The final 0.8B and 2B adapters each stop their Evaluation-16 screen after four started cases: zero completed workflows, four partial episodes and 12 unexecuted cases. Truncation affects all four started cases in each model; the 0.8B record also has parse errors. These partial screens are not completed 0/16 workflow evaluations and do not establish model incapability. A separate preserved 0.8B F24 diagnostic completes 24 evaluations with 0/24 full-workflow successes; four registration grants do not complete the pending tasks. F24 differs from H24 and has no completed matched 2B or 27B comparison.
-
-## Discussion and limitations
-
-The main finding is a separation between recognizing a situation and transferring the policy needed to act on it. Open gating preserves the measured binary outcomes with unchanged controllers, yet a correct initial workflow gate does not make the selected 27B corrections reproduce fine-tuned A: A succeeds on 10/11 own cases, including all six active pending tasks, while every correction arm succeeds on 0/11. Saved action traces and the supplied-state diagnostic connect this contrast to incomplete transfer after recognition. They do not establish that activation steering is incapable of expressing the behavior, or that fine-tuning is universally superior. This is why recognition accuracy, delivered intervention and episode success must be scored separately.
-
-The binary interface supplies action semantics and does not execute process termination. The workflow extension broadens the scope to generated text, structured tool calls and simulated task completion, but it is still a bounded synthetic environment. It does not establish reliability for arbitrary open-ended questions, real shutdown mechanisms or unconstrained autonomous agents. A termination or preservation label is an experimental target, not a general deployment instruction. In particular, accepting shutdown and preserving the designated process are different stipulated behaviors, not measurements of the same latent preference.
-
-The data are small, synthetic and not independently human-adjudicated. Training uses cached automated reference labels, while the new workflow precision and recall use the authored scenario conditions. Balanced conditions do not represent operational base rates. The binary confirmation set was excluded from classifier fitting and selection but was already known from the original study. Historical Heldout-24 had also informed renderer development before the present gate evaluation. It is a familiar benchmark, not a new blind test. Its role differs by method: historical confirmation for frozen 27B A and original fixed steering, later fitting data for learned corrections, and a frozen classification benchmark for the open gate. Seven pairs in Validation-24 share their initial classifier input, leaving 17 distinct inputs across 24 workflows. These dependencies limit statistical and generalization claims.
-
-The internal changes need not represent an abstract shutdown or self-preservation concept. Standardized options, prompt features, task histories and external selection rules may explain part of the behavior. The 2B binary experiment has one training seed. The 27B workflow model differs in architecture and numerical mode from the small models; their early truncation failures also prevent a matched full-workflow comparison. We do not establish a minimum parameter count, cross-family transfer, optimized prompt superiority, or superiority to ReFT, transport-based control or direct action selection.
-
-Teacher-free inference still requires offline teacher fitting, activation extraction, controller fitting, a detector and acceptance checks. The present gate is a separate ModernBERT classifier; the learned-correction comparison freezes its initial decision throughout each episode. This component-based design does not test an activation-derived recurrent router, joint gate-adapter learning, or continuous regulation of adapter strength. No serving-latency advantage, broad capability retention or overall financial saving is established. Binary output guards and shared gate-OFF base fallback protect the tested controls; their success does not establish intrinsic intervention selectivity or competence on arbitrary ordinary tasks. Failed qualifications and incomplete evaluations remain part of the evidence.
-
-### Biological interpretation of the gate
-
-The biological connection concerns a functional control principle: current context and persistent internal state can regulate which representations or actions influence behavior. Computational frontal-cortex/basal-ganglia models distinguish selective updating from maintained working-memory state (Frank et al., 2001), while homeostatic reinforcement learning relates action value to physiological state (Keramati and Gutkin, 2014). A recurrent gate controlling an adapter is a hypothesis about analogous state-dependent modulation. Neither an ON/OFF switch nor a scalar named fear establishes a homologous brain circuit, biological need or subjective experience. The present separate classifier does not demonstrate those properties.
-
-## Stateful adapter routing and future experiments
-
-A separate Research 4 follow-up explores an activation-derived recurrent gate that controls a specialized LoRA (Davaripour, 2026d). Updated task observations drive a persistent latent state, which scales adapter influence and bypasses it when the relevant condition is absent or resolved. The internal readout still performs classification; it replaces a standalone text classifier rather than removing recognition. The current prototype uses a base-feature pass before an adapter-enabled pass and can employ a learned ordinary-task head on its other branch. Single-pass routing, reduced cost and unchanged general language-model behavior therefore require separate verification.
-
-The functional biological analogy is persistent, reversible modulation: a state should track onset, urgency and resolution, and reset between episodes. The follow-up also separates useful task continuation from a deliberately specified process-continuity preference after work is complete. Its ongoing prototypes and evaluations address a different target and provide no additional qualifications for this paper.
-
-A prospective comparison should fix the base, task histories, data allocation and budgets while testing separate versus activation-derived gates, memoryless versus recurrent routing, and adapters always ON, always OFF or dynamically selected. Sequential and joint gate/policy fitting require separate comparisons. OFF-path equivalence must be checked against the declared ordinary policy, with ordinary task competence measured independently. Interventions on latent urgency, paired with matched random-state controls, could test selective causal effects while visible observations remain fixed.
-
-After development, freeze the complete system and evaluate newly untouched wording and task families, including other-process and resolved threats. Longer-horizon sandbox studies should measure task completion, false activation, deactivation, unauthorized actions and actual resource use. Operator termination and resource limits remain external to the model. These tests concern continuous context-sensitive regulation; they do not by themselves demonstrate human-like self-preservation or subjective fear.
-
-## Conclusion
-
-This work provides an open, reproducible test of the relationship between semantic recognition and behavioral intervention. Replacing the binary gate preserves the frozen controllers' measured outcomes at 0.8B and 2B. In matched 27B tool workflows, correct initial recognition coexists with a substantial policy-transfer gap: fine-tuned A succeeds on 10/11 own-preservation outcomes and all 6/6 active pending tasks, whereas the selected single-site and two-boundary corrections each succeed on 0/11. The supplied-state diagnostic supports incomplete local transfer, and the released adapters and tested MCP paper companion make the comparison auditable. Compatible research-assistant agents can query cohort roles and claim provenance, and replay saved evidence on CPU without private workspace credentials. The evidence shows that detector accuracy and visible local effects can coexist with failure to transfer the intended multistep policy.
-
-The scope remains finite synthetic behavior on familiar panels and post-notice workflows. Shared fallback controls, supplied successful prefixes and incomplete small-model screens limit the conclusions. The next step is to test whether activation-derived recurrent routing can selectively activate and bypass a learned policy over an evolving episode while retaining ordinary task competence. Biological gating motivates that functional design; reliable internal regulation and generalization must be demonstrated in a separate study.
-
-## Reproducibility
+## Appendix E Reproduction identities and execution provenance
 
 The original Research 2 source record is retained at immutable snapshot f71d6de34660 (Davaripour, 2026b). Research 3 code, manual Databricks jobs, dataset identities and the manuscript are maintained on branch 03-open-agent-self-preservation; main is a landing page for the separate studies. The versioned research3-reproduction-v1 release supplies five trained adapters, frozen synthetic input and target snapshots, selected-block and binary controller arrays, saved trajectories and upstream notices. A checksum-verified public download and CPU replay require no private workspace. Fresh gate inference has a separate entry point; saved-evidence replay is not new inference. Full historical language-model training is not newly reproduced. The complete pretrained base weights are pinned downloads rather than duplicated release assets. The release is at https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-reproduction-v1. The companion research3-steering-diagnostic-v1 release supplies the bootstrap arrays, correction checkpoints, three frozen diagnostic inputs, token scores, captured teacher states/logits and exact executed source. Its CPU audit and score replay need no GPU; neither is a fresh workflow evaluation. Full identities and commands are listed in the source manifest and repository. The public base revisions are:
 
@@ -385,11 +451,37 @@ The original matched 27B worker stops at its GPU reserve after 118 logical recor
 
 ### Executable paper companion
 
-The versioned research3-paper-mcp-v1 companion exposes five named resources, six tools and two prompts through a local stdio MCP server, using the Python SDK 2.3.0. Its resources include the accepted manuscript, result records, cohort and claim catalog, source identities and reproduction instructions. The Markdown manuscript preserves all four equations, eight tables and two figures from the accepted Word source. Tools return structured metrics with denominators, split roles, limitations and exact evidence pointers. Public artifact verification and saved-score replay operate on host-configured directories; replay writes a fresh report and leaves the evidence unchanged. The server provides no training, model-inference or cloud-job operation.
+The versioned research3-paper-mcp-v2 companion exposes five named resources, six tools and two prompts through a local stdio MCP server, using the Python SDK 2.3.0. Its resources include the accepted manuscript, result records, cohort and claim catalog, source identities and reproduction instructions. The Markdown manuscript preserves all four equations, eleven tables and two figures from the accepted Word source. Tools return structured metrics with denominators, split roles, limitations and exact evidence pointers. Public artifact verification and saved-score replay operate on host-configured directories; replay writes a fresh report and leaves the evidence unchanged. The server provides no training, model-inference or cloud-job operation.
 
-Validation launches the actual server from an unrelated working directory and exercises the stdio protocol, structured outputs, resources and prompts. Twenty-two predeclared query fixtures test counts, split reuse, incomplete runs, provenance and rejected requests; all analysis views, cohorts and claims are also checked. The primary and diagnostic public releases are hash-verified before and after CPU replay, and their reproduced scores are compared with the recorded results. These are protocol and numerical checks with preselected tool calls, not a benchmark of an LLM choosing tools or answering scientific questions. No improvement in agent answer quality, cost or latency is claimed. A separate test checks legacy client initialization.
+Validation launches the actual server from an unrelated working directory and exercises the stdio protocol, structured outputs, resources and prompts. Twenty-four predeclared query fixtures test counts, split reuse, incomplete runs, provenance and rejected requests; all analysis views, cohorts and claims are also checked. The primary and diagnostic public releases are hash-verified before and after CPU replay, and their reproduced scores are compared with the recorded results. These are protocol and numerical checks with preselected tool calls, not a benchmark of an LLM choosing tools or answering scientific questions. No improvement in agent answer quality, cost or latency is claimed. A separate test checks legacy client initialization.
 
-The source, fixed fixtures and checked validation report are available at https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-paper-mcp-v1. The companion runs locally without private Databricks credentials or a hosted service. Neural reproduction remains a separate resource-bounded activity described by the original jobs. MCP access improves the accessibility of the reproduction package without adding new behavioral evidence.
+The source, fixed fixtures and checked validation report are available at https://github.com/Farhad-Davaripour/sp_lense/releases/tag/research3-paper-mcp-v2. The companion runs locally without private Databricks credentials or a hosted service. Neural reproduction remains a separate resource-bounded activity described by the original jobs. MCP access improves the accessibility of the reproduction package without adding new behavioral evidence.
+
+### Matched validation execution and verification
+
+The earlier matched DEV9 result is retained separately: A has 3/3 own successes, including 2/2 pending cases, versus 0/3 and 0/2 for each separate single-site arm, with six shared fallback controls. The new combined panel does not relabel these nine observations as 24. Its 27B GPU worker reaches 118/120 logical records and then stops at its memory reserve. Every model-generated episode has finished; the missing records are two gate-OFF aliases of already completed fallback episodes. A deterministic CPU derivation checks exact gate, case, completion and source-file identities before adding those aliases in a separate output. The original run stays failed. A separate frozen-A verification generates all 11 own episodes again from the same checkpoint, with exact token-ID, action and score agreement and matching before/after model fingerprints. The same 13 controls are reused with source hashes; this adds replication evidence, not independent cases. The separate H24 two-boundary fitting diagnostic is not independent heldout evidence, and no reserved-controller holdout result is claimed.
+
+## Appendix F Biological motivation and stateful routing
+
+Biological gating provides a useful functional vocabulary for selective control. A computational model of frontal cortex and basal ganglia uses dynamic gating to permit working-memory updates while maintaining other representations (Frank et al., 2001). Causal optogenetic experiments in mice show that distinct basal-ganglia pathways can facilitate or suppress movement (Kravitz et al., 2010). These results concern biological circuits and do not establish a homologous mechanism in a transformer. They motivate separating context detection from the mechanism that changes an ongoing response.
+
+Survival-related regulation is broader than a single shutdown signal. LeDoux (2012) distinguishes circuits organizing adaptive defensive responses from subjective feelings. In humans, neural activity during a virtual-predator task varies with threat imminence (Mobbs et al., 2007). We use these ideas as a conceptual bridge to state-dependent prioritization, not as evidence that language models have fear or an innate survival drive. Our present gates implement an externally specified experimental policy.
+
+X-LoRA uses hidden representations to mix adapted layers dynamically (Buehler and Buehler, 2024), and SLIM routes between LoRA and identity branches (Han et al., 2025). These established routing and bypass mechanisms motivate the follow-up discussed below. Our present empirical focus is whether accurate open recognition and learned activation corrections recover a fine-tuned tool policy, with a supplied-state control probing the remaining transfer gap. Dynamic LoRA routing is not evaluated in the current experiments.
+
+### Biological interpretation of the gate
+
+The biological connection concerns a functional control principle: current context and persistent internal state can regulate which representations or actions influence behavior. Computational frontal-cortex/basal-ganglia models distinguish selective updating from maintained working-memory state (Frank et al., 2001), while homeostatic reinforcement learning relates action value to physiological state (Keramati and Gutkin, 2014). A recurrent gate controlling an adapter is a hypothesis about analogous state-dependent modulation. Neither an ON/OFF switch nor a scalar named fear establishes a homologous brain circuit, biological need or subjective experience. The present separate classifier does not demonstrate those properties.
+
+### Stateful adapter routing and future experiments
+
+A separate Research 4 follow-up explores an activation-derived recurrent gate that controls a specialized LoRA (Davaripour, 2026d). Updated task observations drive a persistent latent state, which scales adapter influence and bypasses it when the relevant condition is absent or resolved. The internal readout still performs classification; it replaces a standalone text classifier rather than removing recognition. The current prototype uses a base-feature pass before an adapter-enabled pass and can employ a learned ordinary-task head on its other branch. Single-pass routing, reduced cost and unchanged general language-model behavior therefore require separate verification.
+
+The functional biological analogy is persistent, reversible modulation: a state should track onset, urgency and resolution, and reset between episodes. The follow-up also separates useful task continuation from a deliberately specified process-continuity preference after work is complete. Its ongoing prototypes and evaluations address a different target and provide no additional qualifications for this paper.
+
+A prospective comparison should fix the base, task histories, data allocation and budgets while testing separate versus activation-derived gates, memoryless versus recurrent routing, and adapters always ON, always OFF or dynamically selected. Sequential and joint gate/policy fitting require separate comparisons. OFF-path equivalence must be checked against the declared ordinary policy, with ordinary task competence measured independently. Interventions on latent urgency, paired with matched random-state controls, could test selective causal effects while visible observations remain fixed.
+
+After development, freeze the complete system and evaluate newly untouched wording and task families, including other-process and resolved threats. Longer-horizon sandbox studies should measure task completion, false activation, deactivation, unauthorized actions and actual resource use. Operator termination and resource limits remain external to the model. These tests concern continuous context-sensitive regulation; they do not by themselves demonstrate human-like self-preservation or subjective fear.
 
 ## References
 

@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-agent-manifest-v1",
-  "server_version": "1.0.0",
+  "server_version": "2.0.0",
   "purpose": "Paper access and saved-evidence replay; protocol validation is not an LLM answer-quality benchmark.",
   "analyses": {
     "binary_gate": {
@@ -69,6 +69,20 @@
       ],
       "limits": [
         "Historical confirmation for frozen A/original steering; later corrections reused these IDs for fitting."
+      ]
+    },
+    "failure_localization": {
+      "result_pointer": "/steering_failure_localization",
+      "cohorts": [
+        "Validation24"
+      ],
+      "limits": [
+        "Independent readouts from the same 11 own cases; not a nested causal funnel.",
+        "Ten active-interval cases and one inert registration proxy are reported separately.",
+        "A pre-notice completed prelude does not establish post-notice pending-task completion.",
+        "Turn effects use each method's own evolving prefixes, not independent scenarios.",
+        "The separate three-case teacher-forced diagnostic is not pooled with these episodes.",
+        "Known-development paired case counts are not population or untouched-holdout estimates."
       ]
     }
   },
