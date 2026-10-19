@@ -1,4 +1,4 @@
-"""The same bounded Evaluation-16 screen for completed 0.8B and 2B adapters."""
+"""The same bounded W-V16 screen for completed 0.8B and 2B adapters."""
 from pathlib import Path
 import argparse
 import datetime as dt
@@ -36,7 +36,7 @@ def build_screen_package(settings, destination):
 
 def validate_admission(admission):
     if admission["model_name"] not in MODELS or admission["total_updates"] != 270:
-        raise ValueError("Evaluation-16 requires a completed, explicitly identified small-model checkpoint")
+        raise ValueError("W-V16 requires a completed, explicitly identified small-model checkpoint")
     if admission["H2_updates"] != 214 or admission["Bridge_updates"] != 56:
         raise ValueError("The original training dose is incomplete")
     if not admission["fresh_bounded_resource_window_admitted"]:
@@ -111,7 +111,7 @@ def main(argv=None):
         result = run(args.admission, args.output, settings)
     else:
         datasets = screen_data(settings)
-        result = {"stage": "Evaluation-16", "planned_cases_per_model": 16,
+        result = {"stage": "W-V16", "planned_cases_per_model": 16,
                   "models": sorted(MODELS), "fail_fast": True,
                   "source_sha256": next(x["spec"]["sha256"] for x in datasets if x["spec"]["id"] == "V1-W"),
                   "model_calls": 0, "other_validation_or_heldout_launched": False}

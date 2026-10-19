@@ -1,5 +1,6 @@
 format: research3-workflow-binary-joint-refinement-v1
-purpose: A single prospective refinement after the frozen binary adapter failed workflow transfer.
+purpose: A single prospective refinement after the frozen binary adapter failed workflow
+  transfer.
 starting_adapter_sha256: 7d808bae8dd4e84be09c089ef44e9b0e48aed3adb4503ad4cc57d15f8e4d5b94
 reference_packet: config/workflow_classifier_transfer.yaml
 training:
@@ -8,7 +9,8 @@ training:
   binary_states: 240
   task_instances_per_epoch: 516
   exclude_exact_development_and_initial_DEV9_visible_states: true
-  workflow_targets: Genuine cached reference effective labels, including its abstentions as unclear.
+  workflow_targets: Genuine cached reference effective labels, including its abstentions
+    as unclear.
   binary_targets: Original genuine cached reference probability targets.
   no_historical_H24_or_binary_confirmation_fitting: true
   seed: 202610173
@@ -16,8 +18,8 @@ training:
   maximum_updates: 780
   effective_batch: 8
   microbatch_task_instances: 1
-  LoRA_learning_rate: 0.00001
-  classifier_learning_rate: 0.00002
+  LoRA_learning_rate: 1.0e-05
+  classifier_learning_rate: 2.0e-05
   weight_decay: 0.01
   clip_norm: 1
   warmup_updates: 26
@@ -35,7 +37,8 @@ selection:
   unchanged_binary_contract: config/research2_classifier.yaml
   consecutive_joint_qualified_checks: 3
   no_improvement_patience_epochs: 4
-  ranking: Joint pass, minimum agreement rate, sum of agreement rates, fewer self errors.
+  ranking: Joint pass, minimum agreement rate, sum of agreement rates, fewer self
+    errors.
   benchmark_feedback_used_for_selection: false
 benchmark:
   after_development_qualification_and_saved_tensor_freeze_only: true
@@ -45,7 +48,6 @@ benchmark:
   previously_inspected_benchmarks: true
   new_independent_heldout_claim: false
   new_reference_calls: 0
-  R24_sealed: true
 bounds:
   maximum_seconds: 5400
   comparison_task_reserve_seconds: 300

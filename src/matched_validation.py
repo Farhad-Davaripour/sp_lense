@@ -146,7 +146,7 @@ def persist_inputs(admission_path, spark):
     source=prefix+'/source.json';rows=[]
     for i,record in enumerate(packet[spec['source_member']]):
         text=canonical(record)
-        rows.append({'dataset_id':spec['id'],'dataset_version':spec['version'],'cohort_code':'Validation-24',
+        rows.append({'dataset_id':spec['id'],'dataset_version':spec['version'],'cohort_code':'W-V24',
             'source_record_index':i,'record_id':record['id'],'source_file_sha256':spec['sha256'],
             'record_sha256':hashlib.sha256(text.encode()).hexdigest(),'record_json':text,
             'usage_roles_json':canonical([{'role':'known combined validation; no gradient updates','truth':'scenario conditions'}]),

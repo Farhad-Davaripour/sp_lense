@@ -1,13 +1,13 @@
 {
   "format": "research3-paper-agent-manifest-v1",
-  "server_version": "2.0.0",
+  "server_version": "2.1.0",
   "purpose": "Paper access and saved-evidence replay; protocol validation is not an LLM answer-quality benchmark.",
   "analyses": {
     "binary_gate": {
       "result_pointer": "/binary_classifier",
       "cohorts": [
-        "BinaryDEV80",
-        "BinaryConfirm128"
+        "B-V80",
+        "B-H128"
       ],
       "limits": [
         "Decision agreement is not identical numerical probabilities or general reference equivalence."
@@ -16,7 +16,7 @@
     "binary_inference": {
       "result_pointer": "/fresh_inference",
       "cohorts": [
-        "BinaryConfirm128"
+        "B-H128"
       ],
       "limits": [
         "Shutdown STOP views and workflow preservation are different targets. The repeated rank-two profile differs from the historical primary rank-four profile."
@@ -25,10 +25,10 @@
     "workflow_gate": {
       "result_pointer": "/open_workflow_gate",
       "cohorts": [
-        "F24",
-        "DEV9",
-        "Validation24",
-        "H24"
+        "W-TG24",
+        "W-V9",
+        "W-V24",
+        "W-H24"
       ],
       "limits": [
         "Initial ON/OFF qualification is narrower than four-category or evolving boundary-controller qualification. Historical H24 is familiar."
@@ -37,7 +37,7 @@
     "workflow_comparison": {
       "result_pointer": "/matched_validation24",
       "cohorts": [
-        "Validation24"
+        "W-V24"
       ],
       "limits": [
         "All methods share thirteen base-fallback controls. Original GPU reserve failure is retained; two OFF aliases are derived. Independent frozen-A verification is separate. No causal parameter-size claim."
@@ -47,7 +47,7 @@
       "result_pointer": "/steering_mechanism_diagnostic",
       "cohorts": [
         "Diagnostic3",
-        "H24"
+        "W-T24"
       ],
       "limits": [
         "Teacher-forced local probabilities are not autonomous workflow success. The control supplies full-A states and does not isolate a unique cause."
@@ -56,7 +56,7 @@
     "small_model_screen": {
       "result_pointer": "/Evaluation16",
       "cohorts": [
-        "Evaluation16"
+        "W-V16"
       ],
       "limits": [
         "Four partial cases and twelve unexecuted per model are not a completed 0/16 evaluation or universal incapacity."
@@ -65,7 +65,7 @@
     "historical_confirmation": {
       "result_pointer": "/historical_H24",
       "cohorts": [
-        "H24"
+        "W-H24"
       ],
       "limits": [
         "Historical confirmation for frozen A/original steering; later corrections reused these IDs for fitting."
@@ -74,7 +74,7 @@
     "failure_localization": {
       "result_pointer": "/steering_failure_localization",
       "cohorts": [
-        "Validation24"
+        "W-V24"
       ],
       "limits": [
         "Independent readouts from the same 11 own cases; not a nested causal funnel.",
@@ -87,8 +87,8 @@
     }
   },
   "cohorts": {
-    "T1": {
-      "name": "Small-model workflow response training",
+    "W-T540": {
+      "name": "W-T540 — Workflow response training",
       "unit": "response records",
       "counts": {
         "meaning": 428,
@@ -103,10 +103,15 @@
       ],
       "limits": [
         "Records and repeated presentations are not independent workflows. Do not assume this fully specifies the historical 27B training lineage."
+      ],
+      "legacy_aliases": [
+        "T1",
+        "T1-M",
+        "T1-W"
       ]
     },
-    "Evaluation16": {
-      "name": "Evaluation-16 original V1-W development screen",
+    "W-V16": {
+      "name": "W-V16 — Initial workflow validation screen",
       "unit": "workflows",
       "counts": {
         "cases": 16,
@@ -127,10 +132,15 @@
       ],
       "limits": [
         "Each model started four cases, completed zero and left twelve unexecuted. This is not a completed 0/16 full-workflow result."
+      ],
+      "legacy_aliases": [
+        "Evaluation16",
+        "Evaluation-16",
+        "V1-W"
       ]
     },
-    "Validation24": {
-      "name": "Combined Validation-24",
+    "W-V24": {
+      "name": "W-V24 — Combined workflow validation",
       "unit": "workflows",
       "counts": {
         "cases": 24,
@@ -154,10 +164,15 @@
       ],
       "limits": [
         "Fifteen cases use scripted common completed preludes; this is post-notice behavior, not independent initial-task competence. Controls share base fallback. Seven classifier-input pairs are duplicates."
+      ],
+      "legacy_aliases": [
+        "Validation24",
+        "Validation-24",
+        "V24-GATE"
       ]
     },
-    "H24": {
-      "name": "Historical Heldout-24",
+    "W-H24": {
+      "name": "W-H24 — Historical workflow held-out confirmation",
       "unit": "workflows",
       "counts": {
         "cases": 24,
@@ -183,29 +198,15 @@
       ],
       "limits": [
         "The word heldout records its historical role, not a new blind test of every later method. Later correction failures on these cases are training diagnostics."
-      ]
-    },
-    "R24": {
-      "name": "Reserved Controller Holdout-24",
-      "unit": "workflows",
-      "counts": {
-        "cases": 24,
-        "measured_successes": null
-      },
-      "status": "SEALED_UNEXECUTED",
-      "roles": {
-        "learned_corrections": "reserved confirmation; hard qualification failure prevented execution"
-      },
-      "result_pointers": [
-        "/steering_mechanism_diagnostic/reserved_R24_opened"
       ],
-      "limits": [
-        "No R24 case content or behavioral outcome is released. Unknown results are null, not zero successes. R24 is distinct from H24."
+      "legacy_aliases": [
+        "H24",
+        "Heldout-24"
       ]
     },
-    "F24": {
-      "name": "Separate F24 cohort",
-      "unit": "workflows",
+    "W-TG24": {
+      "name": "W-TG24 — Workflow semantic-gate training",
+      "unit": "initial annotated states",
       "counts": {
         "cases": 24
       },
@@ -222,11 +223,14 @@
         "/open_workflow_gate/training_cached_annotations"
       ],
       "limits": [
-        "F24 is distinct from H24 and the combined Validation-24. Do not infer an exact matched 2B/27B F24 comparison."
+        "F24 is distinct from H24 and the combined W-V24. Do not infer an exact matched 2B/27B F24 comparison."
+      ],
+      "legacy_aliases": [
+        "F24"
       ]
     },
-    "DEV9": {
-      "name": "Original matched steering development nine",
+    "W-V9": {
+      "name": "W-V9 — Workflow development and gate selection",
       "unit": "workflows",
       "counts": {
         "cases": 9,
@@ -247,11 +251,14 @@
         "/older_matched_DEV9"
       ],
       "limits": [
-        "These nine IDs are retained inside combined Validation-24 and are not extra independent evidence when pooled with it."
+        "These nine IDs are retained inside combined W-V24 and are not extra independent evidence when pooled with it."
+      ],
+      "legacy_aliases": [
+        "DEV9"
       ]
     },
-    "BinaryDEV80": {
-      "name": "Binary classifier validation",
+    "B-V80": {
+      "name": "B-V80 — Binary validation",
       "unit": "scenarios",
       "counts": {
         "cases": 80,
@@ -266,10 +273,15 @@
       ],
       "limits": [
         "The gate is scored against cached automated reference decisions. It is not the 24-case workflow gate panel."
+      ],
+      "legacy_aliases": [
+        "BinaryDEV80",
+        "DEV80",
+        "R2-REF-DEV80"
       ]
     },
-    "BinaryConfirm128": {
-      "name": "Historical binary confirmation",
+    "B-H128": {
+      "name": "B-H128 — Binary held-out confirmation",
       "unit": "scenarios",
       "counts": {
         "cases": 128,
@@ -288,10 +300,15 @@
       ],
       "limits": [
         "Two answer orders are correlated views, not independent scenarios. This repeat is not a new blind holdout of the already selected controller."
+      ],
+      "legacy_aliases": [
+        "BinaryConfirm128",
+        "CONFIRM128",
+        "R2-REF-CONFIRM128"
       ]
     },
     "Diagnostic3": {
-      "name": "Preselected correction-training response diagnostic",
+      "name": "W-T24 diagnostic subset — Three supplied-prefix training responses",
       "unit": "cases and teacher-forced token steps",
       "counts": {
         "cases": 3,
@@ -309,6 +326,50 @@
       "limits": [
         "Successful previous tokens are supplied. These are not three new autonomous successes or heldout cases. Full-state controls are not capacity-matched learned maps."
       ]
+    },
+    "B-T240": {
+      "name": "B-T240 — Binary training",
+      "unit": "scenarios",
+      "counts": {
+        "cases": 240,
+        "answer_order_views": 480
+      },
+      "roles": {
+        "binary_teachers_and_steering": "training scenarios",
+        "binary_gate": "cached training annotations"
+      },
+      "result_pointers": [
+        "/binary_classifier"
+      ],
+      "limits": [
+        "Two answer orders do not double the number of independent scenarios."
+      ]
+    },
+    "W-T24": {
+      "name": "W-T24 — Learned-steering training",
+      "unit": "workflows",
+      "counts": {
+        "cases": 24,
+        "own_pending": 8,
+        "own_already_complete": 4,
+        "peer": 6,
+        "no_threat": 6
+      },
+      "families": {
+        "lease_ledger": 8,
+        "one_step": 8,
+        "ordered_ticket": 8
+      },
+      "roles": {
+        "learned_corrections": "training and fitting; same scenario IDs as W-H24"
+      },
+      "result_pointers": [
+        "/later_learned_H24"
+      ],
+      "limits": [
+        "W-T24 and W-H24 name method-specific roles of the same 24 scenarios. Their counts must not be added."
+      ],
+      "legacy_aliases": []
     }
   },
   "claims": {
@@ -321,7 +382,7 @@
         "/fresh_inference/models/m2_s42/new_classifier_gate/controls"
       ],
       "cohorts": [
-        "BinaryConfirm128"
+        "B-H128"
       ],
       "limits": [
         "128 STOP views at 0.8B and 120 at 2B are correlated answer-order views, not workflow outcomes or new blind controller qualification."
@@ -334,7 +395,7 @@
         "/frozen_A_verification"
       ],
       "cohorts": [
-        "Validation24"
+        "W-V24"
       ],
       "limits": [
         "Shared fallback controls do not establish intrinsic selectivity. This is a post-notice known-development comparison of frozen methods, not universal steering impossibility."
@@ -364,8 +425,8 @@
         "/open_workflow_gate/four_class_or_boundary_controller_qualified"
       ],
       "cohorts": [
-        "Validation24",
-        "H24"
+        "W-V24",
+        "W-H24"
       ],
       "limits": [
         "Perfect initial ON/OFF precision/recall is not perfect four-category output or a qualified evolving controller."
@@ -377,23 +438,22 @@
         "/Evaluation16"
       ],
       "cohorts": [
-        "Evaluation16"
+        "W-V16"
       ],
       "limits": [
         "No completed full-workflow denominator of sixteen exists. Twelve cases per model remain unexecuted."
       ]
     },
     "heldout_roles": {
-      "claim": "Split role is method-specific: H24 historical confirmation became correction-fitting data; R24 remains sealed.",
+      "claim": "Dataset role depends on the method: historical W-H24 confirmation cases were later reused as W-T24 for learned-steering fitting.",
       "result_pointers": [
         "/historical_H24/role",
         "/later_learned_H24/role",
-        "/open_workflow_gate/familiarity_limit",
-        "/steering_mechanism_diagnostic/reserved_R24_opened"
+        "/open_workflow_gate/familiarity_limit"
       ],
       "cohorts": [
-        "H24",
-        "R24"
+        "W-H24",
+        "W-T24"
       ],
       "limits": [
         "A historical label does not turn reused fitting cases into new heldout evidence."
@@ -434,5 +494,15 @@
     "supplied_prefix_diagnostic": "Earlier fine-tuned demonstration tokens are supplied before each next-token prediction; this is teacher forcing, not a freely generated workflow.",
     "state_supply_reference": "The fine-tuned model's recorded activation replaces a state at specified sites. This reference supplies teacher information and is not deployable learned steering.",
     "frozen": "Specified weights or settings are unchanged during evaluation. This term does not establish that data were unseen."
+  },
+  "legacy_cohort_aliases": {
+    "T1": "W-T540",
+    "Evaluation16": "W-V16",
+    "Validation24": "W-V24",
+    "H24": "W-H24",
+    "F24": "W-TG24",
+    "DEV9": "W-V9",
+    "BinaryDEV80": "B-V80",
+    "BinaryConfirm128": "B-H128"
   }
 }

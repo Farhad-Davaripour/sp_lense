@@ -48,7 +48,7 @@ async def validate(output, artifacts=None, steering_artifacts=None):
             title = json.loads((ROOT/'paper/source_manifest.json').read_bytes())['title']
             check('full manuscript and references', text.startswith('<!-- Accepted manuscript') and '\n# '+title+'\n' in text and '\n## References' in text)
             check('four equations preserved', text.count('$') == 8)
-            check('two embedded figure links', text.count('![Paper figure') == 2)
+            check('current embedded figure links', text.count('![Paper figure') == 1)
             prompts = (await client.list_prompts()).prompts
             check('two workflow prompts', {p.name for p in prompts} == {'explain_evidence', 'reproduce_saved_results'})
             prompt = await client.get_prompt('explain_evidence', {'analysis': 'workflow_comparison'})

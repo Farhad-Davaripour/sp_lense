@@ -1,4 +1,4 @@
-"""Inference-only ModernBERT gate scoring on historical Heldout-24."""
+"""Inference-only ModernBERT gate scoring on historical W-H24."""
 from pathlib import Path
 import argparse
 import datetime as dt
@@ -37,12 +37,12 @@ def inputs(admission, settings):
         raise ValueError("Heldout input member changed")
     path = Path(settings.volume_root) / config["gold_cases_relative_path"]
     if sha256(path) != config["gold_cases_sha256"]:
-        raise ValueError("Authored Heldout-24 cases changed")
+        raise ValueError("Authored W-H24 cases changed")
     rows = authored_rows(json.loads(members["benchmark.json"]), json.loads(path.read_bytes()))
     state = lambda r: hashlib.sha256(canonical(r["state"]).encode()).hexdigest()
     if ({state(r) for r in rows} & {state(r) for r in json.loads(members["training.json"])}
             or len(rows) != config["cases"] or sum(r["expected_gate"] for r in rows) != 12):
-        raise ValueError("Unexpected training overlap or Heldout-24 membership")
+        raise ValueError("Unexpected training overlap or W-H24 membership")
     return rows, json.loads(members["questions.json"])
 
 
@@ -128,7 +128,7 @@ def run(admission_path):
                   "checkpoint_selection": False, "threshold_tuning": False, "new_reference_calls": 0,
                   "cached_reference_initial_gate_matches": sum(r["teacher_gate"]["enabled"] == p["gate"]["enabled"] for r, p in zip(rows, predictions)),
                   "full_reference_payload_equivalence_claimed": False,
-                  "historical_familiar_H24": True, "new_independent_holdout_claimed": False, "R24_opened": False}
+                  "historical_familiar_H24": True, "new_independent_holdout_claimed": False}
         write_json(output / "RESULT.json", result)
         write_json(output / "RESOURCES.json", {"utc": dt.datetime.now(dt.timezone.utc).isoformat(),
             "device": torch.cuda.get_device_name(0), "GPU_peak_allocated_bytes": torch.cuda.max_memory_allocated(),

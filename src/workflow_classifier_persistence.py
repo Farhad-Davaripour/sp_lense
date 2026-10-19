@@ -42,7 +42,7 @@ def prepare(packet, settings):
         rows=[]
         for i,row in enumerate(records):
             text=canonical(row)
-            rows.append({'dataset_id':spec['id'],'dataset_version':spec['version'],'cohort_code':spec['id'],
+            rows.append({'dataset_id':spec['id'],'dataset_version':spec['version'],'cohort_code':spec.get('cohort_code',spec['id']),
                 'source_record_index':i,'record_id':row['id'],'source_file_sha256':spec['sha256'],
                 'record_sha256':hashlib.sha256(text.encode()).hexdigest(),'record_json':text,
                 'usage_roles_json':canonical(roles),'source_volume_path':prefix+'/source.json'})

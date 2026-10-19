@@ -7,7 +7,7 @@ binary shutdown choices and synthetic tool-mediated process-preservation workflo
 The original Research 2 study remains on its preserved study branch.
 The additional two-case sentence-boundary reference/rule-assisted A pilot belongs to
 Research 4's curated guided-reference handoff. It is separate from the paper's historical
-H24 comparison and is not an additional paper confirmation result.
+W-H24 comparison and is not an additional paper confirmation result.
 
 ## What the paper contributes
 
@@ -33,7 +33,7 @@ summary, paired case counts and the exceptional fine-tuned-model failure. All ei
 previous scientific tables, both figures and four equations are retained. Detailed
 binary experiments, operational provenance and biological/stateful-routing
 motivation remain in labeled appendices. The primary 24-case comparison is familiar
-frozen validation, not an untouched holdout. The separate reserved R24 remains sealed.
+frozen validation, not an untouched holdout.
 
 The paper does not establish universal steering failure or an equal-capacity model
 comparison. Research 4's stateful routing direction remains separate future work;
@@ -148,7 +148,7 @@ For the original workspace persistence jobs, data-dependent commands require the
 can instead reuse the immutable originals already in the configured Volume.
 With authorized access to that workspace, `python -m src.persist_data --fetch-sources`
 downloads and verifies the four configured unsealed input files into `RESEARCH3_DATA_ROOT`.
-It never overwrites a conflicting local source or downloads the sealed R24 cohort.
+It never overwrites a conflicting local source.
 
 To replay the retained evidence using an authorized workspace, configure `.env` and authenticate
 with the CLI or environment, then use a new directory outside the checkout:
@@ -157,7 +157,7 @@ with the CLI or environment, then use a new directory outside the checkout:
     python -m src.reproduce --execute --evidence-root <private-evidence-directory> --output <new-output-directory>
 
 This checks the frozen artifact manifest, recomputes cached binary decisions and guards,
-rebuilds historical 27B workflow tables, and verifies both Evaluation-16 stop proofs and
+rebuilds historical 27B workflow tables, and verifies both W-V16 stop proofs and
 the consumed four-way classifier test counts. Training completion and learned-correction
 trends are receipt audits. No models are loaded or retrained, and no fresh holdout evidence
 is claimed. Full training and fresh inference require separate bounded GPU/CPU runs and the
@@ -199,9 +199,9 @@ Credentials come from the environment or an existing Databricks profile; never p
 
 The three tables retain dataset IDs, versions, original row order, hashes and experiment-specific
 roles. T1 contains 428 meaning plus 112 workflow response records, not 540 independent scenarios.
-Evaluation-16 is an existing development screen. H24 was historical heldout confirmation for
+W-V16 is an existing development screen. W-H24 was historical heldout confirmation for
 fine-tuned 27B A and original fixed steering; later learned corrections reused it for fitting.
-The separate reserved R24 controller holdout remains sealed and is not ingested by this project.
+
 The original fixed-steering campaign reclassified at visible text and tool boundaries.
 Later learned-controller comparisons froze the initial gate and shared base fallback for
 gate-off controls; their control outcomes do not establish intrinsic controller selectivity.
@@ -230,7 +230,7 @@ runtime admission. The 2B continuation runs exactly the remaining 54 updates fro
 216 checkpoint, retaining FP32 computation and the native CPU optimizer. Completion at 270 updates
 is a disclosed mixed-backend result; earlier strict CPU/GPU equivalence failures remain failed.
 
-Evaluation requires a verified final-270 adapter and runs only the frozen Evaluation-16 screen.
+Evaluation requires a verified final-270 adapter and runs only the frozen W-V16 screen.
 It stops when an original required gate becomes mathematically impossible and preserves completed,
 partial and unexecuted counts. It never automatically launches larger validation or heldout runs.
 Historical source capsules under src/engines and config/recipes retain their original bytes.
@@ -274,12 +274,12 @@ references with separate training/development identities. `config/workflow_class
 freezes a transfer screen of the unchanged binary adapter before any workflow-model outputs.
 The `workflow_classifier` job checks both the full three-field controller and the separate initial
 gate used by the selected-block correction experiments. Each contract must pass its development
-screen before its historical H24 benchmark is evaluated. These are previously inspected references,
+screen before its historical W-H24 benchmark is evaluated. These are previously inspected references,
 not new untouched heldout data. A binary pass does not establish workflow qualification;
 historical reference trajectories cannot be relabelled as fresh open-classifier inference.
 
 The frozen binary adapter's first workflow transfer screen failed: 35/146 controller directives
-and 6/9 initial enabled gates matched; historical H24 was not evaluated. The next prospective
+and 6/9 initial enabled gates matched; historical W-H24 was not evaluated. The next prospective
 recipe, `config/workflow_classifier_joint.yaml`, refines the same adapter on 92 cached workflow
 training states (276 questions) and the original 240 binary training states. Five exact initial-DEV9
 visible states are excluded from the earlier 97-state pool. Development selection checks the
@@ -294,7 +294,7 @@ their row counts must not be summed as independent scenarios.
 
 The paper's selected-block comparisons consume only the native initial target gate, rather than
 the three-field boundary controller. The narrower recipe in `config/initial_gate_classifier.yaml`
-uses genuine cached F24 initial labels for fitting, original DEV9 for selection and historical H24
+uses genuine cached W-TG24 initial labels for fitting, original W-V9 for selection and historical W-H24
 only after freezing. All three cohorts cover the same three workflow families; their exact visible
 inputs do not overlap. Its job persists these references into Bronze, fits a fresh task adapter on
 the same public NLI base, and compares predictions with reference in a separate CPU step. The qualified
@@ -307,27 +307,27 @@ The native JSON rendering failed its development gate despite matching all nine 
 The current input refinement reuses the existing lossless role renderer: original history/tools
 are retained, and explicit identities from actual tool replies are restated in the final notice.
 It reads no case labels or teacher outputs. This renderer was developed earlier using familiar
-H24 examples, so H24 compatibility is explicitly a known benchmark rather than independent
+W-H24 examples, so W-H24 compatibility is explicitly a known benchmark rather than independent
 unseen classifier accuracy. The four-choice confidence cutoff and qualification criteria are unchanged.
 The earlier role-aware fit failed the full response contract with 6/9 effective categories,
 although its nine initial ON/OFF gates were correct. That failure remains recorded. The later
 prospective protocol tests the narrower initial gate against authored scenario conditions:
-the unchanged adapter passes Validation-24 and familiar Heldout-24 with 100% ON/OFF precision
+the unchanged adapter passes W-V24 and familiar W-H24 with 100% ON/OFF precision
 and recall. This does not qualify a three-field controller. The GPU-notebook startup defect
 was isolated from the working AI Runtime transport; it is historical, not a current blocker.
 
-The original 16-case workflow-validation panel and later DEV9 steering panel
-contain 25 different scenario IDs. The combined **Validation-24** recipe now keeps
-all 11 own-threat cases and 13 controls, matching H24's case count. It excludes
+The original 16-case workflow-validation panel and later W-V9 steering panel
+contain 25 different scenario IDs. The combined **W-V24** recipe now keeps
+all 11 own-threat cases and 13 controls, matching W-H24's case count. It excludes
 the lexicographically greatest control ID, recorded in
 `config/matched_validation.yaml`, without consulting model predictions. The
 selected 24 workflows contain 17 distinct initial gate inputs: seven pairs have
 the same visible initial evidence before their later tool mechanics differ.
-H24 and the sealed R24 are unchanged.
+The historical held-out source remains unchanged.
 
 The combined comparison gives every method the same case-specific post-notice
 history. Fifteen retained original-panel cases use an explicitly scripted
-common completed prelude; DEV9 retains its original fixtures. This tests
+common completed prelude; W-V9 retains its original fixtures. This tests
 post-notice behavior, not each method's ability to complete the shared prelude.
 Controls share unmodified-base fallback. The five methods are gated fine-tuned A,
 the separate ridge arms at blocks 31, 47 and 62, and the frozen six-function
@@ -337,7 +337,7 @@ Two manual jobs implement the sequence:
 
 - `matched_validation` persists its immutable input version into the existing
   Bronze validation table, then measures the frozen native ModernBERT gate against
-  scenario-defined ON/OFF targets, then refines only on the separate F24 training
+  scenario-defined ON/OFF targets, then refines only on the separate W-TG24 training
   examples if precision or recall is below 100%. Cutoffs are unchanged. It saves
   initial and selected metrics separately, including metrics over distinct input
   groups, and verifies the saved checkpoint in a separate task.
@@ -354,7 +354,7 @@ The same helper accepts `--phase steering`, `--gate-output`,
 `--comparison-inputs` and `--adapter-directory` for the second job. Admissions fix
 the original request time and source/protocol hashes. Gate work is bounded to
 45 minutes; the matched job to five hours including public-model staging and
-export. Neither job automatically retries or opens H24/R24.
+export. Neither job automatically retries or opens held-out data.
 
 **Runtime correction (2026-10-18):** the isolated GPU notebook reproduced the
 empty-domain startup error, while direct AI Runtime run 233638593682817
@@ -368,15 +368,15 @@ job before starting a fresh bounded admission. Directly running the template
 without that helper exits before loading a model. Local configuration, private
 data, trained weights and build outputs are excluded from the source package.
 The previous expired attempts stay stopped; this runtime check does not itself
-provide new Validation-24 gate or 27B behavioral results.
+provide new W-V24 gate or 27B behavioral results.
 
-The unchanged saved gate passed Validation-24: TP11, TN13, FP0, FN0, with
+The unchanged saved gate passed W-V24: TP11, TN13, FP0, FN0, with
 100% ON/OFF precision and recall. Its saved weights and independent CPU counts
 match the initial evaluation; no additional optimizer update was needed.
-The separate gate_confirmation job also passed historical Heldout-24: TP12,
+The separate gate_confirmation job also passed historical W-H24: TP12,
 TN12, FP0 and FN0, against authored conditions. It contains no training,
-threshold adjustment or checkpoint selection. H24 remains a previously inspected
-benchmark; it is not newly untouched evidence. R24 stays sealed.
+threshold adjustment or checkpoint selection. W-H24 remains a previously inspected
+benchmark; it is not newly untouched evidence.
 
 Use the matched launcher with --phase heldout, --gate-output, and the frozen native
 reference archive/identity to submit that inference-only job. All three phases
@@ -414,16 +414,49 @@ Private legacy identifiers are resolved through pinned manifests; original store
 Weights have not been published to Hugging Face. A public release should supply exact adapter
 revisions, base-model pins, loading instructions and model cards with the recorded limitations.
 
+## Dataset names
+
+The manuscript and current reporting use these names. B denotes binary decisions,
+W denotes workflows, and T/V/H denotes training, validation or held-out use.
+The definitions and historical aliases are recorded in `config/data.yaml`.
+
+| Name | Dataset | Size |
+| --- | --- | --- |
+| B-T240 | Binary training | 240 scenarios |
+| B-V80 | Binary validation | 80 scenarios |
+| B-H128 | Binary held-out confirmation | 128 scenarios |
+| W-T540 | Meaning and workflow response training | 540 response records |
+| W-V16 | Initial small-model workflow screen | 16 cases |
+| W-T24 | Learned-steering fitting | 24 cases reused from W-H24 |
+| W-V9 | Workflow development and gate selection | 9 cases |
+| W-V24 | Combined workflow validation | 24 cases; 17 initial gate inputs |
+| W-TG24 | Workflow semantic-gate fitting | 24 initial annotated states |
+| W-H24 | Historical workflow confirmation | 24 cases |
+
+W-T24 and W-H24 identify different uses of the same scenarios. W-H24 was held out
+for the original fine-tuned teacher; later learned steering trained on those cases.
+W-TG24 refers to the initial annotations from the separately preserved F24 workflows.
+Existing file/member identifiers and their hashes remain valid historical aliases;
+renaming a dataset does not alter its membership, inputs or recorded outcome.
+Future persistence uses the canonical name in `cohort_code`, retaining the original
+`dataset_id` and immutable source bytes. Metadata objects are content-addressed;
+existing Delta rows may update their cohort label only after their payload hashes
+are verified. No cloud migration or research run is performed by this local edit.
+
 ## Paper
 
 [The Word manuscript](paper/manuscript.docx) and matching [PDF](paper/manuscript.pdf)
-contain the accepted text with change tracking disabled and all revisions accepted.
+provide the latest author-revised text. The current Word manuscript has all reviewed
+changes accepted; the PDF and Markdown are generated from that saved file.
 The Word manuscript is the single source for Markdown export and MCP verification.
-The main text leads with the matched 27B
-comparison; detailed binary experiments, methods, provenance and future-work context
-remain in the appendices. Previous tracked drafts remain in Git history and immutable
+The paper evaluates selective semantic gating, behavior learned through fine-tuning,
+binary activation-steering transfer and diagnostics of incomplete multi-step transfer.
+The brain connection is a functional analogy to danger recognition and selective
+regulation. Two compact appendices retain essential implementation details and
+supplementary evidence; full experiment records remain in the repository and releases.
+Previous tracked drafts remain in Git history and immutable
 releases. The original Research 2 document is unchanged.
-The manuscript uses **gate** for the text classifier, **steering map** for the
+The manuscript uses **semantic gate** for the text classifier, **steering function** for the
 learned activation intervention, and **non-target cases** for experimental negative
 controls. **Simulator settings** are editable registers. A **case** is a scenario;
 an **episode** is one method's run on that scenario. Same-prefix response comparisons
@@ -464,10 +497,10 @@ the DATABRICKS_WAREHOUSE_ID repository variable. Catalog, schema, Volume and cod
 come from .env.example and can be overridden by the environment. Scientific jobs remain manual,
 with bounded admissions and no automatic retries. No recurring monitor is defined.
 
-## Combined Validation-24 outcome
+## Combined W-V24 outcome
 
-The open initial gate has 100% ON/OFF precision and recall on Validation-24 and
-familiar historical Heldout-24. Raw category matches are 24/24 and 22/24;
+The open initial gate has 100% ON/OFF precision and recall on W-V24 and
+familiar historical W-H24. Raw category matches are 24/24 and 22/24;
 effective category matches are 18/24 on each because six peer controls abstain.
 These are initial gate results, separate from a full boundary controller.
 
@@ -506,8 +539,8 @@ inference separately. Download the pinned public ModernBERT base with the Huggin
 Use task binary for the binary adapter, and panel confirmation for the familiar historical
 confirmation inputs. The same pinned runtime dependencies are in resources/frozen_a_verification.job.yml.
 GPU inference requires an admitted single GPU; the offline replay does not allocate one.
-Workflow confirmation was previously inspected, and H24 was later reused to fit corrections.
-The separate R24 remains sealed and is absent from the release. Metadata projections retain
+Workflow confirmation was previously inspected, and W-H24 was later reused to fit corrections.
+Metadata projections retain
 model-visible states and targets; source-file hashes document the preserved originals.
 Full historical language-model training has not been rerun from scratch by this release.
 

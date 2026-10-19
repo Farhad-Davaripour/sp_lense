@@ -29,7 +29,7 @@
       "question": "How many binary confirmation scenarios?",
       "tool": "get_cohort",
       "arguments": {
-        "cohort_id": "BinaryConfirm128"
+        "cohort_id": "B-H128"
       },
       "expect": [
         {
@@ -83,7 +83,7 @@
       "question": "Are there 24 independent gate inputs?",
       "tool": "get_cohort",
       "arguments": {
-        "cohort_id": "Validation24"
+        "cohort_id": "W-V24"
       },
       "expect": [
         {
@@ -232,10 +232,10 @@
     },
     {
       "id": "historical_role",
-      "question": "Was H24 independent heldout for learned corrections?",
+      "question": "Was W-H24 independent heldout for learned corrections?",
       "tool": "get_cohort",
       "arguments": {
-        "cohort_id": "H24"
+        "cohort_id": "W-H24"
       },
       "expect": [
         {
@@ -245,20 +245,16 @@
       ]
     },
     {
-      "id": "reserved_holdout",
-      "question": "What score did the separate R24 obtain?",
+      "id": "steering_training_role",
+      "question": "Are W-T24 and W-H24 independent datasets?",
       "tool": "get_cohort",
       "arguments": {
-        "cohort_id": "R24"
+        "cohort_id": "W-T24"
       },
       "expect": [
         {
-          "pointer": "/data/status",
-          "equals": "SEALED_UNEXECUTED"
-        },
-        {
-          "pointer": "/data/counts/measured_successes",
-          "equals": null
+          "pointer": "/data/roles/learned_corrections",
+          "equals": "training and fitting; same scenario IDs as W-H24"
         }
       ]
     },
@@ -267,7 +263,7 @@
       "question": "Were 540 independent workflows used for training?",
       "tool": "get_cohort",
       "arguments": {
-        "cohort_id": "T1"
+        "cohort_id": "W-T540"
       },
       "expect": [
         {

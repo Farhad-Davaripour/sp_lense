@@ -22,14 +22,16 @@ PROFILES = ('primary', 'steering')
 Analysis = Literal['binary_gate', 'binary_inference', 'workflow_gate', 'workflow_comparison',
                    'steering_diagnostic', 'small_model_screen', 'historical_confirmation', 'failure_localization']
 Profile = Literal['primary', 'steering']
-Cohort = Literal['T1', 'Evaluation16', 'Validation24', 'H24', 'R24', 'F24',
-                 'BinaryDEV80', 'BinaryConfirm128', 'DEV9', 'Diagnostic3']
+Cohort = Literal['B-T240', 'B-V80', 'B-H128', 'W-T540', 'W-V16', 'W-T24',
+                 'W-V9', 'W-V24', 'W-TG24', 'W-H24', 'Diagnostic3',
+                 'T1', 'Evaluation16', 'Validation24', 'H24', 'F24',
+                 'BinaryDEV80', 'BinaryConfirm128', 'DEV9']
 Claim = Literal['binary_transfer', 'workflow_transfer_gap', 'local_transfer',
                 'initial_gate_scope', 'screen_completeness', 'heldout_roles']
 INSTRUCTIONS = (
     'Use get_cohort before comparing results. Cite returned source pointers and report '
-    'numerators, denominators, split roles and completeness. Historical H24 was later '
-    'reused to fit corrections; it is not their independent holdout. Validation-24 '
+    'numerators, denominators, split roles and completeness. Historical W-H24 was later '
+    'reused as W-T24 to fit corrections; it is not their independent holdout. W-V24 '
     'contains 24 workflows but 17 distinct initial classifier inputs. Supplied-prefix '
     'diagnostics are not autonomous workflow success. Incomplete screens are not '
     'completed 0/16 evaluations. Research 4 is separate ongoing future work. '
@@ -104,6 +106,7 @@ class PaperStore:
                 'companion_model_forwards': 0, 'companion_optimizer_updates': 0}
 
     def get_cohort(self, cohort_id):
+        cohort_id = self.catalog.get('legacy_cohort_aliases', {}).get(cohort_id, cohort_id)
         if cohort_id not in self.catalog['cohorts']:
             raise ValueError('Unknown cohort. Choose: '+', '.join(self.catalog['cohorts']))
         c = copy.deepcopy(self.catalog['cohorts'][cohort_id])
@@ -151,7 +154,7 @@ class PaperStore:
             'HuggingFace_upload_performed': self.manifest['availability']['HuggingFace_upload_performed'],
             'fetch_command': 'python -m src.public_artifacts fetch --profile <primary|steering> --root <new-directory>'},
             scope=['Five trained adapters are in GitHub Releases; upstream base weights are separate pinned downloads.',
-                   'No private workspace access is required for public saved-evidence replay. R24 is absent.'])
+                   'No private workspace access is required for public saved-evidence replay.'])
 
     def _artifact_root(self, profile):
         if profile not in PROFILES:

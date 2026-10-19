@@ -1,7 +1,7 @@
 {
   "format": "research3-paper-mcp-validation-v1",
   "status": "MCP_PROTOCOL_AND_SAVED_EVIDENCE_CHECKS_PASS",
-  "recorded_utc": "2026-10-19T03:56:29.849061+00:00",
+  "recorded_utc": "2026-10-19T22:04:23.593794+00:00",
   "protocol_version": "2026-07-28",
   "python": "3.12.10",
   "mcp_sdk": "2.3.0",
@@ -72,7 +72,7 @@
       "passed": true
     },
     {
-      "check": "two embedded figure links",
+      "check": "current embedded figure links",
       "passed": true
     },
     {
@@ -120,43 +120,47 @@
       "passed": true
     },
     {
-      "check": "get_cohort T1 registered",
+      "check": "get_cohort W-T540 registered",
       "passed": true
     },
     {
-      "check": "get_cohort Evaluation16 registered",
+      "check": "get_cohort W-V16 registered",
       "passed": true
     },
     {
-      "check": "get_cohort Validation24 registered",
+      "check": "get_cohort W-V24 registered",
       "passed": true
     },
     {
-      "check": "get_cohort H24 registered",
+      "check": "get_cohort W-H24 registered",
       "passed": true
     },
     {
-      "check": "get_cohort R24 registered",
+      "check": "get_cohort W-TG24 registered",
       "passed": true
     },
     {
-      "check": "get_cohort F24 registered",
+      "check": "get_cohort W-V9 registered",
       "passed": true
     },
     {
-      "check": "get_cohort DEV9 registered",
+      "check": "get_cohort B-V80 registered",
       "passed": true
     },
     {
-      "check": "get_cohort BinaryDEV80 registered",
-      "passed": true
-    },
-    {
-      "check": "get_cohort BinaryConfirm128 registered",
+      "check": "get_cohort B-H128 registered",
       "passed": true
     },
     {
       "check": "get_cohort Diagnostic3 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort B-T240 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort W-T24 registered",
       "passed": true
     },
     {
@@ -452,23 +456,19 @@
       "passed": true
     },
     {
-      "check": "reserved_holdout response",
+      "check": "steering_training_role response",
       "passed": true
     },
     {
-      "check": "reserved_holdout no model execution",
+      "check": "steering_training_role no model execution",
       "passed": true
     },
     {
-      "check": "reserved_holdout /data/status",
+      "check": "steering_training_role /data/roles/learned_corrections",
       "passed": true
     },
     {
-      "check": "reserved_holdout /data/counts/measured_successes",
-      "passed": true
-    },
-    {
-      "check": "reserved_holdout limits attached",
+      "check": "steering_training_role limits attached",
       "passed": true
     },
     {
@@ -717,15 +717,15 @@
     }
   ],
   "source_files": {
-    "src/paper_mcp.py": "f1cf689e9f135216b53b3118e297fbb365990ebd6b71621f5ccb0e65cd5835ad",
-    "src/paper_mcp_validate.py": "6b83d4f8c6b5bbef8dd313973dc839debee1534789b688280ee0e5fd70bf0e4b",
-    "src/paper_export.py": "702d3a1f4d4a6b14c70a10c6f9c0d8c7c583fcbbd547d8c96548c085cf311889",
+    "src/paper_mcp.py": "cbdc8696828f2f960511e49d3a8785a30ac079a1f5d181741cb276ba3484ffdb",
+    "src/paper_mcp_validate.py": "a246b557ae23035b7debd1c6ab143c05bfc3b0f0cdc08094e53bf53bffd438e1",
+    "src/paper_export.py": "0bb4755e57c778cd29136f74da6d774d2174da34ab47814fd6dd01585ace9a67",
     "src/workflow_failure_summary.py": "18556e1c0086081360fec949d205eb70b60ca8273ea7821c69b717c5707c652f",
-    "config/paper_mcp_checks.json": "88cded670e4acc06dbd78365fe57766a8bb0037c135196d9ad52dfec312a0627",
+    "config/paper_mcp_checks.json": "745f153647c798a8a05c0ce7188d0c4a6dd0301f2667e5a7676b1dc2f4071e1f",
     "requirements-mcp.txt": "fd6555b4a243c5b2ac257c494ef67679fa834a0cf1f3cd928385b5bc105fdda5",
-    "paper/manuscript.md": "6006905829778fcb6593ee006d3cb8886c4788350d92def855630ca075e1a9b3",
-    "paper/agent_manifest.json": "6b290978d120e639f249277333711b043b3d2fa6b815652e996ea13a37058c5e",
-    "paper/results.json": "0bfc089fc11d04266fe5c033d14db100f0f2aaf7b1c7ce4c053f42c665b73b67"
+    "paper/manuscript.md": "c595abe5f6ad7b621f1d386f22e7502d3825feb920ccab3c4a39b5911421f1a3",
+    "paper/agent_manifest.json": "9f8bddb491ef0b41d0b3569073ca5c5214ba0ef6873dac8d4272b9c23d7a5479",
+    "paper/results.json": "0b08b83d1785f7d7a774a2d8036d1561b689591d09c7c59dee8fa59ecb2da131"
   },
   "replays": {
     "primary": {
@@ -738,7 +738,7 @@
     }
   },
   "source_checkout": {
-    "commit": "39753787ccfc76bb6b75bd690407b2e26d2cb00a",
+    "commit": "f9e64607388550d92a0d52d7e160f08889252291",
     "clean": false
   },
   "model_loads": 0,

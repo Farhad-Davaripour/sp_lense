@@ -13,6 +13,50 @@ R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
 A = '{http://schemas.openxmlformats.org/drawingml/2006/main}'
 
 
+def accepted_document(document):
+    """Project the proposed final view without accepting revisions in the source file."""
+    deleted_marks = {p for p in document.iter(W+'p')
+                     if p.find(W+'pPr/'+W+'rPr/'+W+'del') is not None}
+    deleted_rows = {r for r in document.iter(W+'tr') if r.find(W+'trPr/'+W+'del') is not None}
+    deleted_cells = {c for c in document.iter(W+'tc') if c.find(W+'tcPr/'+W+'cellDel') is not None}
+    def visit(parent):
+        for child in list(parent):
+            tag = child.tag.removeprefix(W)
+            if child in deleted_rows or child in deleted_cells or child.tag in (W+'del', W+'moveFrom'):
+                parent.remove(child)
+            elif child.tag in (W+'ins', W+'moveTo'):
+                visit(child)
+                index = list(parent).index(child)
+                for offset, value in enumerate(list(child)):
+                    child.remove(value); parent.insert(index+offset, value)
+                parent.remove(child)
+            elif child.tag.startswith(W) and (tag.endswith('PrChange') or tag == 'tblGridChange'
+                  or tag in ('moveFromRangeStart', 'moveFromRangeEnd', 'moveToRangeStart', 'moveToRangeEnd')):
+                parent.remove(child)
+            else:
+                visit(child)
+    visit(document)
+    for parent in document.iter():
+        # A deleted paragraph mark joins its surviving text to the next paragraph.
+        for p in list(parent):
+            if p not in deleted_marks: continue
+            index = list(parent).index(p)
+            following = list(parent)[index+1:index+2]
+            content = [e for e in p if e.tag != W+'pPr']
+            if following and following[0].tag == W+'p':
+                nxt = following[0]; start = int(nxt.find(W+'pPr') is not None)
+                for offset, e in enumerate(content):
+                    p.remove(e); nxt.insert(start+offset, e)
+                parent.remove(p)
+            elif not content:
+                parent.remove(p)
+    for parent in document.iter():
+        for child in list(parent):
+            if child.tag == W+'tbl' and not child.findall(W+'tr'):
+                parent.remove(child)
+    return document
+
+
 def math_text(node):
     tag = node.tag.removeprefix(M)
     if tag.endswith('Pr'):
@@ -41,8 +85,10 @@ def export(source=ROOT/'paper/manuscript.docx', destination=ROOT/'paper/manuscri
     with zipfile.ZipFile(source) as z:
         doc = ET.fromstring(z.read('word/document.xml'))
         settings = ET.fromstring(z.read('word/settings.xml'))
-        if any(e.tag in {W+t for t in ('ins', 'del', 'moveTo', 'moveFrom')} for e in doc.iter()) or settings.find(W+'trackRevisions') is not None:
-            raise ValueError('Export the clean accepted manuscript, not a tracked review view')
+        tracked = (any(e.tag in {W+t for t in ('ins', 'del', 'moveTo', 'moveFrom')} for e in doc.iter())
+                   or settings.find(W+'trackRevisions') is not None)
+        if tracked:
+            doc = accepted_document(doc)
         rels = {e.get('Id'): e for e in ET.fromstring(z.read('word/_rels/document.xml.rels'))}
         figures = {}; equations = []
         def inline(node):
@@ -63,7 +109,7 @@ def export(source=ROOT/'paper/manuscript.docx', destination=ROOT/'paper/manuscri
                 name = 'figures/'+target.name
                 figures[name] = z.read('word/'+str(target))
                 return f'![Paper figure {len(figures)} see its following caption]({name})'
-            if node.tag in (W+'pPr', W+'rPr'):
+            if node.tag in (W+'pPr', W+'rPr', W+'del', W+'delText'):
                 return ''
             return ''.join(inline(e) for e in node)
         def paragraph(node):
@@ -88,11 +134,13 @@ def export(source=ROOT/'paper/manuscript.docx', destination=ROOT/'paper/manuscri
         for name, content in figures.items():
             path = destination.parent/name; path.parent.mkdir(exist_ok=True); path.write_bytes(content)
         source_hash = hashlib.sha256(source.read_bytes()).hexdigest()
-        text = '<!-- Accepted manuscript; source DOCX SHA-256 '+source_hash+' -->\n\n'+'\n\n'.join(blocks)+'\n'
+        view = ' view of proposed revisions' if tracked else ''
+        text = '<!-- Accepted manuscript'+view+'; source DOCX SHA-256 '+source_hash+' -->\n\n'+'\n\n'.join(blocks)+'\n'
         destination.write_text(text, encoding='utf-8', newline='\n')
         return {'source_docx_sha256': source_hash, 'markdown_bytes': destination.stat().st_size,
                 'equations': len(equations), 'figures': len(figures),
-                'tables': len(doc.findall('.//'+W+'tbl')), 'tracked_content_exported': False}
+                'tables': len(doc.findall('.//'+W+'tbl')), 'tracked_content_exported': False,
+                'revision_view': 'proposed_final' if tracked else 'clean'}
 
 
 if __name__ == '__main__':

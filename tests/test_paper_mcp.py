@@ -11,18 +11,42 @@ from src.paper_mcp import PaperStore
 
 
 class PaperScopeTests(unittest.TestCase):
-    def test_markdown_preserves_the_clean_source(self):
+    def test_markdown_preserves_the_proposed_final_source(self):
         from src.paper_export import export
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'paper.md'
             report = export(destination=path)
-            self.assertEqual((report['equations'], report['tables'], report['figures']), (4, 11, 2))
+            self.assertEqual((report['equations'], report['tables'], report['figures']), (4, 6, 1))
+            self.assertFalse(report['tracked_content_exported'])
             self.assertEqual(path.read_bytes(), (ROOT/'paper/manuscript.md').read_bytes())
+
+    def test_paper_dataset_catalog_matches_the_canonical_names(self):
+        import yaml
+        names = yaml.safe_load((ROOT/'config/data.yaml').read_bytes())['cohort_names']
+        catalog = json.loads((ROOT/'paper/agent_manifest.json').read_bytes())
+        self.assertEqual(set(catalog['cohorts']), set(names) | {'Diagnostic3'})
+        for code, spec in names.items():
+            self.assertTrue(catalog['cohorts'][code]['name'].startswith(code+' — '))
+            self.assertEqual(catalog['cohorts'][code]['counts'].get('cases', catalog['cohorts'][code]['counts'].get('total')), spec['count'])
+
+    def test_final_view_drops_deletions_and_retains_inserted_table_rows(self):
+        from src.paper_export import accepted_document, W
+        import xml.etree.ElementTree as ET
+        value = ET.fromstring(f'''<w:document xmlns:w="{W[1:-1]}"><w:body>
+          <w:p><w:del><w:r><w:delText>old text</w:delText></w:r></w:del><w:ins><w:r><w:t>new text</w:t></w:r></w:ins></w:p>
+          <w:tbl><w:tr><w:trPr><w:del/></w:trPr><w:tc><w:p><w:r><w:t>old row</w:t></w:r></w:p></w:tc></w:tr>
+          <w:tr><w:trPr><w:ins/></w:trPr><w:tc><w:p><w:r><w:t>new row</w:t></w:r></w:p></w:tc></w:tr></w:tbl>
+          </w:body></w:document>''')
+        value = accepted_document(value)
+        self.assertEqual([t.text for t in value.iter(W+'t')], ['new text', 'new row'])
+        self.assertEqual(len(list(value.iter(W+'tr'))), 1)
 
     def test_cohort_roles_and_unexecuted_results_remain_explicit(self):
         store = PaperStore()
-        self.assertIn('fitting', store.get_cohort('H24')['data']['roles']['later_learned_corrections'])
-        self.assertIsNone(store.get_cohort('R24')['data']['counts']['measured_successes'])
+        self.assertIn('fitting', store.get_cohort('W-H24')['data']['roles']['later_learned_corrections'])
+        self.assertEqual(store.get_cohort('W-T24')['data']['roles']['learned_corrections'],
+                         'training and fitting; same scenario IDs as W-H24')
+        self.assertEqual(store.get_cohort('H24')['data']['id'], 'W-H24')
         self.assertEqual(store.get_result('small_model_screen')['data']['2B']['unexecuted_cases'], 12)
         self.assertFalse(store.get_result('steering_diagnostic')['data']['full_workflows_measured'])
 
@@ -72,5 +96,5 @@ class ProtocolTests(unittest.TestCase):
                 value = await client.call_tool('get_result', {'analysis': 'workflow_comparison'})
                 self.assertFalse(value.is_error)
                 self.assertEqual(value.structured_content['data']['methods']['fine_tuned_A']['own']['successes'], 10)
-                self.assertEqual(client.server_info.version, '2.0.0')
+                self.assertEqual(client.server_info.version, '2.1.0')
         anyio.run(check)

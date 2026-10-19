@@ -60,7 +60,7 @@ def prepare_sources(f24, workflow_references, output):
         'counts':{'training':24,'development':9,'historical_benchmark':24},'new_reference_calls':0,'model_calls':0,
         'training_exact_visible_overlap_with_validation_or_benchmark':0,
         'development_benchmark_exact_visible_overlap':len(state_set(dev)&state_set(benchmark)),
-        'historical_H24_is_previously_inspected':True,'R24_sealed':True,
+        'historical_H24_is_previously_inspected':True,
         'files':{p.name:{'bytes':p.stat().st_size,'sha256':sha256(p)} for p in sorted(output.glob('*.json'))}}
     emit(output/'MANIFEST.json',record)
     return record
@@ -143,7 +143,7 @@ def persist_references(admission_path,execute=False,spark=None):
         rows=[]
         for i,row in enumerate(records):
             text=canonical(row)
-            rows.append({'dataset_id':spec['id'],'dataset_version':spec['version'],'cohort_code':spec['id'],
+            rows.append({'dataset_id':spec['id'],'dataset_version':spec['version'],'cohort_code':spec.get('cohort_code',spec['id']),
                 'source_record_index':i,'record_id':row['id'],'source_file_sha256':spec['sha256'],
                 'record_sha256':hashlib.sha256(text.encode()).hexdigest(),'record_json':text,
                 'usage_roles_json':canonical(spec['usage_roles']),'source_volume_path':prefix+'/source.json'})

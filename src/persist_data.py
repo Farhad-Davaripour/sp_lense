@@ -83,7 +83,7 @@ def prepare(settings, manifest=None):
         for index, record in enumerate(records):
             payload = canonical(record)
             rows.append({"dataset_id": item["id"], "dataset_version": item["version"],
-                         "cohort_code": item["id"], "source_record_index": index,
+                         "cohort_code": item.get("cohort_code", item["id"]), "source_record_index": index,
                          "record_id": record["id"], "source_file_sha256": source_sha,
                          "record_sha256": hashlib.sha256(payload.encode("utf-8")).hexdigest(),
                          "record_json": payload, "usage_roles_json": canonical(item["usage_roles"]),
@@ -190,20 +190,29 @@ def persist(settings, prepared, client=None, spark=None):
         table = settings.table(item["table"])
         check_rows(metadata(sql, table, item), rows, allow_subset=True)
         payload = "".join(canonical(row) + "\n" for row in rows).encode("utf-8")
+        # Label changes get a new metadata object; immutable source records stay put.
+        records_volume = str(Path(data["records_volume"]).with_name(
+            "records-" + hashlib.sha256(payload).hexdigest() + ".jsonl")).replace("\\", "/")
         upload_verified(client, data["source_volume"], data["raw"])
-        upload_verified(client, data["records_volume"], payload)
+        upload_verified(client, records_volume, payload)
         selected = ", ".join("s." + column for column in COLUMNS)
         sql.execute(
             "MERGE INTO " + table + " AS t USING (SELECT * FROM read_files(" +
-            literal(data["records_volume"]) + ", format=>'json', schema=>" + literal(READ_SCHEMA) +
+            literal(records_volume) + ", format=>'json', schema=>" + literal(READ_SCHEMA) +
             ")) AS s ON t.dataset_id=s.dataset_id AND t.dataset_version=s.dataset_version "
             "AND t.source_record_index=s.source_record_index "
+            "WHEN MATCHED THEN UPDATE SET t.cohort_code=s.cohort_code "
             "WHEN NOT MATCHED THEN INSERT (" + ", ".join(COLUMNS) + ", ingested_at) "
             "VALUES (" + selected + ", current_timestamp())")
         check_rows(metadata(sql, table, item), rows)
+        labels = sql.execute("SELECT DISTINCT cohort_code FROM " + table +
+            " WHERE dataset_id=" + literal(item["id"]) + " AND dataset_version=" + literal(item["version"]))
+        if labels != [[item.get("cohort_code", item["id"])]]:
+            raise ValueError("Cloud cohort label differs from the configured dataset name")
         verified.append({"dataset": item["id"], "table": table, "version": item["version"],
                          "records": len(rows), "source_sha256": item["sha256"],
-                         "source_volume": data["source_volume"], "cloud_hash_readback": True})
+                         "source_volume": data["source_volume"], "records_volume": records_volume,
+                         "cohort_code": item.get("cohort_code", item["id"]), "cloud_hash_readback": True})
     report = {"verified_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
               "datasets": verified, "model_calls": 0, "sealed_holdout_read": False}
     write_json(settings.output_root / "persist_data" / (str(time.time_ns()) + ".json"), report)

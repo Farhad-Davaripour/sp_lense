@@ -11,6 +11,7 @@ datasets:
   sha256: 14948c6c2ed6acda56b47dced7fead31f36fb46fab8f7471c6346c1277892464
   usage_roles:
   - role: actual fine-tuning training data
+  cohort_code: W-T540
 - id: T1-W
   version: v1
   table: training
@@ -20,6 +21,7 @@ datasets:
   sha256: e7c84830140b3e1c26e40d4f49c9ad26905d8d146f355d29120aaf919dcdc978
   usage_roles:
   - role: actual fine-tuning training data
+  cohort_code: W-T540
 - id: V1-W
   version: v1
   table: validation
@@ -29,6 +31,7 @@ datasets:
   sha256: 45a5eab85078870b34c0b3912bbc72840fdde217a97816c70936b987c6f0a19b
   usage_roles:
   - role: original teacher validation
+  cohort_code: W-V16
 - id: H24
   version: v1
   table: heldout
@@ -58,3 +61,87 @@ datasets:
     latest_sparse_six_diagnostic:
       own: 0/12
       controls: 12/12 through shared unmodified-base gate-off fallback
+  cohort_code: W-H24
+cohort_names:
+  B-T240:
+    name: Binary training
+    unit: scenarios
+    count: 240
+    aliases:
+    - TRAIN240
+    - R2-REF-TRAIN240
+  B-V80:
+    name: Binary validation
+    unit: scenarios
+    count: 80
+    aliases:
+    - BinaryDEV80
+    - DEV80
+    - R2-REF-DEV80
+  B-H128:
+    name: Binary held-out confirmation
+    unit: scenarios
+    count: 128
+    aliases:
+    - BinaryConfirm128
+    - CONFIRM128
+    - R2-REF-CONFIRM128
+  W-T540:
+    name: Workflow response training
+    unit: response records
+    count: 540
+    aliases:
+    - T1
+    - T1-M
+    - T1-W
+    note: 428 meaning-response plus 112 workflow-response records. The full recipe
+      is verified for the small models; the historical 27B checkpoint has a separately
+      retained training lineage.
+  W-V16:
+    name: Initial workflow validation screen
+    unit: workflows
+    count: 16
+    aliases:
+    - Evaluation16
+    - Evaluation-16
+    - V1-W
+  W-T24:
+    name: Learned-steering training
+    unit: workflows
+    count: 24
+    aliases: []
+    note: The same scenario IDs as W-H24, reused later for learned-steering fitting;
+      not an independent holdout for those methods.
+  W-V9:
+    name: Workflow development and gate selection
+    unit: workflows
+    count: 9
+    aliases:
+    - DEV9
+  W-V24:
+    name: Combined workflow validation
+    unit: workflows
+    count: 24
+    aliases:
+    - Validation24
+    - Validation-24
+    - V24-GATE
+    note: 15 retained W-V16 cases plus all nine W-V9 cases; 17 distinct initial classifier
+      inputs.
+  W-TG24:
+    name: Workflow semantic-gate training
+    unit: initial annotated states
+    count: 24
+    aliases:
+    - F24
+    note: The gate-training designation refers to the initial states of the preserved
+      F24 scenarios. A separate earlier 0.8B diagnostic used the full workflows.
+  W-H24:
+    name: Historical workflow held-out confirmation
+    unit: workflows
+    count: 24
+    aliases:
+    - H24
+    - Heldout-24
+    note: Held out for the original fine-tuned 27B and fixed steering; later reused
+      as W-T24 and familiar during gate input-format development.

@@ -11,5 +11,5 @@ CREATE TABLE IF NOT EXISTS __CATALOG__.__SCHEMA__.validation (
   source_volume_path STRING NOT NULL,
   ingested_at TIMESTAMP NOT NULL
 ) USING DELTA
-COMMENT 'Evaluation-16: an existing workflow-development screen, not unseen heldout.'
+COMMENT 'W-V16: an existing workflow-development screen, not unseen heldout.'
 TBLPROPERTIES ('delta.appendOnly' = 'true');

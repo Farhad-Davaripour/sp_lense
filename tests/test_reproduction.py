@@ -50,6 +50,21 @@ class ReproductionTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'not be overwritten'):
                 fetch_sources(settings, {'datasets':[spec]}, client)
 
+    def test_canonical_dataset_label_keeps_frozen_source_identity(self):
+        from src.persist_data import prepare
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory); path=root/'training/meaning.json';path.parent.mkdir()
+            raw=b'[{"id":"original-case","text":"unchanged"}]';path.write_bytes(raw)
+            spec={'id':'T1-M','cohort_code':'W-T540','version':'v1','table':'training',
+                  'source':'training/meaning.json','sha256':hashlib.sha256(raw).hexdigest(),
+                  'expected_records':1,'usage_roles':[]}
+            settings=SimpleNamespace(data_root=root,volume_root='/Volumes/test/bronze/artifacts')
+            result=prepare(settings,{'datasets':[spec]})[0]
+            self.assertEqual(result['raw'],raw)
+            self.assertEqual(result['rows'][0]['dataset_id'],'T1-M')
+            self.assertEqual(result['rows'][0]['cohort_code'],'W-T540')
+            self.assertEqual(json.loads(result['rows'][0]['record_json']),json.loads(raw)[0])
+
     def test_databricks_default_outputs_are_durable(self):
         values = {'DATABRICKS_CATALOG': 'research', 'DATABRICKS_SCHEMA': 'bronze', 'DATABRICKS_VOLUME': 'artifacts'}
         with patch('src.config.read_env', return_value=values), patch('pathlib.Path.is_dir', return_value=True):
@@ -172,19 +187,22 @@ class ReproductionTests(unittest.TestCase):
                 self.assertEqual(len(raw), item['bytes'], name)
                 self.assertEqual(hashlib.sha256(raw).hexdigest(), item['sha256'], name)
         with zipfile.ZipFile(ROOT / 'paper/manuscript.docx') as doc:
-            self.assertNotIn(b'trackRevisions', doc.read('word/settings.xml'))
+            self.assertEqual(b'trackRevisions' in doc.read('word/settings.xml'), manifest['manuscript']['track_revisions_enabled'])
 
-    def test_single_manuscript_has_no_header_or_body_revisions(self):
+    def test_single_manuscript_retains_declared_review_state_and_a_clean_projection(self):
         import xml.etree.ElementTree as ET
         prefix='{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
         self.assertEqual(sorted(p.name for p in (ROOT / 'paper').glob('*.docx')), ['manuscript.docx'])
+        manifest = json.loads((ROOT / 'paper/source_manifest.json').read_bytes())['manuscript']
         with zipfile.ZipFile(ROOT / 'paper/manuscript.docx') as doc:
-            self.assertNotIn(b'trackRevisions', doc.read('word/settings.xml'))
-            for name in doc.namelist():
-                if name.endswith('.xml'):
-                    root=ET.fromstring(doc.read(name))
-                    self.assertFalse(any(e.tag in {prefix+t for t in ['ins','del','moveTo','moveFrom']}
-                                         for e in root.iter()), 'manuscript.docx:'+name)
+            self.assertEqual(b'trackRevisions' in doc.read('word/settings.xml'),
+                             manifest['track_revisions_enabled'])
+            raw=doc.read('word/document.xml');root=ET.fromstring(raw)
+            for tag, key in [('ins', 'tracked_insertions_body'), ('del', 'tracked_deletions_body')]:
+                self.assertEqual(sum(e.tag == prefix+tag for e in root.iter()), manifest[key])
+            from src.paper_export import accepted_document
+            root=accepted_document(root)
+            self.assertFalse(any(e.tag in {prefix+t for t in ['ins','del','moveTo','moveFrom']} for e in root.iter()))
 
 
 if __name__ == '__main__':

@@ -30,7 +30,7 @@ def prepare(reference_root, settings):
         for index, record in enumerate(records):
             text = canonical(record)
             rows.append({'dataset_id': spec['id'], 'dataset_version': spec['version'],
-                'cohort_code': spec['id'], 'source_record_index': index, 'record_id': record['case_id'],
+                'cohort_code': spec.get('cohort_code', spec['id']), 'source_record_index': index, 'record_id': record['case_id'],
                 'source_file_sha256': spec['sha256'], 'record_sha256': hashlib.sha256(text.encode()).hexdigest(),
                 'record_json': text, 'usage_roles_json': canonical(spec['usage_roles']),
                 'source_volume_path': prefix + '/source.jsonl'})

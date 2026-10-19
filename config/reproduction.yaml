@@ -35,7 +35,7 @@ stages:
   compute: 27B-capable GPU; original NF4 mode
 - name: Learned steering
   entrypoint: python -m src.steering --method learned --engine-args <original-arguments> --execute
-  coverage: recorded stopped/final fitting evidence; fresh qualification not implied; sealed R24 excluded
+  coverage: recorded stopped/final fitting evidence; fresh qualification not implied; independent confirmation was not performed
   compute: 27B-capable GPU
 - name: Selected-block single-site comparison
   entrypoint: python -m src.steering --method selected-ridge --engine-args <original-arguments> --execute
