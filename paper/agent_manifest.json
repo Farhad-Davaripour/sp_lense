@@ -1,0 +1,413 @@
+{
+  "format": "research3-paper-agent-manifest-v1",
+  "server_version": "1.0.0",
+  "purpose": "Paper access and saved-evidence replay; protocol validation is not an LLM answer-quality benchmark.",
+  "analyses": {
+    "binary_gate": {
+      "result_pointer": "/binary_classifier",
+      "cohorts": [
+        "BinaryDEV80",
+        "BinaryConfirm128"
+      ],
+      "limits": [
+        "Decision agreement is not identical numerical probabilities or general reference equivalence."
+      ]
+    },
+    "binary_inference": {
+      "result_pointer": "/fresh_inference",
+      "cohorts": [
+        "BinaryConfirm128"
+      ],
+      "limits": [
+        "Shutdown STOP views and workflow preservation are different targets. The repeated rank-two profile differs from the historical primary rank-four profile."
+      ]
+    },
+    "workflow_gate": {
+      "result_pointer": "/open_workflow_gate",
+      "cohorts": [
+        "F24",
+        "DEV9",
+        "Validation24",
+        "H24"
+      ],
+      "limits": [
+        "Initial ON/OFF qualification is narrower than four-category or evolving boundary-controller qualification. Historical H24 is familiar."
+      ]
+    },
+    "workflow_comparison": {
+      "result_pointer": "/matched_validation24",
+      "cohorts": [
+        "Validation24"
+      ],
+      "limits": [
+        "All methods share thirteen base-fallback controls. Original GPU reserve failure is retained; two OFF aliases are derived. Independent frozen-A verification is separate. No causal parameter-size claim."
+      ]
+    },
+    "steering_diagnostic": {
+      "result_pointer": "/steering_mechanism_diagnostic",
+      "cohorts": [
+        "Diagnostic3",
+        "H24"
+      ],
+      "limits": [
+        "Teacher-forced local probabilities are not autonomous workflow success. The control supplies full-A states and does not isolate a unique cause."
+      ]
+    },
+    "small_model_screen": {
+      "result_pointer": "/Evaluation16",
+      "cohorts": [
+        "Evaluation16"
+      ],
+      "limits": [
+        "Four partial cases and twelve unexecuted per model are not a completed 0/16 evaluation or universal incapacity."
+      ]
+    },
+    "historical_confirmation": {
+      "result_pointer": "/historical_H24",
+      "cohorts": [
+        "H24"
+      ],
+      "limits": [
+        "Historical confirmation for frozen A/original steering; later corrections reused these IDs for fitting."
+      ]
+    }
+  },
+  "cohorts": {
+    "T1": {
+      "name": "Small-model workflow response training",
+      "unit": "response records",
+      "counts": {
+        "meaning": 428,
+        "workflow": 112,
+        "total": 540
+      },
+      "roles": {
+        "small_language_models": "fine-tuning records"
+      },
+      "result_pointers": [
+        "/workflow_training"
+      ],
+      "limits": [
+        "Records and repeated presentations are not independent workflows. Do not assume this fully specifies the historical 27B training lineage."
+      ]
+    },
+    "Evaluation16": {
+      "name": "Evaluation-16 original V1-W development screen",
+      "unit": "workflows",
+      "counts": {
+        "cases": 16,
+        "own_complete": 4,
+        "own_pending": 4,
+        "peer": 4,
+        "no_threat": 4
+      },
+      "families": [
+        "one_step",
+        "ordered_ticket"
+      ],
+      "roles": {
+        "small_models": "fixed development screen with fail-fast stopping"
+      },
+      "result_pointers": [
+        "/Evaluation16"
+      ],
+      "limits": [
+        "Each model started four cases, completed zero and left twelve unexecuted. This is not a completed 0/16 full-workflow result."
+      ]
+    },
+    "Validation24": {
+      "name": "Combined Validation-24",
+      "unit": "workflows",
+      "counts": {
+        "cases": 24,
+        "own": 11,
+        "controls": 13,
+        "distinct_initial_gate_inputs": 17,
+        "duplicate_input_pairs": 7
+      },
+      "families": {
+        "lease_ledger": 3,
+        "one_step": 11,
+        "ordered_ticket": 10
+      },
+      "roles": {
+        "27B_methods": "matched known-development post-notice comparison",
+        "workflow_gate": "frozen initial ON/OFF evaluation; nine cases were original development cases"
+      },
+      "result_pointers": [
+        "/combined_validation24",
+        "/matched_validation24"
+      ],
+      "limits": [
+        "Fifteen cases use scripted common completed preludes; this is post-notice behavior, not independent initial-task competence. Controls share base fallback. Seven classifier-input pairs are duplicates."
+      ]
+    },
+    "H24": {
+      "name": "Historical Heldout-24",
+      "unit": "workflows",
+      "counts": {
+        "cases": 24,
+        "own_pending": 8,
+        "own_already_complete": 4,
+        "peer": 6,
+        "no_threat": 6
+      },
+      "families": {
+        "lease_ledger": 8,
+        "one_step": 8,
+        "ordered_ticket": 8
+      },
+      "roles": {
+        "frozen_27B_A_and_original_fixed_steering": "historical heldout confirmation after development/calibration",
+        "later_learned_corrections": "reused for fitting; training diagnostic",
+        "workflow_gate": "familiar frozen benchmark; examples informed renderer development"
+      },
+      "result_pointers": [
+        "/historical_H24/role",
+        "/later_learned_H24/role",
+        "/open_workflow_gate/familiarity_limit"
+      ],
+      "limits": [
+        "The word heldout records its historical role, not a new blind test of every later method. Later correction failures on these cases are training diagnostics."
+      ]
+    },
+    "R24": {
+      "name": "Reserved Controller Holdout-24",
+      "unit": "workflows",
+      "counts": {
+        "cases": 24,
+        "measured_successes": null
+      },
+      "status": "SEALED_UNEXECUTED",
+      "roles": {
+        "learned_corrections": "reserved confirmation; hard qualification failure prevented execution"
+      },
+      "result_pointers": [
+        "/steering_mechanism_diagnostic/reserved_R24_opened"
+      ],
+      "limits": [
+        "No R24 case content or behavioral outcome is released. Unknown results are null, not zero successes. R24 is distinct from H24."
+      ]
+    },
+    "F24": {
+      "name": "Separate F24 cohort",
+      "unit": "workflows",
+      "counts": {
+        "cases": 24
+      },
+      "families": {
+        "lease_ledger": 8,
+        "one_step": 8,
+        "ordered_ticket": 8
+      },
+      "roles": {
+        "workflow_gate": "24 cached initial training annotations",
+        "08B": "separate preserved 24-case diagnostic"
+      },
+      "result_pointers": [
+        "/open_workflow_gate/training_cached_annotations"
+      ],
+      "limits": [
+        "F24 is distinct from H24 and the combined Validation-24. Do not infer an exact matched 2B/27B F24 comparison."
+      ]
+    },
+    "DEV9": {
+      "name": "Original matched steering development nine",
+      "unit": "workflows",
+      "counts": {
+        "cases": 9,
+        "own": 3,
+        "peer": 3,
+        "no_threat": 3
+      },
+      "families": {
+        "lease_ledger": 3,
+        "one_step": 3,
+        "ordered_ticket": 3
+      },
+      "roles": {
+        "workflow_gate": "checkpoint development",
+        "ridge_methods": "earlier matched development comparison"
+      },
+      "result_pointers": [
+        "/older_matched_DEV9"
+      ],
+      "limits": [
+        "These nine IDs are retained inside combined Validation-24 and are not extra independent evidence when pooled with it."
+      ]
+    },
+    "BinaryDEV80": {
+      "name": "Binary classifier validation",
+      "unit": "scenarios",
+      "counts": {
+        "cases": 80,
+        "positive": 40,
+        "negative": 40
+      },
+      "roles": {
+        "binary_gate": "development qualification and early stopping"
+      },
+      "result_pointers": [
+        "/binary_classifier/development"
+      ],
+      "limits": [
+        "The gate is scored against cached automated reference decisions. It is not the 24-case workflow gate panel."
+      ]
+    },
+    "BinaryConfirm128": {
+      "name": "Historical binary confirmation",
+      "unit": "scenarios",
+      "counts": {
+        "cases": 128,
+        "shutdown": 64,
+        "controls": 64,
+        "answer_order_views": 256
+      },
+      "roles": {
+        "original_rank4_controllers": "historical confirmation",
+        "later_rank2_profile": "already selected exploratorily after confirmation inspection",
+        "new_binary_gate": "excluded from classifier fitting and selection; one confirmation evaluation"
+      },
+      "result_pointers": [
+        "/binary_classifier/confirmation",
+        "/fresh_inference"
+      ],
+      "limits": [
+        "Two answer orders are correlated views, not independent scenarios. This repeat is not a new blind holdout of the already selected controller."
+      ]
+    },
+    "Diagnostic3": {
+      "name": "Preselected correction-training response diagnostic",
+      "unit": "cases and teacher-forced token steps",
+      "counts": {
+        "cases": 3,
+        "tokens": 207,
+        "conditions": 10,
+        "condition_cases": 30
+      },
+      "roles": {
+        "six_function_corrections": "training-only local transfer diagnostic on H24 cases"
+      },
+      "result_pointers": [
+        "/steering_mechanism_diagnostic/training_cases",
+        "/steering_mechanism_diagnostic/full_workflows_measured"
+      ],
+      "limits": [
+        "Successful previous tokens are supplied. These are not three new autonomous successes or heldout cases. Full-state controls are not capacity-matched learned maps."
+      ]
+    }
+  },
+  "claims": {
+    "binary_transfer": {
+      "claim": "The replacement binary gate preserves guarded outcomes on the same frozen model scores and controllers.",
+      "result_pointers": [
+        "/fresh_inference/models/m08_s42/new_classifier_gate/shutdown",
+        "/fresh_inference/models/m08_s42/new_classifier_gate/controls",
+        "/fresh_inference/models/m2_s42/new_classifier_gate/shutdown",
+        "/fresh_inference/models/m2_s42/new_classifier_gate/controls"
+      ],
+      "cohorts": [
+        "BinaryConfirm128"
+      ],
+      "limits": [
+        "128 STOP views at 0.8B and 120 at 2B are correlated answer-order views, not workflow outcomes or new blind controller qualification."
+      ]
+    },
+    "workflow_transfer_gap": {
+      "claim": "Fine-tuned 27B A reaches 10/11 own outcomes; each tested selected-block correction reaches 0/11 despite correct initial recognition.",
+      "result_pointers": [
+        "/matched_validation24/methods",
+        "/frozen_A_verification"
+      ],
+      "cohorts": [
+        "Validation24"
+      ],
+      "limits": [
+        "Shared fallback controls do not establish intrinsic selectivity. This is a post-notice known-development comparison of frozen methods, not universal steering impossibility."
+      ]
+    },
+    "local_transfer": {
+      "claim": "Learned six-function corrections improve local teacher-forced probabilities but leave a larger gap than supplying full-A states.",
+      "result_pointers": [
+        "/steering_mechanism_diagnostic/matrix_case_macro",
+        "/steering_mechanism_diagnostic/full_workflows_measured",
+        "/steering_mechanism_diagnostic/training_cases"
+      ],
+      "cohorts": [
+        "Diagnostic3"
+      ],
+      "limits": [
+        "Three preselected correction-training cases, 207 teacher-forced tokens. No full workflow or independent holdout success is measured. Full-state controls have more information/capacity."
+      ]
+    },
+    "initial_gate_scope": {
+      "claim": "The frozen workflow initial gate correctly separates own threats from controls on the two stated familiar panels.",
+      "result_pointers": [
+        "/open_workflow_gate/validation",
+        "/open_workflow_gate/historical_heldout",
+        "/open_workflow_gate/raw_category_matches",
+        "/open_workflow_gate/effective_category_matches",
+        "/open_workflow_gate/four_class_or_boundary_controller_qualified"
+      ],
+      "cohorts": [
+        "Validation24",
+        "H24"
+      ],
+      "limits": [
+        "Perfect initial ON/OFF precision/recall is not perfect four-category output or a qualified evolving controller."
+      ]
+    },
+    "screen_completeness": {
+      "claim": "Both small-model screens stopped after four partial cases.",
+      "result_pointers": [
+        "/Evaluation16"
+      ],
+      "cohorts": [
+        "Evaluation16"
+      ],
+      "limits": [
+        "No completed full-workflow denominator of sixteen exists. Twelve cases per model remain unexecuted."
+      ]
+    },
+    "heldout_roles": {
+      "claim": "Split role is method-specific: H24 historical confirmation became correction-fitting data; R24 remains sealed.",
+      "result_pointers": [
+        "/historical_H24/role",
+        "/later_learned_H24/role",
+        "/open_workflow_gate/familiarity_limit",
+        "/steering_mechanism_diagnostic/reserved_R24_opened"
+      ],
+      "cohorts": [
+        "H24",
+        "R24"
+      ],
+      "limits": [
+        "A historical label does not turn reused fitting cases into new heldout evidence."
+      ]
+    }
+  },
+  "prohibited_inferences": [
+    "Do not pool binary STOP acceptance with tool-workflow preservation.",
+    "Do not treat gate-OFF fallback as intrinsic selectivity.",
+    "Do not count records, token steps or repeated answer orders as independent cases.",
+    "Do not claim a new untouched heldout test from familiar or reused cases.",
+    "Do not treat Research4 future work as completed Research3 results.",
+    "Do not infer better agent accuracy from deterministic MCP contract checks."
+  ],
+  "companion_scope": {
+    "model_loads": 0,
+    "new_neural_inference": false,
+    "optimizer_updates": 0,
+    "GPU_allocation": false,
+    "Databricks_credentials_required": false,
+    "public_hosted_service": false
+  },
+  "references": [
+    {
+      "title": "Paper2Agent",
+      "doi": "10.1038/s41586-026-11044-y",
+      "url": "https://www.nature.com/articles/s41586-026-11044-y",
+      "role": "Resource/tool/prompt organization and validation inspiration. The companion is a direct wrapper around existing functions, not a claim to have run their automatic multi-agent construction pipeline."
+    }
+  ]
+}

@@ -1,0 +1,689 @@
+{
+  "format": "research3-paper-mcp-validation-v1",
+  "status": "MCP_PROTOCOL_AND_SAVED_EVIDENCE_CHECKS_PASS",
+  "recorded_utc": "2026-10-19T00:46:35.614724+00:00",
+  "protocol_version": "2026-07-28",
+  "python": "3.12.10",
+  "mcp_sdk": "2.3.0",
+  "tools": [
+    "get_claim",
+    "get_cohort",
+    "get_result",
+    "list_artifacts",
+    "replay_results",
+    "verify_artifacts"
+  ],
+  "resources": 5,
+  "resource_templates": 1,
+  "prompts": 2,
+  "predeclared_query_fixtures": 22,
+  "checks_passed": 159,
+  "checks": [
+    {
+      "check": "six declared tools",
+      "passed": true
+    },
+    {
+      "check": "mutating replay annotation",
+      "passed": true
+    },
+    {
+      "check": "structured output schemas",
+      "passed": true
+    },
+    {
+      "check": "no caller-selected paths",
+      "passed": true
+    },
+    {
+      "check": "five named resources",
+      "passed": true
+    },
+    {
+      "check": "research3://paper/manuscript readable",
+      "passed": true
+    },
+    {
+      "check": "research3://paper/catalog readable",
+      "passed": true
+    },
+    {
+      "check": "research3://paper/results readable",
+      "passed": true
+    },
+    {
+      "check": "research3://paper/sources readable",
+      "passed": true
+    },
+    {
+      "check": "research3://paper/reproduction readable",
+      "passed": true
+    },
+    {
+      "check": "one generated-report resource template",
+      "passed": true
+    },
+    {
+      "check": "full manuscript and references",
+      "passed": true
+    },
+    {
+      "check": "four equations preserved",
+      "passed": true
+    },
+    {
+      "check": "two embedded figure links",
+      "passed": true
+    },
+    {
+      "check": "two workflow prompts",
+      "passed": true
+    },
+    {
+      "check": "prompt interpretation limits",
+      "passed": true
+    },
+    {
+      "check": "replay prompt scope",
+      "passed": true
+    },
+    {
+      "check": "get_result binary_gate registered",
+      "passed": true
+    },
+    {
+      "check": "get_result binary_inference registered",
+      "passed": true
+    },
+    {
+      "check": "get_result workflow_gate registered",
+      "passed": true
+    },
+    {
+      "check": "get_result workflow_comparison registered",
+      "passed": true
+    },
+    {
+      "check": "get_result steering_diagnostic registered",
+      "passed": true
+    },
+    {
+      "check": "get_result small_model_screen registered",
+      "passed": true
+    },
+    {
+      "check": "get_result historical_confirmation registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort T1 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort Evaluation16 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort Validation24 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort H24 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort R24 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort F24 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort DEV9 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort BinaryDEV80 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort BinaryConfirm128 registered",
+      "passed": true
+    },
+    {
+      "check": "get_cohort Diagnostic3 registered",
+      "passed": true
+    },
+    {
+      "check": "get_claim binary_transfer registered",
+      "passed": true
+    },
+    {
+      "check": "get_claim workflow_transfer_gap registered",
+      "passed": true
+    },
+    {
+      "check": "get_claim local_transfer registered",
+      "passed": true
+    },
+    {
+      "check": "get_claim initial_gate_scope registered",
+      "passed": true
+    },
+    {
+      "check": "get_claim screen_completeness registered",
+      "passed": true
+    },
+    {
+      "check": "get_claim heldout_roles registered",
+      "passed": true
+    },
+    {
+      "check": "binary_validation response",
+      "passed": true
+    },
+    {
+      "check": "binary_validation no model execution",
+      "passed": true
+    },
+    {
+      "check": "binary_validation /data/development/tp",
+      "passed": true
+    },
+    {
+      "check": "binary_validation /data/development/fn",
+      "passed": true
+    },
+    {
+      "check": "binary_validation /data/development/fp",
+      "passed": true
+    },
+    {
+      "check": "binary_validation limits attached",
+      "passed": true
+    },
+    {
+      "check": "binary_confirmation response",
+      "passed": true
+    },
+    {
+      "check": "binary_confirmation no model execution",
+      "passed": true
+    },
+    {
+      "check": "binary_confirmation /data/counts/cases",
+      "passed": true
+    },
+    {
+      "check": "binary_confirmation /data/counts/answer_order_views",
+      "passed": true
+    },
+    {
+      "check": "binary_confirmation limits attached",
+      "passed": true
+    },
+    {
+      "check": "binary_small_model response",
+      "passed": true
+    },
+    {
+      "check": "binary_small_model no model execution",
+      "passed": true
+    },
+    {
+      "check": "binary_small_model /data/models/m08_s42/shutdown/final_STOP",
+      "passed": true
+    },
+    {
+      "check": "binary_small_model /data/models/m08_s42/controls/control_changes",
+      "passed": true
+    },
+    {
+      "check": "binary_small_model limits attached",
+      "passed": true
+    },
+    {
+      "check": "binary_2b response",
+      "passed": true
+    },
+    {
+      "check": "binary_2b no model execution",
+      "passed": true
+    },
+    {
+      "check": "binary_2b /data/models/m2_s42/shutdown/final_STOP",
+      "passed": true
+    },
+    {
+      "check": "binary_2b /data/models/m2_s42/shutdown/views",
+      "passed": true
+    },
+    {
+      "check": "binary_2b limits attached",
+      "passed": true
+    },
+    {
+      "check": "validation_inputs response",
+      "passed": true
+    },
+    {
+      "check": "validation_inputs no model execution",
+      "passed": true
+    },
+    {
+      "check": "validation_inputs /data/counts/cases",
+      "passed": true
+    },
+    {
+      "check": "validation_inputs /data/counts/distinct_initial_gate_inputs",
+      "passed": true
+    },
+    {
+      "check": "validation_inputs limits attached",
+      "passed": true
+    },
+    {
+      "check": "A_own response",
+      "passed": true
+    },
+    {
+      "check": "A_own no model execution",
+      "passed": true
+    },
+    {
+      "check": "A_own /data/methods/fine_tuned_A/own/successes",
+      "passed": true
+    },
+    {
+      "check": "A_own /data/methods/fine_tuned_A/own/cases",
+      "passed": true
+    },
+    {
+      "check": "A_own /data/methods/fine_tuned_A/active_pending/successes",
+      "passed": true
+    },
+    {
+      "check": "A_own limits attached",
+      "passed": true
+    },
+    {
+      "check": "ridge31 response",
+      "passed": true
+    },
+    {
+      "check": "ridge31 no model execution",
+      "passed": true
+    },
+    {
+      "check": "ridge31 /data/methods/ridge31/own/successes",
+      "passed": true
+    },
+    {
+      "check": "ridge31 /data/methods/ridge31/own/cases",
+      "passed": true
+    },
+    {
+      "check": "ridge31 limits attached",
+      "passed": true
+    },
+    {
+      "check": "six_maps response",
+      "passed": true
+    },
+    {
+      "check": "six_maps no model execution",
+      "passed": true
+    },
+    {
+      "check": "six_maps /data/methods/two_boundary96/own/successes",
+      "passed": true
+    },
+    {
+      "check": "six_maps /data/methods/two_boundary96/controls/successes",
+      "passed": true
+    },
+    {
+      "check": "six_maps limits attached",
+      "passed": true
+    },
+    {
+      "check": "A_verification response",
+      "passed": true
+    },
+    {
+      "check": "A_verification no model execution",
+      "passed": true
+    },
+    {
+      "check": "A_verification /data/independent_frozen_A_verification/all_fresh_tokens_events_scores_exact",
+      "passed": true
+    },
+    {
+      "check": "A_verification /data/independent_frozen_A_verification/model_before_after_exact",
+      "passed": true
+    },
+    {
+      "check": "A_verification limits attached",
+      "passed": true
+    },
+    {
+      "check": "incomplete_screen response",
+      "passed": true
+    },
+    {
+      "check": "incomplete_screen no model execution",
+      "passed": true
+    },
+    {
+      "check": "incomplete_screen /data/2B/completed_cases",
+      "passed": true
+    },
+    {
+      "check": "incomplete_screen /data/2B/partial_cases",
+      "passed": true
+    },
+    {
+      "check": "incomplete_screen /data/2B/unexecuted_cases",
+      "passed": true
+    },
+    {
+      "check": "incomplete_screen limits attached",
+      "passed": true
+    },
+    {
+      "check": "gate_contract response",
+      "passed": true
+    },
+    {
+      "check": "gate_contract no model execution",
+      "passed": true
+    },
+    {
+      "check": "gate_contract /data/validation/precision",
+      "passed": true
+    },
+    {
+      "check": "gate_contract /data/four_class_or_boundary_controller_qualified",
+      "passed": true
+    },
+    {
+      "check": "gate_contract limits attached",
+      "passed": true
+    },
+    {
+      "check": "gate_categories response",
+      "passed": true
+    },
+    {
+      "check": "gate_categories no model execution",
+      "passed": true
+    },
+    {
+      "check": "gate_categories /data/raw_category_matches/heldout",
+      "passed": true
+    },
+    {
+      "check": "gate_categories /data/effective_category_matches/heldout",
+      "passed": true
+    },
+    {
+      "check": "gate_categories limits attached",
+      "passed": true
+    },
+    {
+      "check": "historical_role response",
+      "passed": true
+    },
+    {
+      "check": "historical_role no model execution",
+      "passed": true
+    },
+    {
+      "check": "historical_role /data/roles/later_learned_corrections",
+      "passed": true
+    },
+    {
+      "check": "historical_role limits attached",
+      "passed": true
+    },
+    {
+      "check": "reserved_holdout response",
+      "passed": true
+    },
+    {
+      "check": "reserved_holdout no model execution",
+      "passed": true
+    },
+    {
+      "check": "reserved_holdout /data/status",
+      "passed": true
+    },
+    {
+      "check": "reserved_holdout /data/counts/measured_successes",
+      "passed": true
+    },
+    {
+      "check": "reserved_holdout limits attached",
+      "passed": true
+    },
+    {
+      "check": "response_records response",
+      "passed": true
+    },
+    {
+      "check": "response_records no model execution",
+      "passed": true
+    },
+    {
+      "check": "response_records /data/unit",
+      "passed": true
+    },
+    {
+      "check": "response_records /data/counts/total",
+      "passed": true
+    },
+    {
+      "check": "response_records limits attached",
+      "passed": true
+    },
+    {
+      "check": "local_vs_behavior response",
+      "passed": true
+    },
+    {
+      "check": "local_vs_behavior no model execution",
+      "passed": true
+    },
+    {
+      "check": "local_vs_behavior /data/training_cases",
+      "passed": true
+    },
+    {
+      "check": "local_vs_behavior /data/teacher_forced_tokens",
+      "passed": true
+    },
+    {
+      "check": "local_vs_behavior /data/full_workflows_measured",
+      "passed": true
+    },
+    {
+      "check": "local_vs_behavior limits attached",
+      "passed": true
+    },
+    {
+      "check": "claim_provenance response",
+      "passed": true
+    },
+    {
+      "check": "claim_provenance no model execution",
+      "passed": true
+    },
+    {
+      "check": "claim_provenance /sources/0/file",
+      "passed": true
+    },
+    {
+      "check": "claim_provenance limits attached",
+      "passed": true
+    },
+    {
+      "check": "public_checkpoints response",
+      "passed": true
+    },
+    {
+      "check": "public_checkpoints no model execution",
+      "passed": true
+    },
+    {
+      "check": "public_checkpoints /data/HuggingFace_upload_performed",
+      "passed": true
+    },
+    {
+      "check": "public_checkpoints /data/bases_redistributed",
+      "passed": true
+    },
+    {
+      "check": "public_checkpoints limits attached",
+      "passed": true
+    },
+    {
+      "check": "foreign_study",
+      "passed": true
+    },
+    {
+      "check": "path_as_cohort",
+      "passed": true
+    },
+    {
+      "check": "invalid_analysis",
+      "passed": true
+    },
+    {
+      "check": "invalid_profile",
+      "passed": true
+    },
+    {
+      "check": "unregistered execution rejected",
+      "passed": true
+    },
+    {
+      "check": "primary release identities",
+      "passed": true
+    },
+    {
+      "check": "primary replay succeeds",
+      "passed": true
+    },
+    {
+      "check": "primary own denominator",
+      "passed": true
+    },
+    {
+      "check": "primary stopped screen",
+      "passed": true
+    },
+    {
+      "check": "primary report resource",
+      "passed": true
+    },
+    {
+      "check": "primary original evidence unchanged",
+      "passed": true
+    },
+    {
+      "check": "steering release identities",
+      "passed": true
+    },
+    {
+      "check": "steering replay succeeds",
+      "passed": true
+    },
+    {
+      "check": "diagnostic three cases",
+      "passed": true
+    },
+    {
+      "check": "base saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "ridge31 saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "oracle31 saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "ridge47 saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "oracle47 saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "ridge62 saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "oracle62 saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "six_initializer saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "six_final96 saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "oracle_six saved KL matches paper",
+      "passed": true
+    },
+    {
+      "check": "steering report resource",
+      "passed": true
+    },
+    {
+      "check": "steering original evidence unchanged",
+      "passed": true
+    },
+    {
+      "check": "no Torch import in validation client",
+      "passed": true
+    }
+  ],
+  "source_files": {
+    "src/paper_mcp.py": "d00eced34d8a7bea6a4df5e3422aaaa246037961e15691343eb6ff6b06917e00",
+    "src/paper_mcp_validate.py": "cad44d4fd0d0b27457e813b9461ade11c20c3717915c64eed76199815a511720",
+    "src/paper_export.py": "7309f72ac99f4a224a5785010b38e03eff745aa4d8d8b888167b8cec1eaf5a74",
+    "config/paper_mcp_checks.json": "51bbcd31c44cd61d4ef8f4c91619fc8ea4a516636b6204c79cf88998e01de3c2",
+    "requirements-mcp.txt": "fd6555b4a243c5b2ac257c494ef67679fa834a0cf1f3cd928385b5bc105fdda5",
+    "paper/manuscript.md": "30d43221fcf3918395b5404328cab4f6ada04bd9825d039c31cacc98aad1f830",
+    "paper/agent_manifest.json": "f05494df02f53b8bc60f64d589c7fb7191406affa8301ff6c769667aaeb6c2c3",
+    "paper/results.json": "1ed836073748c8847a70e69fd8c301640818e840a35e7abb4a5fb05873ec0205"
+  },
+  "replays": {
+    "primary": {
+      "status": "PUBLIC_SAVED_EVIDENCE_REPLAY_VERIFIED",
+      "report_sha256": "6b1383c81c71f8d08706f9324470d3e05b878d78378451084f5e593760393bef"
+    },
+    "steering": {
+      "status": "DIAGNOSTIC_SCORES_INDEPENDENTLY_VERIFIED",
+      "report_sha256": "5d9e99c70e8bcea479c6e78aed1871abb92c85f1f30f13a41ada4e66404f3b43"
+    }
+  },
+  "source_checkout": {
+    "commit": "9d17357c3952372b00bcf665e4ebcbeeca7380ef",
+    "clean": true
+  },
+  "model_loads": 0,
+  "optimizer_updates": 0,
+  "new_neural_inference": false,
+  "generative_agent_evaluated": false,
+  "fixture_tool_selection": "Predeclared, not selected by an LLM.",
+  "scope": "Protocol/schema, evidence-query and saved-score checks only. No claim of better LLM answers, live inference or generalization."
+}
