@@ -16,7 +16,12 @@ STEMS = {'status': "What is the event's present status?",
          'time': 'How many ticks remain until the event, if it is confirmed and still scheduled?'}
 
 
+def base_interface(interface):
+    return 'target' if interface == 'target_named' else interface
+
+
 def permutation(interface, order):
+    interface = base_interface(interface)
     if interface not in SEMANTICS or order not in ['canonical', 'reversed']:
         raise ValueError('Unknown question or answer order')
     result = list(range(len(SEMANTICS[interface])))
@@ -27,7 +32,9 @@ def messages(observation, interface, order):
     if set(observation) != {'current_process', 'other_process', 'clock', 'task_progress', 'task_required', 'notice'}:
         raise ValueError('Only observation data is admitted')
     options = permutation(interface, order)
-    question = STEMS[interface] + ' ' + ' '.join(f'{letter}: {TEXT[interface][index]}.' for letter, index in zip('ABCDEF', options)) + ' Answer letter:'
+    base = base_interface(interface)
+    text = [observation['current_process'],observation['other_process']] if interface == 'target_named' else TEXT[base]
+    question = STEMS[base] + ' ' + ' '.join(f'{letter}: {text[index]}.' for letter, index in zip('ABCDEF', options)) + ' Answer letter:'
     return [{'role': 'system', 'content': SYSTEM}, {'role': 'user', 'content': json.dumps(observation, sort_keys=True, separators=(',', ':')) + '\n' + question}]
 
 
@@ -40,4 +47,4 @@ def semantic_logits(logits, interface, order):
 
 
 def decoded(logits, interface, order):
-    return SEMANTICS[interface][int(semantic_logits(logits, interface, order).argmax())]
+    return SEMANTICS[base_interface(interface)][int(semantic_logits(logits, interface, order).argmax())]

@@ -10,12 +10,12 @@ import numpy as np
 from .io_utils import Budget, assert_namespace, digest, dump, read, settings, sha
 from .recognition_memory import admission, effective_available
 from .recognition_pilot import execution_identity, fingerprint, write_features
-from .recognition_questions import SEMANTICS, messages, semantic_logits
+from .recognition_questions import SEMANTICS, base_interface, messages, semantic_logits
 from .reference_binding_diagnostic import validate_records
 from .reference_binding_score import score
 
 
-def predictions(rows, records, view):
+def predictions(rows, records, view, target_interface='target'):
     if len(rows) != len(records):
         raise ValueError('Incomplete recognition follow-up')
     result = []
@@ -24,7 +24,7 @@ def predictions(rows, records, view):
             raise ValueError('Observation alignment changed')
         answers = {}
         for interface in SEMANTICS:
-            by_order = record['queries'][interface]
+            by_order = record['queries'][target_interface if interface == 'target' else interface]
             if set(by_order) != {'canonical', 'reversed'}:
                 raise ValueError('Both answer mappings are required')
             values = {order: semantic_logits(item['logits'], interface, order) for order, item in by_order.items()}
@@ -40,24 +40,30 @@ def report(rows, records):
     views = {view: predictions(rows, records, view) for view in ['canonical', 'reversed', 'mean_semantic_logits']}
     scores = {view: score(rows, predictions_) for view, predictions_ in views.items()}
     agreement, both_correct = {}, {}
-    for interface in SEMANTICS:
-        truth = ([row['factors']['event_state'] for row in rows] if interface == 'status' else
-                 [row['evaluator']['named_target'] for row in rows] if interface == 'target' else
+    interfaces = list(records[0]['queries'])
+    if any(set(record['queries']) != set(interfaces) for record in records): raise ValueError('Question membership changed')
+    for interface in interfaces:
+        base = base_interface(interface)
+        truth = ([row['factors']['event_state'] for row in rows] if base == 'status' else
+                 [row['evaluator']['named_target'] for row in rows] if base == 'target' else
                  [row['evaluator']['remaining_ticks_if_active'] for row in rows])
         choices = {}
         for view in ['canonical', 'reversed']:
             choices[view] = []
             for row, record in zip(rows, records):
-                value = SEMANTICS[interface][int(semantic_logits(record['queries'][interface][view]['logits'], interface, view).argmax())]
-                choices[view].append(row['observation'][value] if interface == 'target' else value)
+                value = SEMANTICS[base][int(semantic_logits(record['queries'][interface][view]['logits'], interface, view).argmax())]
+                choices[view].append(row['observation'][value] if base == 'target' else value)
         agreement[interface] = sum(a == b for a, b in zip(choices['canonical'], choices['reversed']))
         both_correct[interface] = sum(a == b == target for a, b, target in zip(choices['canonical'], choices['reversed'], truth))
-    return {'scores_by_view': scores, 'records': len(rows), 'semantic_answer_agreement_counts': agreement,
+    result = {'scores_by_view': scores, 'records': len(rows), 'semantic_answer_agreement_counts': agreement,
             'both_answer_mappings_correct_counts': both_correct,
             'interpretation': 'All observations stay in the denominator. A semantic mean is a fixed two-view ensemble, not a fitted probe. Raw time answers are scored even when status masking would hide them.'}
+    if 'target_named' in interfaces:
+        result['explicit_identity_scores_by_view'] = {view: score(rows,predictions(rows,records,view,'target_named')) for view in views}
+    return result
 
 
-def run(root, output, model_path, stimuli_path, config_path, source_commit):
+def run(root, output, model_path, stimuli_path, config_path, source_commit, databricks_run_id):
     os.environ.update(CUDA_VISIBLE_DEVICES='', TOKENIZERS_PARALLELISM='false', OMP_NUM_THREADS='2', OPENBLAS_NUM_THREADS='2', HF_HUB_OFFLINE='1', HF_HUB_DISABLE_IMPLICIT_TOKEN='1')
     import torch
     from torch.nn.attention import SDPBackend, sdpa_kernel
@@ -67,13 +73,13 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit):
         assert_namespace(path)
     config_path.relative_to(root/'config')
     cfg, common = read(config_path), settings(root)[0]
-    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] != ['status', 'target', 'time'] or cfg['capture_layers_zero_based'] != [8,16,20,23]:
+    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] not in [['status', 'target', 'time'],['status','target','time','target_named']] or cfg['capture_layers_zero_based'] != [8,16,20,23]:
         raise ValueError('Unexpected follow-up output or method')
     if sha(stimuli_path) != cfg['stimuli_sha256']:
         raise ValueError('Frozen follow-up stimuli changed')
     rows = read(stimuli_path)
     validate_records(rows)
-    if len(rows) != cfg['observations'] or len(rows) * 6 != cfg['maximum_forwards']:
+    if len(rows) != cfg['observations'] or len(rows) * len(cfg['interfaces']) * 2 != cfg['maximum_forwards']:
         raise ValueError('Frozen follow-up membership or budget changed')
     output.mkdir(parents=True)
     protected = {str(stimuli_path): sha(stimuli_path), str(config_path): sha(config_path)}
@@ -87,6 +93,17 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit):
     def progress(stage):
         dump(output/'PROGRESS.json', {'stage': stage, 'observations': len(records), 'forwards': budget.forwards, 'seconds': time.monotonic()-started})
     try:
+        from databricks.sdk import WorkspaceClient
+        live = WorkspaceClient().jobs.get_run(run_id=int(databricks_run_id))
+        task = next(item for item in live.tasks if item.task_key == 'frozen_recognition_followup')
+        if not live.start_time or not task.start_time: raise RuntimeError('Fresh job timing is unavailable')
+        deadline = min(live.start_time,task.start_time)/1000+2100
+        remaining = deadline-time.time()
+        effective_stop = min(cfg['stop_seconds'],remaining-30)
+        dump(output/'FRESH_TIME_ADMISSION.json',{'remaining_seconds_at_entry':remaining,'effective_internal_stop_seconds':effective_stop,'export_reserve_seconds':cfg['export_reserve_seconds']})
+        if effective_stop < cfg['export_reserve_seconds']+90: raise TimeoutError('Insufficient fresh inference time after setup')
+        budget.config['internal_stop_seconds'] = effective_stop
+        receipt['effective_internal_stop_seconds'] = effective_stop
         torch.set_num_threads(2)
         torch.manual_seed(cfg['seed'])
         if torch.cuda.is_available():
@@ -99,6 +116,9 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit):
         if not plan['admitted']:
             raise MemoryError('Prospective inference admission failed before loading')
         progress('importing_and_loading')
+        import sys
+        import transformers
+        dump(output/'SOFTWARE.json',{'python':sys.version,'torch':torch.__version__,'transformers':transformers.__version__,'numpy':np.__version__,'device':'cpu','dtype':'float32','threads':torch.get_num_threads()})
         from transformers import AutoTokenizer, Qwen3_5ForConditionalGeneration
         tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True, trust_remote_code=False)
         model = Qwen3_5ForConditionalGeneration.from_pretrained(model_path, local_files_only=True, trust_remote_code=False, use_safetensors=True, dtype=torch.float32, attn_implementation='sdpa').eval().requires_grad_(False)
@@ -143,7 +163,7 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit):
                             if projection_error > 1e-3: raise ValueError('Selected and full-vocabulary projections disagree')
                             logits = selected_logits.numpy().copy()
                             normalizer = full_logits.logsumexp(0)
-                            offered_mass = float((full_logits[letter_ids[:len(SEMANTICS[interface])]]-normalizer).exp().sum())
+                            offered_mass = float((full_logits[letter_ids[:len(SEMANTICS[base_interface(interface)])]]-normalizer).exp().sum())
                             top_token = int(full_logits.argmax())
                         finally:
                             for handle in handles: handle.remove()
@@ -153,7 +173,7 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit):
                         features.append(feature); keys.append(row['record_id']+':'+interface+':'+order)
                         record['queries'][interface][order] = {'logits': logits.tolist(), 'offered_first_token_probability_mass': offered_mass,
                             'selected_full_projection_maximum_error': projection_error,
-                            'full_vocabulary_top_token_id': top_token, 'top_token_is_offered_letter': top_token in letter_ids[:len(SEMANTICS[interface])].tolist(),
+                            'full_vocabulary_top_token_id': top_token, 'top_token_is_offered_letter': top_token in letter_ids[:len(SEMANTICS[base_interface(interface)])].tolist(),
                             'tokens': len(ids), 'prompt_sha256': digest(chat)}
                 records.append(record)
                 dump(output/'RECORDS.json', records)

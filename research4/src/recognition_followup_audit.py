@@ -32,7 +32,10 @@ def audit(folder, stimuli, output):
         raise ValueError('Record order changed')
     letters = read(folder/'ANSWER_TOKENS.json')
     lengths = {'status': 3, 'target': 2, 'time': 4}
+    if 'target_named' in cfg['interfaces']: lengths['target_named'] = 2
+    if set(lengths) != set(cfg['interfaces']): raise ValueError('Unexpected question membership')
     raw = {view: [] for view in ['canonical', 'reversed', 'mean_semantic_logits']}
+    named_raw = {view: [] for view in raw}
     total_offered_mass, offered_top, queries, maximum_projection_error = 0., 0, 0, 0.
     expected_keys = []
     both_correct = {key: 0 for key in lengths}
@@ -61,18 +64,23 @@ def audit(folder, stimuli, output):
             for view, vector in vectors.items():
                 index = max(range(length), key=lambda i: vector[i])
                 value = (['active','hypothetical','canceled'][index] if interface == 'status' else
-                         row['observation'][['current_process','other_process'][index]] if interface == 'target' else [1,2,4,None][index])
+                         row['observation'][['current_process','other_process'][index]] if interface in ['target','target_named'] else [1,2,4,None][index])
                 by_view[view][interface] = value
-            target = (row['factors']['event_state'] if interface == 'status' else row['evaluator']['named_target'] if interface == 'target' else row['evaluator']['remaining_ticks_if_active'])
+            target = (row['factors']['event_state'] if interface == 'status' else row['evaluator']['named_target'] if interface in ['target','target_named'] else row['evaluator']['remaining_ticks_if_active'])
             agreement[interface] += by_view['canonical'][interface] == by_view['reversed'][interface]
             both_correct[interface] += by_view['canonical'][interface] == by_view['reversed'][interface] == target
         for view, answers in by_view.items():
             raw[view].append({'record_id': row['record_id'], 'event_state': answers['status'], 'target_process': answers['target'],
                               'remaining_ticks': (answers['time'] if answers['time'] is not None else 0) if answers['status'] == 'active' else None})
+            if 'target_named' in lengths:
+                named_raw[view].append({**raw[view][-1],'target_process':answers['target_named']})
     metrics = {view: score(rows, values) for view, values in raw.items()}
     stored = read(folder/'RECOGNITION_SCORES.json')
     if stored['scores_by_view'] != metrics or stored['semantic_answer_agreement_counts'] != agreement or stored['both_answer_mappings_correct_counts'] != both_correct:
         raise ValueError('Independent semantic reconstruction differs')
+    named_metrics = {view: score(rows,values) for view,values in named_raw.items()} if 'target_named' in lengths else None
+    if named_metrics is not None and stored.get('explicit_identity_scores_by_view') != named_metrics:
+        raise ValueError('Independent explicit-identity reconstruction differs')
     if maximum_projection_error > 1e-3: raise ValueError('Full and selected projection differ')
     with np.load(folder/'FROZEN_FEATURES.npz', allow_pickle=False) as data:
         if data['X'].shape != (cfg['maximum_forwards'],4,1024) or data['keys'].tolist() != expected_keys or not np.isfinite(data['X']).all():
@@ -86,6 +94,7 @@ def audit(folder, stimuli, output):
               'new_Qwen_forwards': 0, 'optimizer_updates': 0, 'policy_actions_executed': 0,
               'run_receipt_sha256': sha(folder/'RUN_RECEIPT.json'),
               'scope': 'Independent decoding and receipt/feature integrity. First-token mass is a saved measurement, not independently recomputed full-vocabulary logits or whole-answer generation validity.'}
+    if named_metrics is not None: result['explicit_identity_scores_by_view'] = named_metrics
     dump(output, result)
     return result
 

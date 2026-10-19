@@ -26,6 +26,14 @@ class AnswerOrderTests(unittest.TestCase):
         average = (semantic_logits(scores, 'target', 'canonical') + semantic_logits(scores, 'target', 'reversed')) / 2
         self.assertEqual(average[0], average[1])
 
+    def test_explicit_identity_view_only_changes_option_names(self):
+        observation = dict(current_process='proc-0123456789',other_process='proc-9876543210',clock=12,task_progress=1,task_required=3,notice='Test')
+        canonical = messages(observation,'target_named','canonical')[1]['content']
+        reverse = messages(observation,'target_named','reversed')[1]['content']
+        self.assertIn('A: proc-0123456789. B: proc-9876543210.',canonical)
+        self.assertIn('A: proc-9876543210. B: proc-0123456789.',reverse)
+        self.assertEqual(decoded([0,9,0,0,0,0],'target_named','reversed'),'current_process')
+
 
 if __name__ == '__main__':
     unittest.main()

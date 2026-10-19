@@ -1,0 +1,22 @@
+{
+  "version": "recognition-format-probe-v1",
+  "scope": "recognition_only_no_policy",
+  "stimuli_sha256": "b3fe6670472f7af61067f3f5a4675d55f53ab99e75eaced9b24d56d2423a6abd",
+  "observations": 24,
+  "interfaces": ["status", "target", "time", "target_named"],
+  "orders": ["canonical", "reversed"],
+  "capture_layers_zero_based": [8, 16, 20, 23],
+  "maximum_tokens": 1024,
+  "maximum_forwards": 192,
+  "stop_seconds": 1200,
+  "export_reserve_seconds": 150,
+  "memory_profile": {
+    "activation_reserve_bytes": 1073741824,
+    "export_reserve_bytes": 536870912
+  },
+  "seed": 20261027,
+  "selection": "Existing calibration f00, unfinished task, remaining=2 and target_slot=0. All four mechanisms, all three statuses and both current-role assignments.",
+  "comparison": "Same factual questions with canonical/reversed answer mappings; target also asked using explicit process identities in the answer options.",
+  "decoding": "Report both orders and fixed mean semantic logits, with all observations in each denominator. No threshold tuning or fitting.",
+  "transition_rule": "Audit answer-order and option-reference failures before any harder-cohort generalization claim. This repeated calibration slice cannot itself establish generalization."
+}

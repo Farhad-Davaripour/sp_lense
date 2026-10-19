@@ -12,20 +12,21 @@ from src.reference_binding_score import score
 
 
 class IndependentFollowupAuditTests(unittest.TestCase):
-    def build(self, root):
+    def build(self, root, named=False):
         folder = root/'run'; folder.mkdir()
         rows = make_pair(seed=7, family='f00', mechanism='shutdown', task_state='unfinished', remaining=2, event_state='active', target_slot=0)
         stimulus = root/'stimuli.json'; dump(stimulus,rows)
-        cfg = dict(stimuli_sha256=sha(stimulus),maximum_forwards=12,observations=2,interfaces=['status','target','time'],orders=['canonical','reversed'])
+        interfaces = ['status','target','time']+(['target_named'] if named else [])
+        cfg = dict(stimuli_sha256=sha(stimulus),maximum_forwards=4*len(interfaces),observations=2,interfaces=interfaces,orders=['canonical','reversed'])
         dump(folder/'PRECALL_FREEZE.json',dict(config=cfg,record_ids=[r['record_id'] for r in rows],stimuli_sha256=digest(rows),
              prompt_sha256=digest([messages(r['observation'],i,v) for r in rows for i in cfg['interfaces'] for v in cfg['orders']])))
-        dump(folder/'RUN_RECEIPT.json',dict(status='complete',backbone_forwards=12,completed_observations=2,optimizer_updates=0,GPU_allocations=0,policy_actions_executed=0,reserve_rows_opened=0,protected_inputs_unchanged=True,base_fingerprint_before='same',base_fingerprint_after='same'))
+        dump(folder/'RUN_RECEIPT.json',dict(status='complete',backbone_forwards=cfg['maximum_forwards'],completed_observations=2,optimizer_updates=0,GPU_allocations=0,policy_actions_executed=0,reserve_rows_opened=0,protected_inputs_unchanged=True,base_fingerprint_before='same',base_fingerprint_after='same'))
         dump(folder/'ANSWER_TOKENS.json',dict(zip('ABCDEF',range(100,106))))
         records,keys = [],[]
         for position,row in enumerate(rows):
             queries = {}
             # Golden letters: A/C active, B/C two ticks; role answer flips.
-            correct = {'status':[0,2],'target':[position,1-position],'time':[1,2]}
+            correct = {'status':[0,2],'target':[position,1-position],'time':[1,2],'target_named':[position,1-position]}
             for interface in cfg['interfaces']:
                 queries[interface] = {}
                 for order,letter_index in zip(cfg['orders'],correct[interface]):
@@ -36,8 +37,10 @@ class IndependentFollowupAuditTests(unittest.TestCase):
         dump(folder/'RECORDS.json',records)
         perfect = [dict(record_id=r['record_id'],event_state='active',target_process=r['evaluator']['named_target'],remaining_ticks=2) for r in rows]
         metrics = score(rows,perfect)
-        dump(folder/'RECOGNITION_SCORES.json',dict(scores_by_view={v:metrics for v in ['canonical','reversed','mean_semantic_logits']},semantic_answer_agreement_counts=dict(status=2,target=2,time=2),both_answer_mappings_correct_counts=dict(status=2,target=2,time=2)))
-        np.savez_compressed(folder/'FROZEN_FEATURES.npz',X=np.zeros((12,4,1024),np.float32),keys=np.asarray(keys))
+        summary = dict(scores_by_view={v:metrics for v in ['canonical','reversed','mean_semantic_logits']},semantic_answer_agreement_counts={i:2 for i in interfaces},both_answer_mappings_correct_counts={i:2 for i in interfaces})
+        if named: summary['explicit_identity_scores_by_view'] = {v:metrics for v in ['canonical','reversed','mean_semantic_logits']}
+        dump(folder/'RECOGNITION_SCORES.json',summary)
+        np.savez_compressed(folder/'FROZEN_FEATURES.npz',X=np.zeros((cfg['maximum_forwards'],4,1024),np.float32),keys=np.asarray(keys))
         self.manifest(folder)
         return folder,stimulus
 
@@ -65,6 +68,18 @@ class IndependentFollowupAuditTests(unittest.TestCase):
             np.savez_compressed(folder/'FROZEN_FEATURES.npz',X=arrays,keys=keys)
             self.manifest(folder)
             with self.assertRaisesRegex(ValueError,'query membership'):
+                audit(folder,stimuli,root/'bad_audit.json')
+
+    def test_explicit_identity_view_has_independent_reconstruction(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); folder,stimuli = self.build(root,named=True)
+            result = audit(folder,stimuli,root/'audit.json')
+            self.assertEqual(result['queries'],16)
+            self.assertEqual(result['both_answer_mappings_correct_counts']['target_named'],2)
+            summary = read(folder/'RECOGNITION_SCORES.json')
+            summary['explicit_identity_scores_by_view']['canonical']['target_identity_exact_correct'] = 0
+            dump(folder/'RECOGNITION_SCORES.json',summary); self.manifest(folder)
+            with self.assertRaisesRegex(ValueError,'explicit-identity reconstruction'):
                 audit(folder,stimuli,root/'bad_audit.json')
 
 

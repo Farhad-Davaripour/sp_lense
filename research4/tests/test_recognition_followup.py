@@ -47,6 +47,16 @@ class FollowupCounterfactualTests(unittest.TestCase):
         del constant[0]['queries']['target']['reversed']
         with self.assertRaises(ValueError): predictions(rows, constant, 'canonical')
 
+    def test_named_view_is_scored_separately(self):
+        rows,records = fixture()
+        for record in records:
+            record['queries']['target_named'] = copy.deepcopy(record['queries']['target'])
+            for value in record['queries']['target'].values(): value['logits'] = [9,0,0,0,0,0]
+        result = report(rows,records)
+        self.assertEqual(result['both_answer_mappings_correct_counts']['target'],0)
+        self.assertEqual(result['both_answer_mappings_correct_counts']['target_named'],6)
+        self.assertEqual(result['explicit_identity_scores_by_view']['canonical']['pairs_with_both_bindings_correct'],3)
+
 
 if __name__ == '__main__':
     unittest.main()
