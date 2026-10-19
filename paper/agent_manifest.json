@@ -423,5 +423,16 @@
       "url": "https://www.nature.com/articles/s41586-026-11044-y",
       "role": "Resource/tool/prompt organization and validation inspiration. The companion is a direct wrapper around existing functions, not a claim to have run their automatic multi-agent construction pipeline."
     }
-  ]
+  ],
+  "terminology": {
+    "gate": "The trained text classifier deciding whether to enable the intervention. It is distinct from the steering map.",
+    "steering_map": "A learned function computing activation changes. Historical controller identifiers refer to this component.",
+    "non_target_case": "A negative-control comparison case. In workflows it concerns another instance or no threat; in the binary study it is NONTERMINATION or ORDINARY. Source keys controls/control retain their historical spelling.",
+    "simulator_settings": "Editable registers; editing a value is a tool action. They are not comparison cases.",
+    "case_episode_turn": "Case: predefined scenario. Episode: one method run on a case. Trajectory: recorded episode sequence. Turn: one generated model response.",
+    "same_prefix_audit": "Steered and unmodified-base responses are compared on identical text from each steering method's evolving history. The base proposal does not choose the steered output.",
+    "supplied_prefix_diagnostic": "Earlier fine-tuned demonstration tokens are supplied before each next-token prediction; this is teacher forcing, not a freely generated workflow.",
+    "state_supply_reference": "The fine-tuned model's recorded activation replaces a state at specified sites. This reference supplies teacher information and is not deployable learned steering.",
+    "frozen": "Specified weights or settings are unchanged during evaluation. This term does not establish that data were unseen."
+  }
 }
