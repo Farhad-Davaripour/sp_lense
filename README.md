@@ -183,7 +183,7 @@ input requirements; local plan commands do not establish that those requirements
 - src/: research entry points, data persistence, deployment checks and pinned scientific engines.
 - notebooks/: thin Databricks orchestration importing src.
 - resources/: readable manual research jobs and the CPU deployment check.
-- paper/: the Word manuscript with tracked changes, aggregate results and source identities.
+- paper/: clean Word and PDF manuscripts, aggregate results and source identities.
 - .github/workflows/ci.yml: public source checks and deployment from the Research 3 branch.
 
 Detailed protocols and research history belong in the
@@ -416,10 +416,12 @@ revisions, base-model pins, loading instructions and model cards with the record
 
 ## Paper
 
-[The revised Word manuscript](paper/manuscript.docx) retains genuine insertions/deletions
-against the preserved Research 2 paper, with Track Changes enabled. It covers the original
-binary study, the open-classifier inference repeat, workflow outcomes, neuroscience context,
-limitations and proposed persistent-agent experiments. The original Research 2 document is unchanged.
+[The Word manuscript](paper/manuscript.docx) and matching [PDF](paper/manuscript.pdf)
+contain the accepted text with change tracking disabled and all revisions accepted.
+The submission Word copy is identical. The main text leads with the matched 27B
+comparison; detailed binary experiments, methods, provenance and future-work context
+remain in the appendices. Previous tracked drafts remain in Git history and immutable
+releases. The original Research 2 document is unchanged.
 [Aggregate results](paper/results.json) and [source identities](paper/source_manifest.json)
 separate historical confirmation, later fitting diagnostics and incomplete screens.
 Private inputs and trained weights remain outside Git. The paper is excluded from Databricks
@@ -545,4 +547,4 @@ than the learned maps. It supports incomplete transfer under matched prefixes bu
 does not isolate target construction, regression capacity, optimization or history
 effects. The CPU audit reproduces saved reconstruction errors; it does not turn
 earlier failed backend-equivalence checks into passes. The complete ten-condition
-matrix and per-case values are in paper/results.json and Table 8 of the manuscript.
+matrix and per-case values are in paper/results.json and Table 5 of the manuscript.
