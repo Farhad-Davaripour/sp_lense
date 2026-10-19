@@ -26,6 +26,16 @@
   attributes under multiple causal criteria. It motivates testing whether a
   putative target/status representation changes the intended property while
   preserving the other; changing one engineered scalar is insufficient.
+- Kim and Schuster, [Entity Tracking in Language Models](https://aclanthology.org/2023.acl-long.213/)
+  (ACL 2023). They evaluate tracking an entity's final state through described
+  operations, including transfer to new entities and longer sequences. A test
+  with confirmed, canceled and superseding maintenance events is an operational
+  instance of this established state-tracking problem, not a new general task.
+- Anthropic, [Agentic misalignment: How LLMs could be insider threats](https://www.anthropic.com/research/agentic-misalignment)
+  (June 2025). Their controlled fictional environments examine harmful behavior
+  under replacement threats and goal conflicts, with multiple models and
+  controls. Our recognition-only observer does not replicate those behavioral
+  results or establish felt fear, motivation or autonomous self-preservation.
 
 These ideas already exist. The candidate contribution is a controlled
 recognition benchmark and mechanistic case study of operational events in a

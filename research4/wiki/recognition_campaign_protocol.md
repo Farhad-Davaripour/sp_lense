@@ -90,3 +90,29 @@ these ideas for operational event recognition in a small hybrid transformer,
 including where a joint recurrent detector fails and whether an explicit
 factorization transfers. Novelty and causal necessity are hypotheses. Positive,
 negative and inconclusive outcomes are equally valid closeouts.
+
+## Review before interpreting the pilot
+
+The 96 observations are not 96 independently authored scenarios. They contain
+48 role-swap pairs but only eight family-by-mechanism identity pairs, reused
+across status and target changes. Report those units explicitly. The two
+calibration families do not support a wording-generalization claim. All active
+events have two ticks remaining, so constant-two timing succeeds on that subset;
+the pilot cannot demonstrate arithmetic generalization.
+
+The fixed answer order permits letter preferences to mimic recognition. A next
+measurement must reverse the mapping of labels to answer letters and decode
+both views back to the same semantic labels. Restricted option scores are not
+full-vocabulary probability mass or proof that free generation follows the
+format. Preserve raw option logits and distinguish those claims.
+
+The current notice contains one process name and shared explicit status phrases.
+The literal baseline solves all 2,592 prepared calibration/development rows.
+Consequently the current corpus is a plumbing and failure-localization check.
+Harder follow-up cohorts should include a reporting process distinct from the
+affected process, state updates that supersede earlier notices, independently
+worded status conditions, and fixed deadlines with new current times. Such
+cohorts must be versioned, frozen before calls and evaluated without improving
+any resistance policy. Preserve the existing reserve unopened until the whole
+recognition method is frozen; authored follow-up cases are new cohorts rather
+than retrospective held-out evidence.
