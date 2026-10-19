@@ -126,3 +126,13 @@ explicit caveat that alignment is also associated with identity/family/mechanism
 groups. It is not a randomized causal intervention. Future causal binding tests
 need token-aligned names and matched sham substitutions. Equal overall prompt
 length alone is insufficient to rule out a positional explanation.
+
+The first terminal local legacy-readout reconstruction rejected its original
+absolute-only 1e-6 tolerance. Local PyTorch is 2.13.0+cpu; the cloud job pins
+2.11.0+cpu. Inspection of all 192 local/reset-GRU logits found maximum absolute
+error 7.62939453125e-6, maximum relative error 1.658110814861979e-7, zero changed
+threshold decisions and a minimum stored absolute logit of 3.4294. Preserve the
+initial rejection and the full numerical investigation. The amended audit
+requires finite values, rtol=1e-6 / atol=1e-6 and identical threshold decisions.
+Tests reject even tiny sign flips and materially different values. This is an
+explicit audit-comparator amendment, not a Qwen rerun or a change to outcomes.

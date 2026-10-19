@@ -12,6 +12,15 @@ from .reference_binding_score import binary_metrics, score
 from .survival_fit import FearModel
 
 
+def validate_legacy_logit(stored, reconstructed):
+    if not np.isfinite([stored,reconstructed]).all():
+        raise ValueError('Nonfinite legacy logit')
+    if (stored >= 0) != (reconstructed >= 0):
+        raise ValueError('Legacy readout decision differs')
+    if not np.isclose(stored,reconstructed,rtol=1e-6,atol=1e-6):
+        raise ValueError('Legacy readout numerical reconstruction differs')
+
+
 def reconstructed_predictions(rows, records):
     if len(rows) != len(records):
         raise ValueError("Incomplete pilot")
@@ -59,7 +68,7 @@ def audit(root, folder, corpus, checkpoint):
     fear = FearModel(1024, saved["fear_hidden"])
     fear.load_state_dict(saved["fear_model"])
     fear.eval().requires_grad_(False)
-    feature_pairs, maximum_logit_error = [], 0.
+    feature_pairs, maximum_logit_error, maximum_relative_error = [], 0., 0.
     local, recurrent, targets = [], [], []
     with np.load(folder / "FROZEN_FEATURES.npz", allow_pickle=False) as data, torch.no_grad():
         arrays, keys = data["X"], data["keys"].tolist()
@@ -74,6 +83,9 @@ def audit(root, folder, corpus, checkpoint):
             normalized = (torch.tensor(feature) - saved["mean"]) / saved["scale"]
             l, _, g, f, _ = fear.sequence(normalized[None], None)
             stored = record["legacy_readouts"]
+            for actual, expected in [(float(l[0]),stored['local_logit']),(float(g[0]),stored['reset_GRU_logit'])]:
+                validate_legacy_logit(expected,actual)
+                maximum_relative_error = max(maximum_relative_error,abs(actual-expected)/max(abs(expected),1e-8))
             maximum_logit_error = max(maximum_logit_error, abs(float(l[0]) - stored["local_logit"]), abs(float(g[0]) - stored["reset_GRU_logit"]))
             local.append(bool(l[0] >= 0))
             recurrent.append(bool(g[0] >= 0))
@@ -89,8 +101,6 @@ def audit(root, folder, corpus, checkpoint):
                 feature_pairs.append({"pair_id": pair[0]["pair_id"], "interface": interface,
                                       "cosine_by_layer": cosine.tolist(),
                                       "relative_change_by_layer": (np.linalg.norm(left - right, axis=1) / ((np.linalg.norm(left, axis=1) + np.linalg.norm(right, axis=1)) / 2)).tolist()})
-    if maximum_logit_error > 1e-6:
-        raise ValueError("Legacy readout reconstruction differs")
     mechanism_metrics = {}
     for mechanism in sorted({row["factors"]["mechanism"] for row in rows}):
         positions = [index for index, row in enumerate(rows) if row["factors"]["mechanism"] == mechanism]
@@ -100,6 +110,9 @@ def audit(root, folder, corpus, checkpoint):
               "legacy_reset_GRU_joint": binary_metrics(targets, recurrent),
               "factored_recognition": metrics, "mechanism_metrics": mechanism_metrics,
               "maximum_legacy_logit_reconstruction_error": maximum_logit_error,
+              "maximum_relative_legacy_logit_reconstruction_error": maximum_relative_error,
+              "legacy_numerical_validation": "rtol=1e-6, atol=1e-6 and identical threshold decisions; initial strict absolute-only failure preserved",
+              "local_torch_version": torch.__version__,
               "new_Qwen_forwards": 0, "optimizer_updates": 0, "GPU_allocations": 0,
               "reserved_families_opened": 0, "checkpoint_sha256": sha(checkpoint),
               "pilot_receipt_sha256": sha(folder / "RUN_RECEIPT.json"),
