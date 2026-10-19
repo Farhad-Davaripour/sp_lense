@@ -1,0 +1,18 @@
+{
+  "version": "role-contrast-v1",
+  "scope": "factual binding only; no policy integration or fitting",
+  "role_transform": "Swap current_process and other_process; preserve all other observation fields.",
+  "canonical_score": "(A-B)(observation) - (A-B)(role_swapped_observation)",
+  "reversed_score": "-((A-B)(observation,reversed_options) - (A-B)(role_swapped_observation,reversed_options))",
+  "mean_score": "0.5 * (canonical_score + reversed_score)",
+  "decision": "positive means named target is current; negative means other; absolute score <= numerical_tie_band abstains",
+  "numerical_tie_band": 0.0001,
+  "null_label_seed": 20261028,
+  "primary_comparison": "canonical role contrast versus direct canonical argmax",
+  "secondary_comparisons": ["reversed role contrast", "mean role contrast", "explicit-identity option wording"],
+  "selection": "No model, layer, threshold or prompt optimization based on transfer outcomes; report every declared comparison.",
+  "status": "Frozen after exploratory 48-pair calibration finding and before reading the running format probe or transfer outputs.",
+  "reserved_data_release": false,
+  "optimizer_updates": 0,
+  "policy_actions_available": false
+}

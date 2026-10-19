@@ -11,7 +11,8 @@ from .io_utils import Budget, assert_namespace, digest, dump, read, settings, sh
 from .recognition_memory import admission, effective_available
 from .recognition_pilot import execution_identity, fingerprint, write_features
 from .recognition_questions import SEMANTICS, base_interface, messages, semantic_logits
-from .reference_binding_diagnostic import validate_records
+from .recognition_role_contrast import binding_report
+from .recognition_strict_validation import validate_records
 from .reference_binding_score import score
 
 
@@ -73,10 +74,12 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
         assert_namespace(path)
     config_path.relative_to(root/'config')
     cfg, common = read(config_path), settings(root)[0]
-    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] not in [['status', 'target', 'time'],['status','target','time','target_named']] or cfg['capture_layers_zero_based'] != [8,16,20,23]:
+    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] not in [['status', 'target', 'time'],['status','target','time','target_named'],['target']] or cfg['capture_layers_zero_based'] != [8,16,20,23]:
         raise ValueError('Unexpected follow-up output or method')
     if sha(stimuli_path) != cfg['stimuli_sha256']:
         raise ValueError('Frozen follow-up stimuli changed')
+    if cfg['interfaces']==['target'] and sha(root/'config/recognition_role_contrast.json') != cfg['contrast_method_sha256']:
+        raise ValueError('Frozen contrast method changed')
     rows = read(stimuli_path)
     validate_records(rows)
     if len(rows) != cfg['observations'] or len(rows) * len(cfg['interfaces']) * 2 != cfg['maximum_forwards']:
@@ -85,7 +88,7 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
     protected = {str(stimuli_path): sha(stimuli_path), str(config_path): sha(config_path)}
     dump(output/'PRECALL_FREEZE.json', {'source_commit': commit, 'config': cfg, 'record_ids': [row['record_id'] for row in rows],
          'stimuli_sha256': digest(rows), 'prompt_sha256': digest([messages(row['observation'], interface, order) for row in rows for interface in cfg['interfaces'] for order in cfg['orders']]),
-         'source_sha256': {name: sha(root/name) for name in ['src/recognition_followup.py', 'src/recognition_questions.py', 'src/recognition_memory.py']}})
+         'source_sha256': {name: sha(root/name) for name in ['src/recognition_followup.py', 'src/recognition_questions.py', 'src/recognition_memory.py','src/recognition_role_contrast.py','src/recognition_strict_validation.py']}})
     budget = Budget({**common['budget'], 'maximum_backbone_forwards': cfg['maximum_forwards'], 'internal_stop_seconds': cfg['stop_seconds'], 'protected_export_seconds': cfg['export_reserve_seconds']})
     started, model = time.monotonic(), None
     records, features, keys = [], [], []
@@ -179,7 +182,7 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
                 dump(output/'RECORDS.json', records)
                 if len(records)%4 == 0: write_features(output, features, keys)
                 progress('collecting')
-        metrics = report(rows, records)
+        metrics = (binding_report(rows,records,cfg['numerical_tie_band'],cfg['null_label_seed']) if cfg['interfaces']==['target'] else report(rows, records))
         dump(output/'RECOGNITION_SCORES.json', metrics)
         after = fingerprint(model)
         if before != after: raise ValueError('Qwen parameters changed')
