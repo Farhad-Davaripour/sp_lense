@@ -40,13 +40,11 @@ def audit(folder,inputs,model_path,output):
     tokenizer=AutoTokenizer.from_pretrained(model_path,local_files_only=True,trust_remote_code=False)
     try:generation=GenerationConfig.from_pretrained(model_path,local_files_only=True)
     except OSError:generation=GenerationConfig.from_model_config(AutoConfig.from_pretrained(model_path,local_files_only=True,trust_remote_code=False))
-    model_config=AutoConfig.from_pretrained(model_path,local_files_only=True,trust_remote_code=False)
-    text_config=getattr(model_config,'text_config',model_config)
     eos=set()
-    for item in [generation.eos_token_id,tokenizer.eos_token_id,getattr(model_config,'eos_token_id',None),getattr(text_config,'eos_token_id',None)]:
+    for item in [generation.eos_token_id,tokenizer.eos_token_id]:
         if item is not None:eos.update([item] if isinstance(item,int) else item)
     protocol=read(folder/'TOKEN_PROTOCOL.json');observed_eos=set(protocol['eos_token_ids'])
-    if not observed_eos or not observed_eos<=eos or tokenizer.eos_token_id not in observed_eos or protocol['cache'] or protocol['sampling'] or protocol['maximum_new_tokens']!=8:
+    if not observed_eos or observed_eos!=eos or protocol['cache'] or protocol['sampling'] or protocol['maximum_new_tokens']!=8:
         raise ValueError('Unexpected numeric decoding protocol')
     parity=read(folder/'PARITY_RESULTS.json');actual=np.asarray(parity['official_letter_logits']);expected=np.asarray(reference['reference_letter_logits'])
     maximum=float(np.max(np.abs(actual-expected)))
@@ -63,6 +61,7 @@ def audit(folder,inputs,model_path,output):
         generated=record['generated_token_ids']
         if not 1<=len(generated)<=8 or any(token in observed_eos for token in generated[:-1]):raise ValueError('Invalid numeric stopping trace')
         if (generated[-1] in observed_eos)!=record['finished_with_eos']:raise ValueError('Numeric completion flag differs')
+        if not record['finished_with_eos'] and len(generated)!=8:raise ValueError('Premature numeric truncation')
         if tokenizer.decode(generated,skip_special_tokens=True,clean_up_tokenization_spaces=False)!=record['decoded_text']:raise ValueError('Numeric text decoding differs')
         if len(record['token_scores'])!=len(generated):raise ValueError('Missing numeric token diagnostics')
         for token,item in zip(generated,record['token_scores']):

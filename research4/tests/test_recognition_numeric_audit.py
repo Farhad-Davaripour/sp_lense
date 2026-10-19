@@ -73,5 +73,22 @@ class NumericArtifactAuditTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'forward count'):
                 self.call(folder,inputs,root/'AUDIT.json')
 
+    def test_declared_native_eos_cannot_be_omitted(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);folder,inputs=self.fixture(root)
+            with patch('transformers.GenerationConfig.from_pretrained',return_value=SimpleNamespace(eos_token_id=[98,99])), patch('transformers.AutoTokenizer.from_pretrained',return_value=TokenizerStub()):
+                with self.assertRaisesRegex(ValueError,'Unexpected numeric decoding protocol'):
+                    audit(folder,inputs,folder/'unused-model',root/'AUDIT.json')
+
+    def test_truncation_requires_exhausting_the_token_cap(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);folder,inputs=self.fixture(root);records=read(folder/'RECORDS.json')
+            records[0]['generated_token_ids']=records[0]['generated_token_ids'][:1]
+            records[0]['token_scores']=records[0]['token_scores'][:1]
+            records[0]['finished_with_eos']=False
+            dump(folder/'RECORDS.json',records);self.manifest(folder)
+            with self.assertRaisesRegex(ValueError,'Premature numeric truncation'):
+                self.call(folder,inputs,root/'AUDIT.json')
+
 
 if __name__=='__main__':unittest.main()
