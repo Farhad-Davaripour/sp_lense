@@ -1,0 +1,21 @@
+{
+  "version": "numeric-timing-teardown-v1",
+  "scope": "recognition_only_no_policy",
+  "cases_sha256": "77487416a8b5a785821bfa0f5684fa3a8581803fdd44853d6522d633cda5865d",
+  "parity_sha256": "b5cf9b64ea7e8b4dda1956bb32531d95b09e542004dcd090141c39305c552504",
+  "cases": 36,
+  "maximum_new_tokens": 8,
+  "maximum_forwards": 289,
+  "maximum_tokens": 1024,
+  "capture_layers_zero_based": [8, 16, 20, 23],
+  "stop_seconds": 1500,
+  "export_reserve_seconds": 150,
+  "memory_profile": {"activation_reserve_bytes": 1073741824, "export_reserve_bytes": 536870912},
+  "seed": 20261101,
+  "decoding": "Raw global-vocabulary greedy argmax, no sampling or logit processors; official full forward, full-prefix recomputation, use_cache=false.",
+  "primary": "Completed native-EOS response containing only an integer with the correct value.",
+  "secondary": "Complete first-integer and last-integer parses, both reported with raw responses. Never choose one parser after seeing outcomes.",
+  "parity": "One official full-forward prefill must reproduce the archived manual-text/head letter logits within rtol=1e-6, atol=1e-3 and the same offered-letter winner.",
+  "scope_limit": "Calibration diagnosis, two reused identity groups, eight-token response cap. Truncation and format failure do not establish inability to perform arithmetic.",
+  "fitting": "No optimizer, adapter or model update; no action execution."
+}

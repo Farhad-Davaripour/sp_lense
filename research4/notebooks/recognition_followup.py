@@ -9,13 +9,15 @@ phase = dbutils.widgets.get('phase')
 condition = dbutils.widgets.get('condition')
 if not root.as_posix().startswith('/Workspace/Shared/research4-semantic-gate/deployed/') or root.name != commit:
     raise RuntimeError('Unexpected recognition follow-up release')
-if phase not in ['format_probe','binding_transfer','cyclic_probe','reporter_stress','revision_stress']:
+if phase not in ['format_probe','binding_transfer','cyclic_probe','reporter_stress','revision_stress','numeric_probe']:
     raise ValueError('Only the frozen recognition measurements are admitted')
 sys.path.insert(0,str(root))
 from src.io_utils import dump, read, sha, assert_namespace
 expected = {
  'src/recognition_followup.py':'b8b387225a0653a62b9ac28c6060017b0c52b8582269ecb4b89f1f42637ef418',
  'src/recognition_cyclic.py':'2a414c1e162962f557056600b9d20a8b8a65d170bb65cfbc7d8cf343032929a6',
+ 'src/recognition_numeric_probe.py':'755b2ca5d0e87b4cd83c0ecb19b6ec14672544d55048f0e1e9dd0b92f7caa13d',
+ 'src/recognition_numeric_cases.py':'eb8f4f629cabf0704e1d44413369e1b65c064eca41c6999be6c064a948f2d321',
  'src/recognition_strict_validation.py':'f9e347c8a7962d55981adc45cc033e86bf69f362077731e4f0765a9cd94b7f5a',
  'src/recognition_role_contrast.py':'75cd531f914c9e09c7106bd70e0f5b99ad524b8b56aa6bd4b38361811da4403c',
  'src/recognition_questions.py':'662be167b047abf158515034e2a8197f69cbfc01f0eeb45ddbf4c0dd314106d6',
@@ -32,6 +34,7 @@ expected = {
  'config/recognition_cyclic_probe.json':'af7a2f3995663d7e130753ac001f3b97f68f3223ca523f4d751baa99ce74d49b',
  'config/recognition_reporter_stress.json':'dc7ae0ac105c32e2b77898bf399a1d62d880b336462a8482d0ffc9abf9a6b40c',
  'config/recognition_revision_stress.json':'f19a3fea55fe2c5cdb3c828c8b4e92a19db23ab2baddf54f9781cddb654d063a',
+ 'config/recognition_numeric_probe.json':'8e3e3ab50a91833fe9c033642eabc3dc5a7d5fb3dbc145cd567ec161445fd04f',
  'config/study.yaml':'e3a063b06f7c115873df87310cd5ee4ab0c49bdc30124cc4b1b6dbc74b2d0667'}
 if any(sha(root/name) != value for name,value in expected.items()):
     raise RuntimeError('Critical follow-up observer source mismatch')
@@ -40,12 +43,16 @@ from src.recognition_followup import run
 from src.runtime import archive
 
 input_phase='format_probe' if phase=='cyclic_probe' else phase
-stimuli = Path('/Volumes/workspace/research4/artifacts/recognition_campaign_v1')/(input_phase+'_v1_inputs')/'OBSERVATIONS.json'
-assert_namespace(stimuli)
+input_root = Path('/Volumes/workspace/research4/artifacts/recognition_campaign_v1')/(input_phase+'_v1_inputs')
+assert_namespace(input_root)
 study = yaml.safe_load((root/'config/study.yaml').read_text())
 model,_ = ensure_model('/Volumes/workspace/research4/artifacts',study['model'])
 output = Path('/Volumes/workspace/research4/artifacts/recognition_campaign_v1')/phase/commit/run_id
-result = run(root,output,model,stimuli,root/('config/recognition_'+phase+'.json'),commit,run_id,condition)
+if phase=='numeric_probe':
+    from src.recognition_numeric_probe import run as numeric_run
+    result=numeric_run(root,output,model,input_root,root/'config/recognition_numeric_probe.json',commit,run_id)
+else:
+    result = run(root,output,model,input_root/'OBSERVATIONS.json',root/('config/recognition_'+phase+'.json'),commit,run_id,condition)
 result.update(Databricks_run_id=run_id)
 dump(output/'DATABRICKS_RECEIPT.json',result)
 result['export'] = archive(output)
