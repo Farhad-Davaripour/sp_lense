@@ -1,4 +1,16 @@
-# Recognition pilot and format-probe results
+# Recognition campaign results and closeout
+
+The fixed relative readout transfers on simple records and partly survives
+distractors, but it is not generally reliable. Both question wordings score
+0/12 chronological revision cases with the primary canonical role contrast.
+A separate numeric diagnosis obtains 0/24 full-record countdowns, despite 4/4
+correct deadline extractions and normal completion of every response. These
+counterexamples reject broad generalization for the tested method and protocols.
+
+This bounded campaign is closed with ten completed, audited CPU runs and 2,072
+backbone forwards, including one official-forward parity check. No model fitting,
+GPU allocation or policy action occurred. The original reserved wording families
+remain unopened; the original v4 checkpoint and held-out archive are unchanged.
 
 The completed CPU experiments listed below passed archive, prompt, prediction and saved
 feature checks. The original v4 checkpoint and held-out archive remain unchanged.
@@ -17,12 +29,15 @@ and Qwen served as a factual observer with no policy action or GPU allocation.
 | Reporter stress, field-reference arm | 96 | 48 | 24 new matched cases | 2 hard styles | 192 |
 | Reporter stress, explicit-ID arm | same 96 | same 48 | same 24 | same 2 | 192 |
 | Revision stress, field-reference arm | 72 | 36 | 12 new matched cases | 1 hard style | 144 |
+| Revision stress, explicit-ID arm | same 72 | same 36 | same 12 | same 1 | 144 |
+| Numeric response diagnosis | 36 unique prompts | not a role-pair evaluation | 2 reused calibration ID groups plus arithmetic controls | diagnostic task formats | 80 |
 
 The pinned Qwen3.5-0.8B has 24 text blocks, hidden width 1,024, 18 linear-attention
 blocks and 6 full-attention blocks. Saved whole-block outputs come from
 zero-based layers 8, 16, 20 and 23. The first three are linear-attention blocks;
 23 is full attention. These captures include attention/memory and MLP updates.
-Inference used FP32, two CPU threads, no gradient updates and no generation.
+All inference used FP32, two CPU threads and no gradient updates. Letter-response
+experiments used prefill scores; the numeric diagnostic used raw greedy generation.
 Every completed model run hashes all base parameters before and after observation.
 
 ## Pilot: component failures hidden by the conjunction
@@ -139,8 +154,22 @@ The primary method's aggregate 48/72 observation accuracy conceals complete
 chronological failure. Its behavior matches the first-name shortcut on this
 slice. This is direct negative evidence against order-robust revision tracking;
 it does not identify a causal neural mechanism. Do not switch the primary method
-to the reversed-answer contrast after seeing outcomes. The frozen explicit-ID
-revision comparison is running and has no audited result yet.
+to the reversed-answer contrast after seeing outcomes.
+
+The explicit-ID revision comparison also completed and passed the same audits.
+Its canonical role contrast passes 12/12 simple cases, 0/12 chronological cases
+and 9/12 reverse-history cases: 0/12 cases pass all three variants. Reversed-answer
+contrast passes 12/12, 5/12 and 5/12, with 2/12 across all variants; mean contrast
+passes 12/12, 3/12 and 9/12, with 2/12 across all variants. The direct explicit-ID
+semantic mean passes both roles in 12/12 simple cases, 0/12 chronological cases
+and 6/12 reverse cases. Thus naming the options does not rescue revision tracking.
+
+Readout-only reconstruction now covers all 1,992 archived letter queries across
+nine completed runs. The saved final-block states, pinned final normalization and
+six tied embedding rows reproduce the recorded scores within 7.6294e-6 maximum
+absolute error; all six-letter argmaxes agree. This required no new backbone
+forward and verifies the link from saved states to scores. It does not validate
+the semantic interpretation of those scores or establish a causal energy law.
 
 ## Completed full cyclic status/time control
 
@@ -153,10 +182,43 @@ role-symmetric average is also 0/8 on active cases. Thus 66.7% overall timing
 would again conceal failure on the important conditional subset.
 
 Position balance alone does not rescue this timing protocol. It also does not
-establish general arithmetic inability: a separate frozen numeric-response
-teardown tests deadline extraction, bare arithmetic, explicit numeric fields,
-and full records with clock/task counters crossed. That diagnostic has no result
-until its actual run and independent decoding audit complete.
+establish general arithmetic inability. The separate numeric-response diagnostic
+below tests deadline extraction, bare arithmetic, explicit numeric fields, and
+full records with clock/task counters crossed.
+
+## Completed numeric response diagnosis
+
+The 36-prompt diagnostic completed in 80 forwards including one parity control,
+with its archive and independent decoding/stopping/count audits passing. The
+official full model wrapper reproduced all six archived parity letter scores
+exactly (maximum error 0.0). Thus the earlier text-module/head shortcut is not an
+explanation for the measured letter-protocol failure on that control.
+
+| Diagnostic family | Correct completed integers | Truncated |
+|---|---:|---:|
+| Bare subtraction | 2/3 | 0 |
+| Explicit execution-tick and clock fields | 0/3 | 0 |
+| Deadline extraction from full notices | 4/4 | 0 |
+| Active countdown from full records | 0/24 | 0 |
+| Hypothetical/canceled controls | 2/2 | 0 |
+| All prompts | 8/36 | 0 |
+
+Every response was a completed integer; strict, first-integer and last-integer
+scoring therefore agree. All 24 full-record countdown responses were `0`, across
+remaining times 1/2/4 and both complete and unfinished task counters (0/4 in each
+of the six crossed cells). All four deadline requests correctly returned `14`.
+Bare `14-12` and `21-17` returned `2` and `4`; bare `37-36` incorrectly returned
+`-1`. The same three arithmetic relations presented as explicit event fields
+returned `14`, `20` and `3`, respectively.
+
+These results separate successful extraction from failed contextual countdowns.
+The failure persists with numeric responses, no truncation and an independently
+verified official forward. It is not merely a malformed-letter-answer problem.
+Three subtraction prompts do not establish general arithmetic competence or
+incompetence. The question wording and answer type change together, so these
+controls do not uniquely identify one cause or neural mechanism. They diagnose
+this frozen raw-greedy, eight-token protocol on two reused calibration ID groups;
+they are not 36 independent deployments or an unrestricted reasoning bound.
 
 Additional saved-state controls make the question dependence explicit. Using
 the same A-minus-B role contrast to predict target identity gives 54/96 correct
@@ -233,6 +295,25 @@ identical threshold decisions, with tests rejecting tiny sign flips.
   Archive SHA256: `5df971dbb9e15bea90ff8a28271f7750b8adbfa5c36d7d6601c3a06bd0266c00`.
 - Every completed backbone fingerprint: `1c48081e4a92b873515d8f34006ee44eb6c74e7b1463c13e1204a701f02b7a5d`.
 - Local evidence root: `C:/Users/farha/Research4/artifacts/recognition_campaign_v1`.
+- Revision runs: `918411226076337` and `783457782524303`, both source
+  `0d4f65aa2bf98edb0fa5f609f222bfd55518a370`, with independent matched reports.
+- Numeric run: `1081741085267011`, source `7fe8dc2efcedb4e12b1b4d396b9581c75ac53094`.
+  Its inference files and inputs are byte-identical to the original numeric freeze;
+  only the independent stopping auditor was hardened before the calls.
+- `CLOSEOUT_AUDIT.json` rechecks all ten archives, CRCs, manifest hashes, run
+  receipt links, frozen fingerprints and the original v4 checkpoint/archive.
+  `FINAL_COMPUTE_CLEANUP.json` confirms terminal SUCCESS for all required runs,
+  no active owned recognition run and the user-paused monitor.
+- `figures_closeout_v1/recognition_campaign.png` and its SVG show audited counts;
+  the generated figure and its count receipt were inspected locally.
+
+Only 168 of the 2,880 prepared challenge observations were queried (reporter and
+revision slices, repeated through two option wordings). The remaining preparation
+is not evaluated evidence. The original reserve f09/f10/f11 remains unopened.
+There is no reason to spend it confirming a broad claim already contradicted by
+these stress tests. Further method development needs a new frozen method and fresh
+evaluation cases, with reliable entity revision and conditional timing as explicit
+endpoints. No shutdown-resistance policy or felt-fear claim follows from this work.
 
 [Contextual calibration](https://proceedings.mlr.press/v139/zhao21c.html),
 [PriDe](https://proceedings.iclr.cc/paper_files/paper/2024/hash/54dd9e0cff6d9214e20d97eb2a3bae49-Abstract-Conference.html),

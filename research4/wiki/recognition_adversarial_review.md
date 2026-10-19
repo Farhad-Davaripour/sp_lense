@@ -37,6 +37,23 @@ completed execution; it is not independently audited scientific evidence.
    a causal memory mechanism, a physical potential-energy law, subjective fear,
    downstream prediction without forwarding the model, or a survival policy.
 
+## Audited outcome
+
+The explicit-ID revision comparator also scores 0/12 chronological cases with
+canonical role contrast; its reverse-history score is 9/12 and no case passes
+all three views. The numeric diagnostic completes all 36 prompts without
+truncation, but passes only 8: extraction 4/4, bare arithmetic 2/3, explicit
+fields 0/3, full-record countdowns 0/24 and inactive controls 2/2. All active
+full-record answers are zero. First/last integer parsing does not change counts.
+Official-forward parity has zero maximum letter-score error. These counterexamples
+remain failures; no prompt or equation is tuned and retested on those cases.
+
+Final closeout verifies ten successful archived runs, 2,072 backbone forwards,
+zero optimizer updates/GPU allocations/policy actions, preserved original v4
+artifacts and no active owned recognition worker. The 56 recognition unit tests
+passed, including both new stopping-audit adversarial tests. The monitor stays
+paused. Broad generalization and publication-level novelty remain unestablished.
+
 ## Closeout standard
 
 Preserve all failures and original v4 artifacts; do not tune on the new stress
