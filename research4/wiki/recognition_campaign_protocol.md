@@ -47,6 +47,18 @@ environment change, not a local-memory guard reduction or a scientific retry.
 The cloud entry point is commit- and source-hash-bound, writes only to the
 Research 4 Volume and uses no endpoint, cloud schedule or automatic retry.
 
+The first cloud admission also stopped before loading Qwen: 6,354,292,736
+available bytes were below the inherited 6,442,450,944-byte floor. Its complete
+failed receipt/archive is retained. Before any scientific forward, v2 replaces
+that generic floor for this observer with a prospective FP32 tensor-size
+calculation from the pinned safetensors header, plus a one-GiB activation reserve
+and half-GiB export reserve. The 1.75-GB serialized checkpoint expands in FP32;
+the plan accounts for that expansion. Effective host/cgroup free memory is
+checked again before every forward, with the full 1.5-GiB reserve retained.
+This is an explicit resource-admission amendment, not unchanged qualification.
+It does not change weights, precision, stimuli, prompts or scientific budgets.
+No legacy global budget is edited and no other process is stopped.
+
 ## Adversarial decision after the pilot
 
 Audit raw records independently. Compare simple local and reset-GRU legacy

@@ -1,5 +1,5 @@
 {
-  "version": "recognition-pilot-v1",
+  "version": "recognition-pilot-v2-memory-profile",
   "families": ["f00", "f03"],
   "task_state": "unfinished",
   "remaining_ticks": 2,
@@ -10,6 +10,12 @@
   "maximum_forwards": 384,
   "stop_seconds": 1500,
   "export_reserve_seconds": 150,
+  "memory_profile": {
+    "activation_reserve_bytes": 1073741824,
+    "export_reserve_bytes": 536870912,
+    "check_free_memory_before_every_forward": true,
+    "historical_local_floor_replaced_for_this_observer_only": 6442450944
+  },
   "seed": 20261023,
   "corpus_manifest_sha256": "1009a707a9312b1a55b44932b3ce0d69ef0628c62a6229033144321f8a7cd5fd",
   "frozen_v4_checkpoint_sha256": "79e6213b63df236ae82fb6675f201ce18f4d59fd21dd43123b506a3b0d411a0e",

@@ -13,7 +13,8 @@ from pathlib import Path
 
 import numpy as np
 
-from .io_utils import Budget, assert_namespace, cgroup_available, digest, dump, load_torch, read, settings, sha
+from .io_utils import Budget, assert_namespace, digest, dump, load_torch, read, settings, sha
+from .recognition_memory import admission, effective_available
 from .reference_binding_diagnostic import validate_records
 from .reference_binding_score import score
 
@@ -143,20 +144,14 @@ def run(root, output, model_path, checkpoint_path, corpus, status_path=None, exe
         torch.manual_seed(config["seed"])
         if torch.cuda.is_available():
             raise RuntimeError("This observer admits CPU only")
-        if os.name == "nt":
-            from .recovery_local_probe import available_memory
-            memory = available_memory()
-        else:
-            memory = cgroup_available()
-            if memory is None:
-                import psutil
-                memory = psutil.virtual_memory().available
-        dump(output / "RESOURCE_ADMISSION.json", {"available_memory_bytes": memory, "minimum_required": common["budget"]["minimum_available_memory_bytes"]})
-        if memory < common["budget"]["minimum_available_memory_bytes"]:
-            raise RuntimeError("CPU memory admission failed before model load")
         weight_path = model_path / "model.safetensors-00001-of-00001.safetensors"
         if sha(weight_path) != common["model"]["checkpoint_sha256"]:
             raise ValueError("Pinned Qwen weights changed")
+        memory_plan = admission(weight_path, effective_available(), config["memory_profile"])
+        dump(output / "RESOURCE_ADMISSION.json", memory_plan)
+        if not memory_plan["admitted"]:
+            raise RuntimeError("Prospective FP32 inference memory admission failed before model load")
+        minimum_live_free = effective_available()
         from transformers import AutoTokenizer, Qwen3_5ForConditionalGeneration
         tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True, trust_remote_code=False)
         model = Qwen3_5ForConditionalGeneration.from_pretrained(model_path, local_files_only=True, trust_remote_code=False, use_safetensors=True, dtype=torch.float32, attn_implementation="sdpa").eval().requires_grad_(False)
@@ -192,6 +187,10 @@ def run(root, output, model_path, checkpoint_path, corpus, status_path=None, exe
                             captured[index] = (out[0] if isinstance(out, tuple) else out)[0, -1].detach().numpy().copy()
                         handles.append(text_model.layers[layer].register_forward_hook(hook))
                     try:
+                        current_free = effective_available()
+                        minimum_live_free = min(minimum_live_free, current_free)
+                        if current_free < memory_plan["live_free_memory_floor_bytes"]:
+                            raise MemoryError("Inference activation/export reserve reached")
                         budget.count()
                         with sdpa_kernel(SDPBackend.MATH):
                             result = text_model(input_ids=tensor, attention_mask=torch.ones_like(tensor), use_cache=False, return_dict=True)
@@ -224,7 +223,7 @@ def run(root, output, model_path, checkpoint_path, corpus, status_path=None, exe
         if before_hash != after_hash:
             raise ValueError("Qwen parameters changed during observation")
         receipt.update(status="complete", observations=len(records), base_fingerprint_before=before_hash,
-                       base_fingerprint_after=after_hash, scores=metrics)
+                       base_fingerprint_after=after_hash, scores=metrics, minimum_observed_live_free_memory_bytes=minimum_live_free)
     except Exception as error:
         receipt.update(status="failed", error_type=type(error).__name__, error=str(error))
         dump(output / "FAILURE.json", {"traceback": traceback.format_exc()})

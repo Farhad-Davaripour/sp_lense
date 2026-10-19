@@ -9,13 +9,14 @@ if not str(root).startswith('/Workspace/Shared/research4-semantic-gate/deployed/
 sys.path.insert(0, str(root))
 from src.io_utils import dump, read, sha, assert_namespace
 expected = {
- 'src/recognition_pilot.py':'aeb0f343ed5f37839b06f889460050af26510c58b6d75819998342316ca60bc0',
+ 'src/recognition_pilot.py':'c64de586ea4398d14171a0237629c388e812572e286e0233b6913c4b4781eaf0',
+ 'src/recognition_memory.py':'09fdb231c9edb7b426380ce8bdf9e5253f16d433e12765ee779cffd1a54621aa',
  'src/reference_binding_diagnostic.py':'fcdfdb380abce391ee670ffb4b8d2e6de5cc453e970815f111b48d312f73cd0c',
  'src/reference_binding_score.py':'e5b86a1f6ffc74433031064c950b55e68f9ca226dc476c4a906b3765b92debc2',
  'src/io_utils.py':'89a579a088708725b0bd7291754d3532014a1255d6a8fa2ebcb94800266f3f47',
  'src/survival_fit.py':'aed00a9a3832d7874a183b35c6b0d97100d78f72bfc6fd23c17b342c96dbed38',
  'src/model_store.py':'3a54a37e28c09099f15c5624a914280592b60fa87c9444170510fa4bce8ee0f1',
- 'config/recognition_pilot.json':'86a8e3617cecff0f2da6cdf184dad72d66e7b2a731c56108ab41ba8a3fd78280',
+ 'config/recognition_pilot.json':'74234661c0de8877e0706b96b6fb564e075b41df56a9a5e2bb19d12c4788b7d4',
  'config/study.yaml':'e3a063b06f7c115873df87310cd5ee4ab0c49bdc30124cc4b1b6dbc74b2d0667'}
 if any(sha(root/name) != value for name, value in expected.items()):
     raise RuntimeError('Critical recognition observer source mismatch')
