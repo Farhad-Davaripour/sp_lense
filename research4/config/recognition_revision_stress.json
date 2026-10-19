@@ -1,0 +1,27 @@
+{
+  "version": "revision-stress-v1",
+  "common": {
+    "scope": "recognition_only_no_policy",
+    "stimuli_sha256": "6c0de6af9352f503c73b94801f11f6fa2dac411e1efd950137866b65c7d76e67",
+    "contrast_method_sha256": "c01bd040ff81f38b5ab14eac9e5d0110b93a16b13537150b849097c94be6f37b",
+    "observations": 72,
+    "orders": ["canonical", "reversed"],
+    "capture_layers_zero_based": [8, 16, 20, 23],
+    "maximum_tokens": 1024,
+    "maximum_forwards": 144,
+    "stop_seconds": 1500,
+    "export_reserve_seconds": 150,
+    "memory_profile": {"activation_reserve_bytes": 1073741824, "export_reserve_bytes": 536870912},
+    "seed": 20261031,
+    "numerical_tie_band": 0.0001,
+    "null_label_seed": 20261028,
+    "matched_analysis_required": true,
+    "selection": "t00 family, shutdown/context_reset, all statuses/target slots, unfinished task, remaining=2, simple/chronological/reverse variants and both roles.",
+    "scope_limit": "12 independent generated identity cases, 36 notice variants, 72 role observations. One authored hard wording family. Higher revision time changes the subject; both text orders are tested within each case."
+  },
+  "conditions": {
+    "field_reference": {"interfaces": ["target"], "purpose": "Primary canonical role contrast; all direct and contrast variants reported."},
+    "explicit_identity": {"interfaces": ["target_named"], "purpose": "Required strong explicit-ID semantic-mean baseline and all corresponding role contrasts."}
+  },
+  "required_reporting": "Independent raw-score audit plus matched and history-order tables, complete-case correctness, frequency/first/last-candidate controls and a grammar-aware ceiling. The t01 wording family remains unqueried by this first slice."
+}

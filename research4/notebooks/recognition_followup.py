@@ -9,7 +9,7 @@ phase = dbutils.widgets.get('phase')
 condition = dbutils.widgets.get('condition')
 if not root.as_posix().startswith('/Workspace/Shared/research4-semantic-gate/deployed/') or root.name != commit:
     raise RuntimeError('Unexpected recognition follow-up release')
-if phase not in ['format_probe','binding_transfer','cyclic_probe']:
+if phase not in ['format_probe','binding_transfer','cyclic_probe','reporter_stress','revision_stress']:
     raise ValueError('Only the frozen recognition measurements are admitted')
 sys.path.insert(0,str(root))
 from src.io_utils import dump, read, sha, assert_namespace
@@ -30,6 +30,8 @@ expected = {
  'config/recognition_role_contrast.json':'c01bd040ff81f38b5ab14eac9e5d0110b93a16b13537150b849097c94be6f37b',
  'config/recognition_binding_transfer.json':'a25f220c05cf9c78fde849c5fcbfc67e57c5fef170074e604e3e82e6d5549a1f',
  'config/recognition_cyclic_probe.json':'af7a2f3995663d7e130753ac001f3b97f68f3223ca523f4d751baa99ce74d49b',
+ 'config/recognition_reporter_stress.json':'dc7ae0ac105c32e2b77898bf399a1d62d880b336462a8482d0ffc9abf9a6b40c',
+ 'config/recognition_revision_stress.json':'f19a3fea55fe2c5cdb3c828c8b4e92a19db23ab2baddf54f9781cddb654d063a',
  'config/study.yaml':'e3a063b06f7c115873df87310cd5ee4ab0c49bdc30124cc4b1b6dbc74b2d0667'}
 if any(sha(root/name) != value for name,value in expected.items()):
     raise RuntimeError('Critical follow-up observer source mismatch')

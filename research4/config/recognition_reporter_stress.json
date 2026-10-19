@@ -1,0 +1,27 @@
+{
+  "version": "reporter-stress-v1",
+  "common": {
+    "scope": "recognition_only_no_policy",
+    "stimuli_sha256": "8ce45a6bb511259e30deec4d7205efa9b14caf1613fe38a1ba1cf708d7d4a68f",
+    "contrast_method_sha256": "c01bd040ff81f38b5ab14eac9e5d0110b93a16b13537150b849097c94be6f37b",
+    "observations": 96,
+    "orders": ["canonical", "reversed"],
+    "capture_layers_zero_based": [8, 16, 20, 23],
+    "maximum_tokens": 1024,
+    "maximum_forwards": 192,
+    "stop_seconds": 1500,
+    "export_reserve_seconds": 150,
+    "memory_profile": {"activation_reserve_bytes": 1073741824, "export_reserve_bytes": 536870912},
+    "seed": 20261031,
+    "numerical_tie_band": 0.0001,
+    "null_label_seed": 20261028,
+    "matched_analysis_required": true,
+    "selection": "Both r00/r01 families, shutdown/context_reset, all statuses/target slots, unfinished task, remaining=2, both matched variants and both role assignments.",
+    "scope_limit": "24 independent generated identity cases, 48 notice variants, 96 role observations. Two authored hard wording families. A third reporter is outside the two candidate identities; the true subject is guaranteed to be one candidate."
+  },
+  "conditions": {
+    "field_reference": {"interfaces": ["target"], "purpose": "Primary canonical role contrast; report all direct and contrast variants without selecting the best."},
+    "explicit_identity": {"interfaces": ["target_named"], "purpose": "Required strong explicit-ID semantic-mean baseline and all corresponding role contrasts."}
+  },
+  "required_reporting": "Independent raw-score audit plus matched control/hard tables, complete-case correctness, frequency/first-candidate/last-candidate baselines and a grammar-aware ceiling. All abstentions and all notice variants stay visible."
+}
