@@ -47,3 +47,26 @@ task-specific input-role symmetry as a within-observation comparison; novelty
 over those methods has not been established. The [tuned-lens work](https://arxiv.org/abs/2303.08112)
 also warns that untuned intermediate readouts can be brittle. Earlier-layer
 applications of the frozen final normalization/head are descriptive only.
+
+## Fair comparison amendment before transfer calls
+
+The independent format-probe audit found that naming actual process IDs in the
+options already reaches 23/24 correct in the canonical order and 24/24 after a
+fixed semantic-logit mean over both orders. The reversed order alone is 12/24.
+Field-reference choices remain 12/24 in each order and in the semantic mean.
+Both canonical and reversed role contrasts score 24/24 for either option
+wording. All these results are repeated calibration, not unseen transfer.
+
+Before any transfer output is queried, the source protocol therefore declares
+two conditions on the same 144 new observations: field references and explicit
+IDs. Each collects both answer orders (288 calls per condition). Compare direct
+canonical/reversed/semantic-mean answers with canonical/reversed/mean role
+contrasts. The strong explicit-ID mean is a required baseline, even if it matches
+or outperforms the candidate. This amendment adds a comparison and does not
+change the original equation, numerical tie band, primary direction or examples.
+
+The stricter oracle validator also recomputes Boolean labels from named target,
+current identity and event factors, rather than merely checking that paired
+labels flip. It catches contradictory metadata before model calls. Existing
+stimuli pass unchanged. The original corpus generator and reserve commitment
+remain untouched.

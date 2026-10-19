@@ -58,18 +58,23 @@ def evaluate(rows, predictions):
             'scope':'Pair antisymmetry is imposed; only correct direction against unseen labels is evidence. Abstentions stay in the accuracy denominator.'}
 
 
-def binding_report(rows,records,tie_band=1e-4,null_seed=20261028):
+def binding_report(rows,records,tie_band=1e-4,null_seed=20261028,interface='target'):
     index = {row['record_id']:row for row in rows}
     direct = {}
-    for order in ['canonical','reversed']:
+    for order in ['canonical','reversed','mean_semantic_logits']:
         predictions = []
         for record in records:
-            logits = record['queries']['target'][order]['logits']
-            margin = float(logits[0])-float(logits[1])
-            current = margin >= 0 if order == 'canonical' else margin < 0
+            queries=record['queries'][interface]
+            if order=='mean_semantic_logits':
+                a,b=queries['canonical']['logits'],queries['reversed']['logits']
+                current=(float(a[0])-float(a[1])-float(b[0])+float(b[1]))>=0
+            else:
+                logits = queries[order]['logits']
+                margin = float(logits[0])-float(logits[1])
+                current = margin >= 0 if order == 'canonical' else margin < 0
             predictions.append({'record_id':record['record_id'],'prediction_current':current})
         direct[order] = evaluate(rows,predictions)
-    all_predictions = {order:contrasts(rows,records,order=order,tie_band=tie_band) for order in ['canonical','reversed','mean']}
+    all_predictions = {order:contrasts(rows,records,interface=interface,order=order,tie_band=tie_band) for order in ['canonical','reversed','mean']}
     result = {'records':len(rows),'direct_option_scores':direct,
               'role_contrast_scores':{order:evaluate(rows,values) for order,values in all_predictions.items()},
               'identity_groups':len({tuple(sorted([r['observation']['current_process'],r['observation']['other_process']])) for r in rows}),

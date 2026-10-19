@@ -33,7 +33,8 @@ def audit(folder,stimuli,output):
     if output.exists(): raise FileExistsError('Keep previous binding audits')
     freeze,receipt=read(folder/'PRECALL_FREEZE.json'),read(folder/'RUN_RECEIPT.json')
     cfg=freeze['config']
-    if cfg['interfaces']!=['target'] or cfg['orders']!=['canonical','reversed']: raise ValueError('Unexpected transfer method')
+    if cfg['interfaces'] not in [['target'],['target_named']] or cfg['orders']!=['canonical','reversed']: raise ValueError('Unexpected transfer method')
+    interface=cfg['interfaces'][0]
     if receipt['status']!='complete' or receipt['backbone_forwards']!=cfg['maximum_forwards'] or receipt['completed_observations']!=cfg['observations']:
         raise ValueError('Incomplete binding run')
     if any(receipt[key]!=0 for key in ['optimizer_updates','GPU_allocations','policy_actions_executed','reserve_rows_opened']):
@@ -57,23 +58,24 @@ def audit(folder,stimuli,output):
     tokens=read(folder/'ANSWER_TOKENS.json')
     for row,record in zip(rows,records):
         margins[row['record_id']]={}
-        if set(record['queries'])!={'target'}: raise ValueError('Unexpected query surface')
+        if set(record['queries'])!={interface}: raise ValueError('Unexpected query surface')
         for order in cfg['orders']:
-            item=record['queries']['target'][order]
+            item=record['queries'][interface][order]
             logits=np.asarray(item['logits'],dtype=float)
             if logits.shape!=(6,) or not np.isfinite(logits).all(): raise ValueError('Invalid raw logits')
             margins[row['record_id']][order]=float(logits[0]-logits[1])
-            if item['prompt_sha256']!=digest(messages(row['observation'],'target',order)):
+            if item['prompt_sha256']!=digest(messages(row['observation'],interface,order)):
                 raise ValueError('Query hash mismatch')
             if not 0<=item['offered_first_token_probability_mass']<=1.000001: raise ValueError('Invalid offered probability')
             if item['top_token_is_offered_letter']!=(item['full_vocabulary_top_token_id'] in [tokens['A'],tokens['B']]):
                 raise ValueError('Offered top-token flag mismatch')
             if item['selected_full_projection_maximum_error']>1e-3: raise ValueError('Projection mismatch')
-            expected_keys.append(row['record_id']+':target:'+order)
+            expected_keys.append(row['record_id']+':'+interface+':'+order)
     pairs=defaultdict(list)
     for row in rows:pairs[row['pair_id']].append(row)
     labels={row['record_id']:row['evaluator']['named_target_is_current'] for row in rows}
     direct={order:{row['record_id']:(margins[row['record_id']][order]>=0 if order=='canonical' else margins[row['record_id']][order]<0) for row in rows} for order in cfg['orders']}
+    direct['mean_semantic_logits']={key:(value['canonical']-value['reversed'])>=0 for key,value in margins.items()}
     relative={key:{} for key in ['canonical','reversed','mean']}
     for pair in pairs.values():
         for row,other in [pair,pair[::-1]]:
@@ -94,7 +96,7 @@ def audit(folder,stimuli,output):
     with np.load(folder/'FROZEN_FEATURES.npz',allow_pickle=False) as data:
         if data['X'].shape!=(cfg['maximum_forwards'],4,1024) or data['keys'].tolist()!=expected_keys or not np.isfinite(data['X']).all():
             raise ValueError('Invalid feature membership')
-    if digest([messages(row['observation'],'target',order) for row in rows for order in cfg['orders']])!=freeze['prompt_sha256']:
+    if digest([messages(row['observation'],interface,order) for row in rows for order in cfg['orders']])!=freeze['prompt_sha256']:
         raise ValueError('Full prompt release mismatch')
     result={'audit_pass':True,'records':len(rows),'queries':cfg['maximum_forwards'],'direct_option_scores':stored['direct_option_scores'],
             'role_contrast_scores':stored['role_contrast_scores'],'factor_scores':stored['factor_scores'],'random_label_control':stored['random_label_control'],

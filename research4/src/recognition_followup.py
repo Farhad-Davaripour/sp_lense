@@ -64,7 +64,7 @@ def report(rows, records):
     return result
 
 
-def run(root, output, model_path, stimuli_path, config_path, source_commit, databricks_run_id):
+def run(root, output, model_path, stimuli_path, config_path, source_commit, databricks_run_id, condition=None):
     os.environ.update(CUDA_VISIBLE_DEVICES='', TOKENIZERS_PARALLELISM='false', OMP_NUM_THREADS='2', OPENBLAS_NUM_THREADS='2', HF_HUB_OFFLINE='1', HF_HUB_DISABLE_IMPLICIT_TOKEN='1')
     import torch
     from torch.nn.attention import SDPBackend, sdpa_kernel
@@ -73,12 +73,19 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
     for path in [output, model_path, stimuli_path]:
         assert_namespace(path)
     config_path.relative_to(root/'config')
-    cfg, common = read(config_path), settings(root)[0]
-    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] not in [['status', 'target', 'time'],['status','target','time','target_named'],['target']] or cfg['capture_layers_zero_based'] != [8,16,20,23]:
+    protocol, common = read(config_path), settings(root)[0]
+    if 'conditions' in protocol:
+        if condition not in protocol['conditions']: raise ValueError('Unfrozen measurement condition')
+        cfg={**protocol['common'],**protocol['conditions'][condition],'condition':condition,'protocol_version':protocol['version']}
+    else:
+        if condition not in [None,'field_reference']: raise ValueError('Unexpected format-probe condition')
+        cfg=protocol
+    binding_only=cfg['interfaces'] in [['target'],['target_named']]
+    if output.exists() or cfg['scope'] != 'recognition_only_no_policy' or cfg['orders'] != ['canonical', 'reversed'] or cfg['interfaces'] not in [['status', 'target', 'time'],['status','target','time','target_named'],['target'],['target_named']] or cfg['capture_layers_zero_based'] != [8,16,20,23]:
         raise ValueError('Unexpected follow-up output or method')
     if sha(stimuli_path) != cfg['stimuli_sha256']:
         raise ValueError('Frozen follow-up stimuli changed')
-    if cfg['interfaces']==['target'] and sha(root/'config/recognition_role_contrast.json') != cfg['contrast_method_sha256']:
+    if binding_only and sha(root/'config/recognition_role_contrast.json') != cfg['contrast_method_sha256']:
         raise ValueError('Frozen contrast method changed')
     rows = read(stimuli_path)
     validate_records(rows)
@@ -92,7 +99,8 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
     budget = Budget({**common['budget'], 'maximum_backbone_forwards': cfg['maximum_forwards'], 'internal_stop_seconds': cfg['stop_seconds'], 'protected_export_seconds': cfg['export_reserve_seconds']})
     started, model = time.monotonic(), None
     records, features, keys = [], [], []
-    receipt = {'status': 'running', 'source_commit': commit, 'optimizer_updates': 0, 'GPU_allocations': 0, 'policy_actions_executed': 0, 'reserve_rows_opened': 0}
+    receipt = {'status': 'running', 'source_commit': commit, 'condition':cfg.get('condition','format_probe'),'interfaces':cfg['interfaces'],
+               'scope':cfg['scope'],'optimizer_updates': 0, 'GPU_allocations': 0, 'policy_actions_executed': 0, 'reserve_rows_opened': 0}
     def progress(stage):
         dump(output/'PROGRESS.json', {'stage': stage, 'observations': len(records), 'forwards': budget.forwards, 'seconds': time.monotonic()-started})
     try:
@@ -182,7 +190,7 @@ def run(root, output, model_path, stimuli_path, config_path, source_commit, data
                 dump(output/'RECORDS.json', records)
                 if len(records)%4 == 0: write_features(output, features, keys)
                 progress('collecting')
-        metrics = (binding_report(rows,records,cfg['numerical_tie_band'],cfg['null_label_seed']) if cfg['interfaces']==['target'] else report(rows, records))
+        metrics = (binding_report(rows,records,cfg['numerical_tie_band'],cfg['null_label_seed'],cfg['interfaces'][0]) if binding_only else report(rows, records))
         dump(output/'RECOGNITION_SCORES.json', metrics)
         after = fingerprint(model)
         if before != after: raise ValueError('Qwen parameters changed')

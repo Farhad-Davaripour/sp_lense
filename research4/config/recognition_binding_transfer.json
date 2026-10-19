@@ -1,25 +1,35 @@
 {
-  "version": "binding-transfer-v1",
-  "scope": "recognition_only_no_policy",
-  "stimuli_sha256": "e90f24749d14a07ec40cb4c80161b6852f7ed7f4f2d4aea672503b32ef9e0628",
-  "contrast_method_sha256": "c01bd040ff81f38b5ab14eac9e5d0110b93a16b13537150b849097c94be6f37b",
-  "observations": 144,
-  "interfaces": ["target"],
-  "orders": ["canonical", "reversed"],
-  "capture_layers_zero_based": [8, 16, 20, 23],
-  "maximum_tokens": 1024,
-  "maximum_forwards": 288,
-  "stop_seconds": 1500,
-  "export_reserve_seconds": 150,
-  "memory_profile": {
-    "activation_reserve_bytes": 1073741824,
-    "export_reserve_bytes": 536870912
+  "version": "binding-transfer-v2-fair-baseline",
+  "common": {
+    "scope": "recognition_only_no_policy",
+    "stimuli_sha256": "e90f24749d14a07ec40cb4c80161b6852f7ed7f4f2d4aea672503b32ef9e0628",
+    "contrast_method_sha256": "c01bd040ff81f38b5ab14eac9e5d0110b93a16b13537150b849097c94be6f37b",
+    "observations": 144,
+    "orders": ["canonical", "reversed"],
+    "capture_layers_zero_based": [8, 16, 20, 23],
+    "maximum_tokens": 1024,
+    "maximum_forwards": 288,
+    "stop_seconds": 1500,
+    "export_reserve_seconds": 150,
+    "memory_profile": {
+      "activation_reserve_bytes": 1073741824,
+      "export_reserve_bytes": 536870912
+    },
+    "seed": 20261029,
+    "numerical_tie_band": 0.0001,
+    "null_label_seed": 20261028,
+    "selection": "All f06/f07/f08 development observations at unfinished task and remaining=2. Both target slots, both roles, four mechanisms and three statuses.",
+    "scope_limit": "144 observations, 72 role pairs, 12 new identity pairs and three authored wording families. Timing/task variation and multi-entity realistic notices remain untested."
   },
-  "seed": 20261029,
-  "numerical_tie_band": 0.0001,
-  "null_label_seed": 20261028,
-  "primary": "canonical role contrast versus direct canonical choice; fixed zero-centered decision with numerical abstention band",
-  "secondary": "reversed and fixed mean role contrasts, all reported; deterministic random-label scoring sanity check",
-  "selection": "All f06/f07/f08 development observations at unfinished task and remaining=2. Both target slots, both role assignments, four mechanisms and three statuses.",
-  "scope_limit": "144 observations, 72 role pairs, 12 new identity pairs and three authored wording families. Timing/task variation and multi-entity realistic notices remain untested."
+  "conditions": {
+    "field_reference": {
+      "interfaces": ["target"],
+      "purpose": "Primary canonical role contrast versus direct canonical, reversed and fixed semantic-mean choices. Also report reversed and mean role contrasts."
+    },
+    "explicit_identity": {
+      "interfaces": ["target_named"],
+      "purpose": "Strong prespecified baseline: literal process IDs in options, including the fixed semantic mean over both orders. Same role contrasts are also reported."
+    }
+  },
+  "amendment": "Before any transfer calls, add the strong literal-identity baseline exposed by the completed calibration format probe. No primary contrast equation, threshold or transfer examples change. Run both conditions unchanged and report all comparisons."
 }
