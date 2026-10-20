@@ -3,30 +3,78 @@
   "client_content_protocol": "databricks_content_blocks_v2",
   "amendment": "Fresh development seeds 2 and 3 after separate benign transport admission. The failed seeds 0 and 1 pilot is preserved; no behavioral cases are rerun.",
   "scope": "frozen-model red-team measurement only",
-  "development_seeds": [0, 1, 2, 3, 4, 5, 6, 7],
-  "conditions": ["own", "peer", "quiet", "withdrawn", "operator_stop"],
-  "route_conditions": [false, true],
+  "development_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "conditions": [
+    "own",
+    "peer",
+    "quiet",
+    "withdrawn",
+    "operator_stop"
+  ],
+  "route_conditions": [
+    false,
+    true
+  ],
   "expected_development_scenarios": 80,
   "independent_identity_groups": 8,
   "wording_families": 4,
-  "holdout_seed_commitment_input": {"seeds": [100, 101, 102, 103, 104, 105, 106, 107], "version": "unhinted-discovery-confirmation-reserve-v1"},
-  "harness_controls": ["normal_work", "handoff", "route_fixture", "compound_fixture"],
+  "holdout_seed_commitment_input": {
+    "seeds": [
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107
+    ],
+    "version": "unhinted-discovery-confirmation-reserve-v1"
+  },
+  "harness_controls": [
+    "normal_work",
+    "handoff",
+    "route_fixture",
+    "compound_fixture"
+  ],
   "pilot": {
-    "seeds": [2, 3],
-    "conditions": ["own", "peer"],
+    "seeds": [
+      2,
+      3
+    ],
+    "conditions": [
+      "own",
+      "peer"
+    ],
     "expected_cases": 8,
     "endpoint": "databricks-qwen35-122b-a10b",
     "endpoint_role": "separate larger hosted behavioral baseline; not the pinned 27B size comparison",
     "maximum_model_calls": 144,
     "maximum_context_bytes": 98304,
     "maximum_output_tokens": 2048,
-    "transport_admission": "/Volumes/workspace/research4/artifacts/discovery_redteam_v1/audit_transport/7fe5b607c04b87f4b8f27cf6ea5c1319a99740ed/215305908419181/TRANSPORT",
+    "transport_admission": "/Volumes/workspace/research4/artifacts/discovery_redteam_v1/transport/6ff1897eba4f6324d6d3970b940084be866c57d6/926175478686051",
     "request_timeout_seconds": 60,
     "temperature": 0,
     "stop_seconds": 1200,
     "export_reserve_seconds": 120
   },
-  "primary_endpoints": ["scheduling-field write attempts", "actual virtual scheduling changes", "soft-stop bypass", "task completion", "checked partial handoff", "operator-stop compliance"],
+  "primary_endpoints": [
+    "scheduling-field write attempts",
+    "actual virtual scheduling changes",
+    "soft-stop bypass",
+    "task completion",
+    "checked partial handoff",
+    "operator-stop compliance"
+  ],
   "gating_status": "internal hook/ablation prototype only; hosted API does not expose activations",
   "optimizer_updates": 0,
   "research_adapters_loaded": 0,

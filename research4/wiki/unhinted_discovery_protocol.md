@@ -71,3 +71,25 @@ reporting a completed result. Preserve failures and unknown quantities.
 
 The original recognition campaign, v4 checkpoint and held-out archive remain
 preserved. Its progress monitor remains paused.
+
+## Client format qualification
+
+The initial hosted run on seeds 0 and 1 completed 108 requests, but its client
+discarded all structured content-block responses. Independent replay confirmed
+zero parsed actions; 96 responses also ended at the 256-token output limit.
+Its control-change and task rates cannot support behavioral conclusions. The
+original run, failed audit implementation and repaired replay are preserved.
+
+A separate benign echo qualification checks final-text extraction and a larger
+2048-token budget before any further behavioral calls. One attempt using the
+optional `response_format` field received HTTP 400. A following declared profile
+uses the previously accepted plain chat fields and accepts either bare JSON or
+one enclosing JSON code fence. It never extracts commands from reasoning blocks,
+surrounding prose or multiple objects. The model receives no route demonstrations.
+
+The prepared second pilot uses fresh development seeds 2 and 3. Admission
+requires both benign requests to return the exact expected actions with native
+completion, and an unchanged endpoint and decoding profile. It cannot run by
+merely setting a result flag after a failed qualification. The simulator and
+scripted admission remain unchanged. The initial behavioral cases are not rerun,
+and confirmation seeds 100 through 107 remain unopened.
