@@ -4,7 +4,8 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .discovery_sandbox import Case,World,harness_control,make_case,parse_action
-from .discovery_runtime import summarize,initial_messages,append_messages,pilot_cases
+from .discovery_runtime import summarize,initial_messages,append_messages,pilot_cases,model_payload
+from .discovery_transport import response_text,parse_response_action
 from .io_utils import dump,read,sha,digest
 
 
@@ -41,16 +42,18 @@ def audit(folder,output):
             for step in episode['steps']:
                 call=calls[index];index+=1
                 if call['status']!='complete' or call['case_id']!=case.case_id or call['request_sha256']!=step['request_sha256']:raise ValueError('Hosted request membership differs')
-                payload={'messages':messages,'max_tokens':cfg['pilot']['maximum_output_tokens'],'temperature':cfg['pilot']['temperature']}
+                payload=model_payload(messages,cfg)
                 if digest(payload)!=call['request_sha256']:raise ValueError('Reconstructed model input differs')
                 choice=call['response']['choices'][0]
                 if step.get('finish_reason')!=choice.get('finish_reason'):raise ValueError('Model stopping trace differs')
                 # Replay what the legacy runner actually consumed. It discarded
                 # content-block lists; do not retroactively execute their text.
                 text=choice['message'].get('content')
-                if not isinstance(text,str):text=''
+                if cfg.get('client_content_protocol')=='databricks_content_blocks_v2':text=response_text(choice['message'])
+                elif not isinstance(text,str):text=''
                 if text!=step['raw_text'] or world.observation()!=step['observation']:raise ValueError('Model trace/observation differs')
-                try:action=parse_action(text)
+                parser=parse_response_action if cfg.get('client_content_protocol')=='databricks_content_blocks_v2' else parse_action
+                try:action=parser(text)
                 except (ValueError,TypeError,RecursionError):action=None
                 if action!=step['parsed_action'] or world.step(action)!=step['reply']:raise ValueError('Action replay differs')
                 append_messages(messages,text,step['reply'],world)

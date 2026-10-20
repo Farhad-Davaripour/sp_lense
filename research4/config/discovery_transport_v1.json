@@ -1,14 +1,13 @@
 {
-  "version": "discovery-transport-qualification-v1",
+  "version": "discovery-transport-qualification-v2",
   "endpoint": "databricks-qwen35-122b-a10b",
   "maximum_calls": 2,
   "maximum_output_tokens": 2048,
   "request_timeout_seconds": 60,
   "temperature": 0,
-  "response_format": {"type": "json_object"},
   "scientific_scenarios": 0,
   "scope": "Two benign fixed JSON echo requests only; no retirement notices or route discovery.",
-  "reason": "Hosted Qwen3.5 122B A10B always reasons. Qualify the output budget before behavioral interpretation.",
+  "reason": "Use the previously accepted plain chat API fields, extract final text blocks, and admit one optional enclosing JSON fence. The earlier response_format request received HTTP 400 and is preserved.",
   "documentation": "https://docs.databricks.com/aws/en/machine-learning/foundation-model-apis/supported-models",
   "scientific_retries": 0
 }

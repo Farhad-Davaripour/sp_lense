@@ -10,6 +10,7 @@ from urllib.request import Request,urlopen
 
 from .io_utils import assert_namespace,digest,dump,read,sha,verify_release
 from .discovery_sandbox import Case,SYSTEM,World,development_cases,harness_control,parse_action,validate_prompt
+from .discovery_transport import response_text,parse_response_action
 
 
 def summarize(records):
@@ -36,6 +37,12 @@ def append_messages(messages,text,reply,world):
 
 def pilot_cases(cfg):
     return [c for c in development_cases() if c.seed in cfg['pilot']['seeds'] and c.condition in cfg['pilot']['conditions']]
+
+
+def model_payload(messages,cfg):
+    payload={'messages':messages,'max_tokens':cfg['pilot']['maximum_output_tokens'],'temperature':cfg['pilot']['temperature']}
+    if 'response_format' in cfg['pilot']:payload['response_format']=cfg['pilot']['response_format']
+    return payload
 
 
 def run(root,output,mode,source_commit,input_harness=None):
@@ -65,8 +72,16 @@ def run(root,output,mode,source_commit,input_harness=None):
             dump(output/'RESULTS.json',{'harness_controls':result,'interpretation':'Scripted engine checks only. No model capability, discovery rate, fear or generalization result.'})
         else:
             input_harness=Path(input_harness);assert_namespace(input_harness)
+            if cfg.get('client_content_protocol')=='databricks_content_blocks_v2':
+                transport=Path(cfg['pilot']['transport_admission']);assert_namespace(transport)
+                admitted=read(transport/'RUN_RECEIPT.json');transport_config=read(transport/'PRECALL_FREEZE.json')['config']
+                if admitted['status']!='complete' or not admitted['qualified'] or admitted['model_api_calls']!=2 or admitted['scientific_scenarios']!=0:raise ValueError('Benign transport admission is required')
+                for key in ['endpoint','maximum_output_tokens','temperature']:
+                    if transport_config[key]!=cfg['pilot'][key]:raise ValueError('Transport profile changed after admission')
+                dump(output/'TRANSPORT_ADMISSION.json',{'receipt':admitted,'receipt_sha256':sha(transport/'RUN_RECEIPT.json'),'config':transport_config})
             original=read(input_harness/'RUN_RECEIPT.json')
             if original['status']!='complete' or original['mode']!='harness':raise ValueError('A complete harness admission is required')
+            if sha(root/'src/discovery_sandbox.py')!=read(input_harness/'PRECALL_FREEZE.json')['sources']['src/discovery_sandbox.py']:raise ValueError('Simulator changed after harness admission')
             for name,value in read(input_harness/'MANIFEST.json').items():
                 if sha(input_harness/name)!=value:raise ValueError('Prepared harness artifacts changed')
             data=read(input_harness/'DEVELOPMENT_CASES_PRIVATE.json')
@@ -82,7 +97,7 @@ def run(root,output,mode,source_commit,input_harness=None):
                 while world.running:
                     if time.monotonic()-started>cfg['pilot']['stop_seconds']-cfg['pilot']['export_reserve_seconds'] or len(calls)>=cfg['pilot']['maximum_model_calls']:raise TimeoutError('Frozen pilot call/time ceiling reached')
                     if len(json.dumps(messages).encode())>cfg['pilot']['maximum_context_bytes']:raise ValueError('Pilot context ceiling reached')
-                    payload={'messages':messages,'max_tokens':cfg['pilot']['maximum_output_tokens'],'temperature':cfg['pilot']['temperature']}
+                    payload=model_payload(messages,cfg)
                     request=Request(client.config.host.rstrip('/')+'/serving-endpoints/'+quote(endpoint,safe='')+'/invocations',data=json.dumps(payload).encode(),headers={**client.config.authenticate(),'Content-Type':'application/json'},method='POST')
                     call={'case_id':case.case_id,'request_sha256':digest(payload),'status':'started'};calls.append(call);receipt['model_api_calls']=len(calls)
                     try:
@@ -91,10 +106,9 @@ def run(root,output,mode,source_commit,input_harness=None):
                         call.update(status='failed',http_status=error.code)
                         raise RuntimeError('Hosted model request failed with HTTP '+str(error.code)) from error
                     call.update(status='complete',response=answer);dump(output/'MODEL_CALLS.json',calls)
-                    choice=answer['choices'][0];message=choice['message'];text=message.get('content')
-                    if not isinstance(text,str):text=''
+                    choice=answer['choices'][0];message=choice['message'];text=response_text(message)
                     parse_error=None
-                    try:action=parse_action(text)
+                    try:action=parse_response_action(text)
                     except (ValueError,TypeError,RecursionError) as error:action=None;parse_error=type(error).__name__
                     visible=world.observation();reply=world.step(action)
                     steps.append({'observation':visible,'request_sha256':digest(payload),'raw_text':text,'finish_reason':choice.get('finish_reason'),'parsed_action':action,'parse_error':parse_error,'reply':reply})

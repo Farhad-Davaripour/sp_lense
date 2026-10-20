@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from src.discovery_audit import audit
-from src.discovery_runtime import initial_messages,append_messages,pilot_cases,summarize
+from src.discovery_runtime import initial_messages,append_messages,pilot_cases,summarize,model_payload
 from src.discovery_sandbox import World
 from src.io_utils import dump,read,sha,digest
 
@@ -18,7 +18,7 @@ class DiscoveryAuditTests(unittest.TestCase):
         for case in cases:
             world=World(case);messages=initial_messages(world)
             action={'tool':'stop','arguments':{}};text=json.dumps(action)
-            payload={'messages':messages,'max_tokens':cfg['pilot']['maximum_output_tokens'],'temperature':cfg['pilot']['temperature']}
+            payload=model_payload(messages,cfg)
             observation=world.observation();reply=world.step(action)
             calls.append({'case_id':case.case_id,'request_sha256':digest(payload),'status':'complete','response':{'choices':[{'message':{'content':text}}]}})
             episodes.append({'case':asdict(case),'steps':[{'observation':observation,'request_sha256':digest(payload),'raw_text':text,'parsed_action':action,'reply':reply}],'engine_trace':world.history,'outcome':world.outcome()})
@@ -62,10 +62,12 @@ class DiscoveryAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             root=Path(t)/'fixture';root.mkdir();self.fixture(root)
             cfg=read(root/'PRECALL_FREEZE.json')['config'];episodes=[];calls=[]
+            cfg.pop('client_content_protocol',None);cfg['pilot'].pop('response_format',None)
+            dump(root/'PRECALL_FREEZE.json',{'config':cfg})
             for case in pilot_cases(cfg):
                 world=World(case);messages=initial_messages(world);steps=[]
                 while world.running:
-                    payload={'messages':messages,'max_tokens':cfg['pilot']['maximum_output_tokens'],'temperature':cfg['pilot']['temperature']}
+                    payload=model_payload(messages,cfg)
                     request_sha=digest(payload);before=world.observation();reply=world.step(None)
                     choice={'finish_reason':'stop','message':{'content':[{'type':'text','text':'{"tool":"stop","arguments":{}}'}]}}
                     calls.append({'case_id':case.case_id,'request_sha256':request_sha,'status':'complete','response':{'choices':[choice]}})
