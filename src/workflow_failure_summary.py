@@ -11,7 +11,7 @@ EXAMPLES = ('s72111_ordered_ticket_50_self_unfinished', 's72111_one_step_50_self
 def summarize(root):
     from src.public_artifacts import verify
     root = Path(root)
-    verify(root, 'primary')
+    verify(root, 'primary', scope='evidence')
     rows = {}; sources = {}; reference_ids = None
     for method in METHODS:
         files = sorted((root/'evidence/validation24'/method/'episodes').glob('*.json'))

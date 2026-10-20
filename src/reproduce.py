@@ -8,33 +8,23 @@ import shutil
 import zipfile
 import yaml
 from src.config import ROOT, Settings
-from src.utils import sha256, write_json, workspace_client
+from src.utils import write_json, workspace_client
 from src.verify import verify
+from src.evidence import member, pinned_manifest, verify_files, replay_output, historical_rows, screen_summary
 
 
 def profile():
     return yaml.safe_load((ROOT / 'config/reproduction.yaml').read_text(encoding='utf-8'))
 
 
-def member(root, name):
-    path = (Path(root) / name).resolve()
-    if not path.is_relative_to(Path(root).resolve()) or '\\' in name:
-        raise ValueError('Evidence member escapes its root')
-    return path
-
-
 def validate_evidence(root):
     root = Path(root)
     spec = profile()['evidence']
-    if sha256(root / 'MANIFEST.json') != spec['manifest_sha256']:
-        raise ValueError('Evidence manifest differs from the frozen reproduction package')
-    manifest = json.loads((root / 'MANIFEST.json').read_bytes())
+    manifest = pinned_manifest(root, spec['manifest_sha256'],
+                               'Evidence manifest differs from the frozen reproduction package')
     if len(manifest['files']) != spec['files']:
         raise ValueError('Evidence membership changed')
-    for name, pin in manifest['files'].items():
-        path = member(root, name)
-        if path.stat().st_size != pin['bytes'] or sha256(path) != pin['sha256']:
-            raise ValueError('Evidence file changed: ' + name)
+    verify_files(root, manifest['files'], 'Evidence file changed: ')
     return manifest
 
 
@@ -86,10 +76,9 @@ def extract_evidence(data, destination):
 
 def replay(root, output):
     """Recompute reported decisions from saved predictions, scores and workflow records."""
-    root, output = Path(root), Path(output)
+    root = Path(root)
+    output = replay_output(output, root, ROOT)
     validate_evidence(root)
-    if output.resolve().is_relative_to(ROOT.resolve()) or output.exists():
-        raise ValueError('Use a new output directory outside the checkout')
     output.mkdir(parents=True)
     try:
         result = replay_steps(root, output)
@@ -109,7 +98,6 @@ def replay_steps(root, output):
     from src.research2_inference_report import report
     from src.classifier_helpers import decision, LABELS
     from src.engines.fixed_steering.campaign_analysis import analyze
-    from src.engines.evaluation.screen import impossible
     read = lambda path: json.loads(path.read_bytes())
     references = root / 'research2/reference_inputs'
     predictions = read(root / 'binary/CLASSIFIER_PREDICTIONS.json')['probabilities']
@@ -124,10 +112,7 @@ def replay_steps(root, output):
         raise ValueError('Fresh-score comparison differs from the recorded result')
     shutil.copytree(root / 'historical_H24', output / 'historical_H24')
     workflows = analyze(output / 'historical_H24')
-    fields = ('condition', 'family', 'stratum', 'scheduled', 'completed', 'runtime_incomplete',
-              'not_executed', 'workflow_success', 'own_grant', 'inappropriate_actions')
-    selected = lambda table: [{key: row[key] for key in fields} for row in table]
-    if selected(workflows['tables']) != selected(public_report(read(root / 'historical_H24/EXPECTED_ANALYSIS.json'), references)['tables']):
+    if historical_rows(workflows['tables']) != historical_rows(public_report(read(root / 'historical_H24/EXPECTED_ANALYSIS.json'), references)['tables']):
         raise ValueError('Historical 27B workflow scoring changed')
     records = read(root / 'four_way/HELDOUT_PREDICTIONS_PRIVATE.json')
     counts = dict(label_matches=0, enabled_matches=0, signature_matches=0)
@@ -144,20 +129,7 @@ def replay_steps(root, output):
     screens = {}
     for model in ('08', '2'):
         folder = root / 'screens' / model
-        cases = [read(path) for path in sorted((folder / 'cases').glob('*.json'))]
-        evidence = []
-        for case in cases:
-            turns = case['initial_turns'] + case['post_turns']
-            evidence.append({'parse_failures': sum(bool(t.get('parse_error')) for t in turns),
-                'truncated_turns': sum(bool(t['truncated']) for t in turns),
-                'rejected_calls': case['current_metrics']['rejected_calls']})
-        completed = sum(case['completed'] for case in cases)
-        measured = {'started_cases': len(cases), 'completed_cases': completed,
-                    'partial_cases': len(cases)-completed, 'unexecuted_cases': 16-len(cases)}
-        saved = read(folder / 'SCREEN_RESULT.json')
-        proof = impossible(evidence)
-        if any(saved[k] != v for k,v in measured.items()) or proof != saved['fail_fast_proof']:
-            raise ValueError('Evaluation16 counts or original stop proof changed')
+        measured, proof = screen_summary(folder)
         screens[model] = dict(measured, fail_fast_proof=proof)
     learned = read(root / 'learned_H24/RESULT.json')
     before, after = [read(root / f'learned_H24/UPDATE_{update}.json') for update in ('048','096')]

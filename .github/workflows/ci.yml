@@ -30,6 +30,14 @@ jobs:
     - run: python -m compileall -q src notebooks
     - run: python -m src.verify
     - run: python -m unittest discover -s tests -v
+    - name: Replay public paper evidence without model downloads
+      shell: bash
+      run: |
+        set -euo pipefail
+        evidence="${RUNNER_TEMP}/research3-evidence"
+        python -m src.public_artifacts fetch --root "$evidence"
+        python -m src.paper_mcp_validate --artifacts "$evidence" \
+          --output "${RUNNER_TEMP}/research3-mcp-replay.json"
 
   deploy-shared:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/03-open-agent-self-preservation'

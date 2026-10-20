@@ -166,8 +166,9 @@ class PaperStore:
 
     def verify_artifacts(self, profile):
         from src.public_artifacts import verify
-        return self.envelope(verify(self._artifact_root(profile), profile),
-                             scope=['File identities only. No model is loaded and no new scientific result is measured.'])
+        return self.envelope(verify(self._artifact_root(profile), profile, scope='evidence'),
+                             scope=['Replay evidence identities only; model adapters and fitting arrays are not required or verified.',
+                                    'No model is loaded and no new scientific result is measured.'])
 
     def replay_results(self, profile):
         root = self._artifact_root(profile)
@@ -182,7 +183,7 @@ class PaperStore:
             else:
                 from src.public_artifacts import verify
                 from src.steering_diagnostic import summarize_saved
-                verify(root, 'steering')
+                verify(root, 'steering', scope='evidence')
                 report = summarize_saved(root/'diagnostic')
                 write_json(out/'RESULT.json', report)
             result = self.envelope({'profile': profile, 'replay_id': replay_id, 'report': report,
