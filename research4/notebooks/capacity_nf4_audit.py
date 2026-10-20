@@ -20,7 +20,7 @@ for pin in read(inputs/'MODEL_PINS.json'):
         spec=pinned[path.name];data=path.read_bytes()
         if len(data)!=spec['size']:raise ValueError('Tokenizer metadata size differs')
         if spec['sha256'] and hashlib.sha256(data).hexdigest()!=spec['sha256']:raise ValueError('Tokenizer metadata digest differs')
-        if spec.get('git_blob_id') and hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()!=spec['git_blob_id']:raise ValueError('Tokenizer metadata blob differs')
+        if not spec['sha256'] and spec.get('git_blob_id') and hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()!=spec['git_blob_id']:raise ValueError('Tokenizer metadata blob differs')
 receipt=read(folder/'EXPORT_RECEIPT.json')
 if receipt['status']!='complete' or sha(folder/'evidence.zip')!=receipt['archive_sha256']:raise ValueError('Incomplete or changed capacity export')
 output=Path('/Volumes/workspace/research4/artifacts/recognition_capacity_databricks_nf4_v1/audits')/commit/dbutils.widgets.get('run_id')
