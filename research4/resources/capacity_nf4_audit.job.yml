@@ -1,0 +1,46 @@
+resources:
+  jobs:
+    capacity_nf4_audit:
+      name: Research 4 - Independent frozen capacity readback audit
+      max_concurrent_runs: 1
+      timeout_seconds: 900
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: capacity-nf4-audit
+        aidevkit_project: ai-dev-kit
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: capacity_folder
+          default: ''
+        - name: input_path
+          default: ''
+        - name: metadata_path
+          default: ''
+        - name: input_manifest_sha256
+          default: ''
+      tasks:
+        - task_key: frozen_capacity_audit
+          notebook_task:
+            notebook_path: ../notebooks/capacity_nf4_audit.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              capacity_folder: '{{job.parameters.capacity_folder}}'
+              input_path: '{{job.parameters.input_path}}'
+              metadata_path: '{{job.parameters.metadata_path}}'
+              input_manifest_sha256: '{{job.parameters.input_manifest_sha256}}'
+          environment_key: capacity_audit_cpu
+          timeout_seconds: 900
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: capacity_audit_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - numpy==2.2.2
+              - transformers==5.19.0
