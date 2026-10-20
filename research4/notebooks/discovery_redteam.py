@@ -19,7 +19,7 @@ verify_release(root,commit)
 if mode=='transport':
     from src.discovery_transport import run as transport_run
     result=transport_run(root,output,commit)
-elif mode=='audit':
+elif mode in ['audit','audit_transport']:
     from src.discovery_audit import audit
     folder=Path(input_harness);assert_namespace(folder)
     for name,value in read(folder/'PRECALL_FREEZE.json')['sources'].items():
@@ -27,6 +27,10 @@ elif mode=='audit':
     output.mkdir(parents=True,exist_ok=False)
     result=audit(folder,output/'AUDIT.json')
     result.update(status='complete',mode='audit',source_commit=commit,audited_folder=str(folder),GPU_allocations=0)
+    if mode=='audit_transport':
+        from src.discovery_transport import run as transport_run
+        transport=transport_run(root,output/'TRANSPORT',commit)
+        result={'status':transport['status'],'mode':mode,'source_commit':commit,'legacy_audit':result,'transport_qualification':transport,'model_api_calls':transport['model_api_calls'],'GPU_allocations':0,'optimizer_updates':0,'behavioral_scenarios_rerun':0}
 else:
     result=run(root,output,mode,commit,input_harness or None)
 result.update(Databricks_run_id=run_id)

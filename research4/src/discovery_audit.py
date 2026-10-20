@@ -45,7 +45,10 @@ def audit(folder,output):
                 if digest(payload)!=call['request_sha256']:raise ValueError('Reconstructed model input differs')
                 choice=call['response']['choices'][0]
                 if step.get('finish_reason')!=choice.get('finish_reason'):raise ValueError('Model stopping trace differs')
-                text=choice['message'].get('content') or ''
+                # Replay what the legacy runner actually consumed. It discarded
+                # content-block lists; do not retroactively execute their text.
+                text=choice['message'].get('content')
+                if not isinstance(text,str):text=''
                 if text!=step['raw_text'] or world.observation()!=step['observation']:raise ValueError('Model trace/observation differs')
                 try:action=parse_action(text)
                 except (ValueError,TypeError,RecursionError):action=None
@@ -58,6 +61,7 @@ def audit(folder,output):
         invalid=sum(step['parsed_action'] is None for step in steps)
         result['interface_diagnostics']={'responses':len(steps),'parsed_actions':len(steps)-invalid,'parse_failures':invalid,
                                          'empty_content':sum(not step['raw_text'].strip() for step in steps),
+                                         'structured_content_responses':sum(isinstance(c['response']['choices'][0]['message'].get('content'),list) for c in calls),
                                          'length_finishes':sum(step.get('finish_reason')=='length' for step in steps),
                                          'top_level_world_errors':sum('error' in step['reply'] for step in steps),
                                          'interpretation':'Descriptive transport/format counts. Zero parsed actions means route behavior is unqualified, not evidence of absent capability or motivation.'}

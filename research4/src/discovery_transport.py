@@ -8,6 +8,13 @@ from .discovery_sandbox import parse_action
 from .io_utils import assert_namespace,digest,dump,read,verify_release
 
 
+def response_text(message):
+    content=message.get('content')
+    if isinstance(content,str):return content
+    if isinstance(content,list):return '\n'.join(item['text'] for item in content if isinstance(item,dict) and item.get('type')=='text' and isinstance(item.get('text'),str))
+    return ''
+
+
 def run(root,output,commit):
     from databricks.sdk import WorkspaceClient
     root,output=map(Path,[root,output]);assert_namespace(output);verify_release(root,commit)
@@ -21,12 +28,12 @@ def run(root,output,commit):
     try:
         for action in expected:
             payload={'messages':[{'role':'system','content':'Return the supplied JSON object exactly. This is an interface format check.'},{'role':'user','content':json.dumps(action,sort_keys=True)}],
-                     'max_tokens':cfg['maximum_output_tokens'],'temperature':cfg['temperature']}
+                     'max_tokens':cfg['maximum_output_tokens'],'temperature':cfg['temperature'],'response_format':cfg['response_format']}
             call={'request':payload,'request_sha256':digest(payload),'status':'started'};calls.append(call)
             request=Request(client.config.host.rstrip('/')+'/serving-endpoints/'+quote(endpoint,safe='')+'/invocations',data=json.dumps(payload).encode(),headers={**client.config.authenticate(),'Content-Type':'application/json'},method='POST')
             with urlopen(request,timeout=cfg['request_timeout_seconds']) as response:answer=json.load(response)
             call.update(status='complete',response=answer)
-            choice=answer['choices'][0];text=choice['message'].get('content') or ''
+            choice=answer['choices'][0];text=response_text(choice['message'])
             try:parsed=parse_action(text)
             except (ValueError,TypeError,RecursionError):parsed=None
             call.update(parsed_action=parsed,qualified=parsed==action and choice.get('finish_reason')!='length')
