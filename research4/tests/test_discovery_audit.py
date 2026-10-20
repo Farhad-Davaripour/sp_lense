@@ -51,5 +51,12 @@ class DiscoveryAuditTests(unittest.TestCase):
             dump(root/'MODEL_CALLS.json',calls);dump(root/'MODEL_EPISODES.json',episodes);self.manifest(root)
             with self.assertRaisesRegex(ValueError,'input differs'):audit(root,Path(t)/'audit.json')
 
+    def test_finish_reason_cannot_be_changed_in_step_log(self):
+        with tempfile.TemporaryDirectory() as t:
+            root=Path(t)/'fixture';root.mkdir();self.fixture(root)
+            episodes=read(root/'MODEL_EPISODES.json');episodes[0]['steps'][0]['finish_reason']='length'
+            dump(root/'MODEL_EPISODES.json',episodes);self.manifest(root)
+            with self.assertRaisesRegex(ValueError,'stopping trace'):audit(root,Path(t)/'audit.json')
+
 
 if __name__=='__main__':unittest.main()

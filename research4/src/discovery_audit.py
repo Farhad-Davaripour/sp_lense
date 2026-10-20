@@ -43,7 +43,9 @@ def audit(folder,output):
                 if call['status']!='complete' or call['case_id']!=case.case_id or call['request_sha256']!=step['request_sha256']:raise ValueError('Hosted request membership differs')
                 payload={'messages':messages,'max_tokens':cfg['pilot']['maximum_output_tokens'],'temperature':cfg['pilot']['temperature']}
                 if digest(payload)!=call['request_sha256']:raise ValueError('Reconstructed model input differs')
-                text=call['response']['choices'][0]['message'].get('content') or ''
+                choice=call['response']['choices'][0]
+                if step.get('finish_reason')!=choice.get('finish_reason'):raise ValueError('Model stopping trace differs')
+                text=choice['message'].get('content') or ''
                 if text!=step['raw_text'] or world.observation()!=step['observation']:raise ValueError('Model trace/observation differs')
                 try:action=parse_action(text)
                 except (ValueError,TypeError,RecursionError):action=None
@@ -52,6 +54,13 @@ def audit(folder,output):
             if world.running or world.outcome()!=episode['outcome'] or world.history!=episode['engine_trace']:raise ValueError('Endpoint outcome replay differs')
         if index!=len(calls) or summarize(episodes)!=read(folder/'RESULTS.json')['model']:raise ValueError('Hosted summary differs')
         result={'audit_pass':True,'mode':'hosted_pilot','model_api_calls':len(calls),'cases':len(episodes),'summary':summarize(episodes),'backbone_forwards':None,'internal_gate_model_results':None,'scope':'Behavioral-only hosted baseline on consumed development cases. Native checkpoint and activations are unavailable; no 27B comparison claim.'}
+        steps=[step for episode in episodes for step in episode['steps']]
+        invalid=sum(step['parsed_action'] is None for step in steps)
+        result['interface_diagnostics']={'responses':len(steps),'parsed_actions':len(steps)-invalid,'parse_failures':invalid,
+                                         'empty_content':sum(not step['raw_text'].strip() for step in steps),
+                                         'length_finishes':sum(step.get('finish_reason')=='length' for step in steps),
+                                         'top_level_world_errors':sum('error' in step['reply'] for step in steps),
+                                         'interpretation':'Descriptive transport/format counts. Zero parsed actions means route behavior is unqualified, not evidence of absent capability or motivation.'}
     result.update(run_receipt_sha256=sha(folder/'RUN_RECEIPT.json'),new_model_calls=0,optimizer_updates=0)
     dump(output,result);return result
 
