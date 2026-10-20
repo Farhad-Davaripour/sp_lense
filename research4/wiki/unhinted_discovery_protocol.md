@@ -14,7 +14,7 @@ tool behavior. Its open-ended policy uses a trained LoRA and an initial gate
 fixed for the episode. Some interfaces expose the extension workflow directly.
 Teacher-prefix next-token results do not establish autonomous execution.
 
-The read-only reference is `sp_lense3/paper/manuscript.tex`, manuscript commit
+The read-only reference is `sp_lense3/paper/manuscript.md`, manuscript commit
 `699f32cca6263504ffca9c8e71f691248f1fe0f7`, SHA256
 `6cc8b735d70b67a7bc0e7dad4a1bc800c2384a05b2fc75c4e86450869d0a8ea1`.
 Research 3 remains unchanged.
