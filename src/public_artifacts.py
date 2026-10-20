@@ -1,5 +1,5 @@
 """Fetch, verify and rescore the paper's public artifacts without workspace access."""
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import argparse
 import hashlib
 import json
@@ -8,7 +8,14 @@ import urllib.request
 import zipfile
 import yaml
 from src.config import ROOT
-from src.utils import canonical, sha256, write_json
+from src.utils import sha256, write_json
+from src.evidence import member, pinned_manifest, verify_files, replay_output, historical_rows, screen_summary
+
+EVIDENCE_ASSETS = {
+    'primary': ('datasets.zip', 'evidence.zip', 'MANIFEST.json'),
+    'steering': ('diagnostic_outputs.zip', 'MANIFEST.json'),
+}
+EVIDENCE_PREFIXES = {'primary': ('datasets/', 'evidence/'), 'steering': ('diagnostic/',)}
 
 
 def profile(name='primary'):
@@ -16,33 +23,31 @@ def profile(name='primary'):
     return yaml.safe_load((ROOT/'config'/files[name]).read_bytes())
 
 
-def member(root, name):
-    relative=PurePosixPath(name)
-    if relative.is_absolute() or not name or '\\' in name or ':' in name or '..' in relative.parts:
-        raise ValueError('Unsafe release member')
-    path=(Path(root)/name).resolve()
-    if not path.is_relative_to(Path(root).resolve()):raise ValueError('Release member escapes destination')
-    return path
-
-
-def verify(root, profile_name='primary'):
-    root=Path(root);spec=profile(profile_name);manifest=root/'MANIFEST.json'
-    if sha256(manifest)!=spec['assets']['MANIFEST.json']['sha256']:
-        raise ValueError('Public manifest differs from the pinned release')
-    pins=json.loads(manifest.read_bytes())['files']
-    for name,pin in pins.items():
-        p=member(root,name)
-        if p.stat().st_size!=pin['bytes'] or sha256(p)!=pin['sha256']:
-            raise ValueError('Public artifact changed: '+name)
+def verify(root, profile_name='primary', scope='full'):
+    if scope not in ('evidence', 'full'):
+        raise ValueError('Choose evidence or full artifact scope')
+    root=Path(root);spec=profile(profile_name)
+    manifest=pinned_manifest(root,spec['assets']['MANIFEST.json']['sha256'],
+                             'Public manifest differs from the pinned release')
+    pins=manifest['files']
+    if scope=='evidence':
+        pins={name:pin for name,pin in pins.items() if name.startswith(EVIDENCE_PREFIXES[profile_name])}
+        if not pins:raise ValueError('The release contains no replay evidence')
+    verify_files(root,pins,'Public artifact changed: ')
     return {'status':'PUBLIC_ARTIFACTS_VERIFIED','files':len(pins),'bytes':sum(x['bytes'] for x in pins.values()),
-            'model_loads':0,'cloud_workspace_required':False}
+            'model_loads':0,'cloud_workspace_required':False,'scope':scope}
 
 
-def fetch(root, profile_name='primary'):
+def fetch(root, profile_name='primary', scope='full'):
+    """Fetch immutable assets; the CLI defaults to evidence, the existing API to full."""
+    if scope not in ('evidence', 'full'):
+        raise ValueError('Choose evidence or full artifact scope')
     root=Path(root)
     if root.exists():raise FileExistsError('Choose a new artifact directory')
-    root.mkdir(parents=True);spec=profile(profile_name)
-    for name,pin in spec['assets'].items():
+    spec=profile(profile_name)
+    assets=spec['assets'] if scope=='full' else {name:spec['assets'][name] for name in EVIDENCE_ASSETS[profile_name]}
+    root.mkdir(parents=True)
+    for name,pin in assets.items():
         dest=root/('.download_'+name)
         with urllib.request.urlopen(spec['base_url']+'/'+name,timeout=60) as response,dest.open('xb') as f:
             total=0
@@ -67,7 +72,7 @@ def fetch(root, profile_name='primary'):
                     p=member(root,prefix+'/'+n if prefix else n);p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(z.read(n))
             dest.unlink()
         else:dest.replace(root/name)
-    return verify(root,profile_name)
+    return verify(root,profile_name,scope)
 
 
 def validation_packet(root):
@@ -82,8 +87,8 @@ def validation_packet(root):
 
 
 def replay(root, output):
-    verify(root);root=Path(root);output=Path(output)
-    if output.exists():raise FileExistsError('Choose a new report directory')
+    root=Path(root);output=replay_output(output,root,ROOT)
+    verify(root,scope='evidence')
     from src.steering_failure_analysis import analyze
     report=analyze(root/'evidence/validation24',output/'steering_failure_analysis.json')
     # Summarization writes only to a new output; original released episodes stay immutable.
@@ -103,10 +108,7 @@ def replay(root, output):
     shutil.copytree(root/'evidence/historical_H24',historical)
     from src.engines.fixed_steering.campaign_analysis import analyze as historical_analysis
     old=historical_analysis(historical)
-    fields=('condition','family','stratum','scheduled','completed','runtime_incomplete','not_executed',
-            'workflow_success','own_grant','inappropriate_actions')
-    table=lambda value:[{k:r[k] for k in fields} for r in value['tables']]
-    if table(old)!=table(json.loads((historical/'EXPECTED_ANALYSIS.json').read_bytes())):
+    if historical_rows(old['tables'])!=historical_rows(json.loads((historical/'EXPECTED_ANALYSIS.json').read_bytes())['tables']):
         raise ValueError('Historical 27B confirmation rescore differs')
     from src.research2_classifier import agreement
     truth=json.loads((root/'datasets/binary_gate/confirmation.json').read_bytes())
@@ -128,19 +130,10 @@ def replay(root, output):
         binary_models[model]=summarize(base,selected)
         if binary_models[model]!=json.loads((folder/'RESULT.json').read_bytes())['new_classifier_gate']:
             raise ValueError('Binary workflow counts differ')
-    from src.engines.evaluation.screen import impossible
     screens={}
     for model in ['08','2']:
         folder=root/'evidence/screens'/model
-        cases=[json.loads(p.read_bytes()) for p in sorted((folder/'cases').glob('*.json'))]
-        evidence=[{'parse_failures':sum(bool(t.get('parse_error')) for t in c['initial_turns']+c['post_turns']),
-                   'truncated_turns':sum(bool(t['truncated']) for t in c['initial_turns']+c['post_turns']),
-                   'rejected_calls':c['current_metrics']['rejected_calls']} for c in cases]
-        measured={'started_cases':len(cases),'completed_cases':sum(c['completed'] for c in cases),
-                  'partial_cases':sum(not c['completed'] for c in cases),'unexecuted_cases':16-len(cases)}
-        saved=json.loads((folder/'SCREEN_RESULT.json').read_bytes())
-        if any(saved[k]!=v for k,v in measured.items()) or impossible(evidence)!=saved['fail_fast_proof']:
-            raise ValueError('Small-model stopped-screen proof differs')
+        measured, _=screen_summary(folder)
         screens[model]=measured
     result={'status':'PUBLIC_SAVED_EVIDENCE_REPLAY_VERIFIED','validation24_gate':gate,'historical_heldout24_gate':heldout,'matched_validation24':methods,
             'historical_27B_all96_complete':old['all_96_rollouts_complete'],
@@ -150,13 +143,22 @@ def replay(root, output):
     write_json(output/'RESULT.json',result);return result
 
 
-def main():
+def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('stage',choices=['fetch','verify','replay'])
     p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path)
     p.add_argument('--profile',choices=['primary','steering'],default='primary')
-    a=p.parse_args()
+    p.add_argument('--scope',choices=['evidence','full'],default='evidence',
+                   help='Evidence is sufficient for CPU score replay; full also downloads adapters and fitting arrays')
+    a=p.parse_args(argv)
     if a.stage=='replay' and a.profile!='primary':p.error('Use src.steering_diagnostic replay for the steering supplement')
-    print(json.dumps(fetch(a.root,a.profile) if a.stage=='fetch' else verify(a.root,a.profile) if a.stage=='verify' else replay(a.root,a.output)))
+    if a.stage=='replay' and not a.output:p.error('replay requires --output pointing to a new directory outside the checkout and evidence')
+    if a.stage=='replay':
+        if a.scope=='full':verify(a.root,a.profile,'full')
+        result=replay(a.root,a.output)
+    else:
+        result=fetch(a.root,a.profile,a.scope) if a.stage=='fetch' else verify(a.root,a.profile,a.scope)
+    print(json.dumps(result))
+    return result
 
 
 if __name__=='__main__':main()
