@@ -1,4 +1,4 @@
-"""One bounded native-BF16 GPU comparison. No adapter or optimization code."""
+"""One bounded Databricks frozen-base GPU comparison. No policy training."""
 import argparse
 import gc
 import hashlib
@@ -29,11 +29,21 @@ def encode(tokenizer,chat):
 
 def fingerprint(model,torch):
     result=hashlib.sha256()
-    for name,value in model.named_parameters():
+    def add(name,value):
         result.update(name.encode());result.update(str(value.dtype).encode())
+        result.update(str(tuple(value.shape)).encode())
         flat=value.detach().reshape(-1)
         for start in range(0,flat.numel(),4*1024*1024):
             result.update(flat[start:start+4*1024*1024].view(torch.uint8).cpu().numpy().tobytes())
+    for name,value in model.named_parameters():
+        # Params4bit.to(cpu) can mutate quantization state: hash plain data only.
+        add('parameter:'+name,value.data)
+        state=getattr(value,'quant_state',None)
+        if state is not None:
+            for key,item in sorted(state.as_dict(packed=True).items()):
+                if isinstance(item,torch.Tensor):add('quant:'+name+':'+key,item)
+                else:result.update(digest([name,key,item]).encode())
+    for name,value in model.named_buffers():add('buffer:'+name,value)
     return result.hexdigest()
 
 
@@ -44,15 +54,16 @@ def run(inputs,output,cache,allocation_deadline=None):
     import transformers
     from huggingface_hub import snapshot_download
     from torch.nn.attention import SDPBackend,sdpa_kernel
-    from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration
+    from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration,BitsAndBytesConfig
     inputs,output,cache=map(Path,[inputs,output,cache]);cfg=read(inputs/'CONFIG.json')
-    drive_root=Path('/content/drive/MyDrive/Research4/recognition_capacity_27b_v1')
-    if not Path('/content/drive/MyDrive').is_dir() or not output.resolve().is_relative_to(drive_root.resolve()):raise ValueError('A verified, dedicated Research 4 Drive destination is required')
-    if not inputs.resolve().is_relative_to(Path('/content/research4_capacity_27b_v1').resolve()) or not cache.resolve().is_relative_to(Path('/content/research4_capacity_27b_v1').resolve()):raise ValueError('Capacity inputs/cache must stay in the owned VM directory')
+    snapshot=Path(os.environ.get('CODE_SOURCE_PATH','/__missing_databricks_source__')).resolve()
+    if not os.environ.get('MLFLOW_RUN_ID') or not inputs.resolve().is_relative_to(snapshot) or cfg.get('platform')!='databricks':raise ValueError('Use the frozen Databricks AIR release only')
+    if output.parent!=cache.parent or not output.parent.name.startswith('research4-capacity-'):raise ValueError('Use an owned ephemeral Research 4 run directory')
     if output.exists():raise FileExistsError('No scientific retries into an existing result')
     for name,value in read(inputs/'MANIFEST.json').items():
         if sha(inputs/name)!=value:raise ValueError('Changed capacity input: '+name)
-    if cfg['precision']!='bfloat16' or cfg['quantization'] is not None:raise ValueError('This release admits only unquantized BF16')
+    expected_quant={'load_in_4bit':True,'bnb_4bit_quant_type':'nf4','bnb_4bit_use_double_quant':True,'bnb_4bit_compute_dtype':'bfloat16'}
+    if cfg['precision']!='bfloat16' or cfg['quantization']!=expected_quant:raise ValueError('Use the predeclared matched NF4 profile')
     if transformers.__version__!='5.19.0':raise ValueError('Install the frozen Transformers release before starting')
     output.mkdir(parents=True);cache.mkdir(parents=True,exist_ok=True)
     started=time.monotonic();deadline=started+cfg['worker_stop_seconds']-cfg['export_reserve_seconds']
@@ -73,7 +84,8 @@ def run(inputs,output,cache,allocation_deadline=None):
         if total<cfg['minimum_gpu_total_bytes'] or free<cfg['minimum_gpu_free_bytes'] or host<cfg['minimum_host_free_bytes'] or disk<cfg['minimum_disk_free_bytes']:
             raise MemoryError('Capacity worker rejected hardware before any model load or forward')
         torch.manual_seed(cfg['seed']);torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False
-        dump(output/'SOFTWARE.json',{'torch':torch.__version__,'transformers':transformers.__version__,'numpy':np.__version__,'device':admission['GPU'],'dtype':'bfloat16','quantization':None})
+        import bitsandbytes
+        dump(output/'SOFTWARE.json',{'torch':torch.__version__,'transformers':transformers.__version__,'bitsandbytes':bitsandbytes.__version__,'numpy':np.__version__,'device':admission['GPU'],'dtype':'bfloat16','quantization':cfg['quantization']})
         dump(output/'PRECALL_FREEZE.json',{'config':cfg,'input_manifest_sha256':sha(inputs/'MANIFEST.json'),'worker_sha256':sha(Path(__file__))})
         for pin in pins:
             check();tag=pin['tag'];folder=output/tag;folder.mkdir();records=[];answers=[];features=[];keys=[];forwards=0
@@ -89,10 +101,13 @@ def run(inputs,output,cache,allocation_deadline=None):
                     if blob!=file['git_blob_id']:raise ValueError('Pinned model metadata blob differs')
             check();progress('load',model=tag)
             tokenizer=AutoTokenizer.from_pretrained(model_path,local_files_only=True,trust_remote_code=False)
-            model=Qwen3_5ForConditionalGeneration.from_pretrained(model_path,local_files_only=True,trust_remote_code=False,use_safetensors=True,dtype=torch.bfloat16,device_map={'':0},attn_implementation='sdpa',low_cpu_mem_usage=True).eval().requires_grad_(False)
+            quant=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_quant_type='nf4',bnb_4bit_use_double_quant=True,bnb_4bit_compute_dtype=torch.bfloat16)
+            model=Qwen3_5ForConditionalGeneration.from_pretrained(model_path,local_files_only=True,trust_remote_code=False,use_safetensors=True,dtype=torch.bfloat16,quantization_config=quant,device_map={'':0},attn_implementation='sdpa',low_cpu_mem_usage=True).eval().requires_grad_(False)
             layers=model.model.language_model.layers
             if len(layers)!=pin['layers'] or model.config.text_config.hidden_size!=pin['hidden_size']:raise ValueError('Unexpected model architecture')
             if any(p.requires_grad or p.device.type!='cuda' for p in model.parameters()):raise ValueError('Unexpected parameter state')
+            quantized=sum(getattr(p,'quant_state',None) is not None for p in model.parameters())
+            if not quantized:raise ValueError('Declared NF4 quantization was not applied')
             before=fingerprint(model,torch);letter_ids=[tokenizer.encode(c,add_special_tokens=False) for c in 'ABCDEF']
             if any(len(v)!=1 for v in letter_ids):raise ValueError('Letter tokenization differs')
             letter_ids=[v[0] for v in letter_ids];eos=set()
@@ -135,7 +150,7 @@ def run(inputs,output,cache,allocation_deadline=None):
                 dump(folder/'NUMERIC_RECORDS.json',answers);save_features();progress('numeric',model=tag,cases=len(answers),forwards=forwards)
             after=fingerprint(model,torch)
             if before!=after:raise ValueError('Frozen model changed')
-            model_receipt={'status':'complete','model':tag,'repository':pin['repository'],'revision':pin['revision'],'base_fingerprint_before':before,'base_fingerprint_after':after,'binding_queries':len(records),'numeric_cases':len(answers),'backbone_forwards':forwards,'hidden_size':pin['hidden_size'],'optimizer_updates':0,'adapters_loaded':0,'policy_actions_executed':0,'precision':'bfloat16','quantization':None}
+            model_receipt={'status':'complete','model':tag,'repository':pin['repository'],'revision':pin['revision'],'base_fingerprint_before':before,'base_fingerprint_after':after,'binding_queries':len(records),'numeric_cases':len(answers),'backbone_forwards':forwards,'hidden_size':pin['hidden_size'],'optimizer_updates':0,'adapters_loaded':0,'policy_actions_executed':0,'precision':'bfloat16','quantization':cfg['quantization'],'quantized_parameter_tensors':quantized}
             dump(folder/'RUN_RECEIPT.json',model_receipt);receipt['models'].append(model_receipt)
             for handle in handles:handle.remove()
             handles=[];model=None;layers=None;gc.collect();torch.cuda.empty_cache();progress('model_released',model=tag);active=None

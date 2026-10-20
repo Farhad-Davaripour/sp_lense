@@ -53,13 +53,13 @@ def audit(inputs,folder,metadata,output):
     if receipt['status']!='complete' or len(receipt['models'])!=2 or any(receipt[k]!=0 for k in ['optimizer_updates','policy_actions_executed','adapters_loaded']):raise ValueError('Incomplete or modified capacity run')
     if sha(Path(__file__).with_name('recognition_capacity_worker.py'))!=freeze['worker_sha256']:raise ValueError('Capacity worker source differs')
     software=read(folder/'SOFTWARE.json')
-    if software['transformers']!='5.19.0' or software['dtype']!='bfloat16' or software['quantization'] is not None:raise ValueError('Unexpected capacity software/precision')
+    if cfg.get('platform')!='databricks' or software['transformers']!='5.19.0' or software['dtype']!='bfloat16' or software['quantization']!=cfg['quantization']:raise ValueError('Unexpected capacity software/precision')
     rows,queries,cases=read(inputs/'REVISION_ROWS.json'),read(inputs/'BINDING_QUERIES.json'),read(inputs/'NUMERIC_CASES.json')
     results={}
     for pin,model_receipt in zip(read(inputs/'MODEL_PINS.json'),receipt['models']):
         tag=pin['tag'];sub=folder/tag
         if read(sub/'RUN_RECEIPT.json')!=model_receipt or model_receipt['repository']!=pin['repository'] or model_receipt['revision']!=pin['revision']:raise ValueError('Model pin differs')
-        if model_receipt['base_fingerprint_before']!=model_receipt['base_fingerprint_after'] or model_receipt['precision']!='bfloat16' or model_receipt['quantization'] is not None:raise ValueError('Model state or precision changed')
+        if model_receipt['base_fingerprint_before']!=model_receipt['base_fingerprint_after'] or model_receipt['precision']!='bfloat16' or model_receipt['quantization']!=cfg['quantization'] or model_receipt.get('quantized_parameter_tensors',0)<1:raise ValueError('Model state or precision changed')
         if model_receipt['binding_queries']!=288 or model_receipt['numeric_cases']!=36 or model_receipt['hidden_size']!=pin['hidden_size']:raise ValueError('Capacity receipt counts differ')
         if any(model_receipt[k]!=0 for k in ['optimizer_updates','adapters_loaded','policy_actions_executed']):raise ValueError('Unexpected capacity intervention')
         tokenizer=AutoTokenizer.from_pretrained(metadata/tag,local_files_only=True,trust_remote_code=False)
@@ -83,7 +83,7 @@ def audit(inputs,folder,metadata,output):
         with np.load(sub/'FINAL_BLOCK_STATES.npz',allow_pickle=False) as data:
             if data['keys'].tolist()!=keys or data['X'].shape!=(len(keys),pin['hidden_size']) or not np.isfinite(data['X']).all():raise ValueError('Capacity feature membership differs')
         results[tag]={'binding':{interface:analyze(rows,list(converted.values()),interface,cfg['numerical_tie_band']) for interface in ['target','target_named']},'numeric':numeric_counts(cases,answers),'backbone_forwards':len(keys),'model_receipt_sha256':sha(sub/'RUN_RECEIPT.json')}
-    result={'audit_pass':True,'models':results,'run_receipt_sha256':sha(folder/'RUN_RECEIPT.json'),'Qwen_forwards':0,'optimizer_updates':0,'scope':'Same diagnostic cases; matched BF16 GPU controls. Native stopping and raw-score reconstruction of decisions, not a causal size-only or universal-generalization claim.'}
+    result={'audit_pass':True,'models':results,'run_receipt_sha256':sha(folder/'RUN_RECEIPT.json'),'Qwen_forwards':0,'optimizer_updates':0,'scope':'Same diagnostic cases; matched NF4 GPU controls. Native stopping and raw-score reconstruction of decisions, not a causal size-only or universal-generalization claim.'}
     dump(output,result);return result
 
 
