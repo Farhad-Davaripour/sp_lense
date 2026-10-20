@@ -1,0 +1,50 @@
+format: research3-all64-ridge-only-v1
+purpose: Complete matched workflow validation of the preserved ridge-only all-block initializer.
+method:
+  name: ridge_all64_one_site
+  blocks: 64
+  width: 5120
+  rank_per_block: 102
+  site: after_MLP_block_output
+  sites_per_block: 1
+  prediction_positions: Every current last-token prediction while the frozen initial gate is ON.
+  strength: 1.0
+  gradient_refinement_updates: 0
+  fitting: Reuse the completed closed-form ridge fit; never load a gradient-refined checkpoint.
+  training_role: W-T24; historical W-H24 reused for fitting, not independent held-out evidence.
+  ridge_penalty: 1.0
+initializer:
+  bytes: 267398024
+  sha256: eab0787a3f3cf5d1dd238b161a07c921d78abbefe10627ff20a38dbbf5dcf3d0
+  volume_relative: all64_ridge_v1/eab0787a3f3cf5d1dd238b161a07c921d78abbefe10627ff20a38dbbf5dcf3d0/ridge_all64_post_block_rank102.safetensors
+  tensor_count: 128
+  fitted_functions: 64
+  fit_completed_utc: '2026-10-13T20:42:10.175296+00:00'
+  new_fitting_or_optimizer_updates: 0
+comparison:
+  cohort: W-V24
+  cases: 24
+  own: 11
+  non_target: 13
+  packet_relative: combined_validation/v2/8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c/inputs.zip
+  packet_sha256: 8f2215f53acffac7d74983470d1bac7f1a7b97ada0db76ecd9a3c041cfe68f2c
+  inputs_relative: combined_validation/comparison_inputs/v1/a8684b4b30d5824a24f9b846b5b6a36cfff09344ad1cacb35afc6b211249df31
+  gate_relative: runs/combined_validation/20261018T155736Z_1a2c63a5
+  model_relative: models/Qwen3.8-27B/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+  gate: Exact previously qualified ModernBERT initial decisions, fixed for the whole episode.
+  scoring: Existing matched workflow scorer, histories, tools and decoding limits unchanged.
+  controls: Run the same unmodified-base fallback when the gate is OFF.
+  existing_A_reference: Previously verified 10/11 own results; not a newly executed teacher arm.
+  heldout_execution: false
+bounds:
+  Free_Edition_only: true
+  whole_seconds: 10800
+  setup_seconds: 1800
+  preservation_reserve_seconds: 900
+  automatic_retries: 0
+  accelerator: GPU_1xA10
+  accelerator_count: 1
+  host_admission_GiB: 16
+  host_reserve_GiB: 8
+  GPU_admission_GiB: 20
+  GPU_reserve_GiB: 2

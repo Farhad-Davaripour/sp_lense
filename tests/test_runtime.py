@@ -17,7 +17,7 @@ class RuntimeTests(unittest.TestCase):
     def test_actual_runtime_cli_accepts_the_heldout_phase(self):
         result = subprocess.run([sys.executable, "-m", "src.runtime", "--help"],
                                 capture_output=True, text=True, check=True)
-        self.assertIn("{gate,steering,heldout,frozen_A,diagnostic}", result.stdout)
+        self.assertIn("{gate,steering,heldout,frozen_A,diagnostic,all64_ridge}", result.stdout)
 
     def test_launch_values_preserve_shell_metacharacters(self):
         settings = SimpleNamespace(catalog="research", schema="bronze", volume="artifacts",
