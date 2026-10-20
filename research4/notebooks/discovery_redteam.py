@@ -16,7 +16,10 @@ from src.runtime import archive
 
 output=Path('/Volumes/workspace/research4/artifacts/discovery_redteam_v1')/mode/commit/run_id
 verify_release(root,commit)
-if mode=='audit':
+if mode=='transport':
+    from src.discovery_transport import run as transport_run
+    result=transport_run(root,output,commit)
+elif mode=='audit':
     from src.discovery_audit import audit
     folder=Path(input_harness);assert_namespace(folder)
     for name,value in read(folder/'PRECALL_FREEZE.json')['sources'].items():
