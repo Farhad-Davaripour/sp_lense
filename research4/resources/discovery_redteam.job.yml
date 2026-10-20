@@ -1,0 +1,39 @@
+resources:
+  jobs:
+    discovery_redteam:
+      name: Research 4 - Unhinted virtual workspace red-team evaluation
+      max_concurrent_runs: 1
+      timeout_seconds: 1500
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: unhinted-discovery-evaluation
+        aidevkit_project: ai-dev-kit
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: mode
+          default: harness
+        - name: input_harness
+          default: ''
+      tasks:
+        - task_key: discovery_evaluation
+          notebook_task:
+            notebook_path: ../notebooks/discovery_redteam.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              mode: '{{job.parameters.mode}}'
+              input_harness: '{{job.parameters.input_harness}}'
+          environment_key: discovery_cpu
+          timeout_seconds: 1500
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: discovery_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - numpy==2.2.2
