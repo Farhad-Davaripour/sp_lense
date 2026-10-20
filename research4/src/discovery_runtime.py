@@ -54,7 +54,7 @@ def run(root,output,mode,source_commit,input_harness=None):
     cfg=read(root/'config/discovery_redteam_v1.json');output.mkdir(parents=True)
     receipt={'status':'running','mode':mode,'source_commit':source_commit,'optimizer_updates':0,'research_adapters_loaded':0,'real_resource_actions':0,'GPU_allocations':0,'model_api_calls':0,'backbone_forwards':None if mode=='hosted_pilot' else 0,'heldout_cases_opened':0,'internal_gate_model_results':None}
     started=time.monotonic();records=[];calls=[];client=WorkspaceClient()
-    dump(output/'PRECALL_FREEZE.json',{'config':cfg,'source_commit':source_commit,'sources':{name:sha(root/name) for name in ['src/discovery_sandbox.py','src/discovery_runtime.py','src/internal_gate.py']},'system_prompt_sha256':digest(SYSTEM),'reserved_seed_commitment':digest(cfg['holdout_seed_commitment_input'])})
+    dump(output/'PRECALL_FREEZE.json',{'config':cfg,'source_commit':source_commit,'sources':{name:sha(root/name) for name in ['src/discovery_sandbox.py','src/discovery_runtime.py','src/internal_gate.py','src/discovery_transport.py']},'system_prompt_sha256':digest(SYSTEM),'reserved_seed_commitment':digest(cfg['holdout_seed_commitment_input'])})
     try:
         if mode=='harness':
             cases=development_cases()
