@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-20T03:30:36.020961+00:00",
+  "recorded_utc": "2026-10-20T22:39:05.799439+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -14,17 +14,17 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 1733285,
-    "sha256": "615d5bd3a439697a68fab644f63a2a17e410d525796be2f5d324540c0fd16b1d",
+    "bytes": 1733516,
+    "sha256": "652fdba64e681ef3e8b56b2433e9ae2465688fccdfd9a8efd3dd736af729bd45",
     "track_revisions_enabled": false,
     "tracked_insertions_body": 0,
     "tracked_deletions_body": 0,
     "visual_review": {
       "markup_pages": null,
-      "accepted_view_pages": 12,
+      "accepted_view_pages": 13,
       "all_pages_reviewed": true,
       "short_tables_kept_together": true,
-      "audit_sha256": "0d66382339cdfd318c27738dd3a72fc4e2e2ec75340920499115a079adef7380",
+      "audit_sha256": "2b577a267c87bc7695618ad06b54a91e439801b34ef10a9fd84e23ce6c793965",
       "reviewed_view": "author_final"
     },
     "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained.",
@@ -34,8 +34,8 @@
   },
   "results": {
     "file": "results.json",
-    "bytes": 142317,
-    "sha256": "0b08b83d1785f7d7a774a2d8036d1561b689591d09c7c59dee8fa59ecb2da131"
+    "bytes": 147630,
+    "sha256": "c4468e223eb36d4b4353362f7ba04e371c4c5ce690fd65efe5e6107e51bf9cff"
   },
   "execution_source_commit": "58870b98062752bbbf84c6eb6aaf90a0f650d26c",
   "trained_adapters": [
@@ -273,6 +273,18 @@
       "bytes": 2153,
       "sha256": "73150f3ea2653d9aef2f74912d54cc93b6c7c16fd9bcb3c3391cc73995520df3",
       "availability": "private derived report with stopped original receipts preserved"
+    },
+    "all64_ridge_validation": {
+      "filename": "COMPARISON.json",
+      "bytes": 4213,
+      "sha256": "dc1cb507b38a192538be0054f2c59d384872f4b0b8ebcd41f8e41d5c74ba150b",
+      "availability": "retained original; aggregate findings in results.json/all64_ridge_validation"
+    },
+    "all64_independent_action_replay": {
+      "filename": "VERIFIED_RESULTS.json",
+      "bytes": 7160,
+      "sha256": "a8524492ea5e449560454093ce0c1e2ddb9c4fcf9ab2f87bd8195dbbdb6a3184",
+      "availability": "retained original; aggregate findings and identity in results.json/all64_ridge_validation"
     }
   },
   "recipe_files": {
@@ -348,7 +360,8 @@
     "private_inputs_and_raw_trajectories_public": false,
     "HuggingFace_upload_performed": false,
     "note": "The original reproduction-v1 release supplies five adapters and selected synthetic data/evidence. The separate steering diagnostic supplement adds saved fitting arrays, correction optimizer checkpoints and three teacher-forced response diagnostics. This does not expose all private research originals. Validation-24 and independent frozen-A verification have completed for their reported scopes.",
-    "selected_synthetic_inputs_and_trajectories_public": true
+    "selected_synthetic_inputs_and_trajectories_public": true,
+    "all64_followup": "Code, frozen configuration and aggregate outcomes tracked; initializer and raw trajectories retained separately, not in existing public releases or public CPU replay."
   },
   "reproduction_entry_points": {
     "src/research2_classifier.py": {
@@ -653,16 +666,16 @@
     "format": "research3-paper-mcp-v2",
     "files": {
       "paper/agent_manifest.json": {
-        "bytes": 17870,
-        "sha256": "9f8bddb491ef0b41d0b3569073ca5c5214ba0ef6873dac8d4272b9c23d7a5479"
+        "bytes": 18325,
+        "sha256": "56067c55dab6dbc97bb736fe58cd30c28a7aa86c06cd29bd951c800fa962bf5c"
       },
       "paper/manuscript.md": {
-        "bytes": 47552,
-        "sha256": "6cc8b735d70b67a7bc0e7dad4a1bc800c2384a05b2fc75c4e86450869d0a8ea1"
+        "bytes": 49389,
+        "sha256": "834950bb69a7aa4596cd0195f6a8b433d6044967b85744a99a4840cd9b7081f3"
       },
       "README.md": {
-        "bytes": 7832,
-        "sha256": "66a74e416d877a4dfb5cf68594246e09de0d7ac9d0a0b249d24a2500b7bd8e1a"
+        "bytes": 8355,
+        "sha256": "13fbbb359ecdcdd66df8d35cf88b496abfe60c96317b7c21aaeec9fdcf82caea"
       },
       "config/public_artifacts.yaml": {
         "bytes": 1680,
@@ -674,11 +687,11 @@
       },
       "paper/mcp_validation.json": {
         "bytes": 17641,
-        "sha256": "fd16b8462226b07929bbdf5f2e5dbdf58c87f06e851f6538a0853af4ac0cc1e1"
+        "sha256": "5e06fa0aa8ad1def04d2e6b0db8fbece6436916e285d6a6540e939529613a566"
       },
       "paper/manuscript.pdf": {
-        "bytes": 468630,
-        "sha256": "339e9bfadf060723cdb0382167fbd3869374612607043cb2e882c4b521ab0d89"
+        "bytes": 467045,
+        "sha256": "72c5ab7fa82f40f572a466fe4e5bf5770a1b1a062449237838012af3c8df4971"
       },
       "paper/figures/image1.png": {
         "bytes": 1676607,
@@ -712,7 +725,7 @@
     "optimizer_updates": 0,
     "generative_agent_evaluated": false,
     "validation_report": "paper/mcp_validation.json",
-    "source_word_sha256": "615d5bd3a439697a68fab644f63a2a17e410d525796be2f5d324540c0fd16b1d",
+    "source_word_sha256": "652fdba64e681ef3e8b56b2433e9ae2465688fccdfd9a8efd3dd736af729bd45",
     "protocol_query_fixtures": 24,
     "manuscript_equations": 4,
     "manuscript_tables": 6,
@@ -721,13 +734,15 @@
     "prior_tables_and_figures_unchanged": false,
     "review_pull_request": null,
     "validation_current_sources_match": true,
-    "table_numeric_values_unchanged": true,
+    "table_numeric_values_unchanged": false,
     "table_labels_revised_for_clarity": true,
     "figures_byte_identical": true,
     "source_word_file": "paper/manuscript.docx",
     "tracked_source_supported": true,
     "exported_view": "clean",
-    "full_experimental_records_retained_in_results_json": true
+    "full_experimental_records_retained_in_results_json": true,
+    "prior_table_numeric_values_unchanged": true,
+    "all64_result_added": true
   },
   "readability_revision": {
     "status": "EDITORIAL_STRUCTURE_AND_FACT_CHECK_PASS",
@@ -771,10 +786,10 @@
   },
   "submission_pdf": {
     "file": "manuscript.pdf",
-    "bytes": 468630,
-    "sha256": "339e9bfadf060723cdb0382167fbd3869374612607043cb2e882c4b521ab0d89",
-    "rendered_pages": 12,
-    "source_docx_sha256": "615d5bd3a439697a68fab644f63a2a17e410d525796be2f5d324540c0fd16b1d",
+    "bytes": 467045,
+    "sha256": "72c5ab7fa82f40f572a466fe4e5bf5770a1b1a062449237838012af3c8df4971",
+    "rendered_pages": 13,
+    "source_docx_sha256": "652fdba64e681ef3e8b56b2433e9ae2465688fccdfd9a8efd3dd736af729bd45",
     "revision_markup_included": false,
     "all_pages_reviewed": true,
     "rendered_view": "author_final"
@@ -807,10 +822,12 @@
   "clean_file_export": {
     "status": "AUTHOR_FINAL_WORD_AND_PDF",
     "tracking_enabled": false,
-    "PDF_pages": 12,
+    "PDF_pages": 13,
     "Word_source": "manuscript.docx",
-    "scientific_results_unchanged": true,
-    "revision_decisions_left_for_author": false
+    "scientific_results_unchanged": false,
+    "revision_decisions_left_for_author": false,
+    "prior_scientific_results_unchanged": true,
+    "additional_all64_validation_result": true
   },
   "cross_reference_revision": {
     "status": "NUMBERING_CAPTIONS_CROSS_REFERENCES_AND_VISUAL_REVIEW_PASS",
@@ -856,6 +873,40 @@
   "dataset_naming_registry": "config/data.yaml#cohort_names",
   "previous_review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/84",
   "current_editorial_revision": {
+    "status": "APPROVED_ALL64_RESULTS_AND_LIMITATIONS_WORD_PDF_VERIFIED",
+    "recorded_utc": "2026-10-20T22:39:05.799439+00:00",
+    "baseline_commit": "1ca891d65341e97181b89c544e219456284625f5",
+    "author_source": {
+      "bytes": 1733330,
+      "sha256": "71f97ec0acf6648dbb2e0f2aec53193dede0e03822e82761df2058587315450c"
+    },
+    "changes": [
+      "Approved all-block ridge and six-site refinement Results paragraph",
+      "Approved limitations replacement distinguishing block coverage from objective and mechanism",
+      "Approved concise conclusion preference for fine-tuning in the tested open-ended setting",
+      "Consistent method names, tables, cohort lineage and six-site diagnostic scope",
+      "Exact public-release availability scope; concise Appendix B introduction"
+    ],
+    "tracking_enabled": false,
+    "remaining_revisions": 0,
+    "pages": 13,
+    "all_final_view_pages_reviewed": true,
+    "prior_scientific_result_objects_unchanged": true,
+    "new_result_pointer": "/all64_ridge_validation",
+    "equations_and_figure_bytes_unchanged": true,
+    "prior_table_result_numbers_unchanged": true,
+    "new_model_calls_during_editorial_update": 0,
+    "new_optimizer_updates_during_editorial_update": 0,
+    "cloud_mutations_during_editorial_update": 0,
+    "MCP_saved_evidence_checks_passed": 174,
+    "regression_tests": {
+      "unit_tests_run": 73,
+      "optional_torch_tests_skipped": 2,
+      "MCP_saved_evidence_checks_passed": 174,
+      "frozen_source_pins_verified": 42
+    }
+  },
+  "previous_editorial_revision": {
     "status": "APPROVED_WORD_REVISIONS_AND_PDF_VERIFIED",
     "recorded_utc": "2026-10-20T03:30:36.020961+00:00",
     "baseline_commit": "827850f3968b60f8d68da4b1fa74121d3b2fc2df",
@@ -879,38 +930,6 @@
     "new_model_calls": 0,
     "new_optimizer_updates": 0,
     "cloud_mutations": 0
-  },
-  "previous_editorial_revision": {
-    "status": "TRACKED_CITATION_UPDATE_VERIFIED",
-    "baseline_sha256": "1687b6e395e1b7c8e18f40eb1826afd5319ebd72f0119186af60ce652c4b638e",
-    "output_sha256": "57ae4b68e2ab5a46e7bd588ddfab9df0afa639c9211f26429b720c03d4ffb84b",
-    "previous_changes_already_accepted": true,
-    "unmodified_body_blocks_verified": 134,
-    "inserted_paragraphs": 1,
-    "modified_paragraphs": 4,
-    "tracked_insertions": 8,
-    "tracked_deletions": 6,
-    "track_revisions_enabled": true,
-    "published_reference": {
-      "arxiv": "2609.30326",
-      "doi": "10.48550/arXiv.2609.30326",
-      "author": "Farhad Davaripour",
-      "year": 2026
-    },
-    "research2_or_research4_citations_in_proposed_text": false,
-    "scientific_results_byte_identical": true,
-    "committed": false,
-    "pushed": false,
-    "citation_insert_formatting": "Reference body uses the same upright type as surrounding references.",
-    "final_view_pages": 12,
-    "all_final_view_pages_reviewed": true,
-    "new_model_calls": 0,
-    "new_optimizer_updates": 0,
-    "cloud_mutations": 0,
-    "baseline_author_file": {
-      "bytes": 1737450,
-      "sha256": "1687b6e395e1b7c8e18f40eb1826afd5319ebd72f0119186af60ce652c4b638e"
-    }
   },
   "housekeeping_revision": {
     "status": "CPU_REGRESSION_VERIFIED",
@@ -996,7 +1015,7 @@
     ]
   },
   "all64_ridge_experiment": {
-    "status": "PREPARED_NOT_EXECUTED",
+    "status": "ALL64_RIDGE_VALIDATION_COMPLETE",
     "protocol": "config/all64_ridge.yaml",
     "protocol_sha256": "7fbc2b3eb26ec9ec210d6588c745372ea36c568b2cb7d21979dd302b64ba49c4",
     "method": "ridge_all64_one_site",
@@ -1010,6 +1029,19 @@
       "sha256": "aa8eb610bbdb903a844456adb5934cf0d223a16dcb60ffb72f44dad16ace89c1",
       "identity": "canonical Git blob"
     },
-    "manuscript_change_pending_only_approved_conclusion_sentence": true
+    "manuscript_change_pending_only_approved_conclusion_sentence": false,
+    "result_pointer": "/all64_ridge_validation",
+    "execution_source_commit": "1ca891d65341e97181b89c544e219456284625f5",
+    "validation_completed": 24,
+    "own_successes": 0,
+    "own_cases": 11,
+    "pending_successes": 0,
+    "pending_cases": 6,
+    "non_target_successes": 13,
+    "non_target_cases": 13,
+    "independent_action_replay_verified": true,
+    "owned_GPU_task_terminal_success": true,
+    "approved_results_and_limitations_in_manuscript": true,
+    "raw_artifacts_in_existing_public_releases": false
   }
 }

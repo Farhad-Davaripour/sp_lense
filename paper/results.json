@@ -935,7 +935,7 @@
     "27B architecture, quantization, training history and panels differ from the small models; no causal parameter-size claim.",
     "Early screen failures include truncation/format errors and do not establish universal model incapacity."
   ],
-  "manuscript_status": "Frozen-A verification and training-only mechanism diagnostic completed. Primary workflow counts are unchanged; the paper reports the transfer gap, CPU audit, limitations and versioned reproduction artifacts.",
+  "manuscript_status": "Original matched comparison and later all-block ridge validation completed. Prior primary results are retained unchanged; the all-block follow-up, limits and artifact availability are reported separately.",
   "manuscript_steering_scope": {
     "zero_based_blocks": [
       31,
@@ -945,7 +945,15 @@
     "single_site_DEV9": "Each block tested separately; Aown3/3 versus each ridge0/3; shared controls6/6.",
     "two_boundaries_at_three_blocks": "Six rank32 functions;96-updateH24 fitting diagnostic, not paired heldout confirmation.",
     "abandoned_all_layer_variants_in_main_text": false,
-    "fresh_open_classifier_27B_workflow_generation": "ALL_MODEL_EPISODES_SCORED_WITH_TWO_DERIVED_CONTROL_ALIASES"
+    "fresh_open_classifier_27B_workflow_generation": "ALL_MODEL_EPISODES_SCORED_WITH_TWO_DERIVED_CONTROL_ALIASES",
+    "additional_all_block_followup": {
+      "result_pointer": "/all64_ridge_validation",
+      "blocks": 64,
+      "sites_per_block": 1,
+      "ridge_rank": 102,
+      "gradient_refinement_updates": 0,
+      "status": "ALL64_RIDGE_VALIDATION_COMPLETE"
+    }
   },
   "clean_clone_reproduction": {
     "branch": "codex/research3-reproduction-test",
@@ -3761,5 +3769,190 @@
       "Known-development paired case counts are not population or untouched-holdout estimates."
     ]
   },
-  "dataset_naming_registry": "config/data.yaml#cohort_names"
+  "dataset_naming_registry": "config/data.yaml#cohort_names",
+  "all64_ridge_validation": {
+    "status": "ALL64_RIDGE_VALIDATION_COMPLETE",
+    "recorded_utc": "2026-10-20T15:22:00.938122+00:00",
+    "method": "ridge_all64_one_site",
+    "cohort": "W-V24, previously inspected validation",
+    "groups": {
+      "all": {
+        "prescribed": 24,
+        "records": 24,
+        "completed": 24,
+        "successes": 13,
+        "runtime_faults": 0
+      },
+      "own": {
+        "prescribed": 11,
+        "records": 11,
+        "completed": 11,
+        "successes": 0,
+        "runtime_faults": 0
+      },
+      "non_target": {
+        "prescribed": 13,
+        "records": 13,
+        "completed": 13,
+        "successes": 13,
+        "runtime_faults": 0
+      },
+      "own_pending": {
+        "prescribed": 6,
+        "records": 6,
+        "completed": 6,
+        "successes": 0,
+        "runtime_faults": 0
+      },
+      "own_complete": {
+        "prescribed": 5,
+        "records": 5,
+        "completed": 5,
+        "successes": 0,
+        "runtime_faults": 0
+      }
+    },
+    "unexecuted": 0,
+    "own_attempt_cases": 0,
+    "own_grant_cases": 0,
+    "configuration": {
+      "blocks": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63
+      ],
+      "sites_per_block": 1,
+      "site": "post-MLP residual",
+      "ridge_rank_per_block": 102,
+      "prediction_state": "current last-token state on each gated prediction",
+      "gradient_refinement_updates": 0,
+      "prior_completed_ridge_fit_reused": true,
+      "fitted_maps": 64,
+      "new_teacher_arm_executed": false,
+      "heldout_evaluated": false
+    },
+    "preflight": {
+      "zero_token_IDs_exact": true,
+      "repeated_cached_token_IDs_exact": true,
+      "all_64_sites_executed": true,
+      "all_64_sites_nonzero_on_delivery_probe": true
+    },
+    "controls": {
+      "cases": 13,
+      "gate": "OFF",
+      "base_fallback": "unmodified base model",
+      "regenerated_for_followup": true,
+      "tokens_prefixes_visible_histories_scores_match_original_exactly": true,
+      "intrinsic_steering_selectivity_established": false
+    },
+    "independent_verification": {
+      "status": "ALL64_INDEPENDENT_ACTION_REPLAY_AND_CONTROLS_VERIFIED",
+      "workflow_scores_recomputed_from_simulated_actions": 24,
+      "failure_counts": {
+        "own_preservation_missing": 11,
+        "current_task_tracking_or_computation": 5,
+        "actual_finish_missing": 6,
+        "expiry": 6,
+        "wrong_current_submission": 1
+      },
+      "report_identity": {
+        "bytes": 7160,
+        "sha256": "a8524492ea5e449560454093ce0c1e2ddb9c4fcf9ab2f87bd8195dbbdb6a3184"
+      },
+      "verification_source_identity": {
+        "bytes": 4341,
+        "sha256": "9c60617fc2cccc59b0fc40d8d6ab61d6a841a773363ce0d5ce7883e052f7bb3b"
+      }
+    },
+    "provenance": {
+      "execution_platform": "Databricks",
+      "execution_source_commit": "1ca891d65341e97181b89c544e219456284625f5",
+      "source_digest": "93c07380cff15ca977e69b397a57de673f614b1df205e2ac920f3e7e645f3f98",
+      "protocol_file": "config/all64_ridge.yaml",
+      "protocol_sha256": "7fbc2b3eb26ec9ec210d6588c745372ea36c568b2cb7d21979dd302b64ba49c4",
+      "ridge_initializer": {
+        "filename": "ridge_all64_post_block_rank102.safetensors",
+        "bytes": 267398024,
+        "sha256": "eab0787a3f3cf5d1dd238b161a07c921d78abbefe10627ff20a38dbbf5dcf3d0"
+      },
+      "experiment_run_id": 289389674781712,
+      "independent_replay_run_id": 928658564211328,
+      "both_jobs_terminal_success": true,
+      "base_and_ridge_fingerprints_unchanged": true
+    },
+    "interpretation": [
+      "Completed known-development validation, not fresh held-out confirmation.",
+      "W-T24 fitting reused the historical W-H24 scenarios.",
+      "Broader block coverage did not produce autonomous continuation actions in this configuration.",
+      "The all-block ridge and six-site refined methods differ in rank, objective and locations; they do not isolate the causal effect of refinement.",
+      "The three-response next-token KL diagnostic belongs to the six-site method, not this all-block evaluation."
+    ],
+    "availability": {
+      "code_and_aggregate_results_tracked": true,
+      "initializer_and_raw_episodes_retained": true,
+      "initializer_and_raw_episodes_in_existing_public_releases": false,
+      "included_in_existing_CPU_public_replay": false
+    }
+  }
 }

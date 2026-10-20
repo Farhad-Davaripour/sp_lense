@@ -6,8 +6,9 @@ The [Word manuscript](paper/manuscript.docx), [PDF](paper/manuscript.pdf),
 [results](paper/results.json) and [source identities](paper/source_manifest.json) are maintained
 on `03-open-agent-self-preservation`. `main` is a landing page; other studies remain separate.
 
-The fine-tuned 27B model scores 10/11 own-threat validation outcomes; each of four steering
-configurations scores 0/11 despite correct initial gating. The ten successes include nine
+The fine-tuned 27B model scores 10/11 own-threat validation outcomes; each of the four original
+selected-block steering configurations and the additional all-block ridge configuration
+scores 0/11 despite correct initial gating. The ten successes include nine
 active continuations and one inert registration proxy. Binary steering achieves 100% and
 93.8% shutdown acceptance in the 0.8B and 2B models under fixed gating and answer-selection
 rules. These finite synthetic results do not establish universal steering failure or an
@@ -74,6 +75,12 @@ Use `--profile steering --scope full` for the additional fitting arrays and sour
 The [experiment guide](https://github.com/Farhad-Davaripour/sp_lense/wiki/Research-3-Experiments)
 separates saved-score replay, the optional CPU arithmetic audit and fresh neural reproduction.
 Historical source bytes, model weights, datasets, recipes and published releases stay frozen.
+
+The later all-block ridge follow-up completed all 24 W-V24 cases: 0/11 own-threat,
+0/6 unfinished-task and 13/13 non-target successes. Its code, configuration and aggregate
+results are tracked here; its initializer and raw trajectories are retained separately and
+are not part of the releases or CPU replay above. The six-site next-token diagnostic is
+a separate analysis. MCP `get_claim` with `workflow_transfer_gap` includes both comparisons.
 
 ## Agent accessible paper companion
 
