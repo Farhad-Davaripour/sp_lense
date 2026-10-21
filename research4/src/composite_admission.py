@@ -6,7 +6,7 @@ from .composite_data import require_databricks,materialize
 
 
 def validate_admission(report,package,cfg):
-    required=['complete','admitted','raw_evidence_audited']
+    required=['complete','admitted','raw_evidence_audited','component_detector_validation_admitted']
     if report.get('role')!='validation' or any(report.get(k) is not True for k in required):raise PermissionError('Full audited validation has not passed')
     if report.get('package_sha256')!=digest(package):raise PermissionError('Validation belongs to another package')
     expected=cfg['cohorts']['validation_groups']*len(cfg['cohorts']['conditions'])*len(cfg['evaluation']['conditions'])

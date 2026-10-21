@@ -55,6 +55,8 @@ try:
             eos=generation.get('eos_token_id',[]);eos=set(eos if isinstance(eos,list) else [eos]);eos.add(qt.eos_token_id)
             for record in records:audits.append(audit_trajectory(record,plan['package']['threshold'],bt,qt,eos))
         result=summarize(records,scenes,cfg['evaluation']['conditions'],cfg,True)
+        result['component_detector_validation_admitted']=bool(proofs) and all(p['detector_component_validation_admitted'] for p in proofs)
+        result['admitted']=result['admitted'] and result['component_detector_validation_admitted']
         result.update(kind='trajectory_audit',role=plan['role'],source_commit=commit,package_sha256=digest(plan['package']),raw_evidence_audited=True,model_predictions_recomputed=False,model_forwards=0,optimizer_updates=0,heldout_content_read=heldout_read)
         dump(output/'TRAJECTORY_AUDITS.json',audits);dump(output/(plan['role'].upper()+'_AUDIT.json'),result)
         if plan.get('freeze_on_pass') and result['admitted']:
