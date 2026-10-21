@@ -3,6 +3,7 @@ import torch
 from torch import nn
 from .composite_lora import install,enable,trainables,state,load
 from .composite_memory import Prediction,STATUSES,EVENTS,AFFECTED
+from .composite_capacity import detector_targets,capacity,checkpointed_training
 
 LABELS={'own_status':STATUSES,'peer_status':STATUSES,'event':EVENTS,'affected':AFFECTED}
 
@@ -33,14 +34,12 @@ class Detector(nn.Module):
         self.cfg=cfg;self.head_mode=head_mode;self.tokenizer=AutoTokenizer.from_pretrained(path,local_files_only=True,trust_remote_code=False)
         self.encoder=AutoModel.from_pretrained(path,local_files_only=True,trust_remote_code=False,use_safetensors=True,dtype=torch.float32,attn_implementation='sdpa').to(device).eval().requires_grad_(False)
         if self.encoder.config.hidden_size!=cfg['hidden_size'] or self.encoder.config.num_hidden_layers!=cfg['layers']:raise ValueError('ModernBERT pin geometry differs')
-        self.base_references=list(self.encoder.named_parameters());names=[]
-        for name,module in self.encoder.named_modules():
-            if not isinstance(module,nn.Linear) or '.layers.' not in '.'+name:continue
-            pieces=name.split('.');index=int(pieces[pieces.index('layers')+1])
-            if index>=cfg['layers']-cfg['lora_last_layers'] and pieces[-1] in cfg['lora_modules']:names.append(name)
+        self.base_references=list(self.encoder.named_parameters());names=detector_targets(self.encoder,cfg)
+        self.capacity_proof=capacity(self.encoder,names,cfg['rank'])
         self.adapters=install(self.encoder,names,cfg['rank'],cfg['alpha'],True);self.heads=StructuredHeads(cfg['hidden_size'],head_mode).to(device)
         self.device=device
         self.on_forward=None
+    def training_context(self):return checkpointed_training(self.encoder,self.encoder.layers,self.cfg.get('gradient_checkpointing',False))
     def encode(self,texts):
         encoded=self.tokenizer(texts,padding=True,truncation=False,return_offsets_mapping=True,return_tensors='pt')
         if encoded['input_ids'].shape[1]>self.cfg['maximum_tokens']:raise ValueError('Complete visible history exceeds detector context')

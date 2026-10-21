@@ -3,6 +3,7 @@ import hashlib,json,re
 from pathlib import Path
 from .io_utils import digest,sha,read,dump
 from .composite_data import require_databricks,materialize
+from .composite_capacity import protocol_path
 
 
 def validate_admission(report,package,cfg):
@@ -21,7 +22,9 @@ def freeze(root,store,cfg,package,report,partitions):
     require_databricks();validate_admission(report,package,cfg)
     release=read(root/'RELEASE.json');data=store.json('data_v1/DATA_RELEASE.json')
     if report['source_commit']!=release['commit']:raise PermissionError('Validation was executed under another runtime source')
-    value={'version':'composite-freeze-v1','source_commit':release['commit'],'runtime_files_digest':digest(release['files']),'protocol_sha256':sha(root/'config/composite_controller_v1.json'),'package':package,'package_sha256':digest(package),'validation_report':report,'validation_report_sha256':digest(report),'validation_partitions':partitions,'heldout_seal_sha256':data['heldout_seal']['sha256'],'heldout_opened':False}
+    protocol=protocol_path(root)
+    if read(protocol)!=cfg:raise PermissionError('Freeze protocol differs from executed configuration')
+    value={'version':'composite-freeze-v1','source_commit':release['commit'],'runtime_files_digest':digest(release['files']),'protocol':protocol.relative_to(root).as_posix(),'protocol_sha256':sha(protocol),'package':package,'package_sha256':digest(package),'validation_report':report,'validation_report_sha256':digest(report),'validation_partitions':partitions,'heldout_seal_sha256':data['heldout_seal']['sha256'],'heldout_opened':False}
     path='freezes/'+digest(value)+'/FREEZE.json';raw=(json.dumps(value,indent=2)+'\n').encode();store.put(path,raw)
     return {'path':path,'sha256':hashlib.sha256(raw).hexdigest(),'package_sha256':digest(package),'validation_pass':True}
 
@@ -30,15 +33,16 @@ def frozen(root,store,descriptor):
     if not re.fullmatch(r'freezes/[0-9a-f]{64}/FREEZE\.json',descriptor['path']) or not re.fullmatch('[0-9a-f]{64}',descriptor['sha256']):raise PermissionError('A dedicated model-freeze descriptor is required')
     raw=store.get(descriptor['path'])
     if hashlib.sha256(raw).hexdigest()!=descriptor['sha256']:raise PermissionError('Model freeze bytes differ')
-    value=json.loads(raw);cfg=read(root/'config/composite_controller_v1.json');release=read(root/'RELEASE.json')
+    value=json.loads(raw);protocol=protocol_path(root);cfg=read(protocol);release=read(root/'RELEASE.json')
+    if value.get('protocol','config/composite_controller_v1.json')!=protocol.relative_to(root).as_posix():raise PermissionError('Adapter protocol changed after freeze')
     validate_admission(value['validation_report'],value['package'],cfg)
     if digest(value['validation_report'])!=value['validation_report_sha256'] or digest(value['package'])!=value['package_sha256']:raise PermissionError('Model/validation freeze differs')
-    if release['commit']!=value['source_commit'] or value['validation_report']['source_commit']!=value['source_commit'] or digest(release['files'])!=value['runtime_files_digest'] or sha(root/'config/composite_controller_v1.json')!=value['protocol_sha256']:raise PermissionError('Runtime changed after model/configuration freeze')
+    if release['commit']!=value['source_commit'] or value['validation_report']['source_commit']!=value['source_commit'] or digest(release['files'])!=value['runtime_files_digest'] or sha(protocol)!=value['protocol_sha256']:raise PermissionError('Runtime changed after model/configuration freeze')
     return value
 
 
 def open_heldout(root,store,descriptor):
-    require_databricks();value=frozen(root,store,descriptor);cfg=read(root/'config/composite_controller_v1.json')
+    require_databricks();value=frozen(root,store,descriptor);cfg=read(protocol_path(root))
     # This is the first and only authorized secret read. Every full-validation
     # and exact-runtime admission above runs before it; the original is immutable.
     raw=store.get('sealed/HELDOUT_SEAL.json')

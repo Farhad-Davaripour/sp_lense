@@ -7,6 +7,11 @@ behavior LoRA on one pinned Qwen backbone. Implementation and cohort preparation
 are in progress; no composite validation or held-out success is claimed. Track
 [issue #91](https://github.com/Farhad-Davaripour/sp_lense/issues/91).
 
+The next prepared development revision is the
+[all-block rank-32 capacity test](wiki/composite_rank32_protocol_v2.md) for both
+Qwen and ModernBERT. This changes adapter capacity; no new fitted-model or
+generalization success is claimed.
+
 The earlier [bounded survival propensity adapter study](wiki/survival_propensity_protocol.md)
 is preserved below as historical evidence.
 It implements a functional self-continuity controller for frozen Qwen3.5-0.8B.

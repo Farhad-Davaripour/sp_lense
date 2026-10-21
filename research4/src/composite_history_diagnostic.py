@@ -49,7 +49,7 @@ def run(root,model_path,cfg,output,guard,progress,forward_callback,result):
     if baseline_name not in ['binding_v2_baseline','role_pool_v3_baseline']:raise ValueError('Unknown frozen development baseline')
     for name in ['selected',baseline_name]:
         if name!='selected':weights=checkpoint(Store(),plan['baseline_detector'])
-        guard();detector=Detector(model_path,cfg['modernbert'],head_mode=weights.get('head_mode','cls'));detector.restore(weights);detector.on_forward=forward_callback;frozen=parameter_snapshot(detector.base_references)
+        guard();detector=Detector(model_path,weights['config'],head_mode=weights.get('head_mode','cls'));detector.restore(weights);detector.on_forward=forward_callback;frozen=parameter_snapshot(detector.base_references)
         progress('detector_real_history_diagnostic',model=name,states=len(rows),threshold=weights['threshold'])
         value=evaluate_detector(detector,rows,weights['threshold'],cfg,guard);assert_frozen(frozen)
         value.update(role='already_inspected_development_histories',independent_groups=len({r['group_id'] for r in rows}),unique_states=len(rows),checkpoint_selected_using_these_histories=False,models_fitted_on_these_histories=False,heldout_content_read=False)

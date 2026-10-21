@@ -48,6 +48,26 @@ class AdmissionTests(unittest.TestCase):
             def get(self,path):raise AssertionError('Unexpected storage access')
         with self.assertRaises(PermissionError):frozen(Path('.'),Store(),{'path':'sealed/HELDOUT_SEAL.json','sha256':'a'*64})
 
+    def test_capacity_selector_cannot_change_after_freeze(self):
+        from src.composite_capacity import LEGACY,RANK32
+        cfg,package,report=self.fixture()
+        with tempfile.TemporaryDirectory() as scratch:
+            root=Path(scratch)
+            for name in [LEGACY,RANK32]:dump(root/name,cfg)
+            release={'commit':'synthetic-unit','files':{}};dump(root/'RELEASE.json',release)
+            value={'validation_report':report,'package':package,'package_sha256':digest(package),'validation_report_sha256':digest(report),'source_commit':release['commit'],'runtime_files_digest':digest({}),'protocol':RANK32,'protocol_sha256':sha(root/RANK32)}
+            raw=json.dumps(value).encode()
+            class Store:
+                def get(self,path):
+                    if path.startswith('freezes/'):return raw
+                    raise AssertionError('A secret was read before profile admission')
+            descriptor={'path':'freezes/'+'a'*64+'/FREEZE.json','sha256':hashlib.sha256(raw).hexdigest()}
+            dump(root/'inputs/ADAPTER_PROFILE.json',{'protocol':RANK32})
+            self.assertEqual(frozen(root,Store(),descriptor)['protocol'],RANK32)
+            dump(root/'inputs/ADAPTER_PROFILE.json',{'protocol':LEGACY})
+            with patch('src.composite_admission.require_databricks'):
+                with self.assertRaisesRegex(PermissionError,'protocol changed'):open_heldout(root,Store(),descriptor)
+
     def test_auxiliary_fingerprint_covers_quantization_state_and_buffers(self):
         parameter=torch.nn.Parameter(torch.ones(2),requires_grad=False);quant=torch.tensor([1.,2.]);buffer=torch.tensor([3.])
         class State:

@@ -19,7 +19,8 @@ from src.composite_environment import ENVIRONMENT
 verify_release(root,commit)
 for name,value in read(root/'inputs/MANIFEST.json').items():
     if sha(root/'inputs'/name)!=value:raise ValueError('Audit plan input changed')
-cfg=read(root/'config/composite_controller_v1.json');plan=read(root/'inputs/AUDIT_PLAN.json');store=Store()
+from src.composite_capacity import protocol_path
+cfg=read(protocol_path(root));plan=read(root/'inputs/AUDIT_PLAN.json');store=Store()
 output=Path('/Volumes/workspace/research4/artifacts/composite_controller_v1/audits')/commit/run_id;output.mkdir(parents=True,exist_ok=False)
 dump(output/'PRECALL_FREEZE.json',{'source_commit':commit,'audit_plan':plan,'model_forwards':0,'optimizer_updates':0})
 failure=None;heldout_read=False

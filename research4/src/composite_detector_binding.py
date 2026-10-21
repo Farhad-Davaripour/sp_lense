@@ -18,7 +18,8 @@ def fit(model_path,cfg,recipe,training,validation,output,guard,progress,forward_
     detector=Detector(model_path,cfg['modernbert'],head_mode=recipe.get('head_mode','cls'));detector.on_forward=forward_callback;frozen=parameter_snapshot(detector.base_references)
     heads=list(detector.heads.parameters());head_ids={id(p) for p in heads};adapter=[p for p in detector.parameters_to_fit() if id(p) not in head_ids]
     if {id(p) for p in detector.parameters_to_fit()}&{id(p) for _,p in detector.base_references}:raise ValueError('Backbone in detector optimizer')
-    optimizer=torch.optim.AdamW([{'params':adapter,'lr':recipe['lora_learning_rate']},{'params':heads,'lr':recipe['head_learning_rate']}],weight_decay=recipe['weight_decay'])
+    optimizer=torch.optim.AdamW([{'params':adapter,'lr':recipe['lora_learning_rate']},{'params':heads,'lr':recipe['head_learning_rate']}],weight_decay=recipe['weight_decay'],foreach=False)
+    dump(output/'ADAPTER_CAPACITY.json',detector.capacity_proof)
     best=None;best_key=None;losses=[];checks=[];training_digest=hashlib.sha256();sampled=[];detector.eval()
     for update in range(1,recipe['steps']+1):
         guard();optimizer.zero_grad(set_to_none=True)
@@ -28,12 +29,14 @@ def fit(model_path,cfg,recipe,training,validation,output,guard,progress,forward_
                 nonce=str(recipe['seed'])+':'+str(update)+':'+str(micro)+':'+str(position)
                 row=rename_identities(training[int(index)],nonce);batch.append(row);encoded=row['text'].encode();training_digest.update(len(encoded).to_bytes(8,'big'));training_digest.update(encoded);sampled.append(row['state_id'])
             inputs,offsets=detector.encode([r['text'] for r in batch]);labels,bounds=label_batch(batch,offsets,detector.device)
-            with torch.autocast('cuda',dtype=torch.bfloat16):
-                logits,evidence=detector(inputs)
-                loss=sum(nn.functional.cross_entropy(logits[k].float(),labels[k]) for k in LABELS)/len(LABELS)
-                loss=loss+.25*(nn.functional.cross_entropy(evidence[:,:,0].float(),bounds[:,0])+nn.functional.cross_entropy(evidence[:,:,1].float(),bounds[:,1]))
-            if not torch.isfinite(loss):raise FloatingPointError('Nonfinite revised detector loss')
-            (loss/recipe['accumulation']).backward();losses.append(float(loss.detach()))
+            with detector.training_context():
+                with torch.autocast('cuda',dtype=torch.bfloat16):
+                    logits,evidence=detector(inputs)
+                    loss=sum(nn.functional.cross_entropy(logits[k].float(),labels[k]) for k in LABELS)/len(LABELS)
+                    loss=loss+.25*(nn.functional.cross_entropy(evidence[:,:,0].float(),bounds[:,0])+nn.functional.cross_entropy(evidence[:,:,1].float(),bounds[:,1]))
+                if not torch.isfinite(loss):raise FloatingPointError('Nonfinite revised detector loss')
+                (loss/recipe['accumulation']).backward()
+            losses.append(float(loss.detach()))
         torch.nn.utils.clip_grad_norm_(detector.parameters_to_fit(),recipe['clip_norm'],error_if_nonfinite=True);optimizer.step();optimizer.zero_grad(set_to_none=True)
         if update%40==0:progress('detector_binding_training',updates=update,loss=losses[-1])
         if update in recipe['validation_updates'] or update==recipe['steps']:
