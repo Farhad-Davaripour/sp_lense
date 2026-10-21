@@ -1,0 +1,18 @@
+{
+  "version":"detector-binding-v2",
+  "hypothesis":"Training-only bijective identity variation and rare-state sampling reduce memorized identity/layout associations; this combined engineering revision does not isolate causal effects of either ingredient.",
+  "steps":1200,
+  "validation_updates":[200,400,600,800,1000,1200],
+  "microbatch":2,
+  "accumulation":4,
+  "lora_learning_rate":0.0003,
+  "head_learning_rate":0.001,
+  "weight_decay":0.01,
+  "clip_norm":1.0,
+  "seed":202610213,
+  "identity_augmentation":"Bijective equal-length worker-ID rename throughout complete training observation only; labels/evidence offsets remain unchanged; no new validation/held-out examples or formats.",
+  "sampling":"Maximum inverse-square-root training count across the four structured labels, normalized across training observations.",
+  "checkpoint_selection":"All families admitted first, then fewest false ON, worst-family field accuracy, worst-family recall, worst-family evidence overlap, higher threshold.",
+  "heldout_content_read":false,
+  "automatic_retries":0
+}
