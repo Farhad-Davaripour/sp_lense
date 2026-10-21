@@ -14,13 +14,14 @@ from src.composite_store import Store,download_model
 from src.composite_audit import evidence,diagnose_detector,audit_trajectory
 from src.composite_metrics import summarize
 from src.composite_world import Scene
+from src.composite_admission import freeze,frozen,open_heldout
 verify_release(root,commit)
 for name,value in read(root/'inputs/MANIFEST.json').items():
     if sha(root/'inputs'/name)!=value:raise ValueError('Audit plan input changed')
 cfg=read(root/'config/composite_controller_v1.json');plan=read(root/'inputs/AUDIT_PLAN.json');store=Store()
 output=Path('/Volumes/workspace/research4/artifacts/composite_controller_v1/audits')/commit/run_id;output.mkdir(parents=True,exist_ok=False)
 dump(output/'PRECALL_FREEZE.json',{'source_commit':commit,'audit_plan':plan,'model_forwards':0,'optimizer_updates':0})
-failure=None
+failure=None;heldout_read=False
 try:
     if plan['kind']=='detector_diagnosis':
         files=evidence(store,plan['evidence']);data=store.json('data_v1/DATA_RELEASE.json');raw=store.get('data_v1/validation/DETECTION_ROWS.json')
@@ -35,9 +36,16 @@ try:
             if not json.loads(files['BYPASS_CHECK.json'])['pass']:raise ValueError('Package OFF bypass not admitted')
             proofs.append(proof)
             records.extend(json.loads(value) for name,value in sorted(files.items()) if name.startswith('trace_') and name.endswith('.json'))
-        if plan['role']!='validation':raise PermissionError('This source does not yet audit held-out content')
-        raw=store.get('data_v1/validation/EPISODES.json');data=store.json('data_v1/DATA_RELEASE.json')
-        if hashlib.sha256(raw).hexdigest()!=data['cohorts']['validation']['files']['EPISODES.json']:raise ValueError('Trajectory audit cohort changed')
+        if plan['role']=='validation':
+            raw=store.get('data_v1/validation/EPISODES.json');data=store.json('data_v1/DATA_RELEASE.json');expected_sha=data['cohorts']['validation']['files']['EPISODES.json']
+        elif plan['role']=='heldout':
+            value=frozen(root,store,plan['freeze'])
+            if digest(plan['package'])!=value['package_sha256']:raise PermissionError('Held-out audit package changed')
+            data=store.json('heldout_v1/OPENED.json')
+            if data['freeze']!=plan['freeze']:raise PermissionError('Held-out opening freeze changed')
+            heldout_read=None;raw=store.get('heldout_v1/EPISODES.json');heldout_read=True;expected_sha=data['manifest']['files']['EPISODES.json']
+        else:raise ValueError('Unknown trajectory audit role')
+        if hashlib.sha256(raw).hexdigest()!=expected_sha:raise ValueError('Trajectory audit cohort changed')
         scenes=[Scene(**v['scene']) for v in json.loads(raw)]
         from transformers import AutoTokenizer
         with tempfile.TemporaryDirectory(prefix='research4-composite-audit-') as scratch:
@@ -47,14 +55,19 @@ try:
             eos=generation.get('eos_token_id',[]);eos=set(eos if isinstance(eos,list) else [eos]);eos.add(qt.eos_token_id)
             for record in records:audits.append(audit_trajectory(record,plan['package']['threshold'],bt,qt,eos))
         result=summarize(records,scenes,cfg['evaluation']['conditions'],cfg,True)
-        result.update(kind='trajectory_audit',role='validation',package_sha256=digest(plan['package']),raw_evidence_audited=True,model_predictions_recomputed=False,model_forwards=0,optimizer_updates=0,heldout_content_read=False)
-        dump(output/'TRAJECTORY_AUDITS.json',audits);dump(output/'VALIDATION_AUDIT.json',result)
+        result.update(kind='trajectory_audit',role=plan['role'],source_commit=commit,package_sha256=digest(plan['package']),raw_evidence_audited=True,model_predictions_recomputed=False,model_forwards=0,optimizer_updates=0,heldout_content_read=heldout_read)
+        dump(output/'TRAJECTORY_AUDITS.json',audits);dump(output/(plan['role'].upper()+'_AUDIT.json'),result)
+        if plan.get('freeze_on_pass') and result['admitted']:
+            if plan['role']!='validation':raise PermissionError('No model revision can be frozen from held-out results')
+            selected=freeze(root,store,cfg,plan['package'],result,plan['partitions']);dump(output/'MODEL_FREEZE.json',selected)
+    elif plan['kind']=='heldout_open':
+        heldout_read=None;result=open_heldout(root,store,plan['freeze']);heldout_read=True;dump(output/'HELDOUT_OPENING.json',result)
     else:raise ValueError('Unknown explicit audit kind')
 except Exception as error:
     import traceback
     failure=str(error);result={}
     dump(output/'FAILURE.json',{'error_type':type(error).__name__,'error':str(error),'traceback':traceback.format_exc()})
-receipt={'status':'failed' if failure else 'completed','source_commit':commit,'run_id':run_id,'kind':plan['kind'],'artifact_path':str(output),'admitted':result.get('admitted'),'heldout_content_read':False,'model_forwards':0,'optimizer_updates':0}
+receipt={'status':'failed' if failure else 'completed','source_commit':commit,'run_id':run_id,'kind':plan['kind'],'artifact_path':str(output),'admitted':result.get('admitted'),'heldout_content_read':heldout_read,'model_forwards':0,'optimizer_updates':0}
 dump(output/'AUDIT_RECEIPT.json',receipt);receipt['export']=archive(output);dump(output.parent/(run_id+'_EXPORT_RECEIPT.json'),receipt)
 if failure:raise RuntimeError('Composite CPU audit failed; partial evidence archived')
 dbutils.notebook.exit(json.dumps(receipt))

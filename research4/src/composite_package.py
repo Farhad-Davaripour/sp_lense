@@ -38,5 +38,6 @@ def load_package(root,cfg,package,cache,guard,progress,forward_callback):
     actor=Actor(qwen,cfg['qwen'],guard,forward_callback);actor.restore(saved_actor)
     model=Composite(detector,actor,package['threshold']).eval()
     proof={'package_sha256':digest(package),'models':expected,'model_files':{'detector':bert_proof,'actor':qwen_proof},'backbone_instances':{'ModernBERT':1,'Qwen':1},'detector_component_validation_admitted':bool(saved_detector['validation_admitted']),'behavior_placement':saved_actor['placement'],'frozen_backbone_parameters':{'detector':sum(p.numel() for _,p in detector.base_references),'actor_storage_elements':sum(p.numel() for _,p in actor.base_references)},'heldout_content_read':False}
-    def verify():assert_frozen(frozen_detector);assert_frozen(actor.frozen_snapshot)
+    proof['actor_base_proof']=actor.frozen_proof()
+    def verify():assert_frozen(frozen_detector);actor.verify_frozen()
     return model,proof,verify
