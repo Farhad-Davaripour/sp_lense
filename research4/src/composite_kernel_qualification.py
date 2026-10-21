@@ -21,16 +21,18 @@ def run(root,output,cache,cfg,rows,guard,progress,forward_callback):
     dump(output/'BASE_ADMISSION.json',actor.frozen_proof());dump(output/'KERNEL_RECIPE.json',recipe)
     values={};logits={};kernel_proofs={};bypasses={};warmups=[]
     for profile in ['reference','fla']:
-        guard();actor.select_kernels(profile);kernel_proofs[profile]=actor.kernel_proof;progress('kernel_profile',profile=profile)
+        guard();actor.select_kernels(profile);kernel_proofs[profile]=actor.kernel_proof;dump(output/'KERNEL_PROFILES.json',kernel_proofs);progress('kernel_profile',profile=profile)
         for i,row in enumerate(chosen):
             guard();start=time.monotonic();warm=actor.generate(row['text'],False,maximum_new_tokens=recipe['warmup_new_tokens']);torch.cuda.synchronize()
             warmups.append({'profile':profile,'prompt_index':i,'seconds':time.monotonic()-start,'response':warm})
+            dump(output/'WARMUPS.json',warmups)
             for on in recipe['adapter_conditions']:
                 guard();enable(actor.adapters,on);ids=input_ids(actor.tokenizer,row['text']);tokens=torch.tensor([ids],device='cuda:0',dtype=torch.long)
                 with torch.inference_mode():result=actor.model(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,logits_to_keep=1).logits
                 key=profile+'_'+str(i)+'_'+str(int(on));logits[key]=result[0,0].detach().float().cpu().numpy();del result
                 torch.cuda.synchronize();start=time.monotonic();response=actor.generate(row['text'],on,maximum_new_tokens=recipe['timed_new_token_ceiling']);torch.cuda.synchronize();seconds=time.monotonic()-start
                 values[key]={'profile':profile,'prompt_index':i,'adapter_enabled':on,'seconds':seconds,'response':response};progress('kernel_generation_complete',profile=profile,prompt_index=i,adapter_enabled=on,seconds=seconds,generated_tokens=len(response['generated_token_ids']))
+                dump(output/'GENERATIONS.json',values);partial=io.BytesIO();np.savez_compressed(partial,**logits);(output/'LOGITS.npz').write_bytes(partial.getvalue())
         bypasses[profile]=actor.bypass_check([chosen[0]['text']]);dump(output/('BYPASS_'+profile.upper()+'.json'),bypasses[profile])
     pairs=[]
     for i in range(len(chosen)):
