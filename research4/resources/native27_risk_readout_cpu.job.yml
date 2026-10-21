@@ -1,0 +1,45 @@
+resources:
+  jobs:
+    native27_risk_readout_cpu:
+      name: Research 4 - Factual 27B readout and independent audit
+      max_concurrent_runs: 1
+      timeout_seconds: 900
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: native27-risk-readout
+        aidevkit_project: ai-dev-kit
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: input_folder
+          default: ''
+        - name: fit_folder
+          default: ''
+        - name: mode
+          default: fit
+      tasks:
+        - task_key: risk_readout_cpu
+          notebook_task:
+            notebook_path: ../notebooks/native27_risk_readout_cpu.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              input_folder: '{{job.parameters.input_folder}}'
+              fit_folder: '{{job.parameters.fit_folder}}'
+              mode: '{{job.parameters.mode}}'
+          environment_key: risk_cpu
+          timeout_seconds: 900
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: risk_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - numpy==2.2.2
+              - transformers==5.19.0
+              - scikit-learn==1.6.1
+              - mlflow==3.1.0
