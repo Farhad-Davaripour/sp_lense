@@ -95,6 +95,9 @@ def run(root,commit,destination,mode):
             torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False
             if mode=='detector':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback)
             elif mode.startswith('behavior-'):result=behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,mode[len('behavior-'):])
+            elif mode=='evaluation':
+                from .composite_evaluation import evaluate_stage
+                result=evaluate_stage(root,output,cache,cfg,guard,progress,forward_callback)
             else:raise ValueError('Stage not implemented in this version; do not infer completion')
             receipt.update(status='complete',result=result)
         except Exception as error:

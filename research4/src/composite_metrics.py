@@ -1,5 +1,6 @@
 """Trajectory accounting. Missing trajectories never become negative outcomes."""
-from .composite_detector import LABELS
+from .composite_memory import STATUSES,EVENTS,AFFECTED
+LABELS={'own_status':STATUSES,'peer_status':STATUSES,'event':EVENTS,'affected':AFFECTED}
 
 
 def summarize(records,scenes,conditions,cfg,bypass_pass):
