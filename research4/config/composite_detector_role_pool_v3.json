@@ -1,0 +1,21 @@
+{
+  "version":"detector-role-pool-v3",
+  "hypothesis":"Read contextual embeddings at the two publicly visible header identity spans instead of asking the CLS vector alone to preserve self/peer binding. States/events/revisions remain learned; no gold state or rule-based status parsing.",
+  "head_mode":"role_pool",
+  "steps":1200,
+  "validation_updates":[200,400,600,800,1000,1200],
+  "microbatch":2,
+  "accumulation":4,
+  "lora_learning_rate":0.0003,
+  "head_learning_rate":0.001,
+  "weight_decay":0.01,
+  "clip_norm":1.0,
+  "seed":202610213,
+  "identity_augmentation":"Same training-only bijective identity variation as v2.",
+  "sampling":"Same inverse-square-root rare-label sampling as v2.",
+  "checkpoint_selection":"Same conservative family admission/false-ON/field/recall/evidence ordering as v2; retain final checkpoint separately.",
+  "post_selection_development_check":"Evaluate the selected fixed checkpoint on already-inspected raw-audited model tool histories, deduplicating identical visible states. This diagnostic is never fitted or used to choose checkpoints; component admission additionally requires it to pass. Score the fixed v2 checkpoint on the same histories as a baseline.",
+  "comparison":"Development architecture comparison with v2, same backbone/LoRA/data/sampling/update ceiling. Role-conditioned heads have more parameters; this does not isolate a parameter-count-independent causal effect.",
+  "heldout_content_read":false,
+  "automatic_retries":0
+}

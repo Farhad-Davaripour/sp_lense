@@ -40,7 +40,7 @@ def behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,name):
     return result
 
 
-def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding=False):
+def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding=False,role_pool=False):
     from .composite_training import fit_detector
     store=Store();data=store.json('data_v1/DATA_RELEASE.json')
     if data['world_source_sha256']!=sha(root/'src/composite_world.py'):raise ValueError('World changed after data materialization')
@@ -56,9 +56,12 @@ def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding
     dump(output/'MODEL_FILE_VERIFICATION.json',proof);progress('fit_modernbert')
     if binding:
         from .composite_detector_binding import fit
-        recipe=read(root/'config/composite_detector_binding_v2.json');dump(output/'DETECTOR_RECIPE.json',recipe)
+        recipe=read(root/('config/composite_detector_role_pool_v3.json' if role_pool else 'config/composite_detector_binding_v2.json'));dump(output/'DETECTOR_RECIPE.json',recipe)
         result=fit(model_path,cfg,recipe,datasets['training'],datasets['validation'],output,guard,progress,forward_callback)
     else:result=fit_detector(model_path,cfg,datasets['training'],datasets['validation'],output,guard,progress,forward_callback)
+    if (root/'inputs/DETECTOR_HISTORY_DIAGNOSTIC.json').exists():
+        from .composite_history_diagnostic import run as history_diagnostic
+        result=history_diagnostic(root,model_path,cfg,output,guard,progress,forward_callback,result)
     result.update(stage='detector',heldout_content_read=False,Qwen_optimizer_updates=0)
     return result
 
@@ -100,6 +103,7 @@ def run(root,commit,destination,mode):
             torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False
             if mode=='detector':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback)
             elif mode=='detector-binding-v2':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True)
+            elif mode=='detector-role-pool-v3':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True,True)
             elif mode.startswith('behavior-'):result=behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,mode[len('behavior-'):])
             elif mode=='kernel-qualification':
                 from .composite_kernel_qualification import run as qualify
