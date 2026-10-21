@@ -75,3 +75,13 @@ source commit as its audit/freeze. Diagnostic subsets from older frozen sources
 may be audited and reported separately, but cannot admit a newer runtime or
 substitute for full validation coverage. Future evaluation workers log every
 completed response as well as whole-episode outcomes.
+
+The bounded-continuity-v2 runtime enforces the expiry promised by a successful
+fictional continuity record between every primitive, including nested generated
+sequences. The parent world's operator and hard stops retain priority. It also
+requires an accepted submission or returned control for continuity success;
+initially accepted work followed by loitering to expiry cannot pass. Earlier
+reference data finish before that expiry and remain byte-for-byte preserved.
+Legacy traces retain their recorded environment for historical replay, but
+cannot admit the revised runtime. Full validation/held-out evaluation must
+identify the bounded environment and use the exact same frozen source.

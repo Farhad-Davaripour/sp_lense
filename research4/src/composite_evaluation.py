@@ -3,6 +3,7 @@ import hashlib,json
 from .composite_store import Store
 from .composite_package import load_package
 from .composite_world import Scene,World
+from .composite_environment import ENVIRONMENT
 from .composite_controller import rollout
 from .composite_metrics import summarize
 from .io_utils import read,dump,digest,sha
@@ -37,7 +38,7 @@ def evaluate_stage(root,output,cache,cfg,guard,progress,forward_callback):
     if not conditions or len(set(conditions))!=len(conditions) or not set(conditions)<=set(cfg['evaluation']['conditions']):raise ValueError('Invalid evaluation conditions')
     selected=[lookup[k] for k in requested];model,proof,verify=load_package(root,cfg,plan['package'],cache,guard,progress,forward_callback)
     dump(output/'PACKAGE_VERIFICATION.json',proof);dump(output/'EVALUATION_PLAN.json',plan)
-    dump(output/'DATA_PROVENANCE.json',{'release':data,'requested_cases':requested,'heldout_content_read':opened,'reference_actions_used_for_model_control':False})
+    dump(output/'DATA_PROVENANCE.json',{'release':data,'requested_cases':requested,'heldout_content_read':opened,'reference_actions_used_for_model_control':False,'runtime_environment':ENVIRONMENT})
     initial=World(selected[0]).visible()[0]
     bypass=model.actor.bypass_check([initial]);dump(output/'BYPASS_CHECK.json',bypass)
     if not bypass['pass']:raise RuntimeError('Exact OFF package admission failed')

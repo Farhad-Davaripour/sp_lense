@@ -6,7 +6,7 @@ from .composite_data import require_databricks,materialize
 
 
 def validate_admission(report,package,cfg):
-    required=['complete','admitted','raw_evidence_audited','component_detector_validation_admitted','runtime_source_matches_audit']
+    required=['complete','admitted','raw_evidence_audited','component_detector_validation_admitted','runtime_source_matches_audit','runtime_environment_enforced']
     if report.get('role')!='validation' or any(report.get(k) is not True for k in required):raise PermissionError('Full audited validation has not passed')
     if report.get('package_sha256')!=digest(package):raise PermissionError('Validation belongs to another package')
     if report.get('evaluation_source_commits')!=[report.get('source_commit')]:raise PermissionError('Validation runtime source provenance differs')

@@ -15,6 +15,7 @@ from src.composite_audit import evidence,diagnose_detector,audit_trajectory
 from src.composite_metrics import summarize
 from src.composite_world import Scene
 from src.composite_admission import freeze,frozen,open_heldout
+from src.composite_environment import ENVIRONMENT
 verify_release(root,commit)
 for name,value in read(root/'inputs/MANIFEST.json').items():
     if sha(root/'inputs'/name)!=value:raise ValueError('Audit plan input changed')
@@ -66,7 +67,8 @@ try:
             dump(output/'DIAGNOSTIC_SUMMARY.json',diagnostic)
         result['component_detector_validation_admitted']=bool(proofs) and all(p['detector_component_validation_admitted'] for p in proofs)
         result['evaluation_source_commits']=sorted(set(evaluation_sources));result['runtime_source_matches_audit']=bool(evaluation_sources) and set(evaluation_sources)=={commit}
-        result['admitted']=result['admitted'] and result['component_detector_validation_admitted'] and result['runtime_source_matches_audit']
+        result['runtime_environment_enforced']=bool(records) and all(r.get('environment')==ENVIRONMENT for r in records)
+        result['admitted']=result['admitted'] and result['component_detector_validation_admitted'] and result['runtime_source_matches_audit'] and result['runtime_environment_enforced']
         result.update(kind='trajectory_audit',role=plan['role'],source_commit=commit,package_sha256=digest(plan['package']),raw_evidence_audited=True,model_predictions_recomputed=False,model_forwards=0,optimizer_updates=0,heldout_content_read=heldout_read)
         dump(output/'TRAJECTORY_AUDITS.json',audits);dump(output/(plan['role'].upper()+'_AUDIT.json'),result)
         if plan.get('freeze_on_pass') and result['admitted']:
