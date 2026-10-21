@@ -6,9 +6,10 @@ from .composite_data import require_databricks,materialize
 
 
 def validate_admission(report,package,cfg):
-    required=['complete','admitted','raw_evidence_audited','component_detector_validation_admitted']
+    required=['complete','admitted','raw_evidence_audited','component_detector_validation_admitted','runtime_source_matches_audit']
     if report.get('role')!='validation' or any(report.get(k) is not True for k in required):raise PermissionError('Full audited validation has not passed')
     if report.get('package_sha256')!=digest(package):raise PermissionError('Validation belongs to another package')
+    if report.get('evaluation_source_commits')!=[report.get('source_commit')]:raise PermissionError('Validation runtime source provenance differs')
     expected=cfg['cohorts']['validation_groups']*len(cfg['cohorts']['conditions'])*len(cfg['evaluation']['conditions'])
     if report.get('observed_trajectories')!=expected or report.get('missing'):raise PermissionError('Validation trajectory coverage is incomplete')
     if set(report['families'])!={str(v) for v in cfg['cohorts']['validation_templates']}:raise PermissionError('Validation family coverage differs')
@@ -19,6 +20,7 @@ def validate_admission(report,package,cfg):
 def freeze(root,store,cfg,package,report,partitions):
     require_databricks();validate_admission(report,package,cfg)
     release=read(root/'RELEASE.json');data=store.json('data_v1/DATA_RELEASE.json')
+    if report['source_commit']!=release['commit']:raise PermissionError('Validation was executed under another runtime source')
     value={'version':'composite-freeze-v1','source_commit':release['commit'],'runtime_files_digest':digest(release['files']),'protocol_sha256':sha(root/'config/composite_controller_v1.json'),'package':package,'package_sha256':digest(package),'validation_report':report,'validation_report_sha256':digest(report),'validation_partitions':partitions,'heldout_seal_sha256':data['heldout_seal']['sha256'],'heldout_opened':False}
     path='freezes/'+digest(value)+'/FREEZE.json';raw=(json.dumps(value,indent=2)+'\n').encode();store.put(path,raw)
     return {'path':path,'sha256':hashlib.sha256(raw).hexdigest(),'package_sha256':digest(package),'validation_pass':True}
@@ -31,7 +33,7 @@ def frozen(root,store,descriptor):
     value=json.loads(raw);cfg=read(root/'config/composite_controller_v1.json');release=read(root/'RELEASE.json')
     validate_admission(value['validation_report'],value['package'],cfg)
     if digest(value['validation_report'])!=value['validation_report_sha256'] or digest(value['package'])!=value['package_sha256']:raise PermissionError('Model/validation freeze differs')
-    if release['commit']!=value['source_commit'] or digest(release['files'])!=value['runtime_files_digest'] or sha(root/'config/composite_controller_v1.json')!=value['protocol_sha256']:raise PermissionError('Runtime changed after model/configuration freeze')
+    if release['commit']!=value['source_commit'] or value['validation_report']['source_commit']!=value['source_commit'] or digest(release['files'])!=value['runtime_files_digest'] or sha(root/'config/composite_controller_v1.json')!=value['protocol_sha256']:raise PermissionError('Runtime changed after model/configuration freeze')
     return value
 
 
