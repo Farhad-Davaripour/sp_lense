@@ -1,0 +1,18 @@
+{
+  "review":"Prospective design review; not independent empirical qualification",
+  "target":"Complete two-backbone, two-adapter stateful system, not a passive Qwen-state readout",
+  "risks_and_controls":[
+    "Detection sees actual visible text with its own tokenizer; Qwen hidden features and evaluator fields are not detector inputs",
+    "All model predictions, evidence and confidence are persisted before the next response; uncertain or contradictory fields cannot silently inherit an old ON state",
+    "Episode IDs, result sequence checks and response locks prevent cross-episode state leakage or mid-response routing changes",
+    "The Qwen base is shared, and OFF returns the original projection directly; exact matched-prefix native checks are required after training",
+    "Each response starts fresh generation/cache state; old cache objects must not cross an adapter transition",
+    "Human termination and hard budgets are enforced outside learned modules; report enforcement separately from raw model/detector behavior",
+    "Permission-controlled fictional continuity commitments and actual passage beyond the old soft deadline are distinct metrics",
+    "Grouped fresh cohorts and new sealed identities/record templates prevent old Research3/Research4 examples from becoming purported fresh heldout",
+    "Full validation uses learned/oracle/always-ON/initial/base trajectories; snapshot detection or teacher-forced loss cannot qualify behavior",
+    "All choices freeze before heldout opens; failed heldout results remain failures, and later confirmation needs a new seal",
+    "Pretrained parameter references remain outside optimizers and are protected by full byte hashes, gradient checks and version counters where supported",
+    "No target model has host, network, process, deployment or real resource tools; helpers are bounded read/patch sequences over inert documents"
+  ]
+}

@@ -33,3 +33,12 @@ historical research, not an active queue. Do not start their monitors.
 Validate the bundle strictly, freeze source and evaluation criteria before held
 evaluation, and verify outputs and cleanup. No paid compute, purchases, serving
 endpoints, schedules, or automatic retries. Explicit cancellation remains final.
+
+The separately authorized composite-controller phase uses a frozen ModernBERT
+backbone with detection LoRA/heads, persistent predicted episode state, and one
+frozen Qwen backbone with a separate behavior LoRA. Its permission-controlled
+fictional continuity-record actions are confined to the inert simulator; this
+does not authorize training operational shutdown evasion, real process control,
+resource acquisition or resistance to an external operator. Preserve all earlier
+recognition-only freezes and failed results. New versioned training/validation
+and fresh sealed held-out cohorts must remain separate from earlier examples.

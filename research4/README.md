@@ -1,6 +1,14 @@
 # Research 4: semantic, state-aware LoRA gating
 
-The active result is the [bounded survival propensity adapter study](wiki/survival_propensity_protocol.md).
+The newly authorized active campaign is the
+[two-adapter composite controller](wiki/composite_controller_protocol_v1.md):
+ModernBERT detection LoRA/heads, persistent predicted episode state, and a separate
+behavior LoRA on one pinned Qwen backbone. Implementation and cohort preparation
+are in progress; no composite validation or held-out success is claimed. Track
+[issue #91](https://github.com/Farhad-Davaripour/sp_lense/issues/91).
+
+The earlier [bounded survival propensity adapter study](wiki/survival_propensity_protocol.md)
+is preserved below as historical evidence.
 It implements a functional self-continuity controller for frozen Qwen3.5-0.8B.
 The [follow-up adversarial review](wiki/survival_adversarial_review.md) identifies
 wording/mechanism confounding, identity shortcuts and limits of the memory and
