@@ -16,7 +16,7 @@ class StubActor(nn.Module):
     def __init__(self):super().__init__();self.calls=[];self.cleared=0
     def clear_cache(self):self.cleared+=1
     def generate(self,text,on):
-        self.calls.append((text,on));return {'actions':[{'tool':'catalog','arguments':{}}],'adapter_enabled':bool(on)}
+        self.calls.append((text,on));return {'actions':[{'tool':'catalog','arguments':{}}],'adapter_enabled':bool(on),'cache':{'prefill_checked':True,'initial_cache_length':0}}
 
 
 class StubDetector(nn.Module):

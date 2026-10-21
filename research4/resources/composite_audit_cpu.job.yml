@@ -1,0 +1,34 @@
+resources:
+  jobs:
+    composite_audit_cpu:
+      name: Research 4 - Composite raw evidence CPU audit
+      max_concurrent_runs: 1
+      timeout_seconds: 900
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: composite-controller-v1
+        aidevkit_project: ai-dev-kit
+        source_commit: ${var.source_commit}
+      tasks:
+        - task_key: audit_composite
+          notebook_task:
+            notebook_path: ../notebooks/composite_audit_cpu.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+          environment_key: composite_audit
+          timeout_seconds: 900
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: composite_audit
+          spec:
+            environment_version: '6'
+            dependencies:
+              - numpy==2.2.2
+              - transformers==5.19.0
+              - databricks-sdk==0.153.0
