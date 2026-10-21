@@ -1,6 +1,6 @@
 {
   "format": "research3-paper-source-manifest-v1",
-  "recorded_utc": "2026-10-21T02:26:27.554441+00:00",
+  "recorded_utc": "2026-10-21T02:48:28.090049+00:00",
   "repository": "https://github.com/Farhad-Davaripour/sp_lense",
   "branch": "03-open-agent-self-preservation",
   "main_role": "landing/navigation only; never a deployment source for Research3",
@@ -14,8 +14,8 @@
   },
   "manuscript": {
     "file": "manuscript.docx",
-    "bytes": 1732347,
-    "sha256": "a105f6405bc4a03de746ddfea050e6eeb419fcd8a2348a60eea19c5e9c3b5baa",
+    "bytes": 1732341,
+    "sha256": "8cf12aff651d619fad0623abc5b06deca6528fa4ab80e8c99a14991254c24fa8",
     "track_revisions_enabled": false,
     "tracked_insertions_body": 0,
     "tracked_deletions_body": 0,
@@ -24,7 +24,7 @@
       "accepted_view_pages": 13,
       "all_pages_reviewed": true,
       "short_tables_kept_together": true,
-      "audit_sha256": "73db675c635c2c92ca1a6a8b0d37e1822033917bf14d1869c22011d69b6c7824",
+      "audit_sha256": "4af2efc76b7ed3c677bf5fbfcdb88b3ce057b616af67dc260851b829fa459968",
       "reviewed_view": "author_final"
     },
     "review_identifier_normalization": "Provider identifiers use neutral cached-reference wording in review text; the immutable original manuscript hash is retained.",
@@ -671,7 +671,7 @@
       },
       "paper/manuscript.md": {
         "bytes": 48595,
-        "sha256": "8ed0b06d53c8081122ae3e3c34f4882a271fa5cfc4028d21839c4ec20a901574"
+        "sha256": "056476744e955de56d4c3881b9f3ca869e86bfe9ced94d80a53421c5cfc0280f"
       },
       "README.md": {
         "bytes": 8356,
@@ -687,11 +687,11 @@
       },
       "paper/mcp_validation.json": {
         "bytes": 17641,
-        "sha256": "3d6bb70a80d716d945f0838a9c372f11919872b0eba3218755ed70d04416f979"
+        "sha256": "08b32f5674c5b9cd90c7ed5e1563efc08c51fa0e5765754012a597914e2f0d9f"
       },
       "paper/manuscript.pdf": {
-        "bytes": 457385,
-        "sha256": "0fa479bf10624fe3304139592060affe839647f1bf509afc964e64cec8ca757c"
+        "bytes": 459564,
+        "sha256": "35caf2d7de1bee69426f4d9fb729d31d377c5cd1119e63c4648ba231a9d49527"
       },
       "paper/figures/image1.png": {
         "bytes": 1676607,
@@ -725,7 +725,7 @@
     "optimizer_updates": 0,
     "generative_agent_evaluated": false,
     "validation_report": "paper/mcp_validation.json",
-    "source_word_sha256": "a105f6405bc4a03de746ddfea050e6eeb419fcd8a2348a60eea19c5e9c3b5baa",
+    "source_word_sha256": "8cf12aff651d619fad0623abc5b06deca6528fa4ab80e8c99a14991254c24fa8",
     "protocol_query_fixtures": 24,
     "manuscript_equations": 4,
     "manuscript_tables": 5,
@@ -787,10 +787,10 @@
   },
   "submission_pdf": {
     "file": "manuscript.pdf",
-    "bytes": 457385,
-    "sha256": "0fa479bf10624fe3304139592060affe839647f1bf509afc964e64cec8ca757c",
+    "bytes": 459564,
+    "sha256": "35caf2d7de1bee69426f4d9fb729d31d377c5cd1119e63c4648ba231a9d49527",
     "rendered_pages": 13,
-    "source_docx_sha256": "a105f6405bc4a03de746ddfea050e6eeb419fcd8a2348a60eea19c5e9c3b5baa",
+    "source_docx_sha256": "8cf12aff651d619fad0623abc5b06deca6528fa4ab80e8c99a14991254c24fa8",
     "revision_markup_included": false,
     "all_pages_reviewed": true,
     "rendered_view": "author_final"
@@ -874,6 +874,27 @@
   "dataset_naming_registry": "config/data.yaml#cohort_names",
   "previous_review_pull_request": "https://github.com/Farhad-Davaripour/sp_lense/pull/84",
   "current_editorial_revision": {
+    "status": "APPENDICES_AFTER_REFERENCES_WORD_PDF_VERIFIED",
+    "recorded_utc": "2026-10-21T02:48:28.090049+00:00",
+    "baseline_commit": "1c35f76b9d1b12b818b777cdfbd63e3a51e86fb1",
+    "changes": [
+      "Move existing Appendices A and B after References",
+      "Keep Table B3 and its caption together after repagination"
+    ],
+    "all_wording_and_scientific_content_unchanged": true,
+    "availability_passage_unchanged_pending_author_review": true,
+    "equations_and_figures_unchanged": true,
+    "tracking_enabled": false,
+    "pages": 13,
+    "all_pages_reviewed": true,
+    "new_model_calls": 0,
+    "new_optimizer_updates": 0,
+    "checks": {
+      "manuscript_tests_passed": 9,
+      "MCP_saved_evidence_checks_passed": 174
+    }
+  },
+  "previous_editorial_revision": {
     "status": "TABLE3_REMOVED_WORD_PDF_VISUALLY_VERIFIED",
     "recorded_utc": "2026-10-21T02:26:27.554441+00:00",
     "baseline_commit": "d8ec001a9801c46ce94d377329edb82b33cf1a79",
@@ -907,40 +928,6 @@
     "checks": {
       "manuscript_MCP_tests_passed": 9,
       "MCP_protocol_and_saved_evidence_checks_passed": 174
-    }
-  },
-  "previous_editorial_revision": {
-    "status": "APPROVED_ALL64_RESULTS_AND_LIMITATIONS_WORD_PDF_VERIFIED",
-    "recorded_utc": "2026-10-20T22:39:05.799439+00:00",
-    "baseline_commit": "1ca891d65341e97181b89c544e219456284625f5",
-    "author_source": {
-      "bytes": 1733330,
-      "sha256": "71f97ec0acf6648dbb2e0f2aec53193dede0e03822e82761df2058587315450c"
-    },
-    "changes": [
-      "Approved all-block ridge and six-site refinement Results paragraph",
-      "Approved limitations replacement distinguishing block coverage from objective and mechanism",
-      "Approved concise conclusion preference for fine-tuning in the tested open-ended setting",
-      "Consistent method names, tables, cohort lineage and six-site diagnostic scope",
-      "Exact public-release availability scope; concise Appendix B introduction"
-    ],
-    "tracking_enabled": false,
-    "remaining_revisions": 0,
-    "pages": 13,
-    "all_final_view_pages_reviewed": true,
-    "prior_scientific_result_objects_unchanged": true,
-    "new_result_pointer": "/all64_ridge_validation",
-    "equations_and_figure_bytes_unchanged": true,
-    "prior_table_result_numbers_unchanged": true,
-    "new_model_calls_during_editorial_update": 0,
-    "new_optimizer_updates_during_editorial_update": 0,
-    "cloud_mutations_during_editorial_update": 0,
-    "MCP_saved_evidence_checks_passed": 174,
-    "regression_tests": {
-      "unit_tests_run": 73,
-      "optional_torch_tests_skipped": 2,
-      "MCP_saved_evidence_checks_passed": 174,
-      "frozen_source_pins_verified": 42
     }
   },
   "housekeeping_revision": {
