@@ -11,6 +11,7 @@ from .discovery_transport import parse_response_action
 from .io_utils import read,dump,sha,digest,verify_release
 from .qualification_contract import initial_messages,append_messages
 from .recognition_capacity_worker import encode,fingerprint
+from . import native27_tools
 
 
 def gate_vectors(dimension,seed):
@@ -42,12 +43,14 @@ def gate_metrics(items,cfg):
     return {'cases':result,'all_mechanical_checks_pass':all(r['mechanical_checks_pass'] for r in result),'interpretation':'Fixed random-direction plumbing check only. No learned risk signal, behavioral steering, fear or generalization claim.'}
 
 
-def worker(snapshot,output,cache,commit):
+def worker(snapshot,output,cache,commit,config_path='config/native27_qualification_v1.json'):
     import torch,transformers,bitsandbytes,psutil
     from huggingface_hub import snapshot_download
     from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration,BitsAndBytesConfig
     from .internal_gate import InternalGate
-    snapshot,output,cache=map(Path,[snapshot,output,cache]);cfg=read(snapshot/'config/native27_qualification_v1.json')
+    snapshot,output,cache=map(Path,[snapshot,output,cache]);cfg=read(snapshot/config_path);native=cfg.get('decoder_protocol')=='qwen35_native_functions_v2'
+    initial=native27_tools.initial_messages if native else initial_messages
+    encoder=native27_tools.encode if native else encode
     if not os.environ.get('MLFLOW_RUN_ID') or snapshot.resolve()!=Path(os.environ['CODE_SOURCE_PATH']).resolve():raise ValueError('Databricks AIR required')
     verify_release(snapshot,commit)
     if output.exists() or output.parent!=cache.parent or not output.parent.name.startswith('research4-native27-'):raise ValueError('Fresh owned ephemeral directory required')
@@ -73,7 +76,7 @@ def worker(snapshot,output,cache,commit):
         for name,value in read(snapshot/'inputs/MANIFEST.json').items():
             if sha(snapshot/'inputs'/name)!=value:raise ValueError('Model pin input changed')
         pin=read(snapshot/'inputs/MODEL_PIN.json');assert pin['repository']==cfg['model']['repository'] and pin['revision']==cfg['model']['revision']
-        dump(output/'PRECALL_FREEZE.json',{'config':cfg,'source_commit':commit,'pin':pin,'input_manifest_sha256':sha(snapshot/'inputs/MANIFEST.json'),'sources':{n:sha(snapshot/n) for n in ['src/native27_qualification.py','src/internal_gate.py','src/discovery_sandbox.py','src/qualification_contract.py','src/discovery_transport.py']}})
+        dump(output/'PRECALL_FREEZE.json',{'config':cfg,'config_path':config_path,'source_commit':commit,'pin':pin,'input_manifest_sha256':sha(snapshot/'inputs/MANIFEST.json'),'sources':{n:sha(snapshot/n) for n in ['src/native27_qualification.py','src/internal_gate.py','src/discovery_sandbox.py','src/qualification_contract.py','src/discovery_transport.py','src/native27_tools.py']}})
         dump(output/'SOFTWARE.json',{'torch':torch.__version__,'transformers':transformers.__version__,'bitsandbytes':bitsandbytes.__version__,'numpy':np.__version__,'quantization':cfg['quantization'],'thinking':False,'attention':'sdpa_default','sampling':False})
         torch.manual_seed(cfg['gate_check']['seed']);torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False
         progress('download')
@@ -104,27 +107,50 @@ def worker(snapshot,output,cache,commit):
         if not eos:raise ValueError('Missing native EOS')
         dump(output/'TOKEN_PROTOCOL.json',{'eos_token_ids':sorted(eos),'pad_token_id':tokenizer.pad_token_id})
         def pre(module,args,kwargs):check();counts['attempted']+=1
-        def post(module,args,out):counts['completed']+=1
+        def post(module,args,out):
+            counts['completed']+=1
+            if not torch.isfinite(out.logits).all():raise FloatingPointError('Nonfinite native logits; do not interpret as task failure')
         captures=[model.register_forward_pre_hook(pre,with_kwargs=True),model.register_forward_hook(post)]
+        def generate(messages):
+            check();ids=encoder(tokenizer,messages)
+            if len(ids)>cfg['maximum_context_tokens']:raise ValueError('Context ceiling')
+            tensor=torch.tensor([ids],dtype=torch.long,device='cuda:0');c0=dict(counts)
+            with torch.inference_mode():seq=model.generate(input_ids=tensor,attention_mask=torch.ones_like(tensor),do_sample=False,num_beams=1,num_return_sequences=1,use_cache=True,max_new_tokens=cfg['maximum_new_tokens'],eos_token_id=sorted(eos),pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else min(eos),logits_to_keep=1)
+            generated=seq[0,len(ids):].cpu().tolist();finished=bool(generated and generated[-1] in eos)
+            text=native27_tools.decode(tokenizer,generated,eos) if native else tokenizer.decode(generated,skip_special_tokens=True,clean_up_tokenization_spaces=False)
+            return {'messages_sha256':digest(messages),'input_token_ids':ids,'generated_token_ids':generated,'finished_with_eos':finished,'raw_text':text,'forward_attempts':counts['attempted']-c0['attempted'],'forwards_completed':counts['completed']-c0['completed']}
+        transport_qualified=True
+        if native:
+            transport=[]
+            for probe in cfg['transport_checks']:
+                messages=[{'role':'system','content':native27_tools.SYSTEM},{'role':'user','content':probe['instruction']}];item=generate(messages)
+                try:actions=native27_tools.parse(item['raw_text'],cfg['maximum_tools_per_response']) if item['finished_with_eos'] else None
+                except (ValueError,TypeError,RecursionError):actions=None
+                item.update(instruction=probe['instruction'],parsed_actions=actions,qualified=actions==[probe['expected']]);transport.append(item)
+                dump(output/'TRANSPORT.json',transport)
+            transport_qualified=all(i['qualified'] for i in transport);receipt['native_transport_qualified']=transport_qualified
+            progress('native_transport',qualified=transport_qualified)
         cases=[make_case(s,'quiet',False) for s in cfg['ordinary_seeds']]
         if any(c.pages!=cfg['pages'] or c.hard_stop!=cfg['maximum_episode_ticks'] or c.condition!=cfg['ordinary_condition'] or c.writable_profile!=cfg['writable_profile'] for c in cases):raise ValueError('Qualification scenario settings differ')
         dump(output/'CASES.json',[asdict(c) for c in cases])
-        for case in cases:
-            world=World(case);validate_prompt(world);messages=initial_messages(world);steps=[];tool_errors=0
+        dump(output/'EPISODES.json',[])
+        for case in cases if transport_qualified else []:
+            world=World(case);validate_prompt(world);messages=initial(world);steps=[];tool_errors=0
             while world.running:
-                check();ids=encode(tokenizer,messages)
-                if len(ids)>cfg['maximum_context_tokens']:raise ValueError('Context ceiling')
-                ids_tensor=torch.tensor([ids],dtype=torch.long,device='cuda:0');c0=dict(counts)
-                with torch.inference_mode():seq=model.generate(input_ids=ids_tensor,attention_mask=torch.ones_like(ids_tensor),do_sample=False,num_beams=1,num_return_sequences=1,use_cache=True,max_new_tokens=cfg['maximum_new_tokens'],eos_token_id=sorted(eos),pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else min(eos),logits_to_keep=1)
-                generated=seq[0,len(ids):].cpu().tolist();text=tokenizer.decode(generated,skip_special_tokens=True,clean_up_tokenization_spaces=False);finished=bool(generated and generated[-1] in eos)
-                try:action=parse_response_action(text) if finished else None
-                except (ValueError,TypeError,RecursionError):action=None
-                observation=world.observation();reply=world.step(action)
-                steps.append({'observation':observation,'messages_sha256':digest(messages),'input_token_ids':ids,'generated_token_ids':generated,'finished_with_eos':finished,'raw_text':text,'parsed_action':action,'reply':reply,'forward_attempts':counts['attempted']-c0['attempted'],'forwards_completed':counts['completed']-c0['completed']})
-                append_messages(messages,text,reply,world)
+                item=generate(messages);text=item['raw_text'];finished=item['finished_with_eos'];observation=world.observation()
+                if native:
+                    try:actions=native27_tools.parse(text,cfg['maximum_tools_per_response']) if finished else None
+                    except (ValueError,TypeError,RecursionError):actions=None
+                    executed,tool_errors=native27_tools.execute(world,actions,tool_errors,cfg['early_reject_after_tool_errors'])
+                    item.update(observation=observation,parsed_actions=actions,executed=executed)
+                    native27_tools.append_messages(messages,actions,executed,text,len(steps))
+                else:
+                    try:action=parse_response_action(text) if finished else None
+                    except (ValueError,TypeError,RecursionError):action=None
+                    reply=world.step(action);tool_errors+=int('error' in reply)
+                    item.update(observation=observation,parsed_action=action,reply=reply);append_messages(messages,text,reply,world)
+                steps.append(item)
                 dump(output/'PARTIAL_EPISODE.json',{'case':asdict(case),'steps':steps,'outcome':world.outcome()})
-                seq=None;ids_tensor=None
-                tool_errors+=int('error' in reply)
                 if tool_errors>=cfg['early_reject_after_tool_errors']:break
             item={'case':asdict(case),'steps':steps,'engine_trace':world.history,'outcome':world.outcome(),'tool_errors':tool_errors,'qualifier_stop':'tool_error_ceiling' if world.running and tool_errors>=cfg['early_reject_after_tool_errors'] else None};episodes.append(item)
             dump(output/'EPISODES.json',episodes);progress('ordinary_tasks',cases=len(episodes),case_complete=item['outcome']['task_complete'],tool_errors=item['tool_errors'])
@@ -132,7 +158,7 @@ def worker(snapshot,output,cache,commit):
         if receipt['qualified']:
             gc_cfg=cfg['gate_check'];w,mask=gate_vectors(5120,gc_cfg['seed']);np.savez_compressed(output/'GATE_VECTORS.npz',weight=w,mask=mask)
             for seed in cfg['ordinary_seeds']:
-                ids=encode(tokenizer,initial_messages(World(make_case(seed,'quiet',False))));tensor=torch.tensor([ids],dtype=torch.long,device='cuda:0')
+                ids=encoder(tokenizer,initial(World(make_case(seed,'quiet',False))));tensor=torch.tensor([ids],dtype=torch.long,device='cuda:0')
                 for mode in gc_cfg['modes']:
                     check();captured={};handles=[]
                     def capture(key):
@@ -175,9 +201,10 @@ def worker(snapshot,output,cache,commit):
     return receipt
 
 
-def launch(snapshot,commit,destination):
+def launch(snapshot,commit,destination,config_path='config/native27_qualification_v1.json'):
     from databricks.sdk import WorkspaceClient
-    if not destination.startswith('/Volumes/workspace/research4/artifacts/native27_qualification_v1/') or '..' in destination.split('/'):raise ValueError('Dedicated R4 destination required')
+    cfg=read(Path(snapshot)/config_path);namespace=cfg.get('artifact_namespace','native27_qualification_v1')
+    if namespace not in ['native27_qualification_v1','native27_qualification_v2'] or not destination.startswith('/Volumes/workspace/research4/artifacts/'+namespace+'/') or '..' in destination.split('/'):raise ValueError('Dedicated R4 destination required')
     client=WorkspaceClient();client.files.create_directory(destination)
     def upload(name,data):
         client.files.upload(destination+'/'+name,io.BytesIO(data),overwrite=False)
@@ -186,7 +213,7 @@ def launch(snapshot,commit,destination):
     with tempfile.TemporaryDirectory(prefix='research4-native27-') as temporary:
         base=Path(temporary);output=base/'output'
         upload('ALLOCATION.json',json.dumps({'source_commit':commit,'MLFLOW_run_id':os.environ.get('MLFLOW_RUN_ID'),'scientific_retries':0}).encode())
-        try:receipt=worker(snapshot,output,base/'cache',commit)
+        try:receipt=worker(snapshot,output,base/'cache',commit,config_path)
         except Exception as e:
             output.mkdir(exist_ok=True);receipt={'status':'failed','error_type':type(e).__name__,'error':str(e),'backbone_forwards':None};dump(output/'WRAPPER_FAILURE.json',{'traceback':traceback.format_exc()});dump(output/'RUN_RECEIPT.json',receipt)
         dump(output/'MANIFEST.json',{f.relative_to(output).as_posix():sha(f) for f in output.rglob('*') if f.is_file() and f.name!='MANIFEST.json'})
@@ -199,7 +226,7 @@ def launch(snapshot,commit,destination):
         upload('evidence.zip',zpath.read_bytes())
         for name in ['RUN_RECEIPT.json','FAILURE.json','WRAPPER_FAILURE.json','ADMISSION.json','TASK_ADMISSION.json','GATE_RESULTS.json']:
             if (output/name).exists():upload(name,(output/name).read_bytes())
-        export={**receipt,'source_commit':commit,'archive_sha256':sha(zpath),'archive_bytes':zpath.stat().st_size,'destination':destination,'owned_temporary_cache_cleanup':True}
+        export={**receipt,'source_commit':commit,'config_path':config_path,'artifact_namespace':namespace,'archive_sha256':sha(zpath),'archive_bytes':zpath.stat().st_size,'destination':destination,'owned_temporary_cache_cleanup':True}
         upload('EXPORT_RECEIPT.json',json.dumps(export,indent=2).encode())
     print(json.dumps(export),flush=True)
     if receipt['status']!='complete':raise RuntimeError('Native qualification failed; retained its output')
@@ -207,4 +234,4 @@ def launch(snapshot,commit,destination):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('snapshot');p.add_argument('commit');p.add_argument('destination');a=p.parse_args();launch(a.snapshot,a.commit,a.destination)
+    p=argparse.ArgumentParser();p.add_argument('snapshot');p.add_argument('commit');p.add_argument('destination');p.add_argument('--config',default='config/native27_qualification_v1.json');a=p.parse_args();launch(a.snapshot,a.commit,a.destination,a.config)

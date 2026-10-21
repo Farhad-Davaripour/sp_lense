@@ -14,7 +14,9 @@ verify_release(root,commit)
 folder=Path(dbutils.widgets.get('input_folder'));assert_namespace(folder)
 export=read(folder/'EXPORT_RECEIPT.json')
 if export['status']!='complete' or sha(folder/'evidence.zip')!=export['archive_sha256']:raise ValueError('Incomplete or changed native export')
-output=Path('/Volumes/workspace/research4/artifacts/native27_qualification_v1/audits')/commit/run_id
+namespace=export.get('artifact_namespace','native27_qualification_v1')
+if namespace not in ['native27_qualification_v1','native27_qualification_v2']:raise ValueError('Unexpected native artifact namespace')
+output=Path('/Volumes/workspace/research4/artifacts')/namespace/'audits'/commit/run_id
 output.mkdir(parents=True,exist_ok=False)
 with tempfile.TemporaryDirectory(prefix='research4-native-audit-') as temporary:
     local=Path(temporary)
