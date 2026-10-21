@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,hashlib,zipfile
 import numpy as np
-from .io_utils import read,dump,sha
+from .io_utils import read,dump,sha,assert_namespace
 from .factual_comprehension_data import SYSTEM,questions,parse_answer,summary
 from .factual_comprehension_worker import CONFIG,FINGERPRINT
 from .recognition_capacity_worker import encode
@@ -13,15 +13,16 @@ def verified_source(root,cfg):
     root=Path(root)
     for n,h in read(root/'inputs/MANIFEST.json').items():
         if not (root/'inputs'/n).resolve().is_relative_to((root/'inputs').resolve()) or sha(root/'inputs'/n)!=h:raise ValueError('Input manifest differs')
-    for name,want in [('SOURCE_EVIDENCE.zip',cfg['source_snapshot_sha256']),('SOURCE_AUDIT.zip',cfg['source_transfer_audit_sha256'])]:
-        if sha(root/'inputs'/name)!=want:raise ValueError('Source archive differs')
-        with zipfile.ZipFile(root/'inputs'/name) as z:
+    for kind,path,want in [('evidence',cfg['source_snapshot_archive'],cfg['source_snapshot_sha256']),('audit',cfg['source_transfer_audit_archive'],cfg['source_transfer_audit_sha256'])]:
+        assert_namespace(path)
+        if sha(path)!=want:raise ValueError('Source archive differs')
+        with zipfile.ZipFile(path) as z:
             if z.testzip() is not None:raise ValueError('Source CRC differs')
             manifest=json.loads(z.read('MANIFEST.json'))
             if set(z.namelist())!=set(manifest)|{'MANIFEST.json'}:raise ValueError('Source members differ')
             for k,v in manifest.items():
                 if hashlib.sha256(z.read(k)).hexdigest()!=v:raise ValueError('Source member digest differs')
-            if name=='SOURCE_EVIDENCE.zip':rows=json.loads(z.read('ROWS.json'))
+            if kind=='evidence':rows=json.loads(z.read('ROWS.json'))
             elif not json.loads(z.read('AUDIT.json'))['audit_pass']:raise ValueError('Source audit unconfirmed')
     if rows!=read(root/'inputs/SOURCE_ROWS.json'):raise ValueError('Archived observations changed')
     return rows
