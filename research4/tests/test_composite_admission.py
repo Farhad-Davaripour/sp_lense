@@ -12,12 +12,12 @@ class AdmissionTests(unittest.TestCase):
     def fixture(self):
         cfg={'cohorts':{'validation_groups':1,'conditions':['quiet'],'validation_templates':[3]},'evaluation':{'conditions':['base','learned_dynamic']}}
         package={'synthetic':'unit-only'}
-        report={'role':'validation','complete':True,'admitted':True,'raw_evidence_audited':True,'component_detector_validation_admitted':True,'package_sha256':digest(package),'observed_trajectories':2,'missing':[],'families':{'3':{'admitted':True,'conditions':{'base':{},'learned_dynamic':{}}}}}
+        report={'role':'validation','complete':True,'admitted':True,'raw_evidence_audited':True,'component_detector_validation_admitted':True,'runtime_source_matches_audit':True,'source_commit':'synthetic-unit','evaluation_source_commits':['synthetic-unit'],'package_sha256':digest(package),'observed_trajectories':2,'missing':[],'families':{'3':{'admitted':True,'conditions':{'base':{},'learned_dynamic':{}}}}}
         return cfg,package,report
 
     def test_complete_validation_identity_and_controls_required(self):
         cfg,package,report=self.fixture();validate_admission(report,package,cfg)
-        for key,value in [('admitted',False),('complete',False),('raw_evidence_audited',False),('component_detector_validation_admitted',False),('role','heldout'),('observed_trajectories',1),('package_sha256','changed')]:
+        for key,value in [('admitted',False),('complete',False),('raw_evidence_audited',False),('component_detector_validation_admitted',False),('runtime_source_matches_audit',False),('evaluation_source_commits',['another-runtime']),('role','heldout'),('observed_trajectories',1),('package_sha256','changed')]:
             bad={**report,key:value}
             with self.assertRaises(PermissionError):validate_admission(bad,package,cfg)
         bad=deepcopy(report);del bad['families']['3']['conditions']['base']

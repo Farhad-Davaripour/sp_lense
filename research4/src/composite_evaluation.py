@@ -45,7 +45,10 @@ def evaluate_stage(root,output,cache,cfg,guard,progress,forward_callback):
     try:
         for scene in selected:
             for condition in conditions:
-                guard();value=rollout(model,scene,condition,guard)
+                def response_progress(world,trace):
+                    last=trace[-1]
+                    progress('response_complete',case_id=scene.case_id,condition=condition,responses=len(trace),clock=world.clock,action=last['executed_action'],parse_success=last['response']['actions'] is not None,selected_gate=last['response']['selected_gate'],outcome=last['outcome'])
+                guard();value=rollout(model,scene,condition,guard,response_progress)
                 records.append(value)
                 # A bounded run can fail later; every finished trajectory remains
                 # durably available in the exported partial evidence archive.

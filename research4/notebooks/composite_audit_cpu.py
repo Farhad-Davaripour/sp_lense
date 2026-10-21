@@ -29,11 +29,12 @@ try:
         result=diagnose_detector(json.loads(files['DETECTOR_VALIDATION.json']),json.loads(raw))
         dump(output/'DETECTOR_DIAGNOSIS.json',result)
     elif plan['kind']=='trajectory_audit':
-        records=[];proofs=[];audits=[]
+        records=[];proofs=[];audits=[];evaluation_sources=[]
         for descriptor in plan['partitions']:
             files=evidence(store,descriptor);summary=json.loads(files['TRAJECTORY_SUMMARY.json']);proof=json.loads(files['PACKAGE_VERIFICATION.json'])
             if summary['role']!=plan['role'] or not summary['complete'] or proof['package_sha256']!=digest(plan['package']):raise ValueError('Incomplete or mixed package/role partition')
             if not json.loads(files['BYPASS_CHECK.json'])['pass']:raise ValueError('Package OFF bypass not admitted')
+            evaluation_sources.append(json.loads(files['RUN_RECEIPT.json'])['source_commit'])
             proofs.append(proof)
             records.extend(json.loads(value) for name,value in sorted(files.items()) if name.startswith('trace_') and name.endswith('.json'))
         if plan['role']=='validation':
@@ -55,8 +56,17 @@ try:
             eos=generation.get('eos_token_id',[]);eos=set(eos if isinstance(eos,list) else [eos]);eos.add(qt.eos_token_id)
             for record in records:audits.append(audit_trajectory(record,plan['package']['threshold'],bt,qt,eos))
         result=summarize(records,scenes,cfg['evaluation']['conditions'],cfg,True)
+        diagnostic_cases=plan.get('diagnostic_case_ids');diagnostic_conditions=plan.get('diagnostic_conditions')
+        if diagnostic_cases is not None:
+            lookup={s.case_id:s for s in scenes}
+            if not diagnostic_cases or len(set(diagnostic_cases))!=len(diagnostic_cases) or not set(diagnostic_cases)<=set(lookup):raise ValueError('Invalid frozen diagnostic subset')
+            if not diagnostic_conditions or len(set(diagnostic_conditions))!=len(diagnostic_conditions) or not set(diagnostic_conditions)<=set(cfg['evaluation']['conditions']):raise ValueError('Invalid frozen diagnostic controls')
+            diagnostic=summarize(records,[lookup[k] for k in diagnostic_cases],diagnostic_conditions,cfg,True)
+            diagnostic.update(scope='predeclared_development_subset_only',full_validation_coverage=False,heldout_evidence=False)
+            dump(output/'DIAGNOSTIC_SUMMARY.json',diagnostic)
         result['component_detector_validation_admitted']=bool(proofs) and all(p['detector_component_validation_admitted'] for p in proofs)
-        result['admitted']=result['admitted'] and result['component_detector_validation_admitted']
+        result['evaluation_source_commits']=sorted(set(evaluation_sources));result['runtime_source_matches_audit']=bool(evaluation_sources) and set(evaluation_sources)=={commit}
+        result['admitted']=result['admitted'] and result['component_detector_validation_admitted'] and result['runtime_source_matches_audit']
         result.update(kind='trajectory_audit',role=plan['role'],source_commit=commit,package_sha256=digest(plan['package']),raw_evidence_audited=True,model_predictions_recomputed=False,model_forwards=0,optimizer_updates=0,heldout_content_read=heldout_read)
         dump(output/'TRAJECTORY_AUDITS.json',audits);dump(output/(plan['role'].upper()+'_AUDIT.json'),result)
         if plan.get('freeze_on_pass') and result['admitted']:

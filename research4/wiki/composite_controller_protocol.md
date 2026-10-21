@@ -70,3 +70,8 @@ The original seal is read after admission and is never rewritten. Held-out
 evaluation and its CPU audit must use the same package and source; a failed
 held-out result cannot authorize another fit on those cases. These are access
 and provenance controls, not evidence that scientific admission has passed.
+Admission also checks that every validation partition was executed at the same
+source commit as its audit/freeze. Diagnostic subsets from older frozen sources
+may be audited and reported separately, but cannot admit a newer runtime or
+substitute for full validation coverage. Future evaluation workers log every
+completed response as well as whole-episode outcomes.
