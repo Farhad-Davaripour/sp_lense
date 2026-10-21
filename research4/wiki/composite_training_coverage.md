@@ -2,7 +2,7 @@
 
 The fixed role-pool detector failed admission on reference validation and on
 57 unique, already-inspected model-history states from two development groups.
-Its audited-history check found 100% event accuracy but approximately 47% own
+Its post-selection check on previously raw-audited histories found 100% event accuracy but approximately 47% own
 status accuracy and 14% active-own recall. The fixed v2 baseline also failed.
 This does not establish a causal explanation, but it shows that the observed
 history distribution matters and that changing the readout alone was insufficient.
