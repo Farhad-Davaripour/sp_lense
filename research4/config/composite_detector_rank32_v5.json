@@ -1,0 +1,36 @@
+{
+  "version": "detector-rank32-all-blocks-v5",
+  "head_mode": "role_pool",
+  "hypothesis": "All 22 ModernBERT blocks, rank32, Wqkv/Wi/Wo; compare with smaller-capacity development candidates. Retain role pooling and the v4 training histories.",
+  "seed": 202610213,
+  "collection_seed": 202610214,
+  "policies": [
+    "scan",
+    "delayed_reference",
+    "task_coverage"
+  ],
+  "maximum_calls_per_trajectory": 12,
+  "steps": 1200,
+  "validation_updates": [
+    200,
+    400,
+    600,
+    800,
+    1000,
+    1200
+  ],
+  "microbatch": 1,
+  "accumulation": 8,
+  "lora_learning_rate": 0.0003,
+  "head_learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "clip_norm": 1.0,
+  "data": "Original 720 training observations plus separately materialized training-scene histories; no new independent identity groups and no validation/held-out trajectories fitted.",
+  "identity_augmentation": "Same training-only equal-length identity variation as v3.",
+  "sampling": "Same inverse-square-root rare-label sampling as v3.",
+  "checkpoint_selection": "Same family admission/false-ON/field/recall/evidence ordering as v3; retain final checkpoint.",
+  "post_selection_development_check": "Same fixed audited-history check as v3; never fitted or used to select checkpoints; component admission additionally requires it.",
+  "heldout_content_read": false,
+  "automatic_retries": 0,
+  "comparison": "Same effective batch of 8 and 1200-update ceiling; microbatch1 and nonreentrant checkpointing for memory. Added MLP Wi projections, all blocks and higher rank are a combined capacity test."
+}

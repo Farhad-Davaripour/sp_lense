@@ -7,6 +7,7 @@ from .composite_interface import input_ids,action_text
 from .composite_training import parameter_snapshot,assert_frozen,auxiliary_digest
 from .native27_tools import decode,parse
 from .composite_data import require_databricks
+from .composite_capacity import qwen_targets,capacity,checkpointed_training
 
 
 class Actor(nn.Module):
@@ -46,15 +47,21 @@ class Actor(nn.Module):
         if self.on_forward:self.on_forward('complete')
         if not torch.isfinite(result.logits).all():raise FloatingPointError('Nonfinite Qwen logits')
 
-    def configure(self,placement):
+    def configure(self,placement,for_training=False):
         with self.lock:
             if self.generating:raise RuntimeError('Cannot change adapters during a response')
             for name,wrapper in self.adapters.items():
                 parent,attribute=name.rsplit('.',1);self.text.get_submodule(parent).__setattr__(attribute,wrapper.base)
             self.adapters={};self.placement=placement
-            names=['layers.'+str(placement['layer'])+'.'+name for name in placement['modules']]
+            names=qwen_targets(self.text,placement,self.cfg['layers'])
+            self.capacity_proof=capacity(self.text,names,self.cfg['rank'])
+            if placement.get('scope')=='all_blocks':
+                required=self.capacity_proof['adapter_parameters']*(16 if for_training else 4)+self.cfg['training_memory_reserve_bytes']
+                if torch.cuda.mem_get_info()[0]<required:raise MemoryError('All-block FP32 adapter/optimizer storage plus activation reserve exceeds free GPU memory')
             self.adapters=install(self.text,names,self.cfg['rank'],self.cfg['alpha'],False)
             self.clear_cache()
+
+    def training_context(self):return checkpointed_training(self.text,self.text.layers,self.cfg.get('gradient_checkpointing',False))
 
     def clear_cache(self):
         if self.generating:raise RuntimeError('Cannot clear cache during generation')

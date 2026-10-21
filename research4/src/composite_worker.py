@@ -3,6 +3,7 @@ import argparse,gc,io,json,os,tempfile,time,traceback,zipfile,shutil
 from pathlib import Path
 from .io_utils import read,dump,sha,verify_release
 from .composite_store import Store,download_model
+from .composite_capacity import protocol_path,RANK32
 
 CONFIG='config/composite_controller_v1.json'
 
@@ -40,7 +41,7 @@ def behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,name):
     return result
 
 
-def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding=False,role_pool=False,coverage=False):
+def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding=False,role_pool=False,coverage=False,rank32=False):
     from .composite_training import fit_detector
     store=Store();data=store.json('data_v1/DATA_RELEASE.json')
     if data['world_source_sha256']!=sha(root/'src/composite_world.py'):raise ValueError('World changed after data materialization')
@@ -65,7 +66,7 @@ def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding
     dump(output/'MODEL_FILE_VERIFICATION.json',proof);progress('fit_modernbert')
     if binding:
         from .composite_detector_binding import fit
-        recipe=read(root/('config/composite_detector_coverage_v4.json' if coverage else 'config/composite_detector_role_pool_v3.json' if role_pool else 'config/composite_detector_binding_v2.json'));dump(output/'DETECTOR_RECIPE.json',recipe)
+        recipe=read(root/('config/composite_detector_rank32_v5.json' if rank32 else 'config/composite_detector_coverage_v4.json' if coverage else 'config/composite_detector_role_pool_v3.json' if role_pool else 'config/composite_detector_binding_v2.json'));dump(output/'DETECTOR_RECIPE.json',recipe)
         result=fit(model_path,cfg,recipe,datasets['training'],datasets['validation'],output,guard,progress,forward_callback)
     else:result=fit_detector(model_path,cfg,datasets['training'],datasets['validation'],output,guard,progress,forward_callback)
     if (root/'inputs/DETECTOR_HISTORY_DIAGNOSTIC.json').exists():
@@ -78,7 +79,10 @@ def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding
 def run(root,commit,destination,mode):
     import torch,transformers,bitsandbytes
     from databricks.sdk import WorkspaceClient
-    root=Path(root);cfg=read(root/CONFIG)
+    root=Path(root);protocol=protocol_path(root);cfg=read(protocol)
+    rank32=protocol==root/RANK32
+    if rank32 and mode not in ['detector-rank32-v5','behavior-all_blocks','evaluation']:raise ValueError('Rank-32 profile requires an explicit capacity stage')
+    if not rank32 and mode in ['detector-rank32-v5','behavior-all_blocks']:raise ValueError('Capacity stage requires the frozen rank-32 profile selector')
     if not os.environ.get('MLFLOW_RUN_ID') or root.resolve()!=Path(os.environ['CODE_SOURCE_PATH']).resolve():raise ValueError('Actual Databricks AIR runtime required')
     verify_release(root,commit)
     if not destination.startswith('/Volumes/workspace/research4/artifacts/composite_controller_v1/') or '..' in destination.split('/'):raise ValueError('Dedicated campaign destination required')
@@ -92,7 +96,7 @@ def run(root,commit,destination,mode):
     upload('ALLOCATION.json',json.dumps({'mode':mode,'source_commit':commit,'MLFLOW_RUN_ID':os.environ['MLFLOW_RUN_ID'],'scientific_retries':0}).encode())
     with tempfile.TemporaryDirectory(prefix='research4-composite-') as scratch:
         base=Path(scratch);output=base/'output';output.mkdir();cache=base/'cache';cache.mkdir();started=time.monotonic()
-        receipt={'status':'running','stage':mode,'source_commit':commit,'heldout_content_read':False};counts={'attempted':0,'completed':0}
+        receipt={'status':'running','stage':mode,'source_commit':commit,'protocol':protocol.relative_to(root).as_posix(),'protocol_sha256':sha(protocol),'heldout_content_read':False};counts={'attempted':0,'completed':0}
         def guard():
             if time.monotonic()-started>=cfg['bounds']['worker_seconds']-cfg['bounds']['export_reserve_seconds']:raise TimeoutError('Protected campaign export deadline')
             if torch.cuda.is_available() and torch.cuda.mem_get_info()[0]<536870912:raise MemoryError('Live GPU export reserve')
@@ -114,6 +118,7 @@ def run(root,commit,destination,mode):
             elif mode=='detector-binding-v2':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True)
             elif mode=='detector-role-pool-v3':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True,True)
             elif mode=='detector-coverage-v4':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True,True,True)
+            elif mode=='detector-rank32-v5':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True,True,True,True)
             elif mode.startswith('behavior-'):result=behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,mode[len('behavior-'):])
             elif mode=='kernel-qualification':
                 from .composite_kernel_qualification import run as qualify

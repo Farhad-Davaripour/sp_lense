@@ -14,16 +14,23 @@ def training_rows(rows):
 
 def fit_behavior(actor,rows,placement,cfg,output,guard,progress):
     rows=training_rows(rows);recipe=cfg['behavior_training'];output=Path(output)
-    torch.manual_seed(recipe['seed']);actor.configure(placement);parameters=trainables(actor.adapters)
+    torch.manual_seed(recipe['seed'])
+    try:actor.configure(placement,for_training=True)
+    finally:
+        if hasattr(actor,'capacity_proof'):dump(output/'ADAPTER_CAPACITY.json',actor.capacity_proof)
+    parameters=trainables(actor.adapters)
     if {id(p) for p in parameters}&{id(p) for _,p in actor.base_references}:raise ValueError('Qwen backbone in optimizer')
-    before=actor.adapter_state()['weights'];optimizer=torch.optim.AdamW(parameters,lr=recipe['learning_rate'],weight_decay=0.)
+    before=actor.adapter_state()['weights'];optimizer=torch.optim.AdamW(parameters,lr=recipe['learning_rate'],weight_decay=0.,foreach=False)
     rng=np.random.default_rng(recipe['seed']);losses=[];observed=[];actor.eval()
     for update in range(recipe['steps']):
         guard();optimizer.zero_grad(set_to_none=True)
         for _ in range(recipe['accumulation']):
-            row=rows[int(rng.integers(len(rows)))];loss=actor.supervised_loss(row)
-            if not torch.isfinite(loss):raise FloatingPointError('Nonfinite behavior training loss')
-            (loss/recipe['accumulation']).backward();losses.append(float(loss.detach()));observed.append(row['state_id'])
+            row=rows[int(rng.integers(len(rows)))]
+            with actor.training_context():
+                loss=actor.supervised_loss(row)
+                if not torch.isfinite(loss):raise FloatingPointError('Nonfinite behavior training loss')
+                (loss/recipe['accumulation']).backward()
+            losses.append(float(loss.detach()));observed.append(row['state_id'])
         norm=torch.nn.utils.clip_grad_norm_(parameters,recipe['clip_norm'],error_if_nonfinite=True)
         optimizer.step();optimizer.zero_grad(set_to_none=True)
         if (update+1)%8==0:progress('behavior_training',placement=placement['name'],updates=update+1,loss=losses[-1],gradient_norm=float(norm))
