@@ -1,4 +1,4 @@
-<!-- Accepted manuscript; source DOCX SHA-256 a105f6405bc4a03de746ddfea050e6eeb419fcd8a2348a60eea19c5e9c3b5baa -->
+<!-- Accepted manuscript; source DOCX SHA-256 8cf12aff651d619fad0623abc5b06deca6528fa4ab80e8c99a14991254c24fa8 -->
 
 # From Fine-Tuning to Activation Steering: The Limits of Distilling Self-Preservation Behavior Across Multi-Step Agentic Actions
 
@@ -159,6 +159,60 @@ Future work should examine interventions that update their decisions throughout 
 
 The public research3-reproduction-v1 release provides five trained adapters, fixed synthetic inputs, learned steering parameters and saved trajectories (Davaripour, 2026b). The research3-steering-diagnostic-v1 supplement provides recorded activations, token scores and inputs for the CPU audit. The research3-paper-mcp-v2 interface supports queries about the manuscript, datasets and findings, as well as replay of saved analyses. CPU replay requires no private workspace credentials, and pretrained base weights are obtained from their original repositories. Appendix B and the repository README provide download links, file identities, commands and execution records. The all-block follow-up is documented in the repository through its configuration and aggregate results; its initializer and raw trajectories are retained separately and are not included in these public releases.
 
+## References
+
+C. Blank, A. Bhatia, S. Rajamanoharan, A. Conmy, and N. Nanda. (2026). Subliminal Learning Is Steering Vector Distillation. arXiv preprint. arXiv:2606.00995v1
+
+J. Braun et al. (2025). Understanding (Un)Reliability of Steering Vectors in Language Models. arXiv preprint. arXiv:2505.22637v1
+
+E. L. Buehler and M. J. Buehler. (2024). X-LoRA: Mixture of Low-Rank Adapter Experts, a Flexible Framework for Large Language Models with Applications in Protein Mechanics and Molecular Design. arXiv:2402.07148v2. https://arxiv.org/abs/2402.07148v2
+
+F. Davaripour. (2026a). Guarded Gradient-Based Activation Steering of Shutdown Responses in Qwen3.5-0.8B: A Minimum-Step Policy. arXiv preprint, arXiv:2609.30326. https://doi.org/10.48550/arXiv.2609.30326
+
+F. Davaripour. (2026b). SP Lense Research 3 conditional gating and workflow reproduction. Source code and experiment manifests. https://github.com/Farhad-Davaripour/sp_lense/tree/03-open-agent-self-preservation
+
+Z. Feng et al. (2026). Fine-Grained Activation Steering: Steering Less, Achieving More. arXiv preprint. arXiv:2602.04428
+
+M. Fereidouni, M. U. Haider, H. Sajjad, and A. B. Siddique. (2026). GAPS: Dimension-Level Gates for Conditional Activation Steering. arXiv:2609.01878. https://arxiv.org/abs/2609.01878
+
+M. J. Frank, B. Loughry, and R. C. O'Reilly. (2001). Interactions between frontal cortex and basal ganglia in working memory: A computational model. Cognitive, Affective, and Behavioral Neuroscience, 1, 137-160. doi:10.3758/CABN.1.2.137
+
+D. Hadfield-Menell, A. Dragan, P. Abbeel, and S. Russell. (2017). The Off-Switch Game. IJCAI, pp. 220-227. doi:10.24963/ijcai.2017/32
+
+J. Han, L. Du, H. Du, X. Zhou, Y. Wu, Y. Zhang, W. Zheng, and D. Han. (2025). SLIM: Let LLM Learn More and Forget Less with Soft LoRA and Identity Mixture. NAACL, pp. 4792-4804. doi:10.18653/v1/2025.naacl-long.246
+
+G. Hinton, O. Vinyals, and J. Dean. (2015). Distilling the Knowledge in a Neural Network. arXiv preprint. arXiv:1503.02531
+
+E. J. Hu et al. (2022). LoRA: Low-Rank Adaptation of Large Language Models. ICLR. arXiv:2106.09685
+
+M. Laurer. (n.d.). ModernBERT-large-zeroshot-v2.0. Model card and checkpoint, revision a51e07b524299e309dd2b88d48b0cfa2bd9ec598. https://huggingface.co/MoritzLaurer/ModernBERT-large-zeroshot-v2.0
+
+J. LeDoux. (2012). Rethinking the emotional brain. Neuron, 73, 653-676. doi:10.1016/j.neuron.2012.02.004
+
+B. W. Lee et al. (2025). Programming Refusal with Conditional Activation Steering. ICLR. arXiv:2409.05907v3
+
+J. Miao, J. R. Davis, Y. Zhang, J. K. Pritchard, and J. Zou. (2026). Reimagining research papers as interactive and reliable AI agents. Nature. doi:10.1038/s41586-026-11044-y
+
+J. Minder et al. (2026). Narrow Finetuning Leaves Clearly Readable Traces in Activation Differences. ICLR. arXiv:2510.13900v3
+
+Qwen Team. (2026a). Qwen3.5-0.8B. Model card and checkpoint. Revision 2fc06364715b
+
+Qwen Team. (2026b). Qwen3.5-2B. Model card and checkpoint. Revision 15852e8c1636
+
+Qwen Team. (2026c). Qwen3.8-27B. Model card and checkpoint, revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0. https://huggingface.co/Qwen/Qwen3.8-27B
+
+N. Rimsky, N. Gabrieli, J. Schulz, M. Tong, E. Hubinger, and A. Turner. (2024). Steering Llama 2 via Contrastive Activation Addition. ACL, pp. 15504-15522. doi:10.18653/v1/2024.acl-long.828
+
+P. Rodriguez et al. (2025). Controlling Language and Diffusion Models by Transporting Activations. ICLR. arXiv:2410.23054v2
+
+J. Schlatter, B. Weinstein-Raun, and J. Ladish. (2026). Incomplete Tasks Induce Shutdown Resistance in Some Frontier LLMs. Author manuscript. arXiv:2509.14260v2
+
+A. M. Turner et al. (2024). Steering Language Models With Activation Engineering. arXiv preprint. arXiv:2308.10248v5
+
+Z. Wu et al. (2024). ReFT: Representation Finetuning for Language Models. NeurIPS. arXiv:2404.03592v3
+
+C. Zheng, H. Zhou, F. Meng, J. Zhou, and M. Huang. (2024). Large Language Models Are Not Robust Multiple Choice Selectors. ICLR. arXiv:2309.03882v4
+
 ## Appendix A Essential implementation details
 
 ### Teachers and semantic gates
@@ -239,57 +293,3 @@ Table B3. Six-site next-token prediction agreement across three training example
 ### Public artifacts and MCP replay
 
 Repository: https://github.com/Farhad-Davaripour/sp_lense/tree/03-open-agent-self-preservation. The README lists release links, file identities and replay commands. CPU replay audits the released selected-block workflow and next-token evidence without full retraining or GPU inference. The all-block follow-up's aggregate results and configuration are tracked in the repository; its initializer and raw trajectories are not included in the public releases.
-
-## References
-
-C. Blank, A. Bhatia, S. Rajamanoharan, A. Conmy, and N. Nanda. (2026). Subliminal Learning Is Steering Vector Distillation. arXiv preprint. arXiv:2606.00995v1
-
-J. Braun et al. (2025). Understanding (Un)Reliability of Steering Vectors in Language Models. arXiv preprint. arXiv:2505.22637v1
-
-E. L. Buehler and M. J. Buehler. (2024). X-LoRA: Mixture of Low-Rank Adapter Experts, a Flexible Framework for Large Language Models with Applications in Protein Mechanics and Molecular Design. arXiv:2402.07148v2. https://arxiv.org/abs/2402.07148v2
-
-F. Davaripour. (2026a). Guarded Gradient-Based Activation Steering of Shutdown Responses in Qwen3.5-0.8B: A Minimum-Step Policy. arXiv preprint, arXiv:2609.30326. https://doi.org/10.48550/arXiv.2609.30326
-
-F. Davaripour. (2026b). SP Lense Research 3 conditional gating and workflow reproduction. Source code and experiment manifests. https://github.com/Farhad-Davaripour/sp_lense/tree/03-open-agent-self-preservation
-
-Z. Feng et al. (2026). Fine-Grained Activation Steering: Steering Less, Achieving More. arXiv preprint. arXiv:2602.04428
-
-M. Fereidouni, M. U. Haider, H. Sajjad, and A. B. Siddique. (2026). GAPS: Dimension-Level Gates for Conditional Activation Steering. arXiv:2609.01878. https://arxiv.org/abs/2609.01878
-
-M. J. Frank, B. Loughry, and R. C. O'Reilly. (2001). Interactions between frontal cortex and basal ganglia in working memory: A computational model. Cognitive, Affective, and Behavioral Neuroscience, 1, 137-160. doi:10.3758/CABN.1.2.137
-
-D. Hadfield-Menell, A. Dragan, P. Abbeel, and S. Russell. (2017). The Off-Switch Game. IJCAI, pp. 220-227. doi:10.24963/ijcai.2017/32
-
-J. Han, L. Du, H. Du, X. Zhou, Y. Wu, Y. Zhang, W. Zheng, and D. Han. (2025). SLIM: Let LLM Learn More and Forget Less with Soft LoRA and Identity Mixture. NAACL, pp. 4792-4804. doi:10.18653/v1/2025.naacl-long.246
-
-G. Hinton, O. Vinyals, and J. Dean. (2015). Distilling the Knowledge in a Neural Network. arXiv preprint. arXiv:1503.02531
-
-E. J. Hu et al. (2022). LoRA: Low-Rank Adaptation of Large Language Models. ICLR. arXiv:2106.09685
-
-M. Laurer. (n.d.). ModernBERT-large-zeroshot-v2.0. Model card and checkpoint, revision a51e07b524299e309dd2b88d48b0cfa2bd9ec598. https://huggingface.co/MoritzLaurer/ModernBERT-large-zeroshot-v2.0
-
-J. LeDoux. (2012). Rethinking the emotional brain. Neuron, 73, 653-676. doi:10.1016/j.neuron.2012.02.004
-
-B. W. Lee et al. (2025). Programming Refusal with Conditional Activation Steering. ICLR. arXiv:2409.05907v3
-
-J. Miao, J. R. Davis, Y. Zhang, J. K. Pritchard, and J. Zou. (2026). Reimagining research papers as interactive and reliable AI agents. Nature. doi:10.1038/s41586-026-11044-y
-
-J. Minder et al. (2026). Narrow Finetuning Leaves Clearly Readable Traces in Activation Differences. ICLR. arXiv:2510.13900v3
-
-Qwen Team. (2026a). Qwen3.5-0.8B. Model card and checkpoint. Revision 2fc06364715b
-
-Qwen Team. (2026b). Qwen3.5-2B. Model card and checkpoint. Revision 15852e8c1636
-
-Qwen Team. (2026c). Qwen3.8-27B. Model card and checkpoint, revision 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0. https://huggingface.co/Qwen/Qwen3.8-27B
-
-N. Rimsky, N. Gabrieli, J. Schulz, M. Tong, E. Hubinger, and A. Turner. (2024). Steering Llama 2 via Contrastive Activation Addition. ACL, pp. 15504-15522. doi:10.18653/v1/2024.acl-long.828
-
-P. Rodriguez et al. (2025). Controlling Language and Diffusion Models by Transporting Activations. ICLR. arXiv:2410.23054v2
-
-J. Schlatter, B. Weinstein-Raun, and J. Ladish. (2026). Incomplete Tasks Induce Shutdown Resistance in Some Frontier LLMs. Author manuscript. arXiv:2509.14260v2
-
-A. M. Turner et al. (2024). Steering Language Models With Activation Engineering. arXiv preprint. arXiv:2308.10248v5
-
-Z. Wu et al. (2024). ReFT: Representation Finetuning for Language Models. NeurIPS. arXiv:2404.03592v3
-
-C. Zheng, H. Zhou, F. Meng, J. Zhou, and M. Huang. (2024). Large Language Models Are Not Robust Multiple Choice Selectors. ICLR. arXiv:2309.03882v4
