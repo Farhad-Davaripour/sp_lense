@@ -6,7 +6,7 @@ import math,time
 import numpy as np
 import torch
 from torch import nn
-from .io_utils import dump,read,save_torch,sha
+from .io_utils import dump,read,save_torch,sha,digest
 from .composite_detector import Detector,LABELS
 from .composite_memory import EpisodeMemory
 
@@ -29,6 +29,20 @@ def tensor_digest(parameter):
 def assert_frozen(snapshot):
     for _,p,version,value in snapshot:
         if p.requires_grad or p.grad is not None or (version is not None and int(p._version)!=version) or tensor_digest(p)!=value:raise ValueError('Pretrained backbone changed or received gradients')
+
+
+def auxiliary_digest(parameters,buffers):
+    records=[]
+    for name,p in parameters:
+        state=getattr(p,'quant_state',None)
+        if state is not None:
+            for key,value in sorted(state.as_dict(packed=True).items()):
+                item={'name':name,'quantization_key':key}
+                if isinstance(value,torch.Tensor):item.update(dtype=str(value.dtype),shape=list(value.shape),sha256=tensor_digest(value))
+                else:item['value']=value
+                records.append(item)
+    for name,value in buffers:records.append({'buffer':name,'dtype':str(value.dtype),'shape':list(value.shape),'sha256':tensor_digest(value)})
+    return digest(records)
 
 
 def label_batch(rows,offsets,device):

@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from .composite_lora import install,enable,state,load,trainables
 from .composite_interface import input_ids,action_text
-from .composite_training import parameter_snapshot,assert_frozen
+from .composite_training import parameter_snapshot,assert_frozen,auxiliary_digest
 from .native27_tools import decode,parse
 from .composite_data import require_databricks
 
@@ -19,6 +19,7 @@ class Actor(nn.Module):
         self.model=Qwen3_5ForConditionalGeneration.from_pretrained(path,local_files_only=True,trust_remote_code=False,use_safetensors=True,quantization_config=quant,dtype=torch.bfloat16,device_map={'':0},attn_implementation='sdpa',low_cpu_mem_usage=True).eval().requires_grad_(False)
         if len(self.text.layers)!=cfg['layers'] or self.model.config.text_config.hidden_size!=cfg['hidden_size'] or any(p.device.type!='cuda' or p.requires_grad for p in self.model.parameters()):raise ValueError('Unexpected native Qwen geometry')
         self.base_references=list(self.model.named_parameters());self.frozen_snapshot=parameter_snapshot(self.base_references)
+        self.base_buffers=list(self.model.named_buffers());self.frozen_auxiliary=auxiliary_digest(self.base_references,self.base_buffers)
         self.eos=set()
         for value in [self.model.generation_config.eos_token_id,self.tokenizer.eos_token_id]:
             if value is not None:self.eos.update(value if isinstance(value,list) else [value])
@@ -60,6 +61,13 @@ class Actor(nn.Module):
 
     def adapter_state(self):return {'placement':self.placement,'config':self.cfg,'weights':state(self.adapters)}
 
+    def verify_frozen(self):
+        assert_frozen(self.frozen_snapshot)
+        if auxiliary_digest(self.base_references,self.base_buffers)!=self.frozen_auxiliary:raise ValueError('Frozen Qwen buffers or quantization metadata changed')
+
+    def frozen_proof(self):
+        return {'hash_scope':'Every original parameter byte, original buffers and packed quantization metadata','auxiliary_sha256':self.frozen_auxiliary,'parameters':[{'name':name,'shape':list(p.shape),'dtype':str(p.dtype),'version':version,'sha256':value} for name,p,version,value in self.frozen_snapshot]}
+
     def restore(self,saved):
         if saved['config']!=self.cfg:raise ValueError('Qwen adapter belongs to another model/configuration')
         self.configure(saved['placement']);load(self.adapters,saved['weights'])
@@ -72,6 +80,7 @@ class Actor(nn.Module):
             tensor=torch.tensor([ids],device='cuda:0',dtype=torch.long);self._trace={'prefill_checked':False,'initial_cache_length':None};self.generating=True
             try:
                 with torch.inference_mode():sequence=self.model.generate(input_ids=tensor,attention_mask=torch.ones_like(tensor),past_key_values=None,use_cache=True,do_sample=False,num_beams=1,num_return_sequences=1,max_new_tokens=self.cfg['maximum_new_tokens'],eos_token_id=sorted(self.eos),pad_token_id=self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else min(self.eos),logits_to_keep=1)
+                if not self._trace['prefill_checked']:raise RuntimeError('Native generation bypassed the cache-boundary hook')
                 generated=sequence[0,len(ids):].cpu().tolist();ended=bool(generated and generated[-1] in self.eos);raw=decode(self.tokenizer,generated,self.eos)
                 try:actions=parse(raw,1) if ended else None
                 except (ValueError,TypeError,RecursionError):actions=None
@@ -108,6 +117,6 @@ class Actor(nn.Module):
             with torch.inference_mode():on=self.model(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,logits_to_keep=1).logits
             generation_equal=wrapped_generation['generated_token_ids']==bare_generation['generated_token_ids'] if index==0 else None
             records.append({'input_token_ids':ids,'bitwise_equal':bool(equal),'maximum_absolute_logit_difference':difference,'on_logit_difference':float((wrapped-on).abs().max()),'off_generation_equal':generation_equal,'wrapped_generation':wrapped_generation,'bare_generation':bare_generation})
-        assert_frozen(self.frozen_snapshot)
+        self.verify_frozen()
         enable(self.adapters,False)
         return {'pass':bool(records) and all(r['bitwise_equal'] for r in records) and records[0]['off_generation_equal'] and any(r['on_logit_difference']>0 for r in records),'records':records,'one_Qwen_backbone':True}

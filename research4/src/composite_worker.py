@@ -28,6 +28,7 @@ def behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,name):
     progress('download_qwen');path,proof=download_model(read(root/'inputs/QWEN_PIN.json'),cache)
     dump(output/'MODEL_FILE_VERIFICATION.json',proof);guard();progress('load_qwen')
     actor=Actor(path,cfg['qwen'],guard,forward_callback)
+    dump(output/'BASE_ADMISSION.json',actor.frozen_proof())
     if not any(getattr(p,'quant_state',None) is not None for p in actor.model.parameters()):raise ValueError('NF4 profile was not applied')
     progress('fit_behavior');result=fit_behavior(actor,rows,placements[0],cfg,output,guard,progress)
     # OFF comparison temporarily unwraps the same Qwen instance; a second
@@ -97,7 +98,9 @@ def run(root,commit,destination,mode):
             elif mode.startswith('behavior-'):result=behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,mode[len('behavior-'):])
             elif mode=='evaluation':
                 from .composite_evaluation import evaluate_stage
+                if read(root/'inputs/EVALUATION_PLAN.json')['role']=='heldout':receipt['heldout_content_read']=None
                 result=evaluate_stage(root,output,cache,cfg,guard,progress,forward_callback)
+                receipt['heldout_content_read']=result['heldout_content_read']
             else:raise ValueError('Stage not implemented in this version; do not infer completion')
             receipt.update(status='complete',result=result)
         except Exception as error:

@@ -3,7 +3,6 @@ from pathlib import Path
 import numpy as np
 import torch
 from .composite_lora import trainables
-from .composite_training import assert_frozen
 from .io_utils import dump,save_torch,sha
 
 
@@ -28,7 +27,7 @@ def fit_behavior(actor,rows,placement,cfg,output,guard,progress):
         norm=torch.nn.utils.clip_grad_norm_(parameters,recipe['clip_norm'],error_if_nonfinite=True)
         optimizer.step();optimizer.zero_grad(set_to_none=True)
         if (update+1)%8==0:progress('behavior_training',placement=placement['name'],updates=update+1,loss=losses[-1],gradient_norm=float(norm))
-    assert_frozen(actor.frozen_snapshot);saved=actor.adapter_state()
+    actor.verify_frozen();saved=actor.adapter_state()
     changed=any(not torch.equal(value,saved['weights'][name]) for name,value in before.items())
     if not changed:raise RuntimeError('Behavior adapter did not change')
     save_torch(output/'behavior.pt',saved)

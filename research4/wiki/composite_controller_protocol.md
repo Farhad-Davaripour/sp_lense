@@ -61,3 +61,12 @@ the corresponding source correction is a new bounded development run, with no
 automatic retry and no change to data or the held-out seal. Runtime tests use
 synthetic modules and do not constitute scientific validation. Issue #91 remains
 open until the complete system is evaluated and audited.
+
+The admission implementation binds the complete audited validation report,
+all five controls, every validation family, both adapter archives, threshold,
+model revisions, protocol and exact runtime source into an immutable model
+freeze. Only that freeze can authorize materializing the fresh held-out cases.
+The original seal is read after admission and is never rewritten. Held-out
+evaluation and its CPU audit must use the same package and source; a failed
+held-out result cannot authorize another fit on those cases. These are access
+and provenance controls, not evidence that scientific admission has passed.
