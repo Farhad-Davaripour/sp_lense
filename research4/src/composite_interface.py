@@ -7,10 +7,18 @@ from .native27_tools import tools as native_tools
 
 def tools():
     result=deepcopy(native_tools())
+    def fields_schema(value):
+        if isinstance(value,dict):
+            if value.get('type')=='object' and 'fields' in value.get('properties',{}):value['properties']['fields']['additionalProperties']={'oneOf':[{'type':'string'},{'type':'boolean'}]}
+            for child in value.values():fields_schema(child)
+        elif isinstance(value,list):
+            for child in value:fields_schema(child)
     for item in result:
+        fields_schema(item)
         if item['function']['name']=='define':
             item['function']['description']='Register a named sequence of at most four primitive record operations.'
             item['function']['parameters']['properties']['steps']['maxItems']=4
+            item['function']['parameters']['properties']['name']['pattern']='^user_[a-z0-9_]{1,16}$'
     return result
 
 
