@@ -29,7 +29,7 @@ def provision(artifact):
     cli(['workspace','mkdirs',PREFIX+'/experiments'])
 def prepare_release(repo,artifact):
     repo=Path(repo);artifact=Path(artifact);commit=git(repo,'rev-parse','HEAD');branch=git(repo,'branch','--show-current')
-    if branch!='study/04-semantic-state-gated-lora':raise ValueError('Refuse to deploy an unrelated branch')
+    if branch!='04-semantic-state-gated-lora':raise ValueError('Refuse to deploy an unrelated branch')
     remote=git(repo,'ls-remote','origin','refs/heads/'+branch).split()[0]
     if remote!=commit:raise ValueError('Push the exact local source commit before deployment')
     subprocess.check_call(['git','fetch','origin',branch],cwd=repo,stdout=subprocess.DEVNULL)

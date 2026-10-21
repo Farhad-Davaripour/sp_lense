@@ -1,38 +1,44 @@
-name: CI
+name: Research 4 offline checks
 
-on:
+'on':
   push:
-    branches: [main]
+    branches: [04-semantic-state-gated-lora]
   pull_request:
-    branches: [main]
+    branches: [04-semantic-state-gated-lora]
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: research4-offline-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  landing-page:
-    runs-on: ubuntu-latest
+  research4-offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      HF_HUB_OFFLINE: '1'
+      TRANSFORMERS_OFFLINE: '1'
+      HF_HUB_DISABLE_TELEMETRY: '1'
+      CUDA_VISIBLE_DEVICES: ''
+      OMP_NUM_THREADS: '2'
+      MKL_NUM_THREADS: '2'
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Validate landing branch
-        shell: bash
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.12'
+      - name: Install CPU-only unit dependencies from explicit indexes
         run: |
-          set -euo pipefail
-          for file in README.md CONTRIBUTING.md SECURITY.md LICENSE .github/CODEOWNERS; do
-            test -f "$file"
-          done
-          for path in data paper reproduce src study tests pyproject.toml; do
-            if [ -e "$path" ]; then
-              echo "Study-specific path must not exist on main: $path" >&2
-              exit 1
-            fi
-          done
-          grep -q 'study/01-guarded-shutdown' README.md
-          grep -q 'study/02-next-study' README.md
-          grep -q 'Squash-merge' CONTRIBUTING.md
+          python -m pip install --disable-pip-version-check --only-binary=:all: --index-url https://download.pytorch.org/whl/cpu 'torch==2.11.0+cpu'
+          python -m pip install --disable-pip-version-check --only-binary=:all: --index-url https://pypi.org/simple -r research4/requirements-unit.txt
+          python -m pip check
+      - name: Compile maintained Research 4 Python sources
+        run: python -m compileall -q research4/src research4/notebooks research4/tools research4/tests
+      - name: Check local bundle and configuration contracts
+        run: python research4/tools/check_offline_config.py
+      - name: Run model-free unit tests with network access blocked
+        run: python research4/tools/run_unit_tests.py
