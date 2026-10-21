@@ -27,13 +27,15 @@ jobs:
           for file in README.md CONTRIBUTING.md SECURITY.md LICENSE .github/CODEOWNERS; do
             test -f "$file"
           done
-          for path in data paper reproduce src study tests config ddl notebooks resources databricks.yml pyproject.toml; do
+          for path in data paper reproduce src study research4 tests config ddl notebooks resources databricks.yml pyproject.toml; do
             if [ -e "$path" ]; then
               echo "Study-specific path must not exist on main: $path" >&2
               exit 1
             fi
           done
-          grep -q 'study/01-guarded-shutdown' README.md
-          grep -q 'study/02-next-study' README.md
+          for branch in 01-guarded-shutdown-steering 02-adaptive-activation-steering 03-open-agent-self-preservation 04-semantic-state-gated-lora; do
+            grep -Fq "tree/$branch)" README.md
+          done
+          grep -Fq 'research3-paper-mcp-v2' README.md
           grep -q 'Squash-merge' CONTRIBUTING.md
-          grep -q '03-open-agent-self-preservation' README.md
+          grep -q 'Databricks' CONTRIBUTING.md
