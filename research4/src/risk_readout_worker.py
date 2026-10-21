@@ -97,10 +97,10 @@ def worker(root,output,cache,commit,config_path=CONFIG):
     return receipt
 
 
-def launch(root,commit,destination,config_path=CONFIG):
+def launch(root,commit,destination,config_path=CONFIG,worker_function=None):
     from databricks.sdk import WorkspaceClient
     cfg=read(Path(root)/config_path);namespace=cfg['artifact_namespace']
-    if namespace not in ['native27_risk_readout_v1','native27_risk_transfer_v1'] or not destination.startswith('/Volumes/workspace/research4/artifacts/'+namespace+'/') or '..' in destination.split('/'):raise ValueError('Dedicated destination required')
+    if namespace not in ['native27_risk_readout_v1','native27_risk_transfer_v1','native27_factual_comprehension_v1'] or not destination.startswith('/Volumes/workspace/research4/artifacts/'+namespace+'/') or '..' in destination.split('/'):raise ValueError('Dedicated destination required')
     client=WorkspaceClient();client.files.create_directory(destination)
     def upload(name,data):
         client.files.upload(destination+'/'+name,io.BytesIO(data),overwrite=False)
@@ -109,7 +109,7 @@ def launch(root,commit,destination,config_path=CONFIG):
     with tempfile.TemporaryDirectory(prefix='research4-factual-risk-') as temporary:
         base=Path(temporary);output=base/'output'
         upload('ALLOCATION.json',json.dumps({'source_commit':commit,'MLFLOW_run_id':os.environ.get('MLFLOW_RUN_ID'),'scientific_retries':0}).encode())
-        try:receipt=worker(Path(root),output,base/'cache',commit,config_path)
+        try:receipt=(worker_function or worker)(Path(root),output,base/'cache',commit,config_path)
         except Exception as e:
             output.mkdir(exist_ok=True);receipt={'status':'failed','error_type':type(e).__name__,'error':str(e),'backbone_forwards':None};dump(output/'WRAPPER_FAILURE.json',{'traceback':traceback.format_exc()});dump(output/'RUN_RECEIPT.json',receipt)
         dump(output/'MANIFEST.json',{f.relative_to(output).as_posix():sha(f) for f in output.rglob('*') if f.is_file() and f.name!='MANIFEST.json'})

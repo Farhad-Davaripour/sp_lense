@@ -1,0 +1,37 @@
+resources:
+  jobs:
+    native27_factual_comprehension_cpu:
+      name: Research 4 - Native factual comprehension replay audit
+      max_concurrent_runs: 1
+      timeout_seconds: 900
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: native27-factual-comprehension
+        aidevkit_project: ai-dev-kit
+        source_commit: ${var.source_commit}
+      parameters:
+        - name: input_folder
+          default: ''
+      tasks:
+        - task_key: factual_qa_audit
+          notebook_task:
+            notebook_path: ../notebooks/native27_factual_comprehension_cpu.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+              input_folder: '{{job.parameters.input_folder}}'
+          environment_key: factual_cpu
+          timeout_seconds: 900
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: factual_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - numpy==2.2.2
+              - transformers==5.19.0
