@@ -16,7 +16,7 @@ class PaperScopeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory)/'paper.md'
             report = export(destination=path)
-            self.assertEqual((report['equations'], report['tables'], report['figures']), (4, 6, 1))
+            self.assertEqual((report['equations'], report['tables'], report['figures']), (4, 5, 1))
             self.assertFalse(report['tracked_content_exported'])
             self.assertEqual(path.read_bytes(), (ROOT/'paper/manuscript.md').read_bytes())
 

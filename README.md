@@ -91,7 +91,7 @@ python -m src.paper_mcp
 
 This starts a **local stdio MCP server**, not a hosted web endpoint. Without downloads it
 provides the manuscript, recorded results, cohort roles and claim-to-evidence pointers.
-The manuscript export preserves four equations, six tables and one figure.
+The manuscript export preserves four equations, five tables and one figure.
 Six tools support querying findings, listing artifacts, verifying replay evidence and
 rescoring saved evidence. The server cannot launch training, neural inference or cloud jobs.
 
