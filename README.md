@@ -1,25 +1,30 @@
-# SP Lense
+# Research 4: Semantic state-aware LoRA gate
 
-SP Lense is a research program on detecting and steering model behavior through internal representations. The `main` branch is intentionally limited to navigation and repository governance. Research code, data, experiment records, and papers live on dedicated study branches.
+This is the [`04-semantic-state-gated-lora`](https://github.com/Farhad-Davaripour/sp_lense/tree/04-semantic-state-gated-lora) study branch of SP Lense. Start with the [Research 4 overview](research4/README.md) for the current findings, limitations and protocols. Selective semantic routing remains a research hypothesis.
 
-## Studies
+All scientific experiments run exclusively in the explicitly selected Databricks workspace. Local source editing and model-free unit tests are supported. Research 4 uses its own `workspace.research4` namespace and `/Workspace/Shared/research4-semantic-gate` paths. Preserve failed runs and source freezes; generated run data and credentials stay outside Git. Research 3 is read-only reference material.
 
-| Study | Status | Branch | Stable release |
-| --- | --- | --- | --- |
-| Study 01 Guarded shutdown steering | Completed | [`study/01-guarded-shutdown`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/01-guarded-shutdown) | [`study-01-v1.0.0`](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/study-01-v1.0.0) |
-| Study 02 Adaptive activation steering | Active | [`study/02-next-study`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/02-next-study) | Not released |
-| Study 03 Open agent self-preservation | Initial pilot | [`study/03-open-agent-self-preservation`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/03-open-agent-self-preservation) | Not released |
-| Research 04 Semantic state-aware LoRA gate | Bounded Databricks pilot | [`study/04-semantic-state-gated-lora`](https://github.com/Farhad-Davaripour/sp_lense/tree/study/04-semantic-state-gated-lora/research4) | Not released |
+## Local checks
 
-To inspect or reproduce a study, switch to its branch and follow that branch's README. The completed Study 01 [paper](https://github.com/Farhad-Davaripour/sp_lense/blob/study/01-guarded-shutdown/paper/paper.pdf) and reproducibility package remain on the Study 01 branch and release tag.
-Research 3's separate code, synthetic data, trajectories, activation arrays, and report are in [`study/03_open_agent_self_preservation`](study/03_open_agent_self_preservation/README.md) on its branch.
+Use a Python 3.12 virtual environment. Install only the CPU unit dependencies from their explicit indexes:
 
-## Branch model
+```sh
+python -m pip install --disable-pip-version-check --only-binary=:all: --index-url https://download.pytorch.org/whl/cpu 'torch==2.11.0+cpu'
+python -m pip install --disable-pip-version-check --only-binary=:all: --index-url https://pypi.org/simple -r research4/requirements-unit.txt
+python -m pip check
+python -m compileall -q research4/src research4/notebooks research4/tools research4/tests
+python research4/tools/check_offline_config.py
+python research4/tools/run_unit_tests.py
+```
 
-- `main` is the protected landing and governance branch.
-- `study/<number>-<name>` branches contain research-specific work and retained study history.
-- `fd/<issue-number>_<description>` branches are short-lived feature branches. They target the relevant long-lived branch, are squash-merged, and are deleted from the remote after a successful merge.
+CI runs these checks for pushes and pull requests targeting this study branch. The unit runner blocks network access and skips the optional cached-tokenizer integration test. Tests use synthetic fixtures and small CPU tensors; they do not load pretrained models or execute scientific experiments. Configuration checks cover local YAML/JSON, job dependencies, notebook paths, workspace/storage boundaries, timeouts, concurrency and retry policy. They do not replace strict Databricks bundle validation before an authorized deployment.
 
-Repository-wide documentation is maintained in the [wiki](https://github.com/Farhad-Davaripour/sp_lense/wiki). Proposed work and review history are tracked in [issues](https://github.com/Farhad-Davaripour/sp_lense/issues) and [pull requests](https://github.com/Farhad-Davaripour/sp_lense/pulls).
+## Repository navigation
 
-Code and documentation are released under the [MIT license](LICENSE).
+The protected [`main`](https://github.com/Farhad-Davaripour/sp_lense) branch holds the program index and governance. Earlier studies retain their code, papers and history on dedicated branches:
+
+- [01: Guarded shutdown steering](https://github.com/Farhad-Davaripour/sp_lense/tree/01-guarded-shutdown-steering), with the preserved [Study 1 release](https://github.com/Farhad-Davaripour/sp_lense/releases/tag/study-01-v1.0.0).
+- [02: Adaptive activation steering](https://github.com/Farhad-Davaripour/sp_lense/tree/02-adaptive-activation-steering).
+- [03: Open agent self-preservation](https://github.com/Farhad-Davaripour/sp_lense/tree/03-open-agent-self-preservation).
+
+Follow [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) and [research4/AGENTS.md](research4/AGENTS.md) for changes to this study. Code and documentation use the [MIT license](LICENSE).
