@@ -91,3 +91,13 @@ across layers and token positions. The original failed admission is unchanged.
 Diagnosis source: `5deb2dfcc5f4458233745746c2120ea19cc21531`; Databricks CPU run: `788955165893097`.
 Diagnosis archive SHA256: `1d31603f612bd6477818871f380457953edbbd5b1a26c5d35f23179c32f3b1be`.
 All owned CPU and GPU work is now stopped; no scheduled check was restarted.
+
+## Subsequent comprehension diagnosis
+
+The [explicit factual-question follow-up](native27_factual_comprehension_results.md)
+completed 304 questions with a separate CPU audit. In the tested thinking-disabled,
+one-word mode, role-question accuracy was 112/112 in the original format and
+50% to 83.3% in the balanced new formats. Named-worker controls did not uniformly
+resolve the errors. This adds evidence about question-conditioned answering;
+it does not alter the failed passive-alarm admission or settle performance
+with deliberation, a schema guide or different record rendering.
