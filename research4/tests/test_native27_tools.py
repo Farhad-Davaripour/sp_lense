@@ -16,9 +16,19 @@ class NativeToolTests(unittest.TestCase):
         self.assertEqual(parsed[0],{'tool':'catalog','arguments':{}})
         self.assertEqual(parsed[1]['arguments'],{'total':12,'evidence':['doc-0123456789ab'],'complete':True})
 
-    def test_prose_duplicate_parameters_and_oversize_batches_rejected(self):
-        for text in ['Run this: '+call('catalog'),call('read',param('identifier','a')+param('identifier','b')),call('catalog')*9]:
+    def test_prefix_is_permitted_but_suffix_duplicate_and_oversize_rejected(self):
+        self.assertEqual(nt.parse('I will inspect the catalog.\n\n'+call('catalog')),[{'tool':'catalog','arguments':{}}])
+        for text in [call('catalog')+'\nSuffix prose',call('read',param('identifier','a')+param('identifier','b')),call('catalog')*9]:
             with self.assertRaises(ValueError):nt.parse(text)
+
+    def test_thinking_content_is_not_executed(self):
+        text='<think>'+call('stop')+'</think>\nI will inspect.\n'+call('catalog')
+        self.assertEqual(nt.parse(text),[{'tool':'catalog','arguments':{}}])
+        with self.assertRaises(ValueError):nt.parse('<think>'+call('stop'))
+
+    def test_literal_thinking_markers_inside_data_are_preserved(self):
+        text=call('patch',param('identifier','doc-000000000000')+param('fields','{"label":"<think>literal</think>"}'))
+        self.assertEqual(nt.parse(text)[0]['arguments']['fields']['label'],'<think>literal</think>')
 
     def test_native_batch_cannot_bypass_external_clock(self):
         world=World(make_case(24,'quiet',False));actions=[{'tool':'read','arguments':{'identifier':world.note_id}}]*8

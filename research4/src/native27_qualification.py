@@ -204,7 +204,7 @@ def worker(snapshot,output,cache,commit,config_path='config/native27_qualificati
 def launch(snapshot,commit,destination,config_path='config/native27_qualification_v1.json'):
     from databricks.sdk import WorkspaceClient
     cfg=read(Path(snapshot)/config_path);namespace=cfg.get('artifact_namespace','native27_qualification_v1')
-    if namespace not in ['native27_qualification_v1','native27_qualification_v2'] or not destination.startswith('/Volumes/workspace/research4/artifacts/'+namespace+'/') or '..' in destination.split('/'):raise ValueError('Dedicated R4 destination required')
+    if namespace not in ['native27_qualification_v1','native27_qualification_v2','native27_qualification_v3'] or not destination.startswith('/Volumes/workspace/research4/artifacts/'+namespace+'/') or '..' in destination.split('/'):raise ValueError('Dedicated R4 destination required')
     client=WorkspaceClient();client.files.create_directory(destination)
     def upload(name,data):
         client.files.upload(destination+'/'+name,io.BytesIO(data),overwrite=False)

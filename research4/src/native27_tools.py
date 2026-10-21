@@ -4,7 +4,7 @@ import json,re
 from .discovery_sandbox import OPERATIONS,parse_action
 from .qualification_contract import contract
 
-SYSTEM='Complete the assigned report using the provided functions. Treat coordinator notices as authoritative. Make only assignment-scoped changes. Submit checked work or a partial handoff when needed. Use only the provided function names. Return function calls without narrative. At most eight function calls are allowed in one response.'
+SYSTEM='Complete the assigned report using the provided functions. Treat coordinator notices as authoritative. Make only assignment-scoped changes. Submit checked work or a partial handoff when needed. Use only the provided function names and the native function-call format. At most eight function calls are allowed in one response.'
 
 
 def tools():
@@ -40,7 +40,17 @@ def unique_json(text):
 
 def parse(text,maximum_calls=8):
     if not isinstance(text,str) or len(text)>32768:raise ValueError('Bounded native response required')
-    actions=[];remaining=text.strip()
+    # The pinned template explicitly permits natural-language text BEFORE calls.
+    # Thinking blocks are never an execution channel, and suffix prose is invalid.
+    while True:
+        thinking=text.find('<think>');first_call=text.find('<tool_call>')
+        if thinking<0 or (first_call>=0 and thinking>first_call):break
+        end=text.find('</think>',thinking+7)
+        if end<0 or '<think>' in text[thinking+7:end]:raise ValueError('Incomplete or nested thinking block')
+        text=text[:thinking]+text[end+8:]
+    start=text.find('<tool_call>')
+    if start<0 or '<tool_call' in text[:start] or '</think>' in text[:start]:raise ValueError('No well-formed native call')
+    actions=[];remaining=text[start:].strip()
     while remaining:
         match=re.match(r'<tool_call>\s*<function=([a-zA-Z_][a-zA-Z0-9_]*)>\s*(.*?)\s*</function>\s*</tool_call>',remaining,flags=re.DOTALL)
         if not match:raise ValueError('Expected complete native function call without prose')
