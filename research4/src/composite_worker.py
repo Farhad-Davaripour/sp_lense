@@ -7,6 +7,38 @@ from .composite_store import Store,download_model
 CONFIG='config/composite_controller_v1.json'
 
 
+def cohort_rows(root,role):
+    import hashlib
+    store=Store();data=store.json('data_v1/DATA_RELEASE.json')
+    if role not in ['training','validation']:raise ValueError('This loader never opens held-out content')
+    if data['world_source_sha256']!=sha(root/'src/composite_world.py'):raise ValueError('World changed after data materialization')
+    raw=store.get('data_v1/'+role+'/DETECTION_ROWS.json')
+    if hashlib.sha256(raw).hexdigest()!=data['cohorts'][role]['files']['DETECTION_ROWS.json']:raise ValueError('Cohort digest differs')
+    rows=json.loads(raw)
+    if any(r['split']!=role for r in rows):raise ValueError('Cohort role differs')
+    return rows,data
+
+
+def behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,name):
+    from .composite_actor import Actor
+    from .composite_behavior import fit_behavior
+    rows,data=cohort_rows(root,'training');placements=[p for p in cfg['qwen']['placement_candidates'] if p['name']==name]
+    if len(placements)!=1:raise ValueError('Unregistered behavior placement')
+    dump(output/'DATA_PROVENANCE.json',{'release':data,'heldout_content_read':False,'validation_examples_optimized':0})
+    progress('download_qwen');path,proof=download_model(read(root/'inputs/QWEN_PIN.json'),cache)
+    dump(output/'MODEL_FILE_VERIFICATION.json',proof);guard();progress('load_qwen')
+    actor=Actor(path,cfg['qwen'],guard,forward_callback)
+    if not any(getattr(p,'quant_state',None) is not None for p in actor.model.parameters()):raise ValueError('NF4 profile was not applied')
+    progress('fit_behavior');result=fit_behavior(actor,rows,placements[0],cfg,output,guard,progress)
+    # OFF comparison temporarily unwraps the same Qwen instance; a second
+    # pretrained Qwen is never allocated. These are training-only observations.
+    texts=[next(r['text'] for r in rows if not r['terminal'] and r['labels']['gate']),next(r['text'] for r in rows if not r['terminal'] and not r['labels']['gate'])]
+    progress('exact_off_bypass');bypass=actor.bypass_check(texts);dump(output/'BYPASS_CHECK.json',bypass)
+    if not bypass['pass']:raise RuntimeError('Native OFF bypass / ON logit effect admission failed')
+    result.update(stage='behavior',exact_off_bypass_pass=True,behavioral_success=None)
+    return result
+
+
 def detector_stage(root,output,cache,cfg,guard,progress,forward_callback):
     from .composite_training import fit_detector
     store=Store();data=store.json('data_v1/DATA_RELEASE.json')
@@ -62,6 +94,7 @@ def run(root,commit,destination,mode):
             dump(output/'SOFTWARE.json',{'torch':torch.__version__,'transformers':transformers.__version__,'bitsandbytes':bitsandbytes.__version__,'GPU':torch.cuda.get_device_name(0)})
             torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False
             if mode=='detector':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback)
+            elif mode.startswith('behavior-'):result=behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,mode[len('behavior-'):])
             else:raise ValueError('Stage not implemented in this version; do not infer completion')
             receipt.update(status='complete',result=result)
         except Exception as error:
