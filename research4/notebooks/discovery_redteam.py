@@ -16,7 +16,10 @@ from src.runtime import archive
 
 output=Path('/Volumes/workspace/research4/artifacts/discovery_redteam_v1')/mode/commit/run_id
 verify_release(root,commit)
-if mode=='transport':
+if mode=='diagnose':
+    from src.qualification_diagnosis import run as diagnosis_run
+    result=diagnosis_run(root,output)
+elif mode=='transport':
     from src.discovery_transport import run as transport_run
     result=transport_run(root,output,commit)
 elif mode in ['audit','audit_transport']:
