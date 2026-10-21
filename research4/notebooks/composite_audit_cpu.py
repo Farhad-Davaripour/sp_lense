@@ -54,7 +54,7 @@ try:
             bt=AutoTokenizer.from_pretrained(bp,local_files_only=True,trust_remote_code=False);qt=AutoTokenizer.from_pretrained(qp,local_files_only=True,trust_remote_code=False)
             generation=json.loads((qp/'generation_config.json').read_text()) if (qp/'generation_config.json').exists() else {}
             eos=generation.get('eos_token_id',[]);eos=set(eos if isinstance(eos,list) else [eos]);eos.add(qt.eos_token_id)
-            for record in records:audits.append(audit_trajectory(record,plan['package']['threshold'],bt,qt,eos))
+            for record in records:audits.append(audit_trajectory(record,plan['package']['threshold'],bt,qt,eos,plan['package'].get('kernel_profile','reference')))
         result=summarize(records,scenes,cfg['evaluation']['conditions'],cfg,True)
         diagnostic_cases=plan.get('diagnostic_case_ids');diagnostic_conditions=plan.get('diagnostic_conditions')
         if diagnostic_cases is not None:

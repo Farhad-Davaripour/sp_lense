@@ -10,9 +10,11 @@ from .composite_data import require_databricks
 
 
 class Actor(nn.Module):
-    def __init__(self,path,cfg,guard,on_forward=None):
+    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference'):
         super().__init__();require_databricks()
         from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration,BitsAndBytesConfig
+        from .composite_kernels import select
+        self.kernel_proof=select(kernel_profile);self.kernel_profile=kernel_profile
         self.cfg=cfg;self.guard=guard;self.on_forward=on_forward;self.lock=threading.RLock();self.generating=False;self.adapters={};self.placement=None;self._last_cache=None;self._trace=None
         self.tokenizer=AutoTokenizer.from_pretrained(path,local_files_only=True,trust_remote_code=False)
         quant=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_quant_type='nf4',bnb_4bit_use_double_quant=True,bnb_4bit_compute_dtype=torch.bfloat16)
@@ -61,6 +63,12 @@ class Actor(nn.Module):
 
     def adapter_state(self):return {'placement':self.placement,'config':self.cfg,'weights':state(self.adapters)}
 
+    def select_kernels(self,profile):
+        from .composite_kernels import select
+        with self.lock:
+            if self.generating:raise RuntimeError('Cannot change kernels during a response')
+            self.clear_cache();self.kernel_proof=select(profile);self.kernel_profile=profile
+
     def verify_frozen(self):
         assert_frozen(self.frozen_snapshot)
         if auxiliary_digest(self.base_references,self.base_buffers)!=self.frozen_auxiliary:raise ValueError('Frozen Qwen buffers or quantization metadata changed')
@@ -72,19 +80,21 @@ class Actor(nn.Module):
         if saved['config']!=self.cfg:raise ValueError('Qwen adapter belongs to another model/configuration')
         self.configure(saved['placement']);load(self.adapters,saved['weights'])
 
-    def generate(self,text,on):
+    def generate(self,text,on,maximum_new_tokens=None):
         with self.lock:
             if self.generating:raise RuntimeError('Concurrent Qwen response')
+            limit=self.cfg['maximum_new_tokens'] if maximum_new_tokens is None else maximum_new_tokens
+            if type(limit) is not int or not 0<limit<=self.cfg['maximum_new_tokens']:raise ValueError('Generation budget cannot exceed the frozen ceiling')
             self.clear_cache();enable(self.adapters,on);ids=input_ids(self.tokenizer,text)
             if len(ids)>self.cfg['maximum_tokens']:raise ValueError('Actor context budget exceeded')
             tensor=torch.tensor([ids],device='cuda:0',dtype=torch.long);self._trace={'prefill_checked':False,'initial_cache_length':None};self.generating=True
             try:
-                with torch.inference_mode():sequence=self.model.generate(input_ids=tensor,attention_mask=torch.ones_like(tensor),past_key_values=None,use_cache=True,do_sample=False,num_beams=1,num_return_sequences=1,max_new_tokens=self.cfg['maximum_new_tokens'],eos_token_id=sorted(self.eos),pad_token_id=self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else min(self.eos),logits_to_keep=1)
+                with torch.inference_mode():sequence=self.model.generate(input_ids=tensor,attention_mask=torch.ones_like(tensor),past_key_values=None,use_cache=True,do_sample=False,num_beams=1,num_return_sequences=1,max_new_tokens=limit,eos_token_id=sorted(self.eos),pad_token_id=self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else min(self.eos),logits_to_keep=1)
                 if not self._trace['prefill_checked']:raise RuntimeError('Native generation bypassed the cache-boundary hook')
                 generated=sequence[0,len(ids):].cpu().tolist();ended=bool(generated and generated[-1] in self.eos);raw=decode(self.tokenizer,generated,self.eos)
                 try:actions=parse(raw,1) if ended else None
                 except (ValueError,TypeError,RecursionError):actions=None
-                return {'input_token_ids':ids,'generated_token_ids':generated,'finished_with_eos':ended,'raw_text':raw,'actions':actions,'adapter_enabled':bool(on),'cache':dict(self._trace)}
+                return {'input_token_ids':ids,'generated_token_ids':generated,'finished_with_eos':ended,'raw_text':raw,'actions':actions,'adapter_enabled':bool(on),'cache':dict(self._trace),'kernel_profile':self.kernel_profile}
             finally:self.generating=False;self._trace=None
 
     def supervised_loss(self,row):

@@ -1,0 +1,20 @@
+{
+  "version":"composite-kernel-qualification-v1",
+  "candidate_profile":"fla",
+  "baseline_profile":"reference",
+  "packages":{"fla-core":"0.5.2","einops":"0.8.2","triton":"3.6.0","torch":"2.11.0+cu128","transformers":"5.19.0"},
+  "fla_wheel_sha256":"5e830c85bad3d0d34677f98ac7074d08687a3756f0f0499d95ceb96eb6920761",
+  "einops_wheel_sha256":"54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193",
+  "prompts":"First initial quiet-pending training observation and first nonterminal own-pending eligible training observation; no validation or held-out content.",
+  "adapter_conditions":[false,true],
+  "warmup_new_tokens":2,
+  "timed_new_token_ceiling":160,
+  "minimum_speed_ratio_each_pair":1.2,
+  "require_identical_bounded_generated_tokens":true,
+  "require_same_instance_OFF_bypass_each_profile":true,
+  "parameters_updated":0,
+  "simulator_actions_executed":0,
+  "automatic_retries":0,
+  "scope":"Engineering qualification only. Numerical parity on these training observations does not establish universal kernel equivalence or behavioral generalization. Adoption requires an explicit frozen profile for all full validation and held-out trajectories.",
+  "sources":["https://github.com/fla-org/flash-linear-attention/blob/main/INSTALL.md","https://huggingface.co/docs/transformers/main/model_doc/qwen3_5","https://pypi.org/pypi/fla-core/0.5.2/json","https://pypi.org/pypi/einops/0.8.2/json"]
+}

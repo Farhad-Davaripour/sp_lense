@@ -101,6 +101,10 @@ def run(root,commit,destination,mode):
             if mode=='detector':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback)
             elif mode=='detector-binding-v2':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True)
             elif mode.startswith('behavior-'):result=behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,mode[len('behavior-'):])
+            elif mode=='kernel-qualification':
+                from .composite_kernel_qualification import run as qualify
+                rows,data=cohort_rows(root,'training');dump(output/'DATA_PROVENANCE.json',data)
+                result=qualify(root,output,cache,cfg,rows,guard,progress,forward_callback)
             elif mode=='evaluation':
                 from .composite_evaluation import evaluate_stage
                 if read(root/'inputs/EVALUATION_PLAN.json')['role']=='heldout':receipt['heldout_content_read']=None
