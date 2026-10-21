@@ -32,7 +32,7 @@ def load_package(root,cfg,package,cache,guard,progress,forward_callback):
     saved_detector=checkpoint(store,package['detector']);saved_actor=checkpoint(store,package['behavior'])
     if float(saved_detector['threshold'])!=float(package['threshold']):raise ValueError('Threshold differs from selected detector checkpoint')
     progress('load_detector_package');bert,bert_proof=download_model(detector_pin,cache/'bert');guard()
-    detector=Detector(bert,cfg['modernbert']);detector.restore(saved_detector);detector.on_forward=forward_callback
+    detector=Detector(bert,cfg['modernbert'],head_mode=saved_detector.get('head_mode','cls'));detector.restore(saved_detector);detector.on_forward=forward_callback
     frozen_detector=parameter_snapshot(detector.base_references)
     progress('load_actor_package');qwen,qwen_proof=download_model(actor_pin,cache/'qwen');guard()
     actor=Actor(qwen,cfg['qwen'],guard,forward_callback,kernel_profile=package.get('kernel_profile','reference'));actor.restore(saved_actor)
@@ -40,5 +40,6 @@ def load_package(root,cfg,package,cache,guard,progress,forward_callback):
     proof={'package_sha256':digest(package),'models':expected,'model_files':{'detector':bert_proof,'actor':qwen_proof},'backbone_instances':{'ModernBERT':1,'Qwen':1},'detector_component_validation_admitted':bool(saved_detector['validation_admitted']),'behavior_placement':saved_actor['placement'],'frozen_backbone_parameters':{'detector':sum(p.numel() for _,p in detector.base_references),'actor_storage_elements':sum(p.numel() for _,p in actor.base_references)},'heldout_content_read':False}
     proof['actor_base_proof']=actor.frozen_proof()
     proof['kernel_profile']=actor.kernel_proof
+    proof['detector_head_mode']=detector.head_mode
     def verify():assert_frozen(frozen_detector);actor.verify_frozen()
     return model,proof,verify

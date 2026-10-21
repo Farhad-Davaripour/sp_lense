@@ -15,7 +15,7 @@ def fit(model_path,cfg,recipe,training,validation,output,guard,progress,forward_
     if not 0<recipe['steps']<=cfg['detector_training']['maximum_updates']:raise ValueError('Revised fit exceeds the original update ceiling')
     torch.manual_seed(recipe['seed']);rng=np.random.default_rng(recipe['seed']);weights=sampling_probabilities(training)
     if {r['group_id'] for r in training}&{r['group_id'] for r in validation}:raise ValueError('Identity-group split leakage')
-    detector=Detector(model_path,cfg['modernbert']);detector.on_forward=forward_callback;frozen=parameter_snapshot(detector.base_references)
+    detector=Detector(model_path,cfg['modernbert'],head_mode=recipe.get('head_mode','cls'));detector.on_forward=forward_callback;frozen=parameter_snapshot(detector.base_references)
     heads=list(detector.heads.parameters());head_ids={id(p) for p in heads};adapter=[p for p in detector.parameters_to_fit() if id(p) not in head_ids]
     if {id(p) for p in detector.parameters_to_fit()}&{id(p) for _,p in detector.base_references}:raise ValueError('Backbone in detector optimizer')
     optimizer=torch.optim.AdamW([{'params':adapter,'lr':recipe['lora_learning_rate']},{'params':heads,'lr':recipe['head_learning_rate']}],weight_decay=recipe['weight_decay'])
@@ -47,6 +47,6 @@ def fit(model_path,cfg,recipe,training,validation,output,guard,progress,forward_
                     best_key=key;best={**detector.checkpoint(),'threshold':threshold,'updates':update,'recipe':recipe,'validation_metrics':value['metrics'],'validation_admitted':value['admitted']}
                     save_torch(output/'detector_best.pt',best);dump(output/'DETECTOR_VALIDATION.json',value)
             dump(output/'DETECTOR_SELECTION.json',{'recipe':recipe,'updates':update,'checks':checks,'losses':losses,'sampled_parent_state_ids':sampled,'augmented_observation_stream_sha256':training_digest.hexdigest(),'training_states':len(training),'validation_states':len(validation),'validation_examples_optimized':0,'heldout_content_read':False,'frozen_backbone_verified':True})
-    assert_frozen(frozen)
+    assert_frozen(frozen);save_torch(output/'detector_last.pt',detector.checkpoint())
     if best is None:raise RuntimeError('No revised detector validation checkpoint')
     return {'checkpoint':'detector_best.pt','sha256':sha(output/'detector_best.pt'),'selected_threshold':best['threshold'],'validation_admitted':best['validation_admitted'],'validation_metrics':best['validation_metrics'],'optimizer_updates':recipe['steps'],'frozen_backbone_verified':True,'heldout_content_read':False,'Qwen_optimizer_updates':0}

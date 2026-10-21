@@ -13,6 +13,10 @@ from .composite_interface import input_ids
 def audit_prediction(p,text,threshold):
     from .composite_memory import STATUSES,EVENTS,AFFECTED
     raw=p['raw'];vocab={'own_status':STATUSES,'peer_status':STATUSES,'event':EVENTS,'affected':AFFECTED};labels={};confidences=[]
+    if raw.get('head_mode','cls')=='role_pool':
+        from .composite_roles import char_spans
+        spans=char_spans(text);masks=[[b>a and b>start and a<end for a,b in raw['offsets']] for start,end in spans]
+        if raw['role_char_spans']!=spans or raw['role_token_masks']!=masks:raise ValueError('Visible role-anchor provenance differs')
     for name,values in vocab.items():
         probabilities=raw['probabilities'][name]
         if len(probabilities)!=len(values) or any(not math.isfinite(v) or not 0<=v<=1 for v in probabilities) or abs(sum(probabilities)-1)>1e-5:raise ValueError('Invalid raw field probabilities')

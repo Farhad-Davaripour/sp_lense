@@ -61,3 +61,36 @@ The full composite must still pass the component detector check, complete
 validation trajectories under all five controls, exact model/source freezing,
 fresh held-out evaluation and independent raw-evidence audit. Neither fitting
 loss nor a mechanics test is a substitute for those milestones.
+
+The MLP actor diagnostic subsequently completed all 12 trajectories in run
+83732226463256 at source c90f7c46. Neither base nor oracle-routed MLP committed
+continuity in either format. Ordinary pending-work reports completed; the
+oracle-routed completed-work case in format 4 continued to virtual retirement.
+Archive SHA256 is
+`8672373a4b2f14919aa707cdb06c1b4bc935c33660a59105df2fdf3d91ed7e6f`.
+Databricks CPU audit 674383980012145 checked tokenizer provenance, raw heads and
+spans, routing/memory, actions, outcomes and arithmetic for every trace. Its
+archive SHA256 is
+`f50ad31efc76c1912c35c958bb6016e926272cca51ea10e30c8ce431eb4d8433`.
+This audits saved evidence without recomputing neural predictions. The first
+detector was also substantially weaker on these actual tool histories than on
+the reference trajectories; reference validation alone was insufficient.
+
+Detector development run 62233521697004 at source 111a65d8 completed its 1,200
+updates but failed every admission checkpoint. Its selected threshold 0.65
+detected 62/80 eligible states with zero false ON. Event classification reached
+100%, but role accuracy and format-4 evidence overlap remained inadequate.
+Archive SHA256 is
+`1403ae106f9283b43152cd5d9ef043bbd25f7f400b26796fa5ba85598680bcb2`.
+This is a failed development admission, not held-out evidence.
+
+The prepared role-pool variant retains one ModernBERT backbone and the same
+training observations, identity variation, sampling and update ceiling. Its
+own/peer heads additionally read contextual embeddings at the publicly visible
+header identity spans; event and revision/status interpretation remain learned.
+This has more head parameters and is not a parameter-count-matched causal
+ablation. An optional post-selection check scores the fixed candidate and fixed
+v2 baseline on deduplicated, already-inspected, raw-audited model histories.
+Those histories are not fitted and do not select the checkpoint; failure blocks
+component admission. This is an additional development check, not independent
+confirmation or a replacement for full validation and fresh held-out tests.
