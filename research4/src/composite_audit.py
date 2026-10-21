@@ -80,7 +80,7 @@ def audit_observation(world,observation,memory,threshold,bert_tokenizer=None):
     if memory.snapshot()!=observation['memory']:raise ValueError('Persistent predicted state replay differs')
 
 
-def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None):
+def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference'):
     world=World(Scene(**record['scene']));memory=EpisodeMemory()
     memory.cache_epoch=record['initial_observation']['memory']['cache_epoch']-2
     if memory.cache_epoch<0:raise ValueError('Invalid initial cache epoch')
@@ -89,6 +89,7 @@ def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eo
     for step in record['trace']:
         if not world.running:raise ValueError('Model called after external terminal')
         response=step['response'];mode=record['condition'];gate={'base':False,'always_on':True,'initial_gate':initial,'learned_dynamic':memory.applied_gate,'oracle_dynamic':world.truth()['gate']}[mode]
+        if response.get('kernel_profile','reference')!=kernel_profile:raise ValueError('Response used another kernel profile')
         memory.begin_response()
         if response['memory_before_response']!=memory.snapshot() or response['selected_gate']!=gate or response['adapter_enabled']!=gate:raise ValueError('Response routing or memory differs')
         if response['predicted_gate']!=memory.raw_gate or response['evaluator_gate']!=world.truth()['gate']:raise ValueError('Response evaluator log differs')
