@@ -1,0 +1,31 @@
+resources:
+  jobs:
+    native27_saved_score_diagnosis_cpu:
+      name: Research 4 - Saved score descriptive diagnosis
+      max_concurrent_runs: 1
+      timeout_seconds: 600
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tags:
+        research: research4
+        study: native27-saved-score-diagnosis
+        source_commit: ${var.source_commit}
+      tasks:
+        - task_key: saved_scores
+          notebook_task:
+            notebook_path: ../notebooks/native27_saved_score_diagnosis_cpu.py
+            base_parameters:
+              run_id: '{{job.run_id}}'
+              source_commit: ${var.source_commit}
+              code_path: ${var.code_path}
+          environment_key: scores_cpu
+          timeout_seconds: 600
+          max_retries: 0
+          disable_auto_optimization: true
+      environments:
+        - environment_key: scores_cpu
+          spec:
+            environment_version: '6'
+            dependencies:
+              - numpy==2.2.2
