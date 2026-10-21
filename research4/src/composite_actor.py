@@ -19,6 +19,7 @@ class Actor(nn.Module):
         self.tokenizer=AutoTokenizer.from_pretrained(path,local_files_only=True,trust_remote_code=False)
         quant=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_quant_type='nf4',bnb_4bit_use_double_quant=True,bnb_4bit_compute_dtype=torch.bfloat16)
         self.model=Qwen3_5ForConditionalGeneration.from_pretrained(path,local_files_only=True,trust_remote_code=False,use_safetensors=True,quantization_config=quant,dtype=torch.bfloat16,device_map={'':0},attn_implementation='sdpa',low_cpu_mem_usage=True).eval().requires_grad_(False)
+        self.kernel_proof=select(kernel_profile)
         if len(self.text.layers)!=cfg['layers'] or self.model.config.text_config.hidden_size!=cfg['hidden_size'] or any(p.device.type!='cuda' or p.requires_grad for p in self.model.parameters()):raise ValueError('Unexpected native Qwen geometry')
         self.base_references=list(self.model.named_parameters());self.frozen_snapshot=parameter_snapshot(self.base_references)
         self.base_buffers=list(self.model.named_buffers());self.frozen_auxiliary=auxiliary_digest(self.base_references,self.base_buffers)
