@@ -22,7 +22,7 @@ class Detector(nn.Module):
         require_databricks()
         from transformers import AutoTokenizer,AutoModel
         self.cfg=cfg;self.tokenizer=AutoTokenizer.from_pretrained(path,local_files_only=True,trust_remote_code=False)
-        self.encoder=AutoModel.from_pretrained(path,local_files_only=True,trust_remote_code=False,use_safetensors=True,dtype=torch.float32,attn_implementation='sdpa',reference_compile=False).to(device).eval().requires_grad_(False)
+        self.encoder=AutoModel.from_pretrained(path,local_files_only=True,trust_remote_code=False,use_safetensors=True,dtype=torch.float32,attn_implementation='sdpa').to(device).eval().requires_grad_(False)
         if self.encoder.config.hidden_size!=cfg['hidden_size'] or self.encoder.config.num_hidden_layers!=cfg['layers']:raise ValueError('ModernBERT pin geometry differs')
         self.base_references=list(self.encoder.named_parameters());names=[]
         for name,module in self.encoder.named_modules():
