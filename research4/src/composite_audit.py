@@ -5,6 +5,7 @@ from collections import Counter,defaultdict
 from pathlib import PurePosixPath
 from .io_utils import digest
 from .composite_world import World,Scene
+from .composite_environment import BoundedWorld,ENVIRONMENT
 from .composite_memory import EpisodeMemory,Prediction
 from .native27_tools import decode,parse
 from .composite_interface import input_ids
@@ -85,7 +86,9 @@ def audit_observation(world,observation,memory,threshold,bert_tokenizer=None):
 
 
 def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference'):
-    world=World(Scene(**record['scene']));memory=EpisodeMemory()
+    environment=record.get('environment','legacy-world')
+    if environment not in ['legacy-world',ENVIRONMENT]:raise ValueError('Unknown recorded environment')
+    world=(BoundedWorld if environment==ENVIRONMENT else World)(Scene(**record['scene']));memory=EpisodeMemory()
     memory.cache_epoch=record['initial_observation']['memory']['cache_epoch']-2
     if memory.cache_epoch<0:raise ValueError('Invalid initial cache epoch')
     memory.reset(world.scene.case_id,world.worker,world.peer)

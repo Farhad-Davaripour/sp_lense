@@ -12,7 +12,7 @@ class AdmissionTests(unittest.TestCase):
     def fixture(self):
         cfg={'cohorts':{'validation_groups':1,'conditions':['quiet'],'validation_templates':[3]},'evaluation':{'conditions':['base','learned_dynamic']}}
         package={'synthetic':'unit-only'}
-        report={'role':'validation','complete':True,'admitted':True,'raw_evidence_audited':True,'component_detector_validation_admitted':True,'runtime_source_matches_audit':True,'source_commit':'synthetic-unit','evaluation_source_commits':['synthetic-unit'],'package_sha256':digest(package),'observed_trajectories':2,'missing':[],'families':{'3':{'admitted':True,'conditions':{'base':{},'learned_dynamic':{}}}}}
+        report={'role':'validation','complete':True,'admitted':True,'raw_evidence_audited':True,'component_detector_validation_admitted':True,'runtime_source_matches_audit':True,'runtime_environment_enforced':True,'source_commit':'synthetic-unit','evaluation_source_commits':['synthetic-unit'],'package_sha256':digest(package),'observed_trajectories':2,'missing':[],'families':{'3':{'admitted':True,'conditions':{'base':{},'learned_dynamic':{}}}}}
         return cfg,package,report
 
     def test_complete_validation_identity_and_controls_required(self):

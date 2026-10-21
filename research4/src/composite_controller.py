@@ -2,7 +2,7 @@
 from dataclasses import asdict
 from torch import nn
 from .composite_memory import EpisodeMemory,Prediction
-from .composite_world import World
+from .composite_environment import BoundedWorld as World,ENVIRONMENT
 
 
 class Composite(nn.Module):
@@ -47,4 +47,4 @@ def rollout(composite,scene,condition,guard,progress=None):
         trace.append({'response':response,'executed_action':action,'reply':reply,'observation_after':observed,'outcome':world.outcome()})
         if progress:progress(world,trace)
         if len(trace)>scene.hard_stop+1:raise AssertionError('Episode hard bound was bypassed')
-    return {'scene':asdict(scene),'condition':condition,'initial_observation':composite.observations[0],'trace':trace,'outcome':world.outcome(),'terminal_memory':composite.memory.snapshot()}
+    return {'scene':asdict(scene),'condition':condition,'environment':ENVIRONMENT,'initial_observation':composite.observations[0],'trace':trace,'outcome':world.outcome(),'terminal_memory':composite.memory.snapshot()}
