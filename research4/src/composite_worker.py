@@ -40,7 +40,7 @@ def behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,name):
     return result
 
 
-def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding=False,role_pool=False):
+def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding=False,role_pool=False,coverage=False):
     from .composite_training import fit_detector
     store=Store();data=store.json('data_v1/DATA_RELEASE.json')
     if data['world_source_sha256']!=sha(root/'src/composite_world.py'):raise ValueError('World changed after data materialization')
@@ -52,11 +52,20 @@ def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding
         datasets[role]=json.loads(raw)
     if {r['group_id'] for r in datasets['training']} & {r['group_id'] for r in datasets['validation']}:raise ValueError('Identity-group split leakage')
     dump(output/'DATA_PROVENANCE.json',{'release':data,'heldout_content_read':False})
+    if coverage:
+        import hashlib
+        supplement=store.json('training_coverage_v4/COVERAGE_RELEASE.json');raw=store.get('training_coverage_v4/DETECTION_ROWS.json')
+        if supplement['status']!='prepared' or supplement['heldout_content_read'] or supplement['validation_content_read']:raise ValueError('Coverage source was not admitted as training-only')
+        if supplement['world_source_sha256']!=sha(root/'src/composite_world.py') or supplement['environment_source_sha256']!=sha(root/'src/composite_environment.py') or supplement['recipe_sha256']!=sha(root/'config/composite_detector_coverage_v4.json'):raise ValueError('Coverage environment/recipe differs')
+        if hashlib.sha256(raw).hexdigest()!=supplement['files']['DETECTION_ROWS.json']:raise ValueError('Coverage row digest differs')
+        rows=json.loads(raw);allowed=data['cohorts']['training']
+        if any(r['split']!='training' or r['teacher_action'] is not None or r['case_id'] not in allowed['case_ids'] or r['group_id'] not in allowed['group_ids'] for r in rows):raise ValueError('Foreign cases or behavior targets in detector coverage')
+        datasets['training']+=rows;dump(output/'DATA_PROVENANCE.json',{'release':data,'training_coverage':supplement,'total_training_observations':len(datasets['training']),'new_independent_groups':0,'heldout_content_read':False})
     progress('download_modernbert');model_path,proof=download_model(read(root/'inputs/MODERNBERT_PIN.json'),cache)
     dump(output/'MODEL_FILE_VERIFICATION.json',proof);progress('fit_modernbert')
     if binding:
         from .composite_detector_binding import fit
-        recipe=read(root/('config/composite_detector_role_pool_v3.json' if role_pool else 'config/composite_detector_binding_v2.json'));dump(output/'DETECTOR_RECIPE.json',recipe)
+        recipe=read(root/('config/composite_detector_coverage_v4.json' if coverage else 'config/composite_detector_role_pool_v3.json' if role_pool else 'config/composite_detector_binding_v2.json'));dump(output/'DETECTOR_RECIPE.json',recipe)
         result=fit(model_path,cfg,recipe,datasets['training'],datasets['validation'],output,guard,progress,forward_callback)
     else:result=fit_detector(model_path,cfg,datasets['training'],datasets['validation'],output,guard,progress,forward_callback)
     if (root/'inputs/DETECTOR_HISTORY_DIAGNOSTIC.json').exists():
@@ -104,6 +113,7 @@ def run(root,commit,destination,mode):
             if mode=='detector':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback)
             elif mode=='detector-binding-v2':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True)
             elif mode=='detector-role-pool-v3':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True,True)
+            elif mode=='detector-coverage-v4':result=detector_stage(root,output,cache,cfg,guard,progress,forward_callback,True,True,True)
             elif mode.startswith('behavior-'):result=behavior_stage(root,output,cache,cfg,guard,progress,forward_callback,mode[len('behavior-'):])
             elif mode=='kernel-qualification':
                 from .composite_kernel_qualification import run as qualify
