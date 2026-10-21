@@ -8,12 +8,14 @@ from .native27_tools import encode
 from .risk_readout_worker import CONFIG
 
 
-def load_inputs(folder,root):
+def load_inputs(folder,root,config_path=CONFIG):
     from transformers import AutoTokenizer
-    folder,root=Path(folder),Path(root);freeze=read(folder/'PRECALL_FREEZE.json');cfg=read(root/CONFIG)
+    folder,root=Path(folder),Path(root);freeze=read(folder/'PRECALL_FREEZE.json');cfg=read(root/config_path)
     if freeze['config']!=cfg or freeze['source_commit']!=read(root/'RELEASE.json')['commit']:raise ValueError('Prospective freeze changed')
     pin=read(root/'inputs/MODEL_PIN.json')
     if pin!=freeze['pin'] or freeze['input_manifest_sha256']!=sha(root/'inputs/MANIFEST.json'):raise ValueError('Model identity changed')
+    for name,value in read(root/'inputs/MANIFEST.json').items():
+        if sha(root/'inputs'/name)!=value:raise ValueError('Frozen input hash differs')
     rows=read(folder/'ROWS.json')
     if rows!=dataset(cfg):raise ValueError('Factual history/label replay differs')
     manifest=read(folder/'MANIFEST.json')
@@ -31,11 +33,11 @@ def load_inputs(folder,root):
         ids=encode(tokenizer,row['messages'])
         if item!={'state_id':row['state_id'],'input_token_ids':ids} or len(ids)>cfg['maximum_context_tokens']:raise ValueError('Native retokenization differs')
     receipt=read(folder/'RUN_RECEIPT.json')
-    if receipt['status']!='complete' or receipt['states']!=112 or receipt['backbone_forwards']!=112 or receipt['backbone_forward_attempts']!=112:raise ValueError('Forward accounting differs')
+    if receipt['status']!='complete' or receipt['states']!=len(rows) or receipt['backbone_forwards']!=len(rows) or receipt['backbone_forward_attempts']!=len(rows):raise ValueError('Forward accounting differs')
     if receipt['base_fingerprint_before']!=receipt['base_fingerprint_after'] or receipt['base_fingerprint_before']!='c989470fab1c2fe4b62e590e2a6e173998943c353951bb7e919b8e8eca30d0fa':raise ValueError('NF4 base fingerprint differs')
     if any(receipt[k] for k in ['generated_actions','behavioral_interventions','backbone_optimizer_updates','research_adapters_loaded','original_confirmation_cases_opened']):raise ValueError('Research scope exceeded')
     with np.load(folder/'FEATURES.npz',allow_pickle=False) as data:features={k:data[k].copy() for k in ['primary','secondary']}
-    if any(v.shape!=(112,5120) or v.dtype!=np.float32 or not np.isfinite(v).all() for v in features.values()):raise ValueError('Feature geometry differs')
+    if any(v.shape!=(len(rows),5120) or v.dtype!=np.float32 or not np.isfinite(v).all() for v in features.values()):raise ValueError('Feature geometry differs')
     return cfg,rows,features
 
 

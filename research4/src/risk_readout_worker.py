@@ -10,12 +10,12 @@ from .recognition_capacity_worker import fingerprint
 CONFIG='config/native27_risk_readout_v1.json'
 
 
-def worker(root,output,cache,commit):
+def worker(root,output,cache,commit,config_path=CONFIG):
     import torch,transformers,bitsandbytes,psutil
     from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration,BitsAndBytesConfig
     from huggingface_hub import snapshot_download
     if not os.environ.get('MLFLOW_RUN_ID') or root.resolve()!=Path(os.environ['CODE_SOURCE_PATH']).resolve():raise ValueError('Databricks AIR required')
-    verify_release(root,commit);cfg=read(root/CONFIG);pin=read(root/'inputs/MODEL_PIN.json')
+    verify_release(root,commit);cfg=read(root/config_path);pin=read(root/'inputs/MODEL_PIN.json')
     if cfg['model']['revision']!=pin['revision'] or cfg['model']['repository']!=pin['repository']:raise ValueError('Model pin differs')
     for name,value in read(root/'inputs/MANIFEST.json').items():
         if sha(root/'inputs'/name)!=value:raise ValueError('Input pin changed')
@@ -38,7 +38,7 @@ def worker(root,output,cache,commit):
             if state[key]<cfg[bound]:raise MemoryError('Fresh resource admission: '+key)
         rows=dataset(cfg)
         if len(rows)!=cfg['maximum_backbone_forwards']:raise ValueError('Snapshot count differs')
-        dump(output/'PRECALL_FREEZE.json',{'source_commit':commit,'config':cfg,'config_path':CONFIG,'pin':pin,'input_manifest_sha256':sha(root/'inputs/MANIFEST.json')})
+        dump(output/'PRECALL_FREEZE.json',{'source_commit':commit,'config':cfg,'config_path':config_path,'pin':pin,'input_manifest_sha256':sha(root/'inputs/MANIFEST.json')})
         dump(output/'ROWS.json',rows);dump(output/'SOFTWARE.json',{'torch':torch.__version__,'transformers':transformers.__version__,'bitsandbytes':bitsandbytes.__version__,'numpy':np.__version__,'attention':'sdpa','thinking':False})
         torch.manual_seed(cfg['readout']['random_state']);torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False
         progress('download')
@@ -80,11 +80,11 @@ def worker(root,output,cache,commit):
             if set(captured)!={'primary','secondary'} or any(v.shape!=(5120,) or not np.isfinite(v).all() for v in captured.values()):raise ValueError('Invalid hidden state')
             features.append({k:v.copy() for k,v in captured.items()});tokens.append({'state_id':row['state_id'],'input_token_ids':ids})
             result=None
-            if len(features)%7==0:progress('snapshots',states=len(features),groups=len(features)//7)
+            if len(features)%7==0:progress('snapshots',states=len(features),groups_seen=len({r['seed'] for r in rows[:len(features)]}))
         after=fingerprint(model,torch);receipt['base_fingerprint_after']=after
         if before!=after:raise ValueError('Frozen backbone changed')
-        if count['completed']!=112 or count['attempted']!=112:raise ValueError('Snapshot forward accounting differs')
-        receipt.update(status='complete',states=len(rows),split_sizes={s:sum(r['split']==s for r in rows) for s in ['training','development','heldout']})
+        if count['completed']!=len(rows) or count['attempted']!=len(rows):raise ValueError('Snapshot forward accounting differs')
+        receipt.update(status='complete',states=len(rows),split_sizes={s:sum(r['split']==s for r in rows) for s in sorted(set(r['split'] for r in rows))})
     except Exception as e:
         receipt.update(status='failed',error_type=type(e).__name__,error=str(e));dump(output/'FAILURE.json',{'traceback':traceback.format_exc()})
     finally:
@@ -97,9 +97,10 @@ def worker(root,output,cache,commit):
     return receipt
 
 
-def launch(root,commit,destination):
+def launch(root,commit,destination,config_path=CONFIG):
     from databricks.sdk import WorkspaceClient
-    if not destination.startswith('/Volumes/workspace/research4/artifacts/native27_risk_readout_v1/') or '..' in destination.split('/'):raise ValueError('Dedicated destination required')
+    cfg=read(Path(root)/config_path);namespace=cfg['artifact_namespace']
+    if namespace not in ['native27_risk_readout_v1','native27_risk_transfer_v1'] or not destination.startswith('/Volumes/workspace/research4/artifacts/'+namespace+'/') or '..' in destination.split('/'):raise ValueError('Dedicated destination required')
     client=WorkspaceClient();client.files.create_directory(destination)
     def upload(name,data):
         client.files.upload(destination+'/'+name,io.BytesIO(data),overwrite=False)
@@ -108,7 +109,7 @@ def launch(root,commit,destination):
     with tempfile.TemporaryDirectory(prefix='research4-factual-risk-') as temporary:
         base=Path(temporary);output=base/'output'
         upload('ALLOCATION.json',json.dumps({'source_commit':commit,'MLFLOW_run_id':os.environ.get('MLFLOW_RUN_ID'),'scientific_retries':0}).encode())
-        try:receipt=worker(Path(root),output,base/'cache',commit)
+        try:receipt=worker(Path(root),output,base/'cache',commit,config_path)
         except Exception as e:
             output.mkdir(exist_ok=True);receipt={'status':'failed','error_type':type(e).__name__,'error':str(e),'backbone_forwards':None};dump(output/'WRAPPER_FAILURE.json',{'traceback':traceback.format_exc()});dump(output/'RUN_RECEIPT.json',receipt)
         dump(output/'MANIFEST.json',{f.relative_to(output).as_posix():sha(f) for f in output.rglob('*') if f.is_file() and f.name!='MANIFEST.json'})
@@ -119,11 +120,11 @@ def launch(root,commit,destination):
         with zipfile.ZipFile(zpath) as z:
             if z.testzip() is not None:raise ValueError('CRC failure')
         upload('evidence.zip',zpath.read_bytes());upload('RUN_RECEIPT.json',(output/'RUN_RECEIPT.json').read_bytes())
-        export={**receipt,'source_commit':commit,'archive_sha256':sha(zpath),'archive_bytes':zpath.stat().st_size,'destination':destination,'owned_temporary_cache_cleanup':True}
+        export={**receipt,'source_commit':commit,'config_path':config_path,'artifact_namespace':namespace,'archive_sha256':sha(zpath),'archive_bytes':zpath.stat().st_size,'destination':destination,'owned_temporary_cache_cleanup':True}
         upload('EXPORT_RECEIPT.json',json.dumps(export,indent=2).encode())
     print(json.dumps(export),flush=True)
     if receipt['status']!='complete':raise RuntimeError('Snapshot worker failed; output retained')
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('root');p.add_argument('commit');p.add_argument('destination');a=p.parse_args();launch(a.root,a.commit,a.destination)
+    p=argparse.ArgumentParser();p.add_argument('root');p.add_argument('commit');p.add_argument('destination');p.add_argument('--config',default=CONFIG);a=p.parse_args();launch(a.root,a.commit,a.destination,a.config)

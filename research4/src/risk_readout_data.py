@@ -27,6 +27,9 @@ def snapshot(seed, condition, tick):
 
 
 def dataset(cfg):
+    if cfg.get('snapshot_design')=='balanced_two_record_transfer_v1':
+        from .risk_transfer_data import dataset as transfer_dataset
+        return transfer_dataset(cfg)
     seen=set();rows=[]
     for split in ['training','development','heldout']:
         seeds=cfg[split+'_seeds']

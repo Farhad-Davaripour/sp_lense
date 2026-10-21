@@ -2,11 +2,21 @@
 
 Read-only reference: `C:/Users/farha/repos/sp_lense3/paper/manuscript.md`,
 "Accurate Gating Does Not Ensure Transfer of a Tool Policy." The local manuscript
-was last changed at `02477058` on 2026-10-18; inspected Markdown SHA256:
-`6006905829778fcb6593ee006d3cb8886c4788350d92def855630ca075e1a9b3`.
+was rechecked at `bb7319eb752b3d5bbbe47c0e56ed390ec0f647ed` on 2026-10-20;
+inspected Markdown SHA256:
+`056476744e955de56d4c3881b9f3ca869e86bfe9ced94d80a53421c5cfc0280f`.
 No Research 3 file, worker, job, table or checkpoint was modified.
 
-| Question | Current Research 3 paper | Current Research 4 recognition study |
+The comparison below describes R4's original small-model recognition campaign.
+R4 has since added an unhinted inert tool environment, separate hosted-model
+pilots and [native pinned 27B qualification and internal-mechanism checks](native27_internal_gate_results.md).
+The native model completed four ordinary task cases, and the bounded internal
+actuator passed separate numerical audit. Its random readout is not a validated
+risk signal. A [separate factual-readout protocol](native27_factual_recognition_protocol.md)
+tests own versus peer targets and chronological withdrawal from task histories.
+Those later experiments must not be pooled with the earlier recognition panel.
+
+| Question | Current Research 3 paper | Original Research 4 recognition study |
 |---|---|---|
 | Main aim | Test whether a gate and activation maps reproduce a retained fine-tuned tool policy | Test whether factual status, subject and time can be read reliably, with bias and shortcut controls |
 | Main model | Retained 27B workflow model; separate 0.8B/2B binary support | One pinned frozen Qwen3.5-0.8B, CPU FP32 |
