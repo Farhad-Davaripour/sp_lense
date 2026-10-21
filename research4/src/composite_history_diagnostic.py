@@ -45,9 +45,10 @@ def run(root,model_path,cfg,output,guard,progress,forward_callback,result):
     require_databricks()
     plan=read(root/'inputs/DETECTOR_HISTORY_DIAGNOSTIC.json');rows=audited_rows(root,Store(),plan)
     selected=load_torch(output/'detector_best.pt');weights=selected
-    reports={}
-    for name in ['selected','binding_v2_baseline']:
-        if name=='binding_v2_baseline':weights=checkpoint(Store(),plan['baseline_detector'])
+    reports={};baseline_name=plan.get('baseline_name','binding_v2_baseline')
+    if baseline_name not in ['binding_v2_baseline','role_pool_v3_baseline']:raise ValueError('Unknown frozen development baseline')
+    for name in ['selected',baseline_name]:
+        if name!='selected':weights=checkpoint(Store(),plan['baseline_detector'])
         guard();detector=Detector(model_path,cfg['modernbert'],head_mode=weights.get('head_mode','cls'));detector.restore(weights);detector.on_forward=forward_callback;frozen=parameter_snapshot(detector.base_references)
         progress('detector_real_history_diagnostic',model=name,states=len(rows),threshold=weights['threshold'])
         value=evaluate_detector(detector,rows,weights['threshold'],cfg,guard);assert_frozen(frozen)
