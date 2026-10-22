@@ -46,7 +46,8 @@ and fresh sealed held-out cohorts must remain separate from earlier examples.
 The user subsequently authorized the work account and retention of the free tier
 for reversible switching. Use the shared `src.workspace_accounts` selector and
 ignored repository-root `.env`; do not duplicate research code per account.
-`config/workspace_accounts.json` lists both explicitly authorized hosts. Preserve
+The user also authorized Azure Databricks with a CAD 100 monthly research budget.
+`config/workspace_accounts.json` lists all three explicitly authorized hosts. Preserve
 account-specific configurations and ledgers. Migration copies artifacts and the
 held-out seal as opaque checksum-verified bytes; it never opens held-out cases or
 changes earlier freezes. See `wiki/workspace_accounts.md`.

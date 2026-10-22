@@ -1,8 +1,8 @@
-# Work account and free tier
+# Azure, work account and free tier
 
-Both explicitly authorized accounts use the same research and operator code.
+All three explicitly authorized accounts use the same research and operator code.
 Public account identities are in `config/workspace_accounts.json`; credentials
-are in the ignored repository-root `.env` shown by `.env.example`. Preserve both
+are in the ignored repository-root `.env` shown by `.env.example`. Preserve all
 credentials when switching. Never include `.env` in source releases, AIR code
 snapshots, manifests, logs or commits.
 
@@ -12,6 +12,7 @@ From `research4/`, inspect or select the active account:
 python -m src.workspace_accounts status
 python -m src.workspace_accounts switch work
 python -m src.workspace_accounts switch "free tier"
+python -m src.workspace_accounts switch azure
 ```
 
 `src.operator.cli` builds a fresh child environment from the selected account,
@@ -34,3 +35,12 @@ bounded campaign. This does not authorize purchases, quota increases, changes to
 one-A10/timeout/retry bounds, modifying Research 3 or opening held-out content.
 The held-out seal may be copied only as opaque bytes with its original checksum;
 never parse its seed or materialize cases before the existing admission gate.
+
+Azure uses the same model architecture and a user-authorized CAD 100 monthly
+budget. Prefer the free tier for eligible new work when its GPU is available;
+Azure is the paid fallback. Reconcile both accounts before selecting compute,
+reserve the maximum expected run cost against the remaining monthly allowance,
+and use bounded jobs with termination rather than idle interactive clusters.
+Azure Cost Management reporting can lag; a budget alert does not stop compute.
+Neither account switching nor cost monitoring authorizes scientific retries,
+duplicate runs, architecture reductions or changes to held-out admission.
