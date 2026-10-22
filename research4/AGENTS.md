@@ -23,8 +23,9 @@ Internal-gate experiments must remain separate from behavioral claims and retain
 base/no-op/sham controls. No subjective fear or universal energy-law claim follows.
 
 Research 3 is read-only reference material. Never change its code, tables,
-jobs, checkpoints, deployment state or workers. Use only `workspace.research4`,
-its dedicated Volumes and `/Workspace/Shared/research4-semantic-gate` paths.
+jobs, checkpoints, deployment state or workers. Use only the Research 4 namespace:
+`workspace.research4` on the earlier accounts, `db_sp_lense.research4` on Azure,
+their dedicated artifact Volumes and `/Workspace/Shared/research4-semantic-gate` paths.
 Never log credentials or commit generated run data. Preserve failed runs.
 
 Prior `study/04_activation_rotation` and `study/07_*` through `study/22_*` are

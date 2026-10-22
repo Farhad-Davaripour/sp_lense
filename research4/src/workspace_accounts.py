@@ -13,6 +13,20 @@ ENV_FILE=ROOT.parent/'.env'
 def profiles():return json.loads((ROOT/'config/workspace_accounts.json').read_text())
 
 
+def artifact_volume(account=None,host=None):
+    """Resolve only the declared Research 4 volume, bound to an actual host."""
+    if host is not None:
+        matches=[{'account':name,**value} for name,value in profiles()['accounts'].items() if value['host']==host.rstrip('/')]
+        if len(matches)!=1:raise ValueError('Artifact workspace is not uniquely authorized')
+        profile=matches[0]
+        if account is not None and account_name(account)!=profile['account']:raise ValueError('Artifact account and host differ')
+    else:profile=selected(account)
+    volume=profile.get('artifact_volume','/Volumes/workspace/research4/artifacts')
+    parts=volume.split('/')
+    if len(parts)!=5 or parts[:2]!=['','Volumes'] or parts[3:]!=['research4','artifacts'] or not re.fullmatch('[A-Za-z_][A-Za-z0-9_]*',parts[2]):raise ValueError('Dedicated Research 4 artifact volume required')
+    return volume
+
+
 def env_values(path):
     values={}
     if not Path(path).exists():return values
@@ -83,10 +97,14 @@ def verify_runtime_workspace(root,host):
     if path.exists():
         descriptor=json.loads(path.read_text());profile=selected(descriptor['account'],environ={},env_file=Path(root)/'nonexistent.env')
         if descriptor['host']!=profile['host'] or descriptor['organization']!=profile['organization'] or actual!=profile['host']:raise ValueError('Runtime workspace differs from its frozen descriptor')
+        volume=artifact_volume(account=descriptor['account'],host=actual)
+        if descriptor.get('artifact_volume',volume if descriptor['account']!='azure' else None)!=volume:raise ValueError('Runtime artifact volume differs from its frozen descriptor')
     else:
         if actual!=profiles()['accounts']['free_tier']['host']:raise ValueError('Work-account execution requires a frozen workspace descriptor')
         profile=profiles()['accounts']['free_tier'];profile={'account':'free_tier',**profile}
-    return {k:profile[k] for k in ['account','label','host','organization']}
+    result={k:profile[k] for k in ['account','label','host','organization']}
+    if path.exists() and 'artifact_volume' in descriptor:result['artifact_volume']=artifact_volume(host=actual)
+    return result
 
 
 if __name__=='__main__':
