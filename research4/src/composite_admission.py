@@ -4,6 +4,7 @@ from pathlib import Path
 from .io_utils import digest,sha,read,dump
 from .composite_data import require_databricks,materialize
 from .composite_capacity import protocol_path
+from .workspace_accounts import verify_runtime_workspace
 
 
 def validate_admission(report,package,cfg):
@@ -25,6 +26,7 @@ def freeze(root,store,cfg,package,report,partitions):
     protocol=protocol_path(root)
     if read(protocol)!=cfg:raise PermissionError('Freeze protocol differs from executed configuration')
     value={'version':'composite-freeze-v1','source_commit':release['commit'],'runtime_files_digest':digest(release['files']),'protocol':protocol.relative_to(root).as_posix(),'protocol_sha256':sha(protocol),'package':package,'package_sha256':digest(package),'validation_report':report,'validation_report_sha256':digest(report),'validation_partitions':partitions,'heldout_seal_sha256':data['heldout_seal']['sha256'],'heldout_opened':False}
+    if (root/'inputs/WORKSPACE.json').exists():value['execution_workspace']=verify_runtime_workspace(root,store.client.config.host)
     path='freezes/'+digest(value)+'/FREEZE.json';raw=(json.dumps(value,indent=2)+'\n').encode();store.put(path,raw)
     return {'path':path,'sha256':hashlib.sha256(raw).hexdigest(),'package_sha256':digest(package),'validation_pass':True}
 
@@ -34,6 +36,11 @@ def frozen(root,store,descriptor):
     raw=store.get(descriptor['path'])
     if hashlib.sha256(raw).hexdigest()!=descriptor['sha256']:raise PermissionError('Model freeze bytes differ')
     value=json.loads(raw);protocol=protocol_path(root);cfg=read(protocol);release=read(root/'RELEASE.json')
+    if 'execution_workspace' in value:
+        try:actual=verify_runtime_workspace(root,store.client.config.host)
+        except (ValueError,AttributeError) as error:raise PermissionError('Frozen execution workspace differs') from error
+        if value['execution_workspace']!=actual:raise PermissionError('Frozen execution workspace differs')
+    elif (root/'inputs/WORKSPACE.json').exists():raise PermissionError('Legacy freeze has no execution workspace binding')
     if value.get('protocol','config/composite_controller_v1.json')!=protocol.relative_to(root).as_posix():raise PermissionError('Adapter protocol changed after freeze')
     validate_admission(value['validation_report'],value['package'],cfg)
     if digest(value['validation_report'])!=value['validation_report_sha256'] or digest(value['package'])!=value['package_sha256']:raise PermissionError('Model/validation freeze differs')

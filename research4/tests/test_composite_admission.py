@@ -68,6 +68,23 @@ class AdmissionTests(unittest.TestCase):
             with patch('src.composite_admission.require_databricks'):
                 with self.assertRaisesRegex(PermissionError,'protocol changed'):open_heldout(root,Store(),descriptor)
 
+    def test_workspace_switch_cannot_reopen_another_workspace_freeze(self):
+        from types import SimpleNamespace
+        from src.workspace_accounts import profiles
+        cfg,package,report=self.fixture();accounts=profiles()['accounts'];work={'account':'work',**accounts['work']};work={k:work[k] for k in ['account','label','host','organization']}
+        with tempfile.TemporaryDirectory() as scratch:
+            root=Path(scratch);dump(root/'config/composite_controller_v1.json',cfg);dump(root/'RELEASE.json',{'commit':'synthetic-unit','files':{}});dump(root/'inputs/WORKSPACE.json',work)
+            value={'validation_report':report,'package':package,'package_sha256':digest(package),'validation_report_sha256':digest(report),'source_commit':'synthetic-unit','runtime_files_digest':digest({}),'protocol_sha256':sha(root/'config/composite_controller_v1.json'),'execution_workspace':work}
+            raw=json.dumps(value).encode()
+            class Store:
+                client=SimpleNamespace(config=SimpleNamespace(host=accounts['free_tier']['host']))
+                def get(self,path):
+                    if path.startswith('freezes/'):return raw
+                    raise AssertionError('Secret read across workspaces')
+            descriptor={'path':'freezes/'+'b'*64+'/FREEZE.json','sha256':hashlib.sha256(raw).hexdigest()}
+            with patch('src.composite_admission.require_databricks'):
+                with self.assertRaisesRegex(PermissionError,'workspace'):open_heldout(root,Store(),descriptor)
+
     def test_auxiliary_fingerprint_covers_quantization_state_and_buffers(self):
         parameter=torch.nn.Parameter(torch.ones(2),requires_grad=False);quant=torch.tensor([1.,2.]);buffer=torch.tensor([3.])
         class State:
