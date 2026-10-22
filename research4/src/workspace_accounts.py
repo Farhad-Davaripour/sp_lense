@@ -32,7 +32,7 @@ def env_values(path):
 def account_name(value):
     name=value.strip().lower().replace(' ','_')
     if name=='free':name='free_tier'
-    if name not in profiles()['accounts']:raise ValueError('Select work or free tier')
+    if name not in profiles()['accounts']:raise ValueError('Select azure, work or free tier')
     return name
 
 

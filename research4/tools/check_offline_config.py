@@ -95,7 +95,7 @@ def main():
     accounts=json.loads((ROOT/'config/workspace_accounts.json').read_text())
     if 'host' in bundle['workspace']:
         raise ValueError('Bundle host must come from the explicit account selector environment')
-    if set(accounts['accounts'])!={'work','free_tier'} or accounts['accounts']['free_tier']['host']!=HOST:
+    if set(accounts['accounts'])!={'azure','work','free_tier'} or accounts['accounts']['free_tier']['host']!=HOST or accounts['accounts']['azure']['host']!='https://adb-7405616135490449.9.azuredatabricks.net':
         raise ValueError('Authorized account profiles changed')
     volume = bundle["resources"]["volumes"]["artifacts"]
     if (volume["catalog_name"], volume["schema_name"], volume["name"]) != ("workspace", "research4", "artifacts"):
