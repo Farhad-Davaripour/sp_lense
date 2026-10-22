@@ -28,7 +28,9 @@ def cgroup_available():
         return int(maximum)-used+int(statistics.get('inactive_file','0'))
     except (OSError,ValueError):return None
 def assert_namespace(path):
-    if not str(path).startswith('/Volumes/workspace/research4/artifacts/'):
+    from .workspace_accounts import artifact_volume,profiles
+    value=str(path);roots={artifact_volume(account=name) for name in profiles()['accounts']}
+    if not any(value.startswith(root+'/') for root in roots) or '\\' in value or '..' in value.split('/'):
         raise ValueError('Research 4 writes must stay in its own Volume prefix')
 def verify_release(root,expected):
     root=Path(root);r=read(root/'RELEASE.json')

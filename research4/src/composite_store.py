@@ -3,6 +3,7 @@ import io,json,hashlib
 from pathlib import Path
 from .io_utils import read,dump,sha,assert_namespace
 from .composite_data import require_databricks
+from .workspace_accounts import artifact_volume
 
 
 def download_model(pin,cache,metadata_only=False):
@@ -24,11 +25,14 @@ def download_model(pin,cache,metadata_only=False):
 
 
 class Store:
-    def __init__(self,prefix='/Volumes/workspace/research4/artifacts/composite_controller_v1'):
+    def __init__(self,prefix=None):
         from databricks.sdk import WorkspaceClient
-        assert_namespace(prefix);self.prefix=prefix;self.client=WorkspaceClient()
+        self.client=WorkspaceClient();expected=artifact_volume(host=self.client.config.host)+'/composite_controller_v1'
+        prefix=expected if prefix is None else prefix
+        if prefix!=expected and not prefix.startswith(expected+'/'):raise ValueError('Artifact volume belongs to a different workspace or campaign')
+        assert_namespace(prefix);self.prefix=prefix
     def path(self,relative):
-        if relative.startswith('/') or '..' in relative.split('/'):raise ValueError('Unsafe artifact path')
+        if relative.startswith('/') or '..' in relative.split('/') or '\\' in relative:raise ValueError('Unsafe artifact path')
         return self.prefix+'/'+relative
     def get(self,relative):
         with self.client.files.download(self.path(relative)).contents as stream:return stream.read()

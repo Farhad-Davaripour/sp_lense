@@ -44,3 +44,10 @@ and use bounded jobs with termination rather than idle interactive clusters.
 Azure Cost Management reporting can lag; a budget alert does not stop compute.
 Neither account switching nor cost monitoring authorizes scientific retries,
 duplicate runs, architecture reductions or changes to held-out admission.
+
+Azure default storage is available through its existing `db_sp_lense` catalog.
+Its artifact Volume is `db_sp_lense.research4.artifacts`; the older accounts
+retain `workspace.research4.artifacts`. The shared Store resolves this address
+from the authenticated host, and each new Azure input descriptor must freeze
+the exact artifact Volume as well as account/host/workspace identity. Dataset,
+model, adapter and evaluation bytes are unchanged by this transport difference.

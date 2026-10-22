@@ -4,7 +4,7 @@ from pathlib import Path
 from .io_utils import read,dump,sha,verify_release
 from .composite_store import Store,download_model
 from .composite_capacity import protocol_path,RANK32
-from .workspace_accounts import verify_runtime_workspace
+from .workspace_accounts import verify_runtime_workspace,artifact_volume
 
 CONFIG='config/composite_controller_v1.json'
 
@@ -86,10 +86,12 @@ def run(root,commit,destination,mode):
     if not rank32 and mode in ['detector-rank32-v5','behavior-all_blocks']:raise ValueError('Capacity stage requires the frozen rank-32 profile selector')
     if not os.environ.get('MLFLOW_RUN_ID') or root.resolve()!=Path(os.environ['CODE_SOURCE_PATH']).resolve():raise ValueError('Actual Databricks AIR runtime required')
     verify_release(root,commit)
-    if not destination.startswith('/Volumes/workspace/research4/artifacts/composite_controller_v1/') or '..' in destination.split('/'):raise ValueError('Dedicated campaign destination required')
+    client=WorkspaceClient();execution_workspace=verify_runtime_workspace(root,client.config.host)
+    expected_prefix=artifact_volume(host=client.config.host)+'/composite_controller_v1/'
+    if not destination.startswith(expected_prefix) or '..' in destination.split('/') or '\\' in destination:raise ValueError('Dedicated campaign destination required')
     for n,h in read(root/'inputs/MANIFEST.json').items():
         if sha(root/'inputs'/n)!=h:raise ValueError('Input pin changed')
-    client=WorkspaceClient();execution_workspace=verify_runtime_workspace(root,client.config.host);client.files.create_directory(destination)
+    client.files.create_directory(destination)
     def upload(name,data):
         client.files.upload(destination+'/'+name,io.BytesIO(data),overwrite=False)
         with client.files.download(destination+'/'+name).contents as stream:back=stream.read()
