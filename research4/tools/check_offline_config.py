@@ -92,8 +92,11 @@ def reject_constant(value):
 
 def main():
     bundle = read_yaml(ROOT / "databricks.yml")
-    if bundle["workspace"]["host"] != HOST:
-        raise ValueError("The selected Databricks workspace changed")
+    accounts=json.loads((ROOT/'config/workspace_accounts.json').read_text())
+    if 'host' in bundle['workspace']:
+        raise ValueError('Bundle host must come from the explicit account selector environment')
+    if set(accounts['accounts'])!={'work','free_tier'} or accounts['accounts']['free_tier']['host']!=HOST:
+        raise ValueError('Authorized account profiles changed')
     volume = bundle["resources"]["volumes"]["artifacts"]
     if (volume["catalog_name"], volume["schema_name"], volume["name"]) != ("workspace", "research4", "artifacts"):
         raise ValueError("Research 4 storage namespace changed")

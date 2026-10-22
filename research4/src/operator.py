@@ -2,15 +2,16 @@
 import argparse,base64,io,json,os,re,subprocess,tarfile,tempfile,hashlib
 from pathlib import Path
 from .io_utils import dump,read,sha
-HOST='https://dbc-ff9672a4-ba5f.cloud.databricks.com'
+from .workspace_accounts import selected,command_environment,redact
+HOST=selected()['host']
 PREFIX='/Workspace/Shared/research4-semantic-gate'
 GIT_FOLDER_ID=316719975858080
 CLI=os.environ.get('DATABRICKS_CLI_PATH','C:/Users/farha/.codex/tools/databricks-cli/1.21.0/databricks.exe')
-def cli(args,cwd=None,allow_fail=False,json_output=True):
-    if os.environ.get('DATABRICKS_HOST')!=HOST or not os.environ.get('DATABRICKS_TOKEN'):raise ValueError('Use the explicit workspace and transient token')
-    p=subprocess.run([CLI,*args,*(['--output','json'] if json_output else [])],cwd=cwd,capture_output=True,text=True)
+def cli(args,cwd=None,allow_fail=False,json_output=True,account=None):
+    environment=command_environment(account)
+    p=subprocess.run([CLI,*args,*(['--output','json'] if json_output else [])],cwd=cwd,env=environment,capture_output=True,text=True)
     if p.returncode:
-        error=re.sub(r'dapi[0-9a-fA-F]+','[REDACTED]',p.stderr)
+        error=redact(p.stderr,environment)
         if allow_fail:return {'error':error,'exit_code':p.returncode}
         raise RuntimeError(error)
     if not json_output:return p.stdout

@@ -4,6 +4,7 @@ from pathlib import Path
 from .io_utils import read,dump,sha,verify_release
 from .composite_store import Store,download_model
 from .composite_capacity import protocol_path,RANK32
+from .workspace_accounts import verify_runtime_workspace
 
 CONFIG='config/composite_controller_v1.json'
 
@@ -88,15 +89,15 @@ def run(root,commit,destination,mode):
     if not destination.startswith('/Volumes/workspace/research4/artifacts/composite_controller_v1/') or '..' in destination.split('/'):raise ValueError('Dedicated campaign destination required')
     for n,h in read(root/'inputs/MANIFEST.json').items():
         if sha(root/'inputs'/n)!=h:raise ValueError('Input pin changed')
-    client=WorkspaceClient();client.files.create_directory(destination)
+    client=WorkspaceClient();execution_workspace=verify_runtime_workspace(root,client.config.host);client.files.create_directory(destination)
     def upload(name,data):
         client.files.upload(destination+'/'+name,io.BytesIO(data),overwrite=False)
         with client.files.download(destination+'/'+name).contents as stream:back=stream.read()
         if back!=data:raise ValueError('Campaign export readback differs')
-    upload('ALLOCATION.json',json.dumps({'mode':mode,'source_commit':commit,'MLFLOW_RUN_ID':os.environ['MLFLOW_RUN_ID'],'scientific_retries':0}).encode())
+    upload('ALLOCATION.json',json.dumps({'mode':mode,'source_commit':commit,'MLFLOW_RUN_ID':os.environ['MLFLOW_RUN_ID'],'scientific_retries':0,'execution_workspace':execution_workspace}).encode())
     with tempfile.TemporaryDirectory(prefix='research4-composite-') as scratch:
         base=Path(scratch);output=base/'output';output.mkdir();cache=base/'cache';cache.mkdir();started=time.monotonic()
-        receipt={'status':'running','stage':mode,'source_commit':commit,'protocol':protocol.relative_to(root).as_posix(),'protocol_sha256':sha(protocol),'heldout_content_read':False};counts={'attempted':0,'completed':0}
+        receipt={'status':'running','stage':mode,'source_commit':commit,'protocol':protocol.relative_to(root).as_posix(),'protocol_sha256':sha(protocol),'execution_workspace':execution_workspace,'heldout_content_read':False};counts={'attempted':0,'completed':0}
         def guard():
             if time.monotonic()-started>=cfg['bounds']['worker_seconds']-cfg['bounds']['export_reserve_seconds']:raise TimeoutError('Protected campaign export deadline')
             if torch.cuda.is_available() and torch.cuda.mem_get_info()[0]<536870912:raise MemoryError('Live GPU export reserve')
