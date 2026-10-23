@@ -1,5 +1,15 @@
 # Research 4 Databricks research
 
+Latest explicit user instruction: use Kaggle GPUs for the current continuation.
+The Kaggle runtime and pinned environment passed recorded engineering checks.
+Keep Databricks account configurations and archives intact, and leave its
+scheduled checks stopped. The shared composite runner supports a frozen,
+read-only Kaggle input manifest and dedicated local artifact exports; do not
+fork the scientific recipes. Kaggle currently admits only rank32 recognition.
+Keep the full model sizes, adapter coverage, cohorts, controls and validation.
+Earlier Databricks-only requirements below describe the preserved prior route;
+the user's explicit Kaggle selection supersedes that execution-platform limit.
+
 This directory is the active Research 4 project. Use the Databricks core, Jobs,
 Bundles, serverless and ML training skills. Develop and test locally; train the
 actual models only on the explicitly selected Databricks workspace. Keep the

@@ -4,6 +4,7 @@ from pathlib import Path
 from .io_utils import read,dump,sha,assert_namespace
 from .composite_data import require_databricks
 from .workspace_accounts import artifact_volume
+from .composite_runtime import platform,KaggleInputs
 
 
 def download_model(pin,cache,metadata_only=False):
@@ -26,18 +27,25 @@ def download_model(pin,cache,metadata_only=False):
 
 class Store:
     def __init__(self,prefix=None):
+        self.local=None
+        if platform()=='kaggle':
+            if prefix is not None:raise ValueError('Kaggle artifact roots require a frozen transport manifest')
+            self.local=KaggleInputs();return
         from databricks.sdk import WorkspaceClient
         self.client=WorkspaceClient();expected=artifact_volume(host=self.client.config.host)+'/composite_controller_v1'
         prefix=expected if prefix is None else prefix
         if prefix!=expected and not prefix.startswith(expected+'/'):raise ValueError('Artifact volume belongs to a different workspace or campaign')
         assert_namespace(prefix);self.prefix=prefix
     def path(self,relative):
+        if self.local is not None:return str(self.local.path(relative))
         if relative.startswith('/') or '..' in relative.split('/') or '\\' in relative:raise ValueError('Unsafe artifact path')
         return self.prefix+'/'+relative
     def get(self,relative):
+        if self.local is not None:return self.local.get(relative)
         with self.client.files.download(self.path(relative)).contents as stream:return stream.read()
     def json(self,relative):return json.loads(self.get(relative))
     def put(self,relative,data):
+        if self.local is not None:raise PermissionError('Kaggle scientific inputs are read-only; the stage owns its output writer')
         path=self.path(relative);self.client.files.create_directory(path.rsplit('/',1)[0]);self.client.files.upload(path,io.BytesIO(data),overwrite=False)
         if self.get(relative)!=data:raise ValueError('Artifact readback differs')
     def put_json(self,relative,value):self.put(relative,(json.dumps(value,indent=2)+'\n').encode())

@@ -4,7 +4,7 @@ from pathlib import Path
 from .io_utils import read,dump,sha,verify_release
 from .composite_store import Store,download_model
 from .composite_capacity import protocol_path,RANK32
-from .workspace_accounts import verify_runtime_workspace,artifact_volume
+from .composite_runtime import begin_stage
 
 CONFIG='config/composite_controller_v1.json'
 
@@ -79,24 +79,15 @@ def detector_stage(root,output,cache,cfg,guard,progress,forward_callback,binding
 
 def run(root,commit,destination,mode):
     import torch,transformers,bitsandbytes
-    from databricks.sdk import WorkspaceClient
     root=Path(root);protocol=protocol_path(root);cfg=read(protocol)
     rank32=protocol==root/RANK32
     if rank32 and mode not in ['detector-rank32-v5','behavior-all_blocks','evaluation']:raise ValueError('Rank-32 profile requires an explicit capacity stage')
     if not rank32 and mode in ['detector-rank32-v5','behavior-all_blocks']:raise ValueError('Capacity stage requires the frozen rank-32 profile selector')
-    if not os.environ.get('MLFLOW_RUN_ID') or root.resolve()!=Path(os.environ['CODE_SOURCE_PATH']).resolve():raise ValueError('Actual Databricks AIR runtime required')
     verify_release(root,commit)
-    client=WorkspaceClient();execution_workspace=verify_runtime_workspace(root,client.config.host)
-    expected_prefix=artifact_volume(host=client.config.host)+'/composite_controller_v1/'
-    if not destination.startswith(expected_prefix) or '..' in destination.split('/') or '\\' in destination:raise ValueError('Dedicated campaign destination required')
     for n,h in read(root/'inputs/MANIFEST.json').items():
         if sha(root/'inputs'/n)!=h:raise ValueError('Input pin changed')
-    client.files.create_directory(destination)
-    def upload(name,data):
-        client.files.upload(destination+'/'+name,io.BytesIO(data),overwrite=False)
-        with client.files.download(destination+'/'+name).contents as stream:back=stream.read()
-        if back!=data:raise ValueError('Campaign export readback differs')
-    upload('ALLOCATION.json',json.dumps({'mode':mode,'source_commit':commit,'MLFLOW_RUN_ID':os.environ['MLFLOW_RUN_ID'],'scientific_retries':0,'execution_workspace':execution_workspace}).encode())
+    execution_workspace,upload=begin_stage(root,commit,destination,mode)
+    upload('ALLOCATION.json',json.dumps({'mode':mode,'source_commit':commit,'MLFLOW_RUN_ID':os.environ.get('MLFLOW_RUN_ID'),'scientific_retries':0,'execution_workspace':execution_workspace}).encode())
     with tempfile.TemporaryDirectory(prefix='research4-composite-') as scratch:
         base=Path(scratch);output=base/'output';output.mkdir();cache=base/'cache';cache.mkdir();started=time.monotonic()
         receipt={'status':'running','stage':mode,'source_commit':commit,'protocol':protocol.relative_to(root).as_posix(),'protocol_sha256':sha(protocol),'execution_workspace':execution_workspace,'heldout_content_read':False};counts={'attempted':0,'completed':0}
@@ -111,9 +102,15 @@ def run(root,commit,destination,mode):
             else:counts['completed']+=1
         def progress(stage,**kw):
             v={'stage':stage,'seconds':time.monotonic()-started,'backbone_forwards':counts['completed'],**kw};dump(output/'PROGRESS.json',v);print(json.dumps(v),flush=True)
+        previous_alarm=None
         try:
             if torch.__version__!='2.11.0+cu128' or transformers.__version__!='5.19.0' or bitsandbytes.__version__!='0.49.2':raise RuntimeError('Pinned campaign software differs')
             if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported() or torch.cuda.device_count()!=1:raise RuntimeError('One BF16-capable quota-approved GPU required')
+            if execution_workspace.get('platform')=='kaggle':
+                import signal
+                def protected_deadline(signum,frame):raise TimeoutError('Protected campaign export deadline')
+                previous_alarm=signal.signal(signal.SIGALRM,protected_deadline)
+                signal.alarm(cfg['bounds']['worker_seconds']-cfg['bounds']['export_reserve_seconds'])
             dump(output/'PRECALL_FREEZE.json',{'config':cfg,'mode':mode,'source_commit':commit,'input_manifest_sha256':sha(root/'inputs/MANIFEST.json')})
             dump(output/'SOFTWARE.json',{'torch':torch.__version__,'transformers':transformers.__version__,'bitsandbytes':bitsandbytes.__version__,'GPU':torch.cuda.get_device_name(0)})
             torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False
@@ -137,6 +134,8 @@ def run(root,commit,destination,mode):
         except Exception as error:
             receipt.update(status='failed',error_type=type(error).__name__,error=str(error));dump(output/'FAILURE.json',{'traceback':traceback.format_exc()})
         finally:
+            if previous_alarm is not None:
+                signal.alarm(0);signal.signal(signal.SIGALRM,previous_alarm)
             gc.collect()
             if torch.cuda.is_available():torch.cuda.empty_cache()
             receipt.update(seconds=time.monotonic()-started,worker_exiting=True,backbone_forward_attempts=counts['attempted'],backbone_forwards=counts['completed']);dump(output/'RUN_RECEIPT.json',receipt)
