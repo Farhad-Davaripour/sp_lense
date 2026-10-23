@@ -7,6 +7,12 @@ recorded genuine authorization and one-owned-worker/source-admission journal;
 do not recreate the superseded approval hold. This does not authorize behavior
 adapter fitting, reward training, premature held-out access or paid resources.
 The Kaggle runtime and pinned environment passed recorded engineering checks.
+The complete1200-update recognition run361470090 and fixed two-prompt frozen
+Qwen qualification361504592 are independently audited and released. The next
+original-base-control library retains all36validation scenes and leaves all
+five full-system controls required; its separate typed package cannot admit
+held-out cases or stand in for adapter effects. It has no notebook submission
+route yet. Complete its worker/export/audit/admission plumbing before allocation.
 Keep Databricks account configurations and archives intact, and leave its
 scheduled checks stopped. The shared composite runner supports a frozen,
 read-only Kaggle input manifest and dedicated local artifact exports; do not
