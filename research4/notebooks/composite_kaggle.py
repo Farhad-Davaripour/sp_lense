@@ -1,9 +1,12 @@
 # Kaggle notebook cell. The operator supplies the exact reviewed bundle SHA.
 import hashlib
+import base64
 import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+import time
 import zipfile
 
 expected_sha = RESEARCH4_PACKAGE_SHA256
@@ -11,24 +14,59 @@ source_commit = RESEARCH4_SOURCE_COMMIT
 python = '/kaggle/temp/research4_environment_v1/bin/python'
 assert Path(python).is_file(), 'Run the qualified pinned environment cells first'
 packages = list(Path('/kaggle/input').rglob('FROZEN_PACKAGE.zip'))
-assert len(packages) == 1, 'Attach exactly the frozen Research 4 private bundle'
-package = packages[0]
-assert hashlib.sha256(package.read_bytes()).hexdigest() == expected_sha
+manifests = list(Path('/kaggle/input').rglob('PACKAGE_FILES.json'))
+assert (len(packages), len(manifests)) in [(1, 0), (0, 1)], 'Attach exactly one frozen Research 4 bundle'
 root = Path('/kaggle/working/research4_inputs') / source_commit
 root.mkdir(parents=True, exist_ok=False)
-with zipfile.ZipFile(package) as archive:
-    assert archive.testzip() is None
-    assert sum(item.file_size for item in archive.infolist()) < 256 * 1024**2
-    for item in archive.infolist():
-        target = (root / item.filename).resolve()
-        assert target.is_relative_to(root.resolve()) and '\\' not in item.filename
-        if item.filename.startswith('artifacts/'):
-            assert 'heldout' not in item.filename.lower()
-        if item.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(archive.read(item))
+if packages:
+    package = packages[0]
+    assert hashlib.sha256(package.read_bytes()).hexdigest() == expected_sha
+    with zipfile.ZipFile(package) as archive:
+        assert archive.testzip() is None
+        assert sum(item.file_size for item in archive.infolist()) < 256 * 1024**2
+        for item in archive.infolist():
+            target = (root / item.filename).resolve()
+            assert target.is_relative_to(root.resolve()) and '\\' not in item.filename
+            if item.filename.startswith('artifacts/'):
+                assert 'heldout' not in item.filename.lower()
+            if item.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(archive.read(item))
+else:
+    manifest = manifests[0]
+    assert hashlib.sha256(manifest.read_bytes()).hexdigest() == RESEARCH4_PACKAGE_FILES_SHA256
+    contents = json.loads(manifest.read_text())
+    assert contents['source_commit'] == source_commit
+    total = 0
+    for relative, expected in contents['files'].items():
+        origin = (manifest.parent / relative).resolve()
+        target = (root / relative).resolve()
+        assert origin.is_relative_to(manifest.parent.resolve())
+        assert target.is_relative_to(root.resolve()) and '\\' not in relative
+        if relative.startswith('artifacts/'):
+            assert 'heldout' not in relative.lower()
+        data = origin.read_bytes()
+        total += len(data)
+        assert total < 256 * 1024**2
+        assert hashlib.sha256(data).hexdigest() == expected
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+contents_file = root / 'PACKAGE_FILES.json'
+assert hashlib.sha256(contents_file.read_bytes()).hexdigest() == RESEARCH4_PACKAGE_FILES_SHA256
+contents = json.loads(contents_file.read_text())
+for relative, descriptor in contents.get('encoded_files', {}).items():
+    stored = (root / descriptor['stored_path']).resolve()
+    target = (root / relative).resolve()
+    assert stored.is_relative_to(root.resolve()) and target.is_relative_to(root.resolve())
+    assert '\\' not in relative and '\\' not in descriptor['stored_path']
+    if relative.startswith('artifacts/'):
+        assert 'heldout' not in relative.lower()
+    decoded = base64.b64decode(stored.read_bytes(), validate=True)
+    assert hashlib.sha256(decoded).hexdigest() == descriptor['decoded_sha256']
+    with target.open('xb') as stream:
+        stream.write(decoded)
 source = root / 'source'
 pin = json.loads((source / 'inputs/EXECUTION_PLATFORM.json').read_text())
 assert pin['source_commit'] == source_commit and pin['scientific_retries'] == 0
@@ -48,15 +86,16 @@ controller = {'source_commit': source_commit, 'package_sha256': expected_sha,
               'heldout_content_read': False, 'scientific_retries': 0}
 print('Starting the complete frozen recognition recipe; no automatic retry.', flush=True)
 try:
-    with log.open('x') as stream:
-        result = subprocess.run([python, '-m', 'src.composite_worker', str(source),
-                                 source_commit, pin['destination'], '--mode', pin['mode']],
-                                cwd=source, env=environment, stdout=stream,
-                                stderr=subprocess.STDOUT, timeout=2700)
-    controller.update(status='worker_exited', exit_code=result.returncode)
-except subprocess.TimeoutExpired:
-    controller.update(status='external_hard_timeout', exit_code=None,
-                      scientific_execution_extent='inspect retained scratch evidence')
+    sys.path.insert(0, str(source))
+    from src.composite_runtime import run_logged
+    # START was recorded by the first GPU qualification cell. Include package
+    # setup in the same 45-minute bound and retain 30 seconds for final export.
+    remaining = max(1, 2700 - int(time.monotonic() - START) - 30)
+    result = run_logged([python, '-m', 'src.composite_worker', str(source),
+                         source_commit, pin['destination'], '--mode', pin['mode']],
+                        source, environment, log, remaining)
+    controller.update(status='external_hard_timeout' if result['timed_out'] else 'worker_exited',
+                      exit_code=result['exit_code'], external_timeout_seconds=remaining)
 finally:
     (scratch.parent / (source_commit + '_CONTROLLER_RECEIPT.json')).write_text(
         json.dumps(controller, indent=2) + '\n')

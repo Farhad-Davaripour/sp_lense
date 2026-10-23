@@ -1,12 +1,43 @@
 """Explicit runtime and artifact bindings shared by the composite stages."""
 import io
+import base64
 import os
+import subprocess
+import threading
 from pathlib import Path
 from .io_utils import read, sha
 
 KAGGLE_RUNTIME_DIRECTORIES = ['/kaggle/input', '/kaggle/working', '/kaggle/temp']
 KAGGLE_INPUT_BASES = ['/kaggle/input', '/kaggle/working/research4_inputs']
 KAGGLE_OUTPUT_BASE = '/kaggle/working/research4_campaign/runs'
+
+
+def run_logged(command, cwd, environment, log, timeout):
+    """Stream one owned child and enforce its external deadline; never retry."""
+    with Path(log).open('x') as stream:
+        process = subprocess.Popen(command, cwd=cwd, env=environment,
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                   text=True, bufsize=1)
+
+        def copy_output():
+            for line in process.stdout:
+                stream.write(line)
+                stream.flush()
+                print(line, end='', flush=True)
+
+        reader = threading.Thread(target=copy_output, daemon=True)
+        reader.start()
+        timed_out = False
+        try:
+            code = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            process.kill()
+            code = process.wait(timeout=15)
+        finally:
+            reader.join(timeout=15)
+            process.stdout.close()
+        return {'exit_code': code, 'timed_out': timed_out}
 
 
 def platform():
@@ -107,6 +138,14 @@ def begin_stage(root, commit, destination, mode):
                 stream.write(data)
             if path.read_bytes() != data:
                 raise ValueError('Kaggle artifact export readback differs')
+            if name.endswith('.zip'):
+                # Retain exact archive bytes even if Kaggle expands ZIPs when
+                # persisting notebook outputs, as it does for dataset inputs.
+                encoded = path.with_name(path.name + '.r4b64')
+                with encoded.open('xb') as stream:
+                    stream.write(base64.b64encode(data))
+                if base64.b64decode(encoded.read_bytes(), validate=True) != data:
+                    raise ValueError('Encoded Kaggle archive readback differs')
 
         return {'platform': 'kaggle', 'account': pin['account'],
                 'notebook': pin['notebook'], 'mode': mode,
