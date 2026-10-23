@@ -1,4 +1,4 @@
-"""Gated frozen-Qwen loader and raw collector; no worker/submission entry point.
+"""Gated frozen-Qwen loader and raw collector; no cloud submission API.
 
 The normal Kaggle worker still admits recognition only. A separate reviewed
 worker, shared-ledger reservation and explicit two-device human exception are
@@ -14,7 +14,7 @@ from .io_utils import read, sha, verify_release, digest
 from .composite_placement import candidate_plan, metadata_bounds, parameter_device, audit_frozen_activations, CONFIG_SHA256, INDEX_SHA256
 
 MODE = 'frozen-qwen-two-t4-qualification-v1'
-PIN = 'FROZEN_QWEN_PROBE.json'
+PIN = 'EXECUTION_PLATFORM.json'
 AUTHORIZATION = 'FROZEN_QWEN_AUTHORIZATION.json'
 METADATA = 'QWEN_TENSOR_METADATA.json'
 PROFILE_FILE = 'config/composite_qwen_two_t4_candidate_v1.json'
@@ -303,12 +303,14 @@ def audit_loaded_layout(proof, context, parameters):
     return {'unquantized_BF16_parameters':len(unquantized), 'NF4_double_quant_projections':len(quantized)}
 
 
-def load_training_rows(context):
+def load_training_rows(context, store=None):
     from .composite_store import Store
     pin = context['pin']
-    if os.environ.get('RESEARCH4_KAGGLE_INPUT_ROOT') != pin['input_root'] or os.environ.get('RESEARCH4_KAGGLE_MANIFEST_SHA256') != pin['transport_manifest_sha256']:
-        raise ValueError('Probe transport environment differs from its input freeze')
-    store = Store(); raw_release = store.get('data_v1/DATA_RELEASE.json')
+    if store is None:
+        if os.environ.get('RESEARCH4_KAGGLE_INPUT_ROOT') != pin['input_root'] or os.environ.get('RESEARCH4_KAGGLE_MANIFEST_SHA256') != pin['transport_manifest_sha256']:
+            raise ValueError('Probe transport environment differs from its input freeze')
+        store = Store()
+    raw_release = store.get('data_v1/DATA_RELEASE.json')
     import json
     release = json.loads(raw_release)
     if release['world_source_sha256'] != sha(Path(context['source_root']) / 'src/composite_world.py'):
@@ -551,7 +553,7 @@ def audit_probe_record(record, rows, context, tokenizer, eos):
 
 
 def load_probe_actor(root, commit, config, cache, guard, on_forward, persist):
-    """No call is made by any current worker; an explicit exception is mandatory."""
+    """Called only by the separately gated qualification child."""
     if not all(callable(function) for function in [guard, on_forward, persist]):
         raise TypeError('A bounded owner, forward accounting and durable writer are required')
     context = authorized_load_plan(root, commit, config)

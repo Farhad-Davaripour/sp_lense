@@ -73,36 +73,51 @@ print('Verified frozen package files and decoded evidence archives byte-for-byte
 source = root / 'source'
 pin = json.loads((source / 'inputs/EXECUTION_PLATFORM.json').read_text())
 assert pin['source_commit'] == source_commit and pin['scientific_retries'] == 0
-assert pin['mode'] == 'detector-rank32-v5'
-assert pin['hard_timeout_seconds'] in [2700, 4500]
-scratch = Path('/kaggle/working/research4_campaign/scratch') / source_commit
-scratch.mkdir(parents=True, exist_ok=False)
-environment = {key: value for key, value in os.environ.items()
-               if not key.startswith('DATABRICKS_')}
-environment.update(RESEARCH4_EXECUTION_PLATFORM='kaggle',
-                   RESEARCH4_KAGGLE_INPUT_ROOT=pin['input_root'],
-                   RESEARCH4_KAGGLE_MANIFEST_SHA256=pin['transport_manifest_sha256'],
-                   CUDA_VISIBLE_DEVICES='0', TOKENIZERS_PARALLELISM='false',
-                   HF_HUB_DISABLE_TELEMETRY='1', TMPDIR=str(scratch))
-log = scratch.parent / (source_commit + '_WORKER_LOG.txt')
-controller = {'source_commit': source_commit, 'package_sha256': expected_sha,
-              'mode': pin['mode'], 'notebook': pin['notebook'],
-              'execution_profile': pin.get('recovery', {'profile': 'original-45min'}),
-              'heldout_content_read': False, 'scientific_retries': 0}
-print('Starting the complete frozen recognition recipe; no automatic retry.', flush=True)
-try:
-    sys.path.insert(0, str(source))
-    from src.composite_runtime import run_logged
-    # START was recorded by the first qualification cell. Include setup in the
-    # frozen envelope; a longer profile separately requires a human exception.
-    remaining = max(1, pin['hard_timeout_seconds'] - int(time.monotonic() - START) - 30)
-    result = run_logged([python, '-m', 'src.composite_worker', str(source),
-                         source_commit, pin['destination'], '--mode', pin['mode']],
-                        source, environment, log, remaining)
-    controller.update(status='external_hard_timeout' if result['timed_out'] else 'worker_exited',
-                      exit_code=result['exit_code'], external_timeout_seconds=remaining)
-finally:
-    (scratch.parent / (source_commit + '_CONTROLLER_RECEIPT.json')).write_text(
-        json.dumps(controller, indent=2) + '\n')
-print(json.dumps(controller), flush=True)
-print(log.read_text()[-30000:], flush=True)
+sys.path.insert(0, str(source))
+if pin['mode'] == 'frozen-qwen-two-t4-qualification-v1':
+    # This route has a distinct human exception, output owner and one-shot ledger.
+    # Validate before starting a subprocess, downloading weights or importing torch.
+    from src.composite_frozen_probe import authorized_load_plan
+    authorized_load_plan(source, source_commit,
+        json.loads((source / 'config/composite_controller_rank32_v2.json').read_text())['qwen'])
+    os.environ['RESEARCH4_EXECUTION_PLATFORM'] = 'kaggle'
+    from src.composite_frozen_launch import launch
+    controller = launch(source, source_commit, python, START)
+    print(json.dumps(controller), flush=True)
+    assert controller['complete_collection_exported'], 'Frozen qualification failed; preserve partial evidence; no retry'
+elif pin['mode'] != 'detector-rank32-v5':
+    raise PermissionError('Unregistered Kaggle stage')
+else:
+    assert pin['hard_timeout_seconds'] in [2700, 4500]
+if pin['mode'] == 'detector-rank32-v5':
+    scratch = Path('/kaggle/working/research4_campaign/scratch') / source_commit
+    scratch.mkdir(parents=True, exist_ok=False)
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.startswith('DATABRICKS_')}
+    environment.update(RESEARCH4_EXECUTION_PLATFORM='kaggle',
+                       RESEARCH4_KAGGLE_INPUT_ROOT=pin['input_root'],
+                       RESEARCH4_KAGGLE_MANIFEST_SHA256=pin['transport_manifest_sha256'],
+                       CUDA_VISIBLE_DEVICES='0', TOKENIZERS_PARALLELISM='false',
+                       HF_HUB_DISABLE_TELEMETRY='1', TMPDIR=str(scratch))
+    log = scratch.parent / (source_commit + '_WORKER_LOG.txt')
+    controller = {'source_commit': source_commit, 'package_sha256': expected_sha,
+                  'mode': pin['mode'], 'notebook': pin['notebook'],
+                  'execution_profile': pin.get('recovery', {'profile': 'original-45min'}),
+                  'heldout_content_read': False, 'scientific_retries': 0}
+    print('Starting the complete frozen recognition recipe; no automatic retry.', flush=True)
+    try:
+        sys.path.insert(0, str(source))
+        from src.composite_runtime import run_logged
+        # START was recorded by the first qualification cell. Include setup in the
+        # frozen envelope; a longer profile separately requires a human exception.
+        remaining = max(1, pin['hard_timeout_seconds'] - int(time.monotonic() - START) - 30)
+        result = run_logged([python, '-m', 'src.composite_worker', str(source),
+                             source_commit, pin['destination'], '--mode', pin['mode']],
+                            source, environment, log, remaining)
+        controller.update(status='external_hard_timeout' if result['timed_out'] else 'worker_exited',
+                          exit_code=result['exit_code'], external_timeout_seconds=remaining)
+    finally:
+        (scratch.parent / (source_commit + '_CONTROLLER_RECEIPT.json')).write_text(
+            json.dumps(controller, indent=2) + '\n')
+    print(json.dumps(controller), flush=True)
+    print(log.read_text()[-30000:], flush=True)

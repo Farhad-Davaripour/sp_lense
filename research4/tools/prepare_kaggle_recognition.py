@@ -17,7 +17,7 @@ def digest(path):
 
 
 def prepare(repo, commit, frozen_inputs, transport, output, notebook,
-            recovery_parent_run=None, recovery_authorization=None):
+            recovery_parent_run=None, recovery_authorization=None, _stage_builder=None):
     repo, frozen_inputs, transport, output = map(Path, [repo, frozen_inputs, transport, output])
     if not re.fullmatch('[0-9a-f]{40}', commit):
         raise ValueError('A complete reviewed source commit is required')
@@ -85,6 +85,11 @@ def prepare(repo, commit, frozen_inputs, transport, output, notebook,
            'original_scientific_input_manifest_sha256': digest(frozen_inputs / 'MANIFEST.json'),
            'hardware': {'physical_allocation': 'Kaggle_T4_pair', 'visible_devices': '0'},
            'hard_timeout_seconds': 2700, 'scientific_retries': 0}
+    stage_status = None
+    if _stage_builder is not None:
+        if recovery_parent_run or recovery_authorization:
+            raise ValueError('Separate stage authority cannot be combined with recognition recovery')
+        pin, stage_status = _stage_builder(source, pin)
     if recovery_authorization and not recovery_parent_run:
         raise ValueError('A recovery authorization requires its preserved parent run')
     if recovery_parent_run:
@@ -164,6 +169,8 @@ def prepare(repo, commit, frozen_inputs, transport, output, notebook,
     if recovery_parent_run:
         receipt['status'] = ('prepared_with_explicit_exception_not_submitted' if recovery_authorization
                              else 'proposal_requires_explicit_human_retry_and_bound_exception')
+    if stage_status is not None:
+        receipt['status'] = stage_status
     (output / 'PREPARATION.json').write_text(json.dumps(receipt, indent=2) + '\n')
     return receipt
 

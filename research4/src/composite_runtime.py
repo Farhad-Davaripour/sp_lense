@@ -12,32 +12,39 @@ KAGGLE_INPUT_BASES = ['/kaggle/input', '/kaggle/working/research4_inputs']
 KAGGLE_OUTPUT_BASE = '/kaggle/working/research4_campaign/runs'
 
 
-def run_logged(command, cwd, environment, log, timeout):
+def run_logged(command, cwd, environment, log, timeout, exit_observer=None):
     """Stream one owned child and enforce its external deadline; never retry."""
-    with Path(log).open('x') as stream:
-        process = subprocess.Popen(command, cwd=cwd, env=environment,
-                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                   text=True, bufsize=1)
-
-        def copy_output():
-            for line in process.stdout:
-                stream.write(line)
-                stream.flush()
-                print(line, end='', flush=True)
-
-        reader = threading.Thread(target=copy_output, daemon=True)
-        reader.start()
-        timed_out = False
-        try:
-            code = process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            timed_out = True
-            process.kill()
-            code = process.wait(timeout=15)
-        finally:
-            reader.join(timeout=15)
-            process.stdout.close()
-        return {'exit_code': code, 'timed_out': timed_out}
+    process=None
+    try:
+        with Path(log).open('x') as stream:
+            process = subprocess.Popen(command, cwd=cwd, env=environment,
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True,bufsize=1)
+            def copy_output():
+                for line in process.stdout:
+                    stream.write(line); stream.flush(); print(line, end='', flush=True)
+            reader=None; timed_out=False; code=None
+            try:
+                reader = threading.Thread(target=copy_output, daemon=True)
+                reader.start()
+                try: code = process.wait(timeout=timeout)
+                except subprocess.TimeoutExpired: timed_out=True
+            finally:
+                try:
+                    if process.poll() is None:
+                        try: process.kill()
+                        except ProcessLookupError: pass
+                        code=process.wait(timeout=15)
+                finally:
+                    observed=process.poll()
+                    if exit_observer is not None:
+                        exit_observer({'child_started':True,'pid':process.pid,'exit_code':observed,
+                                       'child_exit_confirmed':observed is not None})
+                    if reader is not None and reader.ident is not None: reader.join(timeout=15)
+                    if observed is not None and (reader is None or not reader.is_alive()): process.stdout.close()
+            return {'exit_code': code, 'timed_out': timed_out}
+    finally:
+        if process is None and exit_observer is not None:
+            exit_observer({'child_started':False,'pid':None,'exit_code':None,'child_exit_confirmed':True})
 
 
 def platform():
@@ -73,16 +80,12 @@ def contained(root, relative):
     return path
 
 
-class KaggleInputs:
-    """Read only exact, registered training/development artifact bytes."""
-    def __init__(self):
-        require_scientific_runtime()
-        root = Path(os.environ['RESEARCH4_KAGGLE_INPUT_ROOT']).resolve()
-        bases = [Path(base).resolve() for base in KAGGLE_INPUT_BASES]
-        if not any(root.is_relative_to(base) for base in bases):
-            raise ValueError('Kaggle inputs escaped the dedicated input roots')
+class FrozenInputs:
+    """Read registered development bytes on cloud or during an offline audit."""
+    def __init__(self, root, manifest_sha256):
+        root = Path(root).resolve()
         manifest = root / 'TRANSPORT_MANIFEST.json'
-        if sha(manifest) != os.environ['RESEARCH4_KAGGLE_MANIFEST_SHA256']:
+        if sha(manifest) != manifest_sha256:
             raise ValueError('Kaggle artifact transport manifest changed')
         self.root = root
         self.files = read(manifest)['files']
@@ -99,6 +102,20 @@ class KaggleInputs:
         if hashlib.sha256(data).hexdigest() != self.files[relative]:
             raise ValueError('Kaggle input bytes differ from their freeze')
         return data
+
+    def json(self, relative):
+        import json
+        return json.loads(self.get(relative))
+
+
+class KaggleInputs(FrozenInputs):
+    def __init__(self):
+        require_scientific_runtime()
+        root = Path(os.environ['RESEARCH4_KAGGLE_INPUT_ROOT']).resolve()
+        bases = [Path(base).resolve() for base in KAGGLE_INPUT_BASES]
+        if not any(root.is_relative_to(base) for base in bases):
+            raise ValueError('Kaggle inputs escaped the dedicated input roots')
+        super().__init__(root, os.environ['RESEARCH4_KAGGLE_MANIFEST_SHA256'])
 
 
 def begin_stage(root, commit, destination, mode):
@@ -129,23 +146,8 @@ def begin_stage(root, commit, destination, mode):
             raise ValueError('Kaggle output must stay in its dedicated run directory')
         if str(target) != pin['destination']:
             raise ValueError('Kaggle output differs from its frozen destination')
-        target.mkdir(parents=True, exist_ok=False)
-
-        def upload(name, data):
-            path = contained(target, name)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            with path.open('xb') as stream:
-                stream.write(data)
-            if path.read_bytes() != data:
-                raise ValueError('Kaggle artifact export readback differs')
-            if name.endswith('.zip'):
-                # Retain exact archive bytes even if Kaggle expands ZIPs when
-                # persisting notebook outputs, as it does for dataset inputs.
-                encoded = path.with_name(path.name + '.r4b64')
-                with encoded.open('xb') as stream:
-                    stream.write(base64.b64encode(data))
-                if base64.b64decode(encoded.read_bytes(), validate=True) != data:
-                    raise ValueError('Encoded Kaggle archive readback differs')
+        from .composite_exports import exclusive_output
+        upload=exclusive_output(target,base)
 
         return {'platform': 'kaggle', 'account': pin['account'],
                 'notebook': pin['notebook'], 'mode': mode,

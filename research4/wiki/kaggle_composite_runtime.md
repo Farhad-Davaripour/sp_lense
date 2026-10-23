@@ -12,8 +12,11 @@ The full Qwen3.5-27B memory fit remains unverified.
 
 Freeze `inputs/EXECUTION_PLATFORM.json` with the Kaggle account, notebook,
 source commit, stage, input root, transport-manifest SHA, and fresh destination.
-Only `detector-rank32-v5` is admitted by this version. Behavior fitting,
-evaluation and held-out access are unavailable through the Kaggle route.
+The ordinary worker admits only `detector-rank32-v5`. A separate default-denied
+`frozen-qwen-two-t4-qualification-v1` route collects two predeclared training
+observations with no optimizer or simulator action execution. It requires a
+separate explicit human two-device exception; its source preparation does not
+authorize allocation. Behavior fitting and held-out access remain unavailable.
 
 The transport manifest lists exact SHA-256 digests of the required existing
 training/development artifacts. `Store` reads only registered files, rejects
@@ -28,3 +31,43 @@ reserve, 30,000-forward ceiling, full data splits and all-block rank32/alpha64
 ModernBERT coverage. Save and checksum-recover Kaggle outputs before releasing
 the owned session. Keep source/PR admission separate from scientific admission;
 a completed fit does not establish validation or held-out success.
+
+The recognition recovery proposal retains its own one-use 75-minute exception
+and allowance. `tools/kaggle_recovery_admission.py --stage frozen_qualification`
+uses the same atomic guard, fresh four-workspace observations and submission
+journal, with a different candidate and allowance. It refuses proposals,
+duplicate or ambiguous submissions, live workers and already executed stages.
+Consume the allowance before the single UI submission; reconcile only that
+identity and exact Kaggle version. Neither path can authorize the other.
+
+`tools/prepare_kaggle_frozen_probe.py` reuses the recognition source/input
+packager. Its default package includes an unauthorized proposal, the complete
+unchanged original input transport, model-file pins, header-only placement
+metadata and a source-bound descriptor. The shared notebook dispatches only
+after package SHA verification; frozen authorization is checked before starting
+its child or downloading weights. Do not upload or run the proposal.
+
+The frozen child includes download/load time in its protected 2220-second
+deadline, inside the 2400-second worker / 2700-second whole-notebook envelope.
+The parent owns the external deadline and cleans only its marker-bound cache
+after confirmed child exit. The 400-forward ceiling, two complete prompts and
+160-token native generation ceilings are unchanged. All 64 activation vectors
+and full-vocabulary prefill logits are retained; no evidence is truncated.
+
+The full checkpoint download is 55,575,985,859 bytes. Disk admission reserves
+that size plus 2 GiB transport overhead, 5 GiB physical export space and 1 GiB
+raw evidence. HTTP transport disables Xet, with cache/temp paths inside the
+owned ephemeral namespace. This avoids relying on a soft Xet cache limit as a
+hard storage guarantee; see the [Hub environment-variable documentation](https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables).
+The raw bound includes 4 MiB for terminal metadata. Normal and failed exports
+share checksum/CRC verification; abrupt exits preserve raw and pending journals
+in a separate rescue archive. Unknown final counts stay unknown, with the last
+durable observations retained. Disk cleanup is separate from live verification
+that Kaggle released its GPU session.
+
+`tools/audit_kaggle_frozen_probe.py` checks source/input/receipt identity and
+replays the raw records with a local tokenizer reconstructed solely from
+verified small metadata. Network access is blocked and no model is constructed.
+A complete qualification audit proves only these two probes and their frozen
+layout/records; cross-device numerical parity, complete scientific validation
+and held-out confirmation remain unestablished.

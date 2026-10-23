@@ -141,13 +141,9 @@ def run(root,commit,destination,mode):
             gc.collect()
             if torch.cuda.is_available():torch.cuda.empty_cache()
             receipt.update(seconds=time.monotonic()-started,worker_exiting=True,backbone_forward_attempts=counts['attempted'],backbone_forwards=counts['completed']);dump(output/'RUN_RECEIPT.json',receipt)
-        dump(output/'MANIFEST.json',{f.relative_to(output).as_posix():sha(f) for f in output.rglob('*') if f.is_file() and f.name!='MANIFEST.json'})
         archive=base/'evidence.zip'
-        with zipfile.ZipFile(archive,'x',zipfile.ZIP_DEFLATED) as z:
-            for f in sorted(output.rglob('*')):
-                if f.is_file():z.write(f,f.relative_to(output).as_posix())
-        with zipfile.ZipFile(archive) as z:
-            if z.testzip() is not None:raise ValueError('Campaign archive CRC differs')
+        from .composite_exports import make_evidence_archive
+        make_evidence_archive(output,archive)
         upload('evidence.zip',archive.read_bytes());upload('RUN_RECEIPT.json',(output/'RUN_RECEIPT.json').read_bytes())
         export={**receipt,'destination':destination,'archive_sha256':sha(archive),'archive_bytes':archive.stat().st_size,'owned_temporary_cleanup':True};upload('EXPORT_RECEIPT.json',json.dumps(export,indent=2).encode())
     print(json.dumps(export),flush=True)
