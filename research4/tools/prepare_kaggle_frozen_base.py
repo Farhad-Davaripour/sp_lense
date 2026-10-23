@@ -20,7 +20,7 @@ PARENT_FILES = {'recognition_closeout': 'RUN_361470090_CLOSEOUT.json',
 
 
 def prepare(repo, commit, frozen_inputs, transport, output, notebook, tensor_metadata,
-            partition, parent_evidence, human_authorization):
+            partition, parent_evidence, human_authorization, operational_v2=False):
     from src.io_utils import read
     from src.composite_frozen_base import EPISODES, PROFILE_FILE
     human = read(human_authorization)
@@ -60,6 +60,24 @@ def prepare(repo, commit, frozen_inputs, transport, output, notebook, tensor_met
             'original_scientific_input_manifest_sha256':ORIGINAL_INPUTS,
             'scientific_visible_GPU_count':2,'maximum_new_stage_submissions':1, **BOUNDS,
             'optimizer_updates':0,'behavior_adapter_fitting':False,'heldout_content_read':False}
+        if operational_v2:
+            from src.composite_frozen_operational import (PROFILE,DOCUMENT,PARENT_PREFIX_AUDIT,
+                PARENT_CLOSEOUT,PARENT_RELEASE,document,validate_parent_inputs)
+            required=['src/composite_cuda_maintenance.py','src/composite_frozen_operational_admission.py',
+                      'src/composite_frozen_continuation.py']
+            if any(not (source/name).is_file() for name in required):
+                raise ValueError('The selected source predates the explicit operational recovery implementation')
+            value=document(commit,partition)
+            (source/'inputs'/DOCUMENT).write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8')
+            for origin,name in [
+                (Path(parent_evidence)/'RUN_361586756_PARTIAL_PREFIX_AUDIT.json',PARENT_PREFIX_AUDIT),
+                (Path(parent_evidence)/'RUN_361586756_CLOSEOUT.json',PARENT_CLOSEOUT),
+                (Path(parent_evidence)/'frozen_base_validation_8b868880_p03/bundle/source/RELEASE.json',PARENT_RELEASE)]:
+                shutil.copyfile(origin,source/'inputs'/name)
+            validate_parent_inputs(source/'inputs')
+            pin['operational_profile']=PROFILE
+            authority.update(operational_profile=PROFILE,
+                operational_document_sha256=digest(source/'inputs'/DOCUMENT))
         (source/'inputs'/AUTHORIZATION).write_text(json.dumps(authority,indent=2)+'\n',encoding='utf-8')
         return pin, 'prepared_authorized_frozen_base_not_submitted'
     receipt = shared_prepare(repo, commit, frozen_inputs, transport, output, notebook, _stage_builder=build)
@@ -73,4 +91,5 @@ if __name__ == '__main__':
     for key in ['repo','commit','frozen-inputs','transport','output','notebook','tensor-metadata','parent-evidence','human-authorization']:
         parser.add_argument('--'+key, required=True)
     parser.add_argument('--partition',type=int,required=True)
+    parser.add_argument('--operational-v2',action='store_true')
     print(json.dumps(prepare(**vars(parser.parse_args()))))

@@ -20,7 +20,14 @@ Partition03/run361586756 failed the unchanged512MiB driver-free reserve guard
 after1260 sealed forwards,14 complete native/tool steps and no full trajectory.
 Its failed identity and all six pending cases remain preserved. The standalone
 unused-allocator reclaimer and prefix auditor are engineering libraries, not
-new submission authority. Do not call the missing interrupted generation an
+new submission authority. The separately versioned operational-v2 path wires
+idle unused-cache maintenance, exact byte-copy/replay of14saved tool steps,
+frozen tensor reload equality, new-response instrumentation and distinct
+one-use admission. Its descriptor retains the failed1260-forward parent and
+explicitly differs from the original8b868880 common freeze. Only a reviewed,
+frozen package under that distinct admission may execute; the original failed
+identity remains consumed. The descriptive mixed-version aggregate cannot
+admit full-system or held-out evaluation. Do not call the missing interrupted generation an
 exact resume: its output/KV state was not exported. Any recovery must version
 its failed-parent, operational source and relationship to the original8b868880
 common freeze, retain the complete model/recipe/cohort, and pass normal review,

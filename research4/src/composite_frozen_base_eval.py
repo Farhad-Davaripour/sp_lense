@@ -79,9 +79,18 @@ def load_package(context, cache, guard, on_forward, persist_bytes, persist_json)
                'dtype': str(parameter.dtype), 'device': str(parameter.device), 'requires_grad': parameter.requires_grad}
               for name, parameter, version, fingerprint in snapshot]
     persist_json('DETECTOR_PARAMETERS_BEFORE.json', before)
-    proxy = FrozenBaseActor(actor, persist_bytes, persist_json, lambda: memory_record(torch.cuda))
+    maintenance=None;parity_prefix=''
+    if context.get('operational_profile') is not None:
+        from .composite_cuda_maintenance import UnusedAllocatorReclaimer
+        maintenance=UnusedAllocatorReclaimer(torch.cuda,persist_json).before_generation
+        if context['operational_profile']['tool_boundary_continuation']:
+            parity_prefix='continuation_parity/'
+    proxy = FrozenBaseActor(actor, persist_bytes, persist_json, lambda: memory_record(torch.cuda),
+                            maintenance,parity_prefix)
     model = RecordingBaseComposite(detector, proxy, 0.9, persist_json).eval().requires_grad_(False)
     model.detector_forward_counts = detector_counts
+    model.frozen_prefix_copy_writer=persist_bytes
+    model.frozen_current_detector_parameters=before
     if any(parameter.requires_grad for parameter in model.parameters()) or actor.adapters:
         raise PermissionError('Frozen-base inference cannot expose trainable weights or behavior adapters')
     proof = {'package_kind': 'frozen-base-reference', 'source_commit': commit,
@@ -93,11 +102,14 @@ def load_package(context, cache, guard, on_forward, persist_bytes, persist_json)
         'trainable_parameters': 0, 'optimizer_updates': 0, 'behavior_adapter': None,
         'adapter_OFF_bypass': None, 'adapter_ON_effect': None,
         'full_validation_admitted': False, 'heldout_content_read': False}
+    if context.get('operational_profile') is not None:
+        proof['operational_profile']=context['operational_profile']
     persist_json('FROZEN_BASE_PACKAGE.json', proof)
     import base64
     persist_json('DETECTOR_METADATA_BYTES.json', {item['name']: base64.b64encode((path/item['name']).read_bytes()).decode('ascii')
         for item in pin['files'] if not item['name'].endswith('.safetensors')})
-    persist_json('QWEN_PARAMETERS_BEFORE.json', parameter_records(actor, actor.frozen_snapshot))
+    model.frozen_current_qwen_parameters=parameter_records(actor,actor.frozen_snapshot)
+    persist_json('QWEN_PARAMETERS_BEFORE.json', model.frozen_current_qwen_parameters)
     persist_json('QWEN_AUXILIARY_BEFORE.json', {'sha256': actor.frozen_auxiliary})
 
     def verify():
@@ -113,21 +125,45 @@ def load_package(context, cache, guard, on_forward, persist_bytes, persist_json)
     return model, proof, verify
 
 
+def prepare_continuation(model,context,lookup,persist):
+    plan=context['evaluation_plan']
+    prefix=None;certificate=context.get('continuation_certificate')
+    if context.get('operational_profile',{}).get('tool_boundary_continuation'):
+        from .composite_store import Store
+        from .composite_frozen_operational import PARENT_ARCHIVE
+        from .composite_frozen_continuation import prefix_from_parent,preserve_parent_prefix
+        raw=Store().get(PARENT_ARCHIVE)
+        prefix=prefix_from_parent(raw,certificate,lookup[plan['case_ids'][0]])
+        transfer=preserve_parent_prefix(raw,certificate,model.frozen_prefix_copy_writer,
+            model.frozen_current_qwen_parameters,model.frozen_current_detector_parameters,
+            model.actor.actor.frozen_auxiliary)
+        persist('PARENT_PREFIX_TRANSFER.json',transfer)
+        model.actor.response_index=certificate['native_complete_responses']
+    return prefix,certificate
+
+
 def evaluate_partition(model, context, guard, persist, progress, verify):
     from .composite_world import Scene
     plan = context['evaluation_plan']; lookup = {scene['case_id']: scene for scene in context['scenes']}
     if plan['conditions'] != ['base']:
         raise PermissionError('Only the original base control is registered by this endpoint')
-    records = []
+    records=[]
     persist('FROZEN_BASE_PLAN.json', plan)
     try:
+        prefix,certificate=prepare_continuation(model,context,lookup,persist)
         for key in plan['case_ids']:
             scene = Scene(**lookup[key]); guard()
             def response_progress(world, trace):
                 persist('steps/' + key + '_' + str(len(trace)).zfill(3) + '.json', trace[-1])
                 progress('response_complete', case_id=key, responses=len(trace), clock=world.clock,
                          outcome=trace[-1]['outcome'])
-            value = rollout(model, scene, 'base', guard, response_progress)
+            if prefix is not None and key==plan['case_ids'][0]:
+                from .composite_frozen_continuation import continue_base_rollout
+                value,restoration=continue_base_rollout(model,scene,prefix,certificate,guard,response_progress,
+                    (model.detector.tokenizer,model.actor.actor.tokenizer),model.actor.actor.eos,
+                    lambda proof:persist('TOOL_BOUNDARY_RESTORATION.json',proof))
+            else:
+                value = rollout(model, scene, 'base', guard, response_progress)
             persist('trajectories/' + key + '.json', value); records.append(value)
             progress('trajectory_complete', case_id=key, trajectories=len(records), outcome=value['outcome'])
     finally:

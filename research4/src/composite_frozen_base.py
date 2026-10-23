@@ -95,6 +95,9 @@ def validate_parents(inputs):
 
 def validate_transport(data):
     manifest = read(data.root/'TRANSPORT_MANIFEST.json')
+    if manifest.get('version')=='frozen-base-operational-inputs-v2':
+        from .composite_frozen_operational import validate_operational_transport
+        return validate_operational_transport(data)
     raw = base64.b64decode(manifest['parent_transport_manifest_bytes'], validate=True)
     if hashlib.sha256(raw).hexdigest() != TRANSPORT:
         raise ValueError('The original transport manifest changed')
@@ -149,9 +152,18 @@ def authorized_load_plan(root, commit, config, transport=None):
     if (any(type(authority.get(key)) is not type(value) or authority[key] != value for key, value in expected.items())
         or not authority.get('human_message_evidence_locator')):
         raise PermissionError('Human continuation does not bind this exact frozen-base partition')
+    operational=None
+    if pin.get('operational_profile') is not None:
+        from .composite_frozen_operational import validate_runtime_profile
+        operational=validate_runtime_profile(root,commit,pin,authority)
+    elif read(data.root/'TRANSPORT_MANIFEST.json').get('version')!='frozen-base-kaggle-inputs-v1':
+        raise PermissionError('A changed transport requires explicit operational-version admission')
     context = verified_model_context(root, commit, config, pin, sha(root / 'inputs' / AUTHORIZATION))
     context.update(bounds=BOUNDS, evaluation_plan=plan, scenes=scenes,
                    scientific_endpoint='original_base_control_only', full_validation_admitted=False)
+    if operational is not None:
+        from .composite_frozen_operational import PARENT_PREFIX_AUDIT
+        context.update(operational_profile=operational,continuation_certificate=read(root/'inputs'/PARENT_PREFIX_AUDIT))
     return context
 
 

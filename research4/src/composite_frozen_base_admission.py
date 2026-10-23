@@ -57,6 +57,10 @@ def verify_campaign_under_guard(campaign_root, binding):
         or qualification.get('owned_compute_released') is not True):
         raise PermissionError('The frozen native runtime qualification parent is unresolved')
     for key, candidate in ledger['candidates'].items():
+        if key.startswith('frozen_base_allocator_v2_p'):
+            for attempt in candidate.get('authorized_operational_partition_attempts',[]):
+                if set(attempt.get('case_ids',[])) & set(binding.get('case_ids',[])):
+                    raise PermissionError('A versioned operational execution already owns these original BASE cases')
         if not key.startswith(PREFIX): continue
         for attempt in candidate.get(ATTEMPTS, []):
             if attempt.get('common_freeze_sha256') != binding['common_freeze_sha256']:

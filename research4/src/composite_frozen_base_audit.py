@@ -103,8 +103,9 @@ def audit_features(files,response,number,context,prompt):
     return logits
 
 
-def audit_instrumentation(files,first_response,eos,vocabulary):
-    parity=files.json('INSTRUMENTATION_PARITY.json');baseline=files.json('BASELINE_NATIVE_RESPONSE.json')
+def audit_instrumentation(files,first_response,eos,vocabulary,prefix=''):
+    if prefix not in ['', 'continuation_parity/']:raise ValueError('Unregistered instrumentation-proof namespace')
+    parity=files.json(prefix+'INSTRUMENTATION_PARITY.json');baseline=files.json(prefix+'BASELINE_NATIVE_RESPONSE.json')
     native_response(baseline,eos,vocabulary)
     fields=['input_token_ids','generated_token_ids','raw_text','actions','finished_with_eos']
     if (parity['baseline_generation']!=baseline or any(baseline[key]!=first_response[key] for key in fields)
@@ -112,7 +113,7 @@ def audit_instrumentation(files,first_response,eos,vocabulary):
         or parity['exact_native_outputs_equal'] is not True or parity['exact_prefill_logits_equal'] is not True
         or parity['adapter_OFF_bypass'] is not None or parity['adapter_ON_effect'] is not None):
         raise ValueError('Raw matched-prefix instrumentation comparison differs')
-    raw=files.get('BASELINE_PREFILL_LOGITS.npy')
+    raw=files.get(prefix+'BASELINE_PREFILL_LOGITS.npy')
     if hashlib.sha256(raw).hexdigest()!=parity['baseline_logit_file_sha256']:
         raise ValueError('Baseline raw logit bytes changed')
     logits=np.load(io.BytesIO(raw),allow_pickle=False)
@@ -238,7 +239,12 @@ def audit_archive(archive, source, commit, transport, controller, export):
         validate_download_proof(context, model_files); verify_metadata_bytes(context['model_pin'], model_files, metadata)
         with verified_tokenizers(files,context,package,source) as (bt,qt,eos):
             records, replayed = replay(files, context, package, (bt,qt), eos)
-        if replayed['expected_joint_forwards'] != counts['completed']:
+            operational=None
+            if context.get('operational_profile') is not None:
+                from .composite_frozen_operational_audit import audit_operational_evidence
+                operational=audit_operational_evidence(files,context,package,records,replayed,store,qt,eos)
+        expected_forwards=replayed['expected_joint_forwards'] if operational is None else operational['expected_current_run_forwards']
+        if expected_forwards != counts['completed']:
             raise ValueError('Unaccounted or missing model forwards in the complete base trajectories')
         from .composite_metrics import summarize
         from .composite_world import Scene
@@ -246,6 +252,7 @@ def audit_archive(archive, source, commit, transport, controller, export):
                             read(source/'config/composite_controller_rank32_v2.json'),None)
         metrics['exact_off_bypass_pass'] = None  # No behavior adapter exists in this package.
         report.update(complete_base_partition_audited=True,replay=replayed,original_base_metrics=metrics)
+        if operational is not None:report['operational_version_replay']=operational
     return report
 
 

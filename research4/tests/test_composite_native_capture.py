@@ -111,5 +111,19 @@ class CaptureTests(unittest.TestCase):
         proxy.generate('next synthetic prompt',False)
         self.assertEqual(observations,[0,1,2])
 
+    def test_continuation_keeps_parent_parity_and_response_names_immutable(self):
+        actor,proxy,raw,values=self.proxy()
+        raw['BASELINE_PREFILL_LOGITS.npy']=b'original parent logits'
+        values['BASELINE_NATIVE_RESPONSE.json']={'original':'parent'}
+        values['INSTRUMENTATION_PARITY.json']={'original':'parent'}
+        proxy.parity_prefix='continuation_parity/';proxy.response_index=14
+        proxy.generate('future synthetic prompt',False)
+        self.assertEqual(actor.calls,2)
+        self.assertEqual(raw['BASELINE_PREFILL_LOGITS.npy'],b'original parent logits')
+        self.assertEqual(values['INSTRUMENTATION_PARITY.json'],{'original':'parent'})
+        self.assertIn('continuation_parity/INSTRUMENTATION_PARITY.json',values)
+        self.assertIn('features/response_00014.npz',raw)
+        self.assertNotIn('features/response_00000.npz',raw)
+
 
 if __name__ == '__main__': unittest.main()
