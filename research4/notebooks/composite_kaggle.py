@@ -36,7 +36,9 @@ if packages:
                 target.write_bytes(archive.read(item))
 else:
     manifest = manifests[0]
-    assert hashlib.sha256(manifest.read_bytes()).hexdigest() == RESEARCH4_PACKAGE_FILES_SHA256
+    manifest_bytes = manifest.read_bytes()
+    assert hashlib.sha256(manifest_bytes).hexdigest() == RESEARCH4_PACKAGE_FILES_SHA256
+    (root / 'PACKAGE_FILES.json').write_bytes(manifest_bytes)
     contents = json.loads(manifest.read_text())
     assert contents['source_commit'] == source_commit
     total = 0
@@ -67,6 +69,7 @@ for relative, descriptor in contents.get('encoded_files', {}).items():
     assert hashlib.sha256(decoded).hexdigest() == descriptor['decoded_sha256']
     with target.open('xb') as stream:
         stream.write(decoded)
+print('Verified frozen package files and decoded evidence archives byte-for-byte.', flush=True)
 source = root / 'source'
 pin = json.loads((source / 'inputs/EXECUTION_PLATFORM.json').read_text())
 assert pin['source_commit'] == source_commit and pin['scientific_retries'] == 0
