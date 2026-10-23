@@ -15,6 +15,16 @@ held-out cases or stand in for adapter effects. Its separate registered worker,
 export lifecycle and raw replay use the shared single-writer ledger. All six
 whole-scene partitions require one reviewed scientific source/model/input freeze;
 never rerun a consumed partition or submit from an unmerged/different source.
+Original BASE partitions00–02 (18scenes) are independently audited and released.
+Partition03/run361586756 failed the unchanged512MiB driver-free reserve guard
+after1260 sealed forwards,14 complete native/tool steps and no full trajectory.
+Its failed identity and all six pending cases remain preserved. The standalone
+unused-allocator reclaimer and prefix auditor are engineering libraries, not
+new submission authority. Do not call the missing interrupted generation an
+exact resume: its output/KV state was not exported. Any recovery must version
+its failed-parent, operational source and relationship to the original8b868880
+common freeze, retain the complete model/recipe/cohort, and pass normal review,
+single-writer/one-worker admission and raw-evidence audit. No blind retry.
 Keep Databricks account configurations and archives intact, and leave its
 scheduled checks stopped. The shared composite runner supports a frozen,
 read-only Kaggle input manifest and dedicated local artifact exports; do not

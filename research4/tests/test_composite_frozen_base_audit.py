@@ -199,6 +199,8 @@ class BaseAuditTests(unittest.TestCase):
                 with patch.object(audit,'authorized_load_plan',return_value=context), \
                      patch.object(audit,'audit_runtime_metadata'),patch.object(audit,'parameter_audit',return_value={'synthetic_only':True}), \
                      patch.object(audit,'validate_download_proof'),patch.object(audit,'verify_metadata_bytes'), \
+                     patch('src.composite_frozen_metadata.validate_download_proof'), \
+                     patch('src.composite_frozen_metadata.verify_metadata_bytes'), \
                      patch('src.composite_frozen_base_eval.selected_detector',return_value={}), \
                      patch('transformers.AutoTokenizer.from_pretrained',return_value=tokenizers[0]):
                     call=lambda:audit.audit_archive(archive,source,'a'*40,transport,controller,export)

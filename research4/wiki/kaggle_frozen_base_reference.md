@@ -60,3 +60,43 @@ an ambiguous outcome. No import or packaging command submits compute. The user
 has already authorized necessary
 continuation without renewed compute-approval questions. Paid services and the
 stopped Databricks schedules remain outside this Kaggle continuation.
+
+## Controlled memory refusal and engineering recovery
+
+Original source8b868880 completed and independently audited partitions00–02
+(18whole scenes). Partition03/run361586756 stopped at the existing512MiB
+driver-free reserve check before a subsequent Qwen forward. The controlled
+worker sealed1260attempted/completed forwards,14durable native responses/tool
+steps and no completed trajectory. Its partial archive is preserved with
+SHA1479d766b0cf36d11666cfebe232664229743bd759d2706b8c170e3300e31238.
+All six original partition03 cases remain pending; missing outcomes are unknown.
+
+All14post-response live-allocation samples are constant:9,525,133,824bytes on
+GPU0 and9,050,145,792on GPU1. Reserved memory grows to14,740,881,408 and
+14,768,144,384bytes while the last saved driver-free samples fall to598,540,288
+and730,660,864bytes. This supports unused allocator retention/fragmentation;
+it is not a demonstrated CUDA OOM, and actual reclaimability remains unmeasured.
+The exact failing device/free-memory sample was not exported.
+
+PyTorch2.11 distinguishes live tensor allocation from allocator reservation.
+Its `empty_cache()` releases unoccupied cached blocks without freeing live
+tensors; it is not a model-size increase or a substitute for a reserve check.
+See the pinned-version [memory-management documentation](https://docs.pytorch.org/docs/2.11/notes/cuda.html#memory-management)
+and [empty-cache API](https://docs.pytorch.org/docs/2.11/generated/torch.cuda.memory.empty_cache.html).
+
+`UnusedAllocatorReclaimer` is an unadmitted library for synchronized maintenance
+outside native generation. It preserves live allocation, logs both devices
+before/after, and still runs the original reserve guard after reclamation. The
+optional native-capture callback applies the same maintenance to both sides of
+the existing instrumentation comparison; original profiles default to no callback.
+No worker, execution descriptor or submission route enables this library yet.
+
+The partial auditor reconstructs verified tokenizers, replays the14completed
+native/tool/observation steps, checks lossless features and frozen parameter
+proofs, and accounts1259forwards at the last durable tool boundary. One further
+forward belongs to an interrupted response whose native output and KV cache
+are not durable. Exact interrupted-generation resume is unsupported. Any new
+tool-boundary continuation must explicitly account this interruption and all
+parent work, version its operational source/lineage, and avoid relabeling the
+revised source as the original identical common freeze. Neither prefix replay
+nor cache-maintenance fixtures establish a complete partition or GPU recovery.

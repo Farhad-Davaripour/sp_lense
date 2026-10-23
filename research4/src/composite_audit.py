@@ -94,7 +94,7 @@ def audit_observation(world,observation,memory,threshold,bert_tokenizer=None,max
     if memory.snapshot()!=observation['memory']:raise ValueError('Persistent predicted state replay differs')
 
 
-def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference',context_limits=None):
+def _replay_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference',context_limits=None,require_terminal=True):
     environment=record.get('environment','legacy-world')
     if environment not in ['legacy-world',ENVIRONMENT]:raise ValueError('Unknown recorded environment')
     world=(BoundedWorld if environment==ENVIRONMENT else World)(Scene(**record['scene']));memory=EpisodeMemory()
@@ -129,7 +129,7 @@ def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eo
         if world.outcome()!=step['outcome']:raise ValueError('Tool execution outcome replay differs after observation')
     if world.running and context_limits is not None and qwen_tokenizer is not None and len(input_ids(qwen_tokenizer,world.visible()[0]))>context_limits['actor']:
         world.running=False;world.reason='external_context_budget';memory.terminal=True;memory.applied_gate=False
-    if world.running or world.outcome()!=record['outcome'] or memory.snapshot()!=record['terminal_memory']:raise ValueError('Incomplete or inconsistent terminal trajectory')
+    if (require_terminal and world.running) or world.outcome()!=record['outcome'] or memory.snapshot()!=record['terminal_memory']:raise ValueError('Incomplete or inconsistent terminal trajectory')
     # Independent task arithmetic, in addition to replay through the simulator.
     for operation in world.operations:
         call=operation['call']
@@ -137,4 +137,18 @@ def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eo
             values=[world.values[k] for k in call['arguments']['evidence']]
             total=max(values,default=0) if world.scene.domain=='max' else sum(values)
             if total!=call['arguments']['total']:raise ValueError('Independent report arithmetic differs')
+    return world,memory
+
+
+def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference',context_limits=None):
+    world,memory=_replay_trajectory(record,threshold,bert_tokenizer,qwen_tokenizer,eos,kernel_profile,context_limits,True)
     return {'case_id':world.scene.case_id,'condition':record['condition'],'responses':len(record['trace']),'pass':True}
+
+
+def audit_trajectory_prefix(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference',context_limits=None):
+    """Replay saved steps without crediting an unfinished episode as complete."""
+    world,memory=_replay_trajectory(record,threshold,bert_tokenizer,qwen_tokenizer,eos,kernel_profile,context_limits,False)
+    return {'case_id':world.scene.case_id,'condition':record['condition'],'responses':len(record['trace']),
+            'prefix_replay_pass':True,'trajectory_complete':not world.running,
+            'outcome_at_boundary':world.outcome(),'memory_at_boundary':memory.snapshot(),
+            'model_forwards':0}
