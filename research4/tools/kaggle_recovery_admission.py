@@ -7,11 +7,12 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src import composite_recovery_admission
 from src import composite_frozen_admission
+from src import composite_frozen_base_admission
 
 parser = argparse.ArgumentParser()
 parser.add_argument('action', choices=['check', 'begin', 'reserve', 'reconcile'])
 parser.add_argument('--campaign-root', required=True)
-parser.add_argument('--stage',choices=['recognition_recovery','frozen_qualification'],default='recognition_recovery')
+parser.add_argument('--stage',choices=['recognition_recovery','frozen_qualification','frozen_base'],default='recognition_recovery')
 parser.add_argument('--preparation')
 parser.add_argument('--snapshot')
 parser.add_argument('--guard-token')
@@ -20,7 +21,8 @@ outcome = parser.add_mutually_exclusive_group()
 outcome.add_argument('--script-version-id', type=int)
 outcome.add_argument('--unknown-outcome', action='store_true')
 args = parser.parse_args()
-admission=composite_recovery_admission if args.stage=='recognition_recovery' else composite_frozen_admission
+admission={'recognition_recovery':composite_recovery_admission,'frozen_qualification':composite_frozen_admission,
+           'frozen_base':composite_frozen_base_admission}[args.stage]
 if args.action in ['check', 'begin', 'reserve'] and not args.preparation:
     parser.error('The exact source/package preparation receipt is required')
 if args.action == 'check':

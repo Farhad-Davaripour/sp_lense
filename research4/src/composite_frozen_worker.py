@@ -117,8 +117,9 @@ def protected_alarm(remaining):
 
 class ForwardBudget:
     """Exact controlled-exit hook counts; durable lower bounds on abrupt kill."""
-    def __init__(self, start, clock, journal, resource_check=lambda:None):
+    def __init__(self, start, clock, journal, resource_check=lambda:None, bounds=None):
         self.start=start; self.clock=clock; self.journal=journal; self.resource_check=resource_check
+        self.bounds=BOUNDS if bounds is None else bounds
         self.attempted=0; self.completed=0
 
     def snapshot(self):
@@ -126,14 +127,14 @@ class ForwardBudget:
                 'source':'observed_root_forward_hooks','at_monotonic':self.clock()}
 
     def check(self):
-        if self.clock()-self.start >= BOUNDS['worker_seconds']-BOUNDS['export_reserve_seconds']:
+        if self.clock()-self.start >= self.bounds['worker_seconds']-self.bounds['export_reserve_seconds']:
             raise TimeoutError('Frozen protected export deadline')
         self.resource_check()
 
     def event(self,event):
         if event=='attempt':
             self.check()
-            if self.attempted >= BOUNDS['maximum_backbone_forwards']:
+            if self.attempted >= self.bounds['maximum_backbone_forwards']:
                 raise TimeoutError('Frozen forward ceiling')
             self.attempted+=1
         elif event=='complete':

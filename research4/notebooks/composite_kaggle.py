@@ -85,6 +85,15 @@ if pin['mode'] == 'frozen-qwen-two-t4-qualification-v1':
     controller = launch(source, source_commit, python, START)
     print(json.dumps(controller), flush=True)
     assert controller['complete_collection_exported'], 'Frozen qualification failed; preserve partial evidence; no retry'
+elif pin['mode'] == 'frozen-base-validation-v1':
+    from src.composite_frozen_base import authorized_load_plan
+    authorized_load_plan(source, source_commit,
+        json.loads((source / 'config/composite_controller_rank32_v2.json').read_text())['qwen'])
+    os.environ['RESEARCH4_EXECUTION_PLATFORM'] = 'kaggle'
+    from src.composite_frozen_base_launch import launch
+    controller = launch(source, source_commit, python, START)
+    print(json.dumps(controller), flush=True)
+    assert controller['complete_collection_exported'], 'Base partition failed; retain partial evidence and reconcile the same run'
 elif pin['mode'] != 'detector-rank32-v5':
     raise PermissionError('Unregistered Kaggle stage')
 else:
