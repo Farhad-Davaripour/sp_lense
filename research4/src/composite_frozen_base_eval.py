@@ -49,7 +49,7 @@ def selected_detector(store, cfg):
 def load_package(context, cache, guard, on_forward, persist_bytes, persist_json):
     from .composite_store import Store, download_model
     from .composite_detector import Detector
-    from .composite_frozen_probe import load_authorized_actor, memory_record
+    from .composite_frozen_probe import load_authorized_actor, memory_record, parameter_records
     from .composite_training import parameter_snapshot, assert_frozen, auxiliary_digest
     from .composite_native_capture import FrozenBaseActor
     import torch
@@ -66,7 +66,12 @@ def load_package(context, cache, guard, on_forward, persist_bytes, persist_json)
     persist_json('DETECTOR_FILE_VERIFICATION.json', files)
     guard()
     detector = Detector(path, cfg['modernbert'], device='cuda:0', head_mode='role_pool')
-    detector.restore(saved); detector.eval().requires_grad_(False); detector.on_forward = on_forward
+    detector.restore(saved); detector.eval().requires_grad_(False)
+    detector_counts = {'attempted': 0, 'completed': 0}
+    def detector_event(event):
+        on_forward(event)
+        detector_counts['attempted' if event == 'attempt' else 'completed'] += 1
+    detector.on_forward = detector_event
     detector_parameters = list(detector.named_parameters()); detector_buffers = list(detector.named_buffers())
     snapshot = parameter_snapshot(detector_parameters)
     auxiliary = auxiliary_digest(detector_parameters, detector_buffers)
@@ -76,6 +81,7 @@ def load_package(context, cache, guard, on_forward, persist_bytes, persist_json)
     persist_json('DETECTOR_PARAMETERS_BEFORE.json', before)
     proxy = FrozenBaseActor(actor, persist_bytes, persist_json, lambda: memory_record(torch.cuda))
     model = RecordingBaseComposite(detector, proxy, 0.9, persist_json).eval().requires_grad_(False)
+    model.detector_forward_counts = detector_counts
     if any(parameter.requires_grad for parameter in model.parameters()) or actor.adapters:
         raise PermissionError('Frozen-base inference cannot expose trainable weights or behavior adapters')
     proof = {'package_kind': 'frozen-base-reference', 'source_commit': commit,
@@ -88,7 +94,11 @@ def load_package(context, cache, guard, on_forward, persist_bytes, persist_json)
         'adapter_OFF_bypass': None, 'adapter_ON_effect': None,
         'full_validation_admitted': False, 'heldout_content_read': False}
     persist_json('FROZEN_BASE_PACKAGE.json', proof)
-    persist_json('QWEN_PARAMETERS_BEFORE.json', actor.frozen_proof())
+    import base64
+    persist_json('DETECTOR_METADATA_BYTES.json', {item['name']: base64.b64encode((path/item['name']).read_bytes()).decode('ascii')
+        for item in pin['files'] if not item['name'].endswith('.safetensors')})
+    persist_json('QWEN_PARAMETERS_BEFORE.json', parameter_records(actor, actor.frozen_snapshot))
+    persist_json('QWEN_AUXILIARY_BEFORE.json', {'sha256': actor.frozen_auxiliary})
 
     def verify():
         actor.verify_frozen(); assert_frozen(snapshot)
@@ -98,7 +108,8 @@ def load_package(context, cache, guard, on_forward, persist_bytes, persist_json)
             {'name': name, 'sha256': fingerprint, 'version': version, 'shape': list(parameter.shape),
              'dtype': str(parameter.dtype), 'device': str(parameter.device), 'requires_grad': parameter.requires_grad}
             for name, parameter, version, fingerprint in parameter_snapshot(detector_parameters)])
-        persist_json('QWEN_PARAMETERS_AFTER.json', actor.frozen_proof())
+        persist_json('QWEN_PARAMETERS_AFTER.json', parameter_records(actor))
+        persist_json('QWEN_AUXILIARY_AFTER.json', {'sha256': auxiliary_digest(actor.base_references, actor.base_buffers)})
     return model, proof, verify
 
 

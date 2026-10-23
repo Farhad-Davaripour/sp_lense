@@ -45,11 +45,18 @@ the extra parity response, within the original30000ceiling. A runtime overlay
 must provide protected export time, one owned worker and verified post-exit
 cleanup. An incomplete trajectory remains missing, never a zero-valued result.
 
-This library is engineering preparation. No notebook route, worker submission
-or held-out opening is enabled by importing it. Before deployment, a bounded
-child/export controller, independent full raw-trajectory/feature audit and
-source-bound single-copy ledger admission must be implemented and checked.
-Each partition needs the same reviewed source/model/config freeze and a fresh
-cross-workspace worker reconciliation. The user has already authorized necessary
+The registered bounded child uses the shared owned-process controller and
+post-exit cache cleanup. The base raw auditor reconstructs the original
+tokenizers from verified metadata and replays complete trajectories, detector
+probabilities/evidence, native decoding/cache, lossless features and exact joint
+forward accounting without model calls. It retains context-budget terminations
+as observed failures. Six independently audited and released partitions are
+required for the36-case base aggregate; its full-system admission stays false.
+
+Each submission needs the same reviewed source/model/config freeze and a fresh
+cross-workspace worker reconciliation under the shared guard. The separate
+partition identity is consumed before the one UI submission and persists after
+an ambiguous outcome. No import or packaging command submits compute. The user
+has already authorized necessary
 continuation without renewed compute-approval questions. Paid services and the
 stopped Databricks schedules remain outside this Kaggle continuation.

@@ -21,7 +21,7 @@ def output_owned(target,source_commit,token):
     except (OSError,ValueError):return False
 
 
-def observed_exit_counts(target, source_commit, child_state, owner_token=None):
+def observed_exit_counts(target, source_commit, child_state, owner_token=None, mode=MODE, maximum_forwards=400):
     raw=Path(target)/'raw'; journal=None
     try: journal=read(raw/'FORWARD_COUNTS.json')
     except (OSError,ValueError): pass
@@ -34,11 +34,11 @@ def observed_exit_counts(target, source_commit, child_state, owner_token=None):
     try:
         receipt=read(raw/'RUN_RECEIPT.json')
         counts=receipt['forward_counts']
-        valid=(receipt['source_commit']==source_commit and receipt['stage']==MODE and receipt['worker_exiting'] is True
+        valid=(receipt['source_commit']==source_commit and receipt['stage']==mode and receipt['worker_exiting'] is True
                and receipt['counts_exact_at_controlled_exit'] is True
                and journal.get('sealed_for_exit') is True
                and all(type(counts[key]) is int and counts[key]==journal[key] for key in ['attempted','completed'])
-               and 0<=counts['completed']<=counts['attempted']<=400)
+               and 0<=counts['completed']<=counts['attempted']<=maximum_forwards)
         if child_state.get('child_exit_confirmed') is True and valid:
             return {'counts_exact_at_exit':True,'forward_counts':counts,
                     'source':'sealed_controlled_worker_exit','last_durable_counts':journal}
@@ -47,15 +47,15 @@ def observed_exit_counts(target, source_commit, child_state, owner_token=None):
             'source':'abrupt_or_unconfirmed_exit','last_durable_counts':journal}
 
 
-def preserve_after_exit(target, source_commit, child_state, observation):
+def preserve_after_exit(target, source_commit, child_state, observation, mode=MODE, archive_name='FROZEN_EVIDENCE.zip'):
     target=Path(target)
     if child_state.get('child_exit_confirmed') is not True:
         raise PermissionError('Cannot snapshot or rewrite artifacts while the child may be live')
-    export=target/'EXPORT_RECEIPT.json'; archive=target/'FROZEN_EVIDENCE.zip'
+    export=target/'EXPORT_RECEIPT.json'; archive=target/archive_name
     if export.exists() and archive.exists():
         try:
             value=read(export)
-            if value['source_commit']!=source_commit or value['stage']!=MODE or sha(archive)!=value['archive_sha256']:
+            if value['source_commit']!=source_commit or value['stage']!=mode or sha(archive)!=value['archive_sha256']:
                 raise ValueError('Worker export source/SHA differs')
             verify_evidence_archive(archive.read_bytes())
             return {'evidence_kind':'original_worker_export','archive':str(archive),
@@ -113,22 +113,24 @@ def launch(root, commit, python, stage_started, _services=None):
     root=Path(root); config=read(root/'config/composite_controller_rank32_v2.json')['qwen']
     context=services.authorize(root,commit,config); services.runtime()
     pin=context['pin']; target=output_target(pin['destination'],commit,'0'*32,services.output_base)
-    if pin['disk_policy']!=DISK_POLICY: raise ValueError('Frozen launch disk policy differs')
+    mode=getattr(services,'mode',MODE);bounds=getattr(services,'bounds',BOUNDS)
+    policy=getattr(services,'disk_policy',DISK_POLICY)
+    if pin['mode']!=mode or pin['disk_policy']!=policy: raise ValueError('Frozen launch mode/disk policy differs')
     controller=Path(pin['controller_root']).resolve(); base=Path(services.controller_base).resolve()
     if controller==base or not controller.is_relative_to(base) or commit not in controller.parts:
         raise ValueError('Controller escaped its source-bound Research4 namespace')
-    remaining=BOUNDS['hard_timeout_seconds']-int(services.clock()-stage_started)-30
+    remaining=bounds['hard_timeout_seconds']-int(services.clock()-stage_started)-30
     if remaining<=15: raise TimeoutError('No bounded stage time remains for an owned child')
     controller.mkdir(parents=True,exist_ok=False)
     token=uuid.uuid4().hex; cache=pin['cache_root']
     state={'child_started':False,'child_exit_confirmed':True,'pid':None,'exit_code':None}
     receipt={'source_commit':commit,'mode':pin['mode'],'notebook':pin['notebook'],
              'status':'launching','heldout_content_read':False,'automatic_scientific_retries':0,
-             'external_timeout_seconds':remaining,'worker_bounds':BOUNDS,'cache_owner_token':token}
+             'external_timeout_seconds':remaining,'worker_bounds':bounds,'cache_owner_token':token}
     result=None
     try:
         services.create_cache(cache,commit,token)
-        command=[python,'-m','src.composite_frozen_worker','--root',str(root),'--commit',commit,
+        command=[python,'-m',getattr(services,'worker_module','src.composite_frozen_worker'),'--root',str(root),'--commit',commit,
                  '--destination',str(target),'--cache',cache,'--owner-token',token]
         state.update(child_started=None,child_exit_confirmed=False)
         result=services.runner(command,root,child_environment(cache,pin),controller/'WORKER_LOG.txt',remaining,
@@ -138,7 +140,7 @@ def launch(root, commit, python, stage_started, _services=None):
         receipt.update(status='controller_exception',error_type=type(error).__name__,error=str(error))
     finally:
         receipt['child_state']=dict(state)
-        receipt['counts']=observed_exit_counts(target,commit,state,token)
+        receipt['counts']=observed_exit_counts(target,commit,state,token,mode,bounds['maximum_backbone_forwards'])
         if state.get('child_exit_confirmed') is True:
             # The owned cache is removed only after the Popen wait/poll confirmed exit.
             try: receipt['cleanup']=services.cleanup(cache,commit,token,True)
@@ -149,7 +151,8 @@ def launch(root, commit, python, stage_started, _services=None):
                 try: receipt['reserve_release']=release_export_space(target,commit,token)
                 except Exception as error: receipt['reserve_release_error']=str(error)
             if target.exists() and owns_output:
-                try: receipt['evidence']=preserve_after_exit(target,commit,state,receipt)
+                try: receipt['evidence']=preserve_after_exit(target,commit,state,receipt,mode,
+                        getattr(services,'archive_name','FROZEN_EVIDENCE.zip'))
                 except Exception as error: receipt['evidence_error']=str(error)
         else:
             receipt['cleanup']={'owned_cache_removed':False,'reason':'child exit unconfirmed; cache preserved'}

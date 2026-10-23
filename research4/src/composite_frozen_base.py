@@ -4,13 +4,14 @@ This module has no submission API. A frozen-base result cannot qualify the
 behavior adapter, the other four controls, or held-out admission.
 """
 import hashlib
+import base64
 import json
 from pathlib import Path
 import re
 
 from .io_utils import read, sha, digest, verify_release
 from .composite_runtime import FrozenInputs
-from .composite_frozen_probe import ORIGINAL_INPUTS, PROFILE_FILE, verified_model_context
+from .composite_frozen_probe import ORIGINAL_INPUTS, TRANSPORT, PROFILE_FILE, verified_model_context
 
 MODE = 'frozen-base-validation-v1'
 AUTHORIZATION = 'FROZEN_BASE_AUTHORIZATION.json'
@@ -92,6 +93,19 @@ def validate_parents(inputs):
     return values
 
 
+def validate_transport(data):
+    manifest = read(data.root/'TRANSPORT_MANIFEST.json')
+    raw = base64.b64decode(manifest['parent_transport_manifest_bytes'], validate=True)
+    if hashlib.sha256(raw).hexdigest() != TRANSPORT:
+        raise ValueError('The original transport manifest changed')
+    original = json.loads(raw)['files']
+    expected = {**original, EPISODES: EPISODES_SHA256, DETECTOR_ARCHIVE: DETECTOR_ARCHIVE_SHA256}
+    if (manifest['files'] != expected or manifest.get('heldout_transferred') is not False
+        or manifest.get('version') != 'frozen-base-kaggle-inputs-v1'):
+        raise ValueError('The base transport must retain every original input and only the two registered additions')
+    return expected
+
+
 def authorized_load_plan(root, commit, config, transport=None):
     """Strict source/input/authority binding before downloads or native loading."""
     root = Path(root)
@@ -113,9 +127,10 @@ def authorized_load_plan(root, commit, config, transport=None):
         raise ValueError('Actor configuration differs from the original protocol')
     validate_parents(root / 'inputs')
     data = FrozenInputs(pin['input_root'] if transport is None else transport, pin['transport_manifest_sha256'])
+    validate_transport(data)
     scenes = roster(data.get(EPISODES), cfg)
     plan = read(root / 'inputs' / PLAN)
-    if plan != partition_plan(scenes, plan['partition']):
+    if plan != partition_plan(scenes, plan['partition']) or pin['partition'] != plan['partition']:
         raise ValueError('Frozen-base partition/claims differ from the original control')
     release = data.json('data_v1/DATA_RELEASE.json')
     if (release['cohorts']['validation']['files']['EPISODES.json'] != EPISODES_SHA256

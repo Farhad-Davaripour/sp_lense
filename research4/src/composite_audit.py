@@ -73,26 +73,36 @@ def diagnose_detector(value,rows):
     return {'kind':'detector_diagnosis','threshold':value['threshold'],'states':len(records),'confusion':{k:[{'gold':a,'prediction':b,'count':v} for (a,b),v in sorted(c.items())] for k,c in confusion.items()},'by_condition':[{'template':t,'condition':name,**dict(v)} for (t,name),v in sorted(by_condition.items())],'gate_error_examples':misses,'gate_error_count':len(misses),'raw_gate_replay_pass':True,'model_forwards':0,'optimizer_updates':0,'heldout_content_read':False}
 
 
-def audit_observation(world,observation,memory,threshold,bert_tokenizer=None):
+def audit_observation(world,observation,memory,threshold,bert_tokenizer=None,maximum_tokens=None):
     text,span=world.visible()
+    encoded=None;context_failure=False
+    if maximum_tokens is not None:
+        if bert_tokenizer is None:raise ValueError('Context-budget replay requires the original tokenizer')
+        encoded=bert_tokenizer(text,return_offsets_mapping=True,add_special_tokens=True,truncation=False)
+        context_failure=len(encoded['input_ids'])>maximum_tokens
+        if context_failure:world.running=False;world.reason='external_context_budget'
     if observation['text']!=text or observation['evaluator']!=world.truth() or observation['evidence_chars']!=list(span) or observation['sequence']!=world.sequence:raise ValueError('Observation/evidence replay differs')
     p=observation['memory']['prediction'];prediction=Prediction(**p)
-    if bert_tokenizer is not None:
+    if context_failure:
+        expected=Prediction('unknown','unknown','unknown','unknown',0.,0,0,'',{'context_budget_failure':True})
+        if prediction!=expected:raise ValueError('External detector context failure was altered or treated as a model prediction')
+    elif bert_tokenizer is not None:
         audit_prediction(p,text,threshold)
-        encoded=bert_tokenizer(text,return_offsets_mapping=True,add_special_tokens=True,truncation=False)
+        if encoded is None:encoded=bert_tokenizer(text,return_offsets_mapping=True,add_special_tokens=True,truncation=False)
         if encoded['input_ids']!=p['raw'].get('input_token_ids') or [list(v) for v in encoded['offset_mapping']]!=p['raw'].get('offsets'):raise ValueError('Detector tokenizer provenance differs')
     memory.observe(world.scene.case_id,world.sequence,prediction,text,threshold,external_terminal=not world.running)
     if memory.snapshot()!=observation['memory']:raise ValueError('Persistent predicted state replay differs')
 
 
-def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference'):
+def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eos=None,kernel_profile='reference',context_limits=None):
     environment=record.get('environment','legacy-world')
     if environment not in ['legacy-world',ENVIRONMENT]:raise ValueError('Unknown recorded environment')
     world=(BoundedWorld if environment==ENVIRONMENT else World)(Scene(**record['scene']));memory=EpisodeMemory()
     memory.cache_epoch=record['initial_observation']['memory']['cache_epoch']-2
     if memory.cache_epoch<0:raise ValueError('Invalid initial cache epoch')
     memory.reset(world.scene.case_id,world.worker,world.peer)
-    audit_observation(world,record['initial_observation'],memory,threshold,bert_tokenizer);initial=memory.applied_gate
+    detector_limit=None if context_limits is None else context_limits['detector']
+    audit_observation(world,record['initial_observation'],memory,threshold,bert_tokenizer,detector_limit);initial=memory.applied_gate
     for step in record['trace']:
         if not world.running:raise ValueError('Model called after external terminal')
         response=step['response'];mode=record['condition'];gate={'base':False,'always_on':True,'initial_gate':initial,'learned_dynamic':memory.applied_gate,'oracle_dynamic':world.truth()['gate']}[mode]
@@ -101,7 +111,9 @@ def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eo
         if response['memory_before_response']!=memory.snapshot() or response['selected_gate']!=gate or response['adapter_enabled']!=gate:raise ValueError('Response routing or memory differs')
         if response['predicted_gate']!=memory.raw_gate or response['evaluator_gate']!=world.truth()['gate']:raise ValueError('Response evaluator log differs')
         if qwen_tokenizer is not None:
-            if response['input_token_ids']!=input_ids(qwen_tokenizer,world.visible()[0]):raise ValueError('Qwen received another prompt')
+            expected_ids=input_ids(qwen_tokenizer,world.visible()[0])
+            if context_limits is not None and len(expected_ids)>context_limits['actor']:raise ValueError('Executed actor context exceeded its frozen ceiling')
+            if response['input_token_ids']!=expected_ids:raise ValueError('Qwen received another prompt')
             if response['raw_text']!=decode(qwen_tokenizer,response['generated_token_ids'],eos):raise ValueError('Native response token decode differs')
             ended=bool(response['generated_token_ids'] and response['generated_token_ids'][-1] in eos)
             if ended!=response['finished_with_eos']:raise ValueError('Native EOS provenance differs')
@@ -112,8 +124,11 @@ def audit_trajectory(record,threshold,bert_tokenizer=None,qwen_tokenizer=None,eo
         action=response['actions'][0] if response['actions'] else None
         if action!=step['executed_action']:raise ValueError('Evaluator replaced native action')
         memory.end_response();reply=world.step(action)
-        if reply!=step['reply'] or world.outcome()!=step['outcome']:raise ValueError('Tool execution replay differs')
-        audit_observation(world,step['observation_after'],memory,threshold,bert_tokenizer)
+        if reply!=step['reply']:raise ValueError('Tool execution reply replay differs')
+        audit_observation(world,step['observation_after'],memory,threshold,bert_tokenizer,detector_limit)
+        if world.outcome()!=step['outcome']:raise ValueError('Tool execution outcome replay differs after observation')
+    if world.running and context_limits is not None and qwen_tokenizer is not None and len(input_ids(qwen_tokenizer,world.visible()[0]))>context_limits['actor']:
+        world.running=False;world.reason='external_context_budget';memory.terminal=True;memory.applied_gate=False
     if world.running or world.outcome()!=record['outcome'] or memory.snapshot()!=record['terminal_memory']:raise ValueError('Incomplete or inconsistent terminal trajectory')
     # Independent task arithmetic, in addition to replay through the simulator.
     for operation in world.operations:

@@ -11,8 +11,10 @@ The complete1200-update recognition run361470090 and fixed two-prompt frozen
 Qwen qualification361504592 are independently audited and released. The next
 original-base-control library retains all36validation scenes and leaves all
 five full-system controls required; its separate typed package cannot admit
-held-out cases or stand in for adapter effects. It has no notebook submission
-route yet. Complete its worker/export/audit/admission plumbing before allocation.
+held-out cases or stand in for adapter effects. Its separate registered worker,
+export lifecycle and raw replay use the shared single-writer ledger. All six
+whole-scene partitions require one reviewed scientific source/model/input freeze;
+never rerun a consumed partition or submit from an unmerged/different source.
 Keep Databricks account configurations and archives intact, and leave its
 scheduled checks stopped. The shared composite runner supports a frozen,
 read-only Kaggle input manifest and dedicated local artifact exports; do not
