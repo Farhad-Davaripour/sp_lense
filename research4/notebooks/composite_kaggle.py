@@ -1,5 +1,6 @@
 # Kaggle notebook cell. The operator supplies the exact reviewed bundle SHA.
 import hashlib
+import base64
 import json
 import os
 from pathlib import Path
@@ -50,6 +51,20 @@ else:
         assert hashlib.sha256(data).hexdigest() == expected
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
+contents_file = root / 'PACKAGE_FILES.json'
+assert hashlib.sha256(contents_file.read_bytes()).hexdigest() == RESEARCH4_PACKAGE_FILES_SHA256
+contents = json.loads(contents_file.read_text())
+for relative, descriptor in contents.get('encoded_files', {}).items():
+    stored = (root / descriptor['stored_path']).resolve()
+    target = (root / relative).resolve()
+    assert stored.is_relative_to(root.resolve()) and target.is_relative_to(root.resolve())
+    assert '\\' not in relative and '\\' not in descriptor['stored_path']
+    if relative.startswith('artifacts/'):
+        assert 'heldout' not in relative.lower()
+    decoded = base64.b64decode(stored.read_bytes(), validate=True)
+    assert hashlib.sha256(decoded).hexdigest() == descriptor['decoded_sha256']
+    with target.open('xb') as stream:
+        stream.write(decoded)
 source = root / 'source'
 pin = json.loads((source / 'inputs/EXECUTION_PLATFORM.json').read_text())
 assert pin['source_commit'] == source_commit and pin['scientific_retries'] == 0
