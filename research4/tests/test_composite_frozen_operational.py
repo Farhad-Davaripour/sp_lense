@@ -10,6 +10,7 @@ from src.composite_cuda_maintenance import UnusedAllocatorReclaimer
 from src.io_utils import sha
 import test_composite_cuda_maintenance as maintenance_fixtures
 from src.composite_frozen_operational_audit import audit_operational_evidence,aggregate_versioned
+from src import composite_frozen_operational_audit as operational_audit
 
 
 class OperationalTests(unittest.TestCase):
@@ -144,6 +145,55 @@ class OperationalTests(unittest.TestCase):
                 partial=json.loads(closeouts[3].read_text());partial['complete_base_partition_audited']=False
                 closeouts[3].write_text(json.dumps(partial))
                 with self.assertRaises(ValueError):call(closeouts)
+
+    def test_detector_terminal_overflow_never_invents_an_actor_maintenance_call(self):
+        from test_composite_frozen_base_audit import BaseAuditTests
+        from src.composite_frozen_base_audit import audit_trajectory
+        for detector_overflow in [True,False]:
+            with self.subTest(detector_overflow=detector_overflow):
+                actor_attempts=[]
+                record,bt,qt=BaseAuditTests().context_fixture(detector_overflow=detector_overflow,
+                    actor_overflow=True,on_actor_attempt=actor_attempts.append)
+                audit_trajectory(record,.9,bt,qt,{3},'reference',{'detector':2048,'actor':6144})
+                self.assertEqual(len(record['trace']),1)
+                self.assertEqual(len(actor_attempts),1 if detector_overflow else 2)
+                self.assertGreater(len(qt.apply_chat_template([{'content':record['trace'][-1]['observation_after']['text']}])),6144)
+                operation_profile=operation.document('a'*40,4)
+                context={'operational_profile':operation_profile,'source_commit':'a'*40}
+                values={};cuda=maintenance_fixtures.FakeCUDA()
+                actor=SimpleNamespace(frozen_analysis_only=True,adapters={},generating=False,kernel_profile='reference',clear_cache=lambda:None)
+                maintenance=UnusedAllocatorReclaimer(cuda,lambda name,value:values.__setitem__(name,value))
+                # The original first-response parity contributes one call;
+                # every actually entered actor.generate contributes another.
+                for _ in range(len(actor_attempts)+1):maintenance.before_generation(actor)
+                class Files:
+                    def json(self,name):return {key:'sha' for key in values} if name=='MANIFEST.json' else values[name]
+                replayed={'native_responses':1,'expected_joint_forwards':5 if detector_overflow else 6}
+                report=audit_operational_evidence(Files(),context,{'operational_profile':operation_profile},
+                    [record],replayed,None,qt,{3})
+                self.assertEqual(report['maintenance']['maintenance_calls'],2 if detector_overflow else 3)
+                saved=copy.deepcopy(values);maintenance.before_generation(actor)
+                with self.assertRaises(ValueError):audit_operational_evidence(Files(),context,{'operational_profile':operation_profile},
+                    [record],replayed,None,qt,{3})
+                values.clear();values.update(saved);values.pop(sorted(values)[-1])
+                with self.assertRaises(ValueError):audit_operational_evidence(Files(),context,{'operational_profile':operation_profile},
+                    [record],replayed,None,qt,{3})
+
+    def test_reader_release_identity_is_distinct_and_cannot_hide_changed_reader_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);module=root/'src/composite_frozen_operational_audit.py'
+            module.parent.mkdir();module.write_bytes(b'synthetic reader identity fixture')
+            with patch.object(operational_audit,'__file__',str(module)):
+                identity=operational_audit.audit_reader_identity()
+                self.assertEqual(identity['profile'],operational_audit.AUDIT_READER_PROFILE)
+                self.assertIsNone(identity['source_commit']);self.assertFalse(identity['source_release_verified'])
+                (root/'RELEASE.json').write_text(json.dumps({'commit':'a'*40,
+                    'files':{'src/composite_frozen_operational_audit.py':sha(module)}}))
+                identity=operational_audit.audit_reader_identity()
+                self.assertEqual(identity['source_commit'],'a'*40);self.assertTrue(identity['source_release_verified'])
+                self.assertEqual(identity['module_sha256'],sha(module))
+                module.write_bytes(b'mutated reader bytes')
+                with self.assertRaisesRegex(ValueError,'reader'):operational_audit.audit_reader_identity()
 
 
 if __name__=='__main__':unittest.main()

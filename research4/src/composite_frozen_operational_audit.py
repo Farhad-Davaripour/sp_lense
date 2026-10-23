@@ -6,6 +6,24 @@ from .composite_frozen_base_audit import audit_instrumentation
 from .composite_interface import input_ids
 from .composite_frozen_continuation import ORIGINAL_SOURCE
 
+AUDIT_READER_PROFILE='frozen-base-operational-audit-reader-v2'
+
+
+def audit_reader_identity():
+    """Disclose reader bytes separately from the immutable worker source."""
+    from pathlib import Path
+    from .io_utils import read,sha,verify_release
+    module=Path(__file__).resolve();root=module.parents[1];release_file=root/'RELEASE.json'
+    identity={'profile':AUDIT_READER_PROFILE,'module_sha256':sha(module),
+        'source_commit':None,'source_release_sha256':None,'source_release_verified':False}
+    if release_file.is_file():
+        release=read(release_file)
+        if release['files'].get('src/composite_frozen_operational_audit.py')!=identity['module_sha256']:
+            raise ValueError('The actual audit reader is not bound by its source release')
+        verify_release(root,release['commit'])
+        identity.update(source_commit=release['commit'],source_release_sha256=sha(release_file),source_release_verified=True)
+    return identity
+
 
 def audit_maintenance(files,expected_calls):
     names=sorted(name for name in files.json('MANIFEST.json') if name.startswith('maintenance/'))
@@ -69,13 +87,19 @@ def audit_operational_evidence(files,context,package,records,replayed,store,qt,e
     actor_budget_stops=0
     for record in records:
         observation=record['trace'][-1]['observation_after'] if record['trace'] else record['initial_observation']
-        if record['outcome']['reason']=='external_context_budget' and len(input_ids(qt,observation['text']))>6144:
+        # A detector overflow already terminates observe(), so the controller
+        # never enters the actor on that observation even if its prompt would
+        # also overflow. An actor-only refusal does enter the proxy and runs
+        # maintenance before the native actor rejects its context.
+        detector_stopped=observation['memory']['prediction']['raw'].get('context_budget_failure') is True
+        if (record['outcome']['reason']=='external_context_budget' and not detector_stopped
+            and len(input_ids(qt,observation['text']))>6144):
             actor_budget_stops+=1
     # One current-run uninstrumented comparison is required for both ordinary
     # operational runs and a continuation's first newly executed response.
     expected_calls=replayed['native_responses']-preserved+1+actor_budget_stops
     maintenance=audit_maintenance(files,expected_calls)
-    return {'profile':PROFILE,'source_relationship':operation['source_relationship'],
+    return {'profile':PROFILE,'audit_reader':audit_reader_identity(),'source_relationship':operation['source_relationship'],
         'original_scientific_source_commit':operation['original_scientific_source_commit'],
         'new_operational_source_commit':context['source_commit'],'expected_current_run_forwards':expected_current,
         'preserved_parent_native_responses':preserved,'parent_sealed_forward_counts':parent_counts,
