@@ -107,7 +107,7 @@ def verify_feature_bytes(raw, descriptor, layers=64, hidden_size=5120, vocabular
 
 class FrozenBaseActor(nn.Module):
     """Base-only proxy; prediction state never selects an intervention."""
-    def __init__(self, actor, persist_bytes, persist_json, memory_observer=lambda:None, before_generation=None):
+    def __init__(self, actor, persist_bytes, persist_json, memory_observer=lambda:None, before_generation=None, parity_prefix=''):
         super().__init__()
         if not getattr(actor, 'frozen_analysis_only', False) or actor.adapters:
             raise PermissionError('Only a frozen unadapted native actor may enter the base control')
@@ -116,6 +116,9 @@ class FrozenBaseActor(nn.Module):
         if before_generation is not None and not callable(before_generation):
             raise TypeError('Optional maintenance must be a registered callable')
         self.before_generation = before_generation
+        if parity_prefix not in ['', 'continuation_parity/']:
+            raise PermissionError('Unregistered instrumentation-proof namespace')
+        self.parity_prefix=parity_prefix
         self.no_op_checked = False; self.lock = threading.RLock()
 
     def clear_cache(self):
@@ -143,8 +146,8 @@ class FrozenBaseActor(nn.Module):
                 baseline, uninstrumented = self._generate(text, False)
                 stream = io.BytesIO(); np.save(stream, uninstrumented.logits, allow_pickle=False)
                 baseline_bytes = stream.getvalue()
-                self.persist_bytes('BASELINE_PREFILL_LOGITS.npy', baseline_bytes)
-                self.persist_json('BASELINE_NATIVE_RESPONSE.json', baseline)
+                self.persist_bytes(self.parity_prefix+'BASELINE_PREFILL_LOGITS.npy', baseline_bytes)
+                self.persist_json(self.parity_prefix+'BASELINE_NATIVE_RESPONSE.json', baseline)
             result, captured = self._generate(text, True)
             raw, descriptor = captured.encoded()
             name = 'features/response_' + str(self.response_index).zfill(5) + '.npz'
@@ -157,7 +160,7 @@ class FrozenBaseActor(nn.Module):
                 fields = ['input_token_ids', 'generated_token_ids', 'raw_text', 'actions', 'finished_with_eos']
                 equal = all(baseline[key] == result[key] for key in fields)
                 logits_equal = np.array_equal(uninstrumented.logits, captured.logits)
-                self.persist_json('INSTRUMENTATION_PARITY.json', {
+                self.persist_json(self.parity_prefix+'INSTRUMENTATION_PARITY.json', {
                     'kind': 'matched-prefix-layer-capture-no-op', 'baseline_generation': baseline,
                     'captured_generation': result, 'exact_native_outputs_equal': equal,
                     'exact_prefill_logits_equal': logits_equal,

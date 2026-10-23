@@ -1,4 +1,6 @@
-import copy
+import copy,hashlib,json,tempfile
+from pathlib import Path
+from unittest.mock import patch
 from torch import nn
 import unittest
 from src.composite_controller import Composite,rollout
@@ -7,6 +9,8 @@ from src.composite_world import fixture
 from src.composite_frozen_continuation import (validate_checkpoint,restore_tool_boundary,
     continue_base_rollout,ORIGINAL_SOURCE,PARENT_ARCHIVE_SHA256)
 from src.io_utils import digest
+from src import composite_frozen_continuation as continuation
+from src.composite_exports import make_evidence_archive
 
 
 class Detector(nn.Module):
@@ -81,6 +85,44 @@ class ContinuationTests(unittest.TestCase):
                 elif kind=='prefix':value['trace'][0]['reply']={'changed':True}
                 else:value['trace']=value['trace'][:13]
                 with self.assertRaises((ValueError,PermissionError)):validate_checkpoint(value,cert)
+
+    def test_restore_receipt_is_durable_before_any_new_forward_even_if_future_work_fails(self):
+        scene,record,certificate=self.fixture();model=Composite(Detector(),Actor(),.9);saved=[]
+        def guard():
+            self.assertEqual(len(saved),1);self.assertEqual(model.actor.calls,0)
+            raise RuntimeError('synthetic future worker failure')
+        with self.assertRaisesRegex(RuntimeError,'future worker'):
+            continue_base_rollout(model,scene,record,certificate,guard,on_restore=saved.append)
+        self.assertEqual(saved[0]['preserved_native_responses'],14)
+
+    def test_prefix_copy_keeps_exact_bytes_and_requires_equal_reloaded_frozen_tensors(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);evidence=root/'raw';evidence.mkdir()
+            qwen={'weight':{'sha256':'a'*64,'logical_shape':[2,3],'device':'cuda:0',
+                'dtype':'torch.bfloat16','requires_grad':False,'version':1}}
+            detector=[{'name':'weight','sha256':'b'*64,'shape':[2,3],'device':'cuda:0',
+                'dtype':'torch.float32','requires_grad':False,'version':1}]
+            for name,value in [('QWEN_PARAMETERS_BEFORE.json',qwen),('DETECTOR_PARAMETERS_BEFORE.json',detector),
+                ('QWEN_AUXILIARY_BEFORE.json',{'sha256':'c'*64}),('BASELINE_NATIVE_RESPONSE.json',{'original':'native'}),
+                ('responses/response_00000.json',{'original':'response'}),('steps/case_001.json',{'original':'step'})]:
+                target=evidence/name;target.parent.mkdir(exist_ok=True);target.write_text(json.dumps(value))
+            archive=root/'archive.zip';make_evidence_archive(evidence,archive);raw=archive.read_bytes();copied={}
+            current_qwen=copy.deepcopy(qwen);current_qwen['weight']['version']=99
+            current_detector=copy.deepcopy(detector);current_detector[0]['version']=99
+            certificate={'source_commit':ORIGINAL_SOURCE}
+            with patch.object(continuation,'PARENT_ARCHIVE_SHA256',hashlib.sha256(raw).hexdigest()):
+                result=continuation.preserve_parent_prefix(raw,certificate,copied.__setitem__,current_qwen,current_detector,'c'*64)
+                self.assertEqual(result['copied_members'],3)
+                self.assertTrue(result['reloaded_frozen_tensor_bytes_equal'])
+                self.assertEqual(copied['steps/case_001.json'],(evidence/'steps/case_001.json').read_bytes())
+                for kind in ['tensor','auxiliary','geometry','archive']:
+                    value=copy.deepcopy(current_qwen);aux='c'*64;candidate=raw
+                    if kind=='tensor':value['weight']['sha256']='d'*64
+                    elif kind=='auxiliary':aux='d'*64
+                    elif kind=='geometry':value['weight']['logical_shape']=[3,2]
+                    else:candidate+=b'changed'
+                    with self.subTest(kind=kind),self.assertRaises(ValueError):
+                        continuation.preserve_parent_prefix(candidate,certificate,lambda *args:self.fail('copy after identity failure'),value,current_detector,aux)
 
 
 if __name__=='__main__':unittest.main()

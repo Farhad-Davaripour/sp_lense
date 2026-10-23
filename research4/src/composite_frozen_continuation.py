@@ -73,6 +73,37 @@ def prefix_from_parent(raw,certificate,scene):
     return record
 
 
+def preserve_parent_prefix(raw,certificate,persist_bytes,current_qwen,current_detector,current_auxiliary):
+    """Copy sealed CPU evidence; require the same frozen tensor bytes on reload."""
+    if hashlib.sha256(raw).hexdigest()!=PARENT_ARCHIVE_SHA256:
+        raise ValueError('The failed parent archive changed before prefix transfer')
+    verify_evidence_archive(raw)
+    with zipfile.ZipFile(io.BytesIO(raw)) as stream:
+        parent_qwen=json.loads(stream.read('QWEN_PARAMETERS_BEFORE.json'))
+        parent_detector=json.loads(stream.read('DETECTOR_PARAMETERS_BEFORE.json'))
+        parent_aux=json.loads(stream.read('QWEN_AUXILIARY_BEFORE.json'))['sha256']
+        if set(parent_qwen)!=set(current_qwen) or parent_aux!=current_auxiliary:
+            raise ValueError('Reloaded frozen Qwen coverage/quantization buffers differ from the failed parent')
+        for name,value in parent_qwen.items():
+            if any(current_qwen[name][key]!=value[key] for key in ['sha256','logical_shape','device','dtype','requires_grad']):
+                raise ValueError('Reloaded frozen Qwen tensor bytes/geometry differ from the failed parent')
+        before={item['name']:item for item in parent_detector};after={item['name']:item for item in current_detector}
+        if set(before)!=set(after) or any(any(after[name][key]!=value[key] for key in ['sha256','shape','dtype','device','requires_grad']) for name,value in before.items()):
+            raise ValueError('Reloaded detector tensor bytes/geometry differ from the admitted parent')
+        manifest=json.loads(stream.read('MANIFEST.json'))
+        names=sorted(name for name in manifest if name.startswith(('features/','responses/','steps/','observations/'))
+            or name in ['BASELINE_NATIVE_RESPONSE.json','BASELINE_PREFILL_LOGITS.npy','INSTRUMENTATION_PARITY.json'])
+        proof={}
+        for name in names:
+            value=stream.read(name)
+            if hashlib.sha256(value).hexdigest()!=manifest[name]:raise ValueError('Copied parent prefix bytes differ')
+            persist_bytes(name,value);proof[name]=manifest[name]
+    return {'profile':PROFILE,'parent_run_id':PARENT_RUN,'parent_archive_sha256':PARENT_ARCHIVE_SHA256,
+        'parent_prefix_audit_source':certificate['source_commit'],'copied_member_hashes':proof,
+        'copied_members':len(proof),'model_forwards_during_copy':0,'reloaded_frozen_tensor_bytes_equal':True,
+        'exact_interrupted_generation_resume':False,'parent_interrupted_response_forwards_retained':1}
+
+
 def restore_tool_boundary(composite,scene,record,certificate,tokenizers=None,eos=None):
     """Reconstruct inert state with saved actions; never call either backbone."""
     proof=validate_checkpoint(record,certificate)
@@ -92,7 +123,8 @@ def restore_tool_boundary(composite,scene,record,certificate,tokenizers=None,eos
     return world,deepcopy(record['trace']),proof
 
 
-def continue_base_rollout(composite,scene,record,certificate,guard,progress=None,tokenizers=None,eos=None):
+def continue_base_rollout(composite,scene,record,certificate,guard,progress=None,tokenizers=None,eos=None,on_restore=None):
     world,trace,proof=restore_tool_boundary(composite,scene,record,certificate,tokenizers,eos)
+    if on_restore is not None:on_restore(proof)
     value=_rollout_from_world(composite,world,'base',guard,trace,progress)
     return value,proof

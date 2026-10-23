@@ -114,3 +114,38 @@ that response requires an explicitly versioned recovery execution profile and
 counter/source provenance; it cannot reuse or reset the failed allowance, claim
 an identical old common freeze, or silently count original partial work as zero.
 The library alone supplies no worker, submission route or recovery admission.
+
+## Explicit operational version2
+
+The separate `frozen-base-unused-cache-operational-v2` descriptor registers
+maintenance for the remaining original partitions03–05. Partition03 copies
+the14complete native responses, activations, tool steps and observations from
+the exact sealed failed archive. Reloaded frozen Qwen/detector tensor hashes
+must equal the parent before continuation; per-process version counters are
+not cross-run tensor identities. The simulator and predicted memory are
+reconstructed at tool boundary14 without backbone calls. Its restoration
+receipt is durable before future work. The interrupted response is generated
+afresh with a fresh native cache; its one prior forward remains charged to the
+preserved1260-forward parent. This is not exact interrupted-generation resume.
+
+The first new response gets a separate uninstrumented/captured comparison in
+`continuation_parity/`, preserving the parent's original comparison. Current
+forwards are independently accounted after subtracting the1259-forward durable
+prefix and adding that new comparison. Every new generation has both-device
+allocator samples; unchanged live bytes and the original512MiB reserve remain
+mandatory. Reclaimability is a runtime observation, never a fixture claim.
+
+The complete model/configuration, world/interface source bytes, original input
+transport and36-case roster remain bound. The only transport addition is the
+exact failed archive. New operational identities cannot reset the failed
+original attempt, duplicate completed cases, change their common new execution
+freeze, skip an unaudited prior operational partition or bypass the shared
+one-worker guard. A source-reviewed frozen package and live reconciliation
+remain required before allocation; importing this code does not submit work.
+
+The original uniform-source aggregator still rejects a changed source. A
+separate descriptive aggregator requires all six audited/released partitions
+and explicitly identifies original partitions00–02 versus operational-v2
+partitions03–05. It cannot establish an effect of allocator maintenance,
+cross-device parity, the other144intervention trajectories, full-system
+validation or held-out success.
