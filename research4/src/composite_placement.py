@@ -9,6 +9,7 @@ import hashlib
 import json
 
 PROFILE = 'qwen-two-t4-frozen-candidate-v1'
+CONFIG_SHA256 = 'f8d190c5b89c1521220f935d2567a587d6e291ed69066a45a106560b05a2174c'
 INDEX_SHA256 = 'b3737e9d00bda0e37f0b873629d98bf9b407bef35735b9193c23d9844bcc96a6'
 METADATA_SHA256 = 'a2477ac2c15f9c198d5137204f00da050d8aa87716a3cc5f0156f00b84034f7f'
 
@@ -28,7 +29,7 @@ def candidate_plan(config, profile):
             raise ValueError('Placement profile differs from the original frozen model')
     if profile['first_device_layer_count'] != 18 or profile['devices'] != [0, 1]:
         raise ValueError('Unreviewed device partition')
-    if profile['model_index_sha256'] != INDEX_SHA256 or profile['tensor_metadata_sha256'] != METADATA_SHA256:
+    if profile['model_config_sha256'] != CONFIG_SHA256 or profile['model_index_sha256'] != INDEX_SHA256 or profile['tensor_metadata_sha256'] != METADATA_SHA256:
         raise ValueError('Pinned complete tensor-header metadata changed')
     if profile['retained_adapter_capacity'] != {'scope': 'all_blocks', 'rank': 32, 'alpha': 64}:
         raise ValueError('Adapter capacity may not be reduced')
