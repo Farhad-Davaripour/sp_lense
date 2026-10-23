@@ -12,6 +12,12 @@ def download_model(pin,cache,metadata_only=False):
     from huggingface_hub import snapshot_download
     chosen=[f for f in pin['files'] if not metadata_only or not f['name'].endswith('.safetensors')]
     path=Path(snapshot_download(pin['repository'],revision=pin['revision'],cache_dir=str(cache),allow_patterns=[f['name'] for f in chosen],token=False,max_workers=4))
+    return path,verify_model_files(pin,path,metadata_only)
+
+
+def verify_model_files(pin,path,metadata_only=False):
+    """Shared byte verification for downloads and the native loader boundary."""
+    path=Path(path);chosen=[f for f in pin['files'] if not metadata_only or not f['name'].endswith('.safetensors')]
     proof=[]
     for f in chosen:
         file=path/f['name']
@@ -22,7 +28,7 @@ def download_model(pin,cache,metadata_only=False):
             data=file.read_bytes()
             if hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()!=f['git_blob_id']:raise ValueError('Pinned metadata blob differs')
         proof.append({'name':f['name'],'sha256':value,'size':file.stat().st_size})
-    return path,proof
+    return proof
 
 
 class Store:

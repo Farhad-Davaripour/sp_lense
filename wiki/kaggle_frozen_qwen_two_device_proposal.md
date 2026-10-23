@@ -41,3 +41,62 @@ single-device or reference-checkpoint admission cannot be inherited.
 
 This source preparation grants no execution authority. No additional GPU run,
 scientific retry, held-out opening, paid resource or stopped schedule is started.
+
+## Frozen loader and collector library
+
+`composite_frozen_probe.py` supplies the next library layer. It validates a
+separate `FROZEN_QWEN_AUTHORIZATION.json`, source/input/profile hashes and the
+original study transport before loading. The recognition recovery exception
+does not authorize this two-device attempt. A proposal, missing authority or
+changed devices/bounds fails before model loading.
+
+The library reuses `Actor` for the original tokenizer, NF4/double/BF16 loader,
+reference kernels, greedy native generation, EOS decoding and cache boundaries.
+The normal single-device path is unchanged. The optional frozen path checks the
+entire logical parameter set and explicit device map, rejects missing or
+mismatched pretrained weights, and forbids adapter installation/restoration,
+training contexts, teacher-forcing losses, ON-branch claims, shorter generation
+budgets and alternative kernels. The per-instance forward ceiling is 400 and
+the guard checks a 512 MiB free export reserve on both devices before forwards.
+
+Two predeclared full training observations are selected in immutable dataset
+order: initial quiet-pending and initial own-pending. Selection starts from the
+complete original 720-row cohort, not a shortened or relabeled input. This is
+an engineering qualification, not a reduced version of full study validation.
+No returned native action is executed in the simulator or on the host.
+
+The read-only collector exports raw last-token vectors from all 64 blocks,
+full-vocabulary logits, original token IDs/native output, actual per-device
+memory observations, fresh-cache identity provenance, and frozen parameter /
+quantization-buffer fingerprints before and after. Prefill evidence is persisted
+before generation; a later failure must preserve completed artifacts. The raw
+auditor replays tokenization, EOS/native parsing, activations, ownership,
+fingerprints and exact bounded forward accounting without a model forward.
+It explicitly leaves cross-device numerical parity and full validation unproven.
+
+The original public 17-file model pin is retained as a reviewed control file,
+`config/composite_qwen_file_pin_fc05.json`, with a fixed canonical digest. Both
+the source/runtime manifests and actual downloaded config/index/weight proofs
+must match it. The shared byte verifier is reused at the loader boundary. Small
+metadata files are exported as exact base64 bytes and checked against their
+original Git blob and SHA proof; pretrained tensor files are never exported.
+Mutually editing two mutable metadata documents is not an authorization to use
+another model or configuration.
+
+The layout proof explicitly requires unquantized BF16 input embeddings and
+output head, and records the NF4/double-quant state, BF16 compute, UInt8 storage,
+64/256 block sizes and device ownership of every expected quantized projection.
+These checks follow the pinned bitsandbytes 0.49.2
+[QuantState](https://github.com/bitsandbytes-foundation/bitsandbytes/blob/0.49.2/bitsandbytes/functional.py#L412)
+and [Linear4bit](https://github.com/bitsandbytes-foundation/bitsandbytes/blob/0.49.2/bitsandbytes/nn/modules.py#L391)
+interfaces. Raw generation replay rejects tokens after EOS, an early non-EOS
+stop, a missing/nonempty initial cache and disagreement between flattened and
+native cache provenance. Such checks verify evidence fidelity, not task success.
+
+Model files must use the source-bound `/kaggle/temp/research4_frozen_probe_cache`
+namespace rather than persistent notebook outputs or another study. A future
+worker must own the whole-stage protected timer, external hard timeout, disk
+admission, atomic single-use submission allowance, exclusive output directory,
+failure exports and cleanup. Those worker/submission paths are not enabled by
+the library; existing Kaggle admission remains recognition-only. No actual
+27B model or second-device scientific run has been loaded or qualified yet.
