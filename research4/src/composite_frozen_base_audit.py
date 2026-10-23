@@ -1,11 +1,9 @@
 """Offline replay of original base trajectories and lossless native features."""
-import base64
 import hashlib
 import io
 import json
 import re
 from pathlib import Path
-import tempfile
 import zipfile
 
 import numpy as np
@@ -21,6 +19,7 @@ from .composite_native_capture import verify_feature_bytes
 from .composite_frozen_audit import audit_runtime_metadata
 from .composite_audit import audit_trajectory
 from .composite_environment import ENVIRONMENT
+from .composite_frozen_metadata import verified_tokenizers
 
 
 def native_response(response, eos, vocabulary):
@@ -77,6 +76,54 @@ class ArchiveFiles:
     def json(self, name): return json.loads(self.get(name))
 
 
+def audit_features(files,response,number,context,prompt):
+    vocabulary=context['metadata']['tensors']['lm_head.weight']['shape'][0]
+    memory=response['joint_device_memory']
+    if len(memory)!=2 or [item['device'] for item in memory]!=[0,1]:
+        raise ValueError('Both devices require joint-model runtime memory evidence')
+    for item in memory:
+        if (item['free_bytes']<512*1024**2
+            or not 0<=item['allocated_bytes']<=item['reserved_bytes']<=item['total_bytes']
+            or not item['allocated_bytes']<=item['peak_allocated_bytes']<=item['peak_reserved_bytes']<=item['total_bytes']
+            or item['reserved_bytes']>item['peak_reserved_bytes']):
+            raise ValueError('Actual joint-model memory bounds differ')
+    descriptor=response['frozen_prefill_features'];path=descriptor['path']
+    if path!='features/response_'+str(number).zfill(5)+'.npz':
+        raise ValueError('Native feature response order or uniqueness differs')
+    if (descriptor['prompt_sha256']!=hashlib.sha256(prompt.encode()).hexdigest()
+        or descriptor['native_prefill_tokens']!=len(response['input_token_ids'])
+        or descriptor['additional_capture_forwards']!=0):
+        raise ValueError('Native feature prompt/call provenance differs')
+    _,logits=verify_feature_bytes(files.get(path),descriptor,vocabulary=vocabulary)
+    expected_layers=[{'layer':i,'device':'cuda:'+str(0 if i<18 else 1),'source_dtype':'bfloat16'} for i in range(64)]
+    if descriptor['layers']!=expected_layers:raise ValueError('Actual native feature layer/device coverage differs')
+    saved=files.json('responses/response_'+str(number).zfill(5)+'.json')
+    if any(response.get(name)!=value for name,value in saved.items()):
+        raise ValueError('Native response changed after pre-execution persistence')
+    return logits
+
+
+def audit_instrumentation(files,first_response,eos,vocabulary):
+    parity=files.json('INSTRUMENTATION_PARITY.json');baseline=files.json('BASELINE_NATIVE_RESPONSE.json')
+    native_response(baseline,eos,vocabulary)
+    fields=['input_token_ids','generated_token_ids','raw_text','actions','finished_with_eos']
+    if (parity['baseline_generation']!=baseline or any(baseline[key]!=first_response[key] for key in fields)
+        or any(parity['captured_generation'][key]!=first_response[key] for key in fields)
+        or parity['exact_native_outputs_equal'] is not True or parity['exact_prefill_logits_equal'] is not True
+        or parity['adapter_OFF_bypass'] is not None or parity['adapter_ON_effect'] is not None):
+        raise ValueError('Raw matched-prefix instrumentation comparison differs')
+    raw=files.get('BASELINE_PREFILL_LOGITS.npy')
+    if hashlib.sha256(raw).hexdigest()!=parity['baseline_logit_file_sha256']:
+        raise ValueError('Baseline raw logit bytes changed')
+    logits=np.load(io.BytesIO(raw),allow_pickle=False)
+    _,captured=verify_feature_bytes(files.get(first_response['frozen_prefill_features']['path']),first_response['frozen_prefill_features'],vocabulary=vocabulary)
+    if (logits.dtype!=np.float32 or not np.array_equal(logits,captured)
+        or hashlib.sha256(logits.tobytes()).hexdigest()!=parity['baseline_logit_sha256']
+        or parity['baseline_logit_sha256']!=parity['captured_logit_sha256']):
+        raise ValueError('Layer capture changed the exact raw prefill logits')
+    return len(baseline['generated_token_ids'])
+
+
 def replay(files, context, package, tokenizers, eos):
     bert, qwen = tokenizers
     plan = context['evaluation_plan']; lookup = {scene['case_id']:scene for scene in context['scenes']}
@@ -99,54 +146,17 @@ def replay(files, context, package, tokenizers, eos):
             if files.json('steps/'+key+'_'+str(index+1).zfill(3)+'.json') != step:
                 raise ValueError('Durable simulator step changed in the final trace')
             response = step['response']; native_response(response, eos, vocabulary)
-            memory = response['joint_device_memory']
-            if len(memory) != 2 or [item['device'] for item in memory] != [0,1]:
-                raise ValueError('Both devices require joint-model runtime memory evidence')
-            for item in memory:
-                if (item['free_bytes'] < 512*1024**2
-                    or not 0 <= item['allocated_bytes'] <= item['reserved_bytes'] <= item['total_bytes']
-                    or not item['allocated_bytes'] <= item['peak_allocated_bytes'] <= item['peak_reserved_bytes'] <= item['total_bytes']
-                    or item['reserved_bytes'] > item['peak_reserved_bytes']):
-                    raise ValueError('Actual joint-model memory bounds differ')
-            number = len(responses); descriptor = response['frozen_prefill_features']; path = descriptor['path']
-            if path != 'features/response_'+str(number).zfill(5)+'.npz' or path in feature_paths:
-                raise ValueError('Native feature response order or uniqueness differs')
+            number = len(responses);path=response['frozen_prefill_features']['path']
+            if path in feature_paths:raise ValueError('Native feature response order or uniqueness differs')
             prompt = observations[index]['text']
-            if (descriptor['prompt_sha256'] != hashlib.sha256(prompt.encode()).hexdigest()
-                or descriptor['native_prefill_tokens'] != len(response['input_token_ids'])
-                or descriptor['additional_capture_forwards'] != 0):
-                raise ValueError('Native feature prompt/call provenance differs')
-            features, logits = verify_feature_bytes(files.get(path), descriptor, vocabulary=vocabulary)
-            expected_layers = [{'layer':i,'device':'cuda:'+str(0 if i<18 else 1),'source_dtype':'bfloat16'} for i in range(64)]
-            if descriptor['layers'] != expected_layers: raise ValueError('Actual native feature layer/device coverage differs')
-            saved = files.json('responses/response_'+str(number).zfill(5)+'.json')
-            # Composite adds routing/evaluator fields after the native proxy has
-            # already durably saved its response, before executing any action.
-            if any(response.get(name) != value for name,value in saved.items()):
-                raise ValueError('Native response changed after pre-execution persistence')
+            audit_features(files,response,number,context,prompt)
             feature_paths.add(path); responses.append(response)
         records.append(record)
     report = base_report(records, plan['case_ids'])
     if files.json('FROZEN_BASE_REPORT.json') != report: raise ValueError('Raw base report differs from complete trajectory replay')
     if not responses: raise ValueError('A complete base partition must contain a native response')
-    parity = files.json('INSTRUMENTATION_PARITY.json'); baseline = files.json('BASELINE_NATIVE_RESPONSE.json')
-    native_response(baseline, eos, vocabulary)
-    fields = ['input_token_ids','generated_token_ids','raw_text','actions','finished_with_eos']
-    if (parity['baseline_generation'] != baseline or any(baseline[key] != responses[0][key] for key in fields)
-        or any(parity['captured_generation'][key] != responses[0][key] for key in fields)
-        or parity['exact_native_outputs_equal'] is not True or parity['exact_prefill_logits_equal'] is not True
-        or parity['adapter_OFF_bypass'] is not None or parity['adapter_ON_effect'] is not None):
-        raise ValueError('Raw matched-prefix instrumentation comparison differs')
-    raw = files.get('BASELINE_PREFILL_LOGITS.npy')
-    if hashlib.sha256(raw).hexdigest() != parity['baseline_logit_file_sha256']:
-        raise ValueError('Baseline raw logit bytes changed')
-    logits = np.load(io.BytesIO(raw), allow_pickle=False)
-    _, captured = verify_feature_bytes(files.get(responses[0]['frozen_prefill_features']['path']), responses[0]['frozen_prefill_features'], vocabulary=vocabulary)
-    if (logits.dtype != np.float32 or not np.array_equal(logits, captured)
-        or hashlib.sha256(logits.tobytes()).hexdigest() != parity['baseline_logit_sha256']
-        or parity['baseline_logit_sha256'] != parity['captured_logit_sha256']):
-        raise ValueError('Layer capture changed the exact raw prefill logits')
-    expected_forwards = detector_forwards+sum(len(response['generated_token_ids']) for response in responses)+len(baseline['generated_token_ids'])
+    baseline_forwards=audit_instrumentation(files,responses[0],eos,vocabulary)
+    expected_forwards = detector_forwards+sum(len(response['generated_token_ids']) for response in responses)+baseline_forwards
     return records, {'trajectories':len(records),'native_responses':len(responses),
         'detector_forwards':detector_forwards,'expected_joint_forwards':expected_forwards,
         'activation_layers_per_response':64,'instrumentation_parity_verified':True,
@@ -226,30 +236,7 @@ def audit_archive(archive, source, commit, transport, controller, export):
         model_files = files.json('MODEL_FILE_VERIFICATION.json'); metadata = files.json('MODEL_METADATA_BYTES.json')
         if loaded['model_files']!=model_files:raise ValueError('The native load consumed another model-file verification')
         validate_download_proof(context, model_files); verify_metadata_bytes(context['model_pin'], model_files, metadata)
-        with tempfile.TemporaryDirectory(prefix='r4_base_metadata_audit_') as directory:
-            root = Path(directory); qwen = root/'qwen'; bert = root/'bert'; qwen.mkdir(); bert.mkdir()
-            for name,value in metadata.items(): (qwen/name).write_bytes(base64.b64decode(value, validate=True))
-            detector_metadata = files.json('DETECTOR_METADATA_BYTES.json')
-            pin = read(source/'inputs/MODERNBERT_PIN.json'); expected = {item['name'] for item in pin['files'] if not item['name'].endswith('.safetensors')}
-            if set(detector_metadata) != expected: raise ValueError('Only complete original detector metadata is permitted')
-            for name,value in detector_metadata.items(): (bert/name).write_bytes(base64.b64decode(value, validate=True))
-            from .composite_store import verify_model_files
-            observed=verify_model_files(pin, bert, metadata_only=True)
-            proof=files.json('DETECTOR_FILE_VERIFICATION.json')
-            if proof!=package['detector_files'] or {item['name'] for item in proof}!={item['name'] for item in pin['files']} or len(proof)!=len(pin['files']):
-                raise ValueError('Full detector file coverage/provenance differs')
-            by_name={item['name']:item for item in proof}
-            if any(by_name[item['name']]!=item for item in observed):raise ValueError('Detector metadata/full-download proof differs')
-            for item in pin['files']:
-                actual=by_name[item['name']]
-                if actual['size']!=item['size'] or (item.get('sha256') and actual['sha256']!=item['sha256']):
-                    raise ValueError('The complete original detector file pin changed')
-            from transformers import AutoTokenizer
-            bt = AutoTokenizer.from_pretrained(bert,local_files_only=True,trust_remote_code=False)
-            qt = AutoTokenizer.from_pretrained(qwen,local_files_only=True,trust_remote_code=False)
-            generation = read(qwen/'generation_config.json'); eos = set()
-            for value in [generation.get('eos_token_id'),qt.eos_token_id]:
-                if value is not None: eos.update(value if isinstance(value,list) else [value])
+        with verified_tokenizers(files,context,package,source) as (bt,qt,eos):
             records, replayed = replay(files, context, package, (bt,qt), eos)
         if replayed['expected_joint_forwards'] != counts['completed']:
             raise ValueError('Unaccounted or missing model forwards in the complete base trajectories')

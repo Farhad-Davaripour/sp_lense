@@ -107,12 +107,15 @@ def verify_feature_bytes(raw, descriptor, layers=64, hidden_size=5120, vocabular
 
 class FrozenBaseActor(nn.Module):
     """Base-only proxy; prediction state never selects an intervention."""
-    def __init__(self, actor, persist_bytes, persist_json, memory_observer=lambda:None):
+    def __init__(self, actor, persist_bytes, persist_json, memory_observer=lambda:None, before_generation=None):
         super().__init__()
         if not getattr(actor, 'frozen_analysis_only', False) or actor.adapters:
             raise PermissionError('Only a frozen unadapted native actor may enter the base control')
         self.actor = actor; self.persist_bytes = persist_bytes; self.persist_json = persist_json
         self.memory_observer = memory_observer; self.response_index = 0
+        if before_generation is not None and not callable(before_generation):
+            raise TypeError('Optional maintenance must be a registered callable')
+        self.before_generation = before_generation
         self.no_op_checked = False; self.lock = threading.RLock()
 
     def clear_cache(self):
@@ -120,6 +123,8 @@ class FrozenBaseActor(nn.Module):
 
     def _generate(self, text, capture_layers):
         from .composite_interface import input_ids
+        if self.before_generation is not None:
+            self.before_generation(self.actor)
         ids = input_ids(self.actor.tokenizer, text)
         with NativePrefillCapture(self.actor.model, self.actor.text.layers,
                 self.actor.cfg['hidden_size'], len(ids), capture_layers) as captured:

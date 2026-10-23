@@ -94,5 +94,22 @@ class CaptureTests(unittest.TestCase):
         self.assertIn('responses/response_00000.json', values)
         self.assertIn('features/response_00000.npz', raw)
 
+    def test_optional_idle_maintenance_wraps_both_parity_generations_without_changing_outputs(self):
+        plain_actor,plain,plain_raw,plain_values=self.proxy()
+        expected=plain.generate('synthetic prompt',False)
+        actor,proxy,raw,values=self.proxy();observations=[]
+        def maintain(owned_actor):
+            self.assertIs(owned_actor,actor)
+            self.assertFalse(actor.model._forward_hooks or actor.model._forward_pre_hooks)
+            observations.append(actor.calls)
+        proxy.before_generation=maintain
+        actual=proxy.generate('synthetic prompt',False)
+        self.assertEqual(observations,[0,1])
+        self.assertEqual(expected,actual)
+        self.assertEqual(raw,plain_raw)
+        self.assertEqual(values['INSTRUMENTATION_PARITY.json'],plain_values['INSTRUMENTATION_PARITY.json'])
+        proxy.generate('next synthetic prompt',False)
+        self.assertEqual(observations,[0,1,2])
+
 
 if __name__ == '__main__': unittest.main()
