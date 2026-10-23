@@ -1,4 +1,5 @@
 import hashlib
+import ast
 import base64
 import importlib.util
 import io
@@ -17,6 +18,28 @@ spec.loader.exec_module(builder)
 
 
 class PreparationTests(unittest.TestCase):
+    def extract_without_starting_worker(self, root, receipt):
+        """Exercise the real notebook extraction with redirected tiny fixtures."""
+        notebook = path.parents[1] / 'notebooks/composite_kaggle.py'
+        tree = ast.parse(notebook.read_text())
+        boundary = next(index for index, node in enumerate(tree.body)
+                        if isinstance(node, ast.Assign)
+                        and any(isinstance(target, ast.Name) and target.id == 'source'
+                                for target in node.targets))
+        tree.body = tree.body[:boundary]
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                if node.value.startswith('/kaggle/'):
+                    node.value = str(root / node.value.lstrip('/'))
+        python = root / 'kaggle/temp/research4_environment_v1/bin/python'
+        python.parent.mkdir(parents=True)
+        python.touch()
+        namespace = {'RESEARCH4_SOURCE_COMMIT': 'a' * 40,
+                     'RESEARCH4_PACKAGE_SHA256': receipt['package_sha256'],
+                     'RESEARCH4_PACKAGE_FILES_SHA256': receipt['package_files_manifest_sha256']}
+        exec(compile(ast.fix_missing_locations(tree), str(notebook), 'exec'), namespace)
+        return root / 'kaggle/working/research4_inputs' / ('a' * 40)
+
     def source_archive(self):
         value = io.BytesIO()
         with tarfile.open(fileobj=value, mode='w') as archive:
@@ -95,6 +118,41 @@ class PreparationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'sealed'):
                     builder.prepare(root, 'a' * 40, frozen, transport,
                                     root / 'sealed', 'farhad89/recognition')
+
+    def test_real_notebook_extraction_accepts_intact_and_unpacked_bundle(self):
+        for unpacked in [False, True]:
+            with self.subTest(unpacked=unpacked), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                frozen, transport, relative = self.fixture(root)
+                with patch.object(builder.subprocess, 'check_output', return_value=self.source_archive()):
+                    receipt = builder.prepare(root, 'a' * 40, frozen, transport,
+                                              root / 'prepared', 'farhad89/recognition')
+                mount = root / 'kaggle/input/private-data'
+                mount.mkdir(parents=True)
+                package = root / 'prepared/FROZEN_PACKAGE.zip'
+                with zipfile.ZipFile(package) as archive:
+                    if unpacked:
+                        archive.extractall(mount)
+                    else:
+                        (mount / 'FROZEN_PACKAGE.zip').write_bytes(package.read_bytes())
+                    extracted = self.extract_without_starting_worker(root, receipt)
+                    for name in archive.namelist():
+                        self.assertEqual((extracted / name).read_bytes(), archive.read(name))
+
+    def test_real_notebook_extraction_rejects_changed_unpacked_file(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            frozen, transport, relative = self.fixture(root)
+            with patch.object(builder.subprocess, 'check_output', return_value=self.source_archive()):
+                receipt = builder.prepare(root, 'a' * 40, frozen, transport,
+                                          root / 'prepared', 'farhad89/recognition')
+            mount = root / 'kaggle/input/private-data'
+            mount.mkdir(parents=True)
+            with zipfile.ZipFile(root / 'prepared/FROZEN_PACKAGE.zip') as archive:
+                archive.extractall(mount)
+            (mount / 'artifacts' / relative).write_bytes(b'changed')
+            with self.assertRaises(AssertionError):
+                self.extract_without_starting_worker(root, receipt)
 
 
 if __name__ == '__main__':
