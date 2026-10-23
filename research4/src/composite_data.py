@@ -1,4 +1,4 @@
-"""Scientific cohort materialization is Databricks-only; unit fixtures are separate."""
+"""Scientific cohort materialization has an explicit runtime; unit fixtures are separate."""
 from dataclasses import asdict
 from pathlib import Path
 import hashlib,json,os,secrets
@@ -7,7 +7,10 @@ from .io_utils import read,dump,sha,digest,assert_namespace
 
 
 def require_databricks():
-    if not os.environ.get('MLFLOW_RUN_ID') and not os.environ.get('DATABRICKS_RUNTIME_VERSION') and os.environ.get('RESEARCH4_SCIENTIFIC_RUNTIME')!='databricks-verified':raise RuntimeError('Scientific cohort execution belongs on Databricks')
+    # Retain the historical import name while sharing the explicit runtime
+    # guard across unchanged scientific stages and both execution transports.
+    from .composite_runtime import require_scientific_runtime
+    require_scientific_runtime()
 
 
 def prepare_seal(folder,cfg,source_commit):
