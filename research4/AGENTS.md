@@ -1,14 +1,22 @@
 # Research 4 Databricks research
 
 Latest explicit user instruction: use Kaggle GPUs for the current continuation.
+The human subsequently approved continuation without further approval for the
+previous runtime/retry and two-device qualification exceptions. Preserve the
+recorded genuine authorization and one-owned-worker/source-admission journal;
+do not recreate the superseded approval hold. This does not authorize behavior
+adapter fitting, reward training, premature held-out access or paid resources.
 The Kaggle runtime and pinned environment passed recorded engineering checks.
 Keep Databricks account configurations and archives intact, and leave its
 scheduled checks stopped. The shared composite runner supports a frozen,
 read-only Kaggle input manifest and dedicated local artifact exports; do not
 fork the scientific recipes. Kaggle currently admits only rank32 recognition.
 The separate frozen two-T4 loader/collector is engineering preparation only;
-it requires its own human GPU-count exception and a reviewed bounded worker
-with shared-ledger consumption before any allocation. It cannot fit or restore
+it uses the recorded human GPU-count exception and a reviewed bounded worker
+with shared-ledger consumption before any allocation. The metadata-v2 recovery
+requires the original consumed attempt's audited zero-forward, pre-model failure
+and verified compute release; it has a distinct one-use candidate and must use
+a changed reviewed source. It cannot fit or restore
 behavior adapters, and its fixture checks do not prove runtime admission.
 Keep the full model sizes, adapter coverage, cohorts, controls and validation.
 Earlier Databricks-only requirements below describe the preserved prior route;

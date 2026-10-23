@@ -39,6 +39,8 @@ def prepare(repo,commit,frozen_inputs,transport,output,notebook,tensor_metadata,
             'training_probe_conditions':CONDITIONS,'complete_prompts_no_truncation':True}
         if authorization is not None:
             authority=json.loads(Path(authorization).read_text())
+            if authority.get('pre_model_parent') is not None:
+                pin['pre_model_parent']=authority['pre_model_parent']
         (source/'inputs'/AUTHORIZATION).write_text(json.dumps(authority,indent=2)+'\n')
         return pin,('prepared_authorized_frozen_probe_not_submitted' if authorization else
                     'proposal_requires_separate_human_two_device_exception')
