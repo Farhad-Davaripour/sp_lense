@@ -106,7 +106,7 @@ class BaseAuditTests(unittest.TestCase):
                 with self.assertRaises((ValueError,KeyError)):
                     audit.replay(files,context,{},tokenizers,{3})
 
-    def context_fixture(self, detector_overflow=False, actor_overflow=False):
+    def context_fixture(self, detector_overflow=False, actor_overflow=False, on_actor_attempt=None):
         _,context,_,values,_=self.fixture();scene=fixture('quiet_pending',3,seed='synthetic-raw-base-audit')
         original=values['trajectories/'+scene.case_id+'.json'];initial=original['initial_observation']['text']
         prediction=original['initial_observation']['memory']['prediction'];native=original['trace'][0]['response']
@@ -119,6 +119,7 @@ class BaseAuditTests(unittest.TestCase):
         class Actor(nn.Module):
             def clear_cache(self):pass
             def generate(self,text,on):
+                if on_actor_attempt is not None:on_actor_attempt(text)
                 if actor_overflow and text!=initial:raise ValueError('Actor context budget exceeded')
                 return copy.deepcopy(native)
         model=RecordingBaseComposite(Detector(),Actor(),.9,lambda *args:None)

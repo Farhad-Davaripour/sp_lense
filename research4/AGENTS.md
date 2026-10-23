@@ -32,6 +32,11 @@ exact resume: its output/KV state was not exported. Any recovery must version
 its failed-parent, operational source and relationship to the original8b868880
 common freeze, retain the complete model/recipe/cohort, and pass normal review,
 single-writer/one-worker admission and raw-evidence audit. No blind retry.
+The source-aware operational audit-reader-v2 excludes detector-already-terminal
+observations from actor maintenance counts. Audit-reader corrections must be
+reviewed and versioned separately; preserve the running2602d21e worker/package,
+all original evidence and runtime bounds. Do not deploy a reader-only change as
+a new scientific worker or use it to repeat a consumed experiment.
 Keep Databricks account configurations and archives intact, and leave its
 scheduled checks stopped. The shared composite runner supports a frozen,
 read-only Kaggle input manifest and dedicated local artifact exports; do not

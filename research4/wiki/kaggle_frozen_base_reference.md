@@ -149,3 +149,18 @@ and explicitly identifies original partitions00–02 versus operational-v2
 partitions03–05. It cannot establish an effect of allocator maintenance,
 cross-device parity, the other144intervention trajectories, full-system
 validation or held-out success.
+
+The separate `frozen-base-operational-audit-reader-v2` corrects maintenance
+accounting when an observation exceeds both detector and actor contexts. A
+detector-context failure terminates `observe()` before any actor invocation;
+there is no additional actor maintenance receipt to expect. An actor-only
+context refusal still enters the native proxy and therefore requires its
+maintenance receipt. Regression fixtures replay both controller paths and
+reject either missing or extra maintenance evidence.
+
+This reader correction does not alter a frozen worker, its source/configuration,
+package or raw evidence. Its report retains the worker source and separately
+records the reader version/module hash and, when run from a verified release,
+the reader source commit and release hash. A checkout without a release records
+that commit as unknown. Use a separately reviewed frozen reader for final
+closeout; preserve any earlier reader output and disclose the correction.

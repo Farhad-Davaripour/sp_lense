@@ -183,6 +183,9 @@ def audit_archive(archive, source, commit, transport, controller, export):
         'complete_base_partition_audited':False,'full_system_validation_complete':False,
         'full_validation_admitted':False,'heldout_confirmation':'not_performed','heldout_content_read':False,
         'audit_model_forwards':0,'optimizer_updates':0,'cross_device_numerical_parity':'not_established'}
+    if context.get('operational_profile') is not None:
+        from .composite_frozen_operational_audit import audit_reader_identity
+        report['audit_reader']=audit_reader_identity()
     with zipfile.ZipFile(io.BytesIO(raw)) as stream:
         files = ArchiveFiles(stream); names=set(stream.namelist())
         receipt = files.json('RUN_RECEIPT.json') if 'RUN_RECEIPT.json' in names else None
