@@ -18,6 +18,34 @@ spec.loader.exec_module(builder)
 
 
 class PreparationTests(unittest.TestCase):
+    def test_frozen_package_uses_shared_transport_but_defaults_to_denied_authority(self):
+        from tools import prepare_kaggle_frozen_probe as frozen_builder
+        from src.composite_frozen_probe import authorized_load_plan
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);frozen,transport,_=self.fixture(root)
+            model_pin=path.parents[1]/'config/composite_qwen_file_pin_fc05.json'
+            (frozen/'QWEN_PIN.json').write_bytes(model_pin.read_bytes())
+            manifest=json.loads((frozen/'MANIFEST.json').read_text());manifest['QWEN_PIN.json']=builder.digest(frozen/'QWEN_PIN.json')
+            (frozen/'MANIFEST.json').write_text(json.dumps(manifest))
+            metadata=root/'headers.json';metadata.write_text('{}')
+            buffer=io.BytesIO(self.source_archive())
+            # Extend the tiny source archive with the reviewed placement descriptor.
+            with tarfile.open(fileobj=buffer,mode='a') as archive:
+                name='config/composite_qwen_two_t4_candidate_v1.json';data=(path.parents[1]/name).read_bytes()
+                info=tarfile.TarInfo(name);info.size=len(data);archive.addfile(info,io.BytesIO(data))
+            with patch.object(builder.subprocess,'check_output',return_value=buffer.getvalue()),\
+                 patch.object(frozen_builder,'metadata_bounds'),\
+                 patch.object(frozen_builder,'ORIGINAL_INPUTS',builder.digest(frozen/'MANIFEST.json')),\
+                 patch.object(frozen_builder,'TRANSPORT',builder.digest(transport/'TRANSPORT_MANIFEST.json')):
+                receipt=frozen_builder.prepare(root,'a'*40,frozen,transport,root/'prepared','farhad89/frozen-fixture',metadata)
+            self.assertEqual(receipt['status'],'proposal_requires_separate_human_two_device_exception')
+            self.assertEqual(receipt['scientific_visible_devices'],'0,1');self.assertEqual(receipt['hard_timeout_seconds'],2700)
+            self.assertFalse(receipt['scientific_execution_started']);self.assertNotIn('recovery',receipt)
+            source=root/'prepared/bundle/source'
+            authority=json.loads((source/'inputs/FROZEN_QWEN_AUTHORIZATION.json').read_text())
+            self.assertEqual(authority['status'],'proposal_not_authorized');self.assertIsNone(authority['human_message_evidence_locator'])
+            with self.assertRaises(PermissionError):authorized_load_plan(source,'a'*40,{})
+
     def extract_without_starting_worker(self, root, receipt):
         """Exercise the real notebook extraction with redirected tiny fixtures."""
         notebook = path.parents[1] / 'notebooks/composite_kaggle.py'
