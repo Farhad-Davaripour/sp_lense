@@ -44,7 +44,11 @@ class PreparationTests(unittest.TestCase):
         value = io.BytesIO()
         with tarfile.open(fileobj=value, mode='w') as archive:
             for name, data in [('src/model.py', b'# frozen text\r\n'),
-                               ('config/protocol.json', b'{}\r\n')]:
+                               ('config/protocol.json', b'{}\r\n'),
+                               ('config/composite_detector_rank32_v5.json',
+                                (path.parents[1] / 'config/composite_detector_rank32_v5.json').read_bytes()),
+                               ('config/composite_controller_rank32_v2.json',
+                                (path.parents[1] / 'config/composite_controller_rank32_v2.json').read_bytes())]:
                 info = tarfile.TarInfo(name)
                 info.size = len(data)
                 archive.addfile(info, io.BytesIO(data))
@@ -153,6 +157,28 @@ class PreparationTests(unittest.TestCase):
             (mount / 'artifacts' / relative).write_bytes(b'changed')
             with self.assertRaises(AssertionError):
                 self.extract_without_starting_worker(root, receipt)
+
+    def test_recovery_package_is_explicitly_inert_without_human_exception(self):
+        from src.composite_recovery import execution_config
+        import os
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            frozen, transport, _ = self.fixture(root)
+            with patch.object(builder.subprocess, 'check_output', return_value=self.source_archive()):
+                receipt = builder.prepare(root, 'a' * 40, frozen, transport,
+                                          root / 'proposal', 'farhad89/recognition-recovery',
+                                          recovery_parent_run='361312460')
+            self.assertEqual(receipt['status'], 'proposal_requires_explicit_human_retry_and_bound_exception')
+            self.assertFalse(receipt['scientific_execution_started'])
+            source = root / 'proposal/bundle/source'
+            auth = json.loads((source / 'inputs/RECOVERY_AUTHORIZATION.json').read_text())
+            self.assertEqual(auth['status'], 'proposal_not_authorized')
+            self.assertEqual(auth['maximum_optimizer_updates'], 1200)
+            self.assertEqual(auth['validation_updates'], [200, 400, 600, 800, 1000, 1200])
+            self.assertFalse(auth['use_selected_checkpoint_weights'])
+            with patch.dict(os.environ, {'RESEARCH4_EXECUTION_PLATFORM': 'kaggle'}):
+                with self.assertRaises(PermissionError):
+                    execution_config(source, 'a' * 40, 'detector-rank32-v5', {})
 
 
 if __name__ == '__main__':
