@@ -18,7 +18,12 @@ class Actor(nn.Module):
         device_map={'':0};context=None
         if self.frozen_analysis_only:
             from .composite_frozen_probe import authorized_load_plan,verify_runtime,verify_downloaded_model
+            stage=frozen_probe.get('stage','frozen-qwen-two-t4-qualification-v1')
+            if stage=='frozen-base-validation-v1':
+                from .composite_frozen_base import authorized_load_plan
+            elif stage!='frozen-qwen-two-t4-qualification-v1':raise PermissionError('Unregistered frozen actor stage')
             context=authorized_load_plan(frozen_probe['root'],frozen_probe['source_commit'],cfg)
+            self.frozen_forward_limit=context['pin']['maximum_backbone_forwards']
             if kernel_profile!='reference':raise PermissionError('Frozen probe requires reference kernels')
             verify_runtime(context);device_map=context['plan']['device_map'];self.frozen_probe_context=context
             if torch.is_autocast_enabled():raise RuntimeError('Frozen probe rejects unregistered caller autocast')
@@ -58,7 +63,7 @@ class Actor(nn.Module):
         if getattr(self,'frozen_analysis_only',False):
             from .composite_frozen_probe import guard_frozen_devices
             guard_frozen_devices(torch.cuda)
-            if self.frozen_probe_counts['attempted']>=400:raise TimeoutError('Frozen probe forward ceiling')
+            if self.frozen_probe_counts['attempted']>=getattr(self,'frozen_forward_limit',400):raise TimeoutError('Frozen probe forward ceiling')
             self.frozen_probe_counts['attempted']+=1
         if self.on_forward:self.on_forward('attempt')
         if self.generating and self._trace is not None and not self._trace['prefill_checked']:

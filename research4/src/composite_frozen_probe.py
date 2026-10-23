@@ -141,6 +141,12 @@ def authorized_load_plan(root, commit, config):
         raise PermissionError('Human exception does not bind this exact frozen probe')
     if not authorization.get('human_message_evidence_locator'):
         raise PermissionError('Actual human authorization evidence is required')
+    return verified_model_context(root, commit, config, pin, sha(root / 'inputs' / AUTHORIZATION))
+
+
+def verified_model_context(root, commit, config, pin, authorization_sha256):
+    """Shared pinned geometry; callers separately validate their stage authority."""
+    root = Path(root)
     profile = read(root / PROFILE_FILE)
     plan = candidate_plan(config, profile)
     metadata = read(root / 'inputs' / METADATA)
@@ -153,7 +159,7 @@ def authorized_load_plan(root, commit, config):
         raise ValueError('Pinned model files belong to another model')
     return {'source_root': str(root), 'source_commit': commit, 'pin': pin, 'plan': plan, 'metadata': metadata,
             'metadata_bounds': bounds, 'model_pin': model_pin,
-            'authorization_sha256': sha(root / 'inputs' / AUTHORIZATION),
+            'authorization_sha256': authorization_sha256,
             'load_attempt_authorized': True, 'runtime_memory_admitted': False,
             'full_validation_admitted': False}
 
@@ -587,13 +593,20 @@ def load_probe_actor(root, commit, config, cache, guard, on_forward, persist):
     if not all(callable(function) for function in [guard, on_forward, persist]):
         raise TypeError('A bounded owner, forward accounting and durable writer are required')
     context = authorized_load_plan(root, commit, config)
+    return load_authorized_actor(root, commit, config, cache, guard, on_forward, persist, context, MODE)
+
+
+def load_authorized_actor(root, commit, config, cache, guard, on_forward, persist, context, stage):
+    """One verified native loader shared by separately admitted frozen stages."""
+    if stage not in [MODE, 'frozen-base-validation-v1']:
+        raise PermissionError('Unregistered frozen actor stage')
     cache = protected_cache_path(cache, commit)
     import torch
     hardware = verify_runtime(context)
     for index in [0, 1]: torch.cuda.reset_peak_memory_stats(index)
     persist('FROZEN_LOAD_FREEZE.json', {'source_commit': commit, 'profile': context['plan'],
-            'authorization_sha256': context['authorization_sha256'], 'bounds': BOUNDS,
-            'training_probe_conditions': CONDITIONS, 'hardware_preflight': hardware,
+            'authorization_sha256': context['authorization_sha256'], 'bounds': context.get('bounds', BOUNDS),
+            'stage': stage, 'hardware_preflight': hardware,
             'heldout_content_read': False, 'runtime_memory_admitted': False})
     from .composite_store import download_model
     # Check the small metadata before fetching the complete 55.6 GB checkpoint.
@@ -611,7 +624,7 @@ def load_probe_actor(root, commit, config, cache, guard, on_forward, persist):
     persist('MODEL_FILE_VERIFICATION.json', files)
     from .composite_actor import Actor
     actor = Actor(path, config, guard, on_forward, kernel_profile='reference',
-                  frozen_probe={'root': str(root), 'source_commit': commit})
+                  frozen_probe={'root': str(root), 'source_commit': commit, 'stage': stage})
     if actor.frozen_probe_file_proof != files:
         raise ValueError('Model files changed between download verification and native loading')
     actor.frozen_probe_metadata_bytes=metadata_bytes
