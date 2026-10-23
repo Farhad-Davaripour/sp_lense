@@ -1,5 +1,7 @@
 import hashlib
+import base64
 import io
+from contextlib import redirect_stdout
 import json
 import os
 import sys
@@ -13,6 +15,19 @@ from src.composite_store import Store
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_child_output_is_persisted_and_external_timeout_stops_only_the_child(self):
+        with tempfile.TemporaryDirectory() as temp, redirect_stdout(io.StringIO()) as console:
+            log = Path(temp) / 'worker.log'
+            result = runtime.run_logged([sys.executable, '-c', 'print("synthetic-progress")'],
+                                        temp, dict(os.environ), log, 10)
+            self.assertEqual(result, {'exit_code': 0, 'timed_out': False})
+            self.assertIn('synthetic-progress', log.read_text())
+            self.assertIn('synthetic-progress', console.getvalue())
+            result = runtime.run_logged([sys.executable, '-c', 'import time\ntime.sleep(10)'],
+                                        temp, dict(os.environ), Path(temp) / 'timeout.log', 0.05)
+            self.assertTrue(result['timed_out'])
+            self.assertNotEqual(result['exit_code'], 0)
+
     def fixture(self, root):
         inputs = root / 'inputs'
         inputs.mkdir()
@@ -98,6 +113,9 @@ class RuntimeTests(unittest.TestCase):
                 upload('RUN_RECEIPT.json', b'{"status":"complete"}')
                 self.assertEqual((target / 'RUN_RECEIPT.json').read_bytes(),
                                  b'{"status":"complete"}')
+                upload('evidence.zip', b'opaque-archive-bytes')
+                self.assertEqual(base64.b64decode((target / 'evidence.zip.r4b64').read_bytes(),
+                                                  validate=True), b'opaque-archive-bytes')
                 with self.assertRaises(FileExistsError):
                     upload('RUN_RECEIPT.json', b'replace')
                 with self.assertRaises(FileExistsError):

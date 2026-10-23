@@ -5,6 +5,8 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+import time
 import zipfile
 
 expected_sha = RESEARCH4_PACKAGE_SHA256
@@ -84,15 +86,16 @@ controller = {'source_commit': source_commit, 'package_sha256': expected_sha,
               'heldout_content_read': False, 'scientific_retries': 0}
 print('Starting the complete frozen recognition recipe; no automatic retry.', flush=True)
 try:
-    with log.open('x') as stream:
-        result = subprocess.run([python, '-m', 'src.composite_worker', str(source),
-                                 source_commit, pin['destination'], '--mode', pin['mode']],
-                                cwd=source, env=environment, stdout=stream,
-                                stderr=subprocess.STDOUT, timeout=2700)
-    controller.update(status='worker_exited', exit_code=result.returncode)
-except subprocess.TimeoutExpired:
-    controller.update(status='external_hard_timeout', exit_code=None,
-                      scientific_execution_extent='inspect retained scratch evidence')
+    sys.path.insert(0, str(source))
+    from src.composite_runtime import run_logged
+    # START was recorded by the first GPU qualification cell. Include package
+    # setup in the same 45-minute bound and retain 30 seconds for final export.
+    remaining = max(1, 2700 - int(time.monotonic() - START) - 30)
+    result = run_logged([python, '-m', 'src.composite_worker', str(source),
+                         source_commit, pin['destination'], '--mode', pin['mode']],
+                        source, environment, log, remaining)
+    controller.update(status='external_hard_timeout' if result['timed_out'] else 'worker_exited',
+                      exit_code=result['exit_code'], external_timeout_seconds=remaining)
 finally:
     (scratch.parent / (source_commit + '_CONTROLLER_RECEIPT.json')).write_text(
         json.dumps(controller, indent=2) + '\n')
