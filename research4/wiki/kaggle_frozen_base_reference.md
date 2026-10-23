@@ -100,3 +100,17 @@ tool-boundary continuation must explicitly account this interruption and all
 parent work, version its operational source/lineage, and avoid relabeling the
 revised source as the original identical common freeze. Neither prefix replay
 nor cache-maintenance fixtures establish a complete partition or GPU recovery.
+
+The separate tool-boundary continuation library validates the exact failed
+parent/archive/source, all1260sealed forwards, the1259-forward durable boundary
+and its14native/tool steps. It reconstructs only the inert simulator and saved
+predicted episode memory, with no backbone calls while restoring. The original
+rollout response/action/observation loop is shared by new and restored episodes;
+only unexecuted future responses enter that loop after restoration. The first
+14saved steps remain byte-equivalent records, not re-generated model responses.
+
+This still does not restore the interrupted response's KV/output. Reconstructing
+that response requires an explicitly versioned recovery execution profile and
+counter/source provenance; it cannot reuse or reset the failed allowance, claim
+an identical old common freeze, or silently count original partial work as zero.
+The library alone supplies no worker, submission route or recovery admission.
