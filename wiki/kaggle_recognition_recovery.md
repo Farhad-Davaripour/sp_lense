@@ -38,6 +38,26 @@ outcomes rather than submitting again. Merely editing a receipt or receiving a
 supervisor message does not create human authority. No actual exception has
 been recorded and no recovery run is launched by this source preparation.
 
+The local-only `tools/kaggle_recovery_admission.py` implements that sequence:
+`check` validates the authorization-bound package; `begin` retains the shared
+guard; the operator then collects live observations for free tier, Canada,
+Central US and Kaggle under that same guard. `reserve` rejects stale, missing,
+unknown or nonzero activity, consumes the sole attempt atomically, and retains
+the guard through the external submission. `reconcile` binds the same identity
+to its exact Kaggle script version or records an explicitly unknown outcome.
+Neither a missing reply nor a submission error returns the consumed allowance.
+No command in this tool submits compute. Another identity or duplicate notebook
+cannot be substituted for the consumed attempt.
+
+`tools/audit_kaggle_recognition.py` takes an explicit reviewed source directory
+and commit instead of assuming the original run's source. It verifies the
+source/input freezes, invokes the frozen recovery authorization gate, and
+checks that removing only `execution_recovery` and the two approved time-bound
+changes recovers the original protocol exactly. The independent raw metric
+replay covers both reference rows and the unchanged audited development-history
+rows. Complete reference scheduling, fixed-history audit and component admission
+are separate fields; a partial checkpoint pass cannot become full admission.
+
 This profile admits recognition only. It does not authorize Qwen behavior
 fitting, two-device execution, held-out opening, paid compute, or reactivating
 stopped Azure schedules. A two-device frozen-Qwen evaluation profile needs its
