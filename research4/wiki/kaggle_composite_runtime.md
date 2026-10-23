@@ -71,3 +71,23 @@ verified small metadata. Network access is blocked and no model is constructed.
 A complete qualification audit proves only these two probes and their frozen
 layout/records; cross-device numerical parity, complete scientific validation
 and held-out confirmation remain unestablished.
+
+Frozen metadata validation uses the original content SHA-256 when the pin has
+one, and the original Git blob OID otherwise, matching `verify_model_files`.
+For an LFS file the Git blob identifies its small pointer, while the content
+SHA-256 identifies the downloaded bytes. The complete original model pin stays
+immutable, including both identifiers. See the [Git LFS pointer specification](https://github.com/git-lfs/git-lfs/blob/main/docs/spec.md#the-pointer).
+The loader verifies and durably exports the six small metadata files before
+fetching full weights, then checks that their proofs match the full download.
+Actor construction remains after all verification.
+
+The corrected metadata qualification uses the distinct one-use candidate
+`frozen_qwen_two_t4_metadata_qualification_v2`. Its authorization, runtime pin
+and preparation must bind the same `pre_model_parent` freeze. Under the shared
+guard, admission reconciles the original consumed qualification identity,
+source, sealed exact zero forwards, immutable partial audit/closeout digests,
+specific metadata-validator failure and actual compute release. Missing,
+unknown, nonzero, changed or unresolved parent evidence blocks recovery. The
+new source must differ from the failed source. The original failed allowance
+is preserved and cannot be reused; recognition authority and its result remain
+separate. All model/data/prompts/generation and compute bounds stay unchanged.

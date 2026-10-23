@@ -25,6 +25,28 @@ BOUNDS = {'hard_timeout_seconds': 2700, 'worker_seconds': 2400,
           'export_reserve_seconds': 180, 'maximum_backbone_forwards': 400,
           'maximum_concurrent_research_runs': 1, 'automatic_scientific_retries': 0}
 MODEL_PIN_SHA256 = '6fee1947bc24bd569c45bd6838da9da116f16a79ede3de70298cd005f161e076'
+PRE_MODEL_PARENT_PROFILE = 'frozen-metadata-pre-model-recovery-v1'
+PRE_MODEL_PARENT_CANDIDATE = 'frozen_qwen_two_t4_qualification_v1'
+
+
+def validate_pre_model_parent(parent):
+    keys={'profile','candidate','run_id','source_commit','archive_sha256','audit_sha256','closeout_sha256',
+          'counts_exact_at_exit','forward_counts','pre_model_initialization_failure_verified','owned_compute_released'}
+    if not isinstance(parent,dict) or set(parent)!=keys:
+        raise PermissionError('A complete pre-model parent freeze is required')
+    if parent['profile']!=PRE_MODEL_PARENT_PROFILE or parent['candidate']!=PRE_MODEL_PARENT_CANDIDATE:
+        raise PermissionError('Unregistered qualification recovery lineage')
+    if not isinstance(parent['run_id'],str) or not re.fullmatch('[1-9][0-9]*',parent['run_id']):
+        raise PermissionError('Bind the exact failed qualification version')
+    for key,size in [('source_commit',40),('archive_sha256',64),('audit_sha256',64),('closeout_sha256',64)]:
+        if not isinstance(parent[key],str) or not re.fullmatch('[0-9a-f]{'+str(size)+'}',parent[key]):
+            raise PermissionError('Invalid parent source/evidence digest')
+    if any(parent[key] is not True for key in ['counts_exact_at_exit','pre_model_initialization_failure_verified','owned_compute_released']):
+        raise PermissionError('Only an audited, released pre-model failure is eligible')
+    counts=parent['forward_counts']
+    if counts!={'attempted':0,'completed':0} or any(type(value) is not int for value in counts.values()):
+        raise PermissionError('Unknown or nonzero parent forwards prohibit this engineering recovery')
+    return parent
 
 
 def verify_original_model_pin(model_pin):
@@ -68,7 +90,9 @@ def verify_metadata_bytes(model_pin, files, encoded):
         value = hashlib.sha256(raw).hexdigest()
         if len(raw) != pin['size'] or proof[name]['sha256'] != value or (pin.get('sha256') and pin['sha256'] != value):
             raise ValueError('Actual model metadata bytes differ from their file proof')
-        if pin.get('git_blob_id') and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest() != pin['git_blob_id']:
+        # For LFS, git_blob_id identifies the pointer; sha256 binds content.
+        # Match the shared file verifier: use Git blobs only without a content SHA.
+        if not pin.get('sha256') and pin.get('git_blob_id') and hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest() != pin['git_blob_id']:
             raise ValueError('Actual model metadata bytes differ from the original Git blob')
     return {'metadata_files_verified':len(expected),'pretrained_weight_bytes_exported':0}
 
@@ -88,6 +112,12 @@ def authorized_load_plan(root, commit, config):
         if Path(name).name != name or sha(root / 'inputs' / name) != expected:
             raise ValueError('Frozen probe input changed')
     pin = read(root / 'inputs' / PIN)
+    parent=pin.get('pre_model_parent')
+    if parent is not None:
+        validate_pre_model_parent(parent)
+        if parent['source_commit']==commit:raise PermissionError('Pre-model repair requires a new reviewed source freeze')
+    if authorization.get('pre_model_parent')!=parent:
+        raise PermissionError('Qualification recovery source and authority lineage differ')
     if pin['platform'] != 'kaggle' or pin['account'] != 'farhad89' or pin['mode'] != MODE or pin['source_commit'] != commit:
         raise ValueError('Frozen probe identity/source differs')
     if pin['scientific_visible_devices'] != '0,1' or any(type(pin.get(key)) is not type(value) or pin[key] != value for key, value in BOUNDS.items()):
@@ -566,14 +596,20 @@ def load_probe_actor(root, commit, config, cache, guard, on_forward, persist):
             'training_probe_conditions': CONDITIONS, 'hardware_preflight': hardware,
             'heldout_content_read': False, 'runtime_memory_admitted': False})
     from .composite_store import download_model
-    from .composite_actor import Actor
-    path, files = download_model(context['model_pin'], cache)
-    metadata_bytes = {value['name']:base64.b64encode((path / value['name']).read_bytes()).decode('ascii')
+    # Check the small metadata before fetching the complete 55.6 GB checkpoint.
+    metadata_path, metadata_files = download_model(context['model_pin'], cache, metadata_only=True)
+    metadata_bytes = {value['name']:base64.b64encode((metadata_path / value['name']).read_bytes()).decode('ascii')
                       for value in context['model_pin']['files'] if not value['name'].endswith('.safetensors')}
-    validate_download_proof(context,files)
-    verify_metadata_bytes(context['model_pin'],files,metadata_bytes)
-    persist('MODEL_FILE_VERIFICATION.json', files)
+    persist('METADATA_FILE_VERIFICATION.json', metadata_files)
     persist('MODEL_METADATA_BYTES.json', metadata_bytes)
+    verify_metadata_bytes(context['model_pin'],metadata_files,metadata_bytes)
+    path, files = download_model(context['model_pin'], cache)
+    validate_download_proof(context,files)
+    observed = {value['name']:value for value in files}
+    if any(observed.get(value['name']) != value for value in metadata_files):
+        raise ValueError('Model metadata changed between preflight and complete download')
+    persist('MODEL_FILE_VERIFICATION.json', files)
+    from .composite_actor import Actor
     actor = Actor(path, config, guard, on_forward, kernel_profile='reference',
                   frozen_probe={'root': str(root), 'source_commit': commit})
     if actor.frozen_probe_file_proof != files:

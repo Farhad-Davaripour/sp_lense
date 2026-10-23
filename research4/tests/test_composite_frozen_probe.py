@@ -90,6 +90,27 @@ class FrozenProbeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'inputs'):
                 probe.authorized_load_plan(root, 'a' * 40, config)
 
+    def test_pre_model_parent_lineage_is_exact_and_requires_changed_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);config,pin,authority=self.fixture(root)
+            parent={'profile':probe.PRE_MODEL_PARENT_PROFILE,'candidate':probe.PRE_MODEL_PARENT_CANDIDATE,
+                'run_id':'1234','source_commit':'b'*40,'archive_sha256':'c'*64,'audit_sha256':'d'*64,'closeout_sha256':'e'*64,
+                'counts_exact_at_exit':True,'forward_counts':{'attempted':0,'completed':0},
+                'pre_model_initialization_failure_verified':True,'owned_compute_released':True}
+            self.write(root,{**pin,'pre_model_parent':parent},{**authority,'pre_model_parent':parent})
+            with patch.object(probe,'metadata_bounds',return_value={}):
+                self.assertTrue(probe.authorized_load_plan(root,'a'*40,config)['load_attempt_authorized'])
+            for changed in [{'source_commit':'a'*40},{'run_id':1234},
+                            {'forward_counts':{'attempted':None,'completed':None}},
+                            {'forward_counts':{'attempted':False,'completed':False}},
+                            {'owned_compute_released':False},{'profile':'unregistered'}]:
+                with self.subTest(changed=changed):
+                    value={**parent,**changed}
+                    self.write(root,{**pin,'pre_model_parent':value},{**authority,'pre_model_parent':value})
+                    with self.assertRaises(PermissionError):probe.authorized_load_plan(root,'a'*40,config)
+            self.write(root,{**pin,'pre_model_parent':parent},authority)
+            with self.assertRaises(PermissionError):probe.authorized_load_plan(root,'a'*40,config)
+
     def test_software_and_per_device_metadata_checks_do_not_claim_fit(self):
         packages = {'transformers':'5.19.0','bitsandbytes':'0.49.2','accelerate':'1.15.0',
                     'safetensors':'0.8.0','numpy':'2.2.2','psutil':'7.2.2'}
@@ -185,6 +206,55 @@ class FrozenProbeTests(unittest.TestCase):
         changed_proof=[{**proofs[0],'sha256':hashlib.sha256(altered).hexdigest()}]
         with self.assertRaisesRegex(ValueError,'Git blob'):probe.verify_metadata_bytes(pin,changed_proof,changed)
         with self.assertRaises(ValueError):probe.verify_metadata_bytes(pin,proofs,{**encoded,'model.safetensors':'AA=='})
+
+    def test_lfs_metadata_content_sha_accepts_content_not_its_pointer_blob(self):
+        raw=b'{"small":"metadata"}';name='tokenizer.json'
+        content_sha=hashlib.sha256(raw).hexdigest()
+        pointer=('version https://git-lfs.github.com/spec/v1\noid sha256:'+content_sha+'\nsize '+str(len(raw))+'\n').encode()
+        blob=hashlib.sha1(b'blob '+str(len(pointer)).encode()+b'\0'+pointer).hexdigest()
+        pin={'files':[{'name':name,'size':len(raw),'sha256':content_sha,'git_blob_id':blob}]}
+        proof=[{'name':name,'size':len(raw),'sha256':content_sha}]
+        self.assertEqual(probe.verify_metadata_bytes(pin,proof,{name:base64.b64encode(raw).decode()})['metadata_files_verified'],1)
+        altered=raw.replace(b'metadata',b'modified')
+        with self.assertRaisesRegex(ValueError,'file proof'):
+            probe.verify_metadata_bytes(pin,[{**proof[0],'sha256':hashlib.sha256(altered).hexdigest()}],
+                {name:base64.b64encode(altered).decode()})
+        original=json.loads((ROOT/'config/composite_qwen_file_pin_fc05.json').read_text())
+        for field in ['sha256','git_blob_id']:
+            changed=copy.deepcopy(original);item=next(f for f in changed['files'] if f['name']==name)
+            item[field]='0'*len(item[field])
+            with self.assertRaises(ValueError):probe.verify_original_model_pin(changed)
+
+    def test_metadata_preflight_precedes_weights_and_rejects_before_actor(self):
+        for corrupt in [False,True]:
+            with self.subTest(corrupt=corrupt),tempfile.TemporaryDirectory() as directory:
+                root=Path(directory);raw=b'{"tiny":"metadata"}';file=root/'tokenizer.json'
+                file.write_bytes(raw.replace(b'metadata',b'modified') if corrupt else raw)
+                metadata={'name':'tokenizer.json','size':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),'git_blob_id':'f'*40}
+                actual={'name':'tokenizer.json','size':len(raw),'sha256':hashlib.sha256(file.read_bytes()).hexdigest()}
+                weight={'name':'model.safetensors','size':1,'sha256':'e'*64}
+                files=[actual,weight];calls=[];saved=[]
+                context={'source_commit':'a'*40,'plan':{},'authorization_sha256':'d'*64,
+                         'model_pin':{'files':[metadata,weight]}}
+                def download(pin,cache,metadata_only=False):
+                    calls.append(metadata_only);return root,[actual] if metadata_only else files
+                actor=SimpleNamespace(frozen_probe_file_proof=files,frozen_layout_proof={},frozen_loading_proof={})
+                with patch.object(probe,'authorized_load_plan',return_value=context),\
+                     patch.object(probe,'protected_cache_path',side_effect=lambda path,commit:Path(path)),\
+                     patch.object(probe,'verify_runtime',return_value={}),\
+                     patch.object(probe,'validate_download_proof'),patch.object(probe,'memory_record',return_value=[]),\
+                     patch('torch.cuda.reset_peak_memory_stats'),\
+                     patch('src.composite_store.download_model',side_effect=download),\
+                     patch('src.composite_actor.Actor',return_value=actor) as constructor:
+                    action=lambda:probe.load_probe_actor(root,'a'*40,{},root,lambda:None,lambda event:None,
+                                                         lambda name,value:saved.append(name))
+                    if corrupt:
+                        with self.assertRaisesRegex(ValueError,'file proof'):action()
+                        self.assertEqual(calls,[True]);constructor.assert_not_called()
+                    else:
+                        action();self.assertEqual(calls,[True,False]);constructor.assert_called_once()
+                        self.assertLess(saved.index('METADATA_FILE_VERIFICATION.json'),saved.index('MODEL_FILE_VERIFICATION.json'))
+                    self.assertIn('MODEL_METADATA_BYTES.json',saved)
 
     def test_cache_namespace_and_complete_pretrained_loading_fail_closed(self):
         commit='a'*40
