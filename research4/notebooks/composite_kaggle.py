@@ -73,7 +73,8 @@ print('Verified frozen package files and decoded evidence archives byte-for-byte
 source = root / 'source'
 pin = json.loads((source / 'inputs/EXECUTION_PLATFORM.json').read_text())
 assert pin['source_commit'] == source_commit and pin['scientific_retries'] == 0
-assert pin['mode'] == 'detector-rank32-v5' and pin['hard_timeout_seconds'] == 2700
+assert pin['mode'] == 'detector-rank32-v5'
+assert pin['hard_timeout_seconds'] in [2700, 4500]
 scratch = Path('/kaggle/working/research4_campaign/scratch') / source_commit
 scratch.mkdir(parents=True, exist_ok=False)
 environment = {key: value for key, value in os.environ.items()
@@ -86,14 +87,15 @@ environment.update(RESEARCH4_EXECUTION_PLATFORM='kaggle',
 log = scratch.parent / (source_commit + '_WORKER_LOG.txt')
 controller = {'source_commit': source_commit, 'package_sha256': expected_sha,
               'mode': pin['mode'], 'notebook': pin['notebook'],
+              'execution_profile': pin.get('recovery', {'profile': 'original-45min'}),
               'heldout_content_read': False, 'scientific_retries': 0}
 print('Starting the complete frozen recognition recipe; no automatic retry.', flush=True)
 try:
     sys.path.insert(0, str(source))
     from src.composite_runtime import run_logged
-    # START was recorded by the first GPU qualification cell. Include package
-    # setup in the same 45-minute bound and retain 30 seconds for final export.
-    remaining = max(1, 2700 - int(time.monotonic() - START) - 30)
+    # START was recorded by the first qualification cell. Include setup in the
+    # frozen envelope; a longer profile separately requires a human exception.
+    remaining = max(1, pin['hard_timeout_seconds'] - int(time.monotonic() - START) - 30)
     result = run_logged([python, '-m', 'src.composite_worker', str(source),
                          source_commit, pin['destination'], '--mode', pin['mode']],
                         source, environment, log, remaining)

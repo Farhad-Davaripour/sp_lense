@@ -86,6 +86,8 @@ def run(root,commit,destination,mode):
     verify_release(root,commit)
     for n,h in read(root/'inputs/MANIFEST.json').items():
         if sha(root/'inputs'/n)!=h:raise ValueError('Input pin changed')
+    from .composite_recovery import execution_config
+    cfg=execution_config(root,commit,mode,cfg)
     execution_workspace,upload=begin_stage(root,commit,destination,mode)
     upload('ALLOCATION.json',json.dumps({'mode':mode,'source_commit':commit,'MLFLOW_RUN_ID':os.environ.get('MLFLOW_RUN_ID'),'scientific_retries':0,'execution_workspace':execution_workspace}).encode())
     with tempfile.TemporaryDirectory(prefix='research4-composite-') as scratch:

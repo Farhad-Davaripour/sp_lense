@@ -16,7 +16,8 @@ def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def prepare(repo, commit, frozen_inputs, transport, output, notebook):
+def prepare(repo, commit, frozen_inputs, transport, output, notebook,
+            recovery_parent_run=None, recovery_authorization=None):
     repo, frozen_inputs, transport, output = map(Path, [repo, frozen_inputs, transport, output])
     if not re.fullmatch('[0-9a-f]{40}', commit):
         raise ValueError('A complete reviewed source commit is required')
@@ -84,10 +85,56 @@ def prepare(repo, commit, frozen_inputs, transport, output, notebook):
            'original_scientific_input_manifest_sha256': digest(frozen_inputs / 'MANIFEST.json'),
            'hardware': {'physical_allocation': 'Kaggle_T4_pair', 'visible_devices': '0'},
            'hard_timeout_seconds': 2700, 'scientific_retries': 0}
+    if recovery_authorization and not recovery_parent_run:
+        raise ValueError('A recovery authorization requires its preserved parent run')
+    if recovery_parent_run:
+        if not re.fullmatch('[0-9]+', str(recovery_parent_run)):
+            raise ValueError('An exact preserved parent run ID is required')
+        pin.update(hard_timeout_seconds=4500,
+                   recovery={'profile': 'kaggle-recognition-complete-75min-v1',
+                             'parent_run_id': str(recovery_parent_run),
+                             'authorization_file': 'RECOVERY_AUTHORIZATION.json'})
+        if recovery_authorization:
+            authorization = json.loads(Path(recovery_authorization).read_text())
+        else:
+            authorization = {'status': 'proposal_not_authorized', 'authorized_by': None,
+                             'human_message_evidence_locator': None,
+                             'profile': pin['recovery']['profile'],
+                             'parent_run_id': str(recovery_parent_run),
+                             'source_commit': commit, 'notebook': notebook,
+                             'original_scientific_input_manifest_sha256': pin['original_scientific_input_manifest_sha256'],
+                             'transport_manifest_sha256': pin['transport_manifest_sha256'],
+                             'recipe_sha256': digest(source / 'config/composite_detector_rank32_v5.json'),
+                             'original_protocol_sha256': digest(source / 'config/composite_controller_rank32_v2.json'),
+                             'maximum_fresh_recovery_submissions': 1,
+                             'fresh_full_run_not_exact_continuation': True,
+                             'use_selected_checkpoint_weights': False, 'initialization_seed': 202610213,
+                             'maximum_optimizer_updates': 1200,
+                             'validation_updates': [200, 400, 600, 800, 1000, 1200],
+                             'hard_timeout_seconds': 4500, 'worker_seconds': 4200,
+                             'scientific_visible_GPU_count': 1, 'maximum_backbone_forwards': 30000,
+                             'automatic_scientific_retries': 0, 'maximum_concurrent_research_runs': 1,
+                             'reason': 'No human exception to the prior time bound and scientific-retry restriction has been recorded.'}
+        (source / 'inputs/RECOVERY_AUTHORIZATION.json').write_text(json.dumps(authorization, indent=2) + '\n')
     (source / 'inputs/EXECUTION_PLATFORM.json').write_text(json.dumps(pin, indent=2) + '\n')
     (source / 'inputs/MANIFEST.json').write_text(json.dumps({
         file.name: digest(file) for file in (source / 'inputs').iterdir()
         if file.name != 'MANIFEST.json'}, indent=2) + '\n')
+    if recovery_authorization:
+        import sys
+        sys.path.insert(0, str(source))
+        from src.composite_recovery import execution_config
+        import os
+        previous_platform = os.environ.get('RESEARCH4_EXECUTION_PLATFORM')
+        try:
+            os.environ['RESEARCH4_EXECUTION_PLATFORM'] = 'kaggle'
+            execution_config(source, commit, 'detector-rank32-v5',
+                             json.loads((source / 'config/composite_controller_rank32_v2.json').read_text()))
+        finally:
+            if previous_platform is None:
+                os.environ.pop('RESEARCH4_EXECUTION_PLATFORM', None)
+            else:
+                os.environ['RESEARCH4_EXECUTION_PLATFORM'] = previous_platform
     encoded_files = {}
     for file in list(stage.rglob('*')):
         if file.is_file() and file.suffix.lower() in ['.zip', '.gz', '.tgz', '.tar', '.7z']:
@@ -114,6 +161,9 @@ def prepare(repo, commit, frozen_inputs, transport, output, notebook):
                'archives_preserved_via_base64': sorted(encoded_files),
                'package_bytes': package.stat().st_size,
                'heldout_transferred': False, 'scientific_execution_started': False}
+    if recovery_parent_run:
+        receipt['status'] = ('prepared_with_explicit_exception_not_submitted' if recovery_authorization
+                             else 'proposal_requires_explicit_human_retry_and_bound_exception')
     (output / 'PREPARATION.json').write_text(json.dumps(receipt, indent=2) + '\n')
     return receipt
 
@@ -122,5 +172,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     for name in ['repo', 'commit', 'frozen-inputs', 'transport', 'output', 'notebook']:
         parser.add_argument('--' + name, required=True)
+    parser.add_argument('--recovery-parent-run')
+    parser.add_argument('--recovery-authorization')
     arguments = vars(parser.parse_args())
     print(json.dumps(prepare(**{key.replace('-', '_'): value for key, value in arguments.items()})))
