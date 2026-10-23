@@ -60,6 +60,13 @@ class PreparationTests(unittest.TestCase):
                                  hashlib.sha256(b'# frozen text\r\n').hexdigest())
                 self.assertEqual(json.loads(archive.read(
                     'source/inputs/EXECUTION_PLATFORM.json'))['hard_timeout_seconds'], 2700)
+                raw_manifest = archive.read('PACKAGE_FILES.json')
+                self.assertEqual(hashlib.sha256(raw_manifest).hexdigest(),
+                                 receipt['package_files_manifest_sha256'])
+                manifest = json.loads(raw_manifest)
+                self.assertEqual(set(manifest['files']), set(archive.namelist()) - {'PACKAGE_FILES.json'})
+                for name, expected in manifest['files'].items():
+                    self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), expected)
 
     def test_changed_or_sealed_artifact_cannot_be_packaged(self):
         with tempfile.TemporaryDirectory() as temp:

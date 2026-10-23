@@ -87,12 +87,18 @@ def prepare(repo, commit, frozen_inputs, transport, output, notebook):
     (source / 'inputs/MANIFEST.json').write_text(json.dumps({
         file.name: digest(file) for file in (source / 'inputs').iterdir()
         if file.name != 'MANIFEST.json'}, indent=2) + '\n')
+    contents = stage / 'PACKAGE_FILES.json'
+    contents.write_text(json.dumps({'source_commit': commit, 'files': {
+        file.relative_to(stage).as_posix(): digest(file)
+        for file in sorted(stage.rglob('*')) if file.is_file()}}, indent=2) + '\n')
     package = output / 'FROZEN_PACKAGE.zip'
     with zipfile.ZipFile(package, 'x', zipfile.ZIP_DEFLATED) as archive:
         for file in sorted(stage.rglob('*')):
             if file.is_file():
                 archive.write(file, file.relative_to(stage).as_posix())
-    receipt = {**pin, 'package_sha256': digest(package), 'package_bytes': package.stat().st_size,
+    receipt = {**pin, 'package_sha256': digest(package),
+               'package_files_manifest_sha256': digest(contents),
+               'package_bytes': package.stat().st_size,
                'heldout_transferred': False, 'scientific_execution_started': False}
     (output / 'PREPARATION.json').write_text(json.dumps(receipt, indent=2) + '\n')
     return receipt
