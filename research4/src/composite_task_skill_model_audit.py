@@ -70,6 +70,21 @@ def require_full_fit(value):
     return proof
 
 
+def require_stateful_qualification(value):
+    proof=require_qualification(value)
+    from .composite_task_memory_profile import MODE as MEMORY_MODE
+    if (proof.get('runtime_profile')!=MEMORY_MODE or proof.get('qualified_optimizer_updates')!=3
+            or proof.get('stateful_AdamW_overlap_and_size_switch_verified') is not True
+            or proof.get('optimizer',{}).get('numeric_AdamW_updates_independently_recomputed')!=3
+            or proof.get('optimizer',{}).get('optimizer_step')!=3
+            or proof.get('optimizer',{}).get('initial_A_tensors_verified')!=496
+            or proof.get('checkpoint',{}).get('adapter_parameters')!=233455616
+            or proof.get('checkpoint',{}).get('tensors')!=992
+            or proof.get('initialization_mapping_version')!='per-device-seed202610212-placement22-42-v3'):
+        raise PermissionError('Complete three-update stateful memory qualification required')
+    return proof
+
+
 def verify_fresh_initialization(current,parent_initial):
     """Same seeded geometry must restart at the scratch *initial* adapter bytes."""
     if not isinstance(current,dict) or not current or not isinstance(parent_initial,dict) or not parent_initial:
@@ -88,7 +103,7 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
     expected_notebook={'qualification':'farhad89/research4-task-skill-qualification-v2','full_fit':'farhad89/research4-task-skill-fit-v1'}.get(phase)
     from .composite_task_memory_profile import MODE as MEMORY_MODE
     if binding.get('mode')==MEMORY_MODE:
-        expected_notebook={'qualification':'farhad89/research4-task-memory-qualification-v3'}.get(phase)
+        expected_notebook={'qualification':'farhad89/research4-task-memory-qualification-v3','full_fit':'farhad89/research4-task-skill-fit-v3'}.get(phase)
     if (type(run) is not int or run <= 0 or expected_notebook is None or notebook != expected_notebook
             or not re.fullmatch('[0-9a-f]{40}', source or '') or not re.fullmatch('[0-9a-f]{64}', archive_sha256 or '')):
         raise PermissionError('Exact one-use model submission required')
@@ -197,7 +212,8 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
     stage, cfg, data = validate_model_source(root, source_commit,qualification_archive)
     phase=stage['phase'];updates={'qualification':1,'full_fit':64}[phase]
     from .composite_task_memory_profile import MODE as MEMORY_MODE,RAW_PROFILE,stress_schedule,verify_allocator_record
-    stateful=stage['version']==MEMORY_MODE and phase=='qualification'
+    memory_mode=stage['version']==MEMORY_MODE
+    stateful=memory_mode and phase=='qualification'
     if stateful:updates=3
     if required_phase is not None and phase!=required_phase:raise PermissionError('Another model phase was supplied')
     files = EvidenceFiles(raw, expected_sha256, stage['maximum_raw_evidence_bytes'],
@@ -234,6 +250,7 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
             required|={'INITIAL_A.pt','INITIAL_A_EXPORT.json','OPTIMIZER_INITIAL_STATE.json',
                        'STATEFUL_TRAINING_SCHEDULE.json','ALLOCATOR_BEFORE_INSTALL.json','ALLOCATOR_AFTER_INSTALL.json'}
             for i in [1,2,3]:required|={'GRADIENT_STEP_'+str(i).zfill(3)+suffix for suffix in ['.pt','_EXPORT.json']}
+        elif memory_mode:required|={'OPTIMIZER_INITIAL_STATE.json','ALLOCATOR_BEFORE_INSTALL.json','ALLOCATOR_AFTER_INSTALL.json'}
         missing = sorted(required - set(files.manifest))
         if missing:
             return TaskQualification({**base, 'missing_or_unverified': missing}, _KEY)
@@ -299,6 +316,7 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                 stress=stress_schedule(tokens);ids=stress['state_ids']
                 if digest(stress)!=digest(files.json('STATEFUL_TRAINING_SCHEDULE.json')):
                     raise ValueError('Registered training-only memory stress schedule differs')
+            if memory_mode:
                 if digest(files.json('OPTIMIZER_INITIAL_STATE.json'))!=digest({'state_entries':0,'parameter_tensors':992}):
                     raise ValueError('Qualification optimizer must begin fresh with empty state')
                 for name in ['ALLOCATOR_BEFORE_INSTALL.json','ALLOCATOR_AFTER_INSTALL.json']:
@@ -325,7 +343,7 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                     if grad['device'] != device or grad['dtype'] != 'torch.float32' or not math.isfinite(grad['norm']) or grad['norm'] < 0:
                         raise ValueError('Per-device full-rank gradient evidence differs')
                 memory_records(row['memory'])
-                if stateful:
+                if memory_mode:
                     before=files.json('training/resident_optimizer_before_'+str(index+1).zfill(4)+'.json')
                     update=index//2+1
                     expected={'update':update,'microstep':index%2,'state_id':state,
@@ -365,8 +383,12 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                 optimizer=audit_three_updates(files,shapes,files.json('ADAPTER_INITIAL_HASHES.json'))
             elif phase=='qualification':optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
             else:
-                from .composite_task_skill_parent import read_parent
-                parent=require_qualification(read_parent(root,qualification_archive))
+                if stage['version']==MEMORY_MODE:
+                    from .composite_task_memory_parent import read_stateful_parent
+                    parent=require_stateful_qualification(read_stateful_parent(root,qualification_archive))
+                else:
+                    from .composite_task_skill_parent import read_parent
+                    parent=require_qualification(read_parent(root,qualification_archive))
                 verify_fresh_initialization(files.json('ADAPTER_INITIAL_HASHES.json'),parent.get('initial_adapter_hashes'))
                 audit_optimizer_config(files)
                 optimizer=audit_optimizer_bytes(files.tensor_path('OPTIMIZER_FINAL.pt'),shapes,64)
@@ -407,6 +429,9 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
         if stateful:base.update(runtime_profile=MEMORY_MODE,stateful_AdamW_overlap_and_size_switch_verified=True,
           initialization_mapping_version=stage['initialization_mapping_version'],qualified_optimizer_updates=3,
           full64_training_capacity_established=False,arbitrary6144_training_capacity_established=False)
+        elif stage['version']==MEMORY_MODE:
+            base.update(runtime_profile=MEMORY_MODE,initialization_mapping_version=stage['initialization_mapping_version'],
+              stateful_parent_qualification_verified=True,qualification_parent_run_id=stage['qualification_run_id'])
         return TaskQualification(base, _KEY)
     finally:
         files.close()

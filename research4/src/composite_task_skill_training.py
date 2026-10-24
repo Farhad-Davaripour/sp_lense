@@ -288,7 +288,7 @@ def validate_model_source(root, commit,qualification_archive=None):
     from .composite_task_memory_profile import MODE as MEMORY_MODE
     if stage.get('version')==MEMORY_MODE:
         from .composite_task_memory_source import validate_source
-        return validate_source(root,commit)
+        return validate_source(root,commit,qualification_archive)
     required=data_input_names()
     if stage.get('phase')=='full_fit':
         from .composite_task_skill_parent import PARENT_FILES
@@ -375,4 +375,4 @@ def run_fit(actor, rows, cfg, plan, output, guard, progress, persist):
     if stateful:persist('ALLOCATOR_BEFORE_INSTALL.json',allocator_evidence(torch.cuda))
     return instrumented_fit(actor, rows, cfg, plan, output, guard, progress, persist,
                             token_planner=token_plan, row_selector=lambda values:selected_rows(actor, values),
-                            fitter=fit_task_backend, devices=(0,1), export_profile=STATEFUL_TASK_PROFILE if stateful else TASK_PROFILE)
+                            fitter=fit_task_backend, devices=(0,1), export_profile=STATEFUL_TASK_PROFILE if stateful and plan['phase']=='qualification' else TASK_PROFILE)

@@ -111,9 +111,28 @@ def qualification_plan(commit):
     return value
 
 
-def validate_source(root,commit):
+def full_fit_plan(commit,qualification):
+    from .composite_task_skill_model_audit import require_stateful_qualification
+    proof=require_stateful_qualification(qualification)
+    value=qualification_plan(commit)
+    value.update(phase='full_fit',notebook='farhad89/research4-task-skill-fit-v3',optimizer_updates=64,
+      sampling='registered_seeded_training_sampler',seed=202610212,learning_rate=0.0005,weight_decay=0.0,clip_norm=1.0,
+      raw_evidence_profile='task-full-state-raw-evidence-v1',maximum_raw_evidence_bytes=4*1024**3,
+      physical_export_reserve_bytes=12*1024**3,hard_timeout_seconds=42000,worker_seconds=40800,export_reserve_seconds=900,
+      destination='/kaggle/working/research4_campaign/runs/'+commit+'/task_skill_training_v1/full_fit_01',
+      qualification_source_commit=proof['source_commit'],qualification_run_id=proof['provider_run_id'],
+      qualification_raw_archive_sha256=proof['raw_archive_sha256'],checkpoint_initializes_full_fit=False,
+      optimizer_sampler_or_RNG_warm_start=False,risk_examples_or_outcomes_used_for_fitting_or_selection=False,
+      metadata_plan_alone_admits_launch=False,additional_started_full_fit_attempt=True,exact_resume_from12=False)
+    return value
+
+
+def validate_source(root,commit,stateful_archive=None):
     root=Path(root);stage=read(root/'inputs'/PLAN)
     required=data_input_names()|FAILURE_FILES
+    if stage.get('phase')=='full_fit':
+        from .composite_task_memory_parent import FILES as STATEFUL_PARENT_FILES
+        required|=STATEFUL_PARENT_FILES
     cfg,evidence=validate_task_data_source(root,commit,required)
     if (digest(read(root/PROFILE_FILE))!=digest(expected_profile())
             or sha(root/'inputs'/PRE_FORWARD_PARENT)!=PRE_FORWARD_PARENT_SHA):
@@ -121,6 +140,10 @@ def validate_source(root,commit):
     failure=read_started_failure(root)
     if failure.receipt()['scientific_execution_started'] is not True:
         raise PermissionError('This stage must not borrow the zero-forward recovery allowance')
-    if digest(stage)!=digest(qualification_plan(commit)) or read(root/'inputs/WORKSPACE.json')!=identity(stage['notebook']):
-        raise PermissionError('Only this separate three-update stateful qualification is registered')
+    expected=qualification_plan(commit)
+    if stage.get('phase')=='full_fit':
+        from .composite_task_memory_parent import read_stateful_parent
+        expected=full_fit_plan(commit,read_stateful_parent(root,stateful_archive))
+    if digest(stage)!=digest(expected) or read(root/'inputs/WORKSPACE.json')!=identity(stage['notebook']):
+        raise PermissionError('Exact separate stateful qualification or fresh full-fit dependency required')
     return stage,cfg,evidence
