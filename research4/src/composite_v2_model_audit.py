@@ -49,8 +49,9 @@ def provider_closure(host,run_id,archive_sha256,air,jobs):
     No raw `released=True` boolean is an accepted substitute.
     """
     _hash(archive_sha256)
-    if not isinstance(host,str) or not re.fullmatch(r'https://adb-[0-9]+\.[0-9]+\.azuredatabricks\.net',host):
-        raise ValueError('Exact Azure workspace host required')
+    from .workspace_accounts import profiles
+    if host not in {value['host'] for value in profiles()['accounts'].values()}:
+        raise ValueError('Exact explicitly configured Databricks workspace host required')
     if type(run_id) is not int or run_id<=0 or type(jobs.get('run_id')) is not int or jobs['run_id']!=run_id:
         raise ValueError('Exact provider run identity required')
     if str(air.get('run_id'))!=str(run_id) or air.get('status') not in ['SUCCESS','SUCCEEDED']:
@@ -94,9 +95,11 @@ def capture_live_backbone(actor):
     from .composite_frozen_probe import logical_shape
     values=[]
     for name,p in actor.base_references:
+        try:version=int(p._version)
+        except RuntimeError:version=None
         values.append({'name':name,'shape':list(p.shape),'logical_shape':logical_shape(p),
             'dtype':str(p.dtype),'device':str(p.device),'requires_grad':p.requires_grad,
-            'gradient_is_none':p.grad is None,'sha256':tensor_digest(p)})
+            'gradient_is_none':p.grad is None,'version':version,'sha256':tensor_digest(p)})
     return {'parameters':values,'auxiliary_sha256':auxiliary_digest(actor.base_references,actor.base_buffers),
             'live_recomputed':True,'original_backbone_only':True}
 
@@ -186,6 +189,8 @@ def frozen_integrity(before,after,expected_shapes):
             if (value.get('requires_grad') is not False or value.get('gradient_is_none') is not True
                 or value.get('device')!='cuda:0' or digest(value.get('logical_shape'))!=digest(expected_shapes[name])):
                 raise ValueError('Frozen original tensor geometry/gradient/device differs')
+            if 'version' not in value or (value['version'] is not None and (type(value['version']) is not int or value['version']<0)):
+                raise ValueError('Live parameter version availability must be explicit')
             shape=value.get('shape')
             if not isinstance(shape,list) or not shape or any(type(v) is not int or v<=0 for v in shape):
                 raise ValueError('Recorded physical tensor geometry required')
@@ -250,10 +255,15 @@ def audit_model_files(files,context,token_plan,*,public_fixture=False,closure=No
               'behavior.pt','ADAPTER_INITIAL_HASHES.json'}
     missing=sorted(required-set(files.manifest))
     if missing:
+        lower=None
+        if 'TRAINING_TERMINAL_JOURNAL.json' in files.manifest:
+            observed=files.json('TRAINING_TERMINAL_JOURNAL.json').get('optimizer_steps_completed')
+            if type(observed) is int and 0<=observed<=(1 if phase=='qualification' else 64):lower=observed
         return ModelEvidence({'reader':READER,'source_commit':source,'phase':phase,'workspace':context['workspace'],
             'data_release_sha256':stage['data_release_sha256'],'raw_archive_sha256':files.sha256,
             'worker_status':receipt.get('status'),'missing_raw_files':missing,'missing_or_unverified':blocks,
-            'recorded_update_count_verified':None,'backbone_integrity':None,'model_tensor_integrity_audited':False,
+            'recorded_update_count_verified':None,'optimizer_steps_completed_lower_bound':lower,
+            'backbone_integrity':None,'model_tensor_integrity_audited':False,
             'complete_training_qualification_audited':False,'scientific_qualification_admitted':False,
             'owned_compute_released':None,'absence_of_unlogged_calls_proved':False,'public_fixture_test_mode':public_fixture,
             'model_forwards':0,'optimizer_updates':0,'heldout_content_read':False},_KEY)
@@ -330,7 +340,8 @@ def audit_model_files(files,context,token_plan,*,public_fixture=False,closure=No
         'complete_model_stage_raw_audited':complete,'full_fit_raw_audited':complete and phase=='full_fit',
         'complete_training_qualification_audited':complete and phase=='qualification',
         'model_tensor_integrity_audited':integrity is not None and runtime and _source_key is _KEY and not public_fixture,
-        'owned_compute_released':True if released else None,'checkpoint_initializes_full_fit':False,'absence_of_unlogged_calls_proved':False,
+        'owned_compute_released':True if released else None,'provider_run_id':receipt.get('provider_run_id'),
+        'checkpoint_initializes_full_fit':False,'absence_of_unlogged_calls_proved':False,
         'scientific_qualification_admitted':complete and phase=='qualification','public_fixture_test_mode':public_fixture,
         'model_forwards':0,'optimizer_updates':0,'heldout_content_read':False},_KEY)
 
@@ -346,7 +357,7 @@ def audit_model_archive(raw,expected_sha256,root,source_commit,data_archive,*,cl
     from .composite_v2_model_contract import validate_model_metadata,load_training_export
     from .composite_frozen_probe import validate_download_proof,verify_metadata_bytes
     from .composite_v2_training import token_plan as replay_token_plan
-    from .io_utils import read
+    from .io_utils import read,sha
     context=validate_model_metadata(root,source_commit)
     from .composite_generalized_data import require_runtime
     require_runtime()
@@ -389,7 +400,10 @@ def audit_model_archive(raw,expected_sha256,root,source_commit,data_archive,*,cl
                                 closure=closure,_source_key=_KEY)
         # The raw reader does not convert missing runtime/optimizer/bypass or
         # provider-release evidence into a passed scientific qualification.
-        return value
+        receipt=value.receipt()
+        receipt.update(source_release_sha256=sha(Path(root)/'RELEASE.json'),
+                       source_input_manifest_sha256=sha(Path(root)/'inputs/MANIFEST.json'))
+        return ModelEvidence(receipt,_KEY)
     finally:files.close()
 
 
@@ -400,12 +414,88 @@ def require_qualification_evidence(value,parent):
         or proof.get('public_fixture_test_mode') is not False or proof.get('owned_compute_released') is not True
         or proof.get('phase')!='qualification' or proof.get('recorded_update_count_verified')!=1):
         raise PermissionError('Incomplete/public/unreleased evidence cannot admit a later full fit')
-    for key in ['source_commit','data_release_sha256','workspace','raw_archive_sha256']:
+    for key in ['source_commit','data_release_sha256','workspace','raw_archive_sha256',
+                'source_release_sha256','source_input_manifest_sha256']:
         _same(parent.get(key),proof[key],'Scratch qualification identity differs')
     return True
 
 
-def read_evaluation_integrity(files,root,source_commit,package,trace_manifest,model_stage_evidence):
+def detector_parameter_roster(files,pin,saved):
+    """Shape-only meta architecture; no pretrained weights or forward call."""
+    import base64,torch
+    from transformers import AutoConfig,AutoModel
+    from .composite_frozen_probe import verify_metadata_bytes
+    from .composite_capacity import detector_targets
+    proof=files.json('DETECTOR_FILE_VERIFICATION.json');encoded=files.json('DETECTOR_METADATA_BYTES.json')
+    verify_metadata_bytes(pin,proof,encoded)
+    config=json.loads(base64.b64decode(encoded['config.json'],validate=True))
+    if config.pop('model_type')!='modernbert':raise ValueError('Pinned ModernBERT architecture required')
+    with torch.device('meta'):
+        encoder=AutoModel.from_config(AutoConfig.for_model('modernbert',**config),trust_remote_code=False,attn_implementation='sdpa')
+    cfg=saved['config']
+    if encoder.config.hidden_size!=cfg['hidden_size'] or encoder.config.num_hidden_layers!=cfg['layers']:
+        raise ValueError('Detector header/checkpoint geometry differs')
+    targets=detector_targets(encoder,cfg);roster={}
+    for name in targets:
+        module=encoder.get_submodule(name)
+        for part,shape in [('A',[cfg['rank'],module.in_features]),('B',[module.out_features,cfg['rank']])]:
+            tensor=saved['lora'].get(name+'.'+part)
+            if tensor is None or list(tensor.shape)!=shape or tensor.dtype!=torch.float32 or not torch.isfinite(tensor).all():
+                raise ValueError('Complete finite detector adapter geometry required')
+    from .composite_detector import StructuredHeads
+    with torch.device('meta'):heads=StructuredHeads(cfg['hidden_size'],saved.get('head_mode','cls'))
+    if set(saved['heads'])!=set(heads.state_dict()) or any(list(saved['heads'][n].shape)!=list(v.shape)
+        or saved['heads'][n].dtype!=torch.float32 or not torch.isfinite(saved['heads'][n]).all() for n,v in heads.state_dict().items()):
+        raise ValueError('Complete selected detector head geometry required')
+    for name,parameter in encoder.named_parameters():
+        target=next((t for t in targets if name.startswith(t+'.')),None)
+        key=name if target is None else target+'.base.'+name[len(target)+1:]
+        roster['encoder.'+key]=list(parameter.shape)
+    for prefix,key in [('encoder.','lora'),('heads.','heads')]:
+        roster.update({prefix+n:list(v.shape) for n,v in saved[key].items()})
+    expected_adapters={name+'.'+part for name in targets for part in ['A','B']}
+    if set(saved['lora'])!=expected_adapters:raise ValueError('Complete detector projection coverage differs')
+    return roster
+
+
+def detector_integrity(files,pin,checkpoint,expected_sha256):
+    """Verify frozen composite detector bytes and the selected adapter/heads."""
+    import torch
+    from .composite_training import tensor_digest
+    if checkpoint is None or hashlib.sha256(checkpoint).hexdigest()!=expected_sha256:
+        raise ValueError('Exact selected detector checkpoint bytes required')
+    saved=torch.load(io.BytesIO(checkpoint),map_location='cpu',weights_only=True)
+    roster=detector_parameter_roster(files,pin,saved)
+    before=files.json('DETECTOR_PARAMETERS_BEFORE.json');after=files.json('DETECTOR_PARAMETERS_AFTER.json')
+    _same(before,after,'Validation detector changed')
+    lookup={v['name']:v for v in before}
+    if not before or len(lookup)!=len(before) or set(lookup)!=set(roster):raise ValueError('Complete unique frozen detector parameter records required')
+    if any(v.get('requires_grad') is not False or v.get('gradient_is_none') is not True
+           or v.get('device')!='cuda:0' or v.get('dtype')!='torch.float32'
+           or v.get('shape')!=roster[v['name']] for v in before):
+        raise ValueError('Detector parameters, adapters and heads must be frozen on the selected device')
+    for value in before:_hash(value['sha256'])
+    expected={**{'encoder.'+k:v for k,v in saved['lora'].items()},**{'heads.'+k:v for k,v in saved['heads'].items()}}
+    for name,tensor in expected.items():
+        value=lookup.get(name)
+        if value is None or value.get('shape')!=list(tensor.shape) or value['sha256']!=tensor_digest(tensor):
+            raise ValueError('Validation detector differs from the exact selected adapters/heads')
+    proof=files.json('DETECTOR_FILE_VERIFICATION.json');by_name={v['name']:v for v in proof}
+    if len(by_name)!=len(proof) or set(by_name)!={v['name'] for v in pin['files']}:raise ValueError('Original detector download coverage differs')
+    for item in pin['files']:
+        observed=by_name[item['name']];_hash(observed['sha256'])
+        if observed['size']!=item['size'] or (item.get('sha256') and observed['sha256']!=item['sha256']):
+            raise ValueError('Original detector file pin changed')
+    runtime=files.json('DETECTOR_RUNTIME.json')
+    expected_runtime={'config':saved['config'],'head_mode':saved.get('head_mode','cls'),
+        'projection_names':saved['placements'],
+        'projection_scales':{name:float(saved['config']['alpha'])/saved['config']['rank'] for name in saved['placements']},
+        'all_modules_in_eval_mode':True,'full_attention':'sdpa'}
+    _same(runtime,expected_runtime,'Actual frozen detector routing/runtime configuration differs')
+    return {'frozen_parameters':len(before),'selected_checkpoint_tensors':len(expected),'checkpoint_sha256':expected_sha256}
+
+
+def read_evaluation_integrity(files,root,source_commit,package,trace_manifest,model_stage_evidence,*,detector_checkpoint=None):
     """Independent frozen validation-state reader, not a training audit reused.
 
     Requires the actual audited full-fit identity and raw before/after adapter
@@ -438,6 +528,9 @@ def read_evaluation_integrity(files,root,source_commit,package,trace_manifest,mo
     shapes={n:v['shape'] for n,v in header['tensors'].items() if not n.startswith('mtp.')}
     frozen_integrity(files.json('BACKBONE_LIVE_BEFORE.json'),files.json('BACKBONE_LIVE_AFTER.json'),shapes)
     audit_runtime(files.json('RUNTIME_RAW.json'),files.json('BACKBONE_LIVE_AFTER.json'),shapes)
+    design=read(Path(root)/'config/composite_generalization_amendment_v2.json')
+    detector=detector_integrity(files,read(Path(root)/'inputs/MODERNBERT_PIN.json'),detector_checkpoint,
+                                design['detector']['checkpoint_sha256'])
     import torch
     from .composite_training import tensor_digest
     for path in ['EVAL_ADAPTER_BEFORE.pt','EVAL_ADAPTER_AFTER.pt']:
@@ -450,7 +543,7 @@ def read_evaluation_integrity(files,root,source_commit,package,trace_manifest,mo
                 raise ValueError('Evaluation adapter bytes differ from the audited checkpoint')
     return EvaluationIntegrity({'reader':READER,'source_commit':source_commit,'package_sha256':digest(package),
         'trace_manifest_sha256':digest(trace_manifest),'data_release_sha256':package['data_release_sha256'],
-        'raw_archive_sha256':files.sha256,'complete_model_integrity_audited':True,
+        'raw_archive_sha256':files.sha256,'detector_integrity':detector,'complete_model_integrity_audited':True,
         'absence_of_unlogged_calls_proved':False,'heldout_content_read':False},_KEY)
 
 

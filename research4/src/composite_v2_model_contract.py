@@ -17,7 +17,7 @@ MODE='generalized-qwen-model-stage-v2'
 def validate_model_metadata(root,commit):
     root=Path(root);verify_release(root,commit);manifest=read(root/'inputs/MANIFEST.json')
     required={'WORKSPACE.json','V2_MODEL_STAGE.json','HUMAN_QWEN_FITTING_SCOPE.json','HUMAN_GENERALIZATION_SCOPE.json',
-              'QWEN_PIN.json','PARENT_MODEL_INPUT_MANIFEST.json'}
+              'QWEN_PIN.json','QWEN_TENSOR_METADATA.json','MODERNBERT_PIN.json','PARENT_MODEL_INPUT_MANIFEST.json'}
     if not required<=set(manifest):raise PermissionError('Actual complete V2 model-stage preparation required')
     for name,value in manifest.items():
         if Path(name).name!=name or 'sealed' in name.lower() or 'heldout' in name.lower() or sha(root/'inputs'/name)!=value:
@@ -25,6 +25,11 @@ def validate_model_metadata(root,commit):
     if sha(root/'inputs/PARENT_MODEL_INPUT_MANIFEST.json')!=ORIGINAL_MODEL_MANIFEST:raise PermissionError('Original model input pin required')
     if sha(root/'inputs/QWEN_PIN.json')!=read(root/'inputs/PARENT_MODEL_INPUT_MANIFEST.json')['QWEN_PIN.json']:
         raise PermissionError('Original full Qwen file pin changed')
+    if sha(root/'inputs/MODERNBERT_PIN.json')!=read(root/'inputs/PARENT_MODEL_INPUT_MANIFEST.json')['MODERNBERT_PIN.json']:
+        raise PermissionError('Original full ModernBERT file pin changed')
+    metadata=read(root/'inputs/QWEN_TENSOR_METADATA.json')
+    if metadata.get('tensor_values_read') is not False or digest(metadata.get('tensors'))!='a2477ac2c15f9c198d5137204f00da050d8aa87716a3cc5f0156f00b84034f7f':
+        raise PermissionError('Original header-only Qwen tensor geometry changed')
     human=read(root/'inputs/HUMAN_QWEN_FITTING_SCOPE.json')
     if human.get('human_user_message_id')!='01a16c28-f501-7af1-b3ff-afb1a7e9761b' or human.get('status')!='verified_direct_human_Qwen_adapter_fitting_scope_clarification':
         raise PermissionError('Bind the verified direct human fitting scope')
@@ -37,6 +42,13 @@ def validate_model_metadata(root,commit):
         or stage.get('accelerator_type')!='GPU_1xA10' or stage.get('heldout_content_read') is not False
         or stage.get('qualification_warm_start_used') is not False):raise PermissionError('Exact bounded V2 single-worker model contract required')
     cfg=read(root/'config/composite_controller_rank32_v2.json')
+    from .composite_v2_raw_exports import validate_export_plan
+    validate_export_plan(stage)
+    if stage.get('provider_binding_path')!='model_generalized_v2/'+commit+'/'+stage['phase']+'_01/PROVIDER_BINDING.json':
+        raise PermissionError('Exact one-use provider binding locator required')
+    if stage['phase']=='full_fit':
+        from .composite_v2_parent_audit import validate_parent_descriptor
+        validate_parent_descriptor(stage,workspace)
     bounds=cfg['bounds']
     expected={'worker_seconds':bounds['worker_seconds'],'export_reserve_seconds':bounds['export_reserve_seconds'],
               'hard_timeout_seconds':bounds['hard_timeout_minutes']*60,'maximum_backbone_forwards':bounds['maximum_backbone_forwards_per_run']}

@@ -41,6 +41,8 @@ class V2EvaluationTests(unittest.TestCase):
         base=read(ROOT/'config/composite_controller_rank32_v2.json');design=read(ROOT/'config/composite_generalization_amendment_v2.json')
         value=summarize_v2([], [fixture()],base,design,{},'a'*40,False,model_integrity_audited=True,public_fixture=True)
         self.assertFalse(value['complete_model_integrity_audited'])
+        self.assertIsNone(value['native_without_teacher_forcing'])
+        self.assertIsNone(value['no_decoder_repair_or_policy_logit_mask'])
         self.assertFalse(value['admitted'])
 
 

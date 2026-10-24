@@ -14,6 +14,9 @@ the last changing writer of each required field at that boundary. Overwritten,
 redundant, incorrect and unrelated writes do not receive contribution credit.
 Only those effect roots enter causal slicing and consumed-binding signatures.
 Definition and invocation costs include failed and uncredited attempts.
+The revised reader also reconstructs interrupted invocation ranges from native
+steps. A fully executed changing-write core is retained when an irrelevant
+trailing suffix is stopped externally; the suffix is never treated as executed.
 
 The complete source-bound training archive supplies the training-exposure
 exclusion set. A caller cannot supply an empty list or a success/relevance
@@ -49,10 +52,15 @@ nonfixture, released qualification. No qualification state initializes the fit.
 Frozen validation model integrity has its own reader and source/package/trace
 binding. A fitting audit or caller boolean cannot stand in for before/after
 validation parameter evidence. Neither reader claims absence of unlogged calls.
+Detector coverage additionally uses a meta-only architecture from verified
+configuration bytes, without allocating dense backbone weights or calling a
+forward. It requires the complete encoder/adapter/head roster, the exact
+selected checkpoint, frozen before/after records and the recorded adapter
+scales and evaluation mode. Qwen-only evidence cannot admit composite integrity.
 
 ## PR126 reconciliation
 
-PR126 remains an open source proposal. Its cached `frozen_proof()` snapshots do
+The original PR126 head `3bb7f99e` remains preserved. Its cached `frozen_proof()` snapshots do
 not export live before/after parameter flags or newly computed hashes. Its
 JSON moment checks, bypass difference summaries and cleanup receipt also omit
 raw optimizer tensors, full bypass logits and independently reconciled provider

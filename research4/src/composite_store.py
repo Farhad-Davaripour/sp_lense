@@ -55,3 +55,18 @@ class Store:
         path=self.path(relative);self.client.files.create_directory(path.rsplit('/',1)[0]);self.client.files.upload(path,io.BytesIO(data),overwrite=False)
         if self.get(relative)!=data:raise ValueError('Artifact readback differs')
     def put_json(self,relative,value):self.put(relative,(json.dumps(value,indent=2)+'\n').encode())
+    def file_digest(self,relative):
+        """Stream exact readback; do not allocate a multi-GiB bytes copy."""
+        import hashlib
+        h=hashlib.sha256();size=0
+        if self.local is not None:
+            stream=self.local.path(relative).open('rb')
+        else:stream=self.client.files.download(self.path(relative)).contents
+        with stream:
+            for block in iter(lambda:stream.read(8*1024**2),b''):h.update(block);size+=len(block)
+        return {'sha256':h.hexdigest(),'bytes':size}
+    def put_file(self,relative,local_path):
+        """Exclusive streaming upload; callers reconcile an ambiguous outcome."""
+        if self.local is not None:raise PermissionError('Frozen scientific input transport is read-only')
+        path=self.path(relative);self.client.files.create_directory(path.rsplit('/',1)[0])
+        with Path(local_path).open('rb') as stream:self.client.files.upload(path,stream,overwrite=False)

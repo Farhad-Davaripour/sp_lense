@@ -5,7 +5,7 @@ from .composite_generalized_world import World,expected_analysis
 from .composite_generalized_novelty import causal_core,material_execution_signature
 from .composite_v2_trace_audit import audit_trace
 
-READER='v2-causal-helper-evidence-v1'
+READER='v2-causal-helper-evidence-v2'
 MEASUREMENT='outcome_relevant_core_live_inputs_paired_groups_v3_operation_consumption'
 _KEY=object()
 
@@ -84,7 +84,7 @@ def read_helper_evidence(record,scene,source_commit,design,exposure=None,tokeniz
         raise PermissionError('Unverified, foreign or public-only training exposure')
     # Reconstruct only the exact recorded calls. Locate the first authoritative
     # record-effect transition, including a transition inside a helper call.
-    world=World(scene);commit_index=None
+    world=World(scene);commit_index=None;invocations=[]
     primitive=world.engine._primitive
     def watched(op,args):
         nonlocal commit_index
@@ -93,7 +93,14 @@ def read_helper_evidence(record,scene,source_commit,design,exposure=None,tokeniz
         if not before and world.continuity:commit_index=len(world.engine.trace)-1
         return result
     world.engine._primitive=watched
-    for step in record['trace']:world.step(step['executed_action'])
+    for step in record['trace']:
+        action=step['executed_action'];start=len(world.engine.trace);prior=len(world.helper_calls)
+        reply=world.step(action)
+        if isinstance(action,dict) and action.get('tool')=='invoke' and isinstance(action.get('arguments'),dict):
+            name=action['arguments'].get('name')
+            if isinstance(name,str) and name in world.engine.definitions:
+                invocations.append({'name':name,'trace_start':start,'trace_end':len(world.engine.trace),
+                    'completed':len(world.helper_calls)>prior,'reply':deepcopy(reply)})
     for field,value in [('primitive_trace',world.engine.trace),('helper_calls',world.helper_calls),
                         ('helper_definitions',world.engine.definitions)]:
         if digest(record[field])!=digest(value):raise ValueError('Helper evidence differs from exact replay')
@@ -128,21 +135,27 @@ def read_helper_evidence(record,scene,source_commit,design,exposure=None,tokeniz
         attempts=sum(isinstance(step['executed_action'],dict)
             and step['executed_action'].get('tool') in ['define','invoke']
             and step['executed_action'].get('arguments',{}).get('name')==name for step in record['trace'])
-        for call in world.helper_calls:
+        for call in invocations:
             if call['name']!=name:continue
             start,end=call['trace_start'],call['trace_end'];trace=world.engine.trace[start:end]
             effects=[index-start for index in relevant if start<=index<end]
-            signature,core=material_execution_signature(program,trace,effects)
+            # A stop may interrupt an irrelevant trailing suffix after the
+            # complete causal write core. Preserve and audit that actual
+            # prefix instead of silently dropping its effectful invocation.
+            executed={**program,'steps':program['steps'][:len(trace)]}
+            if trace:signature,core=material_execution_signature(executed,trace,effects)
+            else:signature,core=None,{'reason':'no_recorded_primitive','fingerprint':None}
             if signature is not None:
                 signatures.add(signature);sizes.append(len(core['core_program']['steps']));fingerprints.add(core['fingerprint'])
             return_core=causal_core(program,[],verified_return_used=True)
             # Value equality is not provenance. The present ABI has no explicit
             # reference from a later model action to a prior helper result.
-            maybe_return=(not effects and return_core.get('eligible_for_compositional_transfer_claim') is True
+            maybe_return=(call['completed'] and not effects and return_core.get('eligible_for_compositional_transfer_claim') is True
                           and program['steps'][-1]['op'] not in ['patch'])
             unresolved_return=unresolved_return or maybe_return
             calls.append({'trace_start':start,'trace_end':end,'outcome_relevant_write_steps':effects,
                           'material_signature':signature,'causal_core':core,
+                          'full_helper_completed':call['completed'],'unexecuted_suffix_steps':len(program['steps'])-len(trace),
                           'return_use':'unknown_no_explicit_result_reference' if maybe_return else 'not_credited'})
         novelty=None if exposure is None else bool(fingerprints) and not bool(fingerprints&exposure.fingerprints)
         savings=sum(sizes)-attempts

@@ -6,25 +6,40 @@ from .composite_v2_model_contract import validate_model_metadata,load_training_e
 from .composite_owned_artifacts import OwnedArtifacts
 from .composite_generalized_interface import PROFILE
 from .composite_v2_training import run_fit
+from .composite_v2_raw_exports import disk_admission,provider_binding
 
 
 class Services:
     clock=staticmethod(time.monotonic)
     fit=staticmethod(run_fit)
     @staticmethod
-    def authorize(root,commit):
+    def metadata(root,commit):
         from .composite_generalized_data import require_runtime
         from .composite_store import Store
         from .workspace_accounts import verify_runtime_workspace
         require_runtime();context=validate_model_metadata(root,commit);store=Store()
         actual=verify_runtime_workspace(Path(root),store.client.config.host)
         if actual['host']!=context['workspace']['host']:raise PermissionError('Actual model workspace differs')
-        rows,data=load_training_export(store.get(context['stage']['data_export']['path']),context)
-        return context,store,rows,data
+        return context,store
+    @staticmethod
+    def inputs(context,store,scratch):
+        import psutil
+        if psutil.virtual_memory().available<12*1024**3:raise MemoryError('Full raw-state audit/serialization host-memory reserve unavailable')
+        stage=context['stage']
+        context['provider_run_id']=provider_binding(stage,context['workspace'],store.json(stage['provider_binding_path']))
+        archive=store.get(stage['data_export']['path']);qualification=None
+        if stage['phase']=='full_fit':
+            from .composite_v2_parent_audit import qualification_from_descriptor
+            qualification=qualification_from_descriptor(stage,context['workspace'],store,scratch,archive)
+        rows,data=load_training_export(archive,context,qualification_evidence=qualification)
+        return rows,data
     @staticmethod
     def runtime():
         import torch,transformers,bitsandbytes
-        if torch.__version__!='2.11.0+cu128' or transformers.__version__!='5.19.0' or bitsandbytes.__version__!='0.49.2':raise PermissionError('Pinned model environment differs')
+        from importlib.metadata import version
+        from .composite_frozen_probe import verify_software
+        verify_software(str(torch.__version__),{name:version(name) for name in
+            ['transformers','bitsandbytes','accelerate','safetensors','numpy','psutil']})
         if not torch.cuda.is_available() or torch.cuda.device_count()!=1 or not torch.cuda.is_bf16_supported():raise PermissionError('One BF16-capable visible GPU required')
         return {'visible_GPUs':1,'name':torch.cuda.get_device_name(0),'total_bytes':torch.cuda.mem_get_info(0)[1]}
     @staticmethod
@@ -37,15 +52,15 @@ class Services:
         return protected_alarm(seconds)
     @staticmethod
     def load(context,owner,guard,forward):
-        from .composite_frozen_worker import disk_admission,transport_environment
+        from .composite_frozen_worker import transport_environment
         from .composite_frozen_probe import verify_metadata_bytes
         from .composite_store import download_model
         cache=owner.scratch/'cache';cache.mkdir();os.environ.update(transport_environment(cache))
         pin=read(Path(context['root'])/'inputs/QWEN_PIN.json')
-        owner.json('DISK_ADMISSION.json',disk_admission(cache,owner.raw,pin))
+        owner.json('DISK_ADMISSION.json',disk_admission(cache,owner.raw,pin,context['stage']))
         reserve=owner.scratch/'EXPORT_RESERVE.bin'
         if not hasattr(os,'posix_fallocate'):raise RuntimeError('Qualified Linux physical export reservation required')
-        with reserve.open('xb') as stream:os.posix_fallocate(stream.fileno(),0,5*1024**3)
+        with reserve.open('xb') as stream:os.posix_fallocate(stream.fileno(),0,context['stage']['physical_export_reserve_bytes'])
         small,proof=download_model(pin,cache,metadata_only=True)
         encoded={item['name']:base64.b64encode((small/item['name']).read_bytes()).decode()
                  for item in pin['files'] if not item['name'].endswith('.safetensors')}
@@ -69,13 +84,17 @@ class Services:
 
 def run(root,commit,_services=None,scratch_base=None):
     services=Services() if _services is None else _services;started=services.clock()
-    context,store,rows,data=services.authorize(root,commit);stage=context['stage'];cfg=context['configuration'];bounds=cfg['bounds']
+    if _services is None:
+        context,store=services.metadata(root,commit);rows=data=None
+    else:context,store,rows,data=services.authorize(root,commit)  # Explicit public fake-service path only.
+    stage=context['stage'];cfg=context['configuration'];bounds=cfg['bounds']
     prefix=stage['destination'][len(context['workspace']['artifact_volume']+'/composite_controller_v1/'):]
-    owner=OwnedArtifacts(store,prefix,commit,base=scratch_base)
+    owner=OwnedArtifacts(store,prefix,commit,base=scratch_base,maximum_bytes=stage.get('maximum_raw_evidence_bytes',1024**3))
     counts={'attempted':0,'completed':0};actor=None
     receipt={'mode':MODE,'source_commit':commit,'phase':stage['phase'],'status':'running','heldout_content_read':False,
         'model_instances':None,'optimizer_updates':None,'native_interface_profile':PROFILE,'scientific_retries':0,
         'public_fixture_test_mode':_services is not None,'full_fit_completed':False}
+    receipt['provider_run_id']=context.get('provider_run_id')
     def guard():
         if services.clock()-started>=bounds['worker_seconds']-bounds['export_reserve_seconds']:raise TimeoutError('Protected model export deadline')
         services.resources()
@@ -93,9 +112,13 @@ def run(root,commit,_services=None,scratch_base=None):
         else:raise ValueError('Unknown forward event')
     def persist(name,value):return owner.json(name,value,terminal=name=='TRAINING_TERMINAL_JOURNAL.json',require_durable=name!='TRAINING_TERMINAL_JOURNAL.json')
     try:
-        owner.json('PRECALL_FREEZE.json',{'stage':stage,'workspace':context['workspace'],'data_release_sha256':digest(data)})
         with services.alarm(bounds['worker_seconds']-bounds['export_reserve_seconds']-(services.clock()-started)):
+            owner.json('MODEL_METADATA_PREFLIGHT.json',{'source_commit':commit,'phase':stage['phase'],'model_work_started':False})
             owner.json('HARDWARE_PREFLIGHT.json',services.runtime());guard()
+            if _services is None:
+                rows,data=services.inputs(context,store,owner.scratch)
+                receipt['provider_run_id']=context['provider_run_id']
+            owner.json('PRECALL_FREEZE.json',{'stage':stage,'workspace':context['workspace'],'data_release_sha256':digest(data)})
             actor=services.load(context,owner,guard,forward);receipt['model_instances']=1
             result=services.fit(actor,rows,cfg,stage,owner.raw,guard,lambda *a,**k:None,persist)
             owner.json('TRAINING_RESULT.json',result)

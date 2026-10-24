@@ -60,6 +60,8 @@ class ModelAuditTests(unittest.TestCase):
         with self.assertRaises(PermissionError):require_qualification_evidence(value,{'complete_training_qualification_audited':True})
         with self.assertRaises(PermissionError):require_qualification_evidence({'scientific_qualification_admitted':True},{})
         with self.assertRaises(PermissionError):ModelEvidence({'scientific_qualification_admitted':True})
+        from src.composite_v2_parent_audit import qualification_descriptor
+        with self.assertRaises(PermissionError):qualification_descriptor(value,{},'x','y','z')
         from src.composite_v2_model_audit import EvaluationIntegrity,read_evaluation_integrity,bound_evaluation_integrity
         with self.assertRaises(PermissionError):EvaluationIntegrity({'complete_model_integrity_audited':True})
         with self.assertRaises(PermissionError):read_evaluation_integrity(files,'.','a'*40,{}, {},value)
@@ -101,7 +103,7 @@ class ModelAuditTests(unittest.TestCase):
     def test_cached_and_incomplete_or_changed_live_backbone_cannot_pass(self):
         proof={'live_recomputed':True,'original_backbone_only':True,'auxiliary_sha256':'b'*64,
             'parameters':[{'name':'base','logical_shape':[2,2],'shape':[2,2],'dtype':'torch.float32',
-                           'requires_grad':False,'gradient_is_none':True,'device':'cuda:0','sha256':'a'*64}]}
+                           'requires_grad':False,'gradient_is_none':True,'device':'cuda:0','version':0,'sha256':'a'*64}]}
         self.assertTrue(frozen_integrity(proof,deepcopy(proof),{'base':[2,2]})['live_bytes_recomputed_and_equal'])
         for field,value in [('live_recomputed',False),('parameters',[]),('auxiliary_sha256','c'*64)]:
             changed=deepcopy(proof);changed[field]=value

@@ -1,7 +1,7 @@
 """Owned bounded artifact lifecycle, independent of models/provider allocation."""
 import hashlib,json,re,shutil,tempfile,uuid
 from pathlib import Path
-from .io_utils import read
+from .io_utils import read,sha
 from .composite_runtime import contained
 from .composite_exports import make_evidence_archive
 
@@ -29,7 +29,11 @@ class OwnedArtifacts:
         expected=hashlib.sha256(data).hexdigest()
         if name in self.confirmed:
             if self.confirmed[name]!=expected:raise ExportUnconfirmed('An already published immutable artifact changed: '+name)
-            return True
+            try:
+                if self.store.get(path)==data:return True
+                self.failures[name]='previously confirmed bytes are no longer present'
+            except Exception as error:self.failures[name]=str(error)
+            return False
         if name not in self.attempted:
             self.attempted.add(name)
             try:self.store.put(path,data)
@@ -53,6 +57,28 @@ class OwnedArtifacts:
         if require_durable and not confirmed:raise ExportUnconfirmed('Artifact transfer unknown; owned raw retained: '+name)
         return {'sha256':hashlib.sha256(data).hexdigest(),'durable':confirmed}
 
+    def _publish_file(self,name,file):
+        if not hasattr(self.store,'put_file') or not hasattr(self.store,'file_digest'):
+            return self._publish(name,file.read_bytes())  # Tiny fake stores only.
+        expected=sha(file);size=file.stat().st_size;path=self.prefix+'/'+name
+        if name in self.confirmed:
+            if self.confirmed[name]!=expected:raise ExportUnconfirmed('An already published immutable file changed: '+name)
+            try:
+                if self.store.file_digest(path)=={'sha256':expected,'bytes':size}:return True
+                self.failures[name]='previously confirmed file no longer matches'
+            except Exception as error:self.failures[name]=str(error)
+            return False
+        if name not in self.attempted:
+            self.attempted.add(name)
+            try:self.store.put_file(path,file)
+            except Exception as error:self.failures[name]=str(error)
+        try:
+            if self.store.file_digest(path)=={'sha256':expected,'bytes':size}:
+                self.confirmed[name]=expected;self.failures.pop(name,None);return True
+            self.failures[name]='streamed readback digest/size differ'
+        except Exception as error:self.failures[name]=str(error)
+        return False
+
     def finalize(self):
         if self.finalized:raise PermissionError('Finalization is one-use; reconcile its existing receipt')
         self.finalized=True;archive=self.scratch/'EVIDENCE.zip';proof=None;archive_error=None
@@ -66,8 +92,8 @@ class OwnedArtifacts:
         for path in sorted(self.raw.rglob('*')):
             if not path.is_file():continue
             if path.is_symlink() or not path.resolve().is_relative_to(self.raw.resolve()):raise PermissionError('Owned raw member escaped its directory')
-            raw_complete=self._publish('raw/'+path.relative_to(self.raw).as_posix(),path.read_bytes()) and raw_complete
-        archive_complete=proof is not None and self._publish('evidence.zip',archive.read_bytes())
+            raw_complete=self._publish_file('raw/'+path.relative_to(self.raw).as_posix(),path) and raw_complete
+        archive_complete=proof is not None and self._publish_file('evidence.zip',archive)
         self.durable_complete=bool(raw_complete or archive_complete)
         result={'durable_complete':self.durable_complete,'raw_files_complete':raw_complete,'archive_complete':bool(archive_complete),
             'archive':str(archive) if archive.exists() else None,'archive_proof':proof,'archive_error':archive_error,

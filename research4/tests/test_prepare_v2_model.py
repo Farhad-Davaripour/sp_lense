@@ -17,6 +17,8 @@ class ModelPreparationTests(unittest.TestCase):
             self.assertEqual(plan['accelerator_type'],'GPU_1xA10');self.assertEqual(plan['hard_timeout_seconds'],2700)
             self.assertIsNone(plan['data_release_sha256']);self.assertIsNone(plan['data_export']['sha256'])
             self.assertFalse(plan['allocation_authorized_by_this_template']);self.assertFalse(plan['qualification_warm_start_used'])
+            self.assertEqual(plan['maximum_raw_evidence_bytes'],4*1024**3)
+            self.assertEqual(plan['physical_export_reserve_bytes'],9*1024**3)
 
 
 if __name__=='__main__':unittest.main()

@@ -75,5 +75,31 @@ class OwnedExportTests(unittest.TestCase):
             with self.assertRaises(ExportUnconfirmed):owner.finalize()
             self.assertTrue(owner.scratch.exists())
 
+    def test_streamed_upload_reconciles_unknown_result_without_buffered_fallback_or_repeat(self):
+        import hashlib
+        class StreamingStore(Store):
+            def __init__(self):super().__init__();self.streamed=[]
+            def put_file(self,name,path):
+                self.streamed.append(name);self.put(name,Path(path).read_bytes())
+                if name.endswith('behavior.pt'):raise RuntimeError('uncertain result after stream write')
+            def file_digest(self,name):return {'sha256':hashlib.sha256(self.files[name]).hexdigest(),'bytes':len(self.files[name])}
+        with tempfile.TemporaryDirectory() as folder:
+            store=StreamingStore();owner=self.owner(folder,store)
+            (owner.raw/'behavior.pt').write_bytes(b'tiny public fake checkpoint')
+            result=owner.finalize()
+            self.assertTrue(result['durable_complete']);self.assertIn(self.prefix+'/raw/behavior.pt',store.streamed)
+            self.assertEqual(store.puts[self.prefix+'/raw/behavior.pt'],1)
+            self.assertTrue(owner.cleanup(True)['owned_scratch_removed'])
+
+    def test_lost_previously_confirmed_object_cannot_authorize_cleanup(self):
+        with tempfile.TemporaryDirectory() as folder:
+            store=Store();owner=self.owner(folder,store)
+            owner.json('item.json',{'fixture':True})
+            del store.files[self.prefix+'/raw/item.json']
+            store.fail.add(self.prefix+'/evidence.zip')
+            self.assertFalse(owner.finalize()['durable_complete'])
+            self.assertEqual(store.puts[self.prefix+'/raw/item.json'],1)
+            with self.assertRaises(PermissionError):owner.cleanup(True)
+
 
 if __name__=='__main__':unittest.main()

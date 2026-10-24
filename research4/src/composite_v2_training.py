@@ -9,7 +9,8 @@ MODE='generalized-qwen-rank32-training-v2'
 RECIPE={'steps':64,'accumulation':2,'learning_rate':0.0005,'seed':202610212,'clip_norm':1.0}
 
 
-def validate_plan(plan,cfg,data_release,workspace,*,qualification_evidence=None):
+def validate_plan_metadata(plan,cfg,data_release,workspace):
+    """Source/data metadata only; never authorizes an allocation or a fit."""
     for key,value in RECIPE.items():
         if type(cfg['behavior_training'].get(key)) is not type(value) or cfg['behavior_training'][key]!=value:
             raise PermissionError('Registered complete supervised recipe changed')
@@ -34,8 +35,14 @@ def validate_plan(plan,cfg,data_release,workspace,*,qualification_evidence=None)
             or parent.get('workspace')!=workspace or parent.get('optimizer_updates')!=1
             or parent.get('checkpoint_initializes_full_fit') is not False):
             raise PermissionError('Full fit requires an exact audited/released scratch qualification')
+    return phase
+
+
+def validate_plan(plan,cfg,data_release,workspace,*,qualification_evidence=None):
+    phase=validate_plan_metadata(plan,cfg,data_release,workspace)
+    if phase=='full_fit':
         from .composite_v2_model_audit import require_qualification_evidence
-        require_qualification_evidence(qualification_evidence,parent)
+        require_qualification_evidence(qualification_evidence,plan['qualification'])
     return phase
 
 
@@ -64,6 +71,9 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
     if getattr(actor,'native_interface_profile',None)!=PROFILE:raise PermissionError('V2 native actor required')
     if getattr(actor,'v2_training_plan',None)!=plan:raise PermissionError('Bind the same validated stage plan to the actor')
     import torch
+    from .composite_v2_model_audit import capture_live_backbone
+    from .composite_v2_raw_exports import validate_export_plan,runtime_evidence,write_optimizer_state,BypassWriter
+    validate_export_plan(plan)
     from .composite_training import tensor_digest
     if not torch.cuda.is_available() or torch.cuda.device_count()!=1 or not torch.cuda.is_bf16_supported():
         raise PermissionError('Current Databricks training authority requires one BF16-capable visible GPU')
@@ -73,6 +83,7 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
     ledger={'optimizer_steps_attempted':0,'optimizer_steps_completed':0,'backward_microsteps_completed':0,
             'layer_forward_invocations':[0]*64,'backward_recomputation_invocations':[0]*64,'in_backward':False}
     persist('BACKBONE_BEFORE.json',actor.frozen_proof())
+    persist('BACKBONE_LIVE_BEFORE.json',capture_live_backbone(actor))
     def memory():
         free,total=torch.cuda.mem_get_info(0)
         return {'device':0,'free_bytes':free,'total_bytes':total,'allocated_bytes':torch.cuda.memory_allocated(0),
@@ -119,12 +130,17 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
                 for key in ['exp_avg','exp_avg_sq']:
                     if state[key].shape!=parameter.shape or state[key].dtype!=torch.float32 or state[key].device!=parameter.device or not torch.isfinite(state[key]).all():
                         raise ValueError('AdamW moment precision/shape/device differs')
+            if value['update']==plan['optimizer_updates']:
+                proof=write_optimizer_state(optimizer,actor.adapters,output)
+                persist('OPTIMIZER_EXPORT.json',proof)
             persist('training/update_'+str(value['update']).zfill(3)+'.json',{**ledger,'memory':memory()})
     try:
         result=fit_behavior(actor,rows,{'name':'all_blocks','scope':'all_blocks'},cfg,output,guard,progress,
                             observer=observer,qualification_rows=qualification)
         actor.verify_frozen()
         persist('BACKBONE_AFTER.json',actor.frozen_proof())
+        persist('BACKBONE_LIVE_AFTER.json',capture_live_backbone(actor))
+        persist('RUNTIME_RAW.json',runtime_evidence(actor))
         expected=plan['optimizer_updates']
         if ledger['optimizer_steps_completed']!=expected or ledger['backward_microsteps_completed']!=expected*2:
             raise ValueError('Exact registered update/microstep count differs')
@@ -135,7 +151,9 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
             or any(tensor_digest(saved['weights'][name])!=tensor_digest(t) for name,t in current['weights'].items())):
             raise ValueError('Full saved checkpoint/profile readback differs')
         texts=[by_id[key]['text'] for key in tokens['qualification_state_ids']]
-        bypass=actor.bypass_check(texts);persist('BYPASS_CHECK.json',bypass)
+        raw_bypass=BypassWriter(output)
+        bypass=actor.bypass_check(texts,persist_logits=raw_bypass);persist('BYPASS_CHECK.json',bypass)
+        persist('BYPASS_RAW_MANIFEST.json',raw_bypass.manifest())
         if bypass['pass'] is not True:raise ValueError('Exact OFF/nonzero ON mechanical admission failed')
         return {**result,'phase':plan['phase'],'full_fit_completed':plan['phase']=='full_fit',
                 'qualification_checkpoint_initializes_full_fit':False,'training_progress':ledger,
