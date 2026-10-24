@@ -28,7 +28,7 @@ class Services:
     def owner(context):
         stage = context['stage']
         store = StageStore(stage)
-        prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/qualification_01'
+        prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
         return OwnedArtifacts(store, prefix, stage['source_commit'], base='/kaggle/temp',
                               maximum_bytes=stage['maximum_raw_evidence_bytes'], task_skill=True)
 
@@ -164,7 +164,7 @@ def run(root, commit, _services=None):
             result = services.fit(actor, rows, context['full_config'], stage, owner.raw, guard,
                                   lambda *a, **k: None, persist)
             owner.json('TRAINING_RESULT.json', result)
-            receipt.update(status='complete', optimizer_updates=result['optimizer_updates'])
+            receipt.update(status='complete', optimizer_updates=result['optimizer_updates'],full_fit_completed=stage['phase']=='full_fit')
     except Exception as error:
         receipt.update(status='failed', error_type=type(error).__name__, error=str(error))
         owner.json('FAILURE.json', {'traceback': traceback.format_exc()}, terminal=True, require_durable=False)

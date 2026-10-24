@@ -10,10 +10,15 @@ from .composite_exports import exclusive_output
 class StageStore:
     def __init__(self, stage):
         from .composite_task_skill_training import qualification_plan
-        if stage != qualification_plan(stage.get('source_commit')):
+        if (stage.get('phase') not in ['qualification','full_fit']
+                or stage.get('objective')!='ordinary_authorized_task_skills_only'):
             raise PermissionError('Exact reviewed task-training output stage required')
-        self.prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/qualification_01'
+        if stage['phase']=='qualification' and stage!=qualification_plan(stage.get('source_commit')):
+            raise PermissionError('Exact reviewed scratch stage required')
+        self.prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
         self.root = Path(stage['destination']).resolve()
+        expected=Path('/kaggle/working/research4_campaign/runs')/stage['source_commit']/'task_skill_training_v1'/(stage['phase']+'_01')
+        if self.root!=expected.resolve():raise PermissionError('Task output escaped its exact source/phase')
         self.upload = exclusive_output(self.root, '/kaggle/working/research4_campaign/runs')
 
     def path(self, value):

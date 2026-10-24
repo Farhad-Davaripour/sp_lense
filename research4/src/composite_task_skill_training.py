@@ -237,14 +237,18 @@ def qualification_plan(commit):
             'destination': '/kaggle/working/research4_campaign/runs/' + commit + '/task_skill_training_v1/qualification_01'}
 
 
-def validate_model_source(root, commit):
-    """No loader/forward; a full-fit endpoint is deliberately not admitted here."""
+def validate_model_source(root, commit,qualification_archive=None):
+    """Verify phase-specific source/data and the raw-audited scratch dependency."""
     root = Path(root)
     verify_release(root, commit)
+    stage=read(root/'inputs'/PLAN)
     required = {PLAN, HUMAN, KAGGLE_HUMAN, DATA_ARCHIVE, PRE_FORWARD_PARENT, 'TASK_DATA_AUDIT.json',
                 'TASK_DATA_CLOSEOUT.json', 'PARENT_DATA_SOURCE_RELEASE.json',
                 'PARENT_MODEL_INPUT_MANIFEST.json', 'WORKSPACE.json', 'QWEN_PIN.json',
                 'MODERNBERT_PIN.json', 'QWEN_TENSOR_METADATA.json'}
+    if stage.get('phase')=='full_fit':
+        from .composite_task_skill_parent import PARENT_FILES
+        required|=PARENT_FILES
     manifest = read(root / 'inputs/MANIFEST.json')
     if set(manifest) != required:
         raise PermissionError('Exact task-training input set required; no risk, qualification weights or sealed inputs')
@@ -284,9 +288,13 @@ def validate_model_source(root, commit):
     for name in ['QWEN_PIN.json', 'MODERNBERT_PIN.json']:
         if sha(root / 'inputs' / name) != read(parent_model)[name]:
             raise PermissionError('Original Qwen/ModernBERT file pins changed')
-    stage = read(root / 'inputs' / PLAN)
-    if stage != qualification_plan(commit) or read(root / 'inputs/WORKSPACE.json') != identity(stage['notebook']):
-        raise PermissionError('Only this separate exact task qualification is currently registered')
+    expected=qualification_plan(commit)
+    if stage.get('phase')=='full_fit':
+        from .composite_task_skill_parent import read_parent
+        from .composite_task_skill_full_fit import full_fit_plan
+        expected=full_fit_plan(commit,read_parent(root,qualification_archive))
+    if stage != expected or read(root / 'inputs/WORKSPACE.json') != identity(stage['notebook']):
+        raise PermissionError('Exact registered task-model phase/source required')
     cfg = read(root / 'config/composite_controller_rank32_v2.json')
     validate_recipe(cfg)
     return stage, cfg, evidence

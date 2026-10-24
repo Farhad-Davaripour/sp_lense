@@ -20,11 +20,11 @@ class Store:
 
 
 class TaskLifecycleTests(unittest.TestCase):
-    def test_owned_task_namespace_is_distinct_and_full_fit_is_not_admitted(self):
+    def test_owned_task_namespace_is_distinct_and_unknown_phase_is_not_admitted(self):
         with tempfile.TemporaryDirectory() as folder:
             source='a'*40;store=Store()
             with self.assertRaises(PermissionError):
-                OwnedArtifacts(store,'task_skill_training_v1/'+source+'/full_fit_01',source,base=folder,task_skill=True)
+                OwnedArtifacts(store,'task_skill_training_v1/'+source+'/unregistered_01',source,base=folder,task_skill=True)
             owner=OwnedArtifacts(store,'task_skill_training_v1/'+source+'/qualification_01',source,base=folder,task_skill=True)
             owner.json('PUBLIC_FIXTURE.json',{'scientific':False})
             self.assertTrue(owner.finalize()['durable_complete'])
