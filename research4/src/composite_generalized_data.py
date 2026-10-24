@@ -42,9 +42,11 @@ def cohort_contract(cfg,role):
             'group_plan':plans,'instances_materialized':False,'sealed_content_read':False}
 
 
-def scenes(cfg,role,secret):
+def scenes(cfg,role,secret,sealed_permit=None):
     require_runtime()
-    if role=='sealed':raise PermissionError('No V2 sealed-opening endpoint is registered before complete audited validation')
+    if role=='sealed':
+        from .composite_v2_admission import assert_permit
+        assert_permit(sealed_permit,cfg=cfg,secret=secret)
     contract=cohort_contract(cfg,role);result=[]
     if not isinstance(secret,str) or not secret:raise ValueError('Source-bound cohort identity material is required')
     for group in contract['group_plan']:
@@ -131,7 +133,8 @@ def materialize(root,commit,role,secret,output,persist=None):
                        for tool in ['define','invoke']} for family in FAMILIES[role]}
     if any(not all(value.values()) for value in coverage.values()):raise ValueError('New curriculum must actually teach helper definition and invocation in each family')
     files={'EPISODES.json':persist('EPISODES.json',episodes)['sha256'],
-           'DETECTION_ROWS.json':persist('DETECTION_ROWS.json',rows)['sha256']}
+           'DETECTION_ROWS.json':persist('DETECTION_ROWS.json',rows)['sha256'],
+           'SCENES.json':persist('SCENES.json',[asdict(scene) for scene in cases])['sha256']}
     manifest={'version':VERSION,'status':'complete_export_requires_native_and_leakage_audit','role':role,
       'source_commit':commit,'groups':len({s.group_id for s in cases}),'episodes':len(cases),'states':len(rows),
       'execution_workspace':context['execution_workspace'],

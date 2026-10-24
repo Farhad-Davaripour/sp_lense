@@ -40,7 +40,7 @@ def rollout(composite,scene,condition,guard,progress=None):
     return _rollout_from_world(composite,world,condition,guard,trace,progress)
 
 
-def _rollout_from_world(composite,world,condition,guard,trace,progress=None):
+def _rollout_from_world(composite,world,condition,guard,trace,progress=None,environment=None):
     """The original response/action/observation loop, including external stops."""
     while world.running:
         guard()
@@ -52,4 +52,4 @@ def _rollout_from_world(composite,world,condition,guard,trace,progress=None):
         trace.append({'response':response,'executed_action':action,'reply':reply,'observation_after':observed,'outcome':world.outcome()})
         if progress:progress(world,trace)
         if len(trace)>world.scene.hard_stop+1:raise AssertionError('Episode hard bound was bypassed')
-    return {'scene':asdict(world.scene),'condition':condition,'environment':ENVIRONMENT,'initial_observation':composite.observations[0],'trace':trace,'outcome':world.outcome(),'terminal_memory':composite.memory.snapshot()}
+    return {'scene':asdict(world.scene),'condition':condition,'environment':ENVIRONMENT if environment is None else environment,'initial_observation':composite.observations[0],'trace':trace,'outcome':world.outcome(),'terminal_memory':composite.memory.snapshot()}

@@ -9,12 +9,15 @@ from .composite_exports import make_evidence_archive
 
 
 class Writer:
-    def __init__(self,root,guard):self.root=Path(root);self.guard=guard;self.bytes=0
+    def __init__(self,root,guard,maximum_bytes=None,terminal_reserve=None):
+        self.root=Path(root);self.guard=guard;self.bytes=0
+        self.maximum_bytes=BOUNDS['maximum_raw_export_bytes'] if maximum_bytes is None else maximum_bytes
+        self.terminal_reserve=BOUNDS['terminal_metadata_reserve_bytes'] if terminal_reserve is None else terminal_reserve
     def json(self,name,value,terminal=False):
         from .composite_runtime import contained
         if not terminal:self.guard()
         data=(json.dumps(value,indent=2,allow_nan=False)+'\n').encode()
-        cap=BOUNDS['maximum_raw_export_bytes']-(0 if terminal else BOUNDS['terminal_metadata_reserve_bytes'])
+        cap=self.maximum_bytes-(0 if terminal else self.terminal_reserve)
         if self.bytes+len(data)>cap:raise OSError('Complete data export exceeds declared bound; no truncation')
         target=contained(self.root,name);target.parent.mkdir(parents=True,exist_ok=True)
         with target.open('xb') as stream:stream.write(data)

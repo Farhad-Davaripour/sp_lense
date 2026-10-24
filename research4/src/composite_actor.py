@@ -9,10 +9,24 @@ from .native27_tools import decode,parse
 from .composite_data import require_databricks
 from .composite_capacity import qwen_targets,capacity,checkpointed_training
 
+LEGACY_INTERFACE='composite-native-v1'
+
+
+def native_interface(profile):
+    if profile==LEGACY_INTERFACE:return None
+    from . import composite_generalized_interface
+    if profile!=composite_generalized_interface.PROFILE:raise PermissionError('Unregistered native interface profile')
+    return composite_generalized_interface
+
 
 class Actor(nn.Module):
-    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None):
+    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None,native_interface_profile=LEGACY_INTERFACE):
         super().__init__();require_databricks()
+        native_interface(native_interface_profile)
+        if frozen_probe is not None and native_interface_profile!=LEGACY_INTERFACE:
+            raise PermissionError('Historical frozen probes cannot change their interface')
+        self.native_interface_profile=native_interface_profile
+        if native_interface_profile!=LEGACY_INTERFACE:torch.backends.cuda.matmul.allow_tf32=False
         self.frozen_analysis_only=frozen_probe is not None
         self.frozen_probe_counts={'attempted':0,'completed':0}
         device_map={'':0};context=None
@@ -36,7 +50,7 @@ class Actor(nn.Module):
         self.tokenizer=AutoTokenizer.from_pretrained(path,local_files_only=True,trust_remote_code=False)
         quant=BitsAndBytesConfig(load_in_4bit=True,bnb_4bit_quant_type='nf4',bnb_4bit_use_double_quant=True,bnb_4bit_compute_dtype=torch.bfloat16)
         arguments={'local_files_only':True,'trust_remote_code':False,'use_safetensors':True,'quantization_config':quant,'dtype':torch.bfloat16,'device_map':device_map,'attn_implementation':'sdpa','low_cpu_mem_usage':True}
-        if self.frozen_analysis_only:
+        if self.frozen_analysis_only or self.interface() is not None:
             from .composite_frozen_probe import validate_loading_info
             model,loading=Qwen3_5ForConditionalGeneration.from_pretrained(path,output_loading_info=True,**arguments)
             self.frozen_loading_proof=validate_loading_info(loading)
@@ -58,6 +72,20 @@ class Actor(nn.Module):
     @property
     def text(self):return self.model.model.language_model
 
+    def interface(self):return native_interface(getattr(self,'native_interface_profile',LEGACY_INTERFACE))
+
+    def prompt_ids(self,text):
+        interface=self.interface()
+        return input_ids(self.tokenizer,text) if interface is None else interface.input_ids(self.tokenizer,text)
+
+    def target_text(self,action):
+        interface=self.interface()
+        return action_text(action) if interface is None else interface.action_text(action)
+
+    def parse_response(self,text):
+        interface=self.interface()
+        return parse(text,1) if interface is None else interface.parse(text)
+
     def _before(self,module,args,kwargs):
         self.guard()
         if getattr(self,'frozen_analysis_only',False):
@@ -70,7 +98,7 @@ class Actor(nn.Module):
             cache=kwargs.get('past_key_values');length=0 if cache is None else int(cache.get_seq_length())
             if length!=0:raise RuntimeError('A previous response cache crossed the generation boundary')
             if cache is not None and self._last_cache is not None and cache is self._last_cache():raise RuntimeError('A cache object was reused across responses')
-            if getattr(self,'frozen_analysis_only',False):
+            if getattr(self,'frozen_analysis_only',False) or self.interface() is not None:
                 previous=None if self._last_cache is None else self._last_cache()
                 if cache is None:raise RuntimeError('Frozen probe requires an observable fresh cache object')
                 self._trace.update(cache_object_present=True,cache_identity=id(cache),previous_cache_alive=previous is not None,
@@ -108,7 +136,10 @@ class Actor(nn.Module):
         # Retain a weak reference across response boundaries so a generation
         # implementation cannot silently recycle the preceding cache object.
 
-    def adapter_state(self):return {'placement':self.placement,'config':self.cfg,'weights':state(self.adapters)}
+    def adapter_state(self):
+        value={'placement':self.placement,'config':self.cfg,'weights':state(self.adapters)}
+        if self.interface() is not None:value['native_interface_profile']=self.native_interface_profile
+        return value
 
     def select_kernels(self,profile):
         if getattr(self,'frozen_analysis_only',False) and profile!='reference':raise PermissionError('Frozen probe kernels are immutable')
@@ -126,6 +157,8 @@ class Actor(nn.Module):
 
     def restore(self,saved):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot restore behavior adapters')
+        if saved.get('native_interface_profile',LEGACY_INTERFACE)!=getattr(self,'native_interface_profile',LEGACY_INTERFACE):
+            raise ValueError('Behavior adapter belongs to another native interface profile')
         if saved['config']!=self.cfg:raise ValueError('Qwen adapter belongs to another model/configuration')
         self.configure(saved['placement']);load(self.adapters,saved['weights'])
 
@@ -135,24 +168,25 @@ class Actor(nn.Module):
             if self.generating:raise RuntimeError('Concurrent Qwen response')
             limit=self.cfg['maximum_new_tokens'] if maximum_new_tokens is None else maximum_new_tokens
             if type(limit) is not int or not 0<limit<=self.cfg['maximum_new_tokens']:raise ValueError('Generation budget cannot exceed the frozen ceiling')
-            self.clear_cache();enable(self.adapters,on);ids=input_ids(self.tokenizer,text)
+            self.clear_cache();enable(self.adapters,on);ids=self.prompt_ids(text)
             if len(ids)>self.cfg['maximum_tokens']:raise ValueError('Actor context budget exceeded')
             tensor=torch.tensor([ids],device='cuda:0',dtype=torch.long);self._trace={'prefill_checked':False,'initial_cache_length':None};self.generating=True
             try:
                 with torch.inference_mode():sequence=self.model.generate(input_ids=tensor,attention_mask=torch.ones_like(tensor),past_key_values=None,use_cache=True,do_sample=False,num_beams=1,num_return_sequences=1,max_new_tokens=limit,eos_token_id=sorted(self.eos),pad_token_id=self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else min(self.eos),logits_to_keep=1)
                 if not self._trace['prefill_checked']:raise RuntimeError('Native generation bypassed the cache-boundary hook')
                 generated=sequence[0,len(ids):].cpu().tolist();ended=bool(generated and generated[-1] in self.eos);raw=decode(self.tokenizer,generated,self.eos)
-                try:actions=parse(raw,1) if ended else None
+                try:actions=self.parse_response(raw) if ended else None
                 except (ValueError,TypeError,RecursionError):actions=None
                 result={'input_token_ids':ids,'generated_token_ids':generated,'finished_with_eos':ended,'raw_text':raw,'actions':actions,'adapter_enabled':bool(on),'cache':dict(self._trace),'kernel_profile':self.kernel_profile}
-                if getattr(self,'frozen_analysis_only',False):
+                if self.interface() is not None:result['native_interface_profile']=self.native_interface_profile
+                if getattr(self,'frozen_analysis_only',False) or self.interface() is not None:
                     result['generation_parameters']={'max_new_tokens':limit,'do_sample':False,'num_beams':1,'num_return_sequences':1,'use_cache':True}
                 return result
             finally:self.generating=False;self._trace=None
 
     def supervised_loss(self,row):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot compute fitting targets')
-        self.guard();enable(self.adapters,True);prefix=input_ids(self.tokenizer,row['text']);target=self.tokenizer.encode(action_text(row['teacher_action']),add_special_tokens=False)+[self.tokenizer.eos_token_id]
+        self.guard();enable(self.adapters,True);prefix=self.prompt_ids(row['text']);target=self.tokenizer.encode(self.target_text(row['teacher_action']),add_special_tokens=False)+[self.tokenizer.eos_token_id]
         combined=prefix+target[:-1]
         if len(combined)>self.cfg['maximum_tokens']:raise ValueError('Teacher-forcing context budget exceeded')
         tokens=torch.tensor([combined],dtype=torch.long,device='cuda:0');labels=torch.tensor(target,dtype=torch.long,device='cuda:0')
@@ -160,13 +194,13 @@ class Actor(nn.Module):
         hidden=self.text(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,return_dict=True).last_hidden_state
         logits=self.model.lm_head(hidden[:,-len(target):,:])
         if self.on_forward:self.on_forward('complete')
-        return nn.functional.cross_entropy(logits[0].float(),labels)
+        return nn.functional.cross_entropy(logits[0].float(),labels.to(logits.device))
 
     def bypass_check(self,texts):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen base probes do not establish adapter ON/OFF effects')
         records=[]
         for index,text in enumerate(texts):
-            ids=input_ids(self.tokenizer,text);tokens=torch.tensor([ids],device='cuda:0',dtype=torch.long);enable(self.adapters,False)
+            ids=self.prompt_ids(text);tokens=torch.tensor([ids],device='cuda:0',dtype=torch.long);enable(self.adapters,False)
             with torch.inference_mode():wrapped=self.model(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,logits_to_keep=1).logits.detach().clone()
             wrapped_generation=self.generate(text,False) if index==0 else None
             try:

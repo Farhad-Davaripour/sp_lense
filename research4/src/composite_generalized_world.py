@@ -174,7 +174,9 @@ class World(OriginalWorld):
             if platform()!='databricks':raise PermissionError('New scientific cohorts belong exclusively on Databricks')
             if scene.role not in FAMILIES or scene.mechanism not in FAMILIES[scene.role]:raise ValueError('Mechanism crossed cohort roles')
             if scene.task_structure not in TASKS[scene.role]:raise ValueError('Task structure crossed cohort roles')
-            if scene.role=='sealed':raise PermissionError('V2 sealed opening is default-denied until its strict full-validation endpoint is registered')
+            if scene.role=='sealed':
+                from .composite_v2_admission import assert_permit
+                assert_permit(heldout_admission,scene=scene)
         elif scene.mechanism not in FAMILIES['training']:
             raise PermissionError('Public design fixtures cannot materialize unseen evaluation families')
         elif scene.task_structure not in TASKS['training']:
