@@ -29,8 +29,9 @@ def input_ids(tokenizer,text):
     return value
 
 
-def action_text(action):
-    definitions={v['function']['name']:v['function']['parameters'] for v in tools()}
+def action_text(action,argument_schemas=None):
+    definitions=({v['function']['name']:v['function']['parameters'] for v in tools()}
+                 if argument_schemas is None else argument_schemas)
     name=action['tool'];args=action['arguments']
     if name not in definitions or not isinstance(args,dict):raise ValueError('Unknown native action')
     lines=['<tool_call>','<function='+name+'>']
