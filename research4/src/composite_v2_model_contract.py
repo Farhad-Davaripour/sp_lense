@@ -53,7 +53,7 @@ def validate_model_metadata(root,commit):
             'allocation_authorized_by_metadata_validation':False}
 
 
-def load_training_export(raw,context):
+def load_training_export(raw,context,*,qualification_evidence=None):
     if hashlib.sha256(raw).hexdigest()!=context['stage']['data_export']['sha256']:raise PermissionError('Data archive changed')
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         if sum(v.file_size for v in archive.infolist())>256*1024**2:raise ValueError('Data expansion exceeds its unchanged bound')
@@ -64,7 +64,7 @@ def load_training_export(raw,context):
         if receipt.get('status')!='complete' or receipt.get('scientific_dataset_admitted') is not True or receipt.get('public_fixture_test_mode') is not False:
             raise PermissionError('A public fixture, failed or partial data export cannot admit fitting')
         if release['world_source_files']!=source_fingerprint(context['root']):raise PermissionError('World/teacher/interface changed after data generation')
-        validate_plan(context['stage'],context['configuration'],release,context['workspace'])
+        validate_plan(context['stage'],context['configuration'],release,context['workspace'],qualification_evidence=qualification_evidence)
         raw_rows=archive.read('training/DETECTION_ROWS.json')
         if hashlib.sha256(raw_rows).hexdigest()!=release['cohorts']['training']['files']['DETECTION_ROWS.json']:
             raise PermissionError('Training row digest changed')

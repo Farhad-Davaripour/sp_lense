@@ -6,6 +6,8 @@ from .composite_generalized_interface import PROFILE
 from .composite_generalized_world import VERSION
 from .composite_generalized_reporting import paired_group_summary
 from .composite_metrics import summarize
+from .composite_v2_helper_audit import bound_helper_receipt
+from .composite_v2_model_audit import bound_evaluation_integrity
 
 
 def summarize_v2(records,scenes,base_cfg,design_cfg,package,source_commit,bypass_pass,
@@ -25,7 +27,7 @@ def summarize_v2(records,scenes,base_cfg,design_cfg,package,source_commit,bypass
                 and proof.get('source_commit')==source_commit and proof.get('native_interface_profile')==PROFILE)
         if raw_ok:audited[key]=sha
         if record['scene']['condition'] in ['own_pending','own_complete']:
-            helper=helper_audits.get(key,{})
+            helper=bound_helper_receipt(helper_audits.get(key),sha,source_commit,profile,package.get('data_release_sha256')) or {}
             success=(helper.get('success') if raw_ok and helper.get('trace_sha256')==sha
                      and helper.get('measurement_profile')==profile else None)
             if success is not None and type(success) is not bool:raise ValueError('Helper outcome is observed bool or unknown')
@@ -43,6 +45,7 @@ def summarize_v2(records,scenes,base_cfg,design_cfg,package,source_commit,bypass
             relevant=[key for key,record in by_key.items() if record['scene']['mechanism']==name and record['condition']==arm]
             metrics.update(complete=report['complete'],raw_evidence_audited=bool(relevant) and all(key in audited for key in relevant))
     raw_complete=report['complete'] and set(audited)==set(manifest)
+    model_integrity_audited=bound_evaluation_integrity(model_integrity_audited,source_commit,digest(package),manifest)
     report.update(role='development',world_version=VERSION,native_interface_profile=PROFILE,
         source_commit=source_commit,evaluation_source_commits=[source_commit],package_sha256=digest(package),
         data_release_sha256=package.get('data_release_sha256'),coverage_roster_sha256=package.get('development_roster_sha256'),
