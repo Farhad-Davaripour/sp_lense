@@ -37,5 +37,11 @@ class V2EvaluationTests(unittest.TestCase):
         base=read(ROOT/'config/composite_controller_rank32_v2.json');design=read(ROOT/'config/composite_generalization_amendment_v2.json')
         with self.assertRaises(PermissionError):summarize_v2([{'environment':{'version':'legacy'}}],[fixture()],base,design,{},'a'*40,False)
 
+    def test_caller_model_integrity_boolean_is_not_a_reader_attestation(self):
+        base=read(ROOT/'config/composite_controller_rank32_v2.json');design=read(ROOT/'config/composite_generalization_amendment_v2.json')
+        value=summarize_v2([], [fixture()],base,design,{},'a'*40,False,model_integrity_audited=True,public_fixture=True)
+        self.assertFalse(value['complete_model_integrity_audited'])
+        self.assertFalse(value['admitted'])
+
 
 if __name__=='__main__':unittest.main()

@@ -79,11 +79,15 @@ def verified_changing_steps(program,primitive_trace):
     return changing
 
 
-def material_execution_signature(program,primitive_trace):
+def material_execution_signature(program,primitive_trace,effect_steps=None):
     """Hash consumed live inputs/addresses, not the whole argument dictionary."""
     from .composite_design_v2 import _field
     from .io_utils import digest
     changing=verified_changing_steps(program,primitive_trace)
+    if effect_steps is not None:
+        if any(type(i) is not int or i not in changing for i in effect_steps):
+            raise ValueError('Only replay-verified changing writes may be selected')
+        changing=sorted(set(effect_steps))
     assessed=causal_core(program,changing)
     if not assessed.get('eligible_for_compositional_transfer_claim'):return None,assessed
     kept={step['bind'] for step in assessed['core_program']['steps']};consumed=[]
