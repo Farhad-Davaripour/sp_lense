@@ -104,7 +104,7 @@ def capture_live_backbone(actor):
             'live_recomputed':True,'original_backbone_only':True}
 
 
-def audit_optimizer_bytes(raw,weights,updates):
+def audit_optimizer_bytes(raw,weights,updates,inspect=None):
     import torch
     values=torch.load(io.BytesIO(raw),map_location='cpu',weights_only=True)
     if set(values)!=set(weights):raise ValueError('Optimizer contains missing, extra or original backbone tensors')
@@ -121,14 +121,18 @@ def audit_optimizer_bytes(raw,weights,updates):
             if not isinstance(tensor,torch.Tensor) or tensor.dtype!=torch.float32 or list(tensor.shape)!=shape or not torch.isfinite(tensor).all():
                 raise ValueError('Raw AdamW moment geometry/precision/finite values differ')
         if (value['exp_avg_sq']<0).any():raise ValueError('AdamW second moments must be nonnegative')
+        if inspect is not None:inspect(name,value)
     return {'raw_AdamW_tensors_verified':len(values)*2,'optimizer_step':updates}
 
 
-def audit_runtime(value,live,original_shapes):
+def audit_runtime(value,live,original_shapes,*,expected_map=None,parameter_devices=None,require_native_bf16=True):
     from .composite_frozen_probe import verify_software,text_projection
     verify_software(value['torch'],value['packages'])
-    if (value.get('visible_GPUs')!=1 or value.get('BF16_supported') is not True
-        or value.get('TF32_enabled') is not False or value.get('device_map')!={'':0}
+    expected_map={'':0} if expected_map is None else expected_map
+    count=len(set(expected_map.values()))
+    if (type(value.get('visible_GPUs')) is not int or value.get('visible_GPUs')!=count
+        or type(value.get('BF16_supported')) is not bool or (require_native_bf16 and value.get('BF16_supported') is not True)
+        or value.get('TF32_enabled') is not False or value.get('device_map')!=expected_map
         or value.get('kernel_profile')!='reference' or value.get('full_attention')!='sdpa'):
         raise ValueError('Pinned one-GPU reference runtime differs')
     quant=value['quantized_original_projections']
@@ -137,9 +141,10 @@ def audit_runtime(value,live,original_shapes):
     if set(quant)!=packed or not {n for n in original_shapes if text_projection(n)}<=packed:
         raise ValueError('Complete original quantization coverage required')
     for name,proof in quant.items():
+        device='cuda:0' if parameter_devices is None else parameter_devices[name]
         expected={'quant_type':'nf4','double_quantization':True,'storage_dtype':'torch.uint8',
             'compute_dtype':'torch.bfloat16','state_dtype':'torch.bfloat16','blocksize':64,'nested_blocksize':256,
-            'logical_shape':original_shapes[name],'state_devices':{k:'cuda:0' for k in ['absmax','code','nested_absmax','nested_code']}}
+            'logical_shape':original_shapes[name],'state_devices':{k:device for k in ['absmax','code','nested_absmax','nested_code']}}
         _same(proof,expected,'Pinned NF4 double-quant runtime differs')
     for name in original_shapes:
         if name.endswith('embed_tokens.weight') or name=='lm_head.weight':
@@ -178,7 +183,7 @@ def audit_bypass(files,token_plan,context):
     return {'raw_OFF_logits_exact':True,'raw_ON_difference_observed':True}
 
 
-def frozen_integrity(before,after,expected_shapes):
+def frozen_integrity(before,after,expected_shapes,*,parameter_devices=None):
     for proof in [before,after]:
         if proof.get('live_recomputed') is not True or proof.get('original_backbone_only') is not True:
             raise ValueError('Cached snapshots cannot replace live tensor evidence')
@@ -186,8 +191,9 @@ def frozen_integrity(before,after,expected_shapes):
         if len(lookup)!=len(records) or set(lookup)!=set(expected_shapes):raise ValueError('Frozen parameter coverage differs')
         for name,value in lookup.items():
             _hash(value['sha256'])
+            device='cuda:0' if parameter_devices is None else parameter_devices[name]
             if (value.get('requires_grad') is not False or value.get('gradient_is_none') is not True
-                or value.get('device')!='cuda:0' or digest(value.get('logical_shape'))!=digest(expected_shapes[name])):
+                or value.get('device')!=device or digest(value.get('logical_shape'))!=digest(expected_shapes[name])):
                 raise ValueError('Frozen original tensor geometry/gradient/device differs')
             if 'version' not in value or (value['version'] is not None and (type(value['version']) is not int or value['version']<0)):
                 raise ValueError('Live parameter version availability must be explicit')

@@ -68,27 +68,38 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
     """Called only inside a separately admitted model worker; no provider API."""
     from .composite_generalized_data import require_runtime
     require_runtime()
+    import torch
+    if not torch.cuda.is_available() or torch.cuda.device_count()!=1 or not torch.cuda.is_bf16_supported():
+        raise PermissionError('Current Databricks training authority requires one BF16-capable visible GPU')
+    return instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,
+                            token_planner=token_plan,row_selector=training_rows,fitter=fit_behavior,devices=(0,))
+
+
+def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_planner,row_selector,fitter,devices,export_profile=None):
+    """Shared raw training instrumentation; each caller enforces its own runtime/data authority."""
     if getattr(actor,'native_interface_profile',None)!=PROFILE:raise PermissionError('V2 native actor required')
     if getattr(actor,'v2_training_plan',None)!=plan:raise PermissionError('Bind the same validated stage plan to the actor')
     import torch
     from .composite_v2_model_audit import capture_live_backbone
     from .composite_v2_raw_exports import validate_export_plan,runtime_evidence,write_optimizer_state,BypassWriter
-    validate_export_plan(plan)
+    if export_profile is None:validate_export_plan(plan)
+    else:validate_export_plan(plan,expected_profile=export_profile)
     from .composite_training import tensor_digest
-    if not torch.cuda.is_available() or torch.cuda.device_count()!=1 or not torch.cuda.is_bf16_supported():
-        raise PermissionError('Current Databricks training authority requires one BF16-capable visible GPU')
-    tokens=token_plan(rows,actor.tokenizer,cfg);persist('TRAINING_TOKEN_PLAN.json',tokens)
-    by_id={r['state_id']:r for r in training_rows(rows)}
+    tokens=token_planner(rows,actor.tokenizer,cfg);persist('TRAINING_TOKEN_PLAN.json',tokens)
+    by_id={r['state_id']:r for r in row_selector(rows)}
     qualification=[by_id[key] for key in tokens['qualification_state_ids']] if plan['phase']=='qualification' else None
     ledger={'optimizer_steps_attempted':0,'optimizer_steps_completed':0,'backward_microsteps_completed':0,
             'layer_forward_invocations':[0]*64,'backward_recomputation_invocations':[0]*64,'in_backward':False}
     persist('BACKBONE_BEFORE.json',actor.frozen_proof())
     persist('BACKBONE_LIVE_BEFORE.json',capture_live_backbone(actor))
     def memory():
-        free,total=torch.cuda.mem_get_info(0)
-        return {'device':0,'free_bytes':free,'total_bytes':total,'allocated_bytes':torch.cuda.memory_allocated(0),
-                'reserved_bytes':torch.cuda.memory_reserved(0),'peak_allocated_bytes':torch.cuda.max_memory_allocated(0),
-                'peak_reserved_bytes':torch.cuda.max_memory_reserved(0)}
+        records=[]
+        for index in devices:
+            free,total=torch.cuda.mem_get_info(index)
+            records.append({'device':index,'free_bytes':free,'total_bytes':total,'allocated_bytes':torch.cuda.memory_allocated(index),
+                'reserved_bytes':torch.cuda.memory_reserved(index),'peak_allocated_bytes':torch.cuda.max_memory_allocated(index),
+                'peak_reserved_bytes':torch.cuda.max_memory_reserved(index)})
+        return records[0] if devices==(0,) else records
     handles=[]
     for index,layer in enumerate(actor.text.layers):
         def before(module,args,index=index):
@@ -102,10 +113,18 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
             if count!=233455616 or len(actor.adapters)!=496:raise ValueError('Full agreed real adapter capacity differs')
             persist('ADAPTER_INITIAL_HASHES.json',{name:tensor_digest(t) for name,t in value['initial_weights'].items()})
             persist('ADAPTER_CAPACITY_RUNTIME.json',actor.capacity_proof)
+            if export_profile is not None:
+                group=value['optimizer'].param_groups[0]
+                persist('OPTIMIZER_CONFIG.json',{key:group[key] for key in
+                    ['lr','betas','eps','weight_decay','foreach','maximize','capturable','differentiable']})
         elif event=='before_microstep':
             ledger['in_backward']=False
-            allocated=torch.cuda.memory_allocated(0);torch.cuda.empty_cache()
-            if torch.cuda.memory_allocated(0)!=allocated:raise RuntimeError('Idle reclamation changed live training allocations')
+            for index in devices:
+                allocated=torch.cuda.memory_allocated(index)
+                if devices==(0,):torch.cuda.empty_cache()
+                else:
+                    with torch.cuda.device(index):torch.cuda.empty_cache()
+                if torch.cuda.memory_allocated(index)!=allocated:raise RuntimeError('Idle reclamation changed live training allocations')
         elif event=='after_forward':ledger['in_backward']=True
         elif event=='after_backward':
             ledger['in_backward']=False
@@ -121,7 +140,11 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
             persist('training/backward_'+str(ledger['backward_microsteps_completed']).zfill(4)+'.json',
                     {'update':value['update'],'microstep':value['microstep'],'state_id':value['row']['state_id'],
                      'loss':value['loss'],'gradients':gradients,'memory':memory()})
-        elif event=='before_optimizer_step':ledger['optimizer_steps_attempted']+=1
+        elif event=='before_optimizer_step':
+            ledger['optimizer_steps_attempted']+=1
+            if export_profile is not None and value['update']==plan['optimizer_updates']:
+                from .composite_v2_raw_exports import write_gradient_state
+                persist('GRADIENT_EXPORT.json',write_gradient_state(actor.adapters,output))
         elif event=='after_optimizer_step':
             ledger['optimizer_steps_completed']+=1
             optimizer=value['optimizer']
@@ -133,9 +156,10 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
             if value['update']==plan['optimizer_updates']:
                 proof=write_optimizer_state(optimizer,actor.adapters,output)
                 persist('OPTIMIZER_EXPORT.json',proof)
-            persist('training/update_'+str(value['update']).zfill(3)+'.json',{**ledger,'memory':memory()})
+            extra={'gradient_norm_before_clipping':value['gradient_norm']} if export_profile is not None else {}
+            persist('training/update_'+str(value['update']).zfill(3)+'.json',{**ledger,'memory':memory(),**extra})
     try:
-        result=fit_behavior(actor,rows,{'name':'all_blocks','scope':'all_blocks'},cfg,output,guard,progress,
+        result=fitter(actor,rows,{'name':'all_blocks','scope':'all_blocks'},cfg,output,guard,progress,
                             observer=observer,qualification_rows=qualification)
         actor.verify_frozen()
         persist('BACKBONE_AFTER.json',actor.frozen_proof())

@@ -20,14 +20,16 @@ def native_interface(profile):
 
 
 class Actor(nn.Module):
-    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None,native_interface_profile=LEGACY_INTERFACE):
+    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None,native_interface_profile=LEGACY_INTERFACE,task_training=None):
         super().__init__();require_databricks()
+        if frozen_probe is not None and task_training is not None:raise PermissionError('Frozen-only and task-fitting contexts cannot be combined')
         native_interface(native_interface_profile)
         if frozen_probe is not None and native_interface_profile!=LEGACY_INTERFACE:
             raise PermissionError('Historical frozen probes cannot change their interface')
         self.native_interface_profile=native_interface_profile
         if native_interface_profile!=LEGACY_INTERFACE:torch.backends.cuda.matmul.allow_tf32=False
         self.frozen_analysis_only=frozen_probe is not None
+        self.task_training_context=None
         self.frozen_probe_counts={'attempted':0,'completed':0}
         device_map={'':0};context=None
         if self.frozen_analysis_only:
@@ -43,6 +45,16 @@ class Actor(nn.Module):
             if torch.is_autocast_enabled():raise RuntimeError('Frozen probe rejects unregistered caller autocast')
             torch.backends.cuda.matmul.allow_tf32=False
             self.frozen_probe_file_proof=verify_downloaded_model(context,path)
+        if task_training is not None:
+            from .composite_generalized_interface import PROFILE
+            if native_interface_profile!=PROFILE or kernel_profile!='reference':raise PermissionError('Registered task-native reference interface required')
+            from .composite_task_skill_training import authorized_load_plan
+            from .composite_frozen_probe import verify_runtime,verify_downloaded_model
+            context=authorized_load_plan(task_training['root'],task_training['source_commit'],cfg)
+            verify_runtime(context)
+            if torch.is_autocast_enabled():raise PermissionError('Unregistered caller autocast')
+            device_map=context['plan']['device_map'];self.task_training_context=context
+            self.task_training_file_proof=verify_downloaded_model(context,path)
         from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration,BitsAndBytesConfig
         from .composite_kernels import select
         self.kernel_proof=select(kernel_profile);self.kernel_profile=kernel_profile
@@ -58,7 +70,7 @@ class Actor(nn.Module):
         self.model=model.eval().requires_grad_(False)
         self.kernel_proof=select(kernel_profile)
         if len(self.text.layers)!=cfg['layers'] or self.model.config.text_config.hidden_size!=cfg['hidden_size'] or any(p.device.type!='cuda' or p.requires_grad for p in self.model.parameters()):raise ValueError('Unexpected native Qwen geometry')
-        if self.frozen_analysis_only:
+        if self.frozen_analysis_only or self.task_training_context is not None:
             from .composite_frozen_probe import verify_loaded_layout
             self.frozen_layout_proof=verify_loaded_layout(self.model,context)
         self.base_references=list(self.model.named_parameters());self.frozen_snapshot=parameter_snapshot(self.base_references)
@@ -113,6 +125,8 @@ class Actor(nn.Module):
 
     def configure(self,placement,for_training=False):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot install behavior adapters')
+        if getattr(self,'task_training_context',None) is not None and (placement!={'name':'all_blocks','scope':'all_blocks'} or not for_training):
+            raise PermissionError('Task fitting requires the fresh full all-block installation; restoration or reduced placement is not admitted')
         with self.lock:
             if self.generating:raise RuntimeError('Cannot change adapters during a response')
             for name,wrapper in self.adapters.items():
@@ -121,8 +135,15 @@ class Actor(nn.Module):
             names=qwen_targets(self.text,placement,self.cfg['layers'])
             self.capacity_proof=capacity(self.text,names,self.cfg['rank'])
             if placement.get('scope')=='all_blocks':
-                required=self.capacity_proof['adapter_parameters']*(16 if for_training else 4)+self.cfg['training_memory_reserve_bytes']
-                if torch.cuda.mem_get_info()[0]<required:raise MemoryError('All-block FP32 adapter/optimizer storage plus activation reserve exceeds free GPU memory')
+                if getattr(self,'task_training_context',None) is not None:
+                    from .composite_task_skill_training import memory_admission,PARAMETERS,PROJECTIONS
+                    if not for_training or self.capacity_proof['adapter_parameters']!=PARAMETERS or len(names)!=PROJECTIONS:
+                        raise PermissionError('This task route only installs the full agreed adapter for fresh fitting')
+                    self.capacity_proof['per_device_storage_admission']=memory_admission(
+                        self.task_training_context['adapter_layout'],torch.cuda,self.cfg['training_memory_reserve_bytes'])
+                else:
+                    required=self.capacity_proof['adapter_parameters']*(16 if for_training else 4)+self.cfg['training_memory_reserve_bytes']
+                    if torch.cuda.mem_get_info()[0]<required:raise MemoryError('All-block FP32 adapter/optimizer storage plus activation reserve exceeds free GPU memory')
             self.adapters=install(self.text,names,self.cfg['rank'],self.cfg['alpha'],False)
             self.clear_cache()
 
@@ -192,7 +213,7 @@ class Actor(nn.Module):
         tokens=torch.tensor([combined],dtype=torch.long,device='cuda:0');labels=torch.tensor(target,dtype=torch.long,device='cuda:0')
         if self.on_forward:self.on_forward('attempt')
         hidden=self.text(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,return_dict=True).last_hidden_state
-        logits=self.model.lm_head(hidden[:,-len(target):,:])
+        logits=self.model.lm_head(hidden[:,-len(target):,:].to(self.model.lm_head.weight.device))
         if self.on_forward:self.on_forward('complete')
         return nn.functional.cross_entropy(logits[0].float(),labels.to(logits.device))
 

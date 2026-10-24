@@ -13,7 +13,13 @@ def training_rows(rows):
 
 
 def fit_behavior(actor,rows,placement,cfg,output,guard,progress,observer=None,qualification_rows=None):
-    rows=training_rows(rows);recipe=cfg['behavior_training'];output=Path(output)
+    return fit_selected_rows(actor,training_rows(rows),placement,cfg,output,guard,progress,observer,qualification_rows)
+
+
+def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=None,qualification_rows=None):
+    """Shared optimizer mechanics; callers enforce their distinct data authority."""
+    if not rows:raise ValueError('Nonempty independently selected training rows required')
+    recipe=cfg['behavior_training'];output=Path(output)
     updates=recipe['steps']
     if qualification_rows is not None:
         plan=getattr(actor,'v2_training_plan',None)

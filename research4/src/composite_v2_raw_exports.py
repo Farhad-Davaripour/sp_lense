@@ -9,28 +9,32 @@ from .io_utils import digest,sha
 
 GiB=1024**3
 PROFILE='v2-full-state-raw-evidence-v1'
+TASK_PROFILE='task-full-state-raw-evidence-v1'
 RAW_BYTES=4*GiB
 RESERVE_BYTES=9*GiB
 
 
-def validate_export_plan(stage):
-    expected={'raw_evidence_profile':PROFILE,'maximum_raw_evidence_bytes':RAW_BYTES,
-              'physical_export_reserve_bytes':RESERVE_BYTES}
+def validate_export_plan(stage,expected_profile=PROFILE):
+    if expected_profile not in [PROFILE,TASK_PROFILE]:raise PermissionError('Unknown raw export profile')
+    reserve=12*GiB if expected_profile==TASK_PROFILE else RESERVE_BYTES
+    expected={'raw_evidence_profile':expected_profile,'maximum_raw_evidence_bytes':RAW_BYTES,
+              'physical_export_reserve_bytes':reserve}
     if any(type(stage.get(k)) is not type(v) or stage[k]!=v for k,v in expected.items()):
         raise PermissionError('Reviewed full-state raw export envelope required')
     return expected
 
 
-def disk_admission(cache,output,pin,stage,usage=None):
-    validate_export_plan(stage);usage=shutil.disk_usage if usage is None else usage
+def disk_admission(cache,output,pin,stage,usage=None,expected_profile=PROFILE):
+    envelope=validate_export_plan(stage,expected_profile);usage=shutil.disk_usage if usage is None else usage
+    reserve=envelope['physical_export_reserve_bytes']
     total=sum(v['size'] for v in pin['files'])
     if total!=55575985859:raise ValueError('Original complete model download budget changed')
-    required=total+2*GiB+RESERVE_BYTES+RAW_BYTES
-    if usage(cache).free<required or usage(output).free<RESERVE_BYTES+RAW_BYTES:
+    required=total+2*GiB+reserve+RAW_BYTES
+    if usage(cache).free<required or usage(output).free<reserve+RAW_BYTES:
         raise OSError('Insufficient complete model/raw/archive/reservation disk space')
     return {'download_file_bytes':total,'required_cache_free_bytes':required,
-            'raw_evidence_profile':PROFILE,'maximum_raw_evidence_bytes':RAW_BYTES,
-            'physical_export_reserve_bytes':RESERVE_BYTES,'runtime_capacity_admitted':False}
+            'raw_evidence_profile':expected_profile,'maximum_raw_evidence_bytes':RAW_BYTES,
+            'physical_export_reserve_bytes':reserve,'runtime_capacity_admitted':False}
 
 
 def provider_binding(stage,workspace,value):
@@ -71,6 +75,21 @@ def write_optimizer_state(optimizer,adapters,output):
     target=Path(output)/'OPTIMIZER_FINAL.pt'
     with target.open('xb') as stream:torch.save(optimizer_state(optimizer,adapters),stream)
     return {'path':'OPTIMIZER_FINAL.pt','bytes':target.stat().st_size,'sha256':sha(target)}
+
+
+def write_gradient_state(adapters,output):
+    """Export the already-clipped last gradient; never compute a backward pass."""
+    import torch
+    values={}
+    for name,module in adapters.items():
+        for part in ['A','B']:
+            parameter=getattr(module,part);gradient=parameter.grad
+            if gradient is None or gradient.dtype!=torch.float32 or gradient.shape!=parameter.shape or not torch.isfinite(gradient).all():
+                raise ValueError('Complete finite FP32 clipped gradients required')
+            values[name+'.'+part]=gradient.detach().cpu().clone()
+    target=Path(output)/'GRADIENT_FINAL.pt'
+    with target.open('xb') as stream:torch.save(values,stream)
+    return {'path':'GRADIENT_FINAL.pt','bytes':target.stat().st_size,'sha256':sha(target)}
 
 
 def runtime_evidence(actor):
