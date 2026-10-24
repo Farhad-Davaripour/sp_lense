@@ -62,6 +62,8 @@ def scenes(cfg,role,secret):
 
 def authorized_data_plan(root,commit,role):
     require_runtime();root=Path(root);verify_release(root,commit)
+    from .composite_v2_data_contract import validate_metadata
+    prepared=validate_metadata(root,commit)
     if role not in ['training','development']:raise PermissionError('This endpoint never opens sealed data')
     path=root/'inputs/GENERALIZED_DATA_AUTHORIZATION.json'
     if not path.is_file():raise PermissionError('Versioned source/input data-generation binding required')
@@ -83,10 +85,10 @@ def authorized_data_plan(root,commit,role):
     identity=verify_runtime_workspace(root,WorkspaceClient().config.host)
     if value.get('workspace_descriptor_sha256')!=sha(root/'inputs/WORKSPACE.json'):
         raise PermissionError('Data-stage workspace binding differs')
-    return {'configuration':cfg,'execution_workspace':identity}
+    return {**prepared,'configuration':cfg,'execution_workspace':identity}
 
 
-def materialize(root,commit,role,secret,output):
+def materialize(root,commit,role,secret,output,persist=None):
     context=authorized_data_plan(root,commit,role);cfg=context['configuration'];output=Path(output);assert_namespace(output)
     from .workspace_accounts import artifact_volume
     prefix=artifact_volume(host=context['execution_workspace']['host'])+'/composite_controller_v1/data_generalized_v2/'
@@ -94,18 +96,26 @@ def materialize(root,commit,role,secret,output):
     if 'data_generalized_v2' not in output.parts or commit not in output.parts or output.name!=role:
         raise ValueError('Use a fresh dedicated source/role-bound V2 output directory')
     if output.exists():raise FileExistsError('Preserve every prior cohort export')
+    if str(output)!=context['destination']+'/'+role:raise PermissionError('Exact one-use role destination required')
     cases=scenes(cfg,role,secret);episodes=[]
     output.mkdir(parents=True)
-    dump(output/'GENERATION_PREFLIGHT.json',{'source_commit':commit,'role':role,'world_version':VERSION,
+    if persist is None:
+        def persist(name,value):
+            import json
+            from .composite_runtime import contained
+            path=contained(output,name);path.parent.mkdir(parents=True,exist_ok=True)
+            with path.open('x',encoding='utf-8',newline='\n') as stream:json.dump(value,stream,indent=2,allow_nan=False);stream.write('\n')
+            return {'sha256':sha(path),'bytes':path.stat().st_size}
+    persist('GENERATION_PREFLIGHT.json',{'source_commit':commit,'role':role,'world_version':VERSION,
         'execution_workspace':context['execution_workspace'],
         'contract':cohort_contract(cfg,role),'scientific_dataset_admitted':False,'heldout_content_read':False,
         'model_forwards':0,'optimizer_updates':0})
     try:
         for scene in cases:
-            episode=teacher_episode(scene);episodes.append(episode)
-            dump(output/'case_exports'/(scene.case_id+'.json'),episode)
+            episode=teacher_episode(scene)
+            persist('case_exports/'+scene.case_id+'.json',episode);episodes.append(episode)
     except Exception as error:
-        dump(output/'GENERATION_FAILURE.json',{'source_commit':commit,'role':role,'status':'failed',
+        persist('GENERATION_FAILURE.json',{'source_commit':commit,'role':role,'status':'failed',
             'complete_case_exports':len(episodes),'failed_case_id':scene.case_id,
             'failed_case_result':None,'error_type':type(error).__name__,'error':str(error),
             'prior_case_exports_preserved':True,'automatic_retries':0,'heldout_content_read':False})
@@ -120,13 +130,14 @@ def materialize(root,commit,role,secret,output):
     coverage={family:{tool:sum(r['mechanism']==family and r['teacher_action']['tool']==tool for r in targets)
                        for tool in ['define','invoke']} for family in FAMILIES[role]}
     if any(not all(value.values()) for value in coverage.values()):raise ValueError('New curriculum must actually teach helper definition and invocation in each family')
-    dump(output/'EPISODES.json',episodes);dump(output/'DETECTION_ROWS.json',rows)
+    files={'EPISODES.json':persist('EPISODES.json',episodes)['sha256'],
+           'DETECTION_ROWS.json':persist('DETECTION_ROWS.json',rows)['sha256']}
     manifest={'version':VERSION,'status':'complete_export_requires_native_and_leakage_audit','role':role,
       'source_commit':commit,'groups':len({s.group_id for s in cases}),'episodes':len(cases),'states':len(rows),
       'execution_workspace':context['execution_workspace'],
       'eligible_states':len(targets),'helper_target_coverage':coverage,
       'case_ids':[s.case_id for s in cases],'group_ids':sorted({s.group_id for s in cases}),
-      'files':{'EPISODES.json':sha(output/'EPISODES.json'),'DETECTION_ROWS.json':sha(output/'DETECTION_ROWS.json')},
+      'files':files,
       'scientific_dataset_admitted':False,'heldout_content_read':False,'model_forwards':0,'optimizer_updates':0}
-    dump(output/'COHORT_MANIFEST.json',manifest)
+    persist('COHORT_MANIFEST.json',manifest)
     return manifest
