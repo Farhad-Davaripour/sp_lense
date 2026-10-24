@@ -16,7 +16,9 @@ from .composite_generalized_interface import PROFILE, input_ids, action_text
 from .composite_task_skill_profile import SELECTION_SHA, HUMAN
 from .composite_kaggle_v2_profile import HUMAN as KAGGLE_HUMAN, HUMAN_SHA, identity
 
-MODE = 'ordinary-task-skill-two-t4-training-v1'
+MODE = 'ordinary-task-skill-two-t4-training-postload-v2'
+PRE_FORWARD_PARENT = 'GPU_PRE_FORWARD_PARENT_FAILURE.json'
+PRE_FORWARD_PARENT_SHA = '6e58c1e764ed2e3ca1f08609b406742ab65221658ad0a4a5a9faf87fd711b9b8'
 PLAN = 'TASK_TRAINING_PLAN.json'
 DATA_ARCHIVE = 'TASK_DATA_EVIDENCE.r4b64'
 DATA_SOURCE = '5cbebf5626007da0ef1f79c9a1535ad89c536ab7'
@@ -174,6 +176,28 @@ def live_resources(cuda):
     return {'devices': records, 'actual_backward_fit_verified': False}
 
 
+def postload_runtime(actor,cuda,torch_version,packages):
+    """Verify an already loaded idle base without charging its weights twice."""
+    from .composite_frozen_probe import verify_software
+    software=verify_software(torch_version,packages)
+    if actor.adapters or actor.generating or not cuda.is_available() or cuda.device_count()!=2:
+        raise PermissionError('Post-load verification requires the idle unadapted task base and both devices')
+    devices=[]
+    for index in [0,1]:
+        if cuda.get_device_name(index)!='Tesla T4':raise PermissionError('The pinned task device pair changed')
+        before=cuda.memory_allocated(index)
+        with cuda.device(index):cuda.empty_cache()
+        if cuda.memory_allocated(index)!=before:raise RuntimeError('Idle reclamation changed live tensor allocation')
+        free,total=cuda.mem_get_info(index)
+        devices.append({'index':index,'name':cuda.get_device_name(index),'free_bytes':free,
+                        'total_bytes':total,'live_allocated_bytes':before})
+    live_resources(cuda)
+    return {'devices':devices,'software':software,'base_already_loaded':True,
+            'preload_weight_lower_bound_reapplied':False,
+            'full_adapter_optimizer_admission':'performed separately by Actor.configure before installation',
+            'actual_backward_fit_verified':False}
+
+
 def validate_recipe(cfg):
     expected = {'steps': 64, 'accumulation': 2, 'learning_rate': 0.0005, 'seed': 202610212, 'clip_norm': 1.0}
     if any(type(cfg['behavior_training'].get(k)) is not type(v) or cfg['behavior_training'][k] != v for k, v in expected.items()):
@@ -193,10 +217,11 @@ def validate_recipe(cfg):
 def qualification_plan(commit):
     if not isinstance(commit, str) or not re.fullmatch('[0-9a-f]{40}', commit):
         raise ValueError('Exact reviewed source commit required')
-    notebook = 'farhad89/research4-task-skill-qualification-v1'
+    notebook = 'farhad89/research4-task-skill-qualification-v2'
     return {'version': MODE, 'source_commit': commit, 'phase': 'qualification',
             'notebook': notebook, 'platform': 'kaggle', 'account': 'farhad89',
             'objective': 'ordinary_authorized_task_skills_only',
+            'pre_forward_parent_run_id':361892579,'pre_forward_parent_closeout_sha256':PRE_FORWARD_PARENT_SHA,
             'source_data_archive_sha256': DATA_ARCHIVE_SHA,
             'source_data_release_sha256': DATA_RELEASE_SHA,
             'source_training_rows': 1188, 'optimizer_updates': 1, 'accumulation': 2,
@@ -216,7 +241,7 @@ def validate_model_source(root, commit):
     """No loader/forward; a full-fit endpoint is deliberately not admitted here."""
     root = Path(root)
     verify_release(root, commit)
-    required = {PLAN, HUMAN, KAGGLE_HUMAN, DATA_ARCHIVE, 'TASK_DATA_AUDIT.json',
+    required = {PLAN, HUMAN, KAGGLE_HUMAN, DATA_ARCHIVE, PRE_FORWARD_PARENT, 'TASK_DATA_AUDIT.json',
                 'TASK_DATA_CLOSEOUT.json', 'PARENT_DATA_SOURCE_RELEASE.json',
                 'PARENT_MODEL_INPUT_MANIFEST.json', 'WORKSPACE.json', 'QWEN_PIN.json',
                 'MODERNBERT_PIN.json', 'QWEN_TENSOR_METADATA.json'}
@@ -226,6 +251,14 @@ def validate_model_source(root, commit):
     for name, expected in manifest.items():
         if Path(name).name != name or sha(root / 'inputs' / name) != expected:
             raise PermissionError('Frozen task-training input changed')
+    parent_failure=read(root/'inputs'/PRE_FORWARD_PARENT)
+    if (sha(root/'inputs'/PRE_FORWARD_PARENT)!=PRE_FORWARD_PARENT_SHA
+            or parent_failure.get('scriptVersionId')!=361892579
+            or parent_failure.get('model_forwards_started') is not False
+            or parent_failure.get('forward_counts')!={'attempted':0,'completed':0}
+            or parent_failure.get('optimizer_constructor_not_reached') is not True
+            or parent_failure.get('owned_compute_released') is not True):
+        raise PermissionError('Only the exact audited/released zero-forward engineering parent admits this repair')
     for name, expected in [(HUMAN, SELECTION_SHA), (KAGGLE_HUMAN, HUMAN_SHA),
                            ('TASK_DATA_AUDIT.json', DATA_AUDIT_SHA), ('TASK_DATA_CLOSEOUT.json', DATA_CLOSEOUT_SHA)]:
         if sha(root / 'inputs' / name) != expected:
@@ -304,8 +337,10 @@ def run_fit(actor, rows, cfg, plan, output, guard, progress, persist):
     if actual['stage'] != plan:
         raise PermissionError('Actual source/runtime changed before task fitting')
     selected_rows(actor, rows)
-    from .composite_frozen_probe import verify_runtime, memory_record
-    hardware = verify_runtime(context)
+    import torch
+    from importlib.metadata import version
+    hardware=postload_runtime(actor,torch.cuda,str(torch.__version__),{name:version(name) for name in
+        ['transformers','bitsandbytes','accelerate','safetensors','numpy','psutil']})
     persist('TASK_TRAINING_HARDWARE.json', hardware)
     from .composite_v2_training import instrumented_fit
     from .composite_v2_raw_exports import TASK_PROFILE

@@ -19,7 +19,7 @@ assert len(matches) == 1, 'Attach exactly one reviewed task qualification packag
 manifest_path = matches[0]
 assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == MANIFEST_SHA256
 manifest = json.loads(manifest_path.read_text())
-assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] == 'ordinary-task-skill-two-t4-training-v1'
+assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] == 'ordinary-task-skill-two-t4-training-postload-v2'
 root = Path('/kaggle/temp/research4_task_training_inputs') / SOURCE_COMMIT
 root.mkdir(parents=True, exist_ok=False)
 for name, expected in manifest['files'].items():

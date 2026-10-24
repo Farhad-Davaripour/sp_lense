@@ -10,15 +10,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.io_utils import read, dump, sha
 from src.composite_source_archive import archive_source
 from src.composite_task_skill_training import (MODE, PLAN, DATA_ARCHIVE, DATA_ARCHIVE_SHA,
-    DATA_AUDIT_SHA, DATA_CLOSEOUT_SHA, qualification_plan, validate_model_source)
+    DATA_AUDIT_SHA, DATA_CLOSEOUT_SHA, PRE_FORWARD_PARENT, PRE_FORWARD_PARENT_SHA,
+    qualification_plan, validate_model_source)
 from src.composite_task_skill_profile import HUMAN, SELECTION_SHA
 from src.composite_kaggle_v2_profile import HUMAN as KAGGLE_HUMAN, HUMAN_SHA, identity
 from src.composite_v2_data_contract import ORIGINAL_MODEL_MANIFEST
 
 
-def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle_scope, data_preparation, output):
+def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle_scope, data_preparation, pre_forward_parent, output):
     if sha(human_selection) != SELECTION_SHA or sha(kaggle_scope) != HUMAN_SHA:
         raise PermissionError('Exact direct human option-A/Kaggle selections required')
+    if sha(pre_forward_parent)!=PRE_FORWARD_PARENT_SHA:raise PermissionError('Exact pre-forward failure closeout required')
     data = Path(data_preparation)
     files = {'RUN_361865152_EVIDENCE.zip': DATA_ARCHIVE_SHA,
              'RUN_361865152_INDEPENDENT_DATA_AUDIT.json': DATA_AUDIT_SHA,
@@ -43,6 +45,7 @@ def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle
         shutil.copyfile(model_inputs / name, inputs / name)
     shutil.copyfile(human_selection, inputs / HUMAN)
     shutil.copyfile(kaggle_scope, inputs / KAGGLE_HUMAN)
+    shutil.copyfile(pre_forward_parent,inputs/PRE_FORWARD_PARENT)
     shutil.copyfile(tensor_metadata, inputs / 'QWEN_TENSOR_METADATA.json')
     shutil.copyfile(data / 'RUN_361865152_INDEPENDENT_DATA_AUDIT.json', inputs / 'TASK_DATA_AUDIT.json')
     shutil.copyfile(data / 'RUN_361865152_CLOSEOUT.json', inputs / 'TASK_DATA_CLOSEOUT.json')
@@ -87,6 +90,6 @@ def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     for key in ['repo', 'commit', 'model-inputs', 'tensor-metadata', 'human-selection',
-                'kaggle-scope', 'data-preparation', 'output']:
+                'kaggle-scope', 'data-preparation', 'pre-forward-parent', 'output']:
         parser.add_argument('--' + key, required=True)
     print(json.dumps(prepare(**vars(parser.parse_args()))))
