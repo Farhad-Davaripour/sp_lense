@@ -3,21 +3,23 @@
 No model loader, forward, optimizer step, provider submission or retry exists
 here. Hooks read an already-owned stage and preserve complete raw state.
 """
-import io,math,shutil
+import io,math,re,shutil
 from pathlib import Path
 from .io_utils import digest,sha
 
 GiB=1024**3
 PROFILE='v2-full-state-raw-evidence-v1'
 TASK_PROFILE='task-full-state-raw-evidence-v1'
+STATEFUL_TASK_PROFILE='task-three-update-full-state-raw-v3'
 RAW_BYTES=4*GiB
 RESERVE_BYTES=9*GiB
 
 
 def validate_export_plan(stage,expected_profile=PROFILE):
-    if expected_profile not in [PROFILE,TASK_PROFILE]:raise PermissionError('Unknown raw export profile')
-    reserve=12*GiB if expected_profile==TASK_PROFILE else RESERVE_BYTES
-    expected={'raw_evidence_profile':expected_profile,'maximum_raw_evidence_bytes':RAW_BYTES,
+    if expected_profile not in [PROFILE,TASK_PROFILE,STATEFUL_TASK_PROFILE]:raise PermissionError('Unknown raw export profile')
+    reserve=18*GiB if expected_profile==STATEFUL_TASK_PROFILE else 12*GiB if expected_profile==TASK_PROFILE else RESERVE_BYTES
+    raw=6*GiB if expected_profile==STATEFUL_TASK_PROFILE else RAW_BYTES
+    expected={'raw_evidence_profile':expected_profile,'maximum_raw_evidence_bytes':raw,
               'physical_export_reserve_bytes':reserve}
     if any(type(stage.get(k)) is not type(v) or stage[k]!=v for k,v in expected.items()):
         raise PermissionError('Reviewed full-state raw export envelope required')
@@ -27,13 +29,14 @@ def validate_export_plan(stage,expected_profile=PROFILE):
 def disk_admission(cache,output,pin,stage,usage=None,expected_profile=PROFILE):
     envelope=validate_export_plan(stage,expected_profile);usage=shutil.disk_usage if usage is None else usage
     reserve=envelope['physical_export_reserve_bytes']
+    raw=envelope['maximum_raw_evidence_bytes']
     total=sum(v['size'] for v in pin['files'])
     if total!=55575985859:raise ValueError('Original complete model download budget changed')
-    required=total+2*GiB+reserve+RAW_BYTES
-    if usage(cache).free<required or usage(output).free<reserve+RAW_BYTES:
+    required=total+2*GiB+reserve+raw
+    if usage(cache).free<required or usage(output).free<reserve+raw:
         raise OSError('Insufficient complete model/raw/archive/reservation disk space')
     return {'download_file_bytes':total,'required_cache_free_bytes':required,
-            'raw_evidence_profile':expected_profile,'maximum_raw_evidence_bytes':RAW_BYTES,
+            'raw_evidence_profile':expected_profile,'maximum_raw_evidence_bytes':raw,
             'physical_export_reserve_bytes':reserve,'runtime_capacity_admitted':False}
 
 
@@ -77,9 +80,11 @@ def write_optimizer_state(optimizer,adapters,output):
     return {'path':'OPTIMIZER_FINAL.pt','bytes':target.stat().st_size,'sha256':sha(target)}
 
 
-def write_gradient_state(adapters,output):
+def write_gradient_state(adapters,output,filename='GRADIENT_FINAL.pt'):
     """Export the already-clipped last gradient; never compute a backward pass."""
     import torch
+    if filename!='GRADIENT_FINAL.pt' and not re.fullmatch(r'GRADIENT_STEP_00[123]\.pt',filename):
+        raise PermissionError('Exact registered clipped-gradient export name required')
     values={}
     for name,module in adapters.items():
         for part in ['A','B']:
@@ -87,9 +92,23 @@ def write_gradient_state(adapters,output):
             if gradient is None or gradient.dtype!=torch.float32 or gradient.shape!=parameter.shape or not torch.isfinite(gradient).all():
                 raise ValueError('Complete finite FP32 clipped gradients required')
             values[name+'.'+part]=gradient.detach().cpu().clone()
-    target=Path(output)/'GRADIENT_FINAL.pt'
+    target=Path(output)/filename
     with target.open('xb') as stream:torch.save(values,stream)
-    return {'path':'GRADIENT_FINAL.pt','bytes':target.stat().st_size,'sha256':sha(target)}
+    return {'path':filename,'bytes':target.stat().st_size,'sha256':sha(target)}
+
+
+def write_initial_A_state(adapters,output):
+    """Read fresh initial A bytes for multi-update numerical qualification."""
+    import torch
+    values={}
+    for name,module in adapters.items():
+        value=module.A
+        if value.dtype!=torch.float32 or not torch.isfinite(value).all() or value.shape[0]!=32:
+            raise ValueError('Complete finite initial rank32 FP32 A tensors required')
+        values[name+'.A']=value.detach().cpu().clone()
+    target=Path(output)/'INITIAL_A.pt'
+    with target.open('xb') as stream:torch.save(values,stream)
+    return {'path':'INITIAL_A.pt','bytes':target.stat().st_size,'sha256':sha(target)}
 
 
 def runtime_evidence(actor):
