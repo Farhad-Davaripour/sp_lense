@@ -45,5 +45,22 @@ class V2EvaluationTests(unittest.TestCase):
         self.assertIsNone(value['no_decoder_repair_or_policy_logit_mask'])
         self.assertFalse(value['admitted'])
 
+    def test_scripted_public_collection_persists_exact_step_prefixes(self):
+        from copy import deepcopy
+        from src.composite_v2_controller import V2Composite
+        from src.composite_v2_trace_audit import audit_trace
+        from test_composite_v2_trace_audit import Detector,ScriptedActor,TOKENIZERS
+        scene=fixture('operator_stop');model=V2Composite(Detector(),ScriptedActor());saved={};checked=[]
+        records=collect_partition(model,[scene],['base','learned_dynamic'],lambda:None,
+            lambda name,value:saved.update({name:deepcopy(value)}),lambda:checked.append(True),'a'*40,
+            public_fixture=True,persist_prefixes=True)
+        self.assertEqual(len(records),2);self.assertEqual(checked,[True])
+        prefixes=[value for name,value in saved.items() if name.startswith('prefixes/')]
+        self.assertEqual(len(prefixes),8)
+        first=saved['prefixes/'+scene.case_id+'/base/step_001.json']
+        self.assertEqual(len(first['trace']),1);self.assertTrue(first['outcome']['running'])
+        proof=audit_trace(first,scene,'a'*40,public_fixture=True,fixture_tokenizers=TOKENIZERS,require_terminal=False)
+        self.assertFalse(proof['trajectory_complete']);self.assertFalse(proof['raw_evidence_audited'])
+
 
 if __name__=='__main__':unittest.main()

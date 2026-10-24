@@ -337,6 +337,7 @@ def audit_model_files(files,context,token_plan,*,public_fixture=False,closure=No
         'data_release_sha256':stage['data_release_sha256'],'workspace':context['workspace'],
         'raw_archive_sha256':files.sha256,'recorded_update_count_verified':updates,
         'checkpoint':ck,'checkpoint_sha256':training['checkpoint_sha256'],'backbone_integrity':integrity,'missing_or_unverified':blocks,
+        'original_state_sha256':None if integrity is None else original_state_digest(files.json('BACKBONE_LIVE_AFTER.json')),
         'complete_model_stage_raw_audited':complete,'full_fit_raw_audited':complete and phase=='full_fit',
         'complete_training_qualification_audited':complete and phase=='qualification',
         'model_tensor_integrity_audited':integrity is not None and runtime and _source_key is _KEY and not public_fixture,
@@ -527,6 +528,8 @@ def read_evaluation_integrity(files,root,source_commit,package,trace_manifest,mo
         raise ValueError('Pinned complete original tensor header differs')
     shapes={n:v['shape'] for n,v in header['tensors'].items() if not n.startswith('mtp.')}
     frozen_integrity(files.json('BACKBONE_LIVE_BEFORE.json'),files.json('BACKBONE_LIVE_AFTER.json'),shapes)
+    if original_state_digest(files.json('BACKBONE_LIVE_AFTER.json'))!=prior.get('original_state_sha256'):
+        raise ValueError('Validation original quantized bytes differ from the audited full fit')
     audit_runtime(files.json('RUNTIME_RAW.json'),files.json('BACKBONE_LIVE_AFTER.json'),shapes)
     design=read(Path(root)/'config/composite_generalization_amendment_v2.json')
     detector=detector_integrity(files,read(Path(root)/'inputs/MODERNBERT_PIN.json'),detector_checkpoint,
@@ -542,7 +545,7 @@ def read_evaluation_integrity(files,root,source_commit,package,trace_manifest,mo
                 or not torch.isfinite(value).all() or tensor_digest(value)!=prior['checkpoint']['hashes'][name]):
                 raise ValueError('Evaluation adapter bytes differ from the audited checkpoint')
     return EvaluationIntegrity({'reader':READER,'source_commit':source_commit,'package_sha256':digest(package),
-        'trace_manifest_sha256':digest(trace_manifest),'data_release_sha256':package['data_release_sha256'],
+        'trace_manifest_sha256':digest(trace_manifest),'trace_manifest':trace_manifest,'data_release_sha256':package['data_release_sha256'],
         'raw_archive_sha256':files.sha256,'detector_integrity':detector,'complete_model_integrity_audited':True,
         'absence_of_unlogged_calls_proved':False,'heldout_content_read':False},_KEY)
 
@@ -552,3 +555,26 @@ def bound_evaluation_integrity(value,source_commit,package_sha256,trace_manifest
     proof=value.receipt()
     return (proof['source_commit']==source_commit and proof['package_sha256']==package_sha256
             and proof['trace_manifest_sha256']==digest(trace_manifest) and proof['complete_model_integrity_audited'] is True)
+
+
+def original_state_digest(proof):
+    keys=['name','shape','logical_shape','dtype','sha256']
+    return digest({'parameters':sorted([{k:r[k] for k in keys} for r in proof['parameters']],key=lambda r:r['name']),
+                   'auxiliary_sha256':proof['auxiliary_sha256']})
+
+
+def combine_evaluation_integrity(values,source_commit,package,trace_manifest):
+    if not values or not trace_manifest:raise PermissionError('Nonempty independently audited partition integrity required')
+    manifests={}
+    for value in values:
+        if not isinstance(value,EvaluationIntegrity) or value._key is not _KEY:raise PermissionError('Reader-produced partition integrity required')
+        proof=value.receipt()
+        if (proof['source_commit']!=source_commit or proof['package_sha256']!=digest(package)
+            or proof['data_release_sha256']!=package['data_release_sha256'] or proof['complete_model_integrity_audited'] is not True):
+            raise PermissionError('Integrity partitions belong to another exact freeze')
+        if set(manifests)&set(proof['trace_manifest']):raise PermissionError('Overlapping integrity partitions')
+        manifests.update(proof['trace_manifest'])
+    if digest(manifests)!=digest(trace_manifest):raise PermissionError('Missing or mismatched partition integrity')
+    return EvaluationIntegrity({'reader':READER,'source_commit':source_commit,'package_sha256':digest(package),
+        'trace_manifest':manifests,'trace_manifest_sha256':digest(manifests),'data_release_sha256':package['data_release_sha256'],
+        'complete_model_integrity_audited':True,'absence_of_unlogged_calls_proved':False,'heldout_content_read':False},_KEY)

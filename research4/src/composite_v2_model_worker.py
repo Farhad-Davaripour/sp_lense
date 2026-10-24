@@ -55,7 +55,7 @@ class Services:
         from .composite_frozen_worker import transport_environment
         from .composite_frozen_probe import verify_metadata_bytes
         from .composite_store import download_model
-        cache=owner.scratch/'cache';cache.mkdir();os.environ.update(transport_environment(cache))
+        cache=owner.scratch/'cache';cache.mkdir(exist_ok=True);os.environ.update(transport_environment(cache))
         pin=read(Path(context['root'])/'inputs/QWEN_PIN.json')
         owner.json('DISK_ADMISSION.json',disk_admission(cache,owner.raw,pin,context['stage']))
         reserve=owner.scratch/'EXPORT_RESERVE.bin'
@@ -90,6 +90,10 @@ def run(root,commit,_services=None,scratch_base=None):
     stage=context['stage'];cfg=context['configuration'];bounds=cfg['bounds']
     prefix=stage['destination'][len(context['workspace']['artifact_volume']+'/composite_controller_v1/'):]
     owner=OwnedArtifacts(store,prefix,commit,base=scratch_base,maximum_bytes=stage.get('maximum_raw_evidence_bytes',1024**3))
+    if _services is None:
+        from .composite_frozen_worker import transport_environment
+        cache=owner.scratch/'cache';cache.mkdir();(cache/'scratch').mkdir()
+        os.environ.update(transport_environment(cache))
     counts={'attempted':0,'completed':0};actor=None
     receipt={'mode':MODE,'source_commit':commit,'phase':stage['phase'],'status':'running','heldout_content_read':False,
         'model_instances':None,'optimizer_updates':None,'native_interface_profile':PROFILE,'scientific_retries':0,

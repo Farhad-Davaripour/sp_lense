@@ -58,7 +58,8 @@ def summarize_v2(records,scenes,base_cfg,design_cfg,package,source_commit,bypass
         admitted=bool(report['admitted'] and len(scenes)==36 and raw_complete and transfer_ok and model_integrity_audited and not public_fixture))
     # Required independent stage attestations are never inferred from a fit or
     # a token-budget pass. The frozen-report assembler must bind them explicitly.
-    att={} if stage_attestation is None else stage_attestation
+    from .composite_v2_development_audit import bound_attestation
+    att=bound_attestation(stage_attestation,source_commit,digest(package),package.get('data_release_sha256'),manifest)
     bound=(att.get('source_commit')==source_commit and att.get('package_sha256')==digest(package)
            and att.get('data_release_sha256')==package.get('data_release_sha256'))
     detector=att.get('detector_transfer',{})
@@ -72,7 +73,7 @@ def summarize_v2(records,scenes,base_cfg,design_cfg,package,source_commit,bypass
     return report
 
 
-def collect_partition(model,scenes,conditions,guard,persist,verify,source_commit,progress=None,public_fixture=False):
+def collect_partition(model,scenes,conditions,guard,persist,verify,source_commit,progress=None,public_fixture=False,persist_prefixes=False):
     if not public_fixture:
         from .composite_generalized_data import require_runtime
         require_runtime()
@@ -83,12 +84,23 @@ def collect_partition(model,scenes,conditions,guard,persist,verify,source_commit
     try:
         for scene in scenes:
             for arm in conditions:
-                guard();record=rollout(model,scene,arm,guard,progress)
+                def checkpoint(world,trace):
+                    if persist_prefixes:
+                        from .composite_v2_controller import ENVIRONMENT
+                        persist('prefixes/'+scene.case_id+'/'+arm+'/step_'+str(len(trace)).zfill(3)+'.json',
+                            {'scene':asdict(scene),'condition':arm,'environment':ENVIRONMENT,
+                             'initial_observation':model.observations[0],'trace':trace,'outcome':world.outcome(),
+                             'terminal_memory':model.memory.snapshot(),'primitive_trace':world.engine.trace,
+                             'helper_definitions':world.engine.definitions,'helper_calls':world.helper_calls,
+                             'model_training_during_evaluation':False,'teacher_compiler_called_during_evaluation':False})
+                    if progress:progress(world,trace)
+                guard();record=rollout(model,scene,arm,guard,checkpoint)
                 records.append(record);persist('traces/'+scene.case_id+'/'+arm+'.json',record)
         return records
     finally:
-        verify()
-        persist('COLLECTION_RECEIPT.json',{'source_commit':source_commit,'observed_trajectories':len(records),
-            'expected_trajectories':len(scenes)*len(conditions),'missing':sorted({(s.case_id,a) for s in scenes for a in conditions}-{(r['scene']['case_id'],r['condition']) for r in records}),
-            'public_fixture_test_mode':public_fixture,'teacher_compiler_called':False,'optimizer_updates':0,
-            'scientific_validation_admitted':False,'heldout_content_read':False})
+        try:verify()
+        finally:
+            persist('COLLECTION_RECEIPT.json',{'source_commit':source_commit,'observed_trajectories':len(records),
+                'expected_trajectories':len(scenes)*len(conditions),'missing':sorted({(s.case_id,a) for s in scenes for a in conditions}-{(r['scene']['case_id'],r['condition']) for r in records}),
+                'public_fixture_test_mode':public_fixture,'teacher_compiler_called':False,'optimizer_updates':0,
+                'scientific_validation_admitted':False,'heldout_content_read':False})
