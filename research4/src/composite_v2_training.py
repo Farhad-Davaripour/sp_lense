@@ -9,7 +9,7 @@ MODE='generalized-qwen-rank32-training-v2'
 RECIPE={'steps':64,'accumulation':2,'learning_rate':0.0005,'seed':202610212,'clip_norm':1.0}
 
 
-def validate_plan(plan,cfg,data_release,workspace):
+def validate_plan(plan,cfg,data_release,workspace,*,qualification_evidence=None):
     for key,value in RECIPE.items():
         if type(cfg['behavior_training'].get(key)) is not type(value) or cfg['behavior_training'][key]!=value:
             raise PermissionError('Registered complete supervised recipe changed')
@@ -34,6 +34,8 @@ def validate_plan(plan,cfg,data_release,workspace):
             or parent.get('workspace')!=workspace or parent.get('optimizer_updates')!=1
             or parent.get('checkpoint_initializes_full_fit') is not False):
             raise PermissionError('Full fit requires an exact audited/released scratch qualification')
+        from .composite_v2_model_audit import require_qualification_evidence
+        require_qualification_evidence(qualification_evidence,parent)
     return phase
 
 

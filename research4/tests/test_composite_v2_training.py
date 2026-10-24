@@ -49,7 +49,9 @@ class V2TrainingTests(unittest.TestCase):
         with self.assertRaises(PermissionError):validate_plan(full,cfg,data,workspace)
         full['qualification']={'complete_training_qualification_audited':True,'owned_compute_released':True,
             'data_release_sha256':digest(data),'workspace':workspace,'optimizer_updates':1,'checkpoint_initializes_full_fit':False}
-        self.assertEqual(validate_plan(full,cfg,data,workspace),'full_fit')
+        # Caller-supplied success/release booleans are metadata, not a raw audit.
+        with self.assertRaisesRegex(PermissionError,'raw scratch qualification'):
+            validate_plan(full,cfg,data,workspace)
         full['qualification']['checkpoint_initializes_full_fit']=True
         with self.assertRaises(PermissionError):validate_plan(full,cfg,data,workspace)
 
