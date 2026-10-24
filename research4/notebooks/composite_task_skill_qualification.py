@@ -1,4 +1,4 @@
-"""Full-rank task-only qualification bootstrap; never launches a second job."""
+"""Full-rank task-only stage bootstrap; never launches a second job."""
 import hashlib
 import json
 import os
@@ -37,12 +37,13 @@ for name, expected in manifest['files'].items():
 source = root / 'source'
 plan_path = source / 'inputs/TASK_TRAINING_PLAN.json'
 stage = json.loads(plan_path.read_text())
-assert stage['phase'] == 'qualification' and stage['scientific_GPU_count'] == 2 and stage['optimizer_updates'] == 1
+assert stage['phase'] in ['qualification','full_fit'] and stage['scientific_GPU_count'] == 2
+assert stage['optimizer_updates'] == {'qualification':1,'full_fit':64}[stage['phase']]
 output = Path(stage['destination'])
 output.parent.mkdir(parents=True, exist_ok=True)
 child = {'child_started': False, 'child_exit_confirmed': None, 'exit_code': None}
 receipt = {'source_commit': SOURCE_COMMIT, 'notebook': stage['notebook'], 'mode': stage['version'],
-           'phase': 'qualification', 'status': 'setting_up', 'model_forwards': None,
+           'phase': stage['phase'], 'status': 'setting_up', 'model_forwards': None,
            'optimizer_updates': None, 'heldout_content_read': False,
            'automatic_scientific_retries': 0, 'full_fit_completed': False,
            'actual_training_capacity_qualified': False}
@@ -68,6 +69,11 @@ try:
         RESEARCH4_TASK_TRAINING_PLAN_SHA256=hashlib.sha256(plan_path.read_bytes()).hexdigest(),
         TOKENIZERS_PARALLELISM='false', HF_HUB_DISABLE_IMPLICIT_TOKEN='1', HF_HUB_DISABLE_TELEMETRY='1',
         HF_HUB_DISABLE_XET='1', HF_HUB_DISABLE_SHARED_BLOBS='1')
+    if stage['phase']=='full_fit':
+        suffix='research4_campaign/runs/149278382451faa1aceed82f22a4604a9bf99f79/task_skill_training_v1/qualification_01/evidence.zip'
+        parents=[p for p in Path('/kaggle/input').rglob('evidence.zip') if p.as_posix().endswith(suffix)]
+        assert len(parents)==1,'Attach the exact completed qualification output once; never infer a parent from a summary'
+        env['RESEARCH4_TASK_QUALIFICATION_ARCHIVE']=str(parents[0])
     sys.path.insert(0, str(source))
     from src.composite_runtime import run_logged
     remaining = stage['worker_seconds']

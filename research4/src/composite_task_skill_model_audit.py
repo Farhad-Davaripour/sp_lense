@@ -53,7 +53,9 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
     run = binding.get('scriptVersionId')
     notebook = binding.get('notebook')
     source = binding.get('source_commit')
-    if (type(run) is not int or run <= 0 or notebook != 'farhad89/research4-task-skill-qualification-v2'
+    phase=binding.get('phase')
+    expected_notebook={'qualification':'farhad89/research4-task-skill-qualification-v2','full_fit':'farhad89/research4-task-skill-fit-v1'}.get(phase)
+    if (type(run) is not int or run <= 0 or expected_notebook is None or notebook != expected_notebook
             or not re.fullmatch('[0-9a-f]{40}', source or '') or not re.fullmatch('[0-9a-f]{64}', archive_sha256 or '')):
         raise PermissionError('Exact one-use model submission required')
     if ('scriptVersionId=' + str(run)) not in terminal_AX or notebook not in terminal_AX:
@@ -63,7 +65,7 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
     if '0  Active Events' not in release_AX or 'Draft Session off' not in release_AX:
         raise PermissionError('Global release and target draft off must be observed, not asserted')
     if (controller.get('source_commit') != source or controller.get('notebook') != notebook
-            or controller.get('phase') != 'qualification' or controller.get('status') != 'worker_exited'
+            or controller.get('phase') != phase or controller.get('status') != 'worker_exited'
             or type(controller.get('exit_code')) is not int or controller.get('exit_code') != 0 or controller.get('timed_out') is not False
             or controller.get('child', {}).get('child_exit_confirmed') is not True
             or type(controller['child'].get('exit_code')) is not int or controller['child'].get('exit_code') != 0):
@@ -138,12 +140,18 @@ def audit_scratch_update(files, shapes, initial_hashes):
 
 
 def audit_qualification(raw, expected_sha256, root, source_commit, closure=None):
-    stage, cfg, data = validate_model_source(root, source_commit)
+    return audit_task_model(raw,expected_sha256,root,source_commit,closure,required_phase='qualification')
+
+
+def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,required_phase=None,qualification_archive=None):
+    stage, cfg, data = validate_model_source(root, source_commit,qualification_archive)
+    phase=stage['phase'];updates={'qualification':1,'full_fit':64}[phase]
+    if required_phase is not None and phase!=required_phase:raise PermissionError('Another model phase was supplied')
     files = EvidenceFiles(raw, expected_sha256, stage['maximum_raw_evidence_bytes'])
     try:
         receipt = files.json('RUN_RECEIPT.json')
         base = {'reader': 'task-two-t4-qualification-raw-v1', 'source_commit': source_commit,
-                'phase': 'qualification', 'raw_archive_sha256': expected_sha256,
+                'phase': phase, 'raw_archive_sha256': expected_sha256,
                 'source_data_archive_sha256': stage['source_data_archive_sha256'],
                 'complete_training_qualification_audited': False, 'scientific_qualification_admitted': False,
                 'full_fit_completed': False, 'checkpoint_initializes_full_fit': False,
@@ -151,15 +159,15 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
                 'new_model_forwards': 0, 'new_optimizer_updates': 0, 'heldout_content_read': False,
                 'absence_of_unlogged_calls_proved': False}
         if (receipt.get('source_commit') != source_commit or receipt.get('mode') != MODE
-                or receipt.get('phase') != 'qualification' or receipt.get('heldout_content_read') is not False):
+                or receipt.get('phase') != phase or receipt.get('heldout_content_read') is not False):
             raise PermissionError('Raw qualification source/scope differs')
         if receipt.get('status') != 'complete' or receipt.get('public_fixture_test_mode') is not False:
             base.update(worker_status=receipt.get('status'), missing_or_unverified=['worker_not_complete_or_public_fixture'],
                         optimizer_steps_completed_lower_bound=receipt.get('optimizer_steps_completed_lower_bound'))
             return TaskQualification(base, _KEY)
         if (type(receipt.get('model_instances')) is not int or receipt['model_instances'] != 1
-                or type(receipt.get('optimizer_updates')) is not int or receipt['optimizer_updates'] != 1
-                or receipt.get('full_fit_completed') is not False or receipt.get('counts_exact_at_controlled_exit') is not True):
+                or type(receipt.get('optimizer_updates')) is not int or receipt['optimizer_updates'] != updates
+                or receipt.get('full_fit_completed') is not (phase=='full_fit') or receipt.get('counts_exact_at_controlled_exit') is not True):
             raise ValueError('One complete scratch-model stage with exact controlled-exit counts required')
         required = {'TRAINING_TOKEN_PLAN.json', 'BEHAVIOR_TRAINING.json', 'TRAINING_TERMINAL_JOURNAL.json',
             'behavior.pt', 'OPTIMIZER_FINAL.pt', 'OPTIMIZER_EXPORT.json', 'ADAPTER_INITIAL_HASHES.json',
@@ -228,14 +236,18 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
                 raise ValueError('Full task-only token replay differs')
             training = files.json('BEHAVIOR_TRAINING.json')
             ids = tokens['qualification_state_ids']
-            if (type(training['optimizer_updates']) is not int or training['optimizer_updates'] != 1
-                    or training['sampled_state_ids'] != ids or len(training['losses']) != 2
+            if phase=='full_fit':
+                import numpy as np
+                rng=np.random.default_rng(202610212)
+                ids=[tokens['records'][int(rng.integers(len(tokens['records'])))]['state_id'] for _ in range(128)]
+            if (type(training['optimizer_updates']) is not int or training['optimizer_updates'] != updates
+                    or training['sampled_state_ids'] != ids or len(training['losses']) != updates*2
                     or any(type(v) not in [int,float] or not math.isfinite(v) for v in training['losses'])):
                 raise ValueError('Exact scratch update/longest-example selection differs')
             gradient_names = {n + '.' + part for n in projections for part in ['A', 'B']}
             for index, state in enumerate(ids):
                 row = files.json('training/backward_' + str(index + 1).zfill(4) + '.json')
-                if [row['update'], row['microstep'], row['state_id'], row['loss']] != [1, index, state, training['losses'][index]]:
+                if [row['update'], row['microstep'], row['state_id'], row['loss']] != [index//2+1, index%2, state, training['losses'][index]]:
                     raise ValueError('Backward journal differs')
                 gradients = row['gradients']
                 if len(gradients) != 992 or {r['name'] for r in gradients} != gradient_names:
@@ -247,13 +259,15 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
                         raise ValueError('Per-device full-rank gradient evidence differs')
                 memory_records(row['memory'])
             journal = files.json('TRAINING_TERMINAL_JOURNAL.json')
-            update = files.json('training/update_001.json')
-            memory_records(update['memory'])
+            for step in range(1,updates+1):
+                update=files.json('training/update_'+str(step).zfill(3)+'.json');memory_records(update['memory'])
+                if any(type(update.get(k)) is not int or update[k]!=v for k,v in [('optimizer_steps_attempted',step),('optimizer_steps_completed',step),('backward_microsteps_completed',step*2)]):
+                    raise ValueError('An optimizer update journal is missing/incomplete')
             for item in [journal, update]:
-                if (any(type(item.get(k)) is not int or item[k] != v for k,v in [('optimizer_steps_attempted',1),('optimizer_steps_completed',1),('backward_microsteps_completed',2)])
+                if (any(type(item.get(k)) is not int or item[k] != v for k,v in [('optimizer_steps_attempted',updates),('optimizer_steps_completed',updates),('backward_microsteps_completed',updates*2)])
                         or item.get('in_backward') is not False):
                     raise ValueError('Complete scratch update/accumulation not proven')
-            if any(len(journal[k]) != 64 or any(type(v) is not int or v < 2 for v in journal[k])
+            if any(len(journal[k]) != 64 or any(type(v) is not int or v < updates*2 for v in journal[k])
                    for k in ['layer_forward_invocations', 'backward_recomputation_invocations']):
                 raise ValueError('All64 blocks need actual backward recomputation evidence')
             checkpoint = checkpoint_evidence(files.tensor_path('behavior.pt'), training['checkpoint_sha256'], cfg['qwen'],
@@ -264,7 +278,10 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
                 proof = files.json(descriptor)
                 if proof['path'] != name or proof['sha256'] != files.manifest[name] or proof['bytes'] != files.stream.getinfo(name).file_size:
                     raise ValueError('Raw tensor export/readback descriptor differs')
-            optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
+            if phase=='qualification':optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
+            else:
+                optimizer=audit_optimizer_bytes(files.tensor_path('OPTIMIZER_FINAL.pt'),shapes,64)
+                optimizer.update(full64_optimizer_updates_recorded=True,complete_optimizer_reexecution_proved=False)
             integrity = frozen_integrity(files.json('BACKBONE_LIVE_BEFORE.json'), files.json('BACKBONE_LIVE_AFTER.json'),
                                          originals, parameter_devices=devices)
             audit_runtime(files.json('RUNTIME_RAW.json'), files.json('BACKBONE_LIVE_AFTER.json'), originals,
@@ -277,10 +294,10 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
                     eos.update(value if isinstance(value, list) else [value])
             rows = {r['state_id']: r for r in data.rows()}
             bypass_context = {'vocabulary': originals['lm_head.weight'][0], 'actor_tokenizer': tokenizer,
-                'eos': eos, 'qualification_texts': [rows[k]['text'] for k in ids]}
+                'eos': eos, 'qualification_texts': [rows[k]['text'] for k in tokens['qualification_state_ids']]}
             bypass = audit_bypass(files, tokens, bypass_context)
             first = files.json('BYPASS_CHECK.json')['records'][0]
-            expected_forwards = 2 + 6 + sum(len(first[k]['generated_token_ids']) for k in ['wrapped_generation', 'bare_generation'])
+            expected_forwards = updates*2 + 6 + sum(len(first[k]['generated_token_ids']) for k in ['wrapped_generation', 'bare_generation'])
             if receipt['forward_counts'] != {'attempted': expected_forwards, 'completed': expected_forwards}:
                 raise ValueError('Exact recorded logical forward count differs')
         released = (isinstance(closure, KaggleClosure) and closure._key is _KEY
@@ -290,7 +307,8 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
                     optimizer=optimizer, backbone_integrity=integrity, bypass=bypass,
                     actual_full_rank_backward_verified=True, source_model_input_and_tokenizer_bindings_verified=True,
                     owned_compute_released=True if released else None,
-                    complete_training_qualification_audited=released, scientific_qualification_admitted=released,
+                    complete_training_qualification_audited=released and phase=='qualification', scientific_qualification_admitted=released and phase=='qualification',
+                    full_fit_completed=released and phase=='full_fit',full_fit_raw_audited=released and phase=='full_fit',
                     provider_run_id=closure._value['scriptVersionId'] if released else None,
                     missing_or_unverified=[] if released else ['external_provider_terminal_release_not_verified'])
         return TaskQualification(base, _KEY)
