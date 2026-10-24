@@ -7,6 +7,33 @@ from src.composite_generalized_teacher import teacher_episode
 
 
 class CausalCoreTests(unittest.TestCase):
+    def test_count_ignored_literal_and_parameter_reference_have_identical_causal_core(self):
+        original=deepcopy(examples()[0]['program']);original['steps'][1]['arguments'].update(mode='count',field='literal_ignored')
+        changed=deepcopy(original);changed['parameters'].append('otherwise_unused')
+        changed['steps'][1]['arguments']['field']={'ref':'otherwise_unused'}
+        first=causal_core(original,[2]);second=causal_core(changed,[2])
+        self.assertEqual(first['fingerprint'],second['fingerprint'])
+        self.assertEqual(first['core_program'],second['core_program'])
+        self.assertNotIn('otherwise_unused',second['core_program']['parameters'])
+        self.assertEqual(first['source_data_dependent'],second['source_data_dependent'])
+        self.assertEqual(first['eligible_for_compositional_transfer_claim'],second['eligible_for_compositional_transfer_claim'])
+
+    def test_count_ignored_read_reference_cannot_manufacture_data_dependence(self):
+        original={'parameters':['target'],'steps':[
+            {'bind':'read_unused','op':'read','arguments':{'identifier':'public_unused_record'}},
+            {'bind':'counted','op':'aggregate','arguments':{'rows':[{'value':1}],'field':'literal_ignored','mode':'count'}},
+            {'bind':'written','op':'patch','arguments':{'identifier':{'ref':'target'},'fields':{'total':{'ref':'counted'}}}}]}
+        changed=deepcopy(original);changed['steps'][1]['arguments']['field']={'ref':'read_unused.column_name'}
+        first=causal_core(original,[2]);second=causal_core(changed,[2])
+        self.assertEqual(first['fingerprint'],second['fingerprint'])
+        self.assertEqual(len(second['core_program']['steps']),2)
+        self.assertFalse(second['source_data_dependent']);self.assertFalse(second['eligible_for_compositional_transfer_claim'])
+        literal_rows=deepcopy(original)
+        literal_rows['steps'][1]['arguments']['rows']=[{'otherwise_unused':{'ref':'read_unused.column_name'}}]
+        third=causal_core(literal_rows,[2])
+        self.assertEqual(first['fingerprint'],third['fingerprint'])
+        self.assertFalse(third['source_data_dependent']);self.assertFalse(third['eligible_for_compositional_transfer_claim'])
+
     def executions(self,program,bindings):
         item=examples()[0];executions=[]
         for arguments in bindings:

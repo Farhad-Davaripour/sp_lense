@@ -11,13 +11,29 @@ def _refs(value):
     return set()
 
 
+def consumed_step(step):
+    """Canonicalize only statically proven ignored arguments, before dataflow.
+
+    A dynamic aggregate mode remains conservative: field may matter for sum/max.
+    For literal count, field is never consumed, regardless of its JSON form.
+    """
+    value=deepcopy(step)
+    if value['op']=='aggregate' and value['arguments'].get('mode')=='count':
+        value['arguments']['field']='_count_ignores_field'
+        if isinstance(value['arguments'].get('rows'),list):
+            # A literal list has a statically fixed length; count never consumes
+            # its element values, including any otherwise unrelated references.
+            value['arguments']['rows']=[{} for _ in value['arguments']['rows']]
+    return value
+
+
 def causal_core(program,changing_write_steps,verified_return_used=False):
     """The caller must verify write changes and outcome/return use from raw replay.
 
     A digest alone cannot establish that this helper contributed to an outcome.
     No literal/unused code is allowed to manufacture a new program fingerprint.
     """
-    validate_program(program);steps=program['steps'];roots=set(changing_write_steps)
+    validate_program(program);steps=[consumed_step(step) for step in program['steps']];roots=set(changing_write_steps)
     if any(type(index) is not int or not 0<=index<len(steps) or steps[index]['op']!='patch' for index in roots):
         raise ValueError('Only verified record-changing writes may be effect roots')
     if verified_return_used:roots.add(len(steps)-1)

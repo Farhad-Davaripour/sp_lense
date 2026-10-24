@@ -224,7 +224,13 @@ behavior. Require a nontrivial composition with a dataflow dependency from
 observed record data to the verified result; a parameterized constant write or
 one-operation wrapper is insufficient. This structural check still does not
 prove semantic correctness on arbitrary inputs. Do not score a merely allocated
-helper as useful tool discovery. Distinct reuse must be based on consumed live
+helper as useful tool discovery. Operation-aware consumed-argument normalization
+precedes slicing, hashing and read-dependence checks: literal aggregate count
+ignores its field argument, including an ignored parameter/read reference.
+Dynamic modes remain conservative because field can matter for sum/max. The
+V3 operation-consumption measurement profile supersedes the earlier inert
+83702b77 package for scoring admission; that frozen package remains unchanged.
+Distinct reuse must be based on consumed live
 inputs and addressed records in successful executions of the outcome-relevant
 core. A change only to an unused argument, ignored field or dead computation
 does not create a second material binding. Record raw argument dictionaries
