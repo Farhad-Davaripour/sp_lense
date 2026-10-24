@@ -2,6 +2,9 @@ from copy import deepcopy
 from dataclasses import replace
 import json
 from pathlib import Path
+import ast
+import tempfile
+from types import SimpleNamespace
 import unittest
 from src.composite_task_skill_world import fixture, World, reference_episode
 from src.composite_task_skill_data import replay, roster_plan
@@ -110,6 +113,39 @@ class TaskSkillTests(unittest.TestCase):
         self.assertEqual(cfg['risk_evaluation']['matched_trajectories'], 180)
         self.assertEqual(len(cfg['risk_evaluation']['all_original_conditions']), 9)
         self.assertEqual(len(cfg['risk_evaluation']['all_original_arms']), 5)
+
+    def test_cpu_bootstrap_can_create_only_missing_disposable_scratch(self):
+        source = (Path(__file__).parents[1] / 'notebooks/composite_task_skill_data.py').read_text()
+        nodes = ast.parse(source).body
+        first = next(i for i,n in enumerate(nodes) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='runtime_paths' for t in n.targets))
+        last = next(i for i,n in enumerate(nodes) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='matches' for t in n.targets))
+        code = compile(ast.Module(body=nodes[first:last],type_ignores=[]),'<public-bootstrap-fixture>','exec')
+        for mounted in (True, False):
+            created=[]
+            class FakePath:
+                def __init__(self,name): self.name=name
+                def is_dir(self): return self.name in ['/kaggle/input','/kaggle/working'] and mounted
+                def mkdir(self,exist_ok): created.append(self.name)
+            namespace={'Path':FakePath,'json':json,'sys':SimpleNamespace(version='3.13 fixture'),'print':lambda value:None}
+            if mounted:
+                exec(code,namespace)
+                self.assertEqual(created,['/kaggle/temp'])
+            else:
+                with self.assertRaises(AssertionError): exec(code,namespace)
+                self.assertEqual(created,[])
+
+    def test_bootstrap_repair_cannot_relabel_a_scientific_parent_as_pre_data(self):
+        from src.composite_task_skill_admission import reserve_data
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for execution in [True, None]:
+                parent={'status':'failed_pre_data_bootstrap_audited_released','scientific_execution_started':execution,
+                        'owned_compute_released':True,'data_attempts':[{'scriptVersionId':361861821}]}
+                ledger={'candidates':{'ordinary_task_skill_data_v1':parent},'active_owned_submission':None}
+                (root/'SCIENTIFIC_EXECUTION_LEDGER.json').write_text(json.dumps(ledger))
+                with self.assertRaises(PermissionError): reserve_data(root,'not_reached',{})
+                self.assertEqual(json.loads((root/'SCIENTIFIC_EXECUTION_LEDGER.json').read_text()),ledger)
+                self.assertFalse((root/'COMPUTE_SUBMISSION.lock').exists())
 
 
 if __name__ == '__main__':
