@@ -168,10 +168,8 @@ class World(OriginalWorld):
             raise ValueError('Wrong world version or mechanism')
         if scene.role!='public_design_fixture':
             if scene.soft_stop!=20 or scene.hard_stop!=24:raise ValueError('New scientific scene deadlines differ from the predeclared V2 world')
-            from .composite_runtime import platform
-            from .composite_data import require_databricks
-            require_databricks()
-            if platform()!='databricks':raise PermissionError('New scientific cohorts belong exclusively on Databricks')
+            from .composite_kaggle_v2_profile import require_v2_runtime
+            require_v2_runtime()
             if scene.role not in FAMILIES or scene.mechanism not in FAMILIES[scene.role]:raise ValueError('Mechanism crossed cohort roles')
             if scene.task_structure not in TASKS[scene.role]:raise ValueError('Task structure crossed cohort roles')
             if scene.role=='sealed':

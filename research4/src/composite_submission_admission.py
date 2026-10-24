@@ -42,7 +42,13 @@ def reserve(campaign_root,preparation_file,live_snapshot,candidate_key,attempts_
         if observed.tzinfo is None or observed<acquired or not 0<=(now-observed).total_seconds()<=120:
             raise PermissionError('Fresh live observations are required under the shared guard')
         surfaces=snapshot['surfaces']
-        if set(surfaces)!=REQUIRED_SURFACES or any(type(value) is not int or value!=0 for value in surfaces.values()):
+        required=REQUIRED_SURFACES
+        if binding.get('provider_scope')=='human-selected-Kaggle-remainder-v1':
+            from .composite_kaggle_v2_profile import HUMAN_SHA
+            if binding.get('kaggle_remainder_scope_sha256')!=HUMAN_SHA:
+                raise PermissionError('Explicit human Kaggle-only scope required')
+            required={'kaggle'}
+        if set(surfaces)!=required or any(type(value) is not int or value!=0 for value in surfaces.values()):
             raise PermissionError('An active, pending, missing or unknown workspace blocks admission')
         path=root/'SCIENTIFIC_EXECUTION_LEDGER.json';ledger=read(path)
         if ledger.get('active_owned_submission') is not None:

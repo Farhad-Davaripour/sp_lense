@@ -28,6 +28,10 @@ def cgroup_available():
         return int(maximum)-used+int(statistics.get('inactive_file','0'))
     except (OSError,ValueError):return None
 def assert_namespace(path):
+    from .composite_runtime import platform
+    if platform()=='kaggle' and os.environ.get('RESEARCH4_KAGGLE_V2_SOURCE_ROOT'):
+        from .composite_kaggle_v2_profile import assert_output_namespace
+        return assert_output_namespace(path)
     from .workspace_accounts import artifact_volume,profiles
     value=str(path);roots={artifact_volume(account=name) for name in profiles()['accounts']}
     if not any(value.startswith(root+'/') for root in roots) or '\\' in value or '..' in value.split('/'):

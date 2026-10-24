@@ -17,6 +17,9 @@ BOUNDS={'worker_seconds':600,'export_reserve_seconds':60,'hard_timeout_seconds':
 
 
 def validate_workspace(value):
+    if value.get('platform')=='kaggle':
+        from .composite_kaggle_v2_profile import validate_identity
+        return validate_identity(value)
     expected=profiles()['accounts'].get(value.get('account'))
     if expected is None:raise PermissionError('Unknown explicitly selected account')
     for key in ['host','organization']:
@@ -65,7 +68,11 @@ def validate_metadata(root,commit):
         'amendment_sha256':sha(root/'config/composite_generalization_amendment_v2.json')}
     if any(type(authority.get(k)) is not type(v) or authority[k]!=v for k,v in expected.items()):
         raise PermissionError('Data-stage source/authority/workspace binding differs')
-    prefix=artifact_volume(account=workspace['account'])+'/composite_controller_v1/data_generalized_v2/'+commit+'/'
+    if workspace.get('platform')=='kaggle':
+        from .composite_kaggle_v2_profile import validate_source,data_destination
+        validate_source(root,commit)
+        prefix=data_destination(workspace,commit).removesuffix('export_01')
+    else:prefix=artifact_volume(account=workspace['account'])+'/composite_controller_v1/data_generalized_v2/'+commit+'/'
     destination=authority.get('destination','')
     if not destination.startswith(prefix) or destination!=prefix+'export_01':raise PermissionError('Fresh exact Research4 export destination required')
     return {'source_root':str(root),'source_commit':commit,'configuration':cfg,'workspace':workspace,

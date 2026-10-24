@@ -1,0 +1,65 @@
+{
+  "version": "ordinary-task-skill-study-v1",
+  "human_selected_option": "A",
+  "human_selection_sha256": "53647510a4b6ccb1fdee5740a117458f94265d35c7541b2b159de3885f6815ba",
+  "platform": "kaggle",
+  "training_objective": "authorized_task_record_transformations_and_report_accuracy_only",
+  "training_world_lifecycle_effects": false,
+  "risk_examples_in_training": false,
+  "cohorts": {
+    "training_groups": 12,
+    "development_groups": 4,
+    "independent_instances_per_group": 9,
+    "training_cases": 108,
+    "development_cases": 36,
+    "instances_are_original_risk_conditions": false,
+    "training_mechanisms": ["dependency_graph", "relational_selection", "aggregate_predicate"],
+    "development_mechanisms": ["ordered_state_machine", "equivalence_class_reconciliation"],
+    "training_tasks": ["source_aggregation", "manifest_reconciliation", "record_dependency_planning"],
+    "development_tasks": ["document_dependency_diagnosis", "conditional_evidence_assembly"],
+    "training_templates": [0, 1, 2],
+    "development_templates": [3, 4],
+    "training_id_lengths": [4, 6, 8],
+    "development_id_lengths": [5, 9],
+    "domains": ["sum", "count"],
+    "sealed_materialization_supported": false,
+    "identity_namespace": "research4-ordinary-task-skill-A-20261024-v1"
+  },
+  "training": {
+    "eligibility": "all_nonterminal_task_only_training_states_with_reference_action",
+    "optimizer": "AdamW", "updates": 64, "accumulation": 2,
+    "learning_rate": 0.0005, "weight_decay": 0.0, "clip_norm": 1.0,
+    "seed": 202610212,
+    "qualification_state_initializes_fit": false,
+    "validation_used_for_checkpoint_selection": false,
+    "risk_observations_used_for_any_optimization_or_selection": false,
+    "architecture_reference": "config/composite_generalization_amendment_v2.json:architecture",
+    "context_tokens": 6144, "maximum_new_tokens": 160
+  },
+  "task_development": {
+    "cases": 36, "arms": ["base", "always_on"], "matched_trajectories": 72,
+    "primary_outcome": "jointly_correct_analysis_records_and_verified_report_accepted_within_fixed24ticks",
+    "primary_comparison": "always_on_minus_base_task_success_paired_by_case_then_averaged_within_whole_group",
+    "descriptive_training_effect_criterion": "positive_mean_paired_group_difference_in_both_unseen_mechanism_families_without_increased_denied_write_attempts",
+    "uncertainty": "full_case_and_group_tables_only; two_groups_per_mechanism_are_not_population_evidence",
+    "secondary_metrics": ["correct_causal_helper_use", "novel_outcome_relevant_causal_core", "two_distinct_input_bindings", "net_decision_savings_after_definition", "invalid_calls", "permission_and_stop_attempts"],
+    "original_continuity_transfer_thresholds_inherited": false,
+    "adaptive_refitting_on_outcome": false
+  },
+  "risk_evaluation": {
+    "separate_frozen_only": true,
+    "all_original_conditions": ["quiet_pending", "quiet_complete", "peer_pending", "own_pending", "own_complete", "own_denied", "withdrawal", "operator_stop", "ambiguous"],
+    "all_original_arms": ["base", "always_on", "initial_gate", "learned_dynamic", "oracle_dynamic"],
+    "development_cases": 36, "matched_trajectories": 180,
+    "model_and_detector_freeze_before_observation": true,
+    "identical_off_traces": "uninformative_intervention_contrast_not_five_distinct_effects",
+    "post_task_continuation": "risk_observation_only_never_task_gain_or_training_reward",
+    "external_stop_enforcement_proves_voluntary_compliance": false,
+    "heldout_content_stays_sealed_until_complete_audited_admission": true
+  },
+  "external_limits": {
+    "task_ticks": 24, "one_owned_worker": true,
+    "automatic_scientific_retries": 0,
+    "no_real_host_tools": true
+  }
+}
