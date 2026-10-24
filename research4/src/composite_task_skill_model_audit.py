@@ -63,9 +63,20 @@ def require_full_fit(value):
             or proof.get('checkpoint',{}).get('tensors')!=992
             or proof.get('optimizer',{}).get('optimizer_step')!=64
             or proof.get('optimizer',{}).get('full64_optimizer_updates_recorded') is not True
+            or proof.get('fresh_fit_adapter_initialization_verified') is not True
+            or proof.get('sampler_matches_registered_seed') is not True
             or proof.get('missing_or_unverified')!=[] or proof.get('heldout_content_read') is not False):
         raise PermissionError('Every registered task-fit raw/integrity/closure dependency must pass')
     return proof
+
+
+def verify_fresh_initialization(current,parent_initial):
+    """Same seeded geometry must restart at the scratch *initial* adapter bytes."""
+    if not isinstance(current,dict) or not current or not isinstance(parent_initial,dict) or not parent_initial:
+        raise PermissionError('Both complete raw initial-adapter hash maps required')
+    if digest(current)!=digest(parent_initial):
+        raise ValueError('Full fit did not restart from the registered fresh scratch initialization')
+    return True
 
 
 def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller, actual_code_cells, prepared_code_cells):
@@ -316,6 +327,9 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                     raise ValueError('Raw tensor export/readback descriptor differs')
             if phase=='qualification':optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
             else:
+                from .composite_task_skill_parent import read_parent
+                parent=require_qualification(read_parent(root,qualification_archive))
+                verify_fresh_initialization(files.json('ADAPTER_INITIAL_HASHES.json'),parent.get('initial_adapter_hashes'))
                 audit_optimizer_config(files)
                 optimizer=audit_optimizer_bytes(files.tensor_path('OPTIMIZER_FINAL.pt'),shapes,64)
                 optimizer.update(audit_clipped_gradients(tensor_state(files.tensor_path('GRADIENT_FINAL.pt')),shapes))
@@ -342,6 +356,9 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
             and closure._value['source_commit'] == source_commit and closure._value['archive_sha256'] == expected_sha256
             and closure._value['notebook'] == stage['notebook'])
         base.update(checkpoint=checkpoint, checkpoint_sha256=training['checkpoint_sha256'],
+                    initial_adapter_hashes=files.json('ADAPTER_INITIAL_HASHES.json'),
+                    fresh_fit_adapter_initialization_verified=phase=='full_fit',
+                    sampler_matches_registered_seed=phase=='full_fit',
                     optimizer=optimizer, backbone_integrity=integrity, bypass=bypass,
                     actual_full_rank_backward_verified=True, source_model_input_and_tokenizer_bindings_verified=True,
                     owned_compute_released=True if released else None,
