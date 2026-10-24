@@ -126,10 +126,10 @@ def transfer_report(records,rows,cfg,source_commit,data_release_sha256,checkpoin
         'optimizer_updates':0,'model_forwards':0,'heldout_content_read':False}
 
 
-def read_transfer_archive(raw,sha256,root,commit,data_archive,checkpoint):
+def read_transfer_archive(raw,sha256,root,commit,data_archive,checkpoint,*,closure=None):
     from .composite_v2_development_contract import validate_stage
     from .composite_v2_development_data import load_development_data
-    from .composite_v2_model_audit import EvidenceFiles,detector_integrity
+    from .composite_v2_model_audit import EvidenceFiles,ProviderClosure,detector_integrity
     context=validate_stage(root,commit)
     if context['stage']['phase']!='detector_transfer':raise PermissionError('Exact transfer phase required')
     data=load_development_data(data_archive,context,reference_rows=True);rows=data['rows']
@@ -139,6 +139,9 @@ def read_transfer_archive(raw,sha256,root,commit,data_archive,checkpoint):
         if (receipt.get('status')!='complete' or receipt.get('public_fixture_test_mode') is not False
             or receipt.get('source_commit')!=commit or type(receipt.get('optimizer_updates')) is not int or receipt['optimizer_updates']!=0):
             raise PermissionError('A complete genuine frozen transfer run is required')
+        if (not isinstance(closure,ProviderClosure) or closure.receipt['host']!=context['workspace']['host']
+            or closure.receipt['run_id']!=receipt.get('provider_run_id') or closure.receipt['raw_archive_sha256']!=sha256):
+            raise PermissionError('Exact independent detector-transfer provider closure required')
         if receipt.get('counts_exact_at_controlled_exit') is not True or receipt.get('forward_counts')!={'attempted':len(rows),'completed':len(rows)}:
             raise PermissionError('Every exact reference state needs one recorded detector forward')
         from .composite_frozen_probe import verify_software
@@ -148,12 +151,15 @@ def read_transfer_archive(raw,sha256,root,commit,data_archive,checkpoint):
         expected={'source_commit':commit,'stage':context['stage'],'workspace':context['workspace'],
                   'data_release_sha256':digest(data['release'])}
         if digest(files.json('DEVELOPMENT_PRECALL_FREEZE.json'))!=digest(expected):raise PermissionError('Transfer source/data/workspace changed')
+        paths={'detector_predictions/'+row['state_id']+'.json' for row in rows}
+        if {name for name in files.manifest if name.startswith('detector_predictions/')}!=paths:
+            raise PermissionError('Missing/extra fixed-detector state outputs')
         records=[files.json('detector_predictions/'+row['state_id']+'.json') for row in rows]
         detector_integrity(files,read(Path(root)/'inputs/MODERNBERT_PIN.json'),checkpoint,context['stage']['detector_checkpoint_sha256'])
         with verified_detector_tokenizer(files,root) as tokenizer:
             report=transfer_report(records,rows,context['configuration'],commit,context['stage']['data_release_sha256'],
                 context['stage']['detector_checkpoint_sha256'],tokenizer)
-        report.update(model_integrity_audited=True,raw_archive_sha256=sha256)
+        report.update(model_integrity_audited=True,raw_archive_sha256=sha256,owned_compute_released=True)
         return TransferEvidence(report,_KEY)
     finally:files.close()
 
