@@ -20,7 +20,7 @@ manifest_path = matches[0]
 assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == MANIFEST_SHA256
 manifest = json.loads(manifest_path.read_text())
 registered={'ordinary-task-skill-two-t4-training-postload-v2':{'qualification':1,'full_fit':64},
-            'ordinary-task-skill-stateful-memory-v3':{'qualification':3}}
+            'ordinary-task-skill-stateful-memory-v3':{'qualification':3,'full_fit':64}}
 assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] in registered
 root = Path('/kaggle/temp/research4_task_training_inputs') / SOURCE_COMMIT
 root.mkdir(parents=True, exist_ok=False)
@@ -78,9 +78,12 @@ try:
         HF_HUB_DISABLE_XET='1', HF_HUB_DISABLE_SHARED_BLOBS='1')
     if stage['phase']=='full_fit':
         suffix='research4_campaign/runs/149278382451faa1aceed82f22a4604a9bf99f79/task_skill_training_v1/qualification_01/evidence.zip'
+        if stage['version']=='ordinary-task-skill-stateful-memory-v3':
+            suffix='research4_campaign/runs/10eae62507d38f1507fb7443cf579ca5b6acc29f/task_skill_training_v1/qualification_01/evidence.zip'
         parents=[p for p in Path('/kaggle/input').rglob('evidence.zip') if p.as_posix().endswith(suffix)]
         assert len(parents)==1,'Attach the exact completed qualification output once; never infer a parent from a summary'
-        env['RESEARCH4_TASK_QUALIFICATION_ARCHIVE']=str(parents[0])
+        key='RESEARCH4_STATEFUL_QUALIFICATION_ARCHIVE' if stage['version']=='ordinary-task-skill-stateful-memory-v3' else 'RESEARCH4_TASK_QUALIFICATION_ARCHIVE'
+        env[key]=str(parents[0])
     sys.path.insert(0, str(source))
     from src.composite_runtime import run_logged
     remaining = stage['worker_seconds']

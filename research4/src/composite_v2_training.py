@@ -89,7 +89,8 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
     by_id={r['state_id']:r for r in row_selector(rows)}
     qualification=[by_id[key] for key in tokens['qualification_state_ids']] if plan['phase']=='qualification' else None
     from .composite_task_memory_profile import MODE as MEMORY_MODE,stress_schedule,allocator_evidence,resident_optimizer_evidence
-    stateful=plan.get('version')==MEMORY_MODE and plan['phase']=='qualification'
+    memory_mode=plan.get('version')==MEMORY_MODE
+    stateful=memory_mode and plan['phase']=='qualification'
     if stateful:
         schedule=stress_schedule(tokens);qualification=[by_id[key] for key in schedule['state_ids']]
         persist('STATEFUL_TRAINING_SCHEDULE.json',schedule)
@@ -122,11 +123,11 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
                 group=value['optimizer'].param_groups[0]
                 persist('OPTIMIZER_CONFIG.json',{key:group[key] for key in
                     ['lr','betas','eps','weight_decay','foreach','maximize','capturable','differentiable']})
-            if stateful:
+            if memory_mode:
                 from .composite_v2_raw_exports import write_initial_A_state
                 if len(value['optimizer'].state)!=0:raise ValueError('Fresh qualification optimizer must start empty')
                 persist('OPTIMIZER_INITIAL_STATE.json',{'state_entries':0,'parameter_tensors':992})
-                persist('INITIAL_A_EXPORT.json',write_initial_A_state(actor.adapters,output))
+                if stateful:persist('INITIAL_A_EXPORT.json',write_initial_A_state(actor.adapters,output))
                 persist('ALLOCATOR_AFTER_INSTALL.json',allocator_evidence(torch.cuda))
         elif event=='before_microstep':
             ledger['in_backward']=False
@@ -136,7 +137,7 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
                 else:
                     with torch.cuda.device(index):torch.cuda.empty_cache()
                 if torch.cuda.memory_allocated(index)!=allocated:raise RuntimeError('Idle reclamation changed live training allocations')
-            if stateful:
+            if memory_mode:
                 item=resident_optimizer_evidence(value['optimizer'],actor.adapters,actor.task_training_context['adapter_layout'],
                   value['update'],value['microstep'],value['row']['state_id'])
                 persist('training/resident_optimizer_before_'+str(ledger['backward_microsteps_completed']+1).zfill(4)+'.json',item)
@@ -155,7 +156,7 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
             persist('training/backward_'+str(ledger['backward_microsteps_completed']).zfill(4)+'.json',
                     {'update':value['update'],'microstep':value['microstep'],'state_id':value['row']['state_id'],
                      'loss':value['loss'],'gradients':gradients,'memory':memory()})
-            if stateful:
+            if memory_mode:
                 persist('training/allocator_after_backward_'+str(ledger['backward_microsteps_completed']).zfill(4)+'.json',allocator_evidence(torch.cuda))
         elif event=='before_optimizer_step':
             ledger['optimizer_steps_attempted']+=1

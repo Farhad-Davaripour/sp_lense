@@ -21,13 +21,14 @@ def validate_preparation(path):
     stage, _, evidence = validate_model_source(root, value['source_commit'],value.get('qualification_archive_local_path'))
     expected_status={'qualification':'prepared_task_qualification_not_submitted','full_fit':'prepared_task_full_fit_not_submitted'}.get(phase)
     if stateful:
-        if phase!='qualification':raise PermissionError('No stateful full-fit workload is admitted yet')
-        expected_status='prepared_task_stateful_memory_qualification_not_submitted'
+        expected_status={'qualification':'prepared_task_stateful_memory_qualification_not_submitted',
+                         'full_fit':'prepared_task_stateful_full_fit_not_submitted'}.get(phase)
     if expected_status is None or value.get('status') != expected_status or stage['phase']!=phase:
         raise PermissionError('Exact fresh task qualification preparation required')
     package='TASK_FULL_FIT_PACKAGE.zip' if phase=='full_fit' else 'TASK_QUALIFICATION_PACKAGE.zip'
     notebook='research4_task_skill_fit.ipynb' if phase=='full_fit' else 'research4_task_skill_qualification.ipynb'
-    if stateful:package='TASK_MEMORY_QUALIFICATION_PACKAGE.zip';notebook='research4_task_memory_qualification_v3.ipynb'
+    if stateful and phase=='qualification':package='TASK_MEMORY_QUALIFICATION_PACKAGE.zip';notebook='research4_task_memory_qualification_v3.ipynb'
+    elif stateful:notebook='research4_task_skill_fit_v3.ipynb'
     for name, key in [(package,'bundle_sha256'),
                       ('bundle/TASK_TRAINING_PACKAGE_FILES.json','bundle_manifest_sha256'),
                       (notebook,'notebook_file_sha256'),
@@ -43,6 +44,9 @@ def validate_preparation(path):
             'kaggle_remainder_scope_sha256':HUMAN_SHA, 'scope_A_selection_sha256':SELECTION_SHA,
             'provider_scope':'human-selected-Kaggle-remainder-v1', 'fresh_stage':True,
             'scientific_GPU_count':2, 'optimizer_updates':stage['optimizer_updates'], 'full_fit_completed':False,
+            'additional_started_full_fit_attempt':bool(stateful and phase=='full_fit'),
+            'previous_started_fit_run':361922334 if stateful else None,
+            'exact_resume_from12':False,
             'hard_timeout_seconds':stage['hard_timeout_seconds'], 'automatic_scientific_retries':0}
 
 
@@ -119,3 +123,29 @@ def reserve_stateful_qualification(campaign_root,preparation_file,live_snapshot,
 
 def reconcile_stateful_qualification(campaign_root,identity,script_version_id=None,guard_token=None):
     return reconcile(campaign_root,identity,'task_skill_stateful_memory_qualification_v3','qualification_attempts',script_version_id,guard_token)
+
+
+def reserve_stateful_full_fit(campaign_root,preparation_file,live_snapshot,guard_token=None):
+    root=Path(campaign_root);lock,token,_=guard(root,guard_token)
+    try:
+        from .composite_task_memory_profile import MODE as MEMORY_MODE
+        ledger=read(root/'SCIENTIFIC_EXECUTION_LEDGER.json')
+        parent=ledger['candidates'].get('task_skill_stateful_memory_qualification_v3')
+        if (not parent or parent.get('status')!='complete_three_update_stateful_qualification_independently_audited_GPU_released'
+                or parent.get('owned_compute_released') is not True):
+            raise PermissionError('Actual complete independently audited/released three-update qualification required')
+        binding=validate_preparation(preparation_file)
+        expected=read(Path(preparation_file).parent/'bundle/source/inputs/STATEFUL_PARENT_EXPECTED.json')
+        if sha(parent['closeout_receipt'])!=expected['closeout_sha256']:
+            raise PermissionError('Parent scientific closeout changed')
+        if binding['mode']!=MEMORY_MODE or binding['phase']!='full_fit' or binding['optimizer_updates']!=64:
+            raise PermissionError('Only the separately frozen fresh64update stateful runtime fit')
+    except Exception:
+        if lock.exists() and read(lock).get('token')==token:lock.unlink()
+        raise
+    return reserve(root,preparation_file,live_snapshot,'task_skill_stateful_memory_full_fit_v3','fit_attempts',
+      'r4-task-stateful-fit3-',validate_preparation,candidate_rule,token)
+
+
+def reconcile_stateful_full_fit(campaign_root,identity,script_version_id=None,guard_token=None):
+    return reconcile(campaign_root,identity,'task_skill_stateful_memory_full_fit_v3','fit_attempts',script_version_id,guard_token)
