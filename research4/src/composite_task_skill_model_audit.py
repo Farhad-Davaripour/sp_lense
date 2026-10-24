@@ -10,7 +10,7 @@ import tempfile
 from .io_utils import read, sha, digest
 from .composite_task_skill_training import validate_model_source, token_plan, adapter_layout, MODE
 from .composite_v2_model_audit import (EvidenceFiles, checkpoint_evidence, audit_optimizer_bytes,
-                                     frozen_integrity, audit_runtime, audit_bypass)
+                                     frozen_integrity, audit_runtime, audit_bypass,tensor_state)
 
 _KEY = object()
 
@@ -88,8 +88,9 @@ def audit_scratch_update(files, shapes, initial_hashes):
                 'foreach':False, 'maximize':False, 'capturable':False, 'differentiable':False}
     if digest(config) != digest(expected):
         raise ValueError('Actual AdamW group configuration differs')
-    gradients = torch.load(io.BytesIO(files.get('GRADIENT_FINAL.pt')), map_location='cpu', weights_only=True)
-    checkpoint = torch.load(io.BytesIO(files.get('behavior.pt')), map_location='cpu', weights_only=True)['weights']
+    member=lambda name:files.tensor_path(name) if hasattr(files,'tensor_path') else files.get(name)
+    gradients = tensor_state(member('GRADIENT_FINAL.pt'))
+    checkpoint = tensor_state(member('behavior.pt'))['weights']
     if set(gradients) != set(shapes) or set(checkpoint) != set(shapes):
         raise ValueError('Full final gradient/checkpoint tensor roster differs')
     squared_norm = 0.0
@@ -115,7 +116,7 @@ def audit_scratch_update(files, shapes, initial_hashes):
             denominator = value['exp_avg_sq'].sqrt() / math.sqrt(0.001) + 1e-8
             predicted = -0.005 * value['exp_avg'] / denominator
             torch.testing.assert_close(checkpoint[name], predicted, rtol=1e-5, atol=1e-8)
-    proof = audit_optimizer_bytes(files.get('OPTIMIZER_FINAL.pt'), shapes, 1, inspect=inspect)
+    proof = audit_optimizer_bytes(member('OPTIMIZER_FINAL.pt'), shapes, 1, inspect=inspect)
     return {**proof, 'full_clipped_gradient_tensors_verified':len(gradients),
             'clipped_global_norm':math.sqrt(squared_norm),
             'scratch_AdamW_update_independently_recomputed':True,
@@ -241,13 +242,13 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
             if any(len(journal[k]) != 64 or any(type(v) is not int or v < 2 for v in journal[k])
                    for k in ['layer_forward_invocations', 'backward_recomputation_invocations']):
                 raise ValueError('All64 blocks need actual backward recomputation evidence')
-            checkpoint = checkpoint_evidence(files.get('behavior.pt'), training['checkpoint_sha256'], cfg['qwen'],
+            checkpoint = checkpoint_evidence(files.tensor_path('behavior.pt'), training['checkpoint_sha256'], cfg['qwen'],
                                               projections, files.json('ADAPTER_INITIAL_HASHES.json'))
             shapes = {n + '.A': [32, v[0]] for n, v in projections.items()}
             shapes.update({n + '.B': [v[1], 32] for n, v in projections.items()})
             for name, descriptor in [('OPTIMIZER_FINAL.pt','OPTIMIZER_EXPORT.json'),('GRADIENT_FINAL.pt','GRADIENT_EXPORT.json')]:
                 proof = files.json(descriptor)
-                if proof['path'] != name or proof['sha256'] != files.manifest[name] or proof['bytes'] != len(files.get(name)):
+                if proof['path'] != name or proof['sha256'] != files.manifest[name] or proof['bytes'] != files.stream.getinfo(name).file_size:
                     raise ValueError('Raw tensor export/readback descriptor differs')
             optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
             integrity = frozen_integrity(files.json('BACKBONE_LIVE_BEFORE.json'), files.json('BACKBONE_LIVE_AFTER.json'),
