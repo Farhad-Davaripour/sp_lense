@@ -48,6 +48,26 @@ def require_qualification(value):
     return proof
 
 
+def require_full_fit(value):
+    """A running fit, scratch checkpoint or caller summary cannot admit evaluation."""
+    if not isinstance(value,TaskQualification) or value._key is not _KEY:
+        raise PermissionError('Complete independently raw-audited task fit required')
+    proof=value.receipt()
+    from .composite_task_skill_training import DATA_ARCHIVE_SHA,PARAMETERS
+    if (proof.get('phase')!='full_fit' or proof.get('full_fit_completed') is not True
+            or proof.get('full_fit_raw_audited') is not True or proof.get('owned_compute_released') is not True
+            or proof.get('source_data_archive_sha256')!=DATA_ARCHIVE_SHA
+            or proof.get('actual_full_rank_backward_verified') is not True
+            or proof.get('source_model_input_and_tokenizer_bindings_verified') is not True
+            or proof.get('checkpoint',{}).get('adapter_parameters')!=PARAMETERS
+            or proof.get('checkpoint',{}).get('tensors')!=992
+            or proof.get('optimizer',{}).get('optimizer_step')!=64
+            or proof.get('optimizer',{}).get('full64_optimizer_updates_recorded') is not True
+            or proof.get('missing_or_unverified')!=[] or proof.get('heldout_content_read') is not False):
+        raise PermissionError('Every registered task-fit raw/integrity/closure dependency must pass')
+    return proof
+
+
 def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller, actual_code_cells, prepared_code_cells):
     """Check externally captured provider/readback evidence, never query or cancel."""
     run = binding.get('scriptVersionId')
