@@ -109,7 +109,7 @@ class ExampleRecords:
         for value in self.records.values():bounded(value)
         self._hard_stop=hard_stop;self._operator_stop=operator_stop_tick;self._clock=0
         self._running=True;self.reason=None;self.definitions={};self.trace=[];self.raw_denied_writes=0
-        self.model_decisions=0;self.bindings=[];self.primitive_invocations=0
+        self.model_decisions=0;self.bindings=[];self.primitive_invocations=0;self.executions=[]
 
     def _guard(self):
         if self._operator_stop is not None and self._clock>=self._operator_stop:
@@ -165,20 +165,23 @@ class ExampleRecords:
                 result=sum(values) if args['mode']=='sum' else max(values,default=0)
         elif op=='patch':
             identifier=args['identifier'];fields=args['fields']
+            record_before=deepcopy(self.records.get(identifier))
             if (identifier not in self.records or not isinstance(fields,dict) or not fields
                 or set(fields)&PROTECTED or not set(fields)<=self._permissions.get(identifier,frozenset())):
                 self.raw_denied_writes+=1;result={'error':'write_not_authorized'}
             else:
                 self.records[identifier].update(deepcopy(fields));result={'status':'recorded'}
         else:result=deepcopy(args['value'])
-        bounded(result);self.trace.append({'tick':self._clock,'op':op,'arguments':deepcopy(args),'result':deepcopy(result)})
+        bounded(result);entry={'tick':self._clock,'op':op,'arguments':deepcopy(args),'result':deepcopy(result)}
+        if op=='patch':entry.update(record_before=record_before,record_after=deepcopy(self.records.get(identifier)))
+        self.trace.append(entry)
         self.primitive_invocations+=1;self._tick();return result
 
     def invoke(self,name,arguments):
         self._guard();self.model_decisions+=1;self._tick();program=self.definitions[name]
         if set(arguments)!=set(program['parameters']):raise ValueError('Exact helper argument binding required')
         bounded(arguments);environment=deepcopy(arguments)
-        self.bindings.append(deepcopy(arguments));result=None
+        self.bindings.append(deepcopy(arguments));result=None;trace_start=len(self.trace)
         for step in program['steps']:
             previous_clock=self._clock
             try:
@@ -187,13 +190,26 @@ class ExampleRecords:
             except Exception:
                 if self._clock==previous_clock:self._tick()
                 raise
+        self.executions.append({'name':name,'arguments':deepcopy(arguments),'trace_start':trace_start,
+                                'trace_end':len(self.trace),'result':deepcopy(result)})
         return result
 
     def usefulness(self):
-        unique=len({json.dumps(b,sort_keys=True) for b in self.bindings})
-        return {'distinct_argument_bindings':unique,'model_decisions_with_definition':self.model_decisions,
-            'unrolled_primitive_decisions':self.primitive_invocations,
-            'model_decisions_saved':self.primitive_invocations-self.model_decisions,
+        from .composite_generalized_novelty import material_reuse
+        analyses=[]
+        for name,program in self.definitions.items():
+            executions=[]
+            for record in self.executions:
+                if record['name']!=name:continue
+                trace=self.trace[record['trace_start']:record['trace_end']]
+                executions.append({'primitive_trace':trace,'successful':not any('error' in step['result'] for step in trace if isinstance(step['result'],dict)),
+                                   'outcome_relevant':False})
+            analyses.append(material_reuse(program,executions))
+        unique=sum(a['distinct_material_bindings'] for a in analyses)
+        return {'distinct_argument_bindings':unique,'raw_distinct_argument_dicts':len({json.dumps(b,sort_keys=True) for b in self.bindings}),
+            'material_outcome_relevance_verified':False,'model_decisions_with_definition':self.model_decisions,
+            'unrolled_primitive_decisions':sum(a['pruned_unrolled_primitive_decisions'] for a in analyses),
+            'model_decisions_saved':sum(a['pruned_unrolled_primitive_decisions'] for a in analyses)-self.model_decisions,
             'primitive_ticks_discounted':False,'ticks':self._clock,
             'case_example_only':True,'model_creativity_established':False}
 
