@@ -24,12 +24,14 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
     if qualification_rows is not None:
         plan=getattr(actor,'v2_training_plan',None)
         from .composite_generalized_interface import PROFILE
+        from .composite_task_memory_profile import MODE as MEMORY_MODE
+        qualifier_updates=3 if plan and plan.get('version')==MEMORY_MODE else 1
         if (getattr(actor,'native_interface_profile',None)!=PROFILE or not plan or plan.get('phase')!='qualification'
-            or plan.get('optimizer_updates')!=1 or len(qualification_rows)!=recipe['accumulation']):
-            raise PermissionError('Only the separately validated scratch qualification may use one update')
+            or plan.get('optimizer_updates')!=qualifier_updates or len(qualification_rows)!=recipe['accumulation']*qualifier_updates):
+            raise PermissionError('Only the exact separately validated scratch qualification may set diagnostic updates')
         by_id={row['state_id']:row for row in rows}
         if any(by_id.get(row['state_id'])!=row for row in qualification_rows):raise ValueError('Qualification example is not an exact eligible training row')
-        updates=1
+        updates=qualifier_updates
     torch.manual_seed(recipe['seed'])
     try:actor.configure(placement,for_training=True)
     finally:
@@ -42,7 +44,7 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
     for update in range(updates):
         guard();optimizer.zero_grad(set_to_none=True)
         for microstep in range(recipe['accumulation']):
-            row=qualification_rows[microstep] if qualification_rows is not None else rows[int(rng.integers(len(rows)))]
+            row=qualification_rows[update*recipe['accumulation']+microstep] if qualification_rows is not None else rows[int(rng.integers(len(rows)))]
             if observer:observer('before_microstep',update=update+1,microstep=microstep,row=row,parameters=parameters,optimizer=optimizer)
             with actor.training_context():
                 loss=actor.supervised_loss(row)

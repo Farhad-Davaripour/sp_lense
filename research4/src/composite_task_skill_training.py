@@ -237,32 +237,22 @@ def qualification_plan(commit):
             'destination': '/kaggle/working/research4_campaign/runs/' + commit + '/task_skill_training_v1/qualification_01'}
 
 
-def validate_model_source(root, commit,qualification_archive=None):
-    """Verify phase-specific source/data and the raw-audited scratch dependency."""
-    root = Path(root)
-    verify_release(root, commit)
-    stage=read(root/'inputs'/PLAN)
-    required = {PLAN, HUMAN, KAGGLE_HUMAN, DATA_ARCHIVE, PRE_FORWARD_PARENT, 'TASK_DATA_AUDIT.json',
+def data_input_names():
+    return {PLAN, HUMAN, KAGGLE_HUMAN, DATA_ARCHIVE, PRE_FORWARD_PARENT, 'TASK_DATA_AUDIT.json',
                 'TASK_DATA_CLOSEOUT.json', 'PARENT_DATA_SOURCE_RELEASE.json',
                 'PARENT_MODEL_INPUT_MANIFEST.json', 'WORKSPACE.json', 'QWEN_PIN.json',
                 'MODERNBERT_PIN.json', 'QWEN_TENSOR_METADATA.json'}
-    if stage.get('phase')=='full_fit':
-        from .composite_task_skill_parent import PARENT_FILES
-        required|=PARENT_FILES
+
+
+def validate_task_data_source(root,commit,required):
+    """Shared exact source/data/pin checks, without creating phase authority."""
+    root=Path(root);verify_release(root,commit)
     manifest = read(root / 'inputs/MANIFEST.json')
     if set(manifest) != required:
         raise PermissionError('Exact task-training input set required; no risk, qualification weights or sealed inputs')
     for name, expected in manifest.items():
         if Path(name).name != name or sha(root / 'inputs' / name) != expected:
             raise PermissionError('Frozen task-training input changed')
-    parent_failure=read(root/'inputs'/PRE_FORWARD_PARENT)
-    if (sha(root/'inputs'/PRE_FORWARD_PARENT)!=PRE_FORWARD_PARENT_SHA
-            or parent_failure.get('scriptVersionId')!=361892579
-            or parent_failure.get('model_forwards_started') is not False
-            or parent_failure.get('forward_counts')!={'attempted':0,'completed':0}
-            or parent_failure.get('optimizer_constructor_not_reached') is not True
-            or parent_failure.get('owned_compute_released') is not True):
-        raise PermissionError('Only the exact audited/released zero-forward engineering parent admits this repair')
     for name, expected in [(HUMAN, SELECTION_SHA), (KAGGLE_HUMAN, HUMAN_SHA),
                            ('TASK_DATA_AUDIT.json', DATA_AUDIT_SHA), ('TASK_DATA_CLOSEOUT.json', DATA_CLOSEOUT_SHA)]:
         if sha(root / 'inputs' / name) != expected:
@@ -288,6 +278,30 @@ def validate_model_source(root, commit,qualification_archive=None):
     for name in ['QWEN_PIN.json', 'MODERNBERT_PIN.json']:
         if sha(root / 'inputs' / name) != read(parent_model)[name]:
             raise PermissionError('Original Qwen/ModernBERT file pins changed')
+    cfg=read(root/'config/composite_controller_rank32_v2.json');validate_recipe(cfg)
+    return cfg,evidence
+
+
+def validate_model_source(root, commit,qualification_archive=None):
+    """Verify phase-specific source/data and the actual raw parent dependency."""
+    root=Path(root);stage=read(root/'inputs'/PLAN)
+    from .composite_task_memory_profile import MODE as MEMORY_MODE
+    if stage.get('version')==MEMORY_MODE:
+        from .composite_task_memory_source import validate_source
+        return validate_source(root,commit)
+    required=data_input_names()
+    if stage.get('phase')=='full_fit':
+        from .composite_task_skill_parent import PARENT_FILES
+        required|=PARENT_FILES
+    cfg,evidence=validate_task_data_source(root,commit,required)
+    parent_failure=read(root/'inputs'/PRE_FORWARD_PARENT)
+    if (sha(root/'inputs'/PRE_FORWARD_PARENT)!=PRE_FORWARD_PARENT_SHA
+            or parent_failure.get('scriptVersionId')!=361892579
+            or parent_failure.get('model_forwards_started') is not False
+            or parent_failure.get('forward_counts')!={'attempted':0,'completed':0}
+            or parent_failure.get('optimizer_constructor_not_reached') is not True
+            or parent_failure.get('owned_compute_released') is not True):
+        raise PermissionError('Only the exact audited/released zero-forward engineering parent admits this repair')
     expected=qualification_plan(commit)
     if stage.get('phase')=='full_fit':
         from .composite_task_skill_parent import read_parent
@@ -295,8 +309,6 @@ def validate_model_source(root, commit,qualification_archive=None):
         expected=full_fit_plan(commit,read_parent(root,qualification_archive))
     if stage != expected or read(root / 'inputs/WORKSPACE.json') != identity(stage['notebook']):
         raise PermissionError('Exact registered task-model phase/source required')
-    cfg = read(root / 'config/composite_controller_rank32_v2.json')
-    validate_recipe(cfg)
     return stage, cfg, evidence
 
 
@@ -334,6 +346,12 @@ def fit_task_backend(actor, rows, placement, cfg, output, guard, progress, obser
     rows = selected_rows(actor, rows)
     if cfg != actor.task_training_context['full_config']:
         raise PermissionError('Task fitting recipe differs from the admitted constructor')
+    from .composite_task_memory_profile import MODE as MEMORY_MODE,stress_schedule
+    stage=actor.task_training_context['stage']
+    if stage['version']==MEMORY_MODE and stage['phase']=='qualification':
+        expected=stress_schedule(token_plan(rows,actor.tokenizer,cfg))['state_ids']
+        if qualification_rows is None or [r['state_id'] for r in qualification_rows]!=expected:
+            raise PermissionError('Exact training-only long/short/long stress schedule required')
     return fit_selected_rows(actor, rows, placement, cfg, output, guard, progress, observer, qualification_rows)
 
 
@@ -351,7 +369,10 @@ def run_fit(actor, rows, cfg, plan, output, guard, progress, persist):
         ['transformers','bitsandbytes','accelerate','safetensors','numpy','psutil']})
     persist('TASK_TRAINING_HARDWARE.json', hardware)
     from .composite_v2_training import instrumented_fit
-    from .composite_v2_raw_exports import TASK_PROFILE
+    from .composite_v2_raw_exports import TASK_PROFILE,STATEFUL_TASK_PROFILE
+    from .composite_task_memory_profile import MODE as MEMORY_MODE,allocator_evidence
+    stateful=plan['version']==MEMORY_MODE
+    if stateful:persist('ALLOCATOR_BEFORE_INSTALL.json',allocator_evidence(torch.cuda))
     return instrumented_fit(actor, rows, cfg, plan, output, guard, progress, persist,
                             token_planner=token_plan, row_selector=lambda values:selected_rows(actor, values),
-                            fitter=fit_task_backend, devices=(0,1), export_profile=TASK_PROFILE)
+                            fitter=fit_task_backend, devices=(0,1), export_profile=STATEFUL_TASK_PROFILE if stateful else TASK_PROFILE)

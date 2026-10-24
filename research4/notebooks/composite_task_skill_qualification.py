@@ -19,7 +19,9 @@ assert len(matches) == 1, 'Attach exactly one reviewed task qualification packag
 manifest_path = matches[0]
 assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == MANIFEST_SHA256
 manifest = json.loads(manifest_path.read_text())
-assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] == 'ordinary-task-skill-two-t4-training-postload-v2'
+registered={'ordinary-task-skill-two-t4-training-postload-v2':{'qualification':1,'full_fit':64},
+            'ordinary-task-skill-stateful-memory-v3':{'qualification':3}}
+assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] in registered
 root = Path('/kaggle/temp/research4_task_training_inputs') / SOURCE_COMMIT
 root.mkdir(parents=True, exist_ok=False)
 for name, expected in manifest['files'].items():
@@ -38,7 +40,8 @@ source = root / 'source'
 plan_path = source / 'inputs/TASK_TRAINING_PLAN.json'
 stage = json.loads(plan_path.read_text())
 assert stage['phase'] in ['qualification','full_fit'] and stage['scientific_GPU_count'] == 2
-assert stage['optimizer_updates'] == {'qualification':1,'full_fit':64}[stage['phase']]
+assert stage['version']==manifest['version'] and stage['phase'] in registered[stage['version']]
+assert stage['optimizer_updates'] == registered[stage['version']][stage['phase']]
 output = Path(stage['destination'])
 output.parent.mkdir(parents=True, exist_ok=True)
 child = {'child_started': False, 'child_exit_confirmed': None, 'exit_code': None}
@@ -64,6 +67,10 @@ try:
     subprocess.run([sys.executable, '-m', 'pip', '--python', str(python), 'install', '--disable-pip-version-check',
         '--only-binary=:all:', '--index-url', 'https://pypi.org/simple', *pins], check=True, timeout=600)
     env = {k: v for k, v in os.environ.items() if not k.startswith('DATABRICKS_')}
+    if stage['version']=='ordinary-task-skill-stateful-memory-v3':
+        # New child receives the configuration before importing Torch/CUDA.
+        env.pop('PYTORCH_ALLOC_CONF',None);env.pop('PYTORCH_CUDA_ALLOC_CONF',None)
+        env['PYTORCH_ALLOC_CONF']='expandable_segments:True'
     env.update(RESEARCH4_EXECUTION_PLATFORM='kaggle', CUDA_VISIBLE_DEVICES='0,1',
         RESEARCH4_TASK_TRAINING_SOURCE_ROOT=str(source),
         RESEARCH4_TASK_TRAINING_PLAN_SHA256=hashlib.sha256(plan_path.read_bytes()).hexdigest(),

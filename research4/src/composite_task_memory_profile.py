@@ -51,6 +51,9 @@ def stress_schedule(tokens):
             raise ValueError('Original full training context required')
     longest=[r['state_id'] for r in sorted(rows,key=lambda r:(-r['combined_tokens'],r['state_id']))[:2]]
     shortest=[r['state_id'] for r in sorted(rows,key=lambda r:(r['combined_tokens'],r['state_id']))[:2]]
+    by_id={r['state_id']:r['combined_tokens'] for r in rows}
+    if min(by_id[k] for k in longest)<=max(by_id[k] for k in shortest):
+        raise ValueError('The registered stress test requires a real input-size switch')
     return {'state_ids':longest+shortest+longest,'updates':3,'backward_microsteps':6,
       'selection':'training_tokens_only_fixed_long_short_long_no_loss_or_validation_selection',
       'full_fit_64_update_sampling_changed':False,'qualification_checkpoint_initializes_fit':False}
@@ -96,3 +99,53 @@ def allocator_evidence(cuda,environ=None):
           'allocated_bytes':stats['allocated_bytes.all.current'],'reserved_bytes':stats['reserved_bytes.all.current']})
     return {'backend':'native','configuration':ALLOCATOR,'devices':devices,'segments':selected,
       'new_probe_allocations':0,'actual_training_capacity_qualified':False}
+
+
+def resident_optimizer_evidence(optimizer,adapters,layout,update,microstep,state_id):
+    """Read actual persistent moment ownership before the next backward."""
+    import torch
+    parameters=[p for m in adapters.values() for p in [m.A,m.B]]
+    if len(parameters)!=992 or sum(p.numel() for p in parameters)!=233455616:
+        raise ValueError('All real rank32 adapter parameters required')
+    expected_entries=0 if update==1 else 992
+    if len(optimizer.state)!=expected_entries:raise ValueError('Unexpected initial/resident AdamW state')
+    sizes=[0,0]
+    for parameter in parameters:
+        if parameter.device.type!='cuda' or parameter.device.index not in [0,1]:
+            raise ValueError('Moment evidence must retain both declared CUDA devices')
+        if update==1:continue
+        values=optimizer.state.get(parameter)
+        if values is None or float(values['step'])!=update-1:raise ValueError('Prior optimizer step differs')
+        for name in ['exp_avg','exp_avg_sq']:
+            tensor=values[name]
+            if tensor.dtype!=torch.float32 or tensor.shape!=parameter.shape or tensor.device!=parameter.device:
+                raise ValueError('Persistent full FP32 moment geometry/device differs')
+            sizes[parameter.device.index]+=tensor.numel()*tensor.element_size()
+    expected=[0,0] if update==1 else [n*8 for n in layout['device_parameters']]
+    if sizes!=expected:raise ValueError('Complete persistent AdamW bytes must be resident before backward')
+    return {'update':update,'microstep':microstep,'state_id':state_id,'state_entries':expected_entries,
+      'resident_moment_bytes_by_device':sizes,'previous_optimizer_step':update-1,
+      'backward_not_yet_executed_for_this_microstep':True,'full_state_resident':update>1}
+
+
+def verify_allocator_record(value):
+    """Recalculate recorded segment evidence without a CUDA query."""
+    if (value.get('backend')!='native' or value.get('configuration')!=ALLOCATOR
+            or type(value.get('new_probe_allocations')) is not int or value['new_probe_allocations']!=0):
+        raise ValueError('Actual native expandable allocator record required')
+    rows=value['segments'];devices=value['devices']
+    if len(devices)!=2 or {r['device'] for r in devices}!={0,1}:raise ValueError('Both recorded allocator devices required')
+    for row in rows:
+        if (type(row.get('device')) is not int or row['device'] not in [0,1]
+                or type(row.get('is_expandable')) is not bool
+                or any(type(row.get(k)) is not int or row[k]<0 for k in ['total_size','allocated_size','active_size'])
+                or not row['allocated_size']<=row['active_size']<=row['total_size']):
+            raise ValueError('Recorded allocator segment differs')
+    for d in devices:
+        parts=[r for r in rows if r['device']==d['device'] and r['is_expandable'] and r['allocated_size']>0]
+        if (not parts or d['expandable_live_segments']!=len(parts)
+                or d['expandable_allocated_bytes']!=sum(r['allocated_size'] for r in parts)
+                or any(type(d.get(k)) is not int or d[k]<0 for k in ['inactive_split_bytes','allocated_bytes','reserved_bytes'])
+                or not d['expandable_allocated_bytes']<=d['allocated_bytes']<=d['reserved_bytes']):
+            raise ValueError('Recorded live expandable allocations or native statistics differ')
+    return True

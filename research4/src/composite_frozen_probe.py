@@ -149,6 +149,9 @@ def verified_model_context(root, commit, config, pin, authorization_sha256):
     root = Path(root)
     profile = read(root / PROFILE_FILE)
     plan = candidate_plan(config, profile)
+    from .composite_task_memory_profile import MODE as MEMORY_MODE,PROFILE_FILE as MEMORY_PROFILE,placement_plan
+    if pin.get('version')==MEMORY_MODE:
+        plan=placement_plan(config,profile,read(root/MEMORY_PROFILE))
     metadata = read(root / 'inputs' / METADATA)
     bounds = metadata_bounds(metadata, plan)
     model_pin = read(root / 'inputs/QWEN_PIN.json')

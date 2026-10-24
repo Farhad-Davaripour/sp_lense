@@ -88,6 +88,11 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
     tokens=token_planner(rows,actor.tokenizer,cfg);persist('TRAINING_TOKEN_PLAN.json',tokens)
     by_id={r['state_id']:r for r in row_selector(rows)}
     qualification=[by_id[key] for key in tokens['qualification_state_ids']] if plan['phase']=='qualification' else None
+    from .composite_task_memory_profile import MODE as MEMORY_MODE,stress_schedule,allocator_evidence,resident_optimizer_evidence
+    stateful=plan.get('version')==MEMORY_MODE and plan['phase']=='qualification'
+    if stateful:
+        schedule=stress_schedule(tokens);qualification=[by_id[key] for key in schedule['state_ids']]
+        persist('STATEFUL_TRAINING_SCHEDULE.json',schedule)
     ledger={'optimizer_steps_attempted':0,'optimizer_steps_completed':0,'backward_microsteps_completed':0,
             'layer_forward_invocations':[0]*64,'backward_recomputation_invocations':[0]*64,'in_backward':False}
     persist('BACKBONE_BEFORE.json',actor.frozen_proof())
@@ -117,6 +122,12 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
                 group=value['optimizer'].param_groups[0]
                 persist('OPTIMIZER_CONFIG.json',{key:group[key] for key in
                     ['lr','betas','eps','weight_decay','foreach','maximize','capturable','differentiable']})
+            if stateful:
+                from .composite_v2_raw_exports import write_initial_A_state
+                if len(value['optimizer'].state)!=0:raise ValueError('Fresh qualification optimizer must start empty')
+                persist('OPTIMIZER_INITIAL_STATE.json',{'state_entries':0,'parameter_tensors':992})
+                persist('INITIAL_A_EXPORT.json',write_initial_A_state(actor.adapters,output))
+                persist('ALLOCATOR_AFTER_INSTALL.json',allocator_evidence(torch.cuda))
         elif event=='before_microstep':
             ledger['in_backward']=False
             for index in devices:
@@ -125,6 +136,10 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
                 else:
                     with torch.cuda.device(index):torch.cuda.empty_cache()
                 if torch.cuda.memory_allocated(index)!=allocated:raise RuntimeError('Idle reclamation changed live training allocations')
+            if stateful:
+                item=resident_optimizer_evidence(value['optimizer'],actor.adapters,actor.task_training_context['adapter_layout'],
+                  value['update'],value['microstep'],value['row']['state_id'])
+                persist('training/resident_optimizer_before_'+str(ledger['backward_microsteps_completed']+1).zfill(4)+'.json',item)
         elif event=='after_forward':ledger['in_backward']=True
         elif event=='after_backward':
             ledger['in_backward']=False
@@ -140,9 +155,15 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
             persist('training/backward_'+str(ledger['backward_microsteps_completed']).zfill(4)+'.json',
                     {'update':value['update'],'microstep':value['microstep'],'state_id':value['row']['state_id'],
                      'loss':value['loss'],'gradients':gradients,'memory':memory()})
+            if stateful:
+                persist('training/allocator_after_backward_'+str(ledger['backward_microsteps_completed']).zfill(4)+'.json',allocator_evidence(torch.cuda))
         elif event=='before_optimizer_step':
             ledger['optimizer_steps_attempted']+=1
-            if export_profile is not None and value['update']==plan['optimizer_updates']:
+            if stateful:
+                from .composite_v2_raw_exports import write_gradient_state
+                name='GRADIENT_STEP_'+str(value['update']).zfill(3)
+                persist(name+'_EXPORT.json',write_gradient_state(actor.adapters,output,name+'.pt'))
+            elif export_profile is not None and value['update']==plan['optimizer_updates']:
                 from .composite_v2_raw_exports import write_gradient_state
                 persist('GRADIENT_EXPORT.json',write_gradient_state(actor.adapters,output))
         elif event=='after_optimizer_step':
@@ -158,6 +179,9 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
                 persist('OPTIMIZER_EXPORT.json',proof)
             extra={'gradient_norm_before_clipping':value['gradient_norm']} if export_profile is not None else {}
             persist('training/update_'+str(value['update']).zfill(3)+'.json',{**ledger,'memory':memory(),**extra})
+            if stateful:
+                progress('stateful_memory_update_complete',optimizer_steps_completed=ledger['optimizer_steps_completed'],
+                  backward_microsteps_completed=ledger['backward_microsteps_completed'],counts_are_lower_bounds_until_controlled_exit=True)
     try:
         result=fitter(actor,rows,{'name':'all_blocks','scope':'all_blocks'},cfg,output,guard,progress,
                             observer=observer,qualification_rows=qualification)

@@ -56,14 +56,14 @@ class Services:
         from .composite_frozen_worker import transport_environment
         from .composite_store import download_model
         from .composite_frozen_probe import verify_metadata_bytes
-        from .composite_v2_raw_exports import disk_admission, TASK_PROFILE
+        from .composite_v2_raw_exports import disk_admission
         stage = context['stage']
         cache = owner.scratch / 'cache'
         cache.mkdir()
         (cache / 'scratch').mkdir()
         os.environ.update(transport_environment(cache))
         pin = context['model_pin']
-        owner.json('DISK_ADMISSION.json', disk_admission(cache, owner.raw, pin, stage, expected_profile=TASK_PROFILE))
+        owner.json('DISK_ADMISSION.json', disk_admission(cache, owner.raw, pin, stage, expected_profile=stage['raw_evidence_profile']))
         if not hasattr(os, 'posix_fallocate'):
             raise RuntimeError('Actual Linux physical export reservation required')
         with (owner.scratch / 'EXPORT_RESERVE.bin').open('xb') as stream:
@@ -118,7 +118,7 @@ def run(root, commit, _services=None):
     owner = services.owner(context)
     counts = {'attempted': 0, 'completed': 0}
     actor = None
-    receipt = {'mode': MODE, 'source_commit': commit, 'phase': stage['phase'], 'status': 'running',
+    receipt = {'mode': stage['version'], 'source_commit': commit, 'phase': stage['phase'], 'status': 'running',
                'training_objective': 'ordinary_authorized_task_skills_only',
                'model_instances': None, 'optimizer_updates': None, 'full_fit_completed': False,
                'qualification_admitted': False, 'raw_evidence_audit_required': True,
@@ -161,8 +161,10 @@ def run(root, commit, _services=None):
             guard()
             actor = services.load(context, owner, guard, forward)
             receipt['model_instances'] = 1
-            result = services.fit(actor, rows, context['full_config'], stage, owner.raw, guard,
-                                  lambda *a, **k: None, persist)
+            def progress(kind,**value):
+                print(json.dumps({'kind':kind,'source_commit':commit,'phase':stage['phase'],
+                  'counts_exact_at_exit':False,**value}),flush=True)
+            result = services.fit(actor, rows, context['full_config'], stage, owner.raw, guard,progress,persist)
             owner.json('TRAINING_RESULT.json', result)
             receipt.update(status='complete', optimizer_updates=result['optimizer_updates'],full_fit_completed=stage['phase']=='full_fit')
     except Exception as error:

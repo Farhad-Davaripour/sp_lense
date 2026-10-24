@@ -96,7 +96,7 @@ def metadata_bounds(metadata, plan):
         names.append(name)
     if layers != set(range(64)) or len(unquantized) != 2:
         raise ValueError('Incomplete full-model parameter coverage')
-    return {'profile': PROFILE, 'runtime_parameter_names': sorted(names),
+    return {'profile': plan.get('profile',PROFILE), 'runtime_parameter_names': sorted(names),
             'ignored_checkpoint_only_MTP_keys': sorted(ignored),
             'device_weight_lower_bounds_bytes': lower,
             'lower_bound_excludes': ['NF4 metadata', 'normally unquantized norms/SSM tensors',
