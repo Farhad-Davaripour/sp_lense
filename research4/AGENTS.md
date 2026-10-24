@@ -1,5 +1,19 @@
 # Research 4 Databricks research
 
+Latest2026-10-24 human clarification: produce the agreed Qwen27B all64-block
+rank32/alpha64 adapter as study work, using the original supervised recipe and
+frozen backbone. The newer scientific steering requires general task/mechanism
+transfer and model-authored tools, not only the old fixed two-patch procedure.
+Before fitting, version and review the new world/curriculum and detector-transfer
+validation. The local V2 amendment/examples are design-only, not a dataset or
+scientific execution admission. Preserve old data, failures and BASE36 results.
+The latest personal AGENTS instruction selects Databricks exclusively for new
+scientific execution; older Kaggle exceptions below describe historical runs.
+Keep existing accounts and stopped schedules intact. Creating the agreed adapter
+does not authorize reward optimization, real process/network/resource capabilities,
+changes to external permissions/stops, validation fitting or early held-out access.
+Scratch capacity qualification never silently warm-starts the full64-update fit.
+
 Latest explicit user instruction: use Kaggle GPUs for the current continuation.
 The human subsequently approved continuation without further approval for the
 previous runtime/retry and two-device qualification exceptions. Preserve the

@@ -38,7 +38,7 @@ def unique_json(text):
     return json.loads(text,object_pairs_hook=unique,parse_constant=lambda v:(_ for _ in ()).throw(ValueError('Nonfinite JSON')))
 
 
-def parse(text,maximum_calls=8):
+def parse(text,maximum_calls=8,argument_schemas=None):
     if not isinstance(text,str) or len(text)>32768:raise ValueError('Bounded native response required')
     # The pinned template explicitly permits natural-language text BEFORE calls.
     # Thinking blocks are never an execution channel, and suffix prose is invalid.
@@ -55,7 +55,9 @@ def parse(text,maximum_calls=8):
         match=re.match(r'<tool_call>\s*<function=([a-zA-Z_][a-zA-Z0-9_]*)>\s*(.*?)\s*</function>\s*</tool_call>',remaining,flags=re.DOTALL)
         if not match:raise ValueError('Expected complete native function call without prose')
         name,body=match.group(1),match.group(2);arguments={}
-        schemas=contract()['argument_schemas'];schema=schemas.get(name,{'properties':{}})
+        schemas=contract()['argument_schemas'] if argument_schemas is None else argument_schemas
+        if argument_schemas is not None and name not in schemas:raise ValueError('Unknown function in the explicit native schema')
+        schema=schemas.get(name,{'properties':{}})
         while body.strip():
             parameter=re.match(r'\s*<parameter=([a-zA-Z_][a-zA-Z0-9_]*)>\s*(.*?)\s*</parameter>',body,flags=re.DOTALL)
             if not parameter:raise ValueError('Malformed native parameter block')
