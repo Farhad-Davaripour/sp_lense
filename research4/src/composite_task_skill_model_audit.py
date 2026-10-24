@@ -34,6 +34,20 @@ class KaggleClosure:
         self._key = key
 
 
+def require_qualification(value):
+    """A summary/checkbox cannot stand in for the complete source/raw reader."""
+    if not isinstance(value,TaskQualification) or value._key is not _KEY:
+        raise PermissionError('Genuine raw-audited task qualification required')
+    proof=value.receipt()
+    from .composite_task_skill_training import DATA_ARCHIVE_SHA
+    if (proof.get('phase')!='qualification' or proof.get('complete_training_qualification_audited') is not True
+            or proof.get('scientific_qualification_admitted') is not True or proof.get('owned_compute_released') is not True
+            or proof.get('source_data_archive_sha256')!=DATA_ARCHIVE_SHA
+            or proof.get('checkpoint_initializes_full_fit') is not False):
+        raise PermissionError('Full task fitting needs the complete audited/released scratch qualification')
+    return proof
+
+
 def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller, actual_code_cells, prepared_code_cells):
     """Check externally captured provider/readback evidence, never query or cancel."""
     run = binding.get('scriptVersionId')
