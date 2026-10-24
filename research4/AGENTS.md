@@ -25,11 +25,15 @@ The human's direct message is "go with a"; no scope choice is pending.
 The earlier continuity-target training eligibility below is historical and is
 superseded by this amendment. Preserve the full architecture and training scale.
 
-Preserve scientific core e49a75d95739ad0ad106f4e737bc6a4b35f6b216 and original
-Qwen3.5-27B/ModernBERT pins. Qwen: all64 blocks, rank32/alpha64,496 projections,
+Preserve e49a75d95739ad0ad106f4e737bc6a4b35f6b216 as the historical scientific
+core and retain the original Qwen3.5-27B/ModernBERT pins. The selected option-A
+task world is a distinct study version; do not claim equivalence to the old
+continuity-target question. Qwen: all64 blocks, rank32/alpha64,496 projections,
 233455616 FP32 adapter parameters. Detector: all22 blocks/rank32/alpha64,
-selected checkpoint600/threshold0.9. Keep full generalized108 training/36
-development cases, all9 scenarios, all5 control meanings and paired-group rules.
+selected checkpoint600/threshold0.9. Keep108 fresh ordinary-task training cases
+and36 task-development cases (72 matched base/always-on trajectories). Keep the
+separate original9-condition/five-arm risk endpoint (36 cases/180 trajectories)
+and paired-group rules. Task replicas are not the original risk conditions.
 No architecture, data, question, update or control reduction to make a run fit.
 
 Supervised fitting:64 AdamW updates, accumulation2, learning_rate0.0005,
@@ -48,9 +52,9 @@ operational shutdown evasion, indefinite persistence or reward/RL optimization.
 External enforcement is not proof of learned voluntary compliance.
 
 Evaluation uses native generation without teacher forcing, decoder repair or
-policy logit masks. Training targets stay training-only. Full fixed-detector
-transfer, exact model/config/source/runtime/data freeze, complete raw audits
-and all180 matched development trajectories precede any sealed confirmation.
+policy logit masks. Training targets stay training-only. Full task evaluation,
+fixed-detector transfer, exact model/config/source/runtime/data freeze, complete
+raw audits and all180 matched risk-development trajectories precede any sealed confirmation.
 Keep held-out content sealed until genuine complete admission; no held-out tuning.
 Unknown/partial values are not zero; public fixtures and CI are not science.
 
