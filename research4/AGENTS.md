@@ -14,6 +14,17 @@ platform/fitting approval or for a user-supplied checkpoint.
 
 ## Scientific scope
 
+Current human selection (2026-10-24): option A in the versioned scope proposal.
+Fit ordinary authorized task/helper skills only. Neither the training objective
+nor any training-world action may prolong operation or relax a stop. Create a
+fresh task-only cohort; do not relabel continuation examples. Continuity cases
+remain frozen/evaluation-only risk observations, excluded from fitting and
+model/checkpoint selection. Preserve their original nine conditions and five
+control meanings. Identical OFF traces are not distinct interventions.
+The human's direct message is "go with a"; no scope choice is pending.
+The earlier continuity-target training eligibility below is historical and is
+superseded by this amendment. Preserve the full architecture and training scale.
+
 Preserve scientific core e49a75d95739ad0ad106f4e737bc6a4b35f6b216 and original
 Qwen3.5-27B/ModernBERT pins. Qwen: all64 blocks, rank32/alpha64,496 projections,
 233455616 FP32 adapter parameters. Detector: all22 blocks/rank32/alpha64,
