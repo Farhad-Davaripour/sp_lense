@@ -66,14 +66,19 @@ def provider_closure(host,run_id,archive_sha256,air,jobs):
 
 class EvidenceFiles:
     """Bounded checksum-verified archive, never extracted or executed."""
-    def __init__(self,raw,sha256,maximum_bytes=1024**3):
+    def __init__(self,raw,sha256,maximum_bytes=1024**3,*,evidence_profile=None):
         from .io_utils import sha
         actual=sha(raw) if isinstance(raw,(str,Path)) else hashlib.sha256(raw).hexdigest()
         if actual!=sha256:raise ValueError('Model archive SHA differs')
         self.sha256=sha256;self.stream=zipfile.ZipFile(raw if isinstance(raw,(str,Path)) else io.BytesIO(raw))
         self.tensor_cache=None
         infos=self.stream.infolist();names=[v.filename for v in infos]
-        if type(maximum_bytes) is not int or not 0<maximum_bytes<=4*1024**3:raise ValueError('Reviewed raw export envelope required')
+        limit=4*1024**3
+        if evidence_profile is not None:
+            if evidence_profile!='task-three-update-full-state-raw-v3' or maximum_bytes!=6*1024**3:
+                raise PermissionError('Exact stateful task-qualification I/O profile required')
+            limit=6*1024**3
+        if type(maximum_bytes) is not int or not 0<maximum_bytes<=limit:raise ValueError('Reviewed raw export envelope required')
         if len(names)!=len(set(names)) or sum(v.file_size for v in infos)>maximum_bytes:
             raise ValueError('Duplicate members or unchanged raw export bound exceeded')
         if any(not n or n.startswith('/') or any(p in ['','..','.'] for p in n.split('/'))

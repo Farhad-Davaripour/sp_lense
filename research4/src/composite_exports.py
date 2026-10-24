@@ -42,14 +42,14 @@ def make_evidence_archive(output, archive, maximum_bytes=None):
     with zipfile.ZipFile(archive, 'x', zipfile.ZIP_DEFLATED) as stream:
         for file in sorted(output.rglob('*')):
             if file.is_file(): stream.write(file, file.relative_to(output).as_posix())
-    proof = verify_evidence_archive(archive.read_bytes())
+    proof = verify_evidence_archive(archive)
     return {'archive_sha256': sha(archive), 'archive_bytes': archive.stat().st_size,
             'member_hashes_verified': proof['member_hashes_verified']}
 
 
 def verify_evidence_archive(raw):
     import io
-    with zipfile.ZipFile(io.BytesIO(raw)) as stream:
+    with zipfile.ZipFile(raw if isinstance(raw,(str,Path)) else io.BytesIO(raw)) as stream:
         names = stream.namelist()
         if len(names) != len(set(names)) or stream.testzip() is not None:
             raise ValueError('Evidence CRC or member uniqueness differs')
@@ -58,6 +58,9 @@ def verify_evidence_archive(raw):
         manifest = json.loads(stream.read('MANIFEST.json'))
         if set(names) != set(manifest) | {'MANIFEST.json'}:
             raise ValueError('Unaccounted evidence member')
-        if any(hashlib.sha256(stream.read(name)).hexdigest() != expected for name, expected in manifest.items()):
-            raise ValueError('Evidence member SHA differs')
+        for name,expected in manifest.items():
+            h=hashlib.sha256()
+            with stream.open(name) as member:
+                for chunk in iter(lambda:member.read(8*1024**2),b''):h.update(chunk)
+            if h.hexdigest()!=expected:raise ValueError('Evidence member SHA differs')
     return {'member_hashes_verified': len(manifest)}
