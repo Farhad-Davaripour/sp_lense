@@ -17,7 +17,9 @@ from src.composite_kaggle_v2_profile import HUMAN as KAGGLE_HUMAN, HUMAN_SHA, id
 from src.composite_v2_data_contract import ORIGINAL_MODEL_MANIFEST
 
 
-def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle_scope, data_preparation, pre_forward_parent, output,qualification_parent=None):
+def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle_scope, data_preparation, pre_forward_parent, output,qualification_parent=None,started_failure=None):
+    if qualification_parent is not None and started_failure is not None:
+        raise PermissionError('Use one distinct registered model phase')
     if sha(human_selection) != SELECTION_SHA or sha(kaggle_scope) != HUMAN_SHA:
         raise PermissionError('Exact direct human option-A/Kaggle selections required')
     if sha(pre_forward_parent)!=PRE_FORWARD_PARENT_SHA:raise PermissionError('Exact pre-forward failure closeout required')
@@ -72,27 +74,43 @@ def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle
         (inputs/'PARENT_QUALIFICATION_SOURCE.r4b64').write_bytes(base64.b64encode((parent/'TASK_QUALIFICATION_PACKAGE.zip').read_bytes()))
         raw_parent=parent/'RUN_361902084_EVIDENCE.zip'
         stage=full_fit_plan(commit,read_parent(source,raw_parent))
+    elif started_failure is not None:
+        from src.composite_task_memory_source import qualification_plan as stateful_plan,FAILURE_CLOSEOUT_SHA
+        failure=Path(started_failure)
+        if sha(failure/'CLOSEOUT.json')!=FAILURE_CLOSEOUT_SHA:
+            raise PermissionError('Exact consumed started-fit failure required')
+        mapping={'CLOSEOUT.json':'STARTED_FIT_CLOSEOUT.json',
+          'RUN_361922334_PARTIAL_FAILURE_AUDIT.json':'STARTED_FIT_AUDIT.json',
+          'CONTROLLER_LOG_READBACK.json':'STARTED_FIT_CONTROLLER.json',
+          'WORKER_CONTROLLED_EXIT_RECEIPT.json':'STARTED_FIT_WORKER.json',
+          'TERMINAL_FAILED_AX.txt':'STARTED_FIT_TERMINAL_AX.txt','RELEASE_AX.txt':'STARTED_FIT_RELEASE_AX.txt',
+          'ACTUAL_SUBMITTED_NOTEBOOK.ipynb':'STARTED_FIT_ACTUAL.ipynb',
+          'research4_task_skill_fit.ipynb':'STARTED_FIT_PREPARED.ipynb'}
+        for before,after in mapping.items():shutil.copyfile(failure/before,inputs/after)
+        (inputs/'STARTED_FIT_SOURCE.r4b64').write_bytes(base64.b64encode((failure/'TASK_FULL_FIT_PACKAGE.zip').read_bytes()))
+        (inputs/'STARTED_FIT_EVIDENCE.r4b64').write_bytes(base64.b64encode((failure/'RUN_361922334_EVIDENCE.zip').read_bytes()))
+        stage=stateful_plan(commit)
     else:stage = qualification_plan(commit)
     dump(inputs / PLAN, stage)
     dump(inputs / 'WORKSPACE.json', identity(stage['notebook']))
     dump(inputs / 'MANIFEST.json', {p.name: sha(p) for p in inputs.iterdir() if p.name != 'MANIFEST.json'})
     _, cfg, evidence = validate_model_source(source, commit,raw_parent)
     package_manifest = bundle / 'TASK_TRAINING_PACKAGE_FILES.json'
-    dump(package_manifest, {'version': MODE, 'source_commit': commit, 'notebook': stage['notebook'],
+    dump(package_manifest, {'version': stage['version'], 'source_commit': commit, 'notebook': stage['notebook'],
         'files': {p.relative_to(bundle).as_posix(): sha(p) for p in sorted(bundle.rglob('*')) if p.is_file()}})
-    archive = output / ('TASK_FULL_FIT_PACKAGE.zip' if qualification_parent is not None else 'TASK_QUALIFICATION_PACKAGE.zip')
+    archive = output / ('TASK_MEMORY_QUALIFICATION_PACKAGE.zip' if started_failure is not None else 'TASK_FULL_FIT_PACKAGE.zip' if qualification_parent is not None else 'TASK_QUALIFICATION_PACKAGE.zip')
     with zipfile.ZipFile(archive, 'x', zipfile.ZIP_DEFLATED) as stream:
         for p in sorted(bundle.rglob('*')):
             if p.is_file():
                 stream.write(p, p.relative_to(bundle).as_posix())
     code = (source / 'notebooks/composite_task_skill_qualification.py').read_text()
     code = code.replace('SOURCE_COMMIT_PLACEHOLDER', commit).replace('PACKAGE_MANIFEST_SHA256_PLACEHOLDER', sha(package_manifest))
-    notebook = output / ('research4_task_skill_fit.ipynb' if qualification_parent is not None else 'research4_task_skill_qualification.ipynb')
+    notebook = output / ('research4_task_memory_qualification_v3.ipynb' if started_failure is not None else 'research4_task_skill_fit.ipynb' if qualification_parent is not None else 'research4_task_skill_qualification.ipynb')
     dump(notebook, {'cells': [{'cell_type': 'code', 'execution_count': None, 'metadata': {},
         'outputs': [], 'source': code.splitlines(keepends=True)}],
         'metadata': {'kernelspec': {'display_name': 'Python 3', 'language': 'python', 'name': 'python3'}},
         'nbformat': 4, 'nbformat_minor': 5})
-    receipt = {'status': 'prepared_task_full_fit_not_submitted' if qualification_parent is not None else 'prepared_task_qualification_not_submitted', 'mode': MODE, 'phase': stage['phase'],
+    receipt = {'status': 'prepared_task_stateful_memory_qualification_not_submitted' if started_failure is not None else 'prepared_task_full_fit_not_submitted' if qualification_parent is not None else 'prepared_task_qualification_not_submitted', 'mode': stage['version'], 'phase': stage['phase'],
         'source_commit': commit, 'notebook': stage['notebook'], 'platform': 'kaggle', 'account': 'farhad89',
         'destination': stage['destination'], 'bundle_sha256': sha(archive),
         'bundle_manifest_sha256': sha(package_manifest), 'plan_sha256': sha(inputs / PLAN),
@@ -105,6 +123,10 @@ def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle
     if raw_parent is not None:receipt.update(qualification_archive_local_path=str(raw_parent),qualification_run_id=361902084,
         parent_scratch_training_capacity_independently_audited=True,
         new_full_fit_training_execution_verified=False)
+    if started_failure is not None:receipt.update(previous_started_fit_run=361922334,
+      previous_completed_update_journals=12,previous_failure_is_pre_execution=False,
+      scratch_optimizer_updates_registered=3,scratch_backward_microsteps_registered=6,
+      qualification_checkpoint_initializes_full_fit=False)
     dump(output / 'PREPARATION.json', receipt)
     return receipt
 
@@ -115,4 +137,5 @@ if __name__ == '__main__':
                 'kaggle-scope', 'data-preparation', 'pre-forward-parent', 'output']:
         parser.add_argument('--' + key, required=True)
     parser.add_argument('--qualification-parent')
+    parser.add_argument('--started-failure')
     print(json.dumps(prepare(**vars(parser.parse_args()))))

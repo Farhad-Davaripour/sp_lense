@@ -10,6 +10,10 @@ from .composite_exports import exclusive_output
 class StageStore:
     def __init__(self, stage):
         from .composite_task_skill_training import qualification_plan
+        from .composite_task_memory_profile import MODE as MEMORY_MODE
+        if stage.get('version')==MEMORY_MODE:
+            from .composite_task_memory_source import qualification_plan
+            if stage.get('phase')!='qualification':raise PermissionError('No stateful full-fit stage is admitted here yet')
         if (stage.get('phase') not in ['qualification','full_fit']
                 or stage.get('objective')!='ordinary_authorized_task_skills_only'):
             raise PermissionError('Exact reviewed task-training output stage required')

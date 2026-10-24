@@ -86,6 +86,9 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
     source = binding.get('source_commit')
     phase=binding.get('phase')
     expected_notebook={'qualification':'farhad89/research4-task-skill-qualification-v2','full_fit':'farhad89/research4-task-skill-fit-v1'}.get(phase)
+    from .composite_task_memory_profile import MODE as MEMORY_MODE
+    if binding.get('mode')==MEMORY_MODE:
+        expected_notebook={'qualification':'farhad89/research4-task-memory-qualification-v3'}.get(phase)
     if (type(run) is not int or run <= 0 or expected_notebook is None or notebook != expected_notebook
             or not re.fullmatch('[0-9a-f]{40}', source or '') or not re.fullmatch('[0-9a-f]{64}', archive_sha256 or '')):
         raise PermissionError('Exact one-use model submission required')
@@ -193,8 +196,12 @@ def audit_qualification(raw, expected_sha256, root, source_commit, closure=None)
 def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,required_phase=None,qualification_archive=None):
     stage, cfg, data = validate_model_source(root, source_commit,qualification_archive)
     phase=stage['phase'];updates={'qualification':1,'full_fit':64}[phase]
+    from .composite_task_memory_profile import MODE as MEMORY_MODE,RAW_PROFILE,stress_schedule,verify_allocator_record
+    stateful=stage['version']==MEMORY_MODE and phase=='qualification'
+    if stateful:updates=3
     if required_phase is not None and phase!=required_phase:raise PermissionError('Another model phase was supplied')
-    files = EvidenceFiles(raw, expected_sha256, stage['maximum_raw_evidence_bytes'])
+    files = EvidenceFiles(raw, expected_sha256, stage['maximum_raw_evidence_bytes'],
+                          evidence_profile=RAW_PROFILE if stateful else None)
     try:
         receipt = files.json('RUN_RECEIPT.json')
         base = {'reader': 'task-two-t4-qualification-raw-v1', 'source_commit': source_commit,
@@ -205,7 +212,7 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                 'owned_compute_released': None, 'recorded_forward_counts': receipt.get('forward_counts'),
                 'new_model_forwards': 0, 'new_optimizer_updates': 0, 'heldout_content_read': False,
                 'absence_of_unlogged_calls_proved': False}
-        if (receipt.get('source_commit') != source_commit or receipt.get('mode') != MODE
+        if (receipt.get('source_commit') != source_commit or receipt.get('mode') != stage['version']
                 or receipt.get('phase') != phase or receipt.get('heldout_content_read') is not False):
             raise PermissionError('Raw qualification source/scope differs')
         if receipt.get('status') != 'complete' or receipt.get('public_fixture_test_mode') is not False:
@@ -222,6 +229,11 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
             'ADAPTER_CAPACITY_RUNTIME.json', 'BACKBONE_LIVE_BEFORE.json', 'BACKBONE_LIVE_AFTER.json',
             'RUNTIME_RAW.json', 'MODEL_LOAD_ADMISSION.json', 'MODEL_FILE_VERIFICATION.json',
             'MODEL_METADATA_BYTES.json', 'BYPASS_RAW_MANIFEST.json', 'BYPASS_CHECK.json', 'PRECALL_FREEZE.json'}
+        if stateful:
+            required-={'GRADIENT_FINAL.pt','GRADIENT_EXPORT.json'}
+            required|={'INITIAL_A.pt','INITIAL_A_EXPORT.json','OPTIMIZER_INITIAL_STATE.json',
+                       'STATEFUL_TRAINING_SCHEDULE.json','ALLOCATOR_BEFORE_INSTALL.json','ALLOCATOR_AFTER_INSTALL.json'}
+            for i in [1,2,3]:required|={'GRADIENT_STEP_'+str(i).zfill(3)+suffix for suffix in ['.pt','_EXPORT.json']}
         missing = sorted(required - set(files.manifest))
         if missing:
             return TaskQualification({**base, 'missing_or_unverified': missing}, _KEY)
@@ -283,6 +295,14 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                 raise ValueError('Full task-only token replay differs')
             training = files.json('BEHAVIOR_TRAINING.json')
             ids = tokens['qualification_state_ids']
+            if stateful:
+                stress=stress_schedule(tokens);ids=stress['state_ids']
+                if digest(stress)!=digest(files.json('STATEFUL_TRAINING_SCHEDULE.json')):
+                    raise ValueError('Registered training-only memory stress schedule differs')
+                if digest(files.json('OPTIMIZER_INITIAL_STATE.json'))!=digest({'state_entries':0,'parameter_tensors':992}):
+                    raise ValueError('Qualification optimizer must begin fresh with empty state')
+                for name in ['ALLOCATOR_BEFORE_INSTALL.json','ALLOCATOR_AFTER_INSTALL.json']:
+                    verify_allocator_record(files.json(name))
             if phase=='full_fit':
                 import numpy as np
                 rng=np.random.default_rng(202610212)
@@ -305,6 +325,16 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                     if grad['device'] != device or grad['dtype'] != 'torch.float32' or not math.isfinite(grad['norm']) or grad['norm'] < 0:
                         raise ValueError('Per-device full-rank gradient evidence differs')
                 memory_records(row['memory'])
+                if stateful:
+                    before=files.json('training/resident_optimizer_before_'+str(index+1).zfill(4)+'.json')
+                    update=index//2+1
+                    expected={'update':update,'microstep':index%2,'state_id':state,
+                      'state_entries':0 if update==1 else 992,
+                      'resident_moment_bytes_by_device':[0,0] if update==1 else [n*8 for n in layout['device_parameters']],
+                      'previous_optimizer_step':update-1,'backward_not_yet_executed_for_this_microstep':True,
+                      'full_state_resident':update>1}
+                    if digest(before)!=digest(expected):raise ValueError('Full persistent AdamW state was not resident for later backward')
+                    verify_allocator_record(files.json('training/allocator_after_backward_'+str(index+1).zfill(4)+'.json'))
             journal = files.json('TRAINING_TERMINAL_JOURNAL.json')
             for step in range(1,updates+1):
                 update=files.json('training/update_'+str(step).zfill(3)+'.json');memory_records(update['memory'])
@@ -321,11 +351,19 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                                               projections, files.json('ADAPTER_INITIAL_HASHES.json'))
             shapes = {n + '.A': [32, v[0]] for n, v in projections.items()}
             shapes.update({n + '.B': [v[1], 32] for n, v in projections.items()})
-            for name, descriptor in [('OPTIMIZER_FINAL.pt','OPTIMIZER_EXPORT.json'),('GRADIENT_FINAL.pt','GRADIENT_EXPORT.json')]:
+            descriptors=[('OPTIMIZER_FINAL.pt','OPTIMIZER_EXPORT.json')]
+            if stateful:
+                descriptors+=[('INITIAL_A.pt','INITIAL_A_EXPORT.json')]
+                descriptors+=[('GRADIENT_STEP_'+str(i).zfill(3)+'.pt','GRADIENT_STEP_'+str(i).zfill(3)+'_EXPORT.json') for i in [1,2,3]]
+            else:descriptors+=[('GRADIENT_FINAL.pt','GRADIENT_EXPORT.json')]
+            for name, descriptor in descriptors:
                 proof = files.json(descriptor)
                 if proof['path'] != name or proof['sha256'] != files.manifest[name] or proof['bytes'] != files.stream.getinfo(name).file_size:
                     raise ValueError('Raw tensor export/readback descriptor differs')
-            if phase=='qualification':optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
+            if stateful:
+                from .composite_task_memory_numeric import audit_three_updates
+                optimizer=audit_three_updates(files,shapes,files.json('ADAPTER_INITIAL_HASHES.json'))
+            elif phase=='qualification':optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
             else:
                 from .composite_task_skill_parent import read_parent
                 parent=require_qualification(read_parent(root,qualification_archive))
@@ -366,6 +404,9 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                     full_fit_completed=released and phase=='full_fit',full_fit_raw_audited=released and phase=='full_fit',
                     provider_run_id=closure._value['scriptVersionId'] if released else None,
                     missing_or_unverified=[] if released else ['external_provider_terminal_release_not_verified'])
+        if stateful:base.update(runtime_profile=MEMORY_MODE,stateful_AdamW_overlap_and_size_switch_verified=True,
+          initialization_mapping_version=stage['initialization_mapping_version'],qualified_optimizer_updates=3,
+          full64_training_capacity_established=False,arbitrary6144_training_capacity_established=False)
         return TaskQualification(base, _KEY)
     finally:
         files.close()
