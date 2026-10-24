@@ -1,12 +1,8 @@
 """Re-audit exact scratch evidence as a full-fit dependency, never a warm start."""
 import base64
-import hashlib
-import io
 import json
 import os
 from pathlib import Path
-import tempfile
-import zipfile
 from .io_utils import read,sha,digest
 
 PARENT_SOURCE='149278382451faa1aceed82f22a4604a9bf99f79'
@@ -39,25 +35,9 @@ def read_parent(root,raw_override=None):
     if stamp in _CACHE:return _CACHE[stamp]
     if sha(path)!=PARENT_ARCHIVE_SHA:raise PermissionError('Complete original qualification archive differs')
     encoded=base64.b64decode((inputs/'PARENT_QUALIFICATION_SOURCE.r4b64').read_bytes(),validate=True)
-    if hashlib.sha256(encoded).hexdigest()!=PARENT_PACKAGE_SHA:raise PermissionError('Parent frozen source package differs')
     from .composite_task_skill_model_audit import kaggle_closure,audit_qualification,require_qualification
-    with tempfile.TemporaryDirectory(prefix='r4-task-parent-source-') as folder:
-        base=Path(folder)
-        with zipfile.ZipFile(io.BytesIO(encoded)) as z:
-            names=z.namelist()
-            if len(names)!=len(set(names)) or sum(i.file_size for i in z.infolist())>128*1024**2:
-                raise ValueError('Parent source archive envelope differs')
-            for name in names:
-                if name.startswith('/') or '..' in name.split('/') or '\\' in name or ':' in name:raise ValueError('Unsafe parent source member')
-                target=(base/name).resolve()
-                if not target.is_relative_to(base):raise ValueError('Parent source escaped its owned folder')
-                if name.endswith('/'):target.mkdir(parents=True,exist_ok=True)
-                else:
-                    target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(z.read(name))
-        source=base/'source'
-        mf=read(base/'TASK_TRAINING_PACKAGE_FILES.json')
-        if mf['source_commit']!=PARENT_SOURCE or any(sha(base/n)!=s for n,s in mf['files'].items()):
-            raise PermissionError('Parent source/input package bytes changed')
+    from .composite_task_skill_source_package import frozen_source_package
+    with frozen_source_package(encoded,PARENT_PACKAGE_SHA,PARENT_SOURCE) as (source,mf):
         binding=read(inputs/'PARENT_QUALIFICATION_BINDING.json')
         if binding['scriptVersionId']!=361902084 or binding['source_commit']!=PARENT_SOURCE:
             raise PermissionError('Parent submission identity differs')
