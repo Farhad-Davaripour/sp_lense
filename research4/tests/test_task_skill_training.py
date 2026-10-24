@@ -133,6 +133,37 @@ class TaskTrainingBoundaryTests(unittest.TestCase):
         with self.assertRaises(PermissionError):KaggleClosure({'released':True},key=True)
         with self.assertRaises(PermissionError):kaggle_closure({'scriptVersionId':True},'a'*64,'success','0 Active Events',{},[],[])
 
+    def test_postload_identity_check_does_not_double_charge_base_weights(self):
+        from contextlib import contextmanager
+        from types import SimpleNamespace
+        from src.composite_task_skill_training import postload_runtime
+        class CUDA:
+            def __init__(self):self.index=0;self.cached=[10*1024**3,10*1024**3]
+            def is_available(self):return True
+            def device_count(self):return 2
+            def get_device_name(self,index):return 'Tesla T4'
+            def memory_allocated(self,index):return 9*1024**3
+            def memory_reserved(self,index):return self.cached[index]
+            def mem_get_info(self,index):return 16*1024**3-self.cached[index],16*1024**3
+            @contextmanager
+            def device(self,index):
+                old=self.index;self.index=index
+                try:yield
+                finally:self.index=old
+            def empty_cache(self):self.cached[self.index]=self.memory_allocated(self.index)
+        cuda=CUDA();actor=SimpleNamespace(adapters={},generating=False)
+        packages={'transformers':'5.19.0','bitsandbytes':'0.49.2','accelerate':'1.15.0',
+                  'safetensors':'0.8.0','numpy':'2.2.2','psutil':'7.2.2'}
+        proof=postload_runtime(actor,cuda,'2.11.0+cu128',packages)
+        self.assertFalse(proof['preload_weight_lower_bound_reapplied'])
+        self.assertFalse(proof['actual_backward_fit_verified'])
+        self.assertEqual([r['live_allocated_bytes'] for r in proof['devices']],[9*1024**3]*2)
+        # Seven free GiB is below another nine-GiB base+reserve demand, but it
+        # legitimately fits the complete per-device adapter/optimizer reserve.
+        memory_admission({'FP32_weights_gradients_AdamW_bytes':[1024**3,3*1024**3]},cuda,2*1024**3)
+        actor.adapters={'existing':True}
+        with self.assertRaises(PermissionError):postload_runtime(actor,cuda,'2.11.0+cu128',packages)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -39,7 +39,7 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
     run = binding.get('scriptVersionId')
     notebook = binding.get('notebook')
     source = binding.get('source_commit')
-    if (type(run) is not int or run <= 0 or notebook != 'farhad89/research4-task-skill-qualification-v1'
+    if (type(run) is not int or run <= 0 or notebook != 'farhad89/research4-task-skill-qualification-v2'
             or not re.fullmatch('[0-9a-f]{40}', source or '') or not re.fullmatch('[0-9a-f]{64}', archive_sha256 or '')):
         raise PermissionError('Exact one-use model submission required')
     if ('scriptVersionId=' + str(run)) not in terminal_AX or notebook not in terminal_AX:

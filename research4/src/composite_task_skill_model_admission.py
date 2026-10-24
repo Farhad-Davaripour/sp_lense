@@ -2,12 +2,12 @@
 from pathlib import Path
 from .io_utils import read, sha
 from .composite_submission_admission import reserve, reconcile, guard
-from .composite_task_skill_training import validate_model_source, PLAN, DATA_CLOSEOUT_SHA
+from .composite_task_skill_training import validate_model_source, PLAN, DATA_CLOSEOUT_SHA, PRE_FORWARD_PARENT_SHA
 from .composite_kaggle_v2_profile import HUMAN_SHA
 from .composite_task_skill_profile import SELECTION_SHA
 from .composite_kaggle_v2_admission import candidate_rule
 
-CANDIDATE = 'task_skill_gpu_qualification_v1'
+CANDIDATE = 'task_skill_gpu_qualification_postload_v2'
 ATTEMPTS = 'qualification_attempts'
 
 
@@ -45,6 +45,11 @@ def reserve_qualification(campaign_root, preparation_file, live_snapshot, guard_
                 or prior.get('owned_compute_released') is not True
                 or sha(prior['closeout_receipt']) != DATA_CLOSEOUT_SHA):
             raise PermissionError('Complete independently audited/released task-data parent required')
+        failure=read(root/'SCIENTIFIC_EXECUTION_LEDGER.json')['candidates'].get('task_skill_gpu_qualification_v1')
+        if (not failure or failure.get('status')!='failed_pre_forward_engineering_audited_released'
+                or failure.get('model_forwards_started') is not False or failure.get('owned_compute_released') is not True
+                or sha(failure['closeout_receipt'])!=PRE_FORWARD_PARENT_SHA):
+            raise PermissionError('A started/unknown scientific experiment cannot acquire an engineering repair')
     except Exception:
         if lock.exists() and read(lock).get('token') == token:
             lock.unlink()
