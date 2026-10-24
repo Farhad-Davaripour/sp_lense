@@ -9,7 +9,7 @@ import sys
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from src.io_utils import read,sha,dump,digest,verify_release
-from src.composite_task_skill_package import FIT_SOURCE,FIT_RUN,read_task_development_inputs,frozen_task_package
+from src.composite_task_skill_package import FIT_SOURCE,FIT_RUN,read_task_development_inputs,frozen_task_package,full_fit_identity
 
 FIT_PACKAGE_SHA='b18e06971434cda2b5312e670f5942c6b44688826103cb421f0f8e607fe83e5b'
 FIT_MANIFEST_SHA='3069515817b1ac3ec599de2becb1e3d0cdf0758b957327d5e1c789f5c91d8ecc'
@@ -58,12 +58,27 @@ def prepare(repo,evaluation_source,fit_preparation,fit_archive,fit_archive_sha25
     value=package.receipt()
     dump(out/'FROZEN_TASK_MODEL_PACKAGE.json',value)
     dump(out/'FULL_FIT_RAW_REAUDIT.json',proof.receipt())
+    parent=out/'model_parent_inputs';parent.mkdir()
+    (parent/'FIT_PARENT_SOURCE.r4b64').write_bytes(base64.b64encode((fit/'TASK_FULL_FIT_PACKAGE.zip').read_bytes()))
+    mapping={fit/'SUBMISSION.json':'FIT_PARENT_BINDING.json',Path(controller):'FIT_PARENT_CONTROLLER.json',
+      Path(terminal_ax):'FIT_PARENT_TERMINAL_AX.txt',Path(release_ax):'FIT_PARENT_RELEASE_AX.txt',
+      fit/'ACTUAL_SUBMITTED_NOTEBOOK.ipynb':'FIT_PARENT_ACTUAL.ipynb',
+      fit/'research4_task_skill_fit.ipynb':'FIT_PARENT_PREPARED.ipynb'}
+    for before,after in mapping.items():(parent/after).write_bytes(before.read_bytes())
+    dump(parent/'FIT_PARENT_AUDIT.json',proof.receipt())
+    dump(parent/'FIT_PARENT_EXPECTED.json',{'source_commit':FIT_SOURCE,'run_id':FIT_RUN,
+      'package_sha256':FIT_PACKAGE_SHA,'raw_archive_sha256':fit_archive_sha256,
+      'checkpoint_sha256':value['checkpoint_sha256'],'fit_evidence_identity_sha256':full_fit_identity(proof),
+      'raw_audit_canonical_sha256':digest(proof.receipt()),
+      'qualification_archive_sha256':sha(qualification_archive)})
+    dump(parent/'MANIFEST.json',{p.name:sha(p) for p in sorted(parent.iterdir())})
     receipt={'status':'frozen_metadata_package_prepared_no_evaluation_allocation',
       'fit_run_id':FIT_RUN,'fit_source_commit':FIT_SOURCE,'evaluation_source_commit':evaluation_source,
       'checkpoint_sha256':value['checkpoint_sha256'],'fit_raw_archive_sha256':fit_archive_sha256,
       'full_fit_raw_reaudit_sha256':sha(out/'FULL_FIT_RAW_REAUDIT.json'),
       'model_package_sha256':sha(out/'FROZEN_TASK_MODEL_PACKAGE.json'),
       'model_package_canonical_sha256':digest(value),'task_development_trajectories':72,
+      'model_parent_input_manifest_sha256':sha(parent/'MANIFEST.json'),
       'separate_risk_trajectories_still_required':180,'new_model_forwards':0,'new_optimizer_updates':0,
       'new_world_collection':False,'evaluation_runtime_qualified':False,
       'scientific_validation_admitted':False,'heldout_content_read':False}

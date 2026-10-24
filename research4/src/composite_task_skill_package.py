@@ -7,6 +7,7 @@ from copy import deepcopy
 import hashlib
 import io
 import json
+import math
 import re
 import zipfile
 from .io_utils import digest
@@ -31,6 +32,32 @@ class FrozenTaskPackage:
         if key is not _KEY:raise PermissionError('Bind the actual complete raw fit and data readers')
         self._key=key;self._value=deepcopy(value)
     def receipt(self):return deepcopy(self._value)
+
+
+def full_fit_identity(full_fit):
+    """Bind raw bytes and tensor identities, without CPU-reduction roundoff."""
+    from .composite_task_skill_model_audit import require_full_fit
+    proof=require_full_fit(full_fit)
+    keys=['phase','source_commit','provider_run_id','raw_archive_sha256',
+          'source_data_archive_sha256','checkpoint_sha256','initial_adapter_hashes','recorded_forward_counts']
+    value={name:deepcopy(proof[name]) for name in keys}
+    value['checkpoint']={name:deepcopy(proof['checkpoint'][name]) for name in
+                         ['adapter_parameters','tensors','hashes','tensor_shapes']}
+    return digest(value)
+
+
+def verify_audit_reference(original,current):
+    """Only double-precision reduction roundoff may differ on the audit CPU."""
+    normalized=deepcopy(original)
+    try:left=normalized['optimizer']['clipped_global_norm'];right=current['optimizer']['clipped_global_norm']
+    except (KeyError,TypeError):raise PermissionError('Complete original/current audit metrics required')
+    if (type(left) not in [int,float] or type(right) not in [int,float] or not math.isfinite(left)
+            or not math.isfinite(right) or left<0 or right<0
+            or not math.isclose(left,right,rel_tol=1e-12,abs_tol=1e-12)):
+        raise PermissionError('Recomputed clipped gradient norm differs beyond CPU roundoff')
+    normalized['optimizer']['clipped_global_norm']=right
+    if digest(normalized)!=digest(current):raise PermissionError('A non-roundoff raw-audit fact changed')
+    return True
 
 
 def read_task_development_inputs(raw):
@@ -64,6 +91,7 @@ def frozen_task_package(full_fit,data,evaluation_source):
     value={'version':'ordinary-task-frozen-package-v1','fit_source_commit':FIT_SOURCE,
       'fit_run_id':FIT_RUN,'evaluation_source_commit':evaluation_source,
       'fit_raw_archive_sha256':proof['raw_archive_sha256'],'fit_raw_audit_canonical_sha256':digest(proof),
+      'fit_evidence_identity_sha256':full_fit_identity(full_fit),
       'checkpoint_sha256':proof['checkpoint_sha256'],'checkpoint_tensor_hashes':proof['checkpoint']['hashes'],
       'checkpoint_tensor_shapes':proof['checkpoint']['tensor_shapes'],
       'data_source_commit':DATA_SOURCE,'data_archive_sha256':DATA_ARCHIVE_SHA,
@@ -77,4 +105,15 @@ def frozen_task_package(full_fit,data,evaluation_source):
       'separate_risk_trajectories_still_required':180,'evaluation_runtime_qualified_by_this_package':False,
       'allocation_admitted_by_this_package':False,'scientific_validation_admitted':False,
       'heldout_content_read':False,'heldout_opening_admitted':False}
+    return FrozenTaskPackage(value,_KEY)
+
+
+def restore_frozen_task_package(value,original_audit,full_fit,data,evaluation_source):
+    """Rebind frozen metadata to a fresh complete raw read, never trust flags."""
+    from .composite_task_skill_model_audit import require_full_fit
+    actual=require_full_fit(full_fit)
+    verify_audit_reference(original_audit,actual)
+    expected=frozen_task_package(full_fit,data,evaluation_source).receipt()
+    expected['fit_raw_audit_canonical_sha256']=digest(original_audit)
+    if digest(value)!=digest(expected):raise PermissionError('Frozen model/data/source/recipe package differs')
     return FrozenTaskPackage(value,_KEY)
