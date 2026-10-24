@@ -105,7 +105,7 @@ def reserve_stateful_qualification(campaign_root,preparation_file,live_snapshot,
                 or parent.get('owned_compute_released') is not True or parent.get('scientific_execution_started') is not True
                 or parent.get('complete_resume_state_available') is not False
                 or sha(parent['closeout_receipt'])!=FAILURE_CLOSEOUT_SHA
-                or parent['actual_partial_counts']['completed_update_journals']!=12):
+                or parent.get('actual_partial_counts',{}).get('completed_update_journals')!=12):
             raise PermissionError('Exact consumed started-fit failure/release required; no zero-forward allowance')
         binding=validate_preparation(preparation_file)
         if binding['mode']!=MEMORY_MODE or binding['phase']!='qualification' or binding['optimizer_updates']!=3:
