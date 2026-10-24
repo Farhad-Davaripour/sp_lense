@@ -5,7 +5,8 @@ Hash equality alone never proves a live post-fit recomputation or absence of
 unlogged calls. Public/tiny fixtures cannot produce a scientific closeout.
 """
 from copy import deepcopy
-import hashlib,io,json,math,re,zipfile
+import hashlib,io,json,math,re,zipfile,tempfile,gc
+from pathlib import Path
 from .io_utils import digest
 from .composite_generalized_interface import PROFILE
 
@@ -66,8 +67,11 @@ def provider_closure(host,run_id,archive_sha256,air,jobs):
 class EvidenceFiles:
     """Bounded checksum-verified archive, never extracted or executed."""
     def __init__(self,raw,sha256,maximum_bytes=1024**3):
-        if hashlib.sha256(raw).hexdigest()!=sha256:raise ValueError('Model archive SHA differs')
-        self.sha256=sha256;self.stream=zipfile.ZipFile(io.BytesIO(raw))
+        from .io_utils import sha
+        actual=sha(raw) if isinstance(raw,(str,Path)) else hashlib.sha256(raw).hexdigest()
+        if actual!=sha256:raise ValueError('Model archive SHA differs')
+        self.sha256=sha256;self.stream=zipfile.ZipFile(raw if isinstance(raw,(str,Path)) else io.BytesIO(raw))
+        self.tensor_cache=None
         infos=self.stream.infolist();names=[v.filename for v in infos]
         if type(maximum_bytes) is not int or not 0<maximum_bytes<=4*1024**3:raise ValueError('Reviewed raw export envelope required')
         if len(names)!=len(set(names)) or sum(v.file_size for v in infos)>maximum_bytes:
@@ -81,12 +85,36 @@ class EvidenceFiles:
         if set(names)!=set(self.manifest)|{'MANIFEST.json'}:raise ValueError('Unaccounted raw evidence member')
         for name,expected in self.manifest.items():
             _hash(expected)
-            if hashlib.sha256(self.get(name)).hexdigest()!=expected:raise ValueError('Raw evidence member changed')
+            h=hashlib.sha256()
+            with self.stream.open(name) as source:
+                for block in iter(lambda:source.read(8*1024**2),b''):h.update(block)
+            if h.hexdigest()!=expected:raise ValueError('Raw evidence member changed')
     def get(self,name):return self.stream.read(name)
     def json(self,name):
         from .native27_tools import unique_json
         return unique_json(self.get(name).decode('utf-8'))
-    def close(self):self.stream.close()
+    def tensor_path(self,name):
+        from .composite_runtime import contained
+        from .io_utils import sha
+        if name not in self.manifest or not name.endswith('.pt'):raise PermissionError('Registered tensor member required')
+        if self.tensor_cache is None:self.tensor_cache=tempfile.TemporaryDirectory(prefix='r4-readonly-model-tensors-')
+        target=contained(self.tensor_cache.name,name)
+        if not target.exists():
+            target.parent.mkdir(parents=True,exist_ok=True)
+            with self.stream.open(name) as source,target.open('xb') as output:
+                for block in iter(lambda:source.read(8*1024**2),b''):output.write(block)
+            if sha(target)!=self.manifest[name]:raise ValueError('Streamed tensor extraction changed bytes')
+        return target
+    def close(self):
+        self.stream.close();gc.collect()
+        if self.tensor_cache is not None:self.tensor_cache.cleanup()
+
+
+def tensor_state(raw):
+    """Restricted reader; file-backed inputs avoid a second multi-GiB copy."""
+    import torch
+    if isinstance(raw,(str,Path)):return torch.load(raw,map_location='cpu',weights_only=True,mmap=True)
+    return torch.load(io.BytesIO(raw),map_location='cpu',weights_only=True)
 
 
 def capture_live_backbone(actor):
@@ -106,7 +134,7 @@ def capture_live_backbone(actor):
 
 def audit_optimizer_bytes(raw,weights,updates,inspect=None):
     import torch
-    values=torch.load(io.BytesIO(raw),map_location='cpu',weights_only=True)
+    values=tensor_state(raw)
     if set(values)!=set(weights):raise ValueError('Optimizer contains missing, extra or original backbone tensors')
     for name,shape in weights.items():
         value=values[name]
@@ -213,8 +241,10 @@ def checkpoint_evidence(raw,expected_sha256,cfg,projections,initial_hashes,*,ran
     """Load adapter tensors only, with torch's restricted weights reader."""
     import torch
     from .composite_training import tensor_digest
-    if hashlib.sha256(raw).hexdigest()!=expected_sha256:raise ValueError('Checkpoint bytes changed')
-    saved=torch.load(io.BytesIO(raw),map_location='cpu',weights_only=True)
+    from .io_utils import sha
+    actual=sha(raw) if isinstance(raw,(str,Path)) else hashlib.sha256(raw).hexdigest()
+    if actual!=expected_sha256:raise ValueError('Checkpoint bytes changed')
+    saved=tensor_state(raw)
     _same(saved.get('config'),cfg,'Checkpoint architecture/configuration differs')
     if saved.get('native_interface_profile')!=PROFILE or saved.get('placement')!={'name':'all_blocks','scope':'all_blocks'}:
         raise ValueError('Checkpoint interface or adapter scope differs')
