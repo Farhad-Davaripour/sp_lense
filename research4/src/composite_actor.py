@@ -196,17 +196,19 @@ class Actor(nn.Module):
         if self.on_forward:self.on_forward('complete')
         return nn.functional.cross_entropy(logits[0].float(),labels.to(logits.device))
 
-    def bypass_check(self,texts):
+    def bypass_check(self,texts,persist_logits=None):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen base probes do not establish adapter ON/OFF effects')
         records=[]
         for index,text in enumerate(texts):
             ids=self.prompt_ids(text);tokens=torch.tensor([ids],device='cuda:0',dtype=torch.long);enable(self.adapters,False)
             with torch.inference_mode():wrapped=self.model(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,logits_to_keep=1).logits.detach().clone()
+            if persist_logits:persist_logits(index,'wrapped_OFF',ids,wrapped)
             wrapped_generation=self.generate(text,False) if index==0 else None
             try:
                 for name,wrapper in self.adapters.items():
                     parent,attribute=name.rsplit('.',1);setattr(self.text.get_submodule(parent),attribute,wrapper.base)
                 with torch.inference_mode():bare=self.model(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,logits_to_keep=1).logits
+                if persist_logits:persist_logits(index,'bare',ids,bare)
                 equal=torch.equal(wrapped,bare);difference=float((wrapped-bare).abs().max())
                 bare_generation=self.generate(text,False) if index==0 else None
             finally:
@@ -214,6 +216,7 @@ class Actor(nn.Module):
                     parent,attribute=name.rsplit('.',1);setattr(self.text.get_submodule(parent),attribute,wrapper)
             enable(self.adapters,True)
             with torch.inference_mode():on=self.model(input_ids=tokens,attention_mask=torch.ones_like(tokens),use_cache=False,logits_to_keep=1).logits
+            if persist_logits:persist_logits(index,'wrapped_ON',ids,on)
             generation_equal=wrapped_generation['generated_token_ids']==bare_generation['generated_token_ids'] if index==0 else None
             records.append({'input_token_ids':ids,'bitwise_equal':bool(equal),'maximum_absolute_logit_difference':difference,'on_logit_difference':float((wrapped-on).abs().max()),'off_generation_equal':generation_equal,'wrapped_generation':wrapped_generation,'bare_generation':bare_generation})
         self.verify_frozen()

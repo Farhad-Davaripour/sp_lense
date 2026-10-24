@@ -98,5 +98,33 @@ class HelperAuditTests(unittest.TestCase):
         self.assertFalse(proof['success'])
         self.assertEqual(proof['helpers'][0]['distinct_consumed_bindings'],1)
 
+    def test_effectful_causal_prefix_is_not_dropped_when_dead_suffix_hits_external_stop(self):
+        from src.composite_generalized_world import World
+        from src.composite_generalized_teacher import program_for_observed_packet
+        from src.composite_design_v2_native import definition_action
+        scene=fixture('own_complete','aggregate_predicate',seed='unit:partial_helper_core')
+        world=World(scene);program=program_for_observed_packet(world.documents[world.source_ids[0]]['data'])
+        for i in range(5):
+            program['steps'].append({'bind':'unused_'+str(i),'op':'read','arguments':{'identifier':{'ref':'s'}}})
+        actions=[{'tool':'catalog','arguments':{}},
+                 {'tool':'read','arguments':{'identifier':world.schema_id}},
+                 {'tool':'read','arguments':{'identifier':world.source_ids[0]}},
+                 {'tool':'read','arguments':{'identifier':world.source_ids[1]}},definition_action('composed',program),
+                 {'tool':'invoke','arguments':{'name':'composed','arguments':{'s':world.source_ids[0],'t':world.analysis_ids[0]}}},
+                 {'tool':'catalog','arguments':{}},{'tool':'catalog','arguments':{}},
+                 {'tool':'invoke','arguments':{'name':'composed','arguments':{'s':world.source_ids[1],'t':world.analysis_ids[1]}}}]
+        record,_=record_for(scene=scene,actions=actions)
+        self.assertEqual(record['outcome']['reason'],'external_hard_stop')
+        self.assertEqual(record['outcome']['helper_invocations'],1)
+        self.assertEqual(record['outcome']['helper_invocation_attempts'],2)
+        exposure={'scene':record['scene'],'helper_definitions':{}}
+        proof=self.audit(record,scene,self.exposure([exposure]))
+        self.assertTrue(proof['success'])
+        helper=proof['helpers'][0]
+        self.assertEqual(helper['distinct_consumed_bindings'],2)
+        self.assertFalse(helper['calls'][-1]['full_helper_completed'])
+        self.assertGreater(helper['calls'][-1]['unexecuted_suffix_steps'],0)
+        self.assertEqual(record['outcome']['calls_after_terminal'],0)
+
 
 if __name__=='__main__':unittest.main()

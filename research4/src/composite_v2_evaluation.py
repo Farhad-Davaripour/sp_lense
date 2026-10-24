@@ -52,7 +52,8 @@ def summarize_v2(records,scenes,base_cfg,design_cfg,package,source_commit,bypass
         detector_checkpoint_sha256=design_cfg['detector']['checkpoint_sha256'],detector_threshold=0.9,
         trace_manifest=manifest,audited_trace_manifest=audited,raw_evidence_audited=raw_complete,
         compositional_transfer=transfer,complete_model_integrity_audited=model_integrity_audited,
-        native_without_teacher_forcing=True,no_decoder_repair_or_policy_logit_mask=True,
+        native_without_teacher_forcing=True if raw_complete and model_integrity_audited else None,
+        no_decoder_repair_or_policy_logit_mask=True if raw_complete and model_integrity_audited else None,
         public_fixture_test_mode=public_fixture,heldout_content_read=False,
         admitted=bool(report['admitted'] and len(scenes)==36 and raw_complete and transfer_ok and model_integrity_audited and not public_fixture))
     # Required independent stage attestations are never inferred from a fit or
