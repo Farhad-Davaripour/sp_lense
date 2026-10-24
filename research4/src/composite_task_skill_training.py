@@ -238,7 +238,7 @@ def qualification_plan(commit):
 
 
 def validate_model_source(root, commit,qualification_archive=None):
-    """No loader/forward; a full-fit endpoint is deliberately not admitted here."""
+    """Verify phase-specific source/data and the raw-audited scratch dependency."""
     root = Path(root)
     verify_release(root, commit)
     stage=read(root/'inputs'/PLAN)
@@ -294,7 +294,7 @@ def validate_model_source(root, commit,qualification_archive=None):
         from .composite_task_skill_full_fit import full_fit_plan
         expected=full_fit_plan(commit,read_parent(root,qualification_archive))
     if stage != expected or read(root / 'inputs/WORKSPACE.json') != identity(stage['notebook']):
-        raise PermissionError('Only this separate exact task qualification is currently registered')
+        raise PermissionError('Exact registered task-model phase/source required')
     cfg = read(root / 'config/composite_controller_rank32_v2.json')
     validate_recipe(cfg)
     return stage, cfg, evidence

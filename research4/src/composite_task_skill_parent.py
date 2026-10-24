@@ -34,7 +34,8 @@ def read_parent(root,raw_override=None):
     if sha(inputs/'PARENT_QUALIFICATION_CLOSEOUT.json')!=PARENT_CLOSEOUT_SHA:
         raise PermissionError('Exact audited released qualification closeout required')
     path=parent_raw_path(root,raw_override)
-    stamp=(str(path),path.stat().st_size,path.stat().st_mtime_ns)
+    stamp=(str(path),path.stat().st_size,path.stat().st_mtime_ns,
+           digest({name:sha(inputs/name) for name in sorted(PARENT_FILES)}))
     if stamp in _CACHE:return _CACHE[stamp]
     if sha(path)!=PARENT_ARCHIVE_SHA:raise PermissionError('Complete original qualification archive differs')
     encoded=base64.b64decode((inputs/'PARENT_QUALIFICATION_SOURCE.r4b64').read_bytes(),validate=True)

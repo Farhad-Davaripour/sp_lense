@@ -102,7 +102,9 @@ def prepare(repo, commit, model_inputs, tensor_metadata, human_selection, kaggle
         'scientific_GPU_count': 2, 'actual_training_capacity_qualified': False,
         'full_fit_completed': False, 'model_forwards': 0, 'optimizer_updates': 0,
         'heldout_content_read': False, 'scientific_allocation_admitted_by_preparation': False}
-    if raw_parent is not None:receipt.update(qualification_archive_local_path=str(raw_parent),qualification_run_id=361902084)
+    if raw_parent is not None:receipt.update(qualification_archive_local_path=str(raw_parent),qualification_run_id=361902084,
+        parent_scratch_training_capacity_independently_audited=True,
+        new_full_fit_training_execution_verified=False)
     dump(output / 'PREPARATION.json', receipt)
     return receipt
 

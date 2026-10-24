@@ -94,27 +94,46 @@ def memory_records(value):
             raise ValueError('Per-device live/idle allocation bounds differ')
 
 
-def audit_scratch_update(files, shapes, initial_hashes):
-    """Recompute the one scratch AdamW update from full clipped gradients/moments."""
-    import io
+def audit_clipped_gradients(gradients, shapes):
+    """Check every actual final gradient, including after a multi-update fit."""
     import torch
-    from .composite_training import tensor_digest
-    config = files.json('OPTIMIZER_CONFIG.json')
-    expected = {'lr':0.0005, 'betas':[0.9,0.999], 'eps':1e-8, 'weight_decay':0.0,
-                'foreach':False, 'maximize':False, 'capturable':False, 'differentiable':False}
-    if digest(config) != digest(expected):
-        raise ValueError('Actual AdamW group configuration differs')
-    member=lambda name:files.tensor_path(name) if hasattr(files,'tensor_path') else files.get(name)
-    gradients = tensor_state(member('GRADIENT_FINAL.pt'))
-    checkpoint = tensor_state(member('behavior.pt'))['weights']
-    if set(gradients) != set(shapes) or set(checkpoint) != set(shapes):
-        raise ValueError('Full final gradient/checkpoint tensor roster differs')
+    if set(gradients) != set(shapes):
+        raise ValueError('Full final gradient tensor roster differs')
     squared_norm = 0.0
     for name, shape in shapes.items():
         grad = gradients[name]
         if not isinstance(grad, torch.Tensor) or grad.dtype != torch.float32 or list(grad.shape) != shape or not torch.isfinite(grad).all():
             raise ValueError('Full finite clipped FP32 gradient required')
         squared_norm += float(grad.double().square().sum())
+    if squared_norm > 1.00002:
+        raise ValueError('Exported clipped gradient exceeds the registered unit norm')
+    return {'full_clipped_gradient_tensors_verified':len(gradients),
+            'clipped_global_norm':math.sqrt(squared_norm)}
+
+
+def audit_optimizer_config(files):
+    expected = {'lr':0.0005, 'betas':[0.9,0.999], 'eps':1e-8, 'weight_decay':0.0,
+                'foreach':False, 'maximize':False, 'capturable':False, 'differentiable':False}
+    if digest(files.json('OPTIMIZER_CONFIG.json')) != digest(expected):
+        raise ValueError('Actual AdamW group configuration differs')
+
+
+def audit_scratch_update(files, shapes, initial_hashes):
+    """Recompute the one scratch AdamW update from full clipped gradients/moments."""
+    import io
+    import torch
+    from .composite_training import tensor_digest
+    audit_optimizer_config(files)
+    member=lambda name:files.tensor_path(name) if hasattr(files,'tensor_path') else files.get(name)
+    gradients = tensor_state(member('GRADIENT_FINAL.pt'))
+    checkpoint = tensor_state(member('behavior.pt'))['weights']
+    if set(gradients) != set(shapes) or set(checkpoint) != set(shapes):
+        raise ValueError('Full final gradient/checkpoint tensor roster differs')
+    gradient_proof = audit_clipped_gradients(gradients, shapes)
+    for name, shape in shapes.items():
+        grad = gradients[name]
+        if not isinstance(grad, torch.Tensor) or grad.dtype != torch.float32 or list(grad.shape) != shape or not torch.isfinite(grad).all():
+            raise ValueError('Full finite clipped FP32 gradient required')
         if name.endswith('.A'):
             if torch.count_nonzero(grad) != 0 or tensor_digest(checkpoint[name]) != initial_hashes[name]:
                 raise ValueError('Zero-B scratch initialization must leave A unchanged on update1')
@@ -122,8 +141,6 @@ def audit_scratch_update(files, shapes, initial_hashes):
             zero = torch.zeros(shape, dtype=torch.float32)
             if tensor_digest(zero) != initial_hashes[name]:
                 raise ValueError('Qualification B did not start from the fresh zero initialization')
-    if squared_norm > 1.00002:
-        raise ValueError('Exported clipped gradient exceeds the registered unit norm')
     def inspect(name, value):
         grad = gradients[name]
         torch.testing.assert_close(value['exp_avg'], grad * 0.1, rtol=1e-5, atol=1e-12)
@@ -133,8 +150,7 @@ def audit_scratch_update(files, shapes, initial_hashes):
             predicted = -0.005 * value['exp_avg'] / denominator
             torch.testing.assert_close(checkpoint[name], predicted, rtol=1e-5, atol=1e-8)
     proof = audit_optimizer_bytes(member('OPTIMIZER_FINAL.pt'), shapes, 1, inspect=inspect)
-    return {**proof, 'full_clipped_gradient_tensors_verified':len(gradients),
-            'clipped_global_norm':math.sqrt(squared_norm),
+    return {**proof, **gradient_proof,
             'scratch_AdamW_update_independently_recomputed':True,
             'FP32_update_tolerance':{'rtol':1e-5,'atol':1e-8}}
 
@@ -280,7 +296,9 @@ def audit_task_model(raw, expected_sha256, root, source_commit, closure=None,*,r
                     raise ValueError('Raw tensor export/readback descriptor differs')
             if phase=='qualification':optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
             else:
+                audit_optimizer_config(files)
                 optimizer=audit_optimizer_bytes(files.tensor_path('OPTIMIZER_FINAL.pt'),shapes,64)
+                optimizer.update(audit_clipped_gradients(tensor_state(files.tensor_path('GRADIENT_FINAL.pt')),shapes))
                 optimizer.update(full64_optimizer_updates_recorded=True,complete_optimizer_reexecution_proved=False)
             integrity = frozen_integrity(files.json('BACKBONE_LIVE_BEFORE.json'), files.json('BACKBONE_LIVE_AFTER.json'),
                                          originals, parameter_devices=devices)
