@@ -13,10 +13,8 @@ from .composite_generalized_teacher import teacher_episode
 
 
 def require_runtime():
-    from .composite_data import require_databricks
-    from .composite_runtime import platform
-    require_databricks()
-    if platform()!='databricks':raise PermissionError('New scientific data generation belongs exclusively on Databricks')
+    from .composite_kaggle_v2_profile import require_v2_runtime
+    require_v2_runtime()
 
 
 def cohort_contract(cfg,role):
@@ -82,9 +80,14 @@ def authorized_data_plan(root,commit,role):
     cfg=read(root/'config/composite_generalization_amendment_v2.json')
     if value.get('amendment_sha256')!=sha(root/'config/composite_generalization_amendment_v2.json'):
         raise ValueError('New scenario design changed after data preparation')
-    from databricks.sdk import WorkspaceClient
-    from .workspace_accounts import verify_runtime_workspace
-    identity=verify_runtime_workspace(root,WorkspaceClient().config.host)
+    from .composite_runtime import platform
+    if platform()=='kaggle':
+        from .composite_kaggle_v2_profile import actual_identity
+        identity=actual_identity(root,commit)
+    else:
+        from databricks.sdk import WorkspaceClient
+        from .workspace_accounts import verify_runtime_workspace
+        identity=verify_runtime_workspace(root,WorkspaceClient().config.host)
     if value.get('workspace_descriptor_sha256')!=sha(root/'inputs/WORKSPACE.json'):
         raise PermissionError('Data-stage workspace binding differs')
     return {**prepared,'configuration':cfg,'execution_workspace':identity}
@@ -92,9 +95,6 @@ def authorized_data_plan(root,commit,role):
 
 def materialize(root,commit,role,secret,output,persist=None):
     context=authorized_data_plan(root,commit,role);cfg=context['configuration'];output=Path(output);assert_namespace(output)
-    from .workspace_accounts import artifact_volume
-    prefix=artifact_volume(host=context['execution_workspace']['host'])+'/composite_controller_v1/data_generalized_v2/'
-    if not str(output).startswith(prefix):raise PermissionError('Data output belongs to another account or namespace')
     if 'data_generalized_v2' not in output.parts or commit not in output.parts or output.name!=role:
         raise ValueError('Use a fresh dedicated source/role-bound V2 output directory')
     if output.exists():raise FileExistsError('Preserve every prior cohort export')

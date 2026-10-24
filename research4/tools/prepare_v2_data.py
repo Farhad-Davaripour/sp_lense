@@ -10,7 +10,7 @@ from src.composite_generalized_data import cohort_contract
 from src.composite_generalized_world import VERSION
 
 
-def prepare(repo,commit,model_inputs,human_scope,output,account):
+def prepare(repo,commit,model_inputs,human_scope,output,account,notebook=None,kaggle_scope=None):
     output=Path(output);output.mkdir(parents=True,exist_ok=False)
     source=output/'source';archive_source(repo,commit,source)
     inputs=source/'inputs';inputs.mkdir(exist_ok=True)
@@ -21,9 +21,14 @@ def prepare(repo,commit,model_inputs,human_scope,output,account):
         if sha(model_inputs/name)!=read(parent)[name]:raise ValueError('Original model pin differs')
         shutil.copyfile(model_inputs/name,inputs/name)
     shutil.copyfile(human_scope,inputs/HUMAN)
-    profile=selected(account,environ={},env_file=Path(repo)/'.env')
-    workspace={key:profile[key] for key in ['account','label','host','organization']}
-    workspace['artifact_volume']=artifact_volume(account=account)
+    if account=='kaggle':
+        from src.composite_kaggle_v2_profile import identity,HUMAN as KAGGLE_HUMAN,HUMAN_SHA
+        if kaggle_scope is None or sha(kaggle_scope)!=HUMAN_SHA:raise PermissionError('Verified direct human Kaggle scope required')
+        shutil.copyfile(kaggle_scope,inputs/KAGGLE_HUMAN);workspace=identity(notebook)
+    else:
+        profile=selected(account,environ={},env_file=Path(repo)/'.env')
+        workspace={key:profile[key] for key in ['account','label','host','organization']}
+        workspace['artifact_volume']=artifact_volume(account=account)
     dump(inputs/'WORKSPACE.json',workspace)
     cfg=read(source/'config/composite_generalization_amendment_v2.json')
     plan={'version':MODE,'roles':['training','development'],
@@ -31,7 +36,15 @@ def prepare(repo,commit,model_inputs,human_scope,output,account):
         'identity_material':'research4-generalized-v2-20261024-cohorts-v1','model_weights_downloaded':False,
         'model_forwards':0,'optimizer_updates':0,'sealed_instances_materialized':False,**BOUNDS}
     dump(inputs/PLAN,plan)
-    destination=workspace['artifact_volume']+'/composite_controller_v1/data_generalized_v2/'+commit+'/export_01'
+    if account=='kaggle':
+        from src.composite_kaggle_v2_profile import data_destination,PROFILE,FILE,HUMAN_SHA
+        destination=data_destination(workspace,commit)
+        dump(inputs/FILE,{'version':PROFILE,'platform':'kaggle','account':'farhad89','notebook':notebook,
+            'source_commit':commit,'mode':MODE,'visible_devices':'','scientific_GPU_count':0,
+            'hard_timeout_seconds':900,'worker_seconds':600,'export_reserve_seconds':60,
+            'maximum_raw_export_bytes':256*1024**2,'maximum_concurrent_owned_workers':1,
+            'automatic_scientific_retries':0,'heldout_content_read':False,'human_scope_sha256':HUMAN_SHA,'destination':destination})
+    else:destination=workspace['artifact_volume']+'/composite_controller_v1/data_generalized_v2/'+commit+'/export_01'
     authority={'status':'explicit_human_generalization_continuation','authorized_by':'human_user',
         'human_user_message_id':read(inputs/HUMAN)['human_user_message_id'],'source_commit':commit,'world_version':VERSION,
         'mode':MODE,'roles':['training','development'],'heldout_content_read':False,'maximum_episode_ticks':24,
@@ -59,4 +72,5 @@ def prepare(repo,commit,model_inputs,human_scope,output,account):
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for name in ['repo','commit','model-inputs','human-scope','output','account']:p.add_argument('--'+name,required=True)
+    p.add_argument('--notebook');p.add_argument('--kaggle-scope')
     print(json.dumps(prepare(**vars(p.parse_args()))))

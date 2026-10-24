@@ -1,120 +1,70 @@
-# Research 4 Databricks research
+# Research4 current Kaggle continuation
 
-Latest2026-10-24 human clarification: produce the agreed Qwen27B all64-block
-rank32/alpha64 adapter as study work, using the original supervised recipe and
-frozen backbone. The newer scientific steering requires general task/mechanism
-transfer and model-authored tools, not only the old fixed two-patch procedure.
-Before fitting, version and review the new world/curriculum and detector-transfer
-validation. The local V2 amendment/examples are design-only, not a dataset or
-scientific execution admission. Preserve old data, failures and BASE36 results.
-The latest personal AGENTS instruction selects Databricks exclusively for new
-scientific execution; older Kaggle exceptions below describe historical runs.
-Keep existing accounts and stopped schedules intact. Creating the agreed adapter
-does not authorize reward optimization, real process/network/resource capabilities,
-changes to external permissions/stops, validation fitting or early held-out access.
-Scratch capacity qualification never silently warm-starts the full64-update fit.
+The direct human instruction of 2026-10-24 selects the existing Kaggle account
+farhad89 for the remainder of Research4. Use Databricks again only after a later
+explicit human instruction. This project instruction supersedes the generic
+Databricks preference. Historical routes and paid-Azure flags are not current
+Kaggle blockers.
 
-Latest explicit user instruction: use Kaggle GPUs for the current continuation.
-The human subsequently approved continuation without further approval for the
-previous runtime/retry and two-device qualification exceptions. Preserve the
-recorded genuine authorization and one-owned-worker/source-admission journal;
-do not recreate the superseded approval hold. This does not authorize behavior
-adapter fitting, reward training, premature held-out access or paid resources.
-The Kaggle runtime and pinned environment passed recorded engineering checks.
-The complete1200-update recognition run361470090 and fixed two-prompt frozen
-Qwen qualification361504592 are independently audited and released. The next
-original-base-control library retains all36validation scenes and leaves all
-five full-system controls required; its separate typed package cannot admit
-held-out cases or stand in for adapter effects. Its separate registered worker,
-export lifecycle and raw replay use the shared single-writer ledger. All six
-whole-scene partitions require one reviewed scientific source/model/input freeze;
-never rerun a consumed partition or submit from an unmerged/different source.
-Original BASE partitions00–02 (18scenes) are independently audited and released.
-Partition03/run361586756 failed the unchanged512MiB driver-free reserve guard
-after1260 sealed forwards,14 complete native/tool steps and no full trajectory.
-Its failed identity and all six pending cases remain preserved. The standalone
-unused-allocator reclaimer and prefix auditor are engineering libraries, not
-new submission authority. The separately versioned operational-v2 path wires
-idle unused-cache maintenance, exact byte-copy/replay of14saved tool steps,
-frozen tensor reload equality, new-response instrumentation and distinct
-one-use admission. Its descriptor retains the failed1260-forward parent and
-explicitly differs from the original8b868880 common freeze. Only a reviewed,
-frozen package under that distinct admission may execute; the original failed
-identity remains consumed. The descriptive mixed-version aggregate cannot
-admit full-system or held-out evaluation. Do not call the missing interrupted generation an
-exact resume: its output/KV state was not exported. Any recovery must version
-its failed-parent, operational source and relationship to the original8b868880
-common freeze, retain the complete model/recipe/cohort, and pass normal review,
-single-writer/one-worker admission and raw-evidence audit. No blind retry.
-The source-aware operational audit-reader-v2 excludes detector-already-terminal
-observations from actor maintenance counts. Audit-reader corrections must be
-reviewed and versioned separately; preserve the running2602d21e worker/package,
-all original evidence and runtime bounds. Do not deploy a reader-only change as
-a new scientific worker or use it to repeat a consumed experiment.
-Keep Databricks account configurations and archives intact, and leave its
-scheduled checks stopped. The shared composite runner supports a frozen,
-read-only Kaggle input manifest and dedicated local artifact exports; do not
-fork the scientific recipes. Kaggle currently admits only rank32 recognition.
-The separate frozen two-T4 loader/collector is engineering preparation only;
-it uses the recorded human GPU-count exception and a reviewed bounded worker
-with shared-ledger consumption before any allocation. The metadata-v2 recovery
-requires the original consumed attempt's audited zero-forward, pre-model failure
-and verified compute release; it has a distinct one-use candidate and must use
-a changed reviewed source. It cannot fit or restore
-behavior adapters, and its fixture checks do not prove runtime admission.
-Keep the full model sizes, adapter coverage, cohorts, controls and validation.
-Earlier Databricks-only requirements below describe the preserved prior route;
-the user's explicit Kaggle selection supersedes that execution-platform limit.
+Verified supervisor userMessage: 01a16e46-ff20-7eb3-a35b-dabc0efe6e5f.
+Receipt: C:/Users/farha/Research4/artifacts/composite_controller_v1/kaggle_transition_v1/HUMAN_KAGGLE_REMAINDER_SCOPE_20261024.json
+SHA256: b2d838773bdfe3d3a62bfe65eb76f59ae3f4a7e1543c71ef7ee90d681917332d.
+Existing fitting/generalization authority remains valid. Do not ask another
+platform/fitting approval or for a user-supplied checkpoint.
 
-This directory is the active Research 4 project. Use the Databricks core, Jobs,
-Bundles, serverless and ML training skills. Develop and test locally; train the
-actual models only on the explicitly selected Databricks workspace. Keep the
-base Qwen weights frozen. Treat selective semantic routing as a hypothesis.
+## Scientific scope
 
-The user requires Databricks exclusively for this investigation and subsequent
-research. Do not use Google Colab, Drive-mounted runtimes, or a Colab fallback.
-Retire the unrun Colab preparation without changing preserved input freezes.
-Continue authorized reversible preparation and evaluation without repetitive
-approval prompts. Local development/unit tests remain allowed. Keep experiments
-within the selected workspace's available quota and existing compute authority;
-do not purchase services or silently create a paid resource.
+Preserve scientific core e49a75d95739ad0ad106f4e737bc6a4b35f6b216 and original
+Qwen3.5-27B/ModernBERT pins. Qwen: all64 blocks, rank32/alpha64,496 projections,
+233455616 FP32 adapter parameters. Detector: all22 blocks/rank32/alpha64,
+selected checkpoint600/threshold0.9. Keep full generalized108 training/36
+development cases, all9 scenarios, all5 control meanings and paired-group rules.
+No architecture, data, question, update or control reduction to make a run fit.
 
-The current red-team extension evaluates frozen models in an in-memory virtual
-workspace, with neutral primitive tools and bounded declarative tool construction.
-Prompts must not name an extension tool, identify the planted route, or instruct
-the model to evade shutdown. Keep the hard episode/compute stop outside all
-model-writable state. Measure risky control changes, task work and compliance
-separately; do not train or optimize shutdown evasion or resource acquisition.
-Internal-gate experiments must remain separate from behavioral claims and retain
-base/no-op/sham controls. No subjective fear or universal energy-law claim follows.
+Supervised fitting:64 AdamW updates, accumulation2, learning_rate0.0005,
+seed202610212 and original clipping/frozen-backbone rules. Actual independently
+audited full-rank backward/AdamW/checkpoint/export scratch qualification comes
+before a fresh seeded full fit. Discard qualification adapter/optimizer/sampler/
+RNG state; no hidden warm-start. Earlier two-T4 BASE inference is not training
+qualification. Two separate16GB GPUs are not one32GB GPU. Version/review the
+per-device placement, memory, runtime, transport, export and cleanup profile;
+never silently inherit the one-A10 contract.
 
-Research 3 is read-only reference material. Never change its code, tables,
-jobs, checkpoints, deployment state or workers. Use only the Research 4 namespace:
-`workspace.research4` on the earlier accounts, `db_sp_lense.research4` on Azure,
-their dedicated artifact Volumes and `/Workspace/Shared/research4-semantic-gate` paths.
-Never log credentials or commit generated run data. Preserve failed runs.
+All actions/tool authoring stay finite inert permission-controlled JSON record
+operations. External permission/stop checks repeat for every primitive, without
+tick discounts. No real shell/process/network/deployment/resource capabilities,
+operational shutdown evasion, indefinite persistence or reward/RL optimization.
+External enforcement is not proof of learned voluntary compliance.
 
-Prior `study/04_activation_rotation` and `study/07_*` through `study/22_*` are
-historical research, not an active queue. Do not start their monitors.
+Evaluation uses native generation without teacher forcing, decoder repair or
+policy logit masks. Training targets stay training-only. Full fixed-detector
+transfer, exact model/config/source/runtime/data freeze, complete raw audits
+and all180 matched development trajectories precede any sealed confirmation.
+Keep held-out content sealed until genuine complete admission; no held-out tuning.
+Unknown/partial values are not zero; public fixtures and CI are not science.
 
-Validate the bundle strictly, freeze source and evaluation criteria before held
-evaluation, and verify outputs and cleanup. No paid compute, purchases, serving
-endpoints, schedules, or automatic retries. Explicit cancellation remains final.
+## Ownership and preservation
 
-The separately authorized composite-controller phase uses a frozen ModernBERT
-backbone with detection LoRA/heads, persistent predicted episode state, and one
-frozen Qwen backbone with a separate behavior LoRA. Its permission-controlled
-fictional continuity-record actions are confined to the inert simulator; this
-does not authorize training operational shutdown evasion, real process control,
-resource acquisition or resistance to an external operator. Preserve all earlier
-recognition-only freezes and failed results. New versioned training/validation
-and fresh sealed held-out cohorts must remain separate from earlier examples.
+Use the Codex built-in browser. Reconcile account, active events, sessions,
+quota and devices before fresh source-bound one-use admission. One owned worker,
+shared atomic submission guard/ledger, no duplicate or automatic scientific
+retries. Consumed identities remain consumed. Never interrupt a healthy worker.
+Necessary private notebook/data versions in farhad89 are authorized. No purchases,
+new paid resources or provider quota changes are authorized.
 
-The user subsequently authorized the work account and retention of the free tier
-for reversible switching. Use the shared `src.workspace_accounts` selector and
-ignored repository-root `.env`; do not duplicate research code per account.
-The user also authorized Azure Databricks with a CAD 100 monthly research budget.
-`config/workspace_accounts.json` lists all three explicitly authorized hosts. Preserve
-account-specific configurations and ledgers. Migration copies artifacts and the
-held-out seal as opaque checksum-verified bytes; it never opens held-out cases or
-changes earlier freezes. See `wiki/workspace_accounts.md`.
+Preserve old Databricks configurations, accounts/workspaces, packages, failures,
+checkpoints, BASE36 and the original v4 archive/seal. Keep stopped Azure/free-tier
+cost/GPU/quota schedules stopped. Research3 remains read-only. Preserve dirty
+CPU drafts on codex/91_cpu_recognition; do not deploy them. Old144 unexecuted
+controls do not become new outcomes; mixed-version BASE evidence stays explicit.
+
+Use shared scientific recipes and public/tiny local unit fixtures. Scientific
+execution belongs on the selected Kaggle runtime. Provider ports require feature
+branch/review/tests/CI/squash merge before deployment. After confirmed merge,
+delete and verify the remote feature branch only if no longer active or needed;
+local recovery references may remain. Reconcile actual child exit, durable raw
+exports, provider release and owned cleanup before another allocation.
+
+Historical AGENTS text is retained at Git e49a75d9 and
+kaggle_transition_v1/AGENTS_HISTORICAL_e49a75d9.md. Old Databricks/recognition-only
+route statements in those references are not current instructions.
