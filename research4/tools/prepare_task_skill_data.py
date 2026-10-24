@@ -9,14 +9,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.io_utils import read, dump, sha
 from src.composite_source_archive import archive_source
 from src.composite_task_skill_profile import (MODE, PROFILE, HUMAN, SELECTION_SHA, NOTEBOOK,
-                                               expected_profile, validate_source)
+                                               PARENT_FAILURE, PARENT_FAILURE_SHA, expected_profile, validate_source)
 from src.composite_kaggle_v2_profile import identity, HUMAN as KAGGLE_HUMAN, HUMAN_SHA
 from src.composite_v2_data_contract import ORIGINAL_MODEL_MANIFEST
 
 
-def prepare(repo, commit, model_inputs, human_selection, kaggle_scope, output):
+def prepare(repo, commit, model_inputs, human_selection, kaggle_scope, parent_failure, output):
     if sha(human_selection) != SELECTION_SHA or sha(kaggle_scope) != HUMAN_SHA:
         raise PermissionError('Exact human option-A/Kaggle selection receipts required')
+    if sha(parent_failure) != PARENT_FAILURE_SHA:
+        raise PermissionError('Exact released pre-data failure required for the separate bootstrap repair')
     model_inputs = Path(model_inputs)
     if sha(model_inputs / 'MANIFEST.json') != ORIGINAL_MODEL_MANIFEST:
         raise ValueError('Original full model input freeze required')
@@ -34,6 +36,7 @@ def prepare(repo, commit, model_inputs, human_selection, kaggle_scope, output):
         shutil.copyfile(model_inputs / name, inputs / name)
     shutil.copyfile(human_selection, inputs / HUMAN)
     shutil.copyfile(kaggle_scope, inputs / KAGGLE_HUMAN)
+    shutil.copyfile(parent_failure, inputs / PARENT_FAILURE)
     dump(inputs / 'WORKSPACE.json', identity(NOTEBOOK))
     dump(inputs / PROFILE, expected_profile(commit))
     dump(inputs / 'MANIFEST.json', {p.name: sha(p) for p in inputs.iterdir() if p.name != 'MANIFEST.json'})
@@ -68,6 +71,6 @@ def prepare(repo, commit, model_inputs, human_selection, kaggle_scope, output):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    for key in ['repo', 'commit', 'model-inputs', 'human-selection', 'kaggle-scope', 'output']:
+    for key in ['repo', 'commit', 'model-inputs', 'human-selection', 'kaggle-scope', 'parent-failure', 'output']:
         parser.add_argument('--' + key, required=True)
     print(json.dumps(prepare(**vars(parser.parse_args()))))

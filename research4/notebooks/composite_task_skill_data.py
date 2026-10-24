@@ -12,13 +12,18 @@ import venv
 START = time.monotonic()
 SOURCE_COMMIT = 'SOURCE_COMMIT_PLACEHOLDER'
 MANIFEST_SHA256 = 'PACKAGE_MANIFEST_SHA256_PLACEHOLDER'
-assert all(Path(p).is_dir() for p in ['/kaggle/input', '/kaggle/working', '/kaggle/temp'])
+runtime_paths = {p: Path(p).is_dir() for p in ['/kaggle/input', '/kaggle/working', '/kaggle/temp']}
+print(json.dumps({'stage': 'pre_data_runtime_paths', 'directories': runtime_paths, 'python': sys.version.split()[0]}))
+assert runtime_paths['/kaggle/input'] and runtime_paths['/kaggle/working'], 'Actual Kaggle mounted input/working roots are required'
+# A CPU image need not pre-create the disposable scratch directory. Creating
+# this fixed directory is setup only; it changes no data or scientific recipe.
+Path('/kaggle/temp').mkdir(exist_ok=True)
 matches = list(Path('/kaggle/input').rglob('TASK_SKILL_PACKAGE_FILES.json'))
 assert len(matches) == 1, 'Attach exactly one reviewed task-only package'
 manifest_path = matches[0]
 assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == MANIFEST_SHA256
 manifest = json.loads(manifest_path.read_text())
-assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] == 'ordinary-task-skill-data-v1'
+assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] == 'ordinary-task-skill-data-bootstrap-v2'
 root = Path('/kaggle/working/research4_inputs') / SOURCE_COMMIT
 root.mkdir(parents=True, exist_ok=False)
 for name, expected in manifest['files'].items():
@@ -36,7 +41,7 @@ for name, expected in manifest['files'].items():
 source = root / 'source'
 profile_path = source / 'inputs/TASK_SKILL_PROFILE.json'
 profile = json.loads(profile_path.read_text())
-assert profile['version'] == 'ordinary-task-skill-data-v1' and profile['scientific_GPU_count'] == 0
+assert profile['version'] == 'ordinary-task-skill-data-bootstrap-v2' and profile['scientific_GPU_count'] == 0
 output = Path(profile['destination'])
 output.parent.mkdir(parents=True, exist_ok=True)
 child = {'child_started': False, 'child_exit_confirmed': None, 'exit_code': None}

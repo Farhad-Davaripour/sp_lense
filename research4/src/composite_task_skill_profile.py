@@ -6,7 +6,9 @@ from .io_utils import read, sha, verify_release
 from .composite_kaggle_v2_profile import identity, HUMAN as KAGGLE_HUMAN, HUMAN_SHA
 from .composite_v2_data_contract import ORIGINAL_MODEL_MANIFEST
 
-MODE = 'ordinary-task-skill-data-v1'
+MODE = 'ordinary-task-skill-data-bootstrap-v2'
+PARENT_FAILURE = 'PRE_DATA_PARENT_FAILURE.json'
+PARENT_FAILURE_SHA = 'ea93f4e2ca6113ce485cbd0fd5d22abf86a5e3cbaf83d0103727db3a82229e46'
 PROFILE = 'TASK_SKILL_PROFILE.json'
 HUMAN = 'HUMAN_SCOPE_A_SELECTION.json'
 SELECTION_SHA = '53647510a4b6ccb1fdee5740a117458f94265d35c7541b2b159de3885f6815ba'
@@ -22,6 +24,7 @@ def expected_profile(commit):
     return {'version': MODE, 'source_commit': commit, 'platform': 'kaggle', 'account': 'farhad89',
             'notebook': NOTEBOOK, 'visible_devices': '', 'scientific_GPU_count': 0,
             'scope_A_selection_sha256': SELECTION_SHA, 'kaggle_scope_sha256': HUMAN_SHA,
+            'pre_data_parent_failure_sha256': PARENT_FAILURE_SHA,
             'destination': '/kaggle/working/research4_campaign/runs/' + commit + '/ordinary_task_skill_v1/data_01',
             'roles': ['training', 'development'], 'heldout_content_read': False,
             'continuity_targets_generated': False, **BOUNDS}
@@ -30,7 +33,7 @@ def expected_profile(commit):
 def validate_source(root, commit):
     root = Path(root)
     verify_release(root, commit)
-    required = {PROFILE, HUMAN, KAGGLE_HUMAN, 'WORKSPACE.json', 'QWEN_PIN.json',
+    required = {PROFILE, HUMAN, KAGGLE_HUMAN, PARENT_FAILURE, 'WORKSPACE.json', 'QWEN_PIN.json',
                 'MODERNBERT_PIN.json', 'PARENT_MODEL_INPUT_MANIFEST.json'}
     manifest = read(root / 'inputs/MANIFEST.json')
     if set(manifest) != required:
@@ -40,6 +43,13 @@ def validate_source(root, commit):
             raise PermissionError('Task-only frozen input bytes changed')
     if sha(root / 'inputs' / HUMAN) != SELECTION_SHA or sha(root / 'inputs' / KAGGLE_HUMAN) != HUMAN_SHA:
         raise PermissionError('Bind the direct human option-A selection and Kaggle account scope')
+    parent_failure = read(root / 'inputs' / PARENT_FAILURE)
+    if (sha(root / 'inputs' / PARENT_FAILURE) != PARENT_FAILURE_SHA
+            or parent_failure.get('scriptVersionId') != 361861821
+            or parent_failure.get('scientific_dataset_generation_started') is not False
+            or parent_failure.get('data_worker_child_started') is not False
+            or parent_failure.get('owned_compute_released') is not True):
+        raise PermissionError('Only the verified pre-data bootstrap failure admits this distinct repair')
     if read(root / 'inputs/WORKSPACE.json') != identity(NOTEBOOK):
         raise PermissionError('Wrong task-only notebook/account')
     parent = root / 'inputs/PARENT_MODEL_INPUT_MANIFEST.json'
