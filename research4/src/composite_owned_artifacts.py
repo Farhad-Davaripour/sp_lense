@@ -10,8 +10,10 @@ class ExportUnconfirmed(RuntimeError):pass
 
 
 class OwnedArtifacts:
-    def __init__(self,store,prefix,commit,base=None,maximum_bytes=1024**3,terminal_reserve=4*1024**2):
-        if not re.fullmatch('[0-9a-f]{40}',commit) or not re.fullmatch(r'model_generalized_v2/'+commit+r'/(?:qualification|full_fit)_01',prefix):
+    def __init__(self,store,prefix,commit,base=None,maximum_bytes=1024**3,terminal_reserve=4*1024**2,development=False):
+        pattern=(r'development_generalized_v2/'+commit+r'/(?:detector_transfer_01|partition_(?:0[0-9]|[12][0-9]|3[0-5]))'
+                 if development is True else r'model_generalized_v2/'+commit+r'/(?:qualification|full_fit)_01')
+        if type(development) is not bool or not re.fullmatch('[0-9a-f]{40}',commit) or not re.fullmatch(pattern,prefix):
             raise PermissionError('Exact owned source/phase namespace required')
         self.store=store;self.prefix=prefix;self.commit=commit;self.base=Path(tempfile.gettempdir() if base is None else base).resolve()
         self.scratch=Path(tempfile.mkdtemp(prefix='research4-v2-owned-stage-',dir=self.base)).resolve()
