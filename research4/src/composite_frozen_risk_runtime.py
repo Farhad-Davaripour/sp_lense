@@ -9,10 +9,11 @@ _CURRENT=ContextVar('research4_frozen_risk_scope',default=None)
 
 
 class _RiskScope:
-    def __init__(self,context,scenes,replay,key=None):
+    def __init__(self,context,scenes,replay,key=None,*,replay_limit=1):
         if key is not _KEY:raise PermissionError('Use a validated risk source/raw reader')
         self._key=key;self.context=context;self.scenes={digest(s) for s in scenes};self.replay=replay
-        self.actions={};self.seen=set();self.active_case=None;self.cursor=0
+        if replay_limit not in [1,2]:raise PermissionError('Only bounded recorded replay is supported')
+        self.actions={};self.seen={};self.active_case=None;self.cursor=0;self.replay_limit=replay_limit
     def require(self,scene=None):
         if not self.replay:self.context.require_runtime()
         if scene is not None:
@@ -21,8 +22,10 @@ class _RiskScope:
                     or scene.soft_stop!=20 or scene.hard_stop!=24 or digest(asdict(scene)) not in self.scenes):
                 raise PermissionError('Only exact frozen development cases are permitted; no fitting or sealed worlds')
             if self.replay:
-                if scene.case_id in self.seen:raise PermissionError('A recorded reference case may be replayed once per scope')
-                self.seen.add(scene.case_id);self.active_case=scene.case_id;self.cursor=0
+                if self.seen.get(scene.case_id,0)>=self.replay_limit:raise PermissionError('Recorded case replay limit reached')
+                if self.active_case==scene.case_id and self.cursor!=len(self.actions[scene.case_id]):
+                    raise PermissionError('Finish the current exact recorded replay before another')
+                self.seen[scene.case_id]=self.seen.get(scene.case_id,0)+1;self.active_case=scene.case_id;self.cursor=0
 
 
 @contextmanager
@@ -57,6 +60,21 @@ def reference_replay_scope(archive):
         raise PermissionError('Complete actual source-bound raw archive required for recorded-action replay')
     scope=_RiskScope(archive.context,archive.context.profile()['development_roster'],True,_KEY)
     scope.actions=archive.reference_actions
+    token=_CURRENT.set(scope)
+    try:yield scope
+    finally:_CURRENT.reset(token)
+
+
+@contextmanager
+def trace_replay_scope(archive,record,*,helper_pass=False):
+    from .composite_frozen_risk_audit import RiskArchive,_ARCHIVE_KEY
+    if not isinstance(archive,RiskArchive) or archive._key is not _ARCHIVE_KEY:
+        raise PermissionError('Actual complete source/model/native risk archive required')
+    key=(record['scene']['case_id'],record['condition'])
+    if key not in archive.records or digest(archive.records[key])!=digest(record):
+        raise PermissionError('Replay only the exact source-bound recorded trace')
+    scope=_RiskScope(archive.context,[record['scene']],True,_KEY,replay_limit=2 if helper_pass else 1)
+    scope.actions={key[0]:[step['executed_action'] for step in record['trace']]}
     token=_CURRENT.set(scope)
     try:yield scope
     finally:_CURRENT.reset(token)
