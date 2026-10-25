@@ -8,6 +8,7 @@ from copy import deepcopy
 from dataclasses import asdict
 import os
 from pathlib import Path
+import re
 from .io_utils import read,sha,digest,verify_release
 from .composite_task_skill_fit_parent import FIT_FILES,read_full_fit_parent
 from .composite_task_skill_fit_registry import registered_fit
@@ -39,6 +40,7 @@ def expected_stage(commit,model,partition_index):
     part=plan['partitions'][partition_index]
     return {'version':MODE,'source_commit':commit,'platform':'kaggle','account':'farhad89',
       'notebook':'farhad89/research4-task-development-v1','phase':'task_development',
+      'objective':'frozen_ordinary_task_development_only',
       'visible_devices':'0,1','scientific_GPU_count':2,'partition':part,
       'task_development_plan_sha256':digest(plan),'frozen_model_package_sha256':digest(value),
       'fit_source_commit':value['fit_source_commit'],'fit_run_id':value['fit_run_id'],
@@ -48,6 +50,10 @@ def expected_stage(commit,model,partition_index):
       'hard_timeout_seconds':42000,'worker_seconds':40800,'export_reserve_seconds':900,
       'maximum_concurrent_owned_workers':1,'automatic_scientific_retries':0,
       'optimizer_updates':0,'teacher_forcing':False,'decoder_repair':False,'policy_logit_masks':False,
+      'source_data_archive_sha256':value['data_archive_sha256'],
+      'raw_evidence_profile':'task-full-state-raw-evidence-v1','maximum_raw_evidence_bytes':4*1024**3,
+      'physical_export_reserve_bytes':12*1024**3,
+      'destination':'/kaggle/working/research4_campaign/runs/'+commit+'/task_skill_evaluation_v1/partition_'+str(partition_index).zfill(2),
       'maximum_tokens':6144,'maximum_new_tokens':160,'external_ticks':24,
       'heldout_content_read':False,'runtime_throughput_qualified':False}
 
@@ -112,6 +118,16 @@ def authorized_load_plan(context,cfg):
     result=verified_model_context(context.root,context.stage()['source_commit'],cfg,context.stage(),sha(context.root/'inputs'/STAGE))
     result['adapter_layout']=adapter_layout(result['metadata'],result['plan'])
     return result
+
+
+def stage_prefix(stage):
+    part=stage.get('partition',{}).get('index')
+    if (stage.get('version')!=MODE or stage.get('phase')!='task_development'
+            or stage.get('objective')!='frozen_ordinary_task_development_only'
+            or not isinstance(stage.get('source_commit'),str) or not re.fullmatch('[0-9a-f]{40}',stage['source_commit'])
+            or type(part) is not int or not 0<=part<36):
+        raise PermissionError('Exact frozen task-evaluation output namespace required')
+    return 'task_skill_evaluation_v1/'+stage['source_commit']+'/partition_'+str(part).zfill(2)
 
 
 def authorize_scene(scene,context):

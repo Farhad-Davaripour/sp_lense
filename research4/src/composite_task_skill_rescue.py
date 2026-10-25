@@ -15,8 +15,12 @@ def rescue_owned(output, stage, child, base='/kaggle/temp'):
         return {'status':'no_output_marker', 'scientific_result':None}
     owner = read(marker)
     scratch = Path(owner['scratch']).resolve()
-    if stage.get('phase') not in ['qualification','full_fit']:raise PermissionError('Unknown rescue phase')
-    expected_prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
+    if stage.get('phase')=='task_development':
+        from .composite_task_skill_inference import stage_prefix
+        expected_prefix=stage_prefix(stage)
+    else:
+        if stage.get('phase') not in ['qualification','full_fit']:raise PermissionError('Unknown rescue phase')
+        expected_prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
     if (scratch.parent != Path(base).resolve() or not scratch.name.startswith('research4-v2-owned-stage-')
             or owner.get('source_commit') != stage['source_commit'] or owner.get('prefix') != expected_prefix
             or not re.fullmatch('[0-9a-f]{32}', owner.get('token',''))):

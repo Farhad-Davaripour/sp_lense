@@ -11,16 +11,19 @@ class StageStore:
     def __init__(self, stage):
         from .composite_task_skill_training import qualification_plan
         from .composite_task_memory_profile import MODE as MEMORY_MODE
+        from .composite_task_skill_inference import MODE as INFERENCE_MODE,stage_prefix
+        inference=stage.get('version')==INFERENCE_MODE
         if stage.get('version')==MEMORY_MODE:
             from .composite_task_memory_source import qualification_plan
-        if (stage.get('phase') not in ['qualification','full_fit']
+        if not inference and (stage.get('phase') not in ['qualification','full_fit']
                 or stage.get('objective')!='ordinary_authorized_task_skills_only'):
             raise PermissionError('Exact reviewed task-training output stage required')
         if stage['phase']=='qualification' and stage!=qualification_plan(stage.get('source_commit')):
             raise PermissionError('Exact reviewed scratch stage required')
-        self.prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
+        self.prefix = stage_prefix(stage) if inference else 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
         self.root = Path(stage['destination']).resolve()
-        expected=Path('/kaggle/working/research4_campaign/runs')/stage['source_commit']/'task_skill_training_v1'/(stage['phase']+'_01')
+        expected=(Path('/kaggle/working/research4_campaign/runs')/stage['source_commit']/'task_skill_evaluation_v1'/('partition_'+str(stage['partition']['index']).zfill(2))
+                  if inference else Path('/kaggle/working/research4_campaign/runs')/stage['source_commit']/'task_skill_training_v1'/(stage['phase']+'_01'))
         if self.root!=expected.resolve():raise PermissionError('Task output escaped its exact source/phase')
         self.upload = exclusive_output(self.root, '/kaggle/working/research4_campaign/runs')
 
