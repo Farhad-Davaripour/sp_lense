@@ -15,7 +15,10 @@ def rescue_owned(output, stage, child, base='/kaggle/temp'):
         return {'status':'no_output_marker', 'scientific_result':None}
     owner = read(marker)
     scratch = Path(owner['scratch']).resolve()
-    if stage.get('phase')=='task_development':
+    if stage.get('phase') in ['risk_detector_transfer','risk_development']:
+        from .composite_frozen_risk_profile import stage_prefix
+        expected_prefix=stage_prefix(stage)
+    elif stage.get('phase')=='task_development':
         from .composite_task_skill_inference import stage_prefix
         expected_prefix=stage_prefix(stage)
     else:

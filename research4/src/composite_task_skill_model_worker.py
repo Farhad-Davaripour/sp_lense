@@ -29,10 +29,13 @@ class Services:
         stage = context['stage']
         store = StageStore(stage)
         inference=stage['phase']=='task_development'
+        risk=stage['phase'] in ['risk_detector_transfer','risk_development']
         from .composite_task_skill_inference import stage_prefix
-        prefix = stage_prefix(stage) if inference else 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
+        from .composite_frozen_risk_profile import stage_prefix as risk_prefix
+        prefix = risk_prefix(stage) if risk else stage_prefix(stage) if inference else 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
         return OwnedArtifacts(store, prefix, stage['source_commit'], base='/kaggle/temp',
-                              maximum_bytes=stage['maximum_raw_evidence_bytes'], task_skill=not inference,task_evaluation=inference)
+                              maximum_bytes=stage['maximum_raw_evidence_bytes'], task_skill=not(inference or risk),
+                              task_evaluation=inference,frozen_risk=risk)
 
     @staticmethod
     def runtime(context):
@@ -80,11 +83,11 @@ class Services:
         path, proof = download_model(pin, cache)
         owner.json('MODEL_FILE_VERIFICATION.json', proof)
         actor = cls.construct_actor(path,context,guard,forward)
-        if stage['phase']!='task_development':actor.v2_training_plan = stage
+        if stage['phase'] in ['qualification','full_fit']:actor.v2_training_plan = stage
         loading={'loading': actor.frozen_loading_proof,
             'kernel': actor.kernel_proof, 'layout': actor.frozen_layout_proof,
             'capacity_qualified_by_loading': False}
-        if stage['phase']=='task_development':loading['adapter_capacity']=actor.capacity_proof
+        if stage['phase'] in ['task_development','risk_development']:loading['adapter_capacity']=actor.capacity_proof
         owner.json('MODEL_LOAD_ADMISSION.json',loading)
         return actor
 
@@ -117,9 +120,13 @@ class Services:
         return {'owned_download_cache_removed': not cache.exists(), 'unique_raw_evidence_removed': False}
 
 
-def run(root, commit, _services=None,*,task_evaluation=False):
-    if type(task_evaluation) is not bool:raise PermissionError('Explicit registered task-worker kind required')
-    if task_evaluation:
+def run(root, commit, _services=None,*,task_evaluation=False,frozen_risk=False):
+    if type(task_evaluation) is not bool or type(frozen_risk) is not bool or (task_evaluation and frozen_risk):
+        raise PermissionError('One explicit registered task-worker kind required')
+    if frozen_risk:
+        from .composite_frozen_risk_worker import RiskServices
+        services=RiskServices() if _services is None else _services
+    elif task_evaluation:
         from .composite_task_skill_evaluation_worker import EvaluationServices
         services=EvaluationServices() if _services is None else _services
     else:services = Services() if _services is None else _services
@@ -127,12 +134,15 @@ def run(root, commit, _services=None,*,task_evaluation=False):
     context, rows = services.authorize(root, commit)
     stage = context['stage']
     if (stage['phase']=='task_development')!=task_evaluation:raise PermissionError('Worker kind and source-bound stage differ')
+    if (stage['phase'] in ['risk_development','risk_detector_transfer'])!=frozen_risk:
+        raise PermissionError('Risk worker kind and source-bound stage differ')
+    evaluation=task_evaluation or frozen_risk
     owner = services.owner(context)
     counts = {'attempted': 0, 'completed': 0}
     actor = None
     receipt = {'mode': stage['version'], 'source_commit': commit, 'phase': stage['phase'], 'status': 'running',
-               'training_objective':None if task_evaluation else 'ordinary_authorized_task_skills_only',
-               'evaluation_only':task_evaluation,
+               'training_objective':None if evaluation else 'ordinary_authorized_task_skills_only',
+               'evaluation_only':evaluation,
                'model_instances': None, 'optimizer_updates': None, 'full_fit_completed': False,
                'qualification_admitted': False, 'raw_evidence_audit_required': True,
                'heldout_content_read': False, 'automatic_scientific_retries': 0,
@@ -168,17 +178,17 @@ def run(root, commit, _services=None,*,task_evaluation=False):
             owner.json('PRECALL_FREEZE.json', {'stage': stage, 'source_commit': commit,
                 'data_archive_sha256': context['stage']['source_data_archive_sha256'],
                 'input_manifest_sha256': sha(Path(root) / 'inputs/MANIFEST.json') if _services is None else None,
-                'raw_training_rows_canonical_sha256':None if task_evaluation else digest(rows),
+                'raw_training_rows_canonical_sha256':None if evaluation else digest(rows),
                 'source_release': read(Path(root) / 'RELEASE.json') if _services is None else None})
             owner.json('HARDWARE_PREFLIGHT.json', services.runtime(context))
             guard()
             actor = services.load(context, owner, guard, forward)
-            receipt['model_instances'] = 1
+            receipt['model_instances'] = services.instance_count(actor) if hasattr(services,'instance_count') else 1
             def progress(kind,**value):
                 print(json.dumps({'kind':kind,'source_commit':commit,'phase':stage['phase'],
                   'counts_exact_at_exit':False,**value}),flush=True)
             result = services.fit(actor, rows, context['full_config'], stage, owner.raw, guard,progress,persist)
-            owner.json('TASK_COLLECTION_RESULT.json' if task_evaluation else 'TRAINING_RESULT.json', result)
+            owner.json('RISK_COLLECTION_RESULT.json' if frozen_risk else 'TASK_COLLECTION_RESULT.json' if task_evaluation else 'TRAINING_RESULT.json', result)
             receipt.update(status='complete', optimizer_updates=result['optimizer_updates'],full_fit_completed=stage['phase']=='full_fit')
     except Exception as error:
         receipt.update(status='failed', error_type=type(error).__name__, error=str(error))

@@ -19,16 +19,18 @@ from .composite_task_skill_execution import execution_plan
 
 MODE='ordinary-task-frozen-development-grouped-two-t4-v2'
 STAGE='TASK_EVALUATION_STAGE.json'
-FILES=FIT_FILES|{STAGE,'FROZEN_TASK_MODEL_PACKAGE.json','TASK_DATA_EVIDENCE.r4b64',
-               'TASK_EVALUATION_PLAN.json','TASK_EXECUTION_PLAN.json','QWEN_TENSOR_METADATA.json','QWEN_PIN.json','WORKSPACE.json'}
+MODEL_INPUTS=FIT_FILES|{'FROZEN_TASK_MODEL_PACKAGE.json','TASK_DATA_EVIDENCE.r4b64',
+                       'QWEN_TENSOR_METADATA.json','QWEN_PIN.json','WORKSPACE.json'}
+FILES=MODEL_INPUTS|{STAGE,'TASK_EVALUATION_PLAN.json','TASK_EXECUTION_PLAN.json'}
 _KEY=object()
 
 
 class TaskEvaluationContext:
-    def __init__(self,root,model,stage,fit_archive,key=None):
+    def __init__(self,root,model,stage,fit_archive,key=None,*,stage_filename=STAGE):
         if key is not _KEY:raise PermissionError('Read the complete source/model/data dependency chain')
+        if stage_filename not in [STAGE,'FROZEN_RISK_EVALUATION_STAGE.json']:raise PermissionError('Registered frozen stage file required')
         self._key=key;self.root=Path(root).resolve();self.model=model
-        self._stage=deepcopy(stage);self.fit_archive=Path(fit_archive).resolve()
+        self._stage=deepcopy(stage);self.fit_archive=Path(fit_archive).resolve();self.stage_filename=stage_filename
     def stage(self):return deepcopy(self._stage)
 
 
@@ -60,12 +62,12 @@ def expected_stage(commit,model,partition_index):
       'heldout_content_read':False,'runtime_throughput_qualified':False}
 
 
-def validate_source(root,commit,fit_archive,qualification_archive):
+def read_frozen_model(root,commit,fit_archive,qualification_archive,mode,required_inputs):
     root=Path(root).resolve();inputs=root/'inputs'
     from .composite_source_archive import verify_transport
-    verify_transport(root,commit,MODE,'TASK_TRAINING_PACKAGE_FILES.json')
+    verify_transport(root,commit,mode,'TASK_TRAINING_PACKAGE_FILES.json')
     manifest=read(inputs/'MANIFEST.json')
-    if set(manifest)!=FILES:raise PermissionError('Exact task-evaluation inputs required; no risk or sealed cohorts')
+    if set(manifest)!=required_inputs:raise PermissionError('Exact frozen model/evaluation input roster required')
     if any(Path(n).name!=n or sha(inputs/n)!=value for n,value in manifest.items()):
         raise PermissionError('Frozen task-evaluation input bytes changed')
     proof=read_full_fit_parent(inputs,fit_archive,qualification_archive)
@@ -89,6 +91,13 @@ def validate_source(root,commit,fit_archive,qualification_archive):
             if sha(root/'config'/name)!=sha(parent/'config'/name):raise PermissionError('Agreed scientific configuration changed')
         for name in ['QWEN_TENSOR_METADATA.json','QWEN_PIN.json']:
             if sha(inputs/name)!=sha(parent/'inputs'/name):raise PermissionError('Original model geometry/file pins changed')
+    return model
+
+
+def validate_source(root,commit,fit_archive,qualification_archive):
+    root=Path(root).resolve();inputs=root/'inputs'
+    model=read_frozen_model(root,commit,fit_archive,qualification_archive,MODE,FILES)
+    value=require_frozen_task_package(model)
     stage=read(inputs/STAGE)
     if digest(stage)!=digest(expected_stage(commit,model,stage.get('partition',{}).get('index'))):
         raise PermissionError('Task-evaluation stage/partition/bounds differ')
@@ -111,7 +120,7 @@ def require_runtime_binding(context):
             or Path(os.environ.get('RESEARCH4_TASK_EVALUATION_SOURCE_ROOT','')).resolve()!=root
             or not root.is_relative_to(Path('/kaggle/temp/research4_task_evaluation_inputs').resolve())
             or root.name!='source' or read(root/'RELEASE.json')['commit']!=stage['source_commit']
-            or os.environ.get('RESEARCH4_TASK_EVALUATION_STAGE_SHA256')!=sha(root/'inputs'/STAGE)):
+            or os.environ.get('RESEARCH4_TASK_EVALUATION_STAGE_SHA256')!=sha(root/'inputs'/context.stage_filename)):
         raise PermissionError('Exact owned two-T4 task-evaluation runtime/source required')
     return context
 
@@ -123,7 +132,7 @@ def authorized_load_plan(context,cfg):
     validate_recipe(core)
     if digest(cfg)!=digest(core['qwen']):raise PermissionError('Actor model/configuration differs from frozen task fit')
     from .composite_frozen_probe import verified_model_context
-    result=verified_model_context(context.root,context.stage()['source_commit'],cfg,context.stage(),sha(context.root/'inputs'/STAGE))
+    result=verified_model_context(context.root,context.stage()['source_commit'],cfg,context.stage(),sha(context.root/'inputs'/context.stage_filename))
     result['adapter_layout']=adapter_layout(result['metadata'],result['plan'])
     return result
 

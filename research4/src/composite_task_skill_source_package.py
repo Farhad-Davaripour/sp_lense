@@ -9,7 +9,9 @@ from .io_utils import read,sha
 
 
 @contextmanager
-def frozen_source_package(raw,expected_sha256,source_commit):
+def frozen_source_package(raw,expected_sha256,source_commit,*,manifest_name='TASK_TRAINING_PACKAGE_FILES.json'):
+    if manifest_name not in ['TASK_TRAINING_PACKAGE_FILES.json','RISK_DATA_PACKAGE_FILES.json']:
+        raise PermissionError('Only registered complete source/input transport formats are readable')
     if hashlib.sha256(raw).hexdigest()!=expected_sha256:
         raise PermissionError('Frozen source/input package bytes changed')
     with tempfile.TemporaryDirectory(prefix='r4-task-parent-source-') as folder:
@@ -28,7 +30,7 @@ def frozen_source_package(raw,expected_sha256,source_commit):
                 if not target.is_relative_to(base):raise ValueError('Source escaped its owned audit folder')
                 target.parent.mkdir(parents=True,exist_ok=True)
                 with target.open('xb') as output:output.write(z.read(name))
-        name='TASK_TRAINING_PACKAGE_FILES.json';mf=read(base/name)
+        name=manifest_name;mf=read(base/name)
         if mf.get('source_commit')!=source_commit or set(names)!=set(mf['files'])|{name}:
             raise PermissionError('Exact source and complete package roster required')
         for item,expected in mf['files'].items():

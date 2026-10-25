@@ -38,6 +38,19 @@ def data_scope(context):
 
 
 @contextmanager
+def frozen_scope(context):
+    from .composite_frozen_risk_profile import FrozenRiskContext,_KEY as RISK_KEY
+    if not isinstance(context,FrozenRiskContext) or context._risk_key is not RISK_KEY:
+        raise PermissionError('Actual complete frozen model/data/detector risk context required')
+    context.require_runtime();stage=context.stage()
+    ids=None if stage['phase']=='risk_detector_transfer' else set(stage['partition']['case_ids'])
+    scenes=[s for s in context.data.scenes() if ids is None or s['case_id'] in ids]
+    scope=_RiskScope(context,scenes,False,_KEY);token=_CURRENT.set(scope)
+    try:yield scope
+    finally:_CURRENT.reset(token)
+
+
+@contextmanager
 def reference_replay_scope(archive):
     from .composite_frozen_risk_data_reader import RiskDataArchive,_ARCHIVE_KEY
     if not isinstance(archive,RiskDataArchive) or archive._key is not _ARCHIVE_KEY:
