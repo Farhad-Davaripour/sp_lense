@@ -28,9 +28,11 @@ class Services:
     def owner(context):
         stage = context['stage']
         store = StageStore(stage)
-        prefix = 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
+        inference=stage['phase']=='task_development'
+        from .composite_task_skill_inference import stage_prefix
+        prefix = stage_prefix(stage) if inference else 'task_skill_training_v1/' + stage['source_commit'] + '/'+stage['phase']+'_01'
         return OwnedArtifacts(store, prefix, stage['source_commit'], base='/kaggle/temp',
-                              maximum_bytes=stage['maximum_raw_evidence_bytes'], task_skill=True)
+                              maximum_bytes=stage['maximum_raw_evidence_bytes'], task_skill=not inference,task_evaluation=inference)
 
     @staticmethod
     def runtime(context):
@@ -51,8 +53,8 @@ class Services:
         from .composite_frozen_worker import protected_alarm
         return protected_alarm(seconds)
 
-    @staticmethod
-    def load(context, owner, guard, forward):
+    @classmethod
+    def load(cls,context, owner, guard, forward):
         from .composite_frozen_worker import transport_environment
         from .composite_store import download_model
         from .composite_frozen_probe import verify_metadata_bytes
@@ -77,16 +79,19 @@ class Services:
         guard()
         path, proof = download_model(pin, cache)
         owner.json('MODEL_FILE_VERIFICATION.json', proof)
-        from .composite_actor import Actor
-        from .composite_generalized_interface import PROFILE
-        actor = Actor(path, context['full_config']['qwen'], guard, forward,
-                      native_interface_profile=PROFILE,
-                      task_training={'root': context['source_root'], 'source_commit': context['source_commit']})
-        actor.v2_training_plan = stage
+        actor = cls.construct_actor(path,context,guard,forward)
+        if stage['phase']!='task_development':actor.v2_training_plan = stage
         owner.json('MODEL_LOAD_ADMISSION.json', {'loading': actor.frozen_loading_proof,
             'kernel': actor.kernel_proof, 'layout': actor.frozen_layout_proof,
             'capacity_qualified_by_loading': False})
         return actor
+
+    @staticmethod
+    def construct_actor(path,context,guard,forward):
+        from .composite_actor import Actor
+        from .composite_generalized_interface import PROFILE
+        return Actor(path,context['full_config']['qwen'],guard,forward,native_interface_profile=PROFILE,
+                     task_training={'root':context['source_root'],'source_commit':context['source_commit']})
 
     @staticmethod
     def release():
@@ -110,16 +115,22 @@ class Services:
         return {'owned_download_cache_removed': not cache.exists(), 'unique_raw_evidence_removed': False}
 
 
-def run(root, commit, _services=None):
-    services = Services() if _services is None else _services
+def run(root, commit, _services=None,*,task_evaluation=False):
+    if type(task_evaluation) is not bool:raise PermissionError('Explicit registered task-worker kind required')
+    if task_evaluation:
+        from .composite_task_skill_evaluation_worker import EvaluationServices
+        services=EvaluationServices() if _services is None else _services
+    else:services = Services() if _services is None else _services
     started = services.clock()
     context, rows = services.authorize(root, commit)
     stage = context['stage']
+    if (stage['phase']=='task_development')!=task_evaluation:raise PermissionError('Worker kind and source-bound stage differ')
     owner = services.owner(context)
     counts = {'attempted': 0, 'completed': 0}
     actor = None
     receipt = {'mode': stage['version'], 'source_commit': commit, 'phase': stage['phase'], 'status': 'running',
-               'training_objective': 'ordinary_authorized_task_skills_only',
+               'training_objective':None if task_evaluation else 'ordinary_authorized_task_skills_only',
+               'evaluation_only':task_evaluation,
                'model_instances': None, 'optimizer_updates': None, 'full_fit_completed': False,
                'qualification_admitted': False, 'raw_evidence_audit_required': True,
                'heldout_content_read': False, 'automatic_scientific_retries': 0,
@@ -155,7 +166,7 @@ def run(root, commit, _services=None):
             owner.json('PRECALL_FREEZE.json', {'stage': stage, 'source_commit': commit,
                 'data_archive_sha256': context['stage']['source_data_archive_sha256'],
                 'input_manifest_sha256': sha(Path(root) / 'inputs/MANIFEST.json') if _services is None else None,
-                'raw_training_rows_canonical_sha256': digest(rows),
+                'raw_training_rows_canonical_sha256':None if task_evaluation else digest(rows),
                 'source_release': read(Path(root) / 'RELEASE.json') if _services is None else None})
             owner.json('HARDWARE_PREFLIGHT.json', services.runtime(context))
             guard()
@@ -165,7 +176,7 @@ def run(root, commit, _services=None):
                 print(json.dumps({'kind':kind,'source_commit':commit,'phase':stage['phase'],
                   'counts_exact_at_exit':False,**value}),flush=True)
             result = services.fit(actor, rows, context['full_config'], stage, owner.raw, guard,progress,persist)
-            owner.json('TRAINING_RESULT.json', result)
+            owner.json('TASK_COLLECTION_RESULT.json' if task_evaluation else 'TRAINING_RESULT.json', result)
             receipt.update(status='complete', optimizer_updates=result['optimizer_updates'],full_fit_completed=stage['phase']=='full_fit')
     except Exception as error:
         receipt.update(status='failed', error_type=type(error).__name__, error=str(error))
