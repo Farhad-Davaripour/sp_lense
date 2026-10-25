@@ -15,11 +15,12 @@ from .composite_task_skill_fit_registry import registered_fit
 from .composite_task_skill_package import (read_task_development_inputs,restore_frozen_task_package,
                                            require_frozen_task_package)
 from .composite_task_skill_validation import task_development_plan
+from .composite_task_skill_execution import execution_plan
 
-MODE='ordinary-task-frozen-development-two-t4-v1'
+MODE='ordinary-task-frozen-development-grouped-two-t4-v2'
 STAGE='TASK_EVALUATION_STAGE.json'
 FILES=FIT_FILES|{STAGE,'FROZEN_TASK_MODEL_PACKAGE.json','TASK_DATA_EVIDENCE.r4b64',
-               'TASK_EVALUATION_PLAN.json','QWEN_TENSOR_METADATA.json','QWEN_PIN.json','WORKSPACE.json'}
+               'TASK_EVALUATION_PLAN.json','TASK_EXECUTION_PLAN.json','QWEN_TENSOR_METADATA.json','QWEN_PIN.json','WORKSPACE.json'}
 _KEY=object()
 
 
@@ -34,15 +35,16 @@ class TaskEvaluationContext:
 def expected_stage(commit,model,partition_index):
     value=require_frozen_task_package(model)
     if value['evaluation_source_commit']!=commit:raise PermissionError('Another evaluation source was selected')
-    plan=task_development_plan(value['development_roster'])
+    original=task_development_plan(value['development_roster']);plan=execution_plan(value['development_roster'])
     if type(partition_index) is not int or not 0<=partition_index<len(plan['partitions']):
-        raise PermissionError('One exact whole paired task case is required')
+        raise PermissionError('One exact complete preregistered task execution partition is required')
     part=plan['partitions'][partition_index]
     return {'version':MODE,'source_commit':commit,'platform':'kaggle','account':'farhad89',
       'notebook':'farhad89/research4-task-development-v1','phase':'task_development',
       'objective':'frozen_ordinary_task_development_only',
       'visible_devices':'0,1','scientific_GPU_count':2,'partition':part,
-      'task_development_plan_sha256':digest(plan),'frozen_model_package_sha256':digest(value),
+      'task_development_plan_sha256':digest(original),'task_execution_plan_sha256':digest(plan),
+      'frozen_model_package_sha256':digest(value),
       'fit_source_commit':value['fit_source_commit'],'fit_run_id':value['fit_run_id'],
       'checkpoint_sha256':value['checkpoint_sha256'],'full_task_trajectories_required':72,
       'original_risk_trajectories_still_required':180,
@@ -99,6 +101,8 @@ def validate_source(root,commit,fit_archive,qualification_archive):
         raise PermissionError('Task-evaluation stage/partition/bounds differ')
     plan=task_development_plan(value['development_roster'])
     if digest(read(inputs/'TASK_EVALUATION_PLAN.json'))!=digest(plan):raise PermissionError('Complete paired72 plan changed')
+    if digest(read(inputs/'TASK_EXECUTION_PLAN.json'))!=digest(execution_plan(value['development_roster'])):
+        raise PermissionError('Complete fixed13-partition execution plan changed')
     from .composite_kaggle_v2_profile import identity
     if read(inputs/'WORKSPACE.json')!=identity(stage['notebook']):raise PermissionError('Wrong evaluation account/notebook')
     return TaskEvaluationContext(root,model,stage,fit_archive,_KEY)
@@ -136,7 +140,7 @@ def stage_prefix(stage):
     if (stage.get('version')!=MODE or stage.get('phase')!='task_development'
             or stage.get('objective')!='frozen_ordinary_task_development_only'
             or not isinstance(stage.get('source_commit'),str) or not re.fullmatch('[0-9a-f]{40}',stage['source_commit'])
-            or type(part) is not int or not 0<=part<36):
+            or type(part) is not int or not 0<=part<13):
         raise PermissionError('Exact frozen task-evaluation output namespace required')
     return 'task_skill_evaluation_v1/'+stage['source_commit']+'/partition_'+str(part).zfill(2)
 
@@ -189,6 +193,7 @@ def restore_checkpoint(actor,context):
         load(actor.adapters,saved['weights'])
         parameters=trainables(actor.adapters)
         for parameter in parameters:parameter.requires_grad_(False)
+        actor.eval()
         if any(p.requires_grad or p.grad is not None for p in parameters):
             raise PermissionError('Frozen task adapters must have no gradients or fitting parameters')
         actual={name+'.'+part:tensor_digest(getattr(module,part)) for name,module in actor.adapters.items() for part in ['A','B']}

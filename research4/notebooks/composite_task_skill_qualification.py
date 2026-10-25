@@ -21,9 +21,9 @@ assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == MANIFEST_SHA256
 manifest = json.loads(manifest_path.read_text())
 registered={'ordinary-task-skill-two-t4-training-postload-v2':{'qualification':1,'full_fit':64},
             'ordinary-task-skill-stateful-memory-v3':{'qualification':3,'full_fit':64},
-            'ordinary-task-frozen-development-two-t4-v1':{'task_development':0}}
+            'ordinary-task-frozen-development-grouped-two-t4-v2':{'task_development':0}}
 assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] in registered
-evaluation=manifest['version']=='ordinary-task-frozen-development-two-t4-v1'
+evaluation=manifest['version']=='ordinary-task-frozen-development-grouped-two-t4-v2'
 root = Path('/kaggle/temp/research4_task_evaluation_inputs' if evaluation else '/kaggle/temp/research4_task_training_inputs') / SOURCE_COMMIT
 root.mkdir(parents=True, exist_ok=False)
 for name, expected in manifest['files'].items():

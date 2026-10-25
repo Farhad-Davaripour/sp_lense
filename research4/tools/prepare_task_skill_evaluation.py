@@ -1,4 +1,4 @@
-"""Prepare one frozen paired task case from complete exported dependencies only."""
+"""Prepare one fixed task-pair partition from complete exported dependencies."""
 import argparse
 import base64
 import json
@@ -15,6 +15,7 @@ from src.composite_task_skill_fit_registry import registered_fit
 from src.composite_task_skill_package import read_task_development_inputs,restore_frozen_task_package
 from src.composite_task_skill_inference import expected_stage,validate_source,STAGE
 from src.composite_task_skill_validation import task_development_plan
+from src.composite_task_skill_execution import execution_plan
 from src.composite_task_skill_source_package import frozen_source_package
 from src.composite_source_archive import archive_source
 from src.composite_kaggle_v2_profile import identity
@@ -43,6 +44,7 @@ def prepare(repo,frozen_package,fit_archive,qualification_archive,partition_inde
             (target/name).write_bytes((fit_source/'inputs'/name).read_bytes())
     dump(target/'FROZEN_TASK_MODEL_PACKAGE.json',value)
     dump(target/'TASK_EVALUATION_PLAN.json',task_development_plan(value['development_roster']))
+    dump(target/'TASK_EXECUTION_PLAN.json',execution_plan(value['development_roster']))
     dump(target/'WORKSPACE.json',identity(stage['notebook']));dump(target/STAGE,stage)
     dump(target/'MANIFEST.json',{p.name:sha(p) for p in sorted(target.iterdir()) if p.name!='MANIFEST.json'})
     manifest=bundle/'TASK_TRAINING_PACKAGE_FILES.json'
@@ -61,7 +63,8 @@ def prepare(repo,frozen_package,fit_archive,qualification_archive,partition_inde
       'nbformat':4,'nbformat_minor':5})
     receipt={'status':'prepared_frozen_task_development_not_submitted','source_commit':commit,
       'mode':stage['version'],'phase':stage['phase'],'notebook':stage['notebook'],'platform':'kaggle','account':'farhad89',
-      'partition_index':partition_index,'case_ids':stage['partition']['case_ids'],'expected_trajectories':2,
+      'partition_index':partition_index,'case_ids':stage['partition']['case_ids'],
+      'expected_trajectories':stage['partition']['expected_trajectories'],
       'full_task_trajectories_still_required':72,'separate_risk_trajectories_still_required':180,
       'fit_run_id':value['fit_run_id'],'checkpoint_sha256':value['checkpoint_sha256'],
       'fit_archive_local_path':str(Path(fit_archive).resolve()),

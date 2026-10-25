@@ -1,4 +1,4 @@
-"""One frozen paired task case using the common owned model-worker lifecycle."""
+"""One fixed partition of frozen task pairs using the shared owned lifecycle."""
 import argparse
 import json
 import os
@@ -44,16 +44,24 @@ class EvaluationServices(Services):
         from .composite_task_memory_profile import allocator_evidence
         import torch
         persist('BACKBONE_LIVE_BEFORE.json',capture_live_backbone(actor))
-        persist('CHECKPOINT_LIVE_BEFORE.json',verify_frozen_checkpoint(actor,actor.task_evaluation_context))
+        before_checkpoint=verify_frozen_checkpoint(actor,actor.task_evaluation_context)
+        persist('CHECKPOINT_LIVE_BEFORE.json',before_checkpoint)
         persist('RUNTIME_RAW.json',runtime_evidence(actor))
         persist('ALLOCATOR_BEFORE_COLLECTION.json',allocator_evidence(torch.cuda))
         persist('MODEL_LOADING_INFO.json',actor.frozen_loading_proof)
         persist('CHECKPOINT_RESTORE.json',actor.task_checkpoint_proof)
         persist('POSTLOAD_RUNTIME.json',actor.task_evaluation_postload_proof)
         try:
-            result=collect_pair(actor,actor.task_evaluation_context,persist)
-            progress('task_paired_case_complete',case_id=stage['partition']['case_ids'][0],completed_trajectories=2)
-            return result
+            pairs=[]
+            for case_id in stage['partition']['case_ids']:
+                guard();pairs.append(collect_pair(actor,actor.task_evaluation_context,persist,case_id))
+                progress('task_paired_case_complete',case_id=case_id,completed_trajectories=2*len(pairs))
+            after_checkpoint=verify_frozen_checkpoint(actor,actor.task_evaluation_context)
+            return {'partition':stage['partition'],'pairs':pairs,'checkpoint_sha256':before_checkpoint['checkpoint_sha256'],
+              'live_checkpoint_before':before_checkpoint,'live_checkpoint_after':after_checkpoint,
+              'completed_trajectories':2*len(pairs),'optimizer_updates':0,
+              'teacher_forcing':False,'decoder_repair':False,'source_raw_audit_still_required':True,
+              'scientific_validation_admitted':False,'heldout_content_read':False}
         finally:
             actor.verify_frozen()
             persist('BACKBONE_LIVE_AFTER.json',capture_live_backbone(actor))

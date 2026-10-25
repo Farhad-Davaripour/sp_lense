@@ -11,7 +11,7 @@ from src.composite_task_skill_evaluation_admission import reserve_evaluation,rec
 
 class TaskEvaluationAdmissionTests(unittest.TestCase):
     def fixture(self,root):
-        binding={'source_commit':'a'*40,'phase':'task_development','case_id':'b'*64,
+        binding={'source_commit':'a'*40,'phase':'task_development','case_id':'b'*64,'partition_index':0,
           'authorization_sha256':'c'*64,'fit_run_id':361964150,'fit_source_commit':'d'*40,
           'fit_raw_archive_sha256':'e'*64,'checkpoint_sha256':'f'*64,
           'provider_scope':'human-selected-Kaggle-remainder-v1','kaggle_remainder_scope_sha256':HUMAN_SHA,'fresh_stage':True}
@@ -45,6 +45,28 @@ class TaskEvaluationAdmissionTests(unittest.TestCase):
             dump(root/'PUBLIC_CLOSEOUT.json',closeout)
             with patch('src.composite_task_skill_evaluation_admission.validate_preparation',return_value=binding):
                 with self.assertRaises(PermissionError):reserve_evaluation(root,'public_fixture.json',self.live)
+            self.assertEqual(read(root/'SCIENTIFIC_EXECUTION_LEDGER.json'),ledger)
+            self.assertFalse((root/'COMPUTE_SUBMISSION.lock').exists())
+
+    def test_later_group_needs_actual_first_pair_raw_proof_not_a_summary(self):
+        with TemporaryDirectory() as folder:
+            root=Path(folder);binding,ledger=self.fixture(root)
+            binding.update(partition_index=1,case_id=None,case_ids=['1'*64,'2'*64,'3'*64])
+            with patch('src.composite_task_skill_evaluation_admission.validate_preparation',return_value=binding):
+                for first in [None,True,{'task_partition_admitted':True,'owned_compute_released':True}]:
+                    with self.assertRaises(PermissionError):reserve_evaluation(root,'public_fixture.json',self.live,first_partition_audit=first)
+            self.assertEqual(read(root/'SCIENTIFIC_EXECUTION_LEDGER.json'),ledger)
+            self.assertFalse((root/'COMPUTE_SUBMISSION.lock').exists())
+
+    def test_regrouping_never_reuses_a_previously_consumed_case(self):
+        with TemporaryDirectory() as folder:
+            root=Path(folder);binding,ledger=self.fixture(root)
+            ledger['candidates']['public_old_group']={'status':'public_fixture_complete','owned_compute_released':True,
+              'evaluation_attempts':[{'phase':'task_development','case_ids':['1'*64,'b'*64,'2'*64],'scriptVersionId':99}]}
+            dump(root/'SCIENTIFIC_EXECUTION_LEDGER.json',ledger)
+            with patch('src.composite_task_skill_evaluation_admission.validate_preparation',return_value=binding):
+                with self.assertRaisesRegex(PermissionError,'consumed submission'):
+                    reserve_evaluation(root,'public_fixture.json',self.live)
             self.assertEqual(read(root/'SCIENTIFIC_EXECUTION_LEDGER.json'),ledger)
             self.assertFalse((root/'COMPUTE_SUBMISSION.lock').exists())
 

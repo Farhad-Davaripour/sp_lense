@@ -12,11 +12,19 @@ from .composite_task_skill_package import require_frozen_task_package
 ATTEMPTS='evaluation_attempts'
 
 
-def candidate_key(case_id):
-    if not isinstance(case_id,str) or not re.fullmatch('[0-9a-f]{64}',case_id):
-        raise PermissionError('Exact complete task-case identity required')
+def normalized_cases(case_ids):
+    ids=[case_ids] if isinstance(case_ids,str) else case_ids
+    if (not isinstance(ids,list) or not 1<=len(ids)<=3
+            or any(not isinstance(c,str) or not re.fullmatch('[0-9a-f]{64}',c) for c in ids)
+            or len(set(ids))!=len(ids)):
+        raise PermissionError('One to three exact nonduplicate complete case identities required')
+    return list(ids)
+
+
+def candidate_key(case_ids):
+    ids=normalized_cases(case_ids)
     # Source/transport changes never reset a consumed scientific case.
-    return 'task_skill_frozen_pair_'+case_id
+    return 'task_skill_frozen_pair_'+ids[0] if len(ids)==1 else 'task_skill_frozen_group_'+digest(sorted(ids))
 
 
 def validate_preparation(path):
@@ -33,10 +41,11 @@ def validate_preparation(path):
                      ('bundle/source/inputs/'+STAGE,'stage_sha256'),
                      ('bundle/source/inputs/MANIFEST.json','input_manifest_sha256')]:
         if sha(path.parent/file)!=value[key]:raise PermissionError('Frozen task-evaluation package/code changed')
-    if (value['notebook']!=stage['notebook'] or value['case_ids']!=stage['partition']['case_ids']
-            or value['partition_index']!=stage['partition']['index']
-            or value['frozen_model_package_sha256']!=digest(model)
-            or value['checkpoint_sha256']!=model['checkpoint_sha256'] or value['fit_run_id']!=model['fit_run_id']):
+    descriptors={'notebook':stage['notebook'],'case_ids':stage['partition']['case_ids'],
+      'partition_index':stage['partition']['index'],'expected_trajectories':stage['partition']['expected_trajectories'],
+      'destination':stage['destination'],'frozen_model_package_sha256':digest(model),
+      'checkpoint_sha256':model['checkpoint_sha256'],'fit_run_id':model['fit_run_id']}
+    if any(digest(value.get(k))!=digest(v) for k,v in descriptors.items()):
         raise PermissionError('Prepared task-case/model/source identity differs')
     code=[''.join(c['source']) for c in read(path.parent/'research4_task_development.ipynb')['cells'] if c['cell_type']=='code']
     expected=(root/'notebooks/composite_task_skill_qualification.py').read_text().replace(
@@ -48,14 +57,17 @@ def validate_preparation(path):
       'frozen_model_package_sha256':digest(model),'checkpoint_sha256':model['checkpoint_sha256'],
       'fit_source_commit':model['fit_source_commit'],'fit_run_id':model['fit_run_id'],
       'fit_raw_archive_sha256':model['fit_raw_archive_sha256'],
-      'case_id':stage['partition']['case_ids'][0],'partition_index':stage['partition']['index'],
+      'case_ids':stage['partition']['case_ids'],
+      'case_id':stage['partition']['case_ids'][0] if len(stage['partition']['case_ids'])==1 else None,
+      'partition_index':stage['partition']['index'],
       'kaggle_remainder_scope_sha256':HUMAN_SHA,'scope_A_selection_sha256':SELECTION_SHA,
       'provider_scope':'human-selected-Kaggle-remainder-v1','fresh_stage':True,'scientific_GPU_count':2,
-      'hard_timeout_seconds':stage['hard_timeout_seconds'],'optimizer_updates':0,'expected_trajectories':2,
+      'hard_timeout_seconds':stage['hard_timeout_seconds'],'optimizer_updates':0,
+      'expected_trajectories':stage['partition']['expected_trajectories'],
       'automatic_scientific_retries':0,'heldout_content_read':False}
 
 
-def reserve_evaluation(campaign_root,preparation_file,live_snapshot,guard_token=None):
+def reserve_evaluation(campaign_root,preparation_file,live_snapshot,guard_token=None,*,first_partition_audit=None):
     root=Path(campaign_root);lock,token,_=guard(root,guard_token)
     try:
         ledger=read(root/'SCIENTIFIC_EXECUTION_LEDGER.json')
@@ -71,11 +83,26 @@ def reserve_evaluation(campaign_root,preparation_file,live_snapshot,guard_token=
           'full_fit_completed':True,'full_fit_raw_audited':True,'owned_compute_released':True}
         if any(digest(closeout.get(k))!=digest(v) for k,v in expected.items()):
             raise PermissionError('Ledger full-fit closeout differs from the actual raw dependency')
-        key=candidate_key(binding['case_id'])
+        if binding['partition_index']>0:
+            from .composite_task_skill_evaluation_audit import require_task_partition
+            first=require_task_partition(first_partition_audit)
+            if (first['partition_index']!=0 or first['expected_trajectories']!=2
+                    or first['source_commit']!=binding['source_commit']
+                    or first['checkpoint_sha256']!=binding['checkpoint_sha256']
+                    or first['frozen_model_package_sha256']!=binding['frozen_model_package_sha256']):
+                raise PermissionError('First useful paired-case raw qualification belongs to another freeze')
+            recorded=ledger['candidates'].get(candidate_key(first['case_ids']))
+            if (not recorded or recorded.get('owned_compute_released') is not True
+                    or not any(a.get('scriptVersionId')==first['provider_run_id']
+                               and a.get('source_commit')==first['source_commit'] for a in recorded.get(ATTEMPTS,[]))):
+                raise PermissionError('Reconcile and release the exact first paired-case submission before grouped stages')
+        ids=normalized_cases(binding.get('case_ids',binding.get('case_id')));key=candidate_key(ids)
         for name,value in ledger['candidates'].items():
-            if name!=key and any(a.get('phase')=='task_development' and a.get('case_id')==binding['case_id']
-                                 for a in value.get(ATTEMPTS,[])):
-                raise PermissionError('This task case already has a consumed submission under another source/key')
+            for attempt in value.get(ATTEMPTS,[]):
+                if attempt.get('phase')!='task_development':continue
+                prior=normalized_cases(attempt.get('case_ids',attempt.get('case_id')))
+                if set(prior)&set(ids):
+                    raise PermissionError('At least one task case already has a consumed submission under this or another source/group')
     except Exception:
         if lock.exists() and read(lock).get('token')==token:lock.unlink()
         raise
@@ -83,5 +110,5 @@ def reserve_evaluation(campaign_root,preparation_file,live_snapshot,guard_token=
                    lambda _:binding,candidate_rule,token)
 
 
-def reconcile_evaluation(campaign_root,identity,case_id,script_version_id=None,guard_token=None):
-    return reconcile(campaign_root,identity,candidate_key(case_id),ATTEMPTS,script_version_id,guard_token)
+def reconcile_evaluation(campaign_root,identity,case_ids,script_version_id=None,guard_token=None):
+    return reconcile(campaign_root,identity,candidate_key(case_ids),ATTEMPTS,script_version_id,guard_token)
