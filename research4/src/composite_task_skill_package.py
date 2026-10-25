@@ -13,10 +13,9 @@ import zipfile
 from .io_utils import digest
 from .composite_task_skill_training import DATA_ARCHIVE_SHA,DATA_SOURCE,DATA_RELEASE_SHA,read_data
 from .composite_task_skill_validation import validate_roster,task_development_plan
+from .composite_task_skill_fit_registry import registered_fit
 
 _KEY=object()
-FIT_SOURCE='6c37f59b60ceff32c74b1c39f0a6b031d207e443'
-FIT_RUN=361922334
 
 
 class TaskDevelopmentInputs:
@@ -82,14 +81,14 @@ def frozen_task_package(full_fit,data,evaluation_source):
     proof=require_full_fit(full_fit)
     if not isinstance(data,TaskDevelopmentInputs) or data._key is not _KEY:
         raise PermissionError('Actual exact task-data reader required')
-    if (proof['source_commit']!=FIT_SOURCE or type(proof.get('provider_run_id')) is not int
-            or proof['provider_run_id']!=FIT_RUN):
-        raise PermissionError('Only the separately registered one-use full fit may enter this endpoint')
+    fit=registered_fit(proof['source_commit'],proof.get('provider_run_id'))
     if not isinstance(evaluation_source,str) or not re.fullmatch('[0-9a-f]{40}',evaluation_source):
         raise ValueError('Exact reviewed evaluation source required')
     roster=data.roster();plan=task_development_plan(roster)
-    value={'version':'ordinary-task-frozen-package-v1','fit_source_commit':FIT_SOURCE,
-      'fit_run_id':FIT_RUN,'evaluation_source_commit':evaluation_source,
+    value={'version':'ordinary-task-frozen-package-v2','fit_source_commit':fit['source_commit'],
+      'fit_run_id':fit['run_id'],'evaluation_source_commit':evaluation_source,
+      'fit_source_package_sha256':fit['package_sha256'],
+      'fit_qualification_archive_sha256':fit['qualification_archive_sha256'],
       'fit_raw_archive_sha256':proof['raw_archive_sha256'],'fit_raw_audit_canonical_sha256':digest(proof),
       'fit_evidence_identity_sha256':full_fit_identity(full_fit),
       'checkpoint_sha256':proof['checkpoint_sha256'],'checkpoint_tensor_hashes':proof['checkpoint']['hashes'],

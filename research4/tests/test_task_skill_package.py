@@ -45,6 +45,40 @@ class TaskPackageBoundaryTests(unittest.TestCase):
         with TemporaryDirectory() as folder:
             with self.assertRaises(PermissionError):read_full_fit_parent(folder,'missing','missing')
 
+    def test_registered_memory_fit_is_only_an_identity_not_completion_evidence(self):
+        from src.composite_task_skill_fit_registry import registered_fit
+        old='6c37f59b60ceff32c74b1c39f0a6b031d207e443'
+        new='82cf3ecf41e799facd93b8c11e05c6d1f569599c'
+        first=registered_fit(old,361922334);second=registered_fit(new,361964150)
+        self.assertNotEqual(first['qualification_archive_sha256'],second['qualification_archive_sha256'])
+        self.assertEqual(second['prepared_notebook'],'research4_task_skill_fit_v3.ipynb')
+        for commit,run in [(old,361964150),(new,361922334),(new,True),(new,'361964150'),('a'*40,361964150)]:
+            with self.assertRaises(PermissionError):registered_fit(commit,run)
+        second['package_sha256']='a'*64
+        self.assertNotEqual(second,registered_fit(new,361964150))
+        for receipt in [first,second,registered_fit(new,361964150)]:
+            with self.assertRaises(PermissionError):require_full_fit(receipt)
+
+    def test_new_memory_fit_cannot_substitute_the_old_one_update_parent(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from src.io_utils import dump,sha
+        from src.composite_task_skill_fit_registry import registered_fit
+        from src.composite_task_skill_fit_parent import FIT_FILES,read_full_fit_parent
+        current=registered_fit('82cf3ecf41e799facd93b8c11e05c6d1f569599c',361964150)
+        with TemporaryDirectory() as folder:
+            root=Path(folder)
+            for name in FIT_FILES:(root/name).write_text('{}',encoding='utf-8')
+            expected={k:current[k] for k in ['source_commit','run_id','package_sha256','qualification_archive_sha256']}
+            expected.update(raw_archive_sha256='a'*64,checkpoint_sha256='b'*64,
+                            fit_evidence_identity_sha256='c'*64,raw_audit_canonical_sha256='d'*64)
+            expected['qualification_archive_sha256']=registered_fit(
+                '6c37f59b60ceff32c74b1c39f0a6b031d207e443',361922334)['qualification_archive_sha256']
+            dump(root/'FIT_PARENT_EXPECTED.json',expected)
+            dump(root/'MANIFEST.json',{n:sha(root/n) for n in FIT_FILES})
+            with self.assertRaisesRegex(PermissionError,'registered exact full-fit lineage'):
+                read_full_fit_parent(root,'missing fit','missing scratch')
+
     def test_only_tiny_cpu_gradient_reduction_roundoff_is_allowed(self):
         from copy import deepcopy
         from src.composite_task_skill_package import verify_audit_reference,restore_frozen_task_package
