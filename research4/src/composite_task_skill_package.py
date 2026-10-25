@@ -33,6 +33,12 @@ class FrozenTaskPackage:
     def receipt(self):return deepcopy(self._value)
 
 
+def require_frozen_task_package(value):
+    if not isinstance(value,FrozenTaskPackage) or value._key is not _KEY:
+        raise PermissionError('Rebind the complete actual full-fit and task-data evidence')
+    return value.receipt()
+
+
 def full_fit_identity(full_fit):
     """Bind raw bytes and tensor identities, without CPU-reduction roundoff."""
     from .composite_task_skill_model_audit import require_full_fit

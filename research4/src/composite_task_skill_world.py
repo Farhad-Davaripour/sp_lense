@@ -44,16 +44,22 @@ def fixture(mechanism='dependency_graph', task_structure='record_dependency_plan
 
 
 class World:
-    def __init__(self, scene):
+    def __init__(self, scene, evaluation_context=None):
         if type(scene) is not TaskScene or scene.world_version != VERSION:
             raise PermissionError('A new task-only scene is required; continuity scenes cannot be relabeled')
         role = scene.role
+        if evaluation_context is not None and role!='development':
+            raise PermissionError('Frozen task evaluation cannot instantiate fitting or fixture roles')
         if role == 'public_task_fixture':
             if not scene.identity_seed.startswith('unit:') or scene.mechanism not in FAMILIES['training'] or scene.task_structure not in TASKS['training']:
                 raise PermissionError('Public task fixture scope differs')
         else:
-            from .composite_task_skill_profile import require_runtime
-            require_runtime()
+            if evaluation_context is None:
+                from .composite_task_skill_profile import require_runtime
+                require_runtime()
+            else:
+                from .composite_task_skill_inference import authorize_scene
+                authorize_scene(scene,evaluation_context)
             if role not in ROLES or scene.mechanism not in FAMILIES[role] or scene.task_structure not in TASKS[role]:
                 raise PermissionError('Task-only cohort roles cannot cross or open sealed data')
         if scene.domain not in ('sum', 'count'):

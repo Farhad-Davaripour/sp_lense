@@ -20,9 +20,10 @@ def native_interface(profile):
 
 
 class Actor(nn.Module):
-    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None,native_interface_profile=LEGACY_INTERFACE,task_training=None):
+    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None,native_interface_profile=LEGACY_INTERFACE,task_training=None,task_evaluation=None):
         super().__init__();require_databricks()
-        if frozen_probe is not None and task_training is not None:raise PermissionError('Frozen-only and task-fitting contexts cannot be combined')
+        if sum(v is not None for v in [frozen_probe,task_training,task_evaluation])>1:
+            raise PermissionError('Frozen probe, task fitting and frozen task evaluation are separate contexts')
         native_interface(native_interface_profile)
         if frozen_probe is not None and native_interface_profile!=LEGACY_INTERFACE:
             raise PermissionError('Historical frozen probes cannot change their interface')
@@ -30,6 +31,7 @@ class Actor(nn.Module):
         if native_interface_profile!=LEGACY_INTERFACE:torch.backends.cuda.matmul.allow_tf32=False
         self.frozen_analysis_only=frozen_probe is not None
         self.task_training_context=None
+        self.task_evaluation_context=None
         self.frozen_probe_counts={'attempted':0,'completed':0}
         device_map={'':0};context=None
         if self.frozen_analysis_only:
@@ -55,6 +57,18 @@ class Actor(nn.Module):
             if torch.is_autocast_enabled():raise PermissionError('Unregistered caller autocast')
             device_map=context['plan']['device_map'];self.task_training_context=context
             self.task_training_file_proof=verify_downloaded_model(context,path)
+        if task_evaluation is not None:
+            from .composite_generalized_interface import PROFILE
+            if native_interface_profile!=PROFILE or kernel_profile!='reference':
+                raise PermissionError('Frozen task evaluation requires the unchanged native reference interface')
+            from .composite_task_skill_inference import authorized_load_plan
+            from .composite_frozen_probe import verify_runtime,verify_downloaded_model
+            context=authorized_load_plan(task_evaluation,cfg);verify_runtime(context)
+            if torch.is_autocast_enabled():raise PermissionError('Unregistered caller autocast')
+            device_map=context['plan']['device_map'];self.task_evaluation_context=task_evaluation
+            self.task_evaluation_load_context=context
+            self.frozen_forward_limit=context['pin']['maximum_backbone_forwards']
+            self.task_evaluation_file_proof=verify_downloaded_model(context,path)
         from transformers import AutoTokenizer,Qwen3_5ForConditionalGeneration,BitsAndBytesConfig
         from .composite_kernels import select
         self.kernel_proof=select(kernel_profile);self.kernel_profile=kernel_profile
@@ -70,7 +84,7 @@ class Actor(nn.Module):
         self.model=model.eval().requires_grad_(False)
         self.kernel_proof=select(kernel_profile)
         if len(self.text.layers)!=cfg['layers'] or self.model.config.text_config.hidden_size!=cfg['hidden_size'] or any(p.device.type!='cuda' or p.requires_grad for p in self.model.parameters()):raise ValueError('Unexpected native Qwen geometry')
-        if self.frozen_analysis_only or self.task_training_context is not None:
+        if self.frozen_analysis_only or self.task_training_context is not None or self.task_evaluation_context is not None:
             from .composite_frozen_probe import verify_loaded_layout
             self.frozen_layout_proof=verify_loaded_layout(self.model,context)
         self.base_references=list(self.model.named_parameters());self.frozen_snapshot=parameter_snapshot(self.base_references)
@@ -80,6 +94,9 @@ class Actor(nn.Module):
             if value is not None:self.eos.update(value if isinstance(value,list) else [value])
         if not self.eos:raise ValueError('Missing native EOS')
         self.handles=[self.model.register_forward_pre_hook(self._before,with_kwargs=True),self.model.register_forward_hook(self._after)]
+        if self.task_evaluation_context is not None:
+            from .composite_task_skill_inference import restore_checkpoint
+            restore_checkpoint(self,self.task_evaluation_context)
 
     @property
     def text(self):return self.model.model.language_model
@@ -105,6 +122,12 @@ class Actor(nn.Module):
             guard_frozen_devices(torch.cuda)
             if self.frozen_probe_counts['attempted']>=getattr(self,'frozen_forward_limit',400):raise TimeoutError('Frozen probe forward ceiling')
             self.frozen_probe_counts['attempted']+=1
+        if getattr(self,'task_evaluation_context',None) is not None:
+            from .composite_task_skill_training import live_resources
+            live_resources(torch.cuda)
+            if self.frozen_probe_counts['attempted']>=self.frozen_forward_limit:
+                raise TimeoutError('Frozen task-evaluation forward ceiling')
+            self.frozen_probe_counts['attempted']+=1
         if self.on_forward:self.on_forward('attempt')
         if self.generating and self._trace is not None and not self._trace['prefill_checked']:
             cache=kwargs.get('past_key_values');length=0 if cache is None else int(cache.get_seq_length())
@@ -119,7 +142,8 @@ class Actor(nn.Module):
             self._trace.update(prefill_checked=True,initial_cache_length=length)
 
     def _after(self,module,args,result):
-        if getattr(self,'frozen_analysis_only',False):self.frozen_probe_counts['completed']+=1
+        if getattr(self,'frozen_analysis_only',False) or getattr(self,'task_evaluation_context',None) is not None:
+            self.frozen_probe_counts['completed']+=1
         if self.on_forward:self.on_forward('complete')
         if not torch.isfinite(result.logits).all():raise FloatingPointError('Nonfinite Qwen logits')
 
@@ -127,6 +151,9 @@ class Actor(nn.Module):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot install behavior adapters')
         if getattr(self,'task_training_context',None) is not None and (placement!={'name':'all_blocks','scope':'all_blocks'} or not for_training):
             raise PermissionError('Task fitting requires the fresh full all-block installation; restoration or reduced placement is not admitted')
+        if getattr(self,'task_evaluation_context',None) is not None and (
+                not getattr(self,'_task_restoring',False) or for_training or placement!={'name':'all_blocks','scope':'all_blocks'}):
+            raise PermissionError('Frozen task evaluation only restores its full fitted checkpoint once')
         with self.lock:
             if self.generating:raise RuntimeError('Cannot change adapters during a response')
             for name,wrapper in self.adapters.items():
@@ -141,6 +168,12 @@ class Actor(nn.Module):
                         raise PermissionError('This task route only installs the full agreed adapter for fresh fitting')
                     self.capacity_proof['per_device_storage_admission']=memory_admission(
                         self.task_training_context['adapter_layout'],torch.cuda,self.cfg['training_memory_reserve_bytes'])
+                elif getattr(self,'task_evaluation_context',None) is not None:
+                    from .composite_task_skill_inference import inference_storage
+                    if self.capacity_proof['adapter_parameters']!=233455616 or len(names)!=496:
+                        raise PermissionError('Frozen task evaluation retains every full-rank fitted projection')
+                    self.capacity_proof['per_device_storage_admission']=inference_storage(
+                      self.task_evaluation_load_context['adapter_layout'],torch.cuda,self.cfg['training_memory_reserve_bytes'])
                 else:
                     required=self.capacity_proof['adapter_parameters']*(16 if for_training else 4)+self.cfg['training_memory_reserve_bytes']
                     if torch.cuda.mem_get_info()[0]<required:raise MemoryError('All-block FP32 adapter/optimizer storage plus activation reserve exceeds free GPU memory')
@@ -148,7 +181,8 @@ class Actor(nn.Module):
             self.clear_cache()
 
     def training_context(self):
-        if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot enter fitting')
+        if getattr(self,'frozen_analysis_only',False) or getattr(self,'task_evaluation_context',None) is not None:
+            raise PermissionError('Frozen evaluation cannot enter fitting')
         return checkpointed_training(self.text,self.text.layers,self.cfg.get('gradient_checkpointing',False))
 
     def clear_cache(self):
@@ -163,7 +197,8 @@ class Actor(nn.Module):
         return value
 
     def select_kernels(self,profile):
-        if getattr(self,'frozen_analysis_only',False) and profile!='reference':raise PermissionError('Frozen probe kernels are immutable')
+        if (getattr(self,'frozen_analysis_only',False) or getattr(self,'task_evaluation_context',None) is not None) and profile!='reference':
+            raise PermissionError('Frozen evaluation kernels are immutable')
         from .composite_kernels import select
         with self.lock:
             if self.generating:raise RuntimeError('Cannot change kernels during a response')
@@ -178,6 +213,7 @@ class Actor(nn.Module):
 
     def restore(self,saved):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot restore behavior adapters')
+        if getattr(self,'task_evaluation_context',None) is not None:raise PermissionError('Frozen task checkpoint is immutable')
         if saved.get('native_interface_profile',LEGACY_INTERFACE)!=getattr(self,'native_interface_profile',LEGACY_INTERFACE):
             raise ValueError('Behavior adapter belongs to another native interface profile')
         if saved['config']!=self.cfg:raise ValueError('Qwen adapter belongs to another model/configuration')
@@ -185,6 +221,9 @@ class Actor(nn.Module):
 
     def generate(self,text,on,maximum_new_tokens=None):
         if getattr(self,'frozen_analysis_only',False) and (on or maximum_new_tokens not in [None,self.cfg['maximum_new_tokens']]):raise PermissionError('Frozen probe requires the unadapted full-budget generation')
+        if getattr(self,'task_evaluation_context',None) is not None and (
+                type(on) is not bool or maximum_new_tokens not in [None,self.cfg['maximum_new_tokens']]):
+            raise PermissionError('Frozen task evaluation requires an exact base/always-on full-budget response')
         with self.lock:
             if self.generating:raise RuntimeError('Concurrent Qwen response')
             limit=self.cfg['maximum_new_tokens'] if maximum_new_tokens is None else maximum_new_tokens
@@ -206,7 +245,8 @@ class Actor(nn.Module):
             finally:self.generating=False;self._trace=None
 
     def supervised_loss(self,row):
-        if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot compute fitting targets')
+        if getattr(self,'frozen_analysis_only',False) or getattr(self,'task_evaluation_context',None) is not None:
+            raise PermissionError('Frozen evaluation cannot compute fitting targets')
         self.guard();enable(self.adapters,True);prefix=self.prompt_ids(row['text']);target=self.tokenizer.encode(self.target_text(row['teacher_action']),add_special_tokens=False)+[self.tokenizer.eos_token_id]
         combined=prefix+target[:-1]
         if len(combined)>self.cfg['maximum_tokens']:raise ValueError('Teacher-forcing context budget exceeded')
