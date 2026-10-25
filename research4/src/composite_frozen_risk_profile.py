@@ -1,5 +1,6 @@
 """Frozen ordinary-adapter risk endpoint: fixed data, detector, model and arms."""
 import os
+import re
 from pathlib import Path
 from .io_utils import read,sha,digest
 from .composite_task_skill_inference import (TaskEvaluationContext,MODEL_INPUTS,read_frozen_model,_KEY as ACTOR_KEY)
@@ -108,7 +109,8 @@ def validate_source(root,commit,fit_archive,qualification_archive,risk_archive):
 
 
 def stage_prefix(stage):
-    if stage.get('version')!=MODE:raise PermissionError('Exact frozen risk stage required')
+    if stage.get('version')!=MODE or not isinstance(stage.get('source_commit'),str) or not re.fullmatch('[0-9a-f]{40}',stage['source_commit']):
+        raise PermissionError('Exact frozen risk source/stage required')
     if stage.get('phase')=='risk_detector_transfer':suffix='detector_transfer_01'
     elif stage.get('phase')=='risk_development' and type(stage.get('partition',{}).get('index')) is int and 0<=stage['partition']['index']<26:
         suffix='partition_'+str(stage['partition']['index']).zfill(2)

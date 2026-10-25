@@ -31,6 +31,22 @@ class TrainingExposure:
         self.fingerprints=frozenset(fingerprints);self._key=key
 
 
+def ordinary_task_training_exposure(model):
+    """Bind the exclusion registry from the actual ordinary-task fit/data reader.
+
+    No risk/reference action is fitted, generated or used for model selection.
+    """
+    import re
+    from .composite_task_skill_package import require_frozen_task_package
+    value=require_frozen_task_package(model);fingerprints=value['training_reference_core_exclusion']
+    if not isinstance(fingerprints,list) or any(not isinstance(v,str) or not re.fullmatch('[0-9a-f]{64}',v) for v in fingerprints):
+        raise PermissionError('Complete actual ordinary-training helper exclusion registry required')
+    proof=TrainingExposure.__new__(TrainingExposure)
+    proof.source=value['evaluation_source_commit'];proof.data=value['data_release_sha256'];proof.fixture=False
+    proof.fingerprints=frozenset(fingerprints);proof._key=_KEY
+    return proof
+
+
 def training_exposure(episodes,rows,design,source_commit,data_release_sha256,*,public_fixture=False,cohort_manifest=None,_data_key=None):
     """Re-audit all training episodes before constructing the exclusion set.
 
