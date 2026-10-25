@@ -64,6 +64,8 @@ def prepare(repo,frozen_package,fit_archive,qualification_archive,partition_inde
       'partition_index':partition_index,'case_ids':stage['partition']['case_ids'],'expected_trajectories':2,
       'full_task_trajectories_still_required':72,'separate_risk_trajectories_still_required':180,
       'fit_run_id':value['fit_run_id'],'checkpoint_sha256':value['checkpoint_sha256'],
+      'fit_archive_local_path':str(Path(fit_archive).resolve()),
+      'qualification_archive_local_path':str(Path(qualification_archive).resolve()),
       'frozen_model_package_sha256':digest(value),'bundle_sha256':sha(archive),'bundle_manifest_sha256':sha(manifest),
       'input_manifest_sha256':sha(target/'MANIFEST.json'),'stage_sha256':sha(target/STAGE),'notebook_file_sha256':sha(notebook),
       'destination':stage['destination'],'new_model_forwards':0,'optimizer_updates':0,

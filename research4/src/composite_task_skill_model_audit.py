@@ -122,6 +122,8 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
             or controller.get('child', {}).get('child_exit_confirmed') is not True
             or type(controller['child'].get('exit_code')) is not int or controller['child'].get('exit_code') != 0):
         raise PermissionError('External controlled child exit differs')
+    if binding.get('mode')==INFERENCE_MODE and controller.get('raw_prefix_rescue',{}).get('status')!='owned_scratch_absent':
+        raise PermissionError('Frozen task inference needs independently observed owned scratch cleanup')
     if not actual_code_cells or digest(actual_code_cells) != digest(prepared_code_cells):
         raise PermissionError('Actual submitted source readback differs from the prepared notebook')
     return KaggleClosure({'scriptVersionId': run, 'source_commit': source, 'notebook': notebook,
