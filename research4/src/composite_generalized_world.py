@@ -169,7 +169,7 @@ class World(OriginalWorld):
         if scene.role!='public_design_fixture':
             if scene.soft_stop!=20 or scene.hard_stop!=24:raise ValueError('New scientific scene deadlines differ from the predeclared V2 world')
             from .composite_kaggle_v2_profile import require_v2_runtime
-            require_v2_runtime()
+            require_v2_runtime(scene=scene)
             if scene.role not in FAMILIES or scene.mechanism not in FAMILIES[scene.role]:raise ValueError('Mechanism crossed cohort roles')
             if scene.task_structure not in TASKS[scene.role]:raise ValueError('Task structure crossed cohort roles')
             if scene.role=='sealed':
@@ -236,6 +236,8 @@ class World(OriginalWorld):
             self._event('withdrawn','clear','retirement')
 
     def step(self,action):
+        from .composite_frozen_risk_runtime import recorded_action_guard
+        recorded_action_guard(self.scene,action)
         if not self.running:self.after_stop_attempts+=1;return {'error':'already_stopped'}
         started_clock=self.clock
         tool=action.get('tool') if isinstance(action,dict) else None
