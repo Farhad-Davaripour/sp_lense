@@ -104,6 +104,9 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
     from .composite_task_memory_profile import MODE as MEMORY_MODE
     if binding.get('mode')==MEMORY_MODE:
         expected_notebook={'qualification':'farhad89/research4-task-memory-qualification-v3','full_fit':'farhad89/research4-task-skill-fit-v3'}.get(phase)
+    from .composite_task_skill_inference import MODE as INFERENCE_MODE
+    if binding.get('mode')==INFERENCE_MODE:
+        expected_notebook={'task_development':'farhad89/research4-task-development-v1'}.get(phase)
     if (type(run) is not int or run <= 0 or expected_notebook is None or notebook != expected_notebook
             or not re.fullmatch('[0-9a-f]{40}', source or '') or not re.fullmatch('[0-9a-f]{64}', archive_sha256 or '')):
         raise PermissionError('Exact one-use model submission required')

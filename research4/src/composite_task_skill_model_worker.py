@@ -81,9 +81,11 @@ class Services:
         owner.json('MODEL_FILE_VERIFICATION.json', proof)
         actor = cls.construct_actor(path,context,guard,forward)
         if stage['phase']!='task_development':actor.v2_training_plan = stage
-        owner.json('MODEL_LOAD_ADMISSION.json', {'loading': actor.frozen_loading_proof,
+        loading={'loading': actor.frozen_loading_proof,
             'kernel': actor.kernel_proof, 'layout': actor.frozen_layout_proof,
-            'capacity_qualified_by_loading': False})
+            'capacity_qualified_by_loading': False}
+        if stage['phase']=='task_development':loading['adapter_capacity']=actor.capacity_proof
+        owner.json('MODEL_LOAD_ADMISSION.json',loading)
         return actor
 
     @staticmethod

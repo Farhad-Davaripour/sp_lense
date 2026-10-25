@@ -45,10 +45,10 @@ def prepare(repo,frozen_package,fit_archive,qualification_archive,partition_inde
     dump(target/'TASK_EVALUATION_PLAN.json',task_development_plan(value['development_roster']))
     dump(target/'WORKSPACE.json',identity(stage['notebook']));dump(target/STAGE,stage)
     dump(target/'MANIFEST.json',{p.name:sha(p) for p in sorted(target.iterdir()) if p.name!='MANIFEST.json'})
-    validate_source(source,commit,fit_archive,qualification_archive)
     manifest=bundle/'TASK_TRAINING_PACKAGE_FILES.json'
     dump(manifest,{'version':stage['version'],'source_commit':commit,'notebook':stage['notebook'],
                   'files':{p.relative_to(bundle).as_posix():sha(p) for p in sorted(bundle.rglob('*')) if p.is_file()}})
+    validate_source(source,commit,fit_archive,qualification_archive)
     archive=out/'TASK_EVALUATION_PACKAGE.zip'
     with zipfile.ZipFile(archive,'x',zipfile.ZIP_DEFLATED) as z:
         for path in sorted(bundle.rglob('*')):

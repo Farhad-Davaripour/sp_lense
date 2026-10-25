@@ -60,6 +60,15 @@ def expected_stage(commit,model,partition_index):
 
 def validate_source(root,commit,fit_archive,qualification_archive):
     root=Path(root).resolve();verify_release(root,commit);inputs=root/'inputs'
+    transport=read(root.parent/'TASK_TRAINING_PACKAGE_FILES.json')
+    if transport.get('source_commit')!=commit or transport.get('version')!=MODE:
+        raise PermissionError('Exact task-evaluation transport/source manifest required')
+    for name,value in transport['files'].items():
+        target=(root.parent/name).resolve()
+        if not name.startswith('source/') or not target.is_relative_to(root) or sha(target)!=value:
+            raise PermissionError('Task-evaluation transport source/input member differs')
+    actual={p.relative_to(root.parent).as_posix() for p in root.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
+    if set(transport['files'])!=actual:raise PermissionError('Complete source/input transport coverage required')
     manifest=read(inputs/'MANIFEST.json')
     if set(manifest)!=FILES:raise PermissionError('Exact task-evaluation inputs required; no risk or sealed cohorts')
     if any(Path(n).name!=n or sha(inputs/n)!=value for n,value in manifest.items()):
@@ -76,6 +85,8 @@ def validate_source(root,commit,fit_archive,qualification_archive):
     from .composite_task_skill_source_package import frozen_source_package
     encoded=base64.b64decode((inputs/'FIT_PARENT_SOURCE.r4b64').read_bytes(),validate=True)
     with frozen_source_package(encoded,fit['package_sha256'],fit['source_commit']) as (parent,_):
+        from .composite_task_skill_semantics import verify_semantics
+        verify_semantics(parent,root)
         configs=['composite_controller_rank32_v2.json','composite_task_skill_v1.json',
                  'composite_qwen_two_t4_candidate_v1.json','composite_qwen_file_pin_fc05.json']
         if fit['memory_profile_config'] is not None:configs.append(fit['memory_profile_config'])
@@ -158,6 +169,7 @@ def restore_checkpoint(actor,context):
     from .composite_task_skill_training import postload_runtime
     actor.task_evaluation_postload_proof=postload_runtime(actor,torch.cuda,torch.__version__,
       {name:version(name) for name in ['transformers','bitsandbytes','accelerate','safetensors','numpy','psutil']})
+    actor.task_evaluation_postload_proof['full_adapter_optimizer_admission']='No optimizer is allocated; frozen inference admits full FP32 weights and reserve separately'
     from .composite_v2_model_audit import EvidenceFiles,tensor_state
     from .composite_training import tensor_digest
     from .composite_lora import load,trainables
@@ -196,7 +208,11 @@ def verify_frozen_checkpoint(actor,context):
     if len(parameters)!=992 or any(p.requires_grad or p.grad is not None for p in parameters):
         raise PermissionError('Frozen task checkpoint gained gradients or lost projections')
     actual={name+'.'+part:tensor_digest(getattr(module,part)) for name,module in actor.adapters.items() for part in ['A','B']}
+    geometry={name+'.'+part:{'shape':list(getattr(module,part).shape),'dtype':str(getattr(module,part).dtype),
+      'device':str(getattr(module,part).device),'requires_grad':getattr(module,part).requires_grad,
+      'gradient_is_none':getattr(module,part).grad is None} for name,module in actor.adapters.items() for part in ['A','B']}
     value=require_frozen_task_package(context.model)
     if actual!=value['checkpoint_tensor_hashes']:raise PermissionError('Frozen task checkpoint bytes changed during evaluation')
     return {'checkpoint_sha256':value['checkpoint_sha256'],'live_tensor_hashes':actual,
+            'tensor_geometry':geometry,'adapter_parameters':sum(p.numel() for p in parameters),
             'all_adapter_gradients_none':True,'all_adapter_requires_grad':False,'live_recomputed':True}

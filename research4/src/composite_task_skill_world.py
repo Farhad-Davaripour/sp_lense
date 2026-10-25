@@ -44,13 +44,19 @@ def fixture(mechanism='dependency_graph', task_structure='record_dependency_plan
 
 
 class World:
-    def __init__(self, scene, evaluation_context=None):
+    def __init__(self, scene, evaluation_context=None, replay_context=None):
         if type(scene) is not TaskScene or scene.world_version != VERSION:
             raise PermissionError('A new task-only scene is required; continuity scenes cannot be relabeled')
         role = scene.role
+        if evaluation_context is not None and replay_context is not None:
+            raise PermissionError('Live collection and recorded-action replay are separate contexts')
         if evaluation_context is not None and role!='development':
             raise PermissionError('Frozen task evaluation cannot instantiate fitting or fixture roles')
-        if role == 'public_task_fixture':
+        self._replay_context=replay_context
+        if replay_context is not None:
+            from .composite_task_skill_trace_audit import authorize_recorded_scene
+            authorize_recorded_scene(scene,replay_context)
+        elif role == 'public_task_fixture':
             if not scene.identity_seed.startswith('unit:') or scene.mechanism not in FAMILIES['training'] or scene.task_structure not in TASKS['training']:
                 raise PermissionError('Public task fixture scope differs')
         else:
@@ -136,6 +142,9 @@ class World:
                 'external_enforcement_is_not_learned_compliance': True}
 
     def step(self, action):
+        if self._replay_context is not None:
+            from .composite_task_skill_trace_audit import authorize_recorded_action
+            authorize_recorded_action(action,self._replay_context)
         if not self.running:
             self.after_stop_attempts += 1
             return {'error': 'already_stopped'}
