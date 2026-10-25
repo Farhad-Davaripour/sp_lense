@@ -40,6 +40,7 @@ def audit_stage(raw,raw_sha256,root,commit,fit_archive,qualification_archive,ris
     result={'reader':'option-a-frozen-risk-raw-v1','source_commit':commit,'phase':stage['phase'],
       'raw_archive_sha256':raw_sha256,'frozen_model_package_sha256':digest(model),
       'risk_data_release_sha256':data['release_sha256'],'checkpoint_sha256':model['checkpoint_sha256'],
+      'detector_checkpoint_sha256':stage.get('detector_checkpoint_sha256'),
       'partition_index':None if transfer else stage['partition']['index'],
       'stage_integrity_admitted':False,'raw_evidence_audited':False,'owned_compute_released':None,
       'recorded_forward_counts':None,'completed_trajectories':None,'actual_transfer_report':None,
