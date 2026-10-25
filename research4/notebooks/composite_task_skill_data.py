@@ -18,13 +18,22 @@ assert runtime_paths['/kaggle/input'] and runtime_paths['/kaggle/working'], 'Act
 # A CPU image need not pre-create the disposable scratch directory. Creating
 # this fixed directory is setup only; it changes no data or scientific recipe.
 Path('/kaggle/temp').mkdir(exist_ok=True)
-matches = list(Path('/kaggle/input').rglob('TASK_SKILL_PACKAGE_FILES.json'))
-assert len(matches) == 1, 'Attach exactly one reviewed task-only package'
+matches = [p for filename in ['TASK_SKILL_PACKAGE_FILES.json','RISK_DATA_PACKAGE_FILES.json']
+           for p in Path('/kaggle/input').rglob(filename)]
+assert len(matches) == 1, 'Attach exactly one reviewed CPU data package'
 manifest_path = matches[0]
 assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == MANIFEST_SHA256
 manifest = json.loads(manifest_path.read_text())
-assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] == 'ordinary-task-skill-data-bootstrap-v2'
-root = Path('/kaggle/working/research4_inputs') / SOURCE_COMMIT
+registered={
+  'ordinary-task-skill-data-bootstrap-v2':{'manifest':'TASK_SKILL_PACKAGE_FILES.json','root':'/kaggle/working/research4_inputs',
+    'profile':'TASK_SKILL_PROFILE.json','worker':'src.composite_task_skill_worker',
+    'root_env':'RESEARCH4_TASK_SOURCE_ROOT','profile_env':'RESEARCH4_TASK_PROFILE_SHA256'},
+  'option-a-frozen-risk-development-data-v1':{'manifest':'RISK_DATA_PACKAGE_FILES.json','root':'/kaggle/temp/research4_frozen_risk_inputs',
+    'profile':'FROZEN_RISK_DATA_PROFILE.json','worker':'src.composite_frozen_risk_data_worker',
+    'root_env':'RESEARCH4_FROZEN_RISK_SOURCE_ROOT','profile_env':'RESEARCH4_FROZEN_RISK_PROFILE_SHA256'}}
+assert manifest['source_commit']==SOURCE_COMMIT and manifest['version'] in registered
+selected=registered[manifest['version']];assert manifest_path.name==selected['manifest']
+root = Path(selected['root']) / SOURCE_COMMIT
 root.mkdir(parents=True, exist_ok=False)
 for name, expected in manifest['files'].items():
     assert name.startswith('source/') and '\\' not in name and '..' not in name.split('/') and ':' not in name
@@ -38,14 +47,17 @@ for name, expected in manifest['files'].items():
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open('xb') as stream:
         stream.write(raw)
+with (root/selected['manifest']).open('xb') as stream:stream.write(manifest_path.read_bytes())
 source = root / 'source'
-profile_path = source / 'inputs/TASK_SKILL_PROFILE.json'
+profile_path = source / 'inputs'/selected['profile']
 profile = json.loads(profile_path.read_text())
-assert profile['version'] == 'ordinary-task-skill-data-bootstrap-v2' and profile['scientific_GPU_count'] == 0
+assert profile['version']==manifest['version'] and profile['scientific_GPU_count']==0
+if manifest['version']=='option-a-frozen-risk-development-data-v1':assert profile['roles']==['development']
 output = Path(profile['destination'])
 output.parent.mkdir(parents=True, exist_ok=True)
 child = {'child_started': False, 'child_exit_confirmed': None, 'exit_code': None}
 receipt = {'source_commit': SOURCE_COMMIT, 'notebook': profile['notebook'], 'stage': profile['version'],
+           'mode':profile['version'],'phase':profile.get('phase','task_data_export'),
            'status': 'setting_up', 'model_forwards': 0, 'optimizer_updates': 0,
            'GPU_allocated_by_stage': False, 'model_weights_downloaded': False,
            'heldout_content_read': False, 'automatic_scientific_retries': 0}
@@ -55,20 +67,23 @@ try:
     python = environment / 'bin/python'
     pins = ['transformers==5.19.0', 'numpy==2.2.2', 'psutil==7.2.2', 'safetensors==0.8.0',
             'accelerate==1.15.0', 'bitsandbytes==0.49.2']
+    available=profile['hard_timeout_seconds']-profile['worker_seconds']-30-int(time.monotonic()-START)
+    assert available>0,'Preserve the complete CPU worker/export envelope'
     subprocess.run([sys.executable, '-m', 'pip', '--python', str(python), 'install', '--disable-pip-version-check',
         '--only-binary=:all:', '--index-url', 'https://pypi.org/simple', *pins], check=True,
-        timeout=max(1, profile['hard_timeout_seconds'] - int(time.monotonic() - START) - 120))
-    env = {k: v for k, v in os.environ.items() if not k.startswith('DATABRICKS_')}
+        timeout=available)
+    env = {k: v for k, v in os.environ.items() if not k.startswith(('DATABRICKS_','RESEARCH4_'))}
     env.update(RESEARCH4_EXECUTION_PLATFORM='kaggle', CUDA_VISIBLE_DEVICES='',
-        RESEARCH4_TASK_SOURCE_ROOT=str(source),
-        RESEARCH4_TASK_PROFILE_SHA256=hashlib.sha256(profile_path.read_bytes()).hexdigest(),
         TOKENIZERS_PARALLELISM='false', HF_HUB_DISABLE_IMPLICIT_TOKEN='1', HF_HUB_DISABLE_TELEMETRY='1',
         HF_HUB_DISABLE_XET='1', HF_HUB_DISABLE_SHARED_BLOBS='1')
+    env[selected['root_env']]=str(source)
+    env[selected['profile_env']]=hashlib.sha256(profile_path.read_bytes()).hexdigest()
     sys.path.insert(0, str(source))
     from src.composite_runtime import run_logged
-    result = run_logged([str(python), '-m', 'src.composite_task_skill_worker', '--root', str(source), '--commit', SOURCE_COMMIT],
+    assert profile['hard_timeout_seconds']-int(time.monotonic()-START)-30>=profile['worker_seconds'],'Preserve the complete worker/export envelope after setup'
+    result = run_logged([str(python), '-m', selected['worker'], '--root', str(source), '--commit', SOURCE_COMMIT],
         source, env, output.parent / 'TASK_DATA_WORKER_LOG.txt',
-        max(1, profile['hard_timeout_seconds'] - int(time.monotonic() - START) - 30),
+        profile['worker_seconds'],
         exit_observer=lambda value: child.update(value))
     receipt.update(status='external_hard_timeout' if result['timed_out'] else 'worker_exited',
                    exit_code=result['exit_code'], timed_out=result['timed_out'])

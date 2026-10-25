@@ -158,6 +158,7 @@ class TaskLifecycleTests(unittest.TestCase):
             self.assertTrue(namespace['evaluation'])
             self.assertEqual(namespace['stage']['optimizer_updates'],0)
             self.assertEqual(namespace['root'],base/'temp/research4_task_evaluation_inputs'/source)
+            self.assertEqual((namespace['root']/'TASK_TRAINING_PACKAGE_FILES.json').read_bytes(),manifest.read_bytes())
             self.assertFalse((base/'temp/research4_task_training_inputs').exists())
             self.assertEqual(namespace['receipt']['phase'],'task_development')
             self.assertIsNone(namespace['receipt']['model_forwards'])

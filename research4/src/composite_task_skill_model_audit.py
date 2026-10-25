@@ -107,6 +107,9 @@ def kaggle_closure(binding, archive_sha256, terminal_AX, release_AX, controller,
     from .composite_task_skill_inference import MODE as INFERENCE_MODE
     if binding.get('mode')==INFERENCE_MODE:
         expected_notebook={'task_development':'farhad89/research4-task-development-v1'}.get(phase)
+    from .composite_frozen_risk_data_profile import MODE as RISK_DATA_MODE,NOTEBOOK as RISK_DATA_NOTEBOOK
+    if binding.get('mode')==RISK_DATA_MODE:
+        expected_notebook={'risk_data_export':RISK_DATA_NOTEBOOK}.get(phase)
     if (type(run) is not int or run <= 0 or expected_notebook is None or notebook != expected_notebook
             or not re.fullmatch('[0-9a-f]{40}', source or '') or not re.fullmatch('[0-9a-f]{64}', archive_sha256 or '')):
         raise PermissionError('Exact one-use model submission required')

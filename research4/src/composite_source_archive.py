@@ -4,6 +4,24 @@ from pathlib import Path
 from .io_utils import dump,sha
 
 
+def verify_transport(root,commit,mode,manifest_name):
+    """Verify an exact complete prepared source/input tree, not runtime capacity."""
+    from .io_utils import read,verify_release
+    from .composite_runtime import relative_path
+    root=Path(root).resolve();verify_release(root,commit)
+    if Path(manifest_name).name!=manifest_name:raise PermissionError('Plain transport manifest filename required')
+    manifest=read(root.parent/manifest_name)
+    if manifest.get('source_commit')!=commit or manifest.get('version')!=mode:
+        raise PermissionError('Exact transport/source/mode manifest required')
+    for name,expected in manifest['files'].items():
+        relative_path(name);target=(root.parent/name).resolve()
+        if not name.startswith('source/') or not target.is_relative_to(root) or sha(target)!=expected:
+            raise PermissionError('Source/input transport member differs')
+    actual={p.relative_to(root.parent).as_posix() for p in root.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
+    if actual!=set(manifest['files']):raise PermissionError('Complete source/input transport coverage required')
+    return manifest
+
+
 def archive_source(repo,commit,target):
     if not re.fullmatch('[0-9a-f]{40}',commit):raise ValueError('Exact commit required')
     target=Path(target);target.mkdir(parents=True,exist_ok=False)

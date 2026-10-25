@@ -61,16 +61,9 @@ def expected_stage(commit,model,partition_index):
 
 
 def validate_source(root,commit,fit_archive,qualification_archive):
-    root=Path(root).resolve();verify_release(root,commit);inputs=root/'inputs'
-    transport=read(root.parent/'TASK_TRAINING_PACKAGE_FILES.json')
-    if transport.get('source_commit')!=commit or transport.get('version')!=MODE:
-        raise PermissionError('Exact task-evaluation transport/source manifest required')
-    for name,value in transport['files'].items():
-        target=(root.parent/name).resolve()
-        if not name.startswith('source/') or not target.is_relative_to(root) or sha(target)!=value:
-            raise PermissionError('Task-evaluation transport source/input member differs')
-    actual={p.relative_to(root.parent).as_posix() for p in root.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
-    if set(transport['files'])!=actual:raise PermissionError('Complete source/input transport coverage required')
+    root=Path(root).resolve();inputs=root/'inputs'
+    from .composite_source_archive import verify_transport
+    verify_transport(root,commit,MODE,'TASK_TRAINING_PACKAGE_FILES.json')
     manifest=read(inputs/'MANIFEST.json')
     if set(manifest)!=FILES:raise PermissionError('Exact task-evaluation inputs required; no risk or sealed cohorts')
     if any(Path(n).name!=n or sha(inputs/n)!=value for n,value in manifest.items()):

@@ -38,6 +38,8 @@ for name, expected in manifest['files'].items():
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open('xb') as stream:
         stream.write(raw)
+with (root/'TASK_TRAINING_PACKAGE_FILES.json').open('xb') as stream:
+    stream.write(manifest_path.read_bytes())
 source = root / 'source'
 plan_path = source / ('inputs/TASK_EVALUATION_STAGE.json' if evaluation else 'inputs/TASK_TRAINING_PLAN.json')
 stage = json.loads(plan_path.read_text())

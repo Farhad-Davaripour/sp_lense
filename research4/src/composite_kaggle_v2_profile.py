@@ -51,7 +51,11 @@ def validate_source(root,commit):
     return value,who
 
 
-def require_v2_runtime():
+def require_v2_runtime(scene=None):
+    # Explicit role/case-scoped data or frozen-risk contexts are validated by
+    # their own source/model readers. Historical data contexts keep their guard.
+    from .composite_frozen_risk_runtime import require_scoped_runtime
+    if require_scoped_runtime(scene):return
     from .composite_runtime import require_scientific_runtime,platform
     require_scientific_runtime()
     if platform()!='kaggle':raise PermissionError('Current Research4 remainder uses Kaggle; Databricks requires a later explicit human selection')
