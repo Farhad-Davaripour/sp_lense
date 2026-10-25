@@ -81,19 +81,22 @@ def _replay_arm(scene,arm,terminal,responses,native_prefixes,actor,eos,vocabular
       'scientific_validation_admitted':False},previous_cache
 
 
-def replay_pair(files,context,actor,eos,vocabulary):
+def replay_pair(files,context,actor,eos,vocabulary,case_id=None,previous_cache=None):
     # Called only by the complete raw-model/metadata reader. The context itself
     # is still the opaque full-fit/data/source binding, never a receipt flag.
     from .composite_task_skill_inference import TaskEvaluationContext,_KEY as CONTEXT_KEY
     if not isinstance(context,TaskEvaluationContext) or context._key is not CONTEXT_KEY:
         raise PermissionError('Genuine original model/data/source context required')
     stage=context.stage();value=require_frozen_task_package(context.model)
-    case=stage['partition']['case_ids'][0]
+    ids=stage['partition']['case_ids']
+    if case_id is None and len(ids)==1:case_id=ids[0]
+    if case_id not in ids:raise PermissionError('Replay only an exact case in this fixed partition')
+    case=case_id
     scene=TaskScene(**next(r for r in value['development_roster']['cases'] if r['case_id']==case))
-    allowed=['trajectories/'+case+'/'+arm+'/' for arm in ['base','always_on']]
+    allowed=['trajectories/'+c+'/'+arm+'/' for c in ids for arm in ['base','always_on']]
     if any(n.startswith('trajectories/') and not any(n.startswith(p) for p in allowed) for n in files.manifest):
         raise PermissionError('Foreign case/arm trajectories cannot enter this source-bound paired stage')
-    results=[];previous=None
+    results=[];previous=previous_cache
     for arm in ['base','always_on']:
         prefix='trajectories/'+case+'/'+arm+'/'
         terminal=files.json(prefix+'TERMINAL.json');count=terminal['responses']
@@ -105,4 +108,4 @@ def replay_pair(files,context,actor,eos,vocabulary):
         native=[files.json(prefix+'native_'+str(i).zfill(2)+'.json') for i in range(count)]
         result,previous=_replay_arm(scene,arm,terminal,rows,native,actor,eos,vocabulary,previous)
         results.append(result)
-    return results
+    return results,previous

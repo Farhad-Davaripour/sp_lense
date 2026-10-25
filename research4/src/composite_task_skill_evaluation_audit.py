@@ -1,4 +1,4 @@
-"""Independent read-only source/model/native replay audit of one task pair.
+"""Independent read-only source/model/native audit of one fixed task partition.
 
 No model construction, forward, optimizer, teacher or provider API is used.
 Passing this reader is coverage/integrity evidence, not a performance finding
@@ -31,7 +31,8 @@ def require_task_partition(value):
     result=value.receipt()
     if (result.get('task_partition_admitted') is not True or result.get('raw_evidence_audited') is not True
             or result.get('owned_compute_released') is not True or result.get('missing_or_unverified')!=[]
-            or result.get('completed_trajectories')!=2 or result.get('optimizer_updates')!=0
+            or type(result.get('expected_trajectories')) is not int or result['expected_trajectories'] not in [2,4,6]
+            or result.get('completed_trajectories')!=result['expected_trajectories'] or result.get('optimizer_updates')!=0
             or result.get('heldout_content_read') is not False):
         raise PermissionError('Complete audited and released task-pair dependency required')
     return result
@@ -80,6 +81,7 @@ def audit_collection(raw,raw_sha256,root,commit,fit_archive,qualification_archiv
       'raw_archive_sha256':raw_sha256,'frozen_model_package_sha256':digest(model),
       'fit_run_id':model['fit_run_id'],'checkpoint_sha256':model['checkpoint_sha256'],
       'partition_index':stage['partition']['index'],'case_ids':stage['partition']['case_ids'],
+      'expected_trajectories':stage['partition'].get('expected_trajectories'),
       'task_partition_admitted':False,'raw_evidence_audited':False,'owned_compute_released':None,
       'completed_trajectories':None,'recorded_forward_counts':None,'recorded_optimizer_updates':None,
       'new_model_forwards':0,'new_optimizer_updates':0,'scientific_validation_admitted':False,
@@ -142,8 +144,12 @@ def audit_collection(raw,raw_sha256,root,commit,fit_archive,qualification_archiv
             needed=4*layout['device_parameters'][row['device']]
             if row['adapter_weight_bytes']!=needed or row['reserve_bytes']!=2*1024**3 or row['free_bytes']<needed+row['reserve_bytes']:
                 raise ValueError('Full FP32 inference adapter/reserve admission differs')
+        pairs=[]
         with _tokenizer(files,load) as (tokenizer,eos,vocabulary):
-            pairs=replay_pair(files,context,tokenizer,eos,vocabulary)
+            previous=None
+            for case_id in stage['partition']['case_ids']:
+                part,previous=replay_pair(files,context,tokenizer,eos,vocabulary,case_id,previous)
+                pairs.extend(part)
         counts=receipt.get('forward_counts');total=sum(r['logical_forwards'] for r in pairs)
         if (type(total) is not int or not 0<total<=stage['maximum_backbone_forwards']
                 or digest(counts)!=digest({'attempted':total,'completed':total})):
@@ -153,10 +159,16 @@ def audit_collection(raw,raw_sha256,root,commit,fit_archive,qualification_archiv
               'counts_lower_bound':{'attempted':index,'completed':index},'exact_at_exit':False}):
                 raise ValueError('Forward callback prefix differs')
         collected=files.json('TASK_COLLECTION_RESULT.json')
-        expected_collection={'partition':stage['partition'],'outcomes':[
-          files.json('trajectories/'+stage['partition']['case_ids'][0]+'/'+arm+'/TERMINAL.json') for arm in ['base','always_on']],
+        expected_pairs=[{'partition':stage['partition'],'case_id':case_id,'outcomes':[
+          files.json('trajectories/'+case_id+'/'+arm+'/TERMINAL.json') for arm in ['base','always_on']],
           'checkpoint_sha256':model['checkpoint_sha256'],'live_checkpoint_before':files.json('CHECKPOINT_LIVE_BEFORE.json'),
           'live_checkpoint_after':files.json('CHECKPOINT_LIVE_AFTER.json'),'completed_trajectories':2,'optimizer_updates':0,
+          'teacher_forcing':False,'decoder_repair':False,'source_raw_audit_still_required':True,
+          'scientific_validation_admitted':False,'heldout_content_read':False} for case_id in stage['partition']['case_ids']]
+        expected_collection={'partition':stage['partition'],'pairs':expected_pairs,
+          'checkpoint_sha256':model['checkpoint_sha256'],'live_checkpoint_before':files.json('CHECKPOINT_LIVE_BEFORE.json'),
+          'live_checkpoint_after':files.json('CHECKPOINT_LIVE_AFTER.json'),
+          'completed_trajectories':stage['partition']['expected_trajectories'],'optimizer_updates':0,
           'teacher_forcing':False,'decoder_repair':False,'source_raw_audit_still_required':True,
           'scientific_validation_admitted':False,'heldout_content_read':False}
         if digest(collected)!=digest(expected_collection):
@@ -169,7 +181,7 @@ def audit_collection(raw,raw_sha256,root,commit,fit_archive,qualification_archiv
           'SOURCE_COMMIT_PLACEHOLDER',commit).replace('PACKAGE_MANIFEST_SHA256_PLACEHOLDER',sha(Path(root).parent/'TASK_TRAINING_PACKAGE_FILES.json'))
         if closed and closure._value['actual_code_cells_sha256']!=digest([expected_code]):
             raise PermissionError('External submitted notebook belongs to another exact source/input/partition package')
-        result.update(completed_trajectories=2,recorded_forward_counts=counts,recorded_optimizer_updates=0,
+        result.update(completed_trajectories=stage['partition']['expected_trajectories'],recorded_forward_counts=counts,recorded_optimizer_updates=0,
           optimizer_updates=0,case_arm_outcomes=pairs,owned_compute_released=True if closed else None,
           provider_run_id=closure._value['scriptVersionId'] if closed else None,
           missing_or_unverified=[] if closed else ['independent_exact_provider_release_and_readback'],

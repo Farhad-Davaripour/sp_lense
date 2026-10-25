@@ -7,14 +7,15 @@ from .composite_task_skill_package import require_frozen_task_package
 from .composite_task_skill_world import TaskScene,World
 
 
-def collect_pair(actor,context,persist):
+def collect_pair(actor,context,persist,case_id=None):
     require_runtime_binding(context)
     if (getattr(actor,'task_evaluation_context',None) is not context
             or not callable(persist) or actor.cfg['maximum_tokens']!=6144 or actor.cfg['maximum_new_tokens']!=160):
         raise PermissionError('Owned frozen native actor and durable per-response writer required')
     value=require_frozen_task_package(context.model);ids=context.stage()['partition']['case_ids']
-    if len(ids)!=1:raise PermissionError('One complete registered paired task case required')
-    row=next(r for r in value['development_roster']['cases'] if r['case_id']==ids[0])
+    if case_id is None and len(ids)==1:case_id=ids[0]
+    if case_id not in ids:raise PermissionError('Select one whole paired case from this fixed execution partition')
+    row=next(r for r in value['development_roster']['cases'] if r['case_id']==case_id)
     scene=TaskScene(**row);authorize_scene(scene,context)
     before_checkpoint=verify_frozen_checkpoint(actor,context)
     outcomes=[]
@@ -48,7 +49,8 @@ def collect_pair(actor,context,persist):
         persist('trajectories/'+scene.case_id+'/'+arm+'/TERMINAL.json',result);outcomes.append(result)
     actor.verify_frozen()
     after_checkpoint=verify_frozen_checkpoint(actor,context)
-    return {'partition':context.stage()['partition'],'outcomes':outcomes,'checkpoint_sha256':value['checkpoint_sha256'],
+    return {'partition':context.stage()['partition'],'case_id':scene.case_id,
+      'outcomes':outcomes,'checkpoint_sha256':value['checkpoint_sha256'],
       'live_checkpoint_before':before_checkpoint,'live_checkpoint_after':after_checkpoint,
       'completed_trajectories':2,'optimizer_updates':0,'teacher_forcing':False,'decoder_repair':False,
       'source_raw_audit_still_required':True,'scientific_validation_admitted':False,'heldout_content_read':False}

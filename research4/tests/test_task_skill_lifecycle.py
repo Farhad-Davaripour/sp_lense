@@ -118,9 +118,9 @@ class TaskLifecycleTests(unittest.TestCase):
     def test_owned_evaluation_profile_cannot_cross_namespaces_or_mix_authority_flags(self):
         from src.composite_task_skill_inference import MODE as INFERENCE_MODE,stage_prefix
         source='f'*40;plan={'source_commit':source,'version':INFERENCE_MODE,'phase':'task_development',
-                           'objective':'frozen_ordinary_task_development_only','partition':{'index':35}}
-        self.assertTrue(stage_prefix(plan).endswith('partition_35'))
-        for index in [True,-1,36,'0']:
+                           'objective':'frozen_ordinary_task_development_only','partition':{'index':12}}
+        self.assertTrue(stage_prefix(plan).endswith('partition_12'))
+        for index in [True,-1,13,35,'0']:
             with self.assertRaises(PermissionError):stage_prefix({**plan,'partition':{'index':index}})
         with tempfile.TemporaryDirectory() as folder:
             for flags in [{'task_evaluation':True,'task_skill':True},{'task_evaluation':1},
