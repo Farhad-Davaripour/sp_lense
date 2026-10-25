@@ -151,7 +151,8 @@ def verified_model_context(root, commit, config, pin, authorization_sha256):
     plan = candidate_plan(config, profile)
     from .composite_task_memory_profile import MODE as MEMORY_MODE,PROFILE_FILE as MEMORY_PROFILE,placement_plan
     from .composite_task_skill_inference import MODE as TASK_INFERENCE_MODE
-    if pin.get('version') in [MEMORY_MODE,TASK_INFERENCE_MODE]:
+    from .composite_frozen_risk_profile import MODE as RISK_MODE
+    if pin.get('version') in [MEMORY_MODE,TASK_INFERENCE_MODE,RISK_MODE]:
         plan=placement_plan(config,profile,read(root/MEMORY_PROFILE))
     metadata = read(root / 'inputs' / METADATA)
     bounds = metadata_bounds(metadata, plan)

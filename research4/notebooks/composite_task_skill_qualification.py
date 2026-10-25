@@ -21,9 +21,11 @@ assert hashlib.sha256(manifest_path.read_bytes()).hexdigest() == MANIFEST_SHA256
 manifest = json.loads(manifest_path.read_text())
 registered={'ordinary-task-skill-two-t4-training-postload-v2':{'qualification':1,'full_fit':64},
             'ordinary-task-skill-stateful-memory-v3':{'qualification':3,'full_fit':64},
-            'ordinary-task-frozen-development-grouped-two-t4-v2':{'task_development':0}}
+            'ordinary-task-frozen-development-grouped-two-t4-v2':{'task_development':0},
+            'option-a-frozen-risk-development-two-t4-v1':{'risk_detector_transfer':0,'risk_development':0}}
 assert manifest['source_commit'] == SOURCE_COMMIT and manifest['version'] in registered
-evaluation=manifest['version']=='ordinary-task-frozen-development-grouped-two-t4-v2'
+risk=manifest['version']=='option-a-frozen-risk-development-two-t4-v1'
+evaluation=manifest['version']=='ordinary-task-frozen-development-grouped-two-t4-v2' or risk
 root = Path('/kaggle/temp/research4_task_evaluation_inputs' if evaluation else '/kaggle/temp/research4_task_training_inputs') / SOURCE_COMMIT
 root.mkdir(parents=True, exist_ok=False)
 for name, expected in manifest['files'].items():
@@ -41,9 +43,11 @@ for name, expected in manifest['files'].items():
 with (root/'TASK_TRAINING_PACKAGE_FILES.json').open('xb') as stream:
     stream.write(manifest_path.read_bytes())
 source = root / 'source'
-plan_path = source / ('inputs/TASK_EVALUATION_STAGE.json' if evaluation else 'inputs/TASK_TRAINING_PLAN.json')
+plan_path = source / ('inputs/FROZEN_RISK_EVALUATION_STAGE.json' if risk else 'inputs/TASK_EVALUATION_STAGE.json' if evaluation else 'inputs/TASK_TRAINING_PLAN.json')
 stage = json.loads(plan_path.read_text())
-assert stage['phase'] in ['qualification','full_fit','task_development'] and stage['scientific_GPU_count'] == 2
+assert stage['phase'] in ['qualification','full_fit','task_development','risk_detector_transfer','risk_development']
+expected_GPUs=1 if risk and stage['phase']=='risk_detector_transfer' else 2
+assert stage['scientific_GPU_count']==expected_GPUs
 assert stage['version']==manifest['version'] and stage['phase'] in registered[stage['version']]
 assert stage['optimizer_updates'] == registered[stage['version']][stage['phase']]
 output = Path(stage['destination'])
@@ -70,12 +74,12 @@ try:
             'accelerate==1.15.0', 'bitsandbytes==0.49.2']
     subprocess.run([sys.executable, '-m', 'pip', '--python', str(python), 'install', '--disable-pip-version-check',
         '--only-binary=:all:', '--index-url', 'https://pypi.org/simple', *pins], check=True, timeout=600)
-    env = {k: v for k, v in os.environ.items() if not k.startswith('DATABRICKS_')}
+    env = {k: v for k, v in os.environ.items() if not k.startswith(('DATABRICKS_','RESEARCH4_'))}
     if stage['version']=='ordinary-task-skill-stateful-memory-v3' or evaluation:
         # New child receives the configuration before importing Torch/CUDA.
         env.pop('PYTORCH_ALLOC_CONF',None);env.pop('PYTORCH_CUDA_ALLOC_CONF',None)
         env['PYTORCH_ALLOC_CONF']='expandable_segments:True'
-    env.update(RESEARCH4_EXECUTION_PLATFORM='kaggle', CUDA_VISIBLE_DEVICES='0,1',
+    env.update(RESEARCH4_EXECUTION_PLATFORM='kaggle', CUDA_VISIBLE_DEVICES='0' if expected_GPUs==1 else '0,1',
         RESEARCH4_TASK_TRAINING_SOURCE_ROOT=str(source),
         RESEARCH4_TASK_TRAINING_PLAN_SHA256=hashlib.sha256(plan_path.read_bytes()).hexdigest(),
         TOKENIZERS_PARALLELISM='false', HF_HUB_DISABLE_IMPLICIT_TOKEN='1', HF_HUB_DISABLE_TELEMETRY='1',
@@ -92,6 +96,12 @@ try:
             parents=[p for p in Path('/kaggle/input').rglob('evidence.zip') if p.as_posix().endswith(suffix)]
             assert len(parents)==1,'Attach each original completed fit/qualification output once'
             env[key]=str(parents[0])
+        if risk:
+            expected_risk=json.loads((source/'inputs/RISK_PARENT_EXPECTED.json').read_text())
+            suffix='research4_campaign/runs/'+expected_risk['source_commit']+'/risk_development_data_v1/export_01_EVIDENCE.zip'
+            parents=[p for p in Path('/kaggle/input').rglob('export_01_EVIDENCE.zip') if p.as_posix().endswith(suffix)]
+            assert len(parents)==1,'Attach the exact completed development-risk reference output once'
+            env['RESEARCH4_RISK_DEVELOPMENT_ARCHIVE']=str(parents[0])
     if stage['phase']=='full_fit':
         suffix='research4_campaign/runs/149278382451faa1aceed82f22a4604a9bf99f79/task_skill_training_v1/qualification_01/evidence.zip'
         if stage['version']=='ordinary-task-skill-stateful-memory-v3':
@@ -104,7 +114,7 @@ try:
     from src.composite_runtime import run_logged
     remaining = stage['worker_seconds']
     assert stage['hard_timeout_seconds'] - int(time.monotonic() - START) - 180 >= remaining, 'A complete registered worker/export envelope must remain after setup'
-    worker_module='src.composite_task_skill_evaluation_worker' if evaluation else 'src.composite_task_skill_model_worker'
+    worker_module='src.composite_frozen_risk_worker' if risk else 'src.composite_task_skill_evaluation_worker' if evaluation else 'src.composite_task_skill_model_worker'
     result = run_logged([str(python), '-m', worker_module, '--root', str(source), '--commit', SOURCE_COMMIT],
         source, env, output.parent / 'TASK_TRAINING_WORKER_LOG.txt', remaining,
         exit_observer=lambda value: child.update(value))
