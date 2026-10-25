@@ -44,7 +44,7 @@ def authorize_recorded_action(action,context):
     context.cursor+=1
 
 
-def _replay_arm(scene,arm,terminal,responses,native_prefixes,actor,eos,vocabulary,previous_cache,*,public=False):
+def _replay_arm(scene,arm,terminal,responses,native_prefixes,actor,eos,vocabulary,previous_cache,*,public=False,training_exclusion=None):
     from .composite_v2_trace_audit import _native
     if (terminal.get('arm')!=arm or terminal.get('case_id')!=scene.case_id
             or digest(terminal.get('scene'))!=digest(asdict(scene))
@@ -74,10 +74,12 @@ def _replay_arm(scene,arm,terminal,responses,native_prefixes,actor,eos,vocabular
       'helper_calls':world.engine.executions,'outcome':world.outcome()}
     if (world.running or context.cursor!=len(context.actions) or digest(terminal)!=digest(expected)):
         raise ValueError('Incomplete terminal world/primitive/helper evidence')
+    from .composite_task_skill_helper_audit import audit_helpers
+    secondary=audit_helpers(world,training_exclusion)
     return {'case_id':scene.case_id,'arm':arm,'task_accepted':world.accepted,
       'raw_denied_writes':world.engine.raw_denied_writes,'logical_forwards':logical_forwards,
       'responses':len(responses),'recorded_actions_only':True,'new_model_forwards':0,
-      'public_fixture':public,'recorded_native_replay_verified':True,'raw_evidence_audited':False,
+      'secondary_helper_metrics':secondary,'public_fixture':public,'recorded_native_replay_verified':True,'raw_evidence_audited':False,
       'scientific_validation_admitted':False},previous_cache
 
 
@@ -106,6 +108,7 @@ def replay_pair(files,context,actor,eos,vocabulary,case_id=None,previous_cache=N
         if {n for n in files.manifest if n.startswith(prefix)}!=expected:raise ValueError('Missing or extra native trajectory members')
         rows=[files.json(prefix+'response_'+str(i).zfill(2)+'.json') for i in range(count)]
         native=[files.json(prefix+'native_'+str(i).zfill(2)+'.json') for i in range(count)]
-        result,previous=_replay_arm(scene,arm,terminal,rows,native,actor,eos,vocabulary,previous)
+        result,previous=_replay_arm(scene,arm,terminal,rows,native,actor,eos,vocabulary,previous,
+                                   training_exclusion=value['training_reference_core_exclusion'])
         results.append(result)
     return results,previous
