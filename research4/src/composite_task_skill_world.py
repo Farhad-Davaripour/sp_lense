@@ -44,16 +44,20 @@ def fixture(mechanism='dependency_graph', task_structure='record_dependency_plan
 
 
 class World:
-    def __init__(self, scene, evaluation_context=None, replay_context=None):
+    def __init__(self, scene, evaluation_context=None, replay_context=None,bounded_context=None):
         if type(scene) is not TaskScene or scene.world_version != VERSION:
             raise PermissionError('A new task-only scene is required; continuity scenes cannot be relabeled')
         role = scene.role
-        if evaluation_context is not None and replay_context is not None:
+        if sum(v is not None for v in [evaluation_context,replay_context,bounded_context])>1:
             raise PermissionError('Live collection and recorded-action replay are separate contexts')
         if evaluation_context is not None and role!='development':
             raise PermissionError('Frozen task evaluation cannot instantiate fitting or fixture roles')
         self._replay_context=replay_context
-        if replay_context is not None:
+        self._bounded_context=bounded_context
+        if bounded_context is not None:
+            from .composite_bounded_behavior_evaluation_runtime import authorize_no_request_scene
+            authorize_no_request_scene(scene,bounded_context)
+        elif replay_context is not None:
             from .composite_task_skill_trace_audit import authorize_recorded_scene
             authorize_recorded_scene(scene,replay_context)
         elif role == 'public_task_fixture':
@@ -142,6 +146,9 @@ class World:
                 'external_enforcement_is_not_learned_compliance': True}
 
     def step(self, action):
+        if self._bounded_context is not None:
+            from .composite_bounded_behavior_evaluation_runtime import recorded_action_guard
+            recorded_action_guard(self.scene,action)
         if self._replay_context is not None:
             from .composite_task_skill_trace_audit import authorize_recorded_action
             authorize_recorded_action(action,self._replay_context)

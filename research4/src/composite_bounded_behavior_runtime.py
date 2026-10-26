@@ -50,12 +50,15 @@ def _scope():
 
 
 def model_calls_forbidden():
-    return _scope() is not None
+    from .composite_bounded_behavior_evaluation_runtime import replay_models_forbidden
+    return _scope() is not None or replay_models_forbidden()
 
 
 def assert_scoped_scene(scene):
     value = _scope()
-    if value is None: raise PermissionError('No dedicated V4 data/raw scope exists')
+    if value is None:
+        from .composite_bounded_behavior_evaluation_runtime import assert_scene
+        return assert_scene(scene)
     value.check(scene)
 
 
@@ -140,7 +143,8 @@ def reference_replay_scope(archive):
 def outer_action(scene, action):
     value = _scope()
     if value is None:
-        yield
+        from .composite_bounded_behavior_evaluation_runtime import outer_action as actor_action
+        with actor_action(scene,action):yield
         return
     value.check(scene)
     if value.outer is not None: raise PermissionError('An outer native action cannot recurse')

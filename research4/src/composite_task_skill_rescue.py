@@ -16,7 +16,11 @@ def rescue_owned(output, stage, child, base='/kaggle/temp'):
     owner = read(marker)
     scratch = Path(owner['scratch']).resolve()
     from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE
-    if stage.get('version')==BOUNDED_MODE:
+    from .composite_bounded_behavior_evaluation_profile import MODE as BOUNDED_EVAL_MODE
+    if stage.get('version')==BOUNDED_EVAL_MODE:
+        from .composite_bounded_behavior_evaluation_profile import stage_prefix
+        expected_prefix=stage_prefix(stage)
+    elif stage.get('version')==BOUNDED_MODE:
         from .composite_bounded_behavior_fit_store import stage_prefix
         expected_prefix=stage_prefix(stage)
     elif stage.get('phase') in ['risk_detector_transfer','risk_development']:

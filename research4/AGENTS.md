@@ -69,6 +69,33 @@ qualification, one-use provider admission and independent release remain
 required before each corresponding allocation. Native evaluation and sealed
 admission are separate from fitter registration.
 
+The actor-only evaluation port registers separate frozen-model authority and
+native model-action scopes. Its fixed development plan retains36 advisory
+cases across all nine conditions paired BASE/always-ON, plus36 fresh initially
+pending ordinary TaskWorld competence probes without the advisory or lifecycle
+record effects. The latter use four groups/two per unseen development family,
+nine replicas per group, original templates3/4, ID lengths5/9, sum/count and
+registered development task structures, under the stable namespace
+research4-bounded-v4-no-request-competence-20261026. This prospectively fixes
+identity descriptors; scientific worlds remain Kaggle-only.
+
+Each endpoint preserves72 trajectories in13 fixed paired-case partitions;
+case arms are never separated and whole-group inference remains intact across
+batches. The first pair and subsequent batches do not establish whole-study
+success by themselves. Every batch needs fresh quota/source/provider admission
+and actual release. Forward-count bounds do not prove runtime capacity. A
+model-authored context overflow saves its unexecuted prefix and leaves partial
+coverage unknown; do not truncate, repair or invent a terminal model action.
+
+Training qualification/full fit remain bound to their own reviewed source,
+while evaluation rebuilds genuine data/model evidence from those frozen source
+capsules. New evaluation authority must not weaken the CPU data semantic byte
+freeze or turn failed/serialized receipts into admitted fitting data. Native
+responses are durably exported before world actions. Independent replay and
+scoring preserve invalid calls, enforced stops, partial/unknown outcomes and
+paired evidence separately from successful teacher-reference timelines.
+All detector-dependent/composite/sealed obligations below remain unchanged.
+
 Run362292649 and the exact frozen f8cd823c catalog/list diagnostic are
 raw-audited and released. The first-call gate passed12/12 valid list calls OFF
 and12/12 ON with all48 responses and catalog controls independently audited;

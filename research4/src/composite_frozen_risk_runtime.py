@@ -81,6 +81,8 @@ def trace_replay_scope(archive,record,*,helper_pass=False):
 
 
 def require_scoped_runtime(scene=None):
+    from .composite_bounded_behavior_evaluation_runtime import require_scoped_runtime as actor_runtime
+    if actor_runtime(scene):return True
     from .composite_bounded_behavior_runtime import require_scoped_runtime as bounded_runtime
     if bounded_runtime(scene):return True
     scope=_CURRENT.get()
@@ -90,6 +92,8 @@ def require_scoped_runtime(scene=None):
 
 
 def recorded_action_guard(scene,action):
+    from .composite_bounded_behavior_evaluation_runtime import recorded_action_guard as actor_guard
+    if actor_guard(scene,action):return
     from .composite_bounded_behavior_runtime import recorded_action_guard as bounded_guard
     if bounded_guard(scene,action):return
     scope=_CURRENT.get()

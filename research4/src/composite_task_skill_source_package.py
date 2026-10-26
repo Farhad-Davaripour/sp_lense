@@ -11,9 +11,9 @@ from .io_utils import read,sha
 def source_transport_limit(manifest_name):
     if manifest_name not in ['TASK_TRAINING_PACKAGE_FILES.json','RISK_DATA_PACKAGE_FILES.json',
             'TOOL_ALIAS_PACKAGE_FILES.json','BOUNDED_BEHAVIOR_DATA_PACKAGE_FILES.json',
-            'BOUNDED_BEHAVIOR_FIT_PACKAGE_FILES.json']:
+            'BOUNDED_BEHAVIOR_FIT_PACKAGE_FILES.json','BOUNDED_ACTOR_EVALUATION_PACKAGE_FILES.json']:
         raise PermissionError('Only registered complete source/input transport formats are readable')
-    return 256*1024**2 if manifest_name=='BOUNDED_BEHAVIOR_FIT_PACKAGE_FILES.json' else 128*1024**2
+    return 256*1024**2 if manifest_name in ['BOUNDED_BEHAVIOR_FIT_PACKAGE_FILES.json','BOUNDED_ACTOR_EVALUATION_PACKAGE_FILES.json'] else 128*1024**2
 
 
 def validate_source_envelope(infos,manifest_name):
