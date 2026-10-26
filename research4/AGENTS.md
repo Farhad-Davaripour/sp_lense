@@ -35,6 +35,34 @@ This direct ownership instruction changes neither the scientific recipe nor
 the independent simulator stops. Every new scientific stage still needs its
 own reviewed source, exact inputs, fresh one-use admission and raw audit/release.
 
+## Direct full-fit qualification waiver (2026-10-26)
+
+The human's later instruction in `Monitor agent progress`, userMessage
+`01a1794c-88cc-7e41-b333-1d4f3fbb99a6`, says: "let's bypass that get into
+fine tuning. this is just un necessary over head." Root independently verified
+the authenticated message. This supersedes the separate three-update
+qualification prerequisite below for the explicitly versioned direct-fit route.
+Do not ask for the same approval again or label the waived gate as passed.
+
+Receipt: `C:/Users/farha/Research4/artifacts/root_execution_takeover_20261026/HUMAN_DIRECT_FIT_QUALIFICATION_WAIVER_20261026.json`
+SHA256: `a954c99a1edb5c720c182b26350344f3590404b5aaf8879630d923a6f36d8fcd`.
+
+Reconcile and stop the submitted qualifier 362573972, preserve its actual
+interrupted/terminal evidence and any unknown work counts, and release its
+provider and ledger ownership before a direct fresh 64-update fit. The
+interrupted attempt remains historical; its tensors must never initialize the
+fit. Use the already admitted CPU 48+80 data proof and the pinned waiver in a
+distinct direct protocol. Keep the original qualified route as history.
+
+Only the separate qualification prerequisite is waived. Keep the same Qwen
+revision, frozen backbone, all 64 blocks/rank 32/496 projections/FP32 adapters,
+128 approved occurrences/64 updates/accumulation 2/seed, native interface,
+cohorts, controls and independent stops. Normal full-fit hardware, memory,
+quota, time, forward, numerical, frozen-backbone, raw checkpoint/export and
+release checks remain mandatory, as do later frozen adapter tests. Preserve
+any genuine failure; no warm start, hidden extra updates, architecture
+reduction, fabricated PASS or automatic scientific retry.
+
 ## Approved sampling amendment (2026-10-26)
 
 The human directly approved the reviewed 48 coverage anchors plus 80 uniform

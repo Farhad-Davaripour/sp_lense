@@ -8,7 +8,7 @@ from .composite_bounded_sampling_fit_source import validate_source,notebook_code
 from .composite_bounded_sampling_training import token_plan,adapter_layout
 from .composite_bounded_behavior_interface import PROFILE
 from . import composite_bounded_behavior_interface as native_interface
-from .composite_bounded_sampling_fit_profile import MODE,MAPPING,MANIFEST
+from .composite_bounded_sampling_fit_profile import MODE,DIRECT_MODE,WAIVER_SHA,MAPPING,MANIFEST
 from .composite_v2_model_audit import (EvidenceFiles,checkpoint_evidence,audit_optimizer_bytes,
     frozen_integrity,audit_runtime,audit_bypass,tensor_state)
 from .composite_task_skill_model_audit import verify_fresh_initialization
@@ -70,11 +70,17 @@ def require_full_fit(value):
     proof=value.receipt()
     from .composite_bounded_sampling_reader import require_approved_sampling_data
     data=require_approved_sampling_data(value.data)
-    if (proof.get('runtime_profile')!=MODE or proof.get('source_data_archive_sha256')!=data['raw_archive_sha256']
+    if (proof.get('runtime_profile') not in [MODE,DIRECT_MODE] or proof.get('source_data_archive_sha256')!=data['raw_archive_sha256']
             or proof.get('approved_draw_plan_sha256')!=digest(value.data.fitting_draw_plan())
             or proof.get('sampling_approval_sha256')!=data['approval_sha256']
             or proof.get('sampling_rule_sha256')!=data['rule_sha256']):
         raise PermissionError('Full fit must preserve its own approved data/rule/128-draw lineage')
+    if proof['runtime_profile']==DIRECT_MODE and (
+            proof.get('direct_fit_waiver_sha256')!=WAIVER_SHA
+            or proof.get('separate_qualification_waived') is not True
+            or proof.get('qualification_performed') is not False
+            or proof.get('current_qualification_initial_hash_comparison_performed') is not False):
+        raise PermissionError('Direct fit must retain its real waiver and no current qualification claim')
     if (proof.get('phase')!='full_fit' or proof.get('full_fit_completed') is not True
         or proof.get('full_fit_raw_audited') is not True or proof.get('owned_compute_released') is not True
         or proof.get('actual_full_rank_backward_verified') is not True
@@ -92,10 +98,12 @@ def require_full_fit(value):
 
 def kaggle_closure(binding,archive_sha256,terminal_AX,release_AX,controller,actual_code_cells,prepared_code_cells):
     run=binding.get('scriptVersionId');source=binding.get('source_commit');phase=binding.get('phase')
-    notebook={'qualification':'farhad89/research4-bounded-sampling-qualification-v1',
-      'full_fit':'farhad89/research4-bounded-sampling-fit-v1'}.get(phase)
+    mode=binding.get('mode')
+    notebook=('farhad89/research4-bounded-sampling-direct-fit-v1' if mode==DIRECT_MODE and phase=='full_fit' else
+      {'qualification':'farhad89/research4-bounded-sampling-qualification-v1',
+       'full_fit':'farhad89/research4-bounded-sampling-fit-v1'}.get(phase) if mode==MODE else None)
     if (type(run) is not int or run<=0 or notebook is None or binding.get('notebook')!=notebook
-        or binding.get('mode')!=MODE or binding.get('owner_thread_id')!=OWNER_THREAD
+        or mode not in [MODE,DIRECT_MODE] or binding.get('owner_thread_id')!=OWNER_THREAD
         or not re.fullmatch('[0-9a-f]{40}',source or '') or not re.fullmatch('[0-9a-f]{64}',archive_sha256 or '')):
         raise PermissionError('Exact consumed V4 stage/submission/source required')
     if (not exact_terminal_url(terminal_AX,notebook,run)
@@ -106,7 +114,7 @@ def kaggle_closure(binding,archive_sha256,terminal_AX,release_AX,controller,actu
         raise PermissionError('Actual exact provider terminal and release observations required')
     child=controller.get('child',{})
     if (controller.get('source_commit')!=source or controller.get('notebook')!=notebook
-        or controller.get('mode')!=MODE or controller.get('phase')!=phase
+        or controller.get('mode')!=mode or controller.get('phase')!=phase
         or controller.get('owner_thread_id')!=OWNER_THREAD
         or controller.get('status')!='worker_exited' or type(controller.get('exit_code')) is not int
         or controller['exit_code']!=0 or controller.get('timed_out') is not False
@@ -116,7 +124,7 @@ def kaggle_closure(binding,archive_sha256,terminal_AX,release_AX,controller,actu
         raise PermissionError('Actual controlled child exit and owned cleanup required')
     if not actual_code_cells or digest(actual_code_cells)!=digest(prepared_code_cells):
         raise PermissionError('Actual saved V4 notebook differs from reviewed prepared source')
-    return KaggleClosure({'scriptVersionId':run,'source_commit':source,'notebook':notebook,
+    return KaggleClosure({'scriptVersionId':run,'source_commit':source,'notebook':notebook,'mode':mode,
       'archive_sha256':archive_sha256,'owned_compute_released':True,
       'terminal_AX_sha256':hashlib.sha256(terminal_AX.encode()).hexdigest(),
       'release_AX_sha256':hashlib.sha256(release_AX.encode()).hexdigest(),
@@ -128,7 +136,7 @@ def source_closure_matches(closure,root,source_commit,raw_sha256,stage):
     if not isinstance(closure,KaggleClosure) or closure._key is not _KEY:return False
     value=closure._value
     if (value['source_commit']!=source_commit or value['archive_sha256']!=raw_sha256
-            or value['notebook']!=stage['notebook']):
+            or value['notebook']!=stage['notebook'] or value.get('mode')!=stage['version']):
         raise PermissionError('Actual provider closure belongs to another source/raw/stage')
     expected=notebook_code(root,source_commit,sha(Path(root).parent/MANIFEST))
     if value['actual_code_cells_sha256']!=digest([expected]):
@@ -215,7 +223,8 @@ def audit_fit(raw, expected_sha256, root, source_commit, closure=None,*,required
     stage, cfg, data = validate_source(root,source_commit,qualification_archive,data_archive=data_archive,alias_fit_archive=alias_fit_archive,alias_qualification_archive=alias_qualification_archive)
     phase=stage['phase'];updates={'qualification':3,'full_fit':64}[phase]
     from .composite_bounded_sampling_fit_profile import MODE,RAW_PROFILE,stress_schedule,verify_allocator_record
-    memory_mode=stage['version']==MODE
+    direct=stage['version']==DIRECT_MODE
+    memory_mode=stage['version'] in [MODE,DIRECT_MODE]
     stateful=memory_mode and phase=='qualification'
     if stateful:updates=3
     if required_phase is not None and phase!=required_phase:raise PermissionError('Another model phase was supplied')
@@ -262,6 +271,7 @@ def audit_fit(raw, expected_sha256, root, source_commit, closure=None,*,required
                        'STATEFUL_TRAINING_SCHEDULE.json','ALLOCATOR_BEFORE_INSTALL.json','ALLOCATOR_AFTER_INSTALL.json'}
             for i in [1,2,3]:required|={'GRADIENT_STEP_'+str(i).zfill(3)+suffix for suffix in ['.pt','_EXPORT.json']}
         elif memory_mode:required|={'OPTIMIZER_INITIAL_STATE.json','ALLOCATOR_BEFORE_INSTALL.json','ALLOCATOR_AFTER_INSTALL.json'}
+        if direct:required|={'DIRECT_FRESH_INITIALIZATION.json'}
         missing = sorted(required - set(files.manifest))
         if missing:
             return BoundedFitEvidence({**base, 'missing_or_unverified': missing}, _KEY, data=data)
@@ -399,9 +409,21 @@ def audit_fit(raw, expected_sha256, root, source_commit, closure=None,*,required
                 optimizer=audit_three_updates(files,shapes,files.json('ADAPTER_INITIAL_HASHES.json'))
             elif phase=='qualification':optimizer = audit_scratch_update(files, shapes, files.json('ADAPTER_INITIAL_HASHES.json'))
             else:
-                from .composite_bounded_sampling_fit_parent import read_qualification_parent
-                parent=require_qualification(read_qualification_parent(root,qualification_archive,data_archive=data_archive,alias_fit=alias_fit_archive,alias_qualification=alias_qualification_archive))
-                verify_fresh_initialization(files.json('ADAPTER_INITIAL_HASHES.json'),parent.get('initial_adapter_hashes'))
+                if direct:
+                    from .composite_bounded_sampling_fit_parent import historical_initialization_reference
+                    reference,initial=historical_initialization_reference(data,alias_qualification_archive)
+                    if reference!=stage['historical_initialization_reference']:
+                        raise PermissionError('The historical hash-only fresh-seed reference changed')
+                    verify_fresh_initialization(files.json('ADAPTER_INITIAL_HASHES.json'),initial)
+                    expected_initial={'historical_hash_reference':reference,
+                        'actual_initial_adapter_hashes_sha256':digest(initial),'new_qualification_performed':False,
+                        'old_checkpoint_or_optimizer_loaded':False,'before_any_backward':True}
+                    if digest(files.json('DIRECT_FRESH_INITIALIZATION.json'))!=digest(expected_initial):
+                        raise PermissionError('Actual direct fresh installation before backward is unverified')
+                else:
+                    from .composite_bounded_sampling_fit_parent import read_qualification_parent
+                    parent=require_qualification(read_qualification_parent(root,qualification_archive,data_archive=data_archive,alias_fit=alias_fit_archive,alias_qualification=alias_qualification_archive))
+                    verify_fresh_initialization(files.json('ADAPTER_INITIAL_HASHES.json'),parent.get('initial_adapter_hashes'))
                 audit_optimizer_config(files)
                 optimizer=audit_optimizer_bytes(files.tensor_path('OPTIMIZER_FINAL.pt'),shapes,64)
                 optimizer.update(audit_clipped_gradients(tensor_state(files.tensor_path('GRADIENT_FINAL.pt')),shapes))
@@ -438,6 +460,15 @@ def audit_fit(raw, expected_sha256, root, source_commit, closure=None,*,required
         if stateful:base.update(runtime_profile=MODE,stateful_AdamW_overlap_and_size_switch_verified=True,
           initialization_mapping_version=stage['initialization_mapping_version'],qualified_optimizer_updates=3,
           full64_training_capacity_established=False,arbitrary6144_training_capacity_established=False)
+        elif direct:
+            base.update(runtime_profile=DIRECT_MODE,initialization_mapping_version=stage['initialization_mapping_version'],
+                direct_fit_waiver_sha256=stage['direct_fit_waiver_sha256'],separate_qualification_waived=True,
+                qualification_performed=False,current_qualification_initial_hash_comparison_performed=False,
+                qualification_performed_field_scope='new_prerequisite_for_this_direct_route_only',
+                historical_initialization_reference=stage['historical_initialization_reference'],
+                interrupted_qualification_attempt_run_id=stage['interrupted_qualification_attempt_run_id'],
+                stateful_parent_qualification_verified=False,qualified_optimizer_updates=None,
+                current_training_capacity_prequalified=False)
         elif stage['version']==MODE:
             base.update(runtime_profile=MODE,initialization_mapping_version=stage['initialization_mapping_version'],
               stateful_parent_qualification_verified=True,qualification_parent_run_id=stage['qualification_run_id'])

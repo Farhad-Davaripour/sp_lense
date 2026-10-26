@@ -1,5 +1,5 @@
 """Genuine approved-data and scratch-qualification capsule reconstruction."""
-import base64
+import base64,hashlib,json,re,zipfile
 import os
 from pathlib import Path
 from .io_utils import read, sha, digest
@@ -72,3 +72,33 @@ def read_data_parent(root,raw_override=None,alias_fit=None,alias_qualification=N
 
 def read_qualification_parent(root,raw_override=None,*,data_archive=None,alias_fit=None,alias_qualification=None):
     return _read(root,'QUAL',raw_override,alias_fit,alias_qualification,data_archive)
+
+
+def historical_initialization_reference(data,archive=None):
+    """Read only old initial tensor hashes: never weights, optimizer or a new PASS."""
+    from .composite_bounded_sampling_reader import require_approved_sampling_data
+    require_approved_sampling_data(data)
+    failed=data.failed_reference().receipt()
+    expected=failed['dependency_content_hashes']['qualification']
+    path=raw_path('RESEARCH4_BOUNDED_ALIAS_QUALIFICATION_ARCHIVE',archive)
+    if sha(path)!=expected:raise PermissionError('Original independently audited seed-map archive changed')
+    with zipfile.ZipFile(path) as stream:
+        names=stream.namelist()
+        if len(names)!=len(set(names)):raise PermissionError('Duplicate historical hash-map member')
+        manifest=json.loads(stream.read('MANIFEST.json'))
+        raw=stream.read('ADAPTER_INITIAL_HASHES.json')
+        if hashlib.sha256(raw).hexdigest()!=manifest['ADAPTER_INITIAL_HASHES.json']:
+            raise PermissionError('Original initialization hash-map bytes changed')
+        hashes=json.loads(raw)
+    if (len(hashes)!=992 or sum(n.endswith('.A') for n in hashes)!=496
+            or sum(n.endswith('.B') for n in hashes)!=496
+            or any(not re.fullmatch('[0-9a-f]{64}',value or '') for value in hashes.values())):
+        raise PermissionError('All992 original seeded initialization hashes are required')
+    descriptor={'profile':'historical_same_seed_bytes_only_not_capacity_qualification_v1',
+        'reference_run_id':361949668,'reference_raw_archive_sha256':expected,
+        'initial_adapter_hashes_sha256':digest(hashes),'seed':202610212,
+        'devices':[0,1],'first_device_layers':22,'second_device_layers':42,
+        'rank':32,'alpha':64,'projections':496,'adapter_parameters':233455616,
+        'torch':'2.11.0+cu128','current_training_capacity_qualified':False,
+        'historical_checkpoint_or_optimizer_loaded':False}
+    return descriptor,hashes

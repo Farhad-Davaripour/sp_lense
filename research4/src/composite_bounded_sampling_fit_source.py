@@ -4,7 +4,8 @@ import re,hashlib,zipfile
 from .io_utils import read,sha,digest
 from .composite_source_archive import verify_transport
 from .composite_kaggle_v2_profile import identity,HUMAN as KAGGLE_HUMAN,HUMAN_SHA
-from .composite_bounded_sampling_fit_profile import MODE,MANIFEST,PLAN,qualification_plan,full_fit_plan
+from .composite_bounded_sampling_fit_profile import (MODE,DIRECT_MODE,WAIVER,WAIVER_SHA,MANIFEST,PLAN,
+    qualification_plan,full_fit_plan,direct_full_fit_plan)
 from .composite_bounded_sampling_fit_parent import DATA_FILES,QUAL_FILES,read_data_parent,read_qualification_parent
 from .composite_bounded_behavior_profile import validate_preparation
 from .composite_task_skill_training import validate_recipe
@@ -44,7 +45,7 @@ def validate_fit_package(archive,bundle):
     """
     from .composite_task_skill_source_package import validate_source_envelope
     bundle=Path(bundle);manifest=read(bundle/MANIFEST)
-    if manifest.get('version')!=MODE or not re.fullmatch('[0-9a-f]{40}',manifest.get('source_commit','')):
+    if manifest.get('version') not in [MODE,DIRECT_MODE] or not re.fullmatch('[0-9a-f]{40}',manifest.get('source_commit','')):
         raise PermissionError('Exact registered V4 fit source manifest required')
     with zipfile.ZipFile(archive) as stream:
         infos=stream.infolist();validate_source_envelope(infos,MANIFEST)
@@ -77,9 +78,12 @@ def notebook_code(root,commit,manifest_sha256):
 
 def validate_source(root,commit,qualification_archive=None,*,data_archive=None,
                     alias_fit_archive=None,alias_qualification_archive=None):
-    root=Path(root).resolve();verify_transport(root,commit,MODE,MANIFEST)
-    stage=read(root/'inputs'/PLAN);inputs=root/'inputs'
-    required=BASE_INPUTS|(QUAL_FILES if stage.get('phase')=='full_fit' else DATA_FILES)
+    root=Path(root).resolve();stage=read(root/'inputs'/PLAN);inputs=root/'inputs'
+    mode=stage.get('version')
+    if mode not in [MODE,DIRECT_MODE]:raise PermissionError('Unregistered sampler fitting mode')
+    verify_transport(root,commit,mode,MANIFEST)
+    direct=mode==DIRECT_MODE
+    required=BASE_INPUTS|((DATA_FILES|{WAIVER}) if direct else QUAL_FILES if stage.get('phase')=='full_fit' else DATA_FILES)
     manifest=read(inputs/'MANIFEST.json')
     if set(manifest)!=required or any(sha(inputs/n)!=h for n,h in manifest.items()):
         raise PermissionError('Complete exact V4 data/model/source/phase inputs required')
@@ -93,7 +97,15 @@ def validate_source(root,commit,qualification_archive=None,*,data_archive=None,
     for name in ['QWEN_PIN.json','MODERNBERT_PIN.json']:
         if sha(inputs/name)!=read(inputs/'PARENT_MODEL_INPUT_MANIFEST.json')[name]:
             raise PermissionError('Original model/tokenizer pins changed')
-    if stage.get('phase')=='full_fit':
+    if direct:
+        if stage.get('phase')!='full_fit' or qualification_archive is not None:
+            raise PermissionError('Direct waiver admits only a fresh64 fit, never a qualifier or warm start')
+        data=read_data_parent(root,data_archive,alias_fit_archive,alias_qualification_archive)
+        approved=waiver(root)
+        if read(inputs/'SAMPLING_DATA_PARENT_EXPECTED.json')['closeout_sha256']!=approved['approved_data_closeout_sha256']:
+            raise PermissionError('The direct waiver names the exact already released approved-data closeout')
+        expected=direct_full_fit_plan(commit,data,approved,alias_qualification_archive)
+    elif stage.get('phase')=='full_fit':
         parent=read_qualification_parent(root,qualification_archive,data_archive=data_archive,
           alias_fit=alias_fit_archive,alias_qualification=alias_qualification_archive)
         data=parent.data
@@ -107,3 +119,27 @@ def validate_source(root,commit,qualification_archive=None,*,data_archive=None,
     if digest(stage)!=digest(expected) or read(inputs/'WORKSPACE.json')!=identity(expected['notebook']):
         raise PermissionError('Exact new-data qualification or fresh-fit parent/plan required')
     return stage,cfg,data
+
+
+def validate_waiver_value(value,data=None):
+    expected={'version':'research4_direct_fresh64fit_human_qualification_waiver_v1',
+        'source_user_message_id':'01a1794c-88cc-7e41-b333-1d4f3fbb99a6',
+        'requires_existing_qualifier_actual_terminal_release':True,
+        'separate_qualification_waived_not_passed':True,
+        'scientific_full_fit_admitted_by_receipt_alone':False}
+    if any(digest(value.get(k))!=digest(v) for k,v in expected.items()):
+        raise PermissionError('Exact specific human separate-qualification waiver required')
+    if data is not None:
+        from .composite_bounded_sampling_reader import require_approved_sampling_data
+        proof=require_approved_sampling_data(data)
+        if (proof['source_commit']!=value['approved_data_source_commit']
+                or proof['raw_archive_sha256']!=value['approved_data_raw_sha256']
+                or digest(data.fitting_draw_plan())!=value['approved_draw_plan_sha256']
+                or proof['provider_run_id']!=value['approved_data_run_id']):
+            raise PermissionError('Waiver cannot substitute another dataset or approved128 schedule')
+    return value
+
+def waiver(root):
+    path=Path(root)/'inputs'/WAIVER
+    if sha(path)!=WAIVER_SHA:raise PermissionError('Pinned human waiver receipt changed')
+    return validate_waiver_value(read(path))

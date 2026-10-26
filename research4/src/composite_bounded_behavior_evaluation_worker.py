@@ -14,8 +14,10 @@ class Services(TaskServices):
         keys=['RESEARCH4_BOUNDED_FULL_FIT_ARCHIVE','RESEARCH4_BOUNDED_QUALIFICATION_ARCHIVE',
           'RESEARCH4_BOUNDED_DATA_ARCHIVE','RESEARCH4_BOUNDED_ALIAS_FIT_ARCHIVE',
           'RESEARCH4_BOUNDED_ALIAS_QUALIFICATION_ARCHIVE']
-        paths=[Path(os.environ[k]).resolve() for k in keys]
-        if any(not p.is_relative_to(Path('/kaggle/input').resolve()) for p in paths):
+        from .composite_bounded_sampling_fit_profile import DIRECT_MODE
+        direct=read(Path(root)/'inputs/BOUNDED_FIT_PARENT_EXPECTED.json').get('fit_mode')==DIRECT_MODE
+        paths=[None if direct and key=='RESEARCH4_BOUNDED_QUALIFICATION_ARCHIVE' else Path(os.environ[key]).resolve() for key in keys]
+        if any(p is not None and not p.is_relative_to(Path('/kaggle/input').resolve()) for p in paths):
             raise PermissionError('Every original fitted/data parent remains immutable Kaggle input')
         frozen=validate_source(root,commit,*paths);frozen.require_runtime()
         from .composite_frozen_probe import verified_model_context

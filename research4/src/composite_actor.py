@@ -67,8 +67,8 @@ class Actor(nn.Module):
         if bounded_training is not None:
             if kernel_profile!='reference':raise PermissionError('V4 fitting requires reference kernels')
             from .composite_bounded_behavior_training import authorized_load_plan
-            from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
-            if bounded_training.get('mode')==SAMPLING_MODE:
+            from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE,DIRECT_MODE
+            if bounded_training.get('mode') in [SAMPLING_MODE,DIRECT_MODE]:
                 from .composite_bounded_sampling_training import authorized_load_plan
             elif bounded_training.get('mode') is not None:
                 raise PermissionError('Unregistered separately typed V4 fitting mode')

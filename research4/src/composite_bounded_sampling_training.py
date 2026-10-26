@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from .io_utils import digest,sha
 from .composite_bounded_behavior_interface import PROFILE,input_ids,action_text
-from .composite_bounded_sampling_fit_profile import MODE,PLAN,RAW_PROFILE,FIT_RAW_PROFILE,stress_schedule,allocator_evidence
+from .composite_bounded_sampling_fit_profile import MODE,DIRECT_MODE,PLAN,RAW_PROFILE,FIT_RAW_PROFILE,stress_schedule,allocator_evidence
 from .composite_task_skill_training import (PARAMETERS,PROJECTIONS,adapter_layout,memory_admission,
     live_resources,postload_runtime,validate_recipe)
 
@@ -85,7 +85,7 @@ def fit_backend(actor,rows,placement,cfg,output,guard,progress,observer=None,qua
 def approved_full_fit_rows(actor,rows,cfg):
     """The opaque new CPU proof supplies all128 occurrences; never run IID RNG."""
     rows=selected_rows(actor,rows);context=actor.bounded_training_context;stage=context['stage']
-    if (stage['version']!=MODE or stage['phase']!='full_fit'
+    if (stage['version'] not in [MODE,DIRECT_MODE] or stage['phase']!='full_fit'
             or stage['sampling']!='approved_48anchors80uniform_exact128_ids_v1'
             or cfg!=context['full_config']):
         raise PermissionError('The distinct approved-sampler full fit is required')

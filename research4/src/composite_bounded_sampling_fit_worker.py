@@ -2,7 +2,7 @@
 import argparse,json,time,traceback
 from pathlib import Path
 from .io_utils import read,sha,digest
-from .composite_bounded_sampling_fit_profile import MODE,OBJECTIVE
+from .composite_bounded_sampling_fit_profile import MODE,DIRECT_MODE,OBJECTIVE
 from .composite_bounded_sampling_training import authorized_load_plan,run_fit
 from .composite_task_skill_model_worker import Services as TaskServices
 from .composite_owned_artifacts import OwnedArtifacts
@@ -25,14 +25,15 @@ class Services(TaskServices):
         from .composite_actor import Actor
         from .composite_bounded_behavior_interface import PROFILE
         return Actor(path,context['full_config']['qwen'],guard,forward,native_interface_profile=PROFILE,
-          bounded_training={'root':context['source_root'],'source_commit':context['source_commit'],'mode':MODE})
+          bounded_training={'root':context['source_root'],'source_commit':context['source_commit'],'mode':context['stage']['version']})
 
 def run(root,commit,_services=None):
     services=Services() if _services is None else _services
     started = services.clock()
     context, rows = services.authorize(root, commit)
     stage = context['stage']
-    if stage.get('version')!=MODE or stage.get('phase') not in ['qualification','full_fit']:
+    if (stage.get('version') not in [MODE,DIRECT_MODE] or stage.get('phase') not in ['qualification','full_fit']
+            or stage.get('version')==DIRECT_MODE and stage.get('phase')!='full_fit'):
         raise PermissionError('The separate V4 worker admits only its exact fitting stages')
     owner = services.owner(context)
     counts = {'attempted': 0, 'completed': 0}
@@ -44,6 +45,9 @@ def run(root,commit,_services=None):
                'qualification_admitted': False, 'raw_evidence_audit_required': True,
                'heldout_content_read': False, 'automatic_scientific_retries': 0,
                'public_fixture_test_mode': _services is not None}
+    if stage['version']==DIRECT_MODE:
+        receipt.update(separate_qualification_waived=True,qualification_performed=False,
+                       direct_fit_waiver_sha256=stage['direct_fit_waiver_sha256'])
 
     def guard():
         if services.clock() - started >= stage['worker_seconds'] - stage['export_reserve_seconds']:

@@ -32,17 +32,20 @@ def require_actor_data(value):
 
 def evaluation_lineage(model):
     """Explicit old/new typed data identity, frozen into evaluator stage and reports."""
-    from .composite_bounded_sampling_fit_profile import MODE
+    from .composite_bounded_sampling_fit_profile import MODE,DIRECT_MODE
     frozen=model.receipt();data=require_actor_data(model.data)
     mode=frozen.get('runtime_profile')
     result={'fit_mode':mode,'data_source_commit':data['source_commit'],
             'data_raw_archive_sha256':data['raw_archive_sha256']}
-    if mode==MODE:
+    if mode in [MODE,DIRECT_MODE]:
         from .composite_bounded_sampling_reader import require_approved_sampling_data
         data=require_approved_sampling_data(model.data)
         result.update(data_mode='bounded-behavior-approved-sampling-amendment-v1-data',
             approval_sha256=data['approval_sha256'],rule_sha256=data['rule_sha256'],
             approved_draw_plan_sha256=digest(model.data.fitting_draw_plan()))
+        if mode==DIRECT_MODE:
+            result.update(direct_fit_waiver_sha256=frozen['direct_fit_waiver_sha256'],
+                          qualification_performed=False,separate_qualification_waived=True)
     else:
         from .composite_bounded_behavior_fit_profile import MODE as OLD_MODE
         from .composite_bounded_behavior_data_reader import require_data
@@ -55,10 +58,10 @@ def evaluation_lineage(model):
 def fit_modules(mode):
     """Select only an explicit registered source/manifest/auditor pair."""
     from .composite_bounded_behavior_fit_profile import MODE as OLD_MODE
-    from .composite_bounded_sampling_fit_profile import MODE as NEW_MODE
+    from .composite_bounded_sampling_fit_profile import MODE as NEW_MODE,DIRECT_MODE
     import importlib
     if mode in [None,OLD_MODE]:prefix='composite_bounded_behavior_fit'
-    elif mode==NEW_MODE:prefix='composite_bounded_sampling_fit'
+    elif mode in [NEW_MODE,DIRECT_MODE]:prefix='composite_bounded_sampling_fit'
     else:raise PermissionError('Unregistered frozen fit source mode')
     return tuple(importlib.import_module('.'+prefix+'_'+part,__package__)
                  for part in ['profile','source','audit'])
