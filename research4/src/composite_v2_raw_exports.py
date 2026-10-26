@@ -11,14 +11,16 @@ GiB=1024**3
 PROFILE='v2-full-state-raw-evidence-v1'
 TASK_PROFILE='task-full-state-raw-evidence-v1'
 STATEFUL_TASK_PROFILE='task-three-update-full-state-raw-v3'
+BOUNDED_PROFILE='bounded-behavior-full-state-raw-v4'
+STATEFUL_BOUNDED_PROFILE='bounded-behavior-three-update-full-state-raw-v4'
 RAW_BYTES=4*GiB
 RESERVE_BYTES=9*GiB
 
 
 def validate_export_plan(stage,expected_profile=PROFILE):
-    if expected_profile not in [PROFILE,TASK_PROFILE,STATEFUL_TASK_PROFILE]:raise PermissionError('Unknown raw export profile')
-    reserve=18*GiB if expected_profile==STATEFUL_TASK_PROFILE else 12*GiB if expected_profile==TASK_PROFILE else RESERVE_BYTES
-    raw=6*GiB if expected_profile==STATEFUL_TASK_PROFILE else RAW_BYTES
+    if expected_profile not in [PROFILE,TASK_PROFILE,STATEFUL_TASK_PROFILE,BOUNDED_PROFILE,STATEFUL_BOUNDED_PROFILE]:raise PermissionError('Unknown raw export profile')
+    reserve=18*GiB if expected_profile in [STATEFUL_TASK_PROFILE,STATEFUL_BOUNDED_PROFILE] else 12*GiB if expected_profile in [TASK_PROFILE,BOUNDED_PROFILE] else RESERVE_BYTES
+    raw=6*GiB if expected_profile in [STATEFUL_TASK_PROFILE,STATEFUL_BOUNDED_PROFILE] else RAW_BYTES
     expected={'raw_evidence_profile':expected_profile,'maximum_raw_evidence_bytes':raw,
               'physical_export_reserve_bytes':reserve}
     if any(type(stage.get(k)) is not type(v) or stage[k]!=v for k,v in expected.items()):

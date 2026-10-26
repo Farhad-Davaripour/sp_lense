@@ -25,8 +25,12 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
         plan=getattr(actor,'v2_training_plan',None)
         from .composite_generalized_interface import PROFILE
         from .composite_task_memory_profile import MODE as MEMORY_MODE
-        qualifier_updates=3 if plan and plan.get('version')==MEMORY_MODE else 1
-        if (getattr(actor,'native_interface_profile',None)!=PROFILE or not plan or plan.get('phase')!='qualification'
+        from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE
+        from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
+        bounded=plan and plan.get('version')==BOUNDED_MODE
+        qualifier_updates=3 if plan and plan.get('version') in [MEMORY_MODE,BOUNDED_MODE] else 1
+        expected_profile=BOUNDED_PROFILE if bounded else PROFILE
+        if (getattr(actor,'native_interface_profile',None)!=expected_profile or not plan or plan.get('phase')!='qualification'
             or plan.get('optimizer_updates')!=qualifier_updates or len(qualification_rows)!=recipe['accumulation']*qualifier_updates):
             raise PermissionError('Only the exact separately validated scratch qualification may set diagnostic updates')
         by_id={row['state_id']:row for row in rows}

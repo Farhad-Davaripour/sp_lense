@@ -75,7 +75,7 @@ class EvidenceFiles:
         infos=self.stream.infolist();names=[v.filename for v in infos]
         limit=4*1024**3
         if evidence_profile is not None:
-            if evidence_profile!='task-three-update-full-state-raw-v3' or maximum_bytes!=6*1024**3:
+            if evidence_profile not in ['task-three-update-full-state-raw-v3','bounded-behavior-three-update-full-state-raw-v4'] or maximum_bytes!=6*1024**3:
                 raise PermissionError('Exact stateful task-qualification I/O profile required')
             limit=6*1024**3
         if type(maximum_bytes) is not int or not 0<maximum_bytes<=limit:raise ValueError('Reviewed raw export envelope required')
@@ -211,7 +211,7 @@ def audit_bypass(files,token_plan,context):
     from .composite_v2_trace_audit import _native
     for name in ['wrapped_generation','bare_generation']:
         _native(generation[name],context['qualification_texts'][0],False,context['actor_tokenizer'],
-                context['eos'],context['vocabulary'],None)
+                context['eos'],context['vocabulary'],None,interface=context.get('native_interface'))
     _same(generation['wrapped_generation']['generated_token_ids'],generation['bare_generation']['generated_token_ids'],'OFF native generation differs')
     return {'raw_OFF_logits_exact':True,'raw_ON_difference_observed':True}
 
@@ -242,7 +242,7 @@ def frozen_integrity(before,after,expected_shapes,*,parameter_devices=None):
     return {'original_parameters_verified':len(expected_shapes),'live_bytes_recomputed_and_equal':True}
 
 
-def checkpoint_evidence(raw,expected_sha256,cfg,projections,initial_hashes,*,rank=32):
+def checkpoint_evidence(raw,expected_sha256,cfg,projections,initial_hashes,*,rank=32,native_profile=PROFILE):
     """Load adapter tensors only, with torch's restricted weights reader."""
     import torch
     from .composite_training import tensor_digest
@@ -251,7 +251,9 @@ def checkpoint_evidence(raw,expected_sha256,cfg,projections,initial_hashes,*,ran
     if actual!=expected_sha256:raise ValueError('Checkpoint bytes changed')
     saved=tensor_state(raw)
     _same(saved.get('config'),cfg,'Checkpoint architecture/configuration differs')
-    if saved.get('native_interface_profile')!=PROFILE or saved.get('placement')!={'name':'all_blocks','scope':'all_blocks'}:
+    from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
+    if native_profile not in [PROFILE,BOUNDED_PROFILE]:raise PermissionError('Unregistered checkpoint native profile')
+    if saved.get('native_interface_profile')!=native_profile or saved.get('placement')!={'name':'all_blocks','scope':'all_blocks'}:
         raise ValueError('Checkpoint interface or adapter scope differs')
     expected={}
     for name,(inputs,outputs) in projections.items():expected.update({name+'.A':[rank,inputs],name+'.B':[outputs,rank]})

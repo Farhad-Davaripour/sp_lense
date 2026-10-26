@@ -154,6 +154,8 @@ def verified_model_context(root, commit, config, pin, authorization_sha256):
     from .composite_frozen_risk_profile import MODE as RISK_MODE
     if pin.get('version') in [MEMORY_MODE,TASK_INFERENCE_MODE,RISK_MODE]:
         plan=placement_plan(config,profile,read(root/MEMORY_PROFILE))
+    from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE,placement_plan as bounded_placement
+    if pin.get('version')==BOUNDED_MODE:plan=bounded_placement(config,profile)
     metadata = read(root / 'inputs' / METADATA)
     bounds = metadata_bounds(metadata, plan)
     model_pin = read(root / 'inputs/QWEN_PIN.json')

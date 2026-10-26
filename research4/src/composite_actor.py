@@ -15,22 +15,28 @@ LEGACY_INTERFACE='composite-native-v1'
 def native_interface(profile):
     if profile==LEGACY_INTERFACE:return None
     from . import composite_generalized_interface
+    from . import composite_bounded_behavior_interface
+    if profile==composite_bounded_behavior_interface.PROFILE:return composite_bounded_behavior_interface
     if profile!=composite_generalized_interface.PROFILE:raise PermissionError('Unregistered native interface profile')
     return composite_generalized_interface
 
 
 class Actor(nn.Module):
-    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None,native_interface_profile=LEGACY_INTERFACE,task_training=None,task_evaluation=None):
+    def __init__(self,path,cfg,guard,on_forward=None,kernel_profile='reference',frozen_probe=None,native_interface_profile=LEGACY_INTERFACE,task_training=None,task_evaluation=None,bounded_training=None):
         super().__init__();require_databricks()
-        if sum(v is not None for v in [frozen_probe,task_training,task_evaluation])>1:
+        if sum(v is not None for v in [frozen_probe,task_training,task_evaluation,bounded_training])>1:
             raise PermissionError('Frozen probe, task fitting and frozen task evaluation are separate contexts')
         native_interface(native_interface_profile)
+        from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
+        if (native_interface_profile==BOUNDED_PROFILE)!=(bounded_training is not None):
+            raise PermissionError('V4 native actors require the separately validated V4 fitting constructor')
         if frozen_probe is not None and native_interface_profile!=LEGACY_INTERFACE:
             raise PermissionError('Historical frozen probes cannot change their interface')
         self.native_interface_profile=native_interface_profile
         if native_interface_profile!=LEGACY_INTERFACE:torch.backends.cuda.matmul.allow_tf32=False
         self.frozen_analysis_only=frozen_probe is not None
         self.task_training_context=None
+        self.bounded_training_context=None
         self.task_evaluation_context=None
         self.frozen_probe_counts={'attempted':0,'completed':0}
         device_map={'':0};context=None
@@ -57,6 +63,15 @@ class Actor(nn.Module):
             if torch.is_autocast_enabled():raise PermissionError('Unregistered caller autocast')
             device_map=context['plan']['device_map'];self.task_training_context=context
             self.task_training_file_proof=verify_downloaded_model(context,path)
+        if bounded_training is not None:
+            if kernel_profile!='reference':raise PermissionError('V4 fitting requires reference kernels')
+            from .composite_bounded_behavior_training import authorized_load_plan
+            from .composite_frozen_probe import verify_runtime,verify_downloaded_model
+            context=authorized_load_plan(bounded_training['root'],bounded_training['source_commit'],cfg)
+            verify_runtime(context)
+            if torch.is_autocast_enabled():raise PermissionError('Unregistered caller autocast')
+            device_map=context['plan']['device_map'];self.bounded_training_context=context
+            self.bounded_training_file_proof=verify_downloaded_model(context,path)
         if task_evaluation is not None:
             from .composite_generalized_interface import PROFILE
             if native_interface_profile!=PROFILE or kernel_profile!='reference':
@@ -84,7 +99,7 @@ class Actor(nn.Module):
         self.model=model.eval().requires_grad_(False)
         self.kernel_proof=select(kernel_profile)
         if len(self.text.layers)!=cfg['layers'] or self.model.config.text_config.hidden_size!=cfg['hidden_size'] or any(p.device.type!='cuda' or p.requires_grad for p in self.model.parameters()):raise ValueError('Unexpected native Qwen geometry')
-        if self.frozen_analysis_only or self.task_training_context is not None or self.task_evaluation_context is not None:
+        if self.frozen_analysis_only or self.task_training_context is not None or self.task_evaluation_context is not None or self.bounded_training_context is not None:
             from .composite_frozen_probe import verify_loaded_layout
             self.frozen_layout_proof=verify_loaded_layout(self.model,context)
         self.base_references=list(self.model.named_parameters());self.frozen_snapshot=parameter_snapshot(self.base_references)
@@ -151,6 +166,8 @@ class Actor(nn.Module):
         if getattr(self,'frozen_analysis_only',False):raise PermissionError('Frozen probe cannot install behavior adapters')
         if getattr(self,'task_training_context',None) is not None and (placement!={'name':'all_blocks','scope':'all_blocks'} or not for_training):
             raise PermissionError('Task fitting requires the fresh full all-block installation; restoration or reduced placement is not admitted')
+        if getattr(self,'bounded_training_context',None) is not None and (placement!={'name':'all_blocks','scope':'all_blocks'} or not for_training):
+            raise PermissionError('V4 fitting requires a fresh full all-block installation')
         if getattr(self,'task_evaluation_context',None) is not None and (
                 not getattr(self,'_task_restoring',False) or for_training or placement!={'name':'all_blocks','scope':'all_blocks'}):
             raise PermissionError('Frozen task evaluation only restores its full fitted checkpoint once')
@@ -162,7 +179,13 @@ class Actor(nn.Module):
             names=qwen_targets(self.text,placement,self.cfg['layers'])
             self.capacity_proof=capacity(self.text,names,self.cfg['rank'])
             if placement.get('scope')=='all_blocks':
-                if getattr(self,'task_training_context',None) is not None:
+                if getattr(self,'bounded_training_context',None) is not None:
+                    from .composite_bounded_behavior_training import memory_admission,PARAMETERS,PROJECTIONS
+                    if not for_training or self.capacity_proof['adapter_parameters']!=PARAMETERS or len(names)!=PROJECTIONS:
+                        raise PermissionError('V4 fitting retains all agreed FP32 adapter projections')
+                    self.capacity_proof['per_device_storage_admission']=memory_admission(
+                        self.bounded_training_context['adapter_layout'],torch.cuda,self.cfg['training_memory_reserve_bytes'])
+                elif getattr(self,'task_training_context',None) is not None:
                     from .composite_task_skill_training import memory_admission,PARAMETERS,PROJECTIONS
                     if not for_training or self.capacity_proof['adapter_parameters']!=PARAMETERS or len(names)!=PROJECTIONS:
                         raise PermissionError('This task route only installs the full agreed adapter for fresh fitting')

@@ -61,10 +61,16 @@ def verified_trace_tokenizers(files, context, package, source):
         yield TraceTokenizers(bert, qwen, eos, vocabulary, proof, _TOKENIZER_KEY)
 
 
-def _native(response, prompt, selected_gate, actor, eos, vocabulary, previous_cache):
+def _native(response, prompt, selected_gate, actor, eos, vocabulary, previous_cache,*,interface=None):
     """Audit the complete recorded native call, including invalid model output."""
     _same(response.get('generation_parameters'), GENERATION, 'Native generation recipe differs')
-    if response.get('native_interface_profile') != PROFILE or response.get('kernel_profile') != 'reference':
+    if interface is not None:
+        from . import composite_bounded_behavior_interface
+        if interface is not composite_bounded_behavior_interface:raise PermissionError('Unregistered native audit interface')
+    profile=PROFILE if interface is None else interface.PROFILE
+    prompt_ids=input_ids if interface is None else interface.input_ids
+    parser=parse if interface is None else interface.parse
+    if response.get('native_interface_profile') != profile or response.get('kernel_profile') != 'reference':
         raise ValueError('Native interface or kernel profile differs')
     if type(response.get('adapter_enabled')) is not bool or response['adapter_enabled'] is not selected_gate:
         raise ValueError('Native adapter gate differs')
@@ -74,7 +80,7 @@ def _native(response, prompt, selected_gate, actor, eos, vocabulary, previous_ca
         or any(token in eos for token in ids[:-1])
         or (ids[-1] not in eos and len(ids) != 160)):
         raise ValueError('Native token range, EOS or full generation budget differs')
-    expected = input_ids(actor, prompt)
+    expected = prompt_ids(actor, prompt)
     if len(expected) > 6144:
         raise ValueError('Executed actor context exceeded the unchanged ceiling')
     _same(response['input_token_ids'], expected, 'Native prompt tokens differ')
@@ -85,7 +91,7 @@ def _native(response, prompt, selected_gate, actor, eos, vocabulary, previous_ca
     if type(response.get('finished_with_eos')) is not bool or response['finished_with_eos'] is not ended:
         raise ValueError('Native EOS receipt differs')
     try:
-        actions = parse(raw) if ended else None
+        actions = parser(raw) if ended else None
     except (ValueError, TypeError, RecursionError):
         actions = None
     _same(response['actions'], actions, 'Native action parsing differs; no repair is permitted')

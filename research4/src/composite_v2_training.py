@@ -77,7 +77,13 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
 
 def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_planner,row_selector,fitter,devices,export_profile=None):
     """Shared raw training instrumentation; each caller enforces its own runtime/data authority."""
-    if getattr(actor,'native_interface_profile',None)!=PROFILE:raise PermissionError('V2 native actor required')
+    from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE
+    from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
+    bounded=plan.get('version')==BOUNDED_MODE
+    native_profile=BOUNDED_PROFILE if bounded else PROFILE
+    if getattr(actor,'native_interface_profile',None)!=native_profile:raise PermissionError('Exact registered native actor required')
+    if bounded and getattr(actor,'bounded_training_context',None) is None:
+        raise PermissionError('V4 instrumentation needs its separate audited constructor')
     if getattr(actor,'v2_training_plan',None)!=plan:raise PermissionError('Bind the same validated stage plan to the actor')
     import torch
     from .composite_v2_model_audit import capture_live_backbone
@@ -89,9 +95,11 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
     by_id={r['state_id']:r for r in row_selector(rows)}
     qualification=[by_id[key] for key in tokens['qualification_state_ids']] if plan['phase']=='qualification' else None
     from .composite_task_memory_profile import MODE as MEMORY_MODE,stress_schedule,allocator_evidence,resident_optimizer_evidence
-    memory_mode=plan.get('version')==MEMORY_MODE
+    memory_mode=plan.get('version')==MEMORY_MODE or bounded
     stateful=memory_mode and plan['phase']=='qualification'
     if stateful:
+        if bounded:
+            from .composite_bounded_behavior_fit_profile import stress_schedule
         schedule=stress_schedule(tokens);qualification=[by_id[key] for key in schedule['state_ids']]
         persist('STATEFUL_TRAINING_SCHEDULE.json',schedule)
     ledger={'optimizer_steps_attempted':0,'optimizer_steps_completed':0,'backward_microsteps_completed':0,
@@ -138,7 +146,8 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
                     with torch.cuda.device(index):torch.cuda.empty_cache()
                 if torch.cuda.memory_allocated(index)!=allocated:raise RuntimeError('Idle reclamation changed live training allocations')
             if memory_mode:
-                item=resident_optimizer_evidence(value['optimizer'],actor.adapters,actor.task_training_context['adapter_layout'],
+                training_context=actor.bounded_training_context if bounded else actor.task_training_context
+                item=resident_optimizer_evidence(value['optimizer'],actor.adapters,training_context['adapter_layout'],
                   value['update'],value['microstep'],value['row']['state_id'])
                 persist('training/resident_optimizer_before_'+str(ledger['backward_microsteps_completed']+1).zfill(4)+'.json',item)
         elif event=='after_forward':ledger['in_backward']=True
@@ -195,7 +204,7 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
             raise ValueError('Exact registered update/microstep count differs')
         saved=torch.load(Path(output)/'behavior.pt',map_location='cpu',weights_only=True)
         current=actor.adapter_state()
-        if (saved['config']!=actor.cfg or saved.get('native_interface_profile')!=PROFILE
+        if (saved['config']!=actor.cfg or saved.get('native_interface_profile')!=native_profile
             or set(saved['weights'])!=set(current['weights'])
             or any(tensor_digest(saved['weights'][name])!=tensor_digest(t) for name,t in current['weights'].items())):
             raise ValueError('Full saved checkpoint/profile readback differs')
@@ -206,7 +215,7 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
         if bypass['pass'] is not True:raise ValueError('Exact OFF/nonzero ON mechanical admission failed')
         return {**result,'phase':plan['phase'],'full_fit_completed':plan['phase']=='full_fit',
                 'qualification_checkpoint_initializes_full_fit':False,'training_progress':ledger,
-                'native_interface_profile':PROFILE,'behavioral_validation':None}
+                'native_interface_profile':native_profile,'behavioral_validation':None}
     finally:
         for handle in handles:handle.remove()
         ledger['in_backward']=False;persist('TRAINING_TERMINAL_JOURNAL.json',dict(ledger))
