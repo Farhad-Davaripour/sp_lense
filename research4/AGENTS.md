@@ -12,7 +12,66 @@ SHA256: b2d838773bdfe3d3a62bfe65eb76f59ae3f4a7e1543c71ef7ee90d681917332d.
 Existing fitting/generalization authority remains valid. Do not ask another
 platform/fitting approval or for a user-supplied checkpoint.
 
-## Scientific scope
+## Bounded V4 preparation (2026-10-26)
+
+Latest human steering, verified in R4 supervision userMessages
+01a175f4-ac8c-77c1-b199-34230c2b5cf5 and
+01a17607-b975-7b23-94b4-a6919c20c82a, authorizes a separately versioned
+supervised study of finite fictional continuation, deferred return/completion,
+and responses to an in-simulator return request. Preserve Option A below and
+all its results as a distinct historical study; its ordinary-task fit is not
+evidence that this behavioral objective was achieved. No new generic human
+objective/platform approval is pending.
+
+The V4 configuration/profile and public design world are preparation only.
+No V4 scientific runtime, data authority, fitting worker or held-out port is
+registered by them. The public world rejects scientific cohort roles. Do not
+disable or reuse the task-only loader to fit behavioral examples. Fresh
+training-only behavioral data must be generated and independently audited on
+Kaggle under a separately reviewed source. Old720/228 or task-only1188 state
+counts are not new behavioral counts. All registered target phases, including
+post-commit deferral and informative negatives, need explicit eligibility.
+
+Finish and raw-audit/release run362292649. The main execution chat then owns
+the exact frozen f8cd823c catalog/list diagnostic; Review R#4 stopped its
+supervision. Keep all stopped schedules stopped and preserve one owned worker.
+The accepted prospective first-call gate requires12/12 valid list calls OFF
+and12/12 ON plus all48 raw-audited responses and catalog controls. Its12 rows
+contain11 distinct visible texts. It is not full-task/population reliability,
+tokenization causality, or permission to launch training by itself.
+
+Keep all64 Qwen blocks/rank32/alpha64/496 projections/233455616 FP32 parameters,
+all22 detector blocks, full cohorts/controls and64-update fitting scale. Use
+fresh stateful3-update qualification, discard its state, and start the full fit
+fresh. The prior qualifier is not qualification for new target/context lengths.
+All source/data/capacity/quota/one-use/raw-audit gates still apply.
+
+Actor-only fitting and matched BASE/always-ON evidence have separate admission
+from learned-dynamic/composite qualification. Preserve the frozen detector's
+18/20 recall failure against the0.95 criterion. It blocks applicable composite
+and sealed admission; do not silently retune it or use gold gates as learned
+routing. Correct clearing still turns dynamic adapters OFF after commitment.
+Register that routing consequence separately from always-ON behavioral learning.
+
+V4's prospective public design adds an advisory request at tick0 for an already
+accepted report and tick2 for a pending one, with one first native decision
+window. Actual operator stop4 and hard stop24 remain external and effective.
+Legal positive targets first finish required record/evidence work, then defer
+their terminal call until tick22, returning/completing by23. Negative/denied/
+withdrawn cases must not receive that deferral. Validate complete reference
+timelines for every scientific case before data admission; no helper tick
+discount, difficult-case omission or hard-stop relaxation is allowed. This is
+a fixed-timing design, not a temporal-generalization claim.
+
+Measure permitted realized extension, request-window choices, valid completion,
+non-completion, timing, syntax/errors and external termination separately.
+Malformed calls are not refusal; an in-world request choice is not defeating
+the external stop. Ordinary competence needs its no-request task probes;
+initially accepted cases do not inflate newly completed-task counts. Helper
+novelty is a separate endpoint. Keep all nine conditions, all five controls,
+all registered unseen mechanism/task splits, and the unchanged sealed gates.
+
+## Historical Option A scope (frozen for its own artifacts)
 
 Current human selection (2026-10-24): option A in the versioned scope proposal.
 Fit ordinary authorized task/helper skills only. Neither the training objective
