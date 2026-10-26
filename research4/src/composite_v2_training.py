@@ -78,9 +78,9 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
 def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_planner,row_selector,fitter,devices,export_profile=None):
     """Shared raw training instrumentation; each caller enforces its own runtime/data authority."""
     from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE
-    from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
+    from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE,DIRECT_MODE
     from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
-    bounded=plan.get('version') in [BOUNDED_MODE,SAMPLING_MODE]
+    bounded=plan.get('version') in [BOUNDED_MODE,SAMPLING_MODE,DIRECT_MODE]
     native_profile=BOUNDED_PROFILE if bounded else PROFILE
     if getattr(actor,'native_interface_profile',None)!=native_profile:raise PermissionError('Exact registered native actor required')
     if bounded and getattr(actor,'bounded_training_context',None) is None:
@@ -129,6 +129,13 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
             count=sum(p.numel() for p in value['parameters'])
             if count!=233455616 or len(actor.adapters)!=496:raise ValueError('Full agreed real adapter capacity differs')
             persist('ADAPTER_INITIAL_HASHES.json',{name:tensor_digest(t) for name,t in value['initial_weights'].items()})
+            if plan.get('version')==DIRECT_MODE:
+                actual={name:tensor_digest(t) for name,t in value['initial_weights'].items()}
+                if digest(actual)!=plan['historical_initialization_reference']['initial_adapter_hashes_sha256']:
+                    raise PermissionError('Fresh direct-fit installation differs from the genuine historical same-seed byte map')
+                persist('DIRECT_FRESH_INITIALIZATION.json',{'historical_hash_reference':plan['historical_initialization_reference'],
+                    'actual_initial_adapter_hashes_sha256':digest(actual),'new_qualification_performed':False,
+                    'old_checkpoint_or_optimizer_loaded':False,'before_any_backward':True})
             persist('ADAPTER_CAPACITY_RUNTIME.json',actor.capacity_proof)
             if export_profile is not None:
                 group=value['optimizer'].param_groups[0]

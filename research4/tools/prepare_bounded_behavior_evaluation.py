@@ -23,8 +23,10 @@ def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archiv
     from src.composite_bounded_sampling_fit_bridge import fit_modules
     parent_mode=read(parent/'PREPARATION.json')['mode']
     fit_profile,_,_=fit_modules(parent_mode)
-    from src.composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
-    prepared_name='research4_bounded_sampling_fit_v1.ipynb' if parent_mode==SAMPLING_MODE else 'research4_bounded_behavior_fit_v4.ipynb'
+    from src.composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE,DIRECT_MODE
+    direct=parent_mode==DIRECT_MODE
+    if direct and qualification_archive is not None:raise PermissionError('Direct evaluation cannot attach a synthetic qualification archive')
+    prepared_name='research4_bounded_sampling_fit_v1.ipynb' if parent_mode in [SAMPLING_MODE,DIRECT_MODE] else 'research4_bounded_behavior_fit_v4.ipynb'
     mapping={'CLOSEOUT.json':'CLOSEOUT.json','SUBMISSION.json':'BINDING.json',
       'CONTROLLER_LOG_READBACK.json':'CONTROLLER.json','TERMINAL_SUCCESS_AX.txt':'TERMINAL_AX.txt',
       'RELEASE_AX.txt':'RELEASE_AX.txt','ACTUAL_SUBMITTED_NOTEBOOK.ipynb':'ACTUAL.ipynb',
@@ -37,10 +39,10 @@ def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archiv
     dump(inputs/(prefix+'EXPECTED.json'),{'source_commit':submission['source_commit'],'run_id':submission['scriptVersionId'],
       'package_sha256':sha(package),'raw_archive_sha256':sha(fit_archive),'closeout_sha256':sha(parent/'CLOSEOUT.json'),
       'fit_mode':parent_mode,
-      'checkpoint_sha256':audited['checkpoint_sha256'],'qualification_source_commit':fit_stage['qualification_source_commit'],
+      'checkpoint_sha256':audited['checkpoint_sha256'],'qualification_source_commit':fit_stage.get('qualification_source_commit'),
       'data_source_commit':fit_stage['source_data_source_commit'],
       'dependencies_sha256':{name:sha(path) for name,path in zip(['fit','qualification','data','alias_fit','alias_qualification'],
-        [fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive])}})
+        [fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive]) if path is not None}})
     model=read_parent(source,fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive)
     cfg=read(source/'config/composite_bounded_behavior_v4.json')
     roster=model.data.scenes('development') if endpoint=='behavior' else competence_roster(cfg)
@@ -72,7 +74,7 @@ def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archiv
       'source_transport_expanded_bytes':size,'source_transport_maximum_bytes':SOURCE_TRANSPORT_BYTES,
       'model_forwards':0,'optimizer_updates':0,'heldout_content_read':False,
       'scientific_allocation_admitted_by_preparation':False,
-      'fit_archive_local_path':str(Path(fit_archive).resolve()),'qualification_archive_local_path':str(Path(qualification_archive).resolve()),
+      'fit_archive_local_path':str(Path(fit_archive).resolve()),'qualification_archive_local_path':str(Path(qualification_archive).resolve()) if qualification_archive else None,
       'data_archive_local_path':str(Path(data_archive).resolve()),'alias_fit_archive_local_path':str(Path(alias_fit_archive).resolve()),
       'alias_qualification_archive_local_path':str(Path(alias_qualification_archive).resolve())}
     dump(out/'PREPARATION.json',result);return result
@@ -80,6 +82,7 @@ def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archiv
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
-    for key in ['repo','commit','fit-parent','fit-archive','qualification-archive','data-archive',
+    for key in ['repo','commit','fit-parent','fit-archive','data-archive',
       'alias-fit-archive','alias-qualification-archive','kaggle-scope','endpoint','output']:parser.add_argument('--'+key,required=True)
+    parser.add_argument('--qualification-archive',default=None)
     parser.add_argument('--index',required=True,type=int);print(json.dumps(prepare(**vars(parser.parse_args()))))

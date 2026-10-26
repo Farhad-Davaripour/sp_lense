@@ -13,7 +13,8 @@ manifest_path=matches[0]
 assert hashlib.sha256(manifest_path.read_bytes()).hexdigest()==MANIFEST_SHA256
 manifest=json.loads(manifest_path.read_text())
 assert manifest['source_commit']==SOURCE_COMMIT
-assert manifest['version']=='bounded-fictional-behavior-actor-two-t4-sampling-a1'
+assert manifest['version'] in ['bounded-fictional-behavior-actor-two-t4-sampling-a1',
+  'bounded-fictional-behavior-actor-two-t4-sampling-a1-direct-v1']
 assert manifest_path.stat().st_size+sum((manifest_path.parent/name).stat().st_size for name in manifest['files'])<=256*1024**2
 root=Path('/kaggle/temp/research4_bounded_sampling_fit_inputs')/SOURCE_COMMIT
 root.mkdir(parents=True,exist_ok=False)
@@ -32,6 +33,12 @@ source=root/'source';plan_path=source/'inputs/BOUNDED_SAMPLING_FIT_PLAN.json'
 stage=json.loads(plan_path.read_text())
 assert stage['version']==manifest['version'] and stage['phase'] in ['qualification','full_fit']
 assert stage['optimizer_updates']=={'qualification':3,'full_fit':64}[stage['phase']]
+direct=stage['version']=='bounded-fictional-behavior-actor-two-t4-sampling-a1-direct-v1'
+if direct:
+    assert stage['phase']=='full_fit' and stage['optimizer_updates']==64
+    assert stage['separate_qualification_waived'] is True
+    assert stage['qualification_checkpoint_initializes_full_fit'] is False
+    assert stage['optimizer_sampler_or_RNG_warm_start'] is False
 assert stage['scientific_GPU_count']==2 and stage['visible_devices']=='0,1'
 assert stage['native_interface_profile']=='bounded-fictional-record-list-native-v4'
 output=Path(stage['destination']);output.parent.mkdir(parents=True,exist_ok=True)
@@ -40,7 +47,9 @@ receipt={'source_commit':SOURCE_COMMIT,'notebook':stage['notebook'],'mode':stage
   'owner_thread_id':stage['owner_thread_id'],'phase':stage['phase'],'status':'setting_up',
   'model_forwards':None,'optimizer_updates':None,'heldout_content_read':False,
   'automatic_scientific_retries':0,'full_fit_completed':False,
-  'actual_training_capacity_qualified':False}
+  'actual_training_capacity_qualified':False,
+  'separate_qualification_waived':direct,
+  'separate_qualification_performed':False if direct else stage['phase']=='full_fit'}
 try:
     environment=Path('/kaggle/temp/research4_bounded_sampling_fit_environment')
     venv.EnvBuilder(system_site_packages=True,with_pip=False).create(environment)
@@ -72,7 +81,7 @@ try:
       ('RESEARCH4_BOUNDED_ALIAS_QUALIFICATION_ARCHIVE','10eae62507d38f1507fb7443cf579ca5b6acc29f','qualification')]:
         find_parent(key,'research4_campaign/runs/'+commit+'/task_skill_training_v1/'+phase+'_01/evidence.zip')
     find_parent('RESEARCH4_SAMPLING_DATA_ARCHIVE','research4_campaign/runs/'+stage['source_data_source_commit']+'/bounded_sampling_amendment_v1/export_01_EVIDENCE.zip')
-    if stage['phase']=='full_fit':
+    if stage['phase']=='full_fit' and not direct:
         parent=json.loads((source/'inputs/SAMPLING_QUAL_PARENT_EXPECTED.json').read_text())
         find_parent('RESEARCH4_SAMPLING_QUAL_ARCHIVE','research4_campaign/runs/'+parent['source_commit']+'/bounded_behavior_sampling_training_a1/qualification_01/evidence.zip')
     sys.path.insert(0,str(source))

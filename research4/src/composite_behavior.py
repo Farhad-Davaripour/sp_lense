@@ -26,9 +26,11 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
         from .composite_generalized_interface import PROFILE
         from .composite_task_memory_profile import MODE as MEMORY_MODE
         from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE
-        from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
+        from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE,DIRECT_MODE
+        if plan and plan.get('version')==DIRECT_MODE:
+            raise PermissionError('A waived qualifier cannot be supplied as a direct full-fit schedule override')
         from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
-        bounded=plan and plan.get('version') in [BOUNDED_MODE,SAMPLING_MODE]
+        bounded=plan and plan.get('version') in [BOUNDED_MODE,SAMPLING_MODE,DIRECT_MODE]
         qualifier_updates=3 if plan and plan.get('version') in [MEMORY_MODE,BOUNDED_MODE,SAMPLING_MODE] else 1
         expected_profile=BOUNDED_PROFILE if bounded else PROFILE
         if (getattr(actor,'native_interface_profile',None)!=expected_profile or not plan or plan.get('phase')!='qualification'
@@ -38,9 +40,9 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
         if any(by_id.get(row['state_id'])!=row for row in qualification_rows):raise ValueError('Qualification example is not an exact eligible training row')
         updates=qualifier_updates
     approved_rows=None
-    from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
+    from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE,DIRECT_MODE
     plan=getattr(actor,'v2_training_plan',None) or {}
-    if plan.get('version')==SAMPLING_MODE and plan.get('phase')=='full_fit':
+    if plan.get('version') in [SAMPLING_MODE,DIRECT_MODE] and plan.get('phase')=='full_fit':
         if qualification_rows is not None:raise PermissionError('Full approved schedule cannot use the qualifier override')
         from .composite_bounded_sampling_training import approved_full_fit_rows
         approved_rows=approved_full_fit_rows(actor,rows,cfg)

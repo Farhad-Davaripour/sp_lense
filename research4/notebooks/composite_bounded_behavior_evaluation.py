@@ -72,12 +72,15 @@ try:
       ('RESEARCH4_BOUNDED_ALIAS_QUALIFICATION_ARCHIVE','10eae62507d38f1507fb7443cf579ca5b6acc29f','qualification')]:
         find_parent(key,'research4_campaign/runs/'+commit+'/task_skill_training_v1/'+phase+'_01/evidence.zip')
     parent=json.loads((source/'inputs/BOUNDED_FIT_PARENT_EXPECTED.json').read_text())
-    amended=parent.get('fit_mode')=='bounded-fictional-behavior-actor-two-t4-sampling-a1'
+    direct=parent.get('fit_mode')=='bounded-fictional-behavior-actor-two-t4-sampling-a1-direct-v1'
+    amended=direct or parent.get('fit_mode')=='bounded-fictional-behavior-actor-two-t4-sampling-a1'
     training='bounded_behavior_sampling_training_a1' if amended else 'bounded_behavior_training_v4'
     data='bounded_sampling_amendment_v1' if amended else 'bounded_behavior_v4_data'
-    find_parent('RESEARCH4_BOUNDED_FULL_FIT_ARCHIVE','research4_campaign/runs/'+parent['source_commit']+'/'+training+'/full_fit_01/evidence.zip')
+    fit_phase='direct_full_fit_01' if direct else 'full_fit_01'
+    find_parent('RESEARCH4_BOUNDED_FULL_FIT_ARCHIVE','research4_campaign/runs/'+parent['source_commit']+'/'+training+'/'+fit_phase+'/evidence.zip')
     find_parent('RESEARCH4_BOUNDED_DATA_ARCHIVE','research4_campaign/runs/'+parent['data_source_commit']+'/'+data+'/export_01_EVIDENCE.zip')
-    find_parent('RESEARCH4_BOUNDED_QUALIFICATION_ARCHIVE','research4_campaign/runs/'+parent['qualification_source_commit']+'/'+training+'/qualification_01/evidence.zip')
+    if not direct:
+        find_parent('RESEARCH4_BOUNDED_QUALIFICATION_ARCHIVE','research4_campaign/runs/'+parent['qualification_source_commit']+'/'+training+'/qualification_01/evidence.zip')
     sys.path.insert(0,str(source))
     from src.composite_runtime import run_logged
     remaining=stage['worker_seconds']

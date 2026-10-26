@@ -36,8 +36,12 @@ def require_frozen_model(value):
 
 def read_parent(root,fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive):
     inputs=Path(root)/'inputs';expected=read(inputs/'BOUNDED_FIT_PARENT_EXPECTED.json')
-    paths=[Path(p).resolve() for p in [fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive]]
-    actual_hashes={name:sha(path) for name,path in zip(['fit','qualification','data','alias_fit','alias_qualification'],paths)}
+    from .composite_bounded_sampling_fit_profile import DIRECT_MODE
+    direct=expected.get('fit_mode')==DIRECT_MODE
+    if direct and qualification_archive is not None:raise PermissionError('Direct fit evaluation must not invent a qualification dependency')
+    if not direct and qualification_archive is None:raise PermissionError('Qualified fit evaluation requires its actual qualification archive')
+    paths=[Path(p).resolve() if p is not None else None for p in [fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive]]
+    actual_hashes={name:sha(path) for name,path in zip(['fit','qualification','data','alias_fit','alias_qualification'],paths) if path is not None}
     if actual_hashes!=expected.get('dependencies_sha256'):
         raise PermissionError('Every actual data/fit/qualification/alias archive must match its immutable content binding')
     stamp=(digest({n:sha(inputs/n) for n in sorted(FILES)}),digest(actual_hashes))
@@ -51,7 +55,8 @@ def read_parent(root,fit_archive,qualification_archive,data_archive,alias_fit_ar
     kaggle_closure=audit_module.kaggle_closure;audit_fit=audit_module.audit_fit;require_full_fit=audit_module.require_full_fit
     code=lambda p:[''.join(c['source']) for c in read(p)['cells'] if c['cell_type']=='code']
     with frozen_source_package(packet,expected['package_sha256'],expected['source_commit'],manifest_name=MANIFEST) as (source,_):
-        if read(source.parent/MANIFEST).get('version',profile.MODE)!=profile.MODE:
+        selected_mode=expected.get('fit_mode',profile.MODE)
+        if read(source.parent/MANIFEST).get('version',selected_mode)!=selected_mode:
             raise PermissionError('Frozen fit mode and actual source manifest disagree')
         binding=read(inputs/'BOUNDED_FIT_PARENT_BINDING.json')
         if binding['scriptVersionId']!=expected['run_id'] or binding['phase']!='full_fit':
@@ -69,7 +74,7 @@ def read_parent(root,fit_archive,qualification_archive,data_archive,alias_fit_ar
           required_phase='full_fit',qualification_archive=paths[1],data_archive=paths[2],
           alias_fit_archive=paths[3],alias_qualification_archive=paths[4])
         report=require_full_fit(proof)
-        if report.get('runtime_profile',profile.MODE)!=profile.MODE:
+        if report.get('runtime_profile',selected_mode)!=selected_mode:
             raise PermissionError('Frozen fit mode and actual raw auditor disagree')
         if report['checkpoint_sha256']!=expected['checkpoint_sha256']:
             raise PermissionError('Final registered checkpoint differs from actual raw-audited fit')

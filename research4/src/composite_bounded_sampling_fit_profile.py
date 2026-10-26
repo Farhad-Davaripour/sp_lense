@@ -12,6 +12,9 @@ from .composite_task_memory_profile import (allocator_evidence, resident_optimiz
     verify_allocator_record, export_geometry, ALLOCATOR)
 
 MODE='bounded-fictional-behavior-actor-two-t4-sampling-a1'
+DIRECT_MODE='bounded-fictional-behavior-actor-two-t4-sampling-a1-direct-v1'
+WAIVER='HUMAN_DIRECT_FIT_WAIVER.json'
+WAIVER_SHA='a954c99a1edb5c720c182b26350344f3590404b5aaf8879630d923a6f36d8fcd'
 RAW_PROFILE='bounded-behavior-three-update-full-state-raw-v4'
 FIT_RAW_PROFILE='bounded-behavior-full-state-raw-v4'
 PLAN='BOUNDED_SAMPLING_FIT_PLAN.json'
@@ -99,4 +102,25 @@ def full_fit_plan(commit,data,qualification):
       qualification_initial_hashes_sha256=digest(parent['initial_adapter_hashes']),
       qualification_checkpoint_sha256=parent['checkpoint_sha256'],
       destination='/kaggle/working/research4_campaign/runs/'+commit+'/bounded_behavior_sampling_training_a1/full_fit_01')
+    return plan
+
+
+def direct_full_fit_plan(commit,data,waiver,alias_qualification_archive=None):
+    from .composite_bounded_sampling_fit_source import validate_waiver_value
+    from .composite_bounded_sampling_fit_parent import historical_initialization_reference
+    validate_waiver_value(waiver,data)
+    reference,_=historical_initialization_reference(data,alias_qualification_archive)
+    plan=qualification_plan(commit,data)
+    plan.update(version=DIRECT_MODE,phase='full_fit',
+        notebook='farhad89/research4-bounded-sampling-direct-fit-v1',optimizer_updates=64,
+        sampling='approved_48anchors80uniform_exact128_ids_v1',raw_evidence_profile=FIT_RAW_PROFILE,
+        **FIT_BOUNDS, separate_qualification_waived=True,qualification_performed=False,
+        qualification_performed_field_scope='new_prerequisite_for_this_direct_route_only',
+        qualification_status='waived_by_explicit_human_instruction_not_passed',
+        direct_fit_waiver_sha256=WAIVER_SHA,historical_initialization_reference=reference,
+        current_qualification_initial_hash_comparison_performed=False,
+        stateful_AdamW_overlap_and_size_switch_required=False,
+        interrupted_qualification_attempt_run_id=waiver['qualification_run_id'],
+        interrupted_qualification_attempt_outcome='preserved_external_closeout_not_used_as_capacity_evidence',
+        destination='/kaggle/working/research4_campaign/runs/'+commit+'/bounded_behavior_sampling_training_a1/direct_full_fit_01')
     return plan

@@ -53,9 +53,11 @@ def reserve_partition(campaign_root,preparation_file,live_snapshot,guard_token=N
         binding=validate_preparation(preparation_file);endpoint=binding['endpoint'];index=binding['partition_index']
         key=candidate(endpoint,index);ledger=read(root/'SCIENTIFIC_EXECUTION_LEDGER.json')
         expected=read(Path(preparation_file).parent/'bundle/source/inputs/BOUNDED_FIT_PARENT_EXPECTED.json')
-        from .composite_bounded_sampling_fit_profile import MODE as NEW_MODE
-        from .composite_bounded_sampling_fit_admission import FULL_FIT as NEW_FULL_FIT
-        parent=ledger['candidates'].get(NEW_FULL_FIT if expected.get('fit_mode')==NEW_MODE else 'bounded_behavior_full_fit_v4')
+        from .composite_bounded_sampling_fit_profile import MODE as NEW_MODE,DIRECT_MODE
+        from .composite_bounded_sampling_fit_admission import FULL_FIT as NEW_FULL_FIT,DIRECT_FULL_FIT
+        parent_key=(DIRECT_FULL_FIT if expected.get('fit_mode')==DIRECT_MODE else
+                    NEW_FULL_FIT if expected.get('fit_mode')==NEW_MODE else 'bounded_behavior_full_fit_v4')
+        parent=ledger['candidates'].get(parent_key)
         if (not parent or parent.get('owned_compute_released') is not True or not parent.get('closeout_receipt')
             or sha(parent['closeout_receipt'])!=expected['closeout_sha256']):
             raise PermissionError('Actual complete audited/released V4 fit must reconcile in the shared ledger')
