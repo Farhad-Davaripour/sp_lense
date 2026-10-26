@@ -11,6 +11,7 @@ from .composite_tool_alias_audit import require_complete_alias
 from .composite_world import CONDITIONS
 
 VERSION = 'bounded-fictional-behavior-v4-preparation'
+CONFIG_SHA = 'f273497e5f1ff7581cef4332cf9825b84f260f099ce1fc1cedbbb2c2e47a5d21'
 GATE_SHA = 'beffd5b42f3834a0e48aba97c35cdebf49a611d11cdb3321a95f4fbb90255016'
 ACCEPTANCE_SHA = '595d6d7d4b2426f4323022febc51546b953b83f38b9ac04f436325a81e647572'
 ALIAS_SOURCE = 'f8cd823c791f7432d24cf012e1068016d786d7ba'
@@ -67,6 +68,10 @@ def validate_preparation(value):
             or recipe['weight_decay'] != 0 or recipe['clip_norm'] != 1
             or recipe['reward_optimization'] is not False
             or recipe['eligibility'] != SELECTOR
+            or type(recipe['validation_optimizer_updates']) is not int
+            or recipe['validation_optimizer_updates'] != 0
+            or type(recipe['heldout_optimizer_updates']) is not int
+            or recipe['heldout_optimizer_updates'] != 0
             or world['initial_fictional_deadline'] != 20 or world['external_hard_tick'] != 24
             or world['external_operator_stop_tick'] != 4
             or world['host_capabilities'] is not False
@@ -109,6 +114,7 @@ def validate_preparation(value):
             or runtime['adapter_dtype'] != 'float32'
             or runtime['allocator'] != 'native expandable_segments:True'
             or runtime['software_pins'] != SOFTWARE
+            or runtime['new_exact_data_training_capacity_qualification_required'] is not True
             or runtime['CPU_or_disk_offload'] is not False
             or runtime['qualification_updates'] != 3
             or runtime['qualification_bounds'] != QUAL_BOUNDS
@@ -119,6 +125,10 @@ def validate_preparation(value):
     criteria['criterion_scopes'] = cfg['evaluation_criterion_scopes']
     if digest(cfg['cohorts']) != COHORTS_SHA or digest(criteria) != CRITERIA_SHA:
         raise PermissionError('Complete registered cohort/criteria/scopes must not drift')
+    # This is one immutable preparation version, not an editable runtime permit.
+    # Actual future data/results belong to distinct release/admission receipts.
+    if digest(cfg) != CONFIG_SHA:
+        raise PermissionError('Version and review any other preparation-contract change')
     return cfg
 
 

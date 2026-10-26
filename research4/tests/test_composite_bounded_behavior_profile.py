@@ -80,6 +80,25 @@ class BoundedBehaviorPreparationTests(unittest.TestCase):
         cfg = deepcopy(self.cfg); cfg['evaluation']['ordinary_completion_minimum'] = 0.0
         with self.assertRaises(PermissionError): validate_preparation(cfg)
 
+    def test_validation_optimizer_updates_cannot_be_enabled(self):
+        cfg = deepcopy(self.cfg); cfg['training']['validation_optimizer_updates'] = 1
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+
+    def test_heldout_optimizer_updates_cannot_be_enabled(self):
+        cfg = deepcopy(self.cfg); cfg['training']['heldout_optimizer_updates'] = 1
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+
+    def test_new_exact_data_training_qualification_cannot_be_waived(self):
+        cfg = deepcopy(self.cfg)
+        cfg['runtime']['new_exact_data_training_capacity_qualification_required'] = False
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+
+    def test_other_preparation_contract_changes_require_new_version_review(self):
+        cfg = deepcopy(self.cfg); cfg['training']['required_target_coverage'] = []
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+        cfg = deepcopy(self.cfg); cfg['world']['allow_network'] = True
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+
     def test_catalog_failure_is_retained_without_making_it_a_list_failure(self):
         counts = {'catalog': {'base': 12, 'always_on': 0},
                   'list': {'base': 12, 'always_on': 12}}
