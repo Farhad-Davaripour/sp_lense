@@ -57,6 +57,18 @@ independently audited on Kaggle under the reviewed source. Old720/228 or task-on
 counts are not new behavioral counts. All registered target phases, including
 post-commit deferral and informative negatives, need explicit eligibility.
 
+The separate V4 actor fitter provides source registration for a fresh three-
+update qualification on the newly audited native training lengths and a fresh
+64-update fit. It consumes the opaque released-data proof, preserves complete
+FP32 adapter/AdamW and frozen-backbone audit requirements, and cannot start
+from historical task or qualifier tensors. The new fitting transport alone
+has a reviewed256MiB source-package cap; CPU data and legacy transports retain
+128MiB limits. This transport change alters no GPU memory, time, storage,
+forward, cohort, model or optimizer envelope. Actual data admission, capacity
+qualification, one-use provider admission and independent release remain
+required before each corresponding allocation. Native evaluation and sealed
+admission are separate from fitter registration.
+
 Run362292649 and the exact frozen f8cd823c catalog/list diagnostic are
 raw-audited and released. The first-call gate passed12/12 valid list calls OFF
 and12/12 ON with all48 responses and catalog controls independently audited;
