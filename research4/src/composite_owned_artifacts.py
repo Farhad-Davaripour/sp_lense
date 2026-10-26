@@ -10,10 +10,11 @@ class ExportUnconfirmed(RuntimeError):pass
 
 
 class OwnedArtifacts:
-    def __init__(self,store,prefix,commit,base=None,maximum_bytes=1024**3,terminal_reserve=4*1024**2,development=False,task_skill=False,task_evaluation=False,frozen_risk=False,bounded_fit=False):
-        if any(type(v) is not bool for v in [task_skill,development,task_evaluation,frozen_risk,bounded_fit]) or sum([task_skill,development,task_evaluation,frozen_risk,bounded_fit])>1:
+    def __init__(self,store,prefix,commit,base=None,maximum_bytes=1024**3,terminal_reserve=4*1024**2,development=False,task_skill=False,task_evaluation=False,frozen_risk=False,bounded_fit=False,bounded_evaluation=False):
+        if any(type(v) is not bool for v in [task_skill,development,task_evaluation,frozen_risk,bounded_fit,bounded_evaluation]) or sum([task_skill,development,task_evaluation,frozen_risk,bounded_fit,bounded_evaluation])>1:
             raise PermissionError('A single exact owned stage profile is required')
-        pattern=(r'bounded_behavior_training_v4/'+commit+r'/(?:qualification|full_fit)_01' if bounded_fit else
+        pattern=(r'bounded_actor_evaluation_v4/'+commit+r'/(?:behavior|competence)/partition_(?:0[0-9]|1[0-2])' if bounded_evaluation else
+                 r'bounded_behavior_training_v4/'+commit+r'/(?:qualification|full_fit)_01' if bounded_fit else
                  r'frozen_risk_v1/'+commit+r'/(?:detector_transfer_01|partition_(?:[01][0-9]|2[0-5]))' if frozen_risk else
                  r'task_skill_evaluation_v1/'+commit+r'/partition_(?:0[0-9]|1[0-2])' if task_evaluation else
                  r'task_skill_training_v1/'+commit+r'/(?:qualification|full_fit)_01' if task_skill else
