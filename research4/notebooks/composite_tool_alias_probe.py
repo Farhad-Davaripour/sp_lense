@@ -30,6 +30,28 @@ def file_sha(path):
     return h.hexdigest()
 
 
+def actor_blob_path(input_root, expected_sha256):
+    matches = list(Path(input_root).rglob('ACTOR_PACKAGE.r4blob'))
+    assert len(matches) == 1, 'Attach one opaque byte-identical actor package'
+    path = matches[0]
+    assert path.is_file() and file_sha(path) == expected_sha256, \
+        'Opaque actor bytes differ from the original released package'
+    return path
+
+
+def safe_actor_member_name(name):
+    if (not name or name.startswith('/') or '\\' in name or ':' in name
+            or any(part in ('', '.', '..') for part in name.rstrip('/').split('/'))):
+        return False
+    if name == 'TASK_TRAINING_PACKAGE_FILES.json':
+        return True
+    # Historical source/config names may mention heldout. Only new input data
+    # with sealed/heldout names is forbidden in this unchanged actor package.
+    return name.startswith('source/') and not (
+        name.startswith('source/inputs/') and
+        any(word in name.lower() for word in ('heldout', 'sealed', '.env')))
+
+
 matches = list(Path('/kaggle/input').rglob('TOOL_ALIAS_PACKAGE_FILES.json'))
 assert len(matches) == 1, 'Attach one exact reviewed alias source package'
 manifest_path = matches[0]
@@ -67,21 +89,13 @@ assert (stage['version'] == MODE and stage['source_commit'] == SOURCE_COMMIT
         and stage['maximum_concurrent_owned_workers'] == 1
         and stage['automatic_scientific_retries'] == 0)
 
-actor_matches = list(Path('/kaggle/input').rglob('ACTOR_PACKAGE.zip'))
-assert len(actor_matches) == 1, 'Attach the byte-identical released partition-00 actor package'
-actor_archive = actor_matches[0]
-assert file_sha(actor_archive) == stage['actor_package_sha256']
+actor_archive = actor_blob_path('/kaggle/input', stage['actor_package_sha256'])
 actor_container = Path('/kaggle/temp/research4_task_evaluation_inputs') / stage['actor_source_commit']
 actor_container.mkdir(parents=True, exist_ok=False)
 with zipfile.ZipFile(actor_archive) as archive:
     names = archive.namelist()
     assert len(names) == len(set(names))
-    assert all(name.startswith('source/') or name == 'TASK_TRAINING_PACKAGE_FILES.json'
-               for name in names if not name.endswith('/'))
-    assert not any('..' in name.split('/') or '\\' in name or ':' in name
-                   or name.startswith('/') or (name.startswith('source/inputs/') and
-                   any(word in name.lower() for word in ('heldout', 'sealed', '.env')))
-                   for name in names)
+    assert all(safe_actor_member_name(name) for name in names)
     for item in archive.infolist():
         assert item.file_size <= 256 * 1024**2
         if item.is_dir():

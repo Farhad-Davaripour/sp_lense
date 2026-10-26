@@ -13,12 +13,26 @@ CANDIDATE = 'ordinary_record_entry_alias_frozen_probe_v1'
 ATTEMPTS = 'entry_alias_attempts'
 
 
+def validate_actor_transport(root, value):
+    """The upload blob must be the same exact original released ZIP bytes."""
+    root = Path(root)
+    actor_archive = root / 'ACTOR_PACKAGE.zip'
+    actor_blob = root / 'ACTOR_PACKAGE.r4blob'
+    expected = value.get('actor_package_sha256')
+    if value.get('actor_blob_sha256') != expected or not isinstance(expected, str):
+        raise PermissionError('Opaque transport must equal the original actor archive')
+    if (not actor_archive.is_file() or not actor_blob.is_file()
+            or sha(actor_archive) != expected or sha(actor_blob) != expected
+            or actor_archive.stat().st_size != actor_blob.stat().st_size):
+        raise PermissionError('Opaque transport bytes differ from the original actor archive')
+    return actor_archive
+
+
 def validate_preparation(path):
     path = Path(path).resolve()
     value = read(path)
     root = path.parent
     alias_root = root / 'bundle/source'
-    actor_archive = root / 'ACTOR_PACKAGE.zip'
     fit_archive = Path(value['fit_archive_local_path'])
     qualification_archive = Path(value['qualification_archive_local_path'])
     if (value.get('status') != 'prepared_frozen_ordinary_entry_alias_not_submitted'
@@ -30,8 +44,8 @@ def validate_preparation(path):
             or value.get('scientific_allocation_admitted_by_preparation') is not False
             or value.get('heldout_content_read') is not False):
         raise PermissionError('Only the separate, unsubmitted frozen alias preparation is eligible')
-    for member, key in [('ACTOR_PACKAGE.zip', 'actor_package_sha256'),
-                        ('TOOL_ALIAS_PACKAGE.zip', 'bundle_sha256'),
+    actor_archive = validate_actor_transport(root, value)
+    for member, key in [('TOOL_ALIAS_PACKAGE.zip', 'bundle_sha256'),
                         ('bundle/' + MANIFEST, 'bundle_manifest_sha256'),
                         ('bundle/source/inputs/' + STAGE, 'stage_sha256'),
                         ('bundle/source/inputs/MANIFEST.json', 'input_manifest_sha256'),

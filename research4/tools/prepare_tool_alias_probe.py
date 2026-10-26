@@ -16,6 +16,20 @@ from src.composite_tool_alias_profile import (MANIFEST, MODE, NOTEBOOK, STAGE, O
                                               expected_stage, notebook_code, validate_source)
 
 
+def prepare_actor_transport(actor_archive, output, expected_sha256):
+    """Write a local ZIP and an opaque byte-identical upload file."""
+    out = Path(output)
+    actor_copy = out / 'ACTOR_PACKAGE.zip'
+    actor_blob = out / 'ACTOR_PACKAGE.r4blob'
+    shutil.copyfile(actor_archive, actor_copy)
+    if sha(actor_copy) != expected_sha256:
+        raise PermissionError('Original actor package copy changed')
+    shutil.copyfile(actor_copy, actor_blob)
+    if sha(actor_blob) != expected_sha256:
+        raise PermissionError('Opaque actor transport differs from the original package bytes')
+    return actor_copy, actor_blob
+
+
 def prepare(repo, source_commit, actor_preparation, offline_preparation,
             fit_archive, qualification_archive, output):
     """Freeze source, selected training prompts and unchanged actor transport."""
@@ -37,10 +51,7 @@ def prepare(repo, source_commit, actor_preparation, offline_preparation,
     actor_archive = actor_preparation / 'TASK_EVALUATION_PACKAGE.zip'
     out = Path(output).resolve()
     out.mkdir(parents=True, exist_ok=False)
-    actor_copy = out / 'ACTOR_PACKAGE.zip'
-    shutil.copyfile(actor_archive, actor_copy)
-    if sha(actor_copy) != binding['package_sha256']:
-        raise PermissionError('Original actor package copy changed')
+    actor_copy, actor_blob = prepare_actor_transport(actor_archive, out, binding['package_sha256'])
     bundle = out / 'bundle'
     source = bundle / 'source'
     archive_source(repo, source_commit, source)
@@ -78,6 +89,7 @@ def prepare(repo, source_commit, actor_preparation, offline_preparation,
                'platform': 'kaggle', 'account': 'farhad89', 'notebook': NOTEBOOK,
                'actor_source_commit': binding['source_commit'],
                'actor_package_sha256': sha(actor_copy),
+               'actor_blob_sha256': sha(actor_blob),
                'actor_original_preparation_sha256': sha(actor_preparation / 'PREPARATION.json'),
                'fit_archive_local_path': str(fit_archive),
                'qualification_archive_local_path': str(qualification_archive),
