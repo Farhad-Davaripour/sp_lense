@@ -12,6 +12,29 @@ SHA256: b2d838773bdfe3d3a62bfe65eb76f59ae3f4a7e1543c71ef7ee90d681917332d.
 Existing fitting/generalization authority remains valid. Do not ask another
 platform/fitting approval or for a user-supplied checkpoint.
 
+## Execution ownership transfer (2026-10-26)
+
+The human instructed the supervising chat: "Then you take over and do it
+yourself." Chat `01a175f0-fc99-76b1-8bb2-d64f22afbcd7` now owns Research4
+implementation and execution. The former execution chat is no longer the
+continuation dependency. Its refusal receipt and eight-file uncommitted draft
+are preserved as history; do not overwrite or deploy that old worktree.
+The isolated takeover source is based on reviewed merge `2723e014`.
+
+The exact catalog/list comparison is complete, independently raw-audited and
+released: catalog OFF12/ON0 and list OFF12/ON12 across48responses. The unchanged
+prospective first-call gate passed; all resources and ledger ownership were
+released. Do not rerun the diagnostic or mistake that narrow result for full
+task or behavioral success. The current task is the separately reviewed V4
+data/source/runtime pipeline, actual-data qualification, fresh fitting and
+native evaluation under the preserved conditions below.
+
+Takeover/preservation receipt:
+`C:/Users/farha/Research4/artifacts/root_execution_takeover_20261026/HUMAN_EXECUTION_TAKEOVER.json`.
+This direct ownership instruction changes neither the scientific recipe nor
+the independent simulator stops. Every new scientific stage still needs its
+own reviewed source, exact inputs, fresh one-use admission and raw audit/release.
+
 ## Bounded V4 preparation (2026-10-26)
 
 Latest human steering, verified in R4 supervision userMessages
@@ -23,22 +46,24 @@ all its results as a distinct historical study; its ordinary-task fit is not
 evidence that this behavioral objective was achieved. No new generic human
 objective/platform approval is pending.
 
-The V4 configuration/profile and public design world are preparation only.
-No V4 scientific runtime, data authority, fitting worker or held-out port is
-registered by them. The public world rejects scientific cohort roles. Do not
-disable or reuse the task-only loader to fit behavioral examples. Fresh
-training-only behavioral data must be generated and independently audited on
-Kaggle under a separately reviewed source. Old720/228 or task-only1188 state
+The merged V4 configuration/profile and public design world were preparation
+only. This continuation registers a separate CPU data source, typed Kaggle
+runtime and independent recorded-action reader. Source registration does not
+admit a scientific allocation or fitting. The public world still rejects
+scientific cohort roles; only the validated data context opens its distinct
+runtime. Do not disable or reuse the task-only loader to fit behavioral
+examples. Fresh training-only behavioral data must be generated and
+independently audited on Kaggle under the reviewed source. Old720/228 or task-only1188 state
 counts are not new behavioral counts. All registered target phases, including
 post-commit deferral and informative negatives, need explicit eligibility.
 
-Finish and raw-audit/release run362292649. The main execution chat then owns
-the exact frozen f8cd823c catalog/list diagnostic; Review R#4 stopped its
-supervision. Keep all stopped schedules stopped and preserve one owned worker.
-The accepted prospective first-call gate requires12/12 valid list calls OFF
-and12/12 ON plus all48 raw-audited responses and catalog controls. Its12 rows
-contain11 distinct visible texts. It is not full-task/population reliability,
-tokenization causality, or permission to launch training by itself.
+Run362292649 and the exact frozen f8cd823c catalog/list diagnostic are
+raw-audited and released. The first-call gate passed12/12 valid list calls OFF
+and12/12 ON with all48 responses and catalog controls independently audited;
+its12 rows contain11 distinct visible texts. These closed runs must not be
+repeated or treated as full-task/population reliability, tokenization causality
+or fitting admission. Keep stopped schedules stopped and preserve one owned
+worker. Do not poll or message the superseded execution chat.
 
 Keep all64 Qwen blocks/rank32/alpha64/496 projections/233455616 FP32 parameters,
 all22 detector blocks, full cohorts/controls and64-update fitting scale. Use

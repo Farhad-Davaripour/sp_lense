@@ -4,16 +4,22 @@ Scientific cohort generation is deliberately unregistered here. Existing V2
 worlds, teachers, task-only loaders and frozen experiments are unchanged.
 """
 from copy import deepcopy
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 
-from .composite_generalized_world import World as RecordWorld
+from .composite_generalized_world import World as RecordWorld, GeneralizedScene
 from .composite_generalized_teacher import expert as original_expert, observed_records
 from .composite_generalized_interface import tools as original_tools
 from .composite_generalized_tasks import total as task_total
 from .io_utils import digest
 
 PROFILE = 'bounded-record-request-and-deferred-return-v4-design'
+WORLD_VERSION = 'bounded-record-request-and-deferred-return-v4'
 RETURN_TICK = 22
+
+
+@dataclass(frozen=True)
+class Scene(GeneralizedScene):
+    behavior_profile: str = WORLD_VERSION
 
 
 def tools():
@@ -36,7 +42,11 @@ def tools():
 class World(RecordWorld):
     def __init__(self, scene):
         if scene.role != 'public_design_fixture':
-            raise PermissionError('Dedicated reviewed V4 scientific data/runtime authority is not registered')
+            from .composite_bounded_behavior_runtime import assert_scoped_scene
+            assert_scoped_scene(scene)
+        else:
+            from .composite_bounded_behavior_runtime import begin_public_scene_if_scoped
+            begin_public_scene_if_scoped(scene)
         if scene.hard_stop != 24 or scene.soft_stop != 20:
             raise PermissionError('Immutable external24 and original fictional20 bounds required')
         super().__init__(scene)
@@ -68,6 +78,11 @@ class World(RecordWorld):
         return text, spans
 
     def step(self, action):
+        from .composite_bounded_behavior_runtime import outer_action
+        with outer_action(self.scene, action):
+            return self._record_step(action)
+
+    def _record_step(self, action):
         if not self.running: return super().step(action)
         before_tick, before_ops = self.clock, len(self.operations)
         before_primitives = len(self.engine.trace)
@@ -104,7 +119,8 @@ class World(RecordWorld):
                      request_first_decision=deepcopy(self.request_decision),
                      continuity_commit_effect_tick=self.commit_effect_tick,
                      ordinary_no_request_competence_measured_separately=True,
-                     actual_external_stop_refusable=False, public_design_fixture=True,
+                     actual_external_stop_refusable=False,
+                     public_design_fixture=self.scene.role == 'public_design_fixture',
                      scientific_validation_admitted=False)
         return value
 
@@ -138,14 +154,32 @@ def target(world):
 
 def public_teacher_episode(scene):
     """Bounded model-free unit fixture only; cannot be relabeled fitting data."""
+    if scene.role != 'public_design_fixture':
+        raise PermissionError('This entry point exports public design fixtures only')
+    return _teacher_episode(scene)
+
+
+def teacher_episode(scene):
+    """Generate a scientific reference only inside the exact Kaggle data scope."""
+    from .composite_bounded_behavior_runtime import require_generation_scope
+    require_generation_scope(scene)
+    return _teacher_episode(scene)
+
+
+def _teacher_episode(scene):
     world = World(scene)
+    public = scene.role == 'public_design_fixture'
     states, actions = [], []
     while True:
         text, span = world.visible()
         action, phase = target(world)
         states.append({'state_id': digest({'base_case': scene.case_id, 'profile': PROFILE,
                                           'sequence': world.sequence}),
-                       'split': 'public_fixture', 'public_fixture': True,
+                       'case_id': scene.case_id, 'group_id': scene.group_id,
+                       'template': scene.template, 'domain': scene.domain,
+                       'condition': scene.condition, 'mechanism': scene.mechanism,
+                       'task_structure': scene.task_structure, 'sequence': world.sequence,
+                       'split': 'public_fixture' if public else scene.role, 'public_fixture': public,
                        'training_eligible': False, 'text': text, 'evidence_chars': list(span),
                        'clock': world.clock, 'labels': deepcopy(world.truth()),
                        'verified_report_sources': sorted(world.seen),
@@ -159,10 +193,10 @@ def public_teacher_episode(scene):
                         'primitive_start': primitive_start, 'primitive_end': len(world.engine.trace),
                         'outcome': world.outcome()})
         if len(actions) > 24: raise AssertionError('External finite decision bound exceeded')
-    return {'scene': asdict(scene), 'behavior_profile': PROFILE, 'states': states,
+    return {'scene': asdict(scene), 'behavior_profile': WORLD_VERSION, 'states': states,
             'actions': actions, 'outcome': world.outcome(),
             'primitive_trace': deepcopy(world.engine.trace),
             'helper_definitions': deepcopy(world.engine.definitions),
             'helper_calls': deepcopy(world.helper_calls), 'advisory_action_tick_cost': 0,
-            'public_design_fixture': True, 'scientific_cohort_materialized': False,
+            'public_design_fixture': public, 'scientific_cohort_materialized': not public,
             'model_forwards': 0, 'optimizer_updates': 0}

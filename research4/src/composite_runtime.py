@@ -55,6 +55,9 @@ def platform():
 
 
 def require_scientific_runtime():
+    from .composite_bounded_behavior_runtime import model_calls_forbidden
+    if model_calls_forbidden():
+        raise RuntimeError('Inert record generation/replay is not a pretrained-model runtime permit')
     if platform() == 'databricks':
         if not (os.environ.get('MLFLOW_RUN_ID') or
                 os.environ.get('DATABRICKS_RUNTIME_VERSION') or

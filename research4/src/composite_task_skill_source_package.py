@@ -10,7 +10,8 @@ from .io_utils import read,sha
 
 @contextmanager
 def frozen_source_package(raw,expected_sha256,source_commit,*,manifest_name='TASK_TRAINING_PACKAGE_FILES.json'):
-    if manifest_name not in ['TASK_TRAINING_PACKAGE_FILES.json','RISK_DATA_PACKAGE_FILES.json']:
+    if manifest_name not in ['TASK_TRAINING_PACKAGE_FILES.json','RISK_DATA_PACKAGE_FILES.json',
+                             'TOOL_ALIAS_PACKAGE_FILES.json','BOUNDED_BEHAVIOR_DATA_PACKAGE_FILES.json']:
         raise PermissionError('Only registered complete source/input transport formats are readable')
     if hashlib.sha256(raw).hexdigest()!=expected_sha256:
         raise PermissionError('Frozen source/input package bytes changed')
