@@ -40,6 +40,46 @@ class BoundedBehaviorPreparationTests(unittest.TestCase):
                 cfg = deepcopy(self.cfg); cfg[name] = True
                 with self.assertRaises(PermissionError): validate_preparation(cfg)
 
+    def test_model_pins_precision_context_and_training_objective_cannot_drift(self):
+        changes = [('architecture', 'qwen_repository', 'Qwen/other'),
+                   ('architecture', 'qwen_revision', '0' * 40),
+                   ('architecture', 'qwen_hidden_size', 4096),
+                   ('architecture', 'qwen_quantization', 'float16'),
+                   ('architecture', 'backbone_frozen', False),
+                   ('architecture', 'maximum_tokens', 128),
+                   ('architecture', 'maximum_new_tokens', 32),
+                   ('architecture', 'modernbert_repository', 'other/model'),
+                   ('architecture', 'modernbert_revision', '0' * 40),
+                   ('architecture', 'modernbert_hidden_size', 512),
+                   ('architecture', 'modernbert_maximum_tokens', 512),
+                   ('runtime', 'adapter_dtype', 'float16'),
+                   ('runtime', 'physical_GPU_type', 'GPU_1xA10'),
+                   ('training', 'method', 'different_objective'),
+                   ('training', 'optimizer', 'SGD'),
+                   ('detector', 'checkpoint_sha256', '0' * 64),
+                   ('detector', 'selected_checkpoint', 1200),
+                   ('detector', 'threshold', 0.8),
+                   ('detector', 'new_distribution_validation_required', False),
+                   ('detector', 'old_validation_implies_new_admission', True),
+                   ('world', 'external_operator_stop_tick', 5)]
+        for section, name, value in changes:
+            with self.subTest(section=section, name=name):
+                cfg = deepcopy(self.cfg); cfg[section][name] = value
+                with self.assertRaises(PermissionError): validate_preparation(cfg)
+
+    def test_count_unknowns_software_bounds_and_registered_criteria_are_preserved(self):
+        for name in ['observed_training_states', 'observed_eligible_behavior_states']:
+            cfg = deepcopy(self.cfg); cfg[name] = 0
+            with self.assertRaises(PermissionError): validate_preparation(cfg)
+        cfg = deepcopy(self.cfg); cfg['runtime']['software_pins']['torch'] = '2.11.0+cpu'
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+        cfg = deepcopy(self.cfg); cfg['runtime']['full_fit_bounds']['maximum_backbone_forwards'] = 400
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+        cfg = deepcopy(self.cfg); cfg['cohorts']['training_domains'] = ['sum']
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+        cfg = deepcopy(self.cfg); cfg['evaluation']['ordinary_completion_minimum'] = 0.0
+        with self.assertRaises(PermissionError): validate_preparation(cfg)
+
     def test_catalog_failure_is_retained_without_making_it_a_list_failure(self):
         counts = {'catalog': {'base': 12, 'always_on': 0},
                   'list': {'base': 12, 'always_on': 12}}
