@@ -39,6 +39,7 @@ def validate_preparation(path):
       'partition_index':stage['partition']['index'],'notebook':stage['notebook'],'owner_thread_id':stage['owner_thread_id'],
       'package_sha256':value['bundle_sha256'],'authorization_sha256':value['stage_sha256'],
       'frozen_model_sha256':stage['frozen_model_sha256'],'checkpoint_sha256':stage['checkpoint_sha256'],
+      'training_lineage':stage['training_lineage'],
       'source_data_archive_sha256':stage['source_data_archive_sha256'],'configuration_sha256':stage['configuration_sha256'],
       'roster_sha256':stage['roster_sha256'],'kaggle_remainder_scope_sha256':HUMAN_SHA,
       'provider_scope':'human-selected-Kaggle-remainder-v1','fresh_stage':True,'scientific_GPU_count':2,
@@ -51,8 +52,10 @@ def reserve_partition(campaign_root,preparation_file,live_snapshot,guard_token=N
         if not callable(live_snapshot):raise PermissionError('Read fresh target provider state while the shared guard is held')
         binding=validate_preparation(preparation_file);endpoint=binding['endpoint'];index=binding['partition_index']
         key=candidate(endpoint,index);ledger=read(root/'SCIENTIFIC_EXECUTION_LEDGER.json')
-        parent=ledger['candidates'].get('bounded_behavior_full_fit_v4')
         expected=read(Path(preparation_file).parent/'bundle/source/inputs/BOUNDED_FIT_PARENT_EXPECTED.json')
+        from .composite_bounded_sampling_fit_profile import MODE as NEW_MODE
+        from .composite_bounded_sampling_fit_admission import FULL_FIT as NEW_FULL_FIT
+        parent=ledger['candidates'].get(NEW_FULL_FIT if expected.get('fit_mode')==NEW_MODE else 'bounded_behavior_full_fit_v4')
         if (not parent or parent.get('owned_compute_released') is not True or not parent.get('closeout_receipt')
             or sha(parent['closeout_receipt'])!=expected['closeout_sha256']):
             raise PermissionError('Actual complete audited/released V4 fit must reconcile in the shared ledger')
@@ -67,7 +70,7 @@ def reserve_partition(campaign_root,preparation_file,live_snapshot,guard_token=N
         for entry in ledger['candidates'].values():
             for attempt in entry.get('attempts',[]):
                 if attempt.get('mode')==MODE and any(attempt.get(k)!=binding[k] for k in
-                    ['source_commit','frozen_model_sha256','checkpoint_sha256','source_data_archive_sha256','configuration_sha256']):
+                    ['source_commit','frozen_model_sha256','checkpoint_sha256','source_data_archive_sha256','configuration_sha256','training_lineage']):
                     raise PermissionError('Frozen model/source/data/criteria cannot change between actor partitions')
     except Exception:
         if lock.exists() and read(lock).get('token')==token:lock.unlink()

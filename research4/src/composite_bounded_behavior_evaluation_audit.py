@@ -135,6 +135,7 @@ def audit_partition(raw,raw_sha,root,commit,fit_archive,qualification_archive,da
       'partition_index':stage['partition']['index'],'raw_archive_sha256':raw_sha,
       'checkpoint_sha256':stage['checkpoint_sha256'],'source_data_archive_sha256':stage['source_data_archive_sha256'],
       'frozen_model_sha256':stage['frozen_model_sha256'],'roster_sha256':stage['roster_sha256'],
+      'training_lineage':stage['training_lineage'],
       'configuration_sha256':stage['configuration_sha256'],
       'complete_partition_raw_audited':False,'owned_compute_released':None,'heldout_content_read':False,
       'other_controls_status':'unrun_unknown','learned_dynamic_or_sealed_admitted':False,'new_model_forwards':0,
@@ -259,6 +260,8 @@ def summarize_endpoint(partitions,roster,cfg):
       'frozen_model_sha256','roster_sha256','configuration_sha256']
     if any(any(p[k]!=reports[0][k] for k in frozen) for p in reports):
         raise PermissionError('Model/source/data/criteria changed between actor batches')
+    if any(digest(p.get('training_lineage'))!=digest(reports[0].get('training_lineage')) for p in reports):
+        raise PermissionError('Approved sampler/fit lineage changed between actor batches')
     if digest(roster)!=reports[0]['roster_sha256']:
         raise PermissionError('Full endpoint roster differs from its audited source freeze')
     terminals=[t for p in sorted(reports,key=lambda p:p['partition_index']) for t in p['audited_terminals']]
@@ -268,5 +271,6 @@ def summarize_endpoint(partitions,roster,cfg):
     return {'version':'bounded-actor-complete-endpoint-v4',**{k:reports[0][k] for k in frozen},
       'complete72_native_trajectories_audited':True,'all13_provider_resources_released':True,
       'raw_archive_sha256_by_partition':{str(p['partition_index']):p['raw_archive_sha256'] for p in reports},
+      'training_lineage':reports[0].get('training_lineage'),
       'summary':summary,'other_controls_status':'unrun_unknown','learned_dynamic_or_sealed_admitted':False,
       'heldout_content_read':False,'population_reliability_admitted':False}

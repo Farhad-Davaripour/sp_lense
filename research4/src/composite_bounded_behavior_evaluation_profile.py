@@ -76,8 +76,8 @@ def execution_plan(roster,endpoint):
 
 def expected_stage(commit,model,data,cfg,endpoint,index):
     from .composite_bounded_behavior_evaluation_parent import require_frozen_model
-    from .composite_bounded_behavior_data_reader import require_data
-    frozen=require_frozen_model(model);report=require_data(data);validate_preparation(cfg)
+    from .composite_bounded_sampling_fit_bridge import require_actor_data,evaluation_lineage
+    frozen=require_frozen_model(model);report=require_actor_data(data);validate_preparation(cfg)
     if not re.fullmatch('[0-9a-f]{40}',commit or '') or type(index) is not int or not 0<=index<13:
         raise PermissionError('Exact reviewed actor evaluation source/partition required')
     roster=data.scenes('development') if endpoint=='behavior' else competence_roster(cfg)
@@ -86,6 +86,7 @@ def expected_stage(commit,model,data,cfg,endpoint,index):
       'phase':'bounded_actor_'+endpoint,'notebook':'farhad89/research4-bounded-actor-'+endpoint+'-v4',
       'platform':'kaggle','account':'farhad89','native_interface_profile':PROFILE,
       'frozen_model_sha256':digest(frozen),'checkpoint_sha256':frozen['checkpoint_sha256'],
+      'training_lineage':evaluation_lineage(model),
       'source_data_archive_sha256':report['raw_archive_sha256'],'data_audit_sha256':digest(report),
       'configuration_sha256':CONFIG_SHA,'evaluation_plan_sha256':digest(plan),'partition':part,
       'roster_sha256':digest(roster),'visible_devices':'0,1','scientific_GPU_count':2,

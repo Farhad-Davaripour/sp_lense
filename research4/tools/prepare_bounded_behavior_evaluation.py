@@ -20,17 +20,23 @@ def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archiv
     out=Path(output);out.mkdir(parents=True,exist_ok=False);bundle=out/'bundle';source=bundle/'source'
     archive_source(repo,commit,source);inputs=source/'inputs';inputs.mkdir(exist_ok=True)
     parent=Path(fit_parent);prefix='BOUNDED_FIT_PARENT_'
+    from src.composite_bounded_sampling_fit_bridge import fit_modules
+    parent_mode=read(parent/'PREPARATION.json')['mode']
+    fit_profile,_,_=fit_modules(parent_mode)
+    from src.composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
+    prepared_name='research4_bounded_sampling_fit_v1.ipynb' if parent_mode==SAMPLING_MODE else 'research4_bounded_behavior_fit_v4.ipynb'
     mapping={'CLOSEOUT.json':'CLOSEOUT.json','SUBMISSION.json':'BINDING.json',
       'CONTROLLER_LOG_READBACK.json':'CONTROLLER.json','TERMINAL_SUCCESS_AX.txt':'TERMINAL_AX.txt',
       'RELEASE_AX.txt':'RELEASE_AX.txt','ACTUAL_SUBMITTED_NOTEBOOK.ipynb':'ACTUAL.ipynb',
-      'research4_bounded_behavior_fit_v4.ipynb':'PREPARED.ipynb'}
+      prepared_name:'PREPARED.ipynb'}
     for before,after in mapping.items():shutil.copyfile(parent/before,inputs/(prefix+after))
-    package=parent/'BOUNDED_BEHAVIOR_FIT_PACKAGE.zip'
+    package=parent/fit_profile.MANIFEST.replace('_PACKAGE_FILES.json','_PACKAGE.zip')
     (inputs/(prefix+'SOURCE.r4b64')).write_bytes(base64.b64encode(package.read_bytes()))
     submission=read(parent/'SUBMISSION.json');audited=read(parent/'INDEPENDENT_AUDIT.json')
-    fit_stage=read(parent/'bundle/source/inputs/BOUNDED_BEHAVIOR_FIT_PLAN.json')
+    fit_stage=read(parent/'bundle/source/inputs'/fit_profile.PLAN)
     dump(inputs/(prefix+'EXPECTED.json'),{'source_commit':submission['source_commit'],'run_id':submission['scriptVersionId'],
       'package_sha256':sha(package),'raw_archive_sha256':sha(fit_archive),'closeout_sha256':sha(parent/'CLOSEOUT.json'),
+      'fit_mode':parent_mode,
       'checkpoint_sha256':audited['checkpoint_sha256'],'qualification_source_commit':fit_stage['qualification_source_commit'],
       'data_source_commit':fit_stage['source_data_source_commit'],
       'dependencies_sha256':{name:sha(path) for name,path in zip(['fit','qualification','data','alias_fit','alias_qualification'],
