@@ -156,6 +156,8 @@ def verified_model_context(root, commit, config, pin, authorization_sha256):
         plan=placement_plan(config,profile,read(root/MEMORY_PROFILE))
     from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE,placement_plan as bounded_placement
     if pin.get('version')==BOUNDED_MODE:plan=bounded_placement(config,profile)
+    from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE,placement_plan as sampling_placement
+    if pin.get('version')==SAMPLING_MODE:plan=sampling_placement(config,profile)
     from .composite_bounded_behavior_evaluation_profile import MODE as BOUNDED_EVAL_MODE
     if pin.get('version')==BOUNDED_EVAL_MODE:plan=bounded_placement(config,profile)
     metadata = read(root / 'inputs' / METADATA)

@@ -78,8 +78,9 @@ def run_fit(actor,rows,cfg,plan,output,guard,progress,persist):
 def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_planner,row_selector,fitter,devices,export_profile=None):
     """Shared raw training instrumentation; each caller enforces its own runtime/data authority."""
     from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE
+    from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
     from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
-    bounded=plan.get('version')==BOUNDED_MODE
+    bounded=plan.get('version') in [BOUNDED_MODE,SAMPLING_MODE]
     native_profile=BOUNDED_PROFILE if bounded else PROFILE
     if getattr(actor,'native_interface_profile',None)!=native_profile:raise PermissionError('Exact registered native actor required')
     if bounded and getattr(actor,'bounded_training_context',None) is None:
@@ -100,6 +101,8 @@ def instrumented_fit(actor,rows,cfg,plan,output,guard,progress,persist,*,token_p
     if stateful:
         if bounded:
             from .composite_bounded_behavior_fit_profile import stress_schedule
+            if plan.get('version')==SAMPLING_MODE:
+                from .composite_bounded_sampling_fit_profile import stress_schedule
         schedule=stress_schedule(tokens);qualification=[by_id[key] for key in schedule['state_ids']]
         persist('STATEFUL_TRAINING_SCHEDULE.json',schedule)
     ledger={'optimizer_steps_attempted':0,'optimizer_steps_completed':0,'backward_microsteps_completed':0,

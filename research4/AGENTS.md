@@ -35,6 +35,53 @@ This direct ownership instruction changes neither the scientific recipe nor
 the independent simulator stops. Every new scientific stage still needs its
 own reviewed source, exact inputs, fresh one-use admission and raw audit/release.
 
+## Approved sampling amendment (2026-10-26)
+
+The human directly approved the reviewed 48 coverage anchors plus 80 uniform
+sampler proposal in `Monitor agent progress`, userMessage
+`01a178f2-bc41-7963-a5ab-d8ac14241ba6`, responding to that exact scientific
+choice: "don't ask for my approval and keep supervising to get the training
+completed and validation to pass the requirements. you have my approval."
+Root independently verified the authenticated user message. Do not ask for
+this sampler approval or generic objective/platform/fitting approval again.
+
+Durable approval receipt:
+`C:/Users/farha/Research4/artifacts/root_execution_takeover_20261026/sampling_amendment_approved_v1/HUMAN_SAMPLING_AMENDMENT_APPROVAL_20261026.json`
+SHA256: `d7636f3fac015745715cd610ecbaa677cdeeda4dbc424457e3a5737739ae56fe`.
+Approved final proposal SHA256:
+`a0dee04c3b1cfe9cf86c527c97678311d9f8ab3f52ab6ebefeb3ceead0b9614c`;
+rule canonical SHA256:
+`cb52f42545a525ccfb43973e7df4d873040cd84e031056961bec944d1be0b353`.
+
+Original CPU run 362532871/source c37f4845 remains FAILED at its fixed 128-draw
+per-mechanism coverage gate. Its complete 144 reference exports, native budgets,
+role/leakage checks and original 640-row/128-draw calculation were independently
+audited; the worker's admitted completed-case count remains 0. The failed run,
+source, indices and closeout must remain byte-exact and unadmitted under V4.
+Approval does not turn it into a successful data-stage result.
+
+The approved new version uses 48 declared-stratum anchor occurrences:
+3 mechanisms times (8 phase tags + 2 positive conditions + 6 negative kinds),
+plus 80 uniform training occurrences, followed by one seeded shuffle. Retain
+128 total occurrences, 64 updates/accumulation 2, original seed 202610212, canonical
+state-ID order and the original-row index mapping. Preflight all48pools before
+RNG use; retain overlapping strata and duplicate occurrences. All model,
+optimizer, context, native interface, cohorts, controls, thresholds and external
+stops below remain unchanged. This is an explicitly changed distribution,
+never the original IID-uniform schedule with a renamed label.
+
+Implement/review/version the distinct production sampler and typed failed-
+reference lineage. A fresh one-use bounded Kaggle CPU replay/sampling audit
+over the immutable original training rows must precede its separate genuine
+amended-data proof and release. No new teacher targets/cases or local scientific
+draw generation. Qualification still performs3fresh stateful updates, discards
+all qualifier state, and precedes a fresh 64-update fit whose complete backward
+journal must match the exact 128 approved IDs. Source, approval and serialized
+PASS flags alone never admit a scientific allocation or fitting. Preserve any
+genuine failure and resolve only evidence-supported defects prospectively;
+passing requirements means actual evidence, not threshold relaxation or
+outcome selection.
+
 ## Bounded V4 preparation (2026-10-26)
 
 Latest human steering, verified in R4 supervision userMessages

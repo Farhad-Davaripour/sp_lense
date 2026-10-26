@@ -26,9 +26,10 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
         from .composite_generalized_interface import PROFILE
         from .composite_task_memory_profile import MODE as MEMORY_MODE
         from .composite_bounded_behavior_fit_profile import MODE as BOUNDED_MODE
+        from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
         from .composite_bounded_behavior_interface import PROFILE as BOUNDED_PROFILE
-        bounded=plan and plan.get('version')==BOUNDED_MODE
-        qualifier_updates=3 if plan and plan.get('version') in [MEMORY_MODE,BOUNDED_MODE] else 1
+        bounded=plan and plan.get('version') in [BOUNDED_MODE,SAMPLING_MODE]
+        qualifier_updates=3 if plan and plan.get('version') in [MEMORY_MODE,BOUNDED_MODE,SAMPLING_MODE] else 1
         expected_profile=BOUNDED_PROFILE if bounded else PROFILE
         if (getattr(actor,'native_interface_profile',None)!=expected_profile or not plan or plan.get('phase')!='qualification'
             or plan.get('optimizer_updates')!=qualifier_updates or len(qualification_rows)!=recipe['accumulation']*qualifier_updates):
@@ -36,6 +37,13 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
         by_id={row['state_id']:row for row in rows}
         if any(by_id.get(row['state_id'])!=row for row in qualification_rows):raise ValueError('Qualification example is not an exact eligible training row')
         updates=qualifier_updates
+    approved_rows=None
+    from .composite_bounded_sampling_fit_profile import MODE as SAMPLING_MODE
+    plan=getattr(actor,'v2_training_plan',None) or {}
+    if plan.get('version')==SAMPLING_MODE and plan.get('phase')=='full_fit':
+        if qualification_rows is not None:raise PermissionError('Full approved schedule cannot use the qualifier override')
+        from .composite_bounded_sampling_training import approved_full_fit_rows
+        approved_rows=approved_full_fit_rows(actor,rows,cfg)
     torch.manual_seed(recipe['seed'])
     try:actor.configure(placement,for_training=True)
     finally:
@@ -44,11 +52,13 @@ def fit_selected_rows(actor,rows,placement,cfg,output,guard,progress,observer=No
     if {id(p) for p in parameters}&{id(p) for _,p in actor.base_references}:raise ValueError('Qwen backbone in optimizer')
     before=actor.adapter_state()['weights'];optimizer=torch.optim.AdamW(parameters,lr=recipe['learning_rate'],weight_decay=0.,foreach=False)
     if observer:observer('after_configure',initial_weights=before,parameters=parameters,optimizer=optimizer)
-    rng=np.random.default_rng(recipe['seed']);losses=[];observed=[];actor.eval()
+    rng=None if approved_rows is not None else np.random.default_rng(recipe['seed']);losses=[];observed=[];actor.eval()
     for update in range(updates):
         guard();optimizer.zero_grad(set_to_none=True)
         for microstep in range(recipe['accumulation']):
-            row=qualification_rows[update*recipe['accumulation']+microstep] if qualification_rows is not None else rows[int(rng.integers(len(rows)))]
+            position=update*recipe['accumulation']+microstep
+            row=(qualification_rows[position] if qualification_rows is not None else
+                 approved_rows[position] if approved_rows is not None else rows[int(rng.integers(len(rows)))])
             if observer:observer('before_microstep',update=update+1,microstep=microstep,row=row,parameters=parameters,optimizer=optimizer)
             with actor.training_context():
                 loss=actor.supervised_loss(row)
