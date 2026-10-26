@@ -40,6 +40,11 @@ not general task competence. Alias outcomes may not be merged into the official
 Any neural execution belongs on the user-selected Kaggle account. Use a new
 frozen source release, private notebook/input transport, one-use candidate
 identity, raw output archive, and independent source/model/token audit. The
+released actor ZIP is retained for local audit and copied byte for byte to
+`ACTOR_PACKAGE.r4blob` for private Kaggle upload. The notebook requires exactly
+one opaque blob and verifies its SHA-256 against the frozen stage before
+opening it as the original ZIP; uploading the `.zip` as a Kaggle dataset would
+let Kaggle extract it and would not satisfy this transport contract. The
 current owned worker must finish, export, pass its audit, and release GPU/cache
 and ledger ownership before another allocation. Confirm account, notebook,
 draft session, events and quota under the shared submission guard. An ambiguous
