@@ -74,8 +74,13 @@ def validate_package(archive,bundle):
 
 def validate_source(root,commit,fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive):
     root=Path(root).resolve();verify_transport(root,commit,MODE,MANIFEST);inputs=root/'inputs'
+    stage=read(inputs/STAGE)
+    from .composite_bounded_behavior_evaluation_resources import RESOURCE_VERSION,RESOURCE_INPUTS,read_resource_inputs,amend_stage
+    resource=stage.get('resource_amendment_version') is not None
+    if resource and stage['resource_amendment_version']!=RESOURCE_VERSION:
+        raise PermissionError('Only the registered prospective resource amendment is admitted')
     manifest=read(inputs/'MANIFEST.json')
-    if set(manifest)!=INPUTS or any(sha(inputs/n)!=h for n,h in manifest.items()):
+    if set(manifest)!=(INPUTS|RESOURCE_INPUTS if resource else INPUTS) or any(sha(inputs/n)!=h for n,h in manifest.items()):
         raise PermissionError('Complete exact frozen actor source/input transport required')
     if sha(inputs/HUMAN)!=HUMAN_SHA:raise PermissionError('Selected Kaggle account authority required')
     model=read_parent(root,fit_archive,qualification_archive,data_archive,alias_fit_archive,alias_qualification_archive)
@@ -86,9 +91,10 @@ def validate_source(root,commit,fit_archive,qualification_archive,data_archive,a
         raise PermissionError('Original complete frozen model/recipe changed')
     for name in ['QWEN_PIN.json','QWEN_TENSOR_METADATA.json']:
         if digest(read(inputs/name))!=digest(model.inputs[name]):raise PermissionError('Original model file/geometry binding changed')
-    stage=read(inputs/STAGE);endpoint=stage.get('endpoint')
+    endpoint=stage.get('endpoint')
     roster=model.data.scenes('development') if endpoint=='behavior' else competence_roster(cfg)
     expected=expected_stage(commit,model,model.data,cfg,endpoint,stage.get('partition',{}).get('index'))
+    if resource:expected=amend_stage(expected,*read_resource_inputs(inputs))
     from .composite_bounded_behavior_evaluation_profile import PROBE_REGISTRATION
     if (digest(stage)!=digest(expected) or digest(read(inputs/'EVALUATION_PLAN.json'))!=digest(execution_plan(roster,endpoint))
         or digest(read(inputs/'EVALUATION_ROSTER.json'))!=digest(roster)

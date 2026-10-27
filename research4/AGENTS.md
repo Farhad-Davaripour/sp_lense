@@ -35,6 +35,36 @@ This direct ownership instruction changes neither the scientific recipe nor
 the independent simulator stops. Every new scientific stage still needs its
 own reviewed source, exact inputs, fresh one-use admission and raw audit/release.
 
+## Partial-validation resource amendment (2026-10-27)
+
+The human explicitly authorized beginning validation within available existing-
+account Kaggle quota and preserving honest partial evidence if full evaluation
+does not finish. Verified userMessage: `01a17d4e-0c04-7be0-80f9-170a5eececc5`.
+Receipt: `C:/Users/farha/Research4/artifacts/execution_supervision_20261026/HUMAN_PARTIAL_VALIDATION_AUTHORITY_20261027T122322.json`
+SHA256: `29627183b1aec418166413fd8cee71722d2425e5191fcc4f94745376cfa8852c`.
+Do not ask for that same resource choice again. This changes resource timing,
+not the frozen checkpoint, registered cases/order/paired arms, per-case native
+budgets, decoding, scoring, thresholds, forward/storage limits or source gates.
+The checkpoint remains `9998bb60e16186edcf03137ca0b4168a72a258cd6acdfb075faa9bcfce1a24e2`.
+
+The separately marked resource route binds the exact authority, actual saved
+quota observation, deterministic policy and operator plan in source inputs.
+For quota Q seconds, hard=min(30000,floor((Q-1800)/300)*300), with minimum
+hard10800; setup cap1800, child=hard-3600, export reserve1800 inside the child,
+and controller/provider tail1800. Fresh admission requires quota>=hard+1800.
+For Q34260 this is hard30000/child26400/work24600, leaving4260 outside hard.
+Setup subprocesses use residual deadlines; the external child timer and local
+setup/finalization timers do not claim a whole-notebook/provider watchdog.
+
+After exact one-use reconciliation, root records actual provider creation UTC
+and binds the same heartbeat's UI stop window at hard-1200 and ceiling at hard.
+The scheduler is not a hard watchdog. Preserve partial raw bytes, actual stop/
+termination, unknown counts and provider/ledger release. Partial evidence is
+never a complete partition, endpoint, successor, detector or sealed PASS. Keep
+the legacy42000-second route and all existing complete-result gates unchanged.
+No new worker, automatic retry, retraining, checkpoint selection or quota
+purchase is authorized. New source still requires review/CI and fresh admission.
+
 ## Direct full-fit qualification waiver (2026-10-26)
 
 The human's later instruction in `Monitor agent progress`, userMessage

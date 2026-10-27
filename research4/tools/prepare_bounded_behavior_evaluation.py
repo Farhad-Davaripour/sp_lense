@@ -15,8 +15,11 @@ NOTEBOOK='research4_bounded_actor_evaluation_v4.ipynb'
 
 
 def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archive,
-            alias_fit_archive,alias_qualification_archive,kaggle_scope,endpoint,index,output):
+            alias_fit_archive,alias_qualification_archive,kaggle_scope,endpoint,index,output,
+            resource_authority=None,resource_quota_observation=None):
     if sha(kaggle_scope)!=HUMAN_SHA:raise PermissionError('Existing selected Kaggle authority required')
+    if (resource_authority is None)!=(resource_quota_observation is None):
+        raise PermissionError('Both actual authority and quota observation are required for the prospective resource amendment')
     out=Path(output);out.mkdir(parents=True,exist_ok=False);bundle=out/'bundle';source=bundle/'source'
     archive_source(repo,commit,source);inputs=source/'inputs';inputs.mkdir(exist_ok=True)
     parent=Path(fit_parent);prefix='BOUNDED_FIT_PARENT_'
@@ -47,6 +50,16 @@ def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archiv
     cfg=read(source/'config/composite_bounded_behavior_v4.json')
     roster=model.data.scenes('development') if endpoint=='behavior' else competence_roster(cfg)
     stage=expected_stage(commit,model,model.data,cfg,endpoint,index)
+    if resource_authority is not None:
+        from src.composite_bounded_behavior_evaluation_resources import (AUTHORITY_FILE,AUTHORITY_SHA,QUOTA_FILE,
+            RESOURCE_FILE,OPERATOR_FILE,resource_plan,operator_plan,amend_stage,validate_authority)
+        if sha(resource_authority)!=AUTHORITY_SHA:raise PermissionError('Exact direct human partial-validation authority required')
+        authority=validate_authority(read(resource_authority));observation=read(resource_quota_observation)
+        plan=resource_plan(observation)
+        stage=amend_stage(stage,authority,observation,plan)
+        shutil.copyfile(resource_authority,inputs/AUTHORITY_FILE)
+        shutil.copyfile(resource_quota_observation,inputs/QUOTA_FILE)
+        dump(inputs/RESOURCE_FILE,plan);dump(inputs/OPERATOR_FILE,operator_plan(plan))
     for name in ['QWEN_PIN.json','QWEN_TENSOR_METADATA.json']:dump(inputs/name,model.inputs[name])
     shutil.copyfile(kaggle_scope,inputs/HUMAN)
     dump(inputs/STAGE,stage);dump(inputs/'WORKSPACE.json',identity(stage['notebook']))
@@ -77,6 +90,10 @@ def prepare(repo,commit,fit_parent,fit_archive,qualification_archive,data_archiv
       'fit_archive_local_path':str(Path(fit_archive).resolve()),'qualification_archive_local_path':str(Path(qualification_archive).resolve()) if qualification_archive else None,
       'data_archive_local_path':str(Path(data_archive).resolve()),'alias_fit_archive_local_path':str(Path(alias_fit_archive).resolve()),
       'alias_qualification_archive_local_path':str(Path(alias_qualification_archive).resolve())}
+    if resource_authority is not None:
+        result.update(resource_amendment_version=stage['resource_amendment_version'],
+            resource_authority_sha256=stage['resource_authority_sha256'],resource_policy_sha256=stage['resource_policy_sha256'],
+            quota_observation_sha256=stage['quota_observation_sha256'],operator_backstop_plan=stage['operator_backstop_plan'])
     dump(out/'PREPARATION.json',result);return result
 
 
@@ -85,4 +102,5 @@ if __name__=='__main__':
     for key in ['repo','commit','fit-parent','fit-archive','data-archive',
       'alias-fit-archive','alias-qualification-archive','kaggle-scope','endpoint','output']:parser.add_argument('--'+key,required=True)
     parser.add_argument('--qualification-archive',default=None)
+    parser.add_argument('--resource-authority');parser.add_argument('--resource-quota-observation')
     parser.add_argument('--index',required=True,type=int);print(json.dumps(prepare(**vars(parser.parse_args()))))
