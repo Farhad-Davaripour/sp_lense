@@ -12,6 +12,7 @@ from .composite_bounded_sampling_fit_profile import MODE,DIRECT_MODE,WAIVER_SHA,
 from .composite_v2_model_audit import (EvidenceFiles,checkpoint_evidence,audit_optimizer_bytes,
     frozen_integrity,audit_runtime,audit_bypass,tensor_state)
 from .composite_task_skill_model_audit import verify_fresh_initialization
+from .composite_kaggle_terminal_presentation import rendered_terminal_success
 _KEY=object()
 OWNER_THREAD='01a175f0-fc99-76b1-8bb2-d64f22afbcd7'
 
@@ -106,8 +107,8 @@ def kaggle_closure(binding,archive_sha256,terminal_AX,release_AX,controller,actu
         or mode not in [MODE,DIRECT_MODE] or binding.get('owner_thread_id')!=OWNER_THREAD
         or not re.fullmatch('[0-9a-f]{40}',source or '') or not re.fullmatch('[0-9a-f]{64}',archive_sha256 or '')):
         raise PermissionError('Exact consumed V4 stage/submission/source required')
-    if (not exact_terminal_url(terminal_AX,notebook,run)
-        or not re.search(r'successfully ran after|second run - successful',terminal_AX)
+    legacy_terminal=exact_terminal_url(terminal_AX,notebook,run) and re.search(r'successfully ran after|second run - successful',terminal_AX)
+    if (not (legacy_terminal or rendered_terminal_success(terminal_AX,notebook,run))
         or not re.search(re.escape('https://www.kaggle.com/code/'+notebook)
           +r"(?=$|[/?#\s\"'<>])",release_AX)
         or '0  Active Events' not in release_AX or 'Draft Session off' not in release_AX):

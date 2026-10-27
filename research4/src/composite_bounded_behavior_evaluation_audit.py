@@ -8,6 +8,7 @@ from .composite_bounded_behavior_evaluation_profile import MODE,MANIFEST,STAGE,O
 from .composite_bounded_behavior_evaluation_source import validate_source,notebook_code
 from .composite_bounded_behavior_profile import validate_preparation
 from .composite_bounded_behavior_evaluation_collection import scene_for,world_for,terminal_record
+from .composite_kaggle_terminal_presentation import rendered_terminal_success
 
 _KEY=object();_ARCHIVE_KEY=object()
 
@@ -33,9 +34,10 @@ def kaggle_closure(binding,raw_sha,terminal,release,controller,actual,prepared):
         or binding.get('owner_thread_id')!=OWNER or type(run) is not int or run<=0
         or not re.fullmatch('[0-9a-f]{40}',source or '') or not re.fullmatch('[0-9a-f]{64}',raw_sha or '')):
         raise PermissionError('Exact consumed actor partition identity required')
-    if (not re.search(re.escape(notebook)+r"(?=$|[/?#\s\"'<>\]])",terminal)
-        or not re.search(r'scriptVersionId='+str(run)+r"(?=$|[&#\s\"'<>/)\]])",terminal)
-        or not re.search(r'successfully ran after|second run - successful',terminal)
+    legacy_terminal=(re.search(re.escape(notebook)+r"(?=$|[/?#\s\"'<>\]])",terminal)
+        and re.search(r'scriptVersionId='+str(run)+r"(?=$|[&#\s\"'<>/)\]])",terminal)
+        and re.search(r'successfully ran after|second run - successful',terminal))
+    if (not (legacy_terminal or rendered_terminal_success(terminal,notebook,run))
         or not re.search(re.escape('https://www.kaggle.com/code/'+notebook)+r"(?=$|[/?#\s\"'<>])",release)
         or '0  Active Events' not in release or 'Draft Session off' not in release):
         raise PermissionError('Exact target notebook terminal and provider release required')
