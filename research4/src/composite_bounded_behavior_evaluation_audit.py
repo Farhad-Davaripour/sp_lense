@@ -54,6 +54,7 @@ def kaggle_closure(binding,raw_sha,terminal,release,controller,actual,prepared):
     return KaggleClosure({'source_commit':source,'notebook':notebook,'raw_archive_sha256':raw_sha,
       'provider_run_id':run,'actual_code_cells_sha256':digest(actual),'owned_compute_released':True,
       'controller_sha256':digest(controller),'terminal_sha256':hashlib.sha256(terminal.encode()).hexdigest(),
+      'controller_observation':deepcopy(controller),
       'release_sha256':hashlib.sha256(release.encode()).hexdigest()},_KEY)
 
 
@@ -235,11 +236,14 @@ def audit_partition(raw,raw_sha,root,commit,fit_archive,qualification_archive,da
         if receipt['forward_counts']!={'attempted':count,'completed':count}:
             raise ValueError('Exact native generated-token/backbone forward counts differ')
         released=isinstance(closure,KaggleClosure) and closure._key is _KEY
+        controller_resource=None
         if released:
             value=closure._value
             if (value['source_commit']!=commit or value['raw_archive_sha256']!=raw_sha or value['notebook']!=stage['notebook']
                 or value['actual_code_cells_sha256']!=digest([notebook_code(root,commit,sha(Path(root).parent/MANIFEST))])):
                 raise PermissionError('Exact provider/raw/saved-source actor binding differs')
+            from .composite_bounded_behavior_evaluation_resources import validate_controller_resource
+            controller_resource=validate_controller_resource(stage,value.get('controller_observation'))
         from .composite_bounded_behavior_evaluation_scoring import summarize_behavior,summarize_competence
         scorer=summarize_behavior if stage['endpoint']=='behavior' else summarize_competence
         summary=scorer(context.roster(),audited,validate_preparation(read(Path(root)/'config/composite_bounded_behavior_v4.json')),complete_required=False)
@@ -247,6 +251,7 @@ def audit_partition(raw,raw_sha,root,commit,fit_archive,qualification_archive,da
           audited_terminals=audited,summary=summary,paired_trajectories=len(audited),recorded_forward_counts=receipt['forward_counts'],
           missing_or_unverified=[] if released else ['actual_provider_release_not_verified'],
           provider_run_id=closure._value['provider_run_id'] if released else None)
+        report['controller_resource_validation']=controller_resource
         return EvaluationEvidence(report,_KEY)
     finally:files.close()
 
@@ -276,3 +281,9 @@ def summarize_endpoint(partitions,roster,cfg):
       'training_lineage':reports[0].get('training_lineage'),
       'summary':summary,'other_controls_status':'unrun_unknown','learned_dynamic_or_sealed_admitted':False,
       'heldout_content_read':False,'population_reliability_admitted':False}
+
+
+# A separate opaque proof cannot satisfy any complete partition/endpoint gate.
+from .composite_bounded_behavior_evaluation_partial import (
+    PartialEvaluationEvidence, PartialKaggleClosure, kaggle_partial_closure,
+    audit_partial_partition, require_partial)

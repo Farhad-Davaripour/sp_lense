@@ -35,7 +35,7 @@ def validate_preparation(path):
     if (code!=[notebook_code(source,value['source_commit'],sha(base/'bundle'/MANIFEST))]
         or value['endpoint']!=stage['endpoint'] or value['partition_index']!=stage['partition']['index']):
         raise PermissionError('Actual prepared actor notebook/source/partition differ')
-    return {'source_commit':value['source_commit'],'mode':MODE,'phase':stage['phase'],'endpoint':stage['endpoint'],
+    result={'source_commit':value['source_commit'],'mode':MODE,'phase':stage['phase'],'endpoint':stage['endpoint'],
       'partition_index':stage['partition']['index'],'notebook':stage['notebook'],'owner_thread_id':stage['owner_thread_id'],
       'package_sha256':value['bundle_sha256'],'authorization_sha256':value['stage_sha256'],
       'frozen_model_sha256':stage['frozen_model_sha256'],'checkpoint_sha256':stage['checkpoint_sha256'],
@@ -44,6 +44,13 @@ def validate_preparation(path):
       'roster_sha256':stage['roster_sha256'],'kaggle_remainder_scope_sha256':HUMAN_SHA,
       'provider_scope':'human-selected-Kaggle-remainder-v1','fresh_stage':True,'scientific_GPU_count':2,
       'hard_timeout_seconds':stage['hard_timeout_seconds'],'optimizer_updates':0,'automatic_scientific_retries':0}
+    if 'resource_amendment_version' in stage:
+        for key in ['resource_amendment_version','resource_authority_sha256','resource_policy_sha256',
+                    'quota_observation_sha256','operator_backstop_plan']:
+            if digest(value.get(key))!=digest(stage[key]):raise PermissionError('Prepared resource authority/policy/backstop binding differs')
+            result[key]=stage[key]
+        result['minimum_fresh_quota_seconds']=stage['resource_amendment_plan']['minimum_fresh_quota_seconds']
+    return result
 
 
 def reserve_partition(campaign_root,preparation_file,live_snapshot,guard_token=None):
@@ -78,17 +85,28 @@ def reserve_partition(campaign_root,preparation_file,live_snapshot,guard_token=N
         if lock.exists() and read(lock).get('token')==token:lock.unlink()
         raise
     def observed():
-        value=live_snapshot();actual=value.get('kaggle_observation',{})
-        required={'account':'farhad89','notebook':binding['notebook'],'notebook_draft_sessions':0,
-          'active_notebook_versions':0,'pending_notebook_versions':0,'events_checked':True,'accelerator':'T4x2'}
-        if any(digest(actual.get(k))!=digest(v) for k,v in required.items()):
-            raise PermissionError('Fresh same-account target notebook/version/draft/T4-pair evidence required')
-        quota=actual.get('remaining_accelerator_seconds')
-        if type(quota) not in [int,float] or not math.isfinite(quota) or quota<binding['hard_timeout_seconds']:
-            raise PermissionError('Actual remaining quota must cover the complete registered actor stage')
-        return value
+        return _provider_snapshot(live_snapshot(),binding)
     return reserve(root,preparation_file,observed,key,'attempts','r4-bounded-actor-'+endpoint+'-'+str(index).zfill(2)+'-',
       validate_preparation,candidate_rule,token)
+
+
+def _provider_snapshot(value,binding):
+    actual=value.get('kaggle_observation',{})
+    required={'account':'farhad89','notebook':binding['notebook'],'notebook_draft_sessions':0,
+      'active_notebook_versions':0,'pending_notebook_versions':0,'events_checked':True,'accelerator':'T4x2'}
+    if any(digest(actual.get(k))!=digest(v) for k,v in required.items()):
+        raise PermissionError('Fresh same-account target notebook/version/draft/T4-pair evidence required')
+    quota=actual.get('remaining_accelerator_seconds');minimum=binding['hard_timeout_seconds']
+    if 'resource_amendment_version' in binding:
+        from .composite_bounded_behavior_evaluation_resources import RESOURCE_VERSION
+        if binding['resource_amendment_version']!=RESOURCE_VERSION:
+            raise PermissionError('Exact registered resource amendment required')
+        minimum+=1800
+        if binding.get('minimum_fresh_quota_seconds')!=minimum:
+            raise PermissionError('The prospective extra fresh-quota margin cannot be removed')
+    if type(quota) not in [int,float] or not math.isfinite(quota) or quota<minimum:
+        raise PermissionError('Actual remaining quota must cover the complete registered actor stage and margin')
+    return value
 
 
 def reconcile_partition(campaign_root,identity,endpoint,index,script_version_id=None,guard_token=None):

@@ -111,3 +111,9 @@ def stage_prefix(stage):
         or not re.fullmatch('[0-9a-f]{40}',stage.get('source_commit',''))):
         raise PermissionError('Exact bounded actor evaluation namespace required')
     return 'bounded_actor_evaluation_v4/'+stage['source_commit']+'/'+stage['endpoint']+'/partition_'+str(stage['partition']['index']).zfill(2)
+
+
+def expected_resource_stage(commit,model,data,cfg,endpoint,index,authority,observation,plan):
+    """Keep the scientific stage exact; amend only explicitly bound resources."""
+    from .composite_bounded_behavior_evaluation_resources import amend_stage
+    return amend_stage(expected_stage(commit,model,data,cfg,endpoint,index),authority,observation,plan)
