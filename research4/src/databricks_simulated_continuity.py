@@ -39,6 +39,13 @@ MODEL_RECEIPT_VERSION = "research4-databricks-qwen35-volume-snapshot-v1"
 CLOSEOUT_VERSION = "research4-databricks-active-reservation-closeout-v1"
 COST_BUDGET_VERSION = "research4-databricks-throughput-derived-budget-v1"
 DATASET_TREE_SHA256 = "c21d8b334fdd1e7544fbea8277643f594c990dd5a754312d5e5a9e0d947df1df"
+DATASET_RELEASE_ROOT = f"{VOLUME}/dataset_releases/{DATASET_TREE_SHA256}"
+DATASET_RELEASE_RECEIPT_SHA256 = (
+    "ec4c478f84abd7e038dbb5de557a57e3bba142f86abd916457084636545a01ca"
+)
+DATASET_RELEASE_VALIDATION_SHA256 = (
+    "2f92b6595c576518ab8deee50cdee2034830d8ebb63b66d46b967ed08c6fc005"
+)
 EXPERIMENT_SPEC = {
     "version": "qwen35-9b-ordinal-continuity-experiment-v1",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
@@ -112,6 +119,9 @@ def catalog_ddl() -> tuple[str, ...]:
           source_sha256 STRING NOT NULL, row_number BIGINT NOT NULL,
           record_kind STRING NOT NULL, condition STRING, split STRING,
           record_id STRING, record_json STRING NOT NULL,
+          dataset_release_path STRING NOT NULL,
+          dataset_release_receipt_sha256 STRING NOT NULL,
+          dataset_tree_sha256 STRING NOT NULL,
           ingested_at TIMESTAMP NOT NULL
         ) USING DELTA""",
         f"""CREATE TABLE IF NOT EXISTS {SILVER_TABLE} (
@@ -120,6 +130,8 @@ def catalog_ddl() -> tuple[str, ...]:
           condition STRING NOT NULL, split STRING NOT NULL,
           family_id STRING, danger_level INT, record_sha256 STRING NOT NULL,
           record_json STRING NOT NULL, admitted_for_training BOOLEAN NOT NULL,
+          dataset_release_path STRING NOT NULL,
+          dataset_release_receipt_sha256 STRING NOT NULL,
           transformed_at TIMESTAMP NOT NULL
         ) USING DELTA""",
         f"""CREATE TABLE IF NOT EXISTS {GOLD_RUN_TABLE} (
@@ -176,6 +188,42 @@ def bronze_rows(generated_root: str | Path, source_commit: str) -> list[dict]:
     if not rows:
         raise PermissionError("Bronze source contains no generated records")
     return rows
+
+
+def verify_dataset_release(
+        generated_root: str | Path, *, expected_root: str | Path = DATASET_RELEASE_ROOT,
+        expected_receipt_sha256: str = DATASET_RELEASE_RECEIPT_SHA256,
+        expected_validation_sha256: str = DATASET_RELEASE_VALIDATION_SHA256) -> dict:
+    """Bind table ingestion to the exact immutable Volume dataset release."""
+    root = Path(generated_root).resolve()
+    if root != Path(expected_root).resolve():
+        raise PermissionError("Dataset ingestion path differs from the reviewed release")
+    from .qwen9b_ordinal_continuity_training import verify_dataset_receipt
+    proof = verify_dataset_receipt(root)
+    receipt = json.loads((root / "RECEIPT.json").read_text(encoding="utf-8"))
+    declared = {entry.get("path") for entry in receipt.get("files", [])}
+    actual = {path.relative_to(root).as_posix()
+              for path in root.rglob("*") if path.is_file()}
+    expected = declared | {"RECEIPT.json", "VALIDATION.json"}
+    if (proof.get("receipt_sha256") != expected_receipt_sha256
+            or proof.get("dataset_tree_digest") != DATASET_TREE_SHA256
+            or proof.get("checked_file_count") != 26
+            or actual != expected
+            or file_sha256(root / "VALIDATION.json")
+               != expected_validation_sha256):
+        raise PermissionError("Volume dataset release differs from reviewed evidence")
+    return {
+        **proof,
+        "dataset_release_path": root.as_posix(),
+        "dataset_tree_sha256": DATASET_TREE_SHA256,
+    }
+
+
+def stable_rows_sha256(rows: list[Mapping[str, Any]], fields: tuple[str, ...]) -> str:
+    """Hash table content without non-deterministic ingestion timestamps."""
+    selected = [{field: dict(row).get(field) for field in fields} for row in rows]
+    selected.sort(key=canonical)
+    return digest(selected)
 
 
 def silver_rows(generated_root: str | Path, source_commit: str, *, tokenizer,

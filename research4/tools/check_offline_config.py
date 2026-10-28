@@ -12,6 +12,23 @@ GPU_JOB_RESOURCES = {
     "simulated_continuity_rank4_qualification",
     "simulated_continuity_primary_partition",
 }
+GPU_ENVIRONMENT_KEY = "continuity_gpu"
+GPU_ACCELERATOR = "${var.continuity_gpu_accelerator}"
+GPU_ENVIRONMENT_VERSION = "${var.continuity_gpu_environment_version}"
+GPU_DEPENDENCIES = [
+    "--extra-index-url https://download.pytorch.org/whl/cu128",
+    "torch==2.11.0+cu128",
+    "transformers==5.19.0",
+    "bitsandbytes==0.49.2",
+    "accelerate==1.15.0",
+    "safetensors==0.8.0",
+    "fla-core==0.5.2",
+    "einops==0.8.2",
+    "numpy==2.2.2",
+    "psutil==7.2.2",
+    "triton==3.6.0",
+    "nvidia-ml-py==13.615.71",
+]
 
 
 def unique_mapping(pairs):
@@ -60,36 +77,36 @@ def check_job(job, root, resource_name=None):
         if not isinstance(environment["spec"].get("environment_version"), str):
             raise ValueError("Environment version must be a quoted string")
     gpu_job = resource_name in GPU_JOB_RESOURCES
-    clusters = job.get("job_clusters", [])
+    if job.get("job_clusters"):
+        raise ValueError("Research 4 bundle jobs must remain serverless")
     if gpu_job:
-        if len(clusters) != 1 or clusters[0].get("job_cluster_key") != "continuity_a10x1":
-            raise ValueError("Databricks continuity GPU job requires one exact cluster")
-        cluster = clusters[0].get("new_cluster", {})
-        if (cluster.get("spark_version") != "${var.continuity_gpu_runtime}"
-                or cluster.get("node_type_id") != "${var.continuity_gpu_node_type}"
-                or cluster.get("driver_node_type_id") != "${var.continuity_gpu_node_type}"
-                or cluster.get("num_workers") != 0
-                or cluster.get("data_security_mode") != "SINGLE_USER"
-                or cluster.get("autotermination_minutes") != 20
-                or cluster.get("spark_conf", {}).get("spark.master") != "local[*]"
-                or cluster.get("custom_tags", {}).get("ResourceClass") != "SingleNode"):
-            raise ValueError("Databricks continuity GPU cluster envelope changed")
-    elif clusters:
-        raise ValueError("Existing Research 4 bundle jobs must remain serverless")
+        gpu_environments = [item for item in environments
+                            if item["environment_key"] == GPU_ENVIRONMENT_KEY]
+        if len(gpu_environments) != 1:
+            raise ValueError("Databricks continuity GPU environment is missing")
+        spec = gpu_environments[0]["spec"]
+        if (spec.get("environment_version") != GPU_ENVIRONMENT_VERSION
+                or spec.get("dependencies") != GPU_DEPENDENCIES
+                or "base_environment" in spec):
+            raise ValueError("Databricks continuity GPU environment changed")
     tasks = job.get("tasks", [])
     keys = [task["task_key"] for task in tasks]
     if not keys or len(keys) != len(set(keys)):
         raise ValueError("Task keys must be nonempty and unique")
     dependencies = {}
+    gpu_task_count = 0
     for task in tasks:
-        if any(key in task for key in ("new_cluster", "existing_cluster_id")):
-            raise ValueError("Existing Research 4 bundle jobs must remain serverless")
-        if task.get("compute", {}).get("hardware_accelerator"):
-            raise ValueError("Existing Research 4 bundle jobs must remain CPU-only")
-        task_cluster = task.get("job_cluster_key")
-        if task_cluster is not None:
-            if not gpu_job or task_cluster != "continuity_a10x1" or "environment_key" in task:
-                raise ValueError("Task references an unreviewed GPU job cluster")
+        if any(key in task for key in ("new_cluster", "existing_cluster_id",
+                                       "job_cluster_key")):
+            raise ValueError("Research 4 bundle jobs must remain serverless")
+        compute = task.get("compute")
+        if compute is not None:
+            if (not gpu_job or task.get("task_key") != "run_one_partition"
+                    or compute != {"hardware_accelerator": GPU_ACCELERATOR}
+                    or task.get("environment_key") != GPU_ENVIRONMENT_KEY
+                    or "libraries" in task):
+                raise ValueError("Task references an unreviewed serverless GPU")
+            gpu_task_count += 1
         elif task.get("environment_key") not in environment_keys:
             raise ValueError("Task references an undefined environment")
         if task.get("max_retries") != 0:
@@ -103,6 +120,8 @@ def check_job(job, root, resource_name=None):
         dependencies[task["task_key"]] = {item["task_key"] for item in task.get("depends_on", [])}
         if not dependencies[task["task_key"]].issubset(keys):
             raise ValueError("Task dependency is undefined")
+    if gpu_job and gpu_task_count != 1:
+        raise ValueError("Databricks continuity job requires one serverless GPU task")
     remaining = dict(dependencies)
     while remaining:
         ready = {key for key, needs in remaining.items() if not needs.intersection(remaining)}
@@ -153,11 +172,16 @@ def main():
         raise ValueError('Authorized account profiles changed')
     storage_namespace(bundle)
     variables = bundle.get("variables", {})
-    if (variables.get("continuity_gpu_node_type", {}).get("default")
-            != "Standard_NV36ads_A10_v5"
-            or variables.get("continuity_gpu_runtime", {}).get("default")
-            != "18.2.x-gpu-ml-scala2.13"):
+    if (variables.get("continuity_gpu_accelerator", {}).get("default")
+            != "GPU_1xA10"
+            or variables.get("continuity_gpu_environment_version", {}).get("default")
+            != "6"):
         raise ValueError("Databricks continuity GPU profile changed")
+    if variables.get("continuity_dataset_release", {}).get("default") != (
+            "/Volumes/research4_simulated_continuity/bronze/model_data/"
+            "dataset_releases/"
+            "c21d8b334fdd1e7544fbea8277643f594c990dd5a754312d5e5a9e0d947df1df"):
+        raise ValueError("Databricks continuity dataset release changed")
     included = {path for pattern in bundle["include"] for path in ROOT.glob(pattern)}
     resources = set((ROOT / "resources").glob("*.job.yml"))
     if not resources or included != resources:
