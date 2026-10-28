@@ -35,7 +35,31 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v1"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v2"
+SOURCE_MANIFEST_VERSION = "research4-databricks-continuity-source-manifest-v1"
+SOURCE_MANIFEST_PATHS = (
+    "databricks.yml",
+    "notebooks/databricks_continuity_admission.py",
+    "notebooks/databricks_continuity_bootstrap.py",
+    "notebooks/databricks_continuity_cleanup.py",
+    "notebooks/databricks_continuity_data.py",
+    "notebooks/databricks_continuity_gold_audit.py",
+    "notebooks/databricks_continuity_model_snapshot.py",
+    "notebooks/databricks_continuity_partition.py",
+    "notebooks/databricks_continuity_preflight.py",
+    "resources/simulated_continuity_databricks.job.yml",
+    "src/__init__.py",
+    "src/composite_kernels.py",
+    "src/databricks_continuity_partition.py",
+    "src/databricks_continuity_partition_worker.py",
+    "src/databricks_simulated_continuity.py",
+    "src/qwen9b_ordinal_continuity_controller.py",
+    "src/qwen9b_ordinal_continuity_lora.py",
+    "src/qwen9b_ordinal_continuity_runtime.py",
+    "src/qwen9b_ordinal_continuity_training.py",
+    "src/qwen9b_ordinal_continuity_worker.py",
+    "tools/prepare_databricks_continuity_intent.py",
+)
 MODEL_RECEIPT_VERSION = "research4-databricks-qwen35-volume-snapshot-v1"
 CLOSEOUT_VERSION = "research4-databricks-active-reservation-closeout-v1"
 COST_BUDGET_VERSION = "research4-databricks-throughput-derived-budget-v1"
@@ -106,6 +130,86 @@ def file_sha256(path: str | Path) -> str:
         for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
             value.update(block)
     return value.hexdigest()
+
+
+def _source_path(root: Path, logical: str) -> Path:
+    path = Path(logical)
+    if path.is_absolute() or ".." in path.parts or path.as_posix() != logical:
+        raise PermissionError("Source manifest contains an unsafe logical path")
+    candidates = [root / path]
+    if logical.startswith("notebooks/") and logical.endswith(".py"):
+        candidates.append(root / path.with_suffix(""))
+    existing = [candidate for candidate in candidates if candidate.is_file()]
+    if len(existing) != 1 or any(candidate.is_symlink() for candidate in existing):
+        raise PermissionError(f"Source path is missing, ambiguous or linked: {logical}")
+    return existing[0]
+
+
+def build_source_manifest(source_root: str | Path, source_commit: str) -> dict:
+    """Hash the exact local or extensionless deployed Databricks source set."""
+    if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
+        raise ValueError("Source manifest needs an exact commit")
+    root = Path(source_root).resolve(); files = []
+    for logical in SOURCE_MANIFEST_PATHS:
+        path = _source_path(root, logical)
+        text = path.read_bytes().decode("utf-8")
+        canonical_bytes = text.replace("\r\n", "\n").replace("\r", "\n").encode("utf-8")
+        files.append({
+            "path": logical,
+            "sha256": hashlib.sha256(canonical_bytes).hexdigest(),
+            "canonical_bytes": len(canonical_bytes),
+        })
+    payload = {
+        "version": SOURCE_MANIFEST_VERSION,
+        "source_commit": source_commit,
+        "file_count": len(files),
+        "total_canonical_bytes": sum(item["canonical_bytes"] for item in files),
+        "files": files,
+    }
+    payload["manifest_sha256"] = digest(payload)
+    return payload
+
+
+def validate_source_manifest(value: Mapping[str, Any]) -> dict:
+    manifest = dict(value) if isinstance(value, Mapping) else {}
+    if set(manifest) != {"version", "source_commit", "file_count",
+                         "total_canonical_bytes", "files", "manifest_sha256"}:
+        raise PermissionError("Source manifest fields differ")
+    files = manifest.get("files")
+    if (manifest.get("version") != SOURCE_MANIFEST_VERSION
+            or not re.fullmatch(r"[0-9a-f]{40}", str(manifest.get("source_commit", "")))
+            or not isinstance(files, list)
+            or [item.get("path") for item in files] != list(SOURCE_MANIFEST_PATHS)
+            or manifest.get("file_count") != len(SOURCE_MANIFEST_PATHS)):
+        raise PermissionError("Source manifest identity differs")
+    for item in files:
+        if (set(item) != {"path", "sha256", "canonical_bytes"}
+                or not re.fullmatch(r"[0-9a-f]{64}", str(item.get("sha256", "")))
+                or type(item.get("canonical_bytes")) is not int
+                or item["canonical_bytes"] < 0):
+            raise PermissionError("Source manifest file entry differs")
+    if manifest.get("total_canonical_bytes") != sum(
+            item["canonical_bytes"] for item in files):
+        raise PermissionError("Source manifest byte total differs")
+    payload = dict(manifest); embedded = payload.pop("manifest_sha256", None)
+    if embedded != digest(payload):
+        raise PermissionError("Source manifest self-hash differs")
+    return manifest
+
+
+def verify_deployed_source(code_root: str | Path, intent: Mapping[str, Any]) -> dict:
+    """Recompute the fixed source set from the immutable deployed release."""
+    manifest = validate_source_manifest(intent.get("source_manifest"))
+    commit = intent.get("source_commit")
+    root = Path(code_root).resolve()
+    suffix = f"/research4/source_releases/{commit}"
+    if not root.as_posix().endswith(suffix):
+        raise PermissionError("Databricks code path is not the exact source release")
+    actual = build_source_manifest(root, commit)
+    if (actual != manifest or intent.get("source_sha256") != manifest["manifest_sha256"]
+            or manifest.get("source_commit") != commit):
+        raise PermissionError("Deployed source differs from the reviewed manifest")
+    return actual
 
 
 def catalog_ddl() -> tuple[str, ...]:
@@ -361,6 +465,10 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
 
 def validate_intent(value: Mapping[str, Any]) -> dict:
     intent = dict(value)
+    try:
+        source_manifest = validate_source_manifest(intent.get("source_manifest"))
+    except (TypeError, ValueError, PermissionError) as exc:
+        raise PermissionError("Databricks intent lacks a valid source manifest") from exc
     plan = intent.get("plan", {})
     mode, stage = plan.get("mode"), plan.get("stage")
     expected_updates = 2 if mode == "qualification" else 24 if stage == "skill" else 144
@@ -398,8 +506,8 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
             or not re.fullmatch(r"[a-z0-9_]+", intent["identity"])
             or not isinstance(intent.get("source_commit"), str)
             or not re.fullmatch(r"[0-9a-f]{40}", intent["source_commit"])
-            or not isinstance(intent.get("source_sha256"), str)
-            or not re.fullmatch(r"[0-9a-f]{64}", intent["source_sha256"])
+            or source_manifest.get("source_commit") != intent["source_commit"]
+            or intent.get("source_sha256") != source_manifest.get("manifest_sha256")
             or intent.get("dataset_tree_sha256") != DATASET_TREE_SHA256
             or not isinstance(intent.get("silver_record_count"), int)
             or intent["silver_record_count"] <= 0
@@ -474,7 +582,7 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
 
 
 def build_intent(*, plan, identity: str, source_commit: str,
-                 source_sha256: str,
+                 source_manifest: Mapping[str, Any],
                  model_tree_sha256: str,
                  model_receipt_sha256: str,
                  silver_records_sha256: str, silver_record_count: int,
@@ -488,6 +596,9 @@ def build_intent(*, plan, identity: str, source_commit: str,
                  qualification_receipt: Mapping[str, Any] | None = None) -> dict:
     """Create a self-hashed not-submitted intent for external review."""
     from dataclasses import asdict
+    manifest = validate_source_manifest(source_manifest)
+    if manifest["source_commit"] != source_commit:
+        raise PermissionError("Source manifest commit differs from the intent")
     value = {
         "version": INTENT_VERSION, "one_use": True, "attempt_number": 1,
         "automatic_retries": 0, "identity": identity,
@@ -495,7 +606,8 @@ def build_intent(*, plan, identity: str, source_commit: str,
         "gpu_count": 1, "max_concurrent_runs": 1,
         "model_root": MODEL_ROOT, "silver_table": SILVER_TABLE,
         "source_commit": source_commit, "timeout_seconds": timeout_seconds,
-        "source_sha256": source_sha256,
+        "source_manifest": manifest,
+        "source_sha256": manifest["manifest_sha256"],
         "model_tree_sha256": model_tree_sha256,
         "model_receipt_sha256": model_receipt_sha256,
         "dataset_tree_sha256": DATASET_TREE_SHA256,
@@ -755,16 +867,19 @@ class VolumeOneUseLock:
 
 
 def reserve_intent(lock_root: str | Path, intent: Mapping[str, Any], owner: str) -> dict:
-    """Persist the active lease and consumed identity before GPU allocation."""
-    intent = validate_intent(intent); root = Path(lock_root)
+    """Consume the identity after GPU readiness and before any model handling."""
+    intent = validate_intent(intent); root = Path(lock_root); owner = str(owner)
+    if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", owner):
+        raise ValueError("Reservation owner is empty or malformed")
     root.mkdir(parents=True, exist_ok=True); (root / "consumed").mkdir(exist_ok=True)
     active = root / "scientific.lock"
     consumed = root / "consumed" / (intent["identity"] + ".json")
     if consumed.exists():
         raise PermissionError("This canonical identity was already consumed")
     descriptor = os.open(active, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-    payload = {"owner": str(owner), "identity": intent["identity"],
-               "intent_sha256": intent["intent_sha256"], "status": "reserved_before_gpu"}
+    payload = {"owner": owner, "identity": intent["identity"],
+               "intent_sha256": intent["intent_sha256"],
+               "status": "reserved_after_gpu_ready_before_model"}
     with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
         stream.write(canonical(payload) + "\n"); stream.flush(); os.fsync(stream.fileno())
     try:
@@ -779,11 +894,14 @@ def reserve_intent(lock_root: str | Path, intent: Mapping[str, Any], owner: str)
 
 def verify_reserved_intent(lock_root: str | Path, intent: Mapping[str, Any],
                            owner: str) -> Path:
-    intent = validate_intent(intent); active = Path(lock_root) / "scientific.lock"
+    intent = validate_intent(intent); owner = str(owner)
+    if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", owner):
+        raise ValueError("Reservation owner is empty or malformed")
+    active = Path(lock_root) / "scientific.lock"
     value = json.loads(active.read_text(encoding="utf-8"))
-    if (value.get("owner") != str(owner) or value.get("identity") != intent["identity"]
+    if (value.get("owner") != owner or value.get("identity") != intent["identity"]
             or value.get("intent_sha256") != intent["intent_sha256"]
-            or value.get("status") != "reserved_before_gpu"):
+            or value.get("status") != "reserved_after_gpu_ready_before_model"):
         raise PermissionError("Pre-GPU global reservation differs")
     return active
 
@@ -811,7 +929,7 @@ def close_active_reservation(lock_root: str | Path, intent: Mapping[str, Any],
     def check_reservation(value: Mapping[str, Any]) -> None:
         if (any(value.get(key) != expected_value
                 for key, expected_value in expected.items())
-                or value.get("status") != "reserved_before_gpu"):
+                or value.get("status") != "reserved_after_gpu_ready_before_model"):
             raise PermissionError("Databricks reservation ownership differs")
 
     def check_closeout(value: Mapping[str, Any]) -> dict:

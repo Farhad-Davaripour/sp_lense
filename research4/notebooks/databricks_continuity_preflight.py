@@ -1,5 +1,4 @@
 # Databricks notebook source
-from datetime import datetime, timezone
 import json, sys
 from pathlib import Path
 import re
@@ -18,10 +17,10 @@ if not values["code_path"] or not values["intent_path"] or not values["plan_path
 sys.path.insert(0, values["code_path"])
 
 from src.databricks_simulated_continuity import (
-    GOLD_ADMISSION_TABLE, GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE, VOLUME,
-    close_active_reservation, digest, expected_predecessor_binding, reserve_intent,
+    GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE,
+    digest, expected_predecessor_binding,
     validate_exact_gold_row, validate_intent, validate_primary_authority_files,
-    verify_model_receipt)
+    verify_deployed_source, verify_model_receipt)
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import (
     TrainingPlan, canonical_sha256, validate_sequential_parent)
@@ -33,6 +32,7 @@ if intent["plan"]["mode"] != dbutils.widgets.get("expected_mode"):
     raise PermissionError("Job resource does not admit this partition mode")
 if intent["plan"] != plan:
     raise PermissionError("Intent and plan differ")
+source_proof = verify_deployed_source(values["code_path"], intent)
 proof = verify_model_receipt(intent["model_root"], MODEL_RECEIPT)
 if (proof["tree_sha256"] != intent["model_tree_sha256"]
         or proof["receipt_sha256"] != intent["model_receipt_sha256"]):
@@ -100,18 +100,8 @@ binding = [{"record_id": row.record_id, "record_sha256": row.record_sha256}
            for row in selected]
 if len(binding) != intent["silver_record_count"] or digest(binding) != intent["silver_records_sha256"]:
     raise PermissionError("Pre-GPU Silver record binding differs")
-owner = dbutils.widgets.get("run_id")
-reservation = reserve_intent(Path(VOLUME) / "locks", intent, owner)
-try:
-    spark.createDataFrame([{
-        "identity": intent["identity"], "intent_sha256": intent["intent_sha256"],
-        "job_run_id": owner, "status": "consumed_reserved_before_gpu",
-        "consumed_at": datetime.now(timezone.utc),
-    }]).write.mode("append").saveAsTable(GOLD_ADMISSION_TABLE)
-except BaseException:
-    close_active_reservation(Path(VOLUME) / "locks", intent, owner,
-                             "preflight_gold_append_failed")
-    raise
-dbutils.notebook.exit(json.dumps({"status": "preflight_passed",
+dbutils.notebook.exit(json.dumps({"status": "validated_not_reserved",
                                   "identity": intent["identity"],
-                                  "max_gpu_hours": intent["max_gpu_hours"]}))
+                                  "max_gpu_hours": intent["max_gpu_hours"],
+                                  "source_manifest_sha256": source_proof[
+                                      "manifest_sha256"]}))

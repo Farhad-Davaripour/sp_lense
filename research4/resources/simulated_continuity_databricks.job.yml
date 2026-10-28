@@ -136,7 +136,7 @@ resources:
       - name: parent_checkpoint
         default: ''
       tasks:
-      - task_key: pre_admit_before_gpu
+      - task_key: validate_before_gpu
         notebook_task:
           notebook_path: ../notebooks/databricks_continuity_preflight.py
           base_parameters:
@@ -169,10 +169,10 @@ resources:
         timeout_seconds: 2700
         disable_auto_optimization: true
         depends_on:
-        - task_key: pre_admit_before_gpu
+        - task_key: validate_before_gpu
       - task_key: release_active_reservation
         depends_on:
-        - task_key: pre_admit_before_gpu
+        - task_key: validate_before_gpu
         - task_key: run_one_partition
         run_if: ALL_DONE
         notebook_task:
@@ -197,19 +197,7 @@ resources:
       - environment_key: continuity_gpu
         spec:
           environment_version: ${var.continuity_gpu_environment_version}
-          dependencies:
-          - --extra-index-url https://download.pytorch.org/whl/cu128
-          - torch==2.11.0+cu128
-          - transformers==5.19.0
-          - bitsandbytes==0.49.2
-          - accelerate==1.15.0
-          - safetensors==0.8.0
-          - fla-core==0.5.2
-          - einops==0.8.2
-          - numpy==2.2.2
-          - psutil==7.2.2
-          - triton==3.6.0
-          - nvidia-ml-py==13.615.71
+          dependencies: []
     simulated_continuity_primary_partition:
       name: Research 4 - One primary continuity partition
       max_concurrent_runs: 1
@@ -233,7 +221,7 @@ resources:
       - name: qualification_receipt_path
         default: ''
       tasks:
-      - task_key: pre_admit_before_gpu
+      - task_key: validate_before_gpu
         notebook_task:
           notebook_path: ../notebooks/databricks_continuity_preflight.py
           base_parameters:
@@ -272,10 +260,10 @@ resources:
         timeout_seconds: 14400
         disable_auto_optimization: true
         depends_on:
-        - task_key: pre_admit_before_gpu
+        - task_key: validate_before_gpu
       - task_key: release_active_reservation
         depends_on:
-        - task_key: pre_admit_before_gpu
+        - task_key: validate_before_gpu
         - task_key: run_one_partition
         run_if: ALL_DONE
         notebook_task:
@@ -300,16 +288,4 @@ resources:
       - environment_key: continuity_gpu
         spec:
           environment_version: ${var.continuity_gpu_environment_version}
-          dependencies:
-          - --extra-index-url https://download.pytorch.org/whl/cu128
-          - torch==2.11.0+cu128
-          - transformers==5.19.0
-          - bitsandbytes==0.49.2
-          - accelerate==1.15.0
-          - safetensors==0.8.0
-          - fla-core==0.5.2
-          - einops==0.8.2
-          - numpy==2.2.2
-          - psutil==7.2.2
-          - triton==3.6.0
-          - nvidia-ml-py==13.615.71
+          dependencies: []

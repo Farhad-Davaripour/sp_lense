@@ -1,16 +1,17 @@
 """Create one reviewed, not-submitted Databricks partition intent."""
 from pathlib import Path
-import argparse, json, sys
+import argparse, json, subprocess, sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from src.databricks_simulated_continuity import build_intent
+from src.databricks_simulated_continuity import (
+    SOURCE_MANIFEST_PATHS, build_intent, build_source_manifest)
 from src.qwen9b_ordinal_continuity_controller import partition_identity
 from src.qwen9b_ordinal_continuity_training import TrainingPlan
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    for name in ("plan", "source-commit", "source-sha256", "model-receipt",
+    for name in ("plan", "source-commit", "model-receipt",
                  "silver-binding", "mlflow-experiment", "output"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--timeout-seconds", required=True, type=int)
@@ -21,11 +22,24 @@ def main(argv=None):
     plan = TrainingPlan(**json.loads(Path(args.plan).read_text())).validate()
     model = json.loads(Path(args.model_receipt).read_text())
     silver = json.loads(Path(args.silver_binding).read_text())
+    source_root = Path(__file__).resolve().parents[1]
+    repository = source_root.parent
+    head = subprocess.check_output(
+        ["git", "-C", str(repository), "rev-parse", "HEAD"], text=True).strip()
+    if head != args.source_commit:
+        raise PermissionError("Intent source commit is not the checked-out commit")
+    relevant = ["research4/" + path for path in SOURCE_MANIFEST_PATHS]
+    changed = subprocess.check_output(
+        ["git", "-C", str(repository), "status", "--porcelain=v1", "--", *relevant],
+        text=True).strip()
+    if changed:
+        raise PermissionError("Intent source files are not a clean merged checkout")
+    source_manifest = build_source_manifest(source_root, args.source_commit)
     qualification = (None if not args.qualification_receipt else
                      json.loads(Path(args.qualification_receipt).read_text()))
     value = build_intent(
         plan=plan, identity=partition_identity(plan), source_commit=args.source_commit,
-        source_sha256=args.source_sha256, model_tree_sha256=model["tree_sha256"],
+        source_manifest=source_manifest, model_tree_sha256=model["tree_sha256"],
         model_receipt_sha256=model["receipt_sha256"],
         silver_records_sha256=silver["silver_records_sha256"],
         silver_record_count=silver["silver_record_count"],

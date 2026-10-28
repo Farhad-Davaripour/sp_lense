@@ -9,15 +9,17 @@ import yaml
 
 from src.databricks_simulated_continuity import (
     BRONZE_TABLE, CATALOG, DATASET_RELEASE_ROOT, DATASET_TREE_SHA256, EXPERIMENT_SPEC,
-    GOLD_RUN_TABLE, MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
+    GOLD_RUN_TABLE, INTENT_VERSION, MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
+    SOURCE_MANIFEST_PATHS,
     SILVER_TABLE, VOLUME, VolumeOneUseLock,
-    build_intent, build_model_receipt, catalog_ddl, close_active_reservation,
+    build_intent, build_model_receipt, build_source_manifest, catalog_ddl,
+    close_active_reservation,
     commit_model_snapshot, create_primary_admission, create_qualification_receipt,
     digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
     silver_partition_bindings, silver_rows, stable_rows_sha256, validate_intent,
-    validate_primary_authority_files,
-    verify_dataset_release, verify_model_receipt)
+    validate_primary_authority_files, validate_source_manifest,
+    verify_dataset_release, verify_deployed_source, verify_model_receipt)
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import TrainingPlan
@@ -33,13 +35,16 @@ class DatabricksContinuityTests(unittest.TestCase):
         plan = (plan or TrainingPlan(
             device_profile="databricks-a10x1", world_size=1,
             micro_batch_size=2, accumulation_steps=2)).validate()
+        source_manifest = build_source_manifest(
+            Path(__file__).parents[1], "a" * 40)
         value = {
-            "version": "research4-databricks-continuity-one-use-intent-v1",
+            "version": INTENT_VERSION,
             "one_use": True, "attempt_number": 1, "automatic_retries": 0,
             "identity": partition_identity(plan), "execution_platform": "databricks",
             "world_size": 1, "gpu_count": 1, "max_concurrent_runs": 1,
             "model_root": MODEL_ROOT, "silver_table": SILVER_TABLE,
-            "source_commit": "a" * 40, "source_sha256": "b" * 64,
+            "source_commit": "a" * 40, "source_manifest": source_manifest,
+            "source_sha256": source_manifest["manifest_sha256"],
             "timeout_seconds": timeout_seconds, "max_gpu_hours": max_gpu_hours,
             "wall_clock_stop_seconds": stop_seconds,
             "wall_clock_ceiling_seconds": timeout_seconds,
@@ -68,6 +73,39 @@ class DatabricksContinuityTests(unittest.TestCase):
                       "DESCRIBE VOLUME", BRONZE_TABLE, SILVER_TABLE, GOLD_RUN_TABLE,
                       "dataset_release_path", "dataset_release_receipt_sha256"):
             self.assertIn(token, sql)
+
+    def test_source_manifest_normalizes_newlines_and_replays_deployed_notebooks(self):
+        source = Path(__file__).parents[1]
+        commit = "a" * 40
+        expected = build_source_manifest(source, commit)
+        self.assertEqual(validate_source_manifest(expected), expected)
+        with tempfile.TemporaryDirectory() as folder:
+            copied = Path(folder) / "canonical"
+            deployed = Path(folder) / "research4" / "source_releases" / commit
+            for logical in SOURCE_MANIFEST_PATHS:
+                raw = (source / logical).read_bytes().decode("utf-8")
+                canonical = raw.replace("\r\n", "\n").replace("\r", "\n")
+                local_target = copied / logical
+                local_target.parent.mkdir(parents=True, exist_ok=True)
+                local_target.write_text(canonical.replace("\n", "\r\n"), newline="")
+                deployed_logical = (Path(logical).with_suffix("")
+                                    if logical.startswith("notebooks/") else Path(logical))
+                deployed_target = deployed / deployed_logical
+                deployed_target.parent.mkdir(parents=True, exist_ok=True)
+                deployed_target.write_text(canonical, newline="")
+            self.assertEqual(build_source_manifest(copied, commit), expected)
+            intent = {"source_commit": commit, "source_manifest": expected,
+                      "source_sha256": expected["manifest_sha256"]}
+            self.assertEqual(verify_deployed_source(deployed, intent), expected)
+            target = deployed / "src" / "composite_kernels.py"
+            target.write_text(target.read_text() + "# tamper\n")
+            with self.assertRaises(PermissionError):
+                verify_deployed_source(deployed, intent)
+            ambiguous = copied / "notebooks" / "databricks_continuity_preflight"
+            ambiguous.write_text((copied / "notebooks" /
+                                  "databricks_continuity_preflight.py").read_text())
+            with self.assertRaises(PermissionError):
+                build_source_manifest(copied, commit)
 
     def test_dataset_release_is_content_bound_before_table_ingestion(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -174,6 +212,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         intent = validate_intent(self.intent())
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
+            with self.assertRaises(ValueError):
+                reserve_intent(root, intent, "")
             reserve_intent(root, intent, "job-17")
             receipt = close_active_reservation(
                 root, intent, "job-17", "partition_notebook_failed")
@@ -401,10 +441,7 @@ class DatabricksContinuityTests(unittest.TestCase):
                                if item["environment_key"] == "continuity_gpu")
             self.assertEqual(environment["spec"]["environment_version"],
                              "${var.continuity_gpu_environment_version}")
-            self.assertIn("torch==2.11.0+cu128",
-                          environment["spec"]["dependencies"])
-            self.assertIn("transformers==5.19.0",
-                          environment["spec"]["dependencies"])
+            self.assertEqual(environment["spec"]["dependencies"], [])
         self.assertEqual(jobs["simulated_continuity_rank4_qualification"]
                          ["timeout_seconds"], 4500)
         self.assertEqual(jobs["simulated_continuity_rank4_qualification"]
@@ -426,6 +463,21 @@ class DatabricksContinuityTests(unittest.TestCase):
         preflight = (root / "notebooks/databricks_continuity_preflight.py").read_text()
         self.assertIn("validate_primary_authority_files", preflight)
         self.assertIn("validate_exact_gold_row", preflight)
+        self.assertIn("verify_deployed_source", preflight)
+        self.assertNotIn("reserve_intent(", preflight)
+        gpu_notebook = (root / "notebooks/databricks_continuity_partition.py").read_text()
+        self.assertIn("# MAGIC %uv pip install", gpu_notebook)
+        for pin in ("torch==2.11.0+cu128", "transformers==5.19.0",
+                    "bitsandbytes==0.49.2", "nvidia-ml-py==13.615.71"):
+            self.assertEqual(gpu_notebook.count(pin), 1)
+        self.assertLess(gpu_notebook.index("verify_deployed_source("),
+                        gpu_notebook.index("reserve_intent("))
+        self.assertLess(gpu_notebook.index("bitsandbytes.functional.quantize_4bit("),
+                        gpu_notebook.index("reserve_intent("))
+        self.assertLess(gpu_notebook.index("shutil.disk_usage("),
+                        gpu_notebook.index("reserve_intent("))
+        self.assertLess(gpu_notebook.index("reserve_intent("),
+                        gpu_notebook.index("result = run_partition("))
         data_notebook = (root / "notebooks/databricks_continuity_data.py").read_text()
         self.assertIn("verify_dataset_release(dataset_release_path)", data_notebook)
         self.assertIn("silver_partition_bindings(silver, generated)", data_notebook)
@@ -437,6 +489,14 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertNotIn("/local_disk0", model_stage)
         self.assertIn("commit_model_snapshot(staged, root, receipt)", model_stage)
         self.assertNotIn("os.replace(staged, root)", model_stage)
+        intent_tool = (root / "tools/prepare_databricks_continuity_intent.py").read_text()
+        self.assertNotIn('"source-sha256"', intent_tool)
+        self.assertIn("build_source_manifest", intent_tool)
+        self.assertLess(source.index("verify_reserved_intent(lock_root"),
+                        source.index("model_receipt = verify_model_receipt("))
+        self.assertLess(source.index("verify_reserved_intent("),
+                        source.index("local_model, local_model_receipt, cache_metrics = "
+                                     "_stage_local_model("))
 
     def test_policy_predecessor_is_exact_canonical_partition(self):
         _, policies = matrix_plans({
