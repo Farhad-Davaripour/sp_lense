@@ -82,7 +82,7 @@ class OfflineConfigTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "external storage namespace"):
             storage_namespace(external)
 
-    def test_only_exact_databricks_continuity_jobs_may_use_a_classic_gpu(self):
+    def test_only_exact_databricks_continuity_jobs_may_use_serverless_a10(self):
         root = Path(__file__).resolve().parents[1]
         resources = read_yaml(
             root / "resources" / "simulated_continuity_databricks.job.yml"
@@ -90,8 +90,14 @@ class OfflineConfigTests(unittest.TestCase):
         for name in ("simulated_continuity_rank4_qualification",
                      "simulated_continuity_primary_partition"):
             check_job(resources[name], root, name)
-            with self.assertRaisesRegex(ValueError, "remain serverless"):
+            with self.assertRaisesRegex(ValueError, "unreviewed serverless GPU"):
                 check_job(resources[name], root, "unreviewed_gpu_job")
+            wrong = deepcopy(resources[name])
+            gpu_task = next(task for task in wrong["tasks"]
+                            if task["task_key"] == "run_one_partition")
+            gpu_task["compute"]["hardware_accelerator"] = "GPU_8xH100"
+            with self.assertRaisesRegex(ValueError, "unreviewed serverless GPU"):
+                check_job(wrong, root, name)
 
 
 class DeploymentBranchTests(unittest.TestCase):

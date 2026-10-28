@@ -7,12 +7,12 @@ variables:
     description: Exact pushed Research 4 source commit
   code_path:
     description: Versioned Research 4 code only
-  continuity_gpu_node_type:
-    description: Exact Azure node with one visible 24 GB A10 GPU
-    default: Standard_NV36ads_A10_v5
-  continuity_gpu_runtime:
-    description: Databricks GPU ML Runtime used by qualification and primary partitions
-    default: 18.2.x-gpu-ml-scala2.13
+  continuity_gpu_accelerator:
+    description: Exact serverless accelerator used by qualification and primary partitions
+    default: GPU_1xA10
+  continuity_gpu_environment_version:
+    description: Exact serverless environment used by qualification and primary partitions
+    default: '6'
   continuity_mlflow_experiment:
     description: Existing workspace MLflow experiment path
     default: /Shared/research4_simulated_continuity
@@ -25,6 +25,9 @@ variables:
   continuity_model_volume:
     description: Existing managed volume for content-addressed study artifacts
     default: model_data
+  continuity_dataset_release:
+    description: Exact immutable dataset release staged in the managed volume
+    default: /Volumes/research4_simulated_continuity/bronze/model_data/dataset_releases/c21d8b334fdd1e7544fbea8277643f594c990dd5a754312d5e5a9e0d947df1df
 workspace:
   root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/research4-semantic-state-gate/${bundle.target}
   file_path: ${var.code_path}

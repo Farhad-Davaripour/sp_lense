@@ -9,6 +9,7 @@ import signal
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 from .databricks_simulated_continuity import (
@@ -41,7 +42,7 @@ def _bounded_run(command, *, cwd, env, stop_seconds, ceiling_seconds):
 
 
 def _stage_local_model(volume_root, volume_receipt, identity, expected_tree):
-    destination = Path("/local_disk0/research4_model_cache") / identity
+    destination = Path(tempfile.gettempdir()) / "research4_model_cache" / identity
     if destination.exists():
         raise FileExistsError("Per-run local model cache already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)

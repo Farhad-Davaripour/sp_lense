@@ -3,14 +3,17 @@ from pathlib import Path
 import json
 import tempfile
 import unittest
+import yaml
 
 from src.databricks_simulated_continuity import (
-    BRONZE_TABLE, CATALOG, DATASET_TREE_SHA256, GOLD_RUN_TABLE, MODEL_ID, MODEL_RECEIPT,
-    MODEL_REVISION, MODEL_ROOT, SILVER_TABLE, VOLUME, VolumeOneUseLock,
+    BRONZE_TABLE, CATALOG, DATASET_RELEASE_ROOT, DATASET_TREE_SHA256,
+    GOLD_RUN_TABLE, MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
+    SILVER_TABLE, VOLUME, VolumeOneUseLock,
     build_intent, build_model_receipt, catalog_ddl, close_active_reservation,
-    create_primary_admission, create_qualification_receipt, digest,
+    create_primary_admission, create_qualification_receipt, digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
-    validate_intent, validate_primary_authority_files, verify_model_receipt)
+    stable_rows_sha256, validate_intent, validate_primary_authority_files,
+    verify_dataset_release, verify_model_receipt)
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import TrainingPlan
@@ -51,9 +54,48 @@ class DatabricksContinuityTests(unittest.TestCase):
         sql = "\n".join(catalog_ddl())
         self.assertEqual(CATALOG, "research4_simulated_continuity")
         self.assertEqual(VOLUME, "/Volumes/research4_simulated_continuity/bronze/model_data")
+        self.assertEqual(DATASET_RELEASE_ROOT, VOLUME + "/dataset_releases/" +
+                         DATASET_TREE_SHA256)
         for token in ("DESCRIBE CATALOG", ".bronze", ".silver", ".gold",
-                      "DESCRIBE VOLUME", BRONZE_TABLE, SILVER_TABLE, GOLD_RUN_TABLE):
+                      "DESCRIBE VOLUME", BRONZE_TABLE, SILVER_TABLE, GOLD_RUN_TABLE,
+                      "dataset_release_path", "dataset_release_receipt_sha256"):
             self.assertIn(token, sql)
+
+    def test_dataset_release_is_content_bound_before_table_ingestion(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            entries = []
+            for index in range(26):
+                path = root / "data" / f"fixture-{index:02d}.json"
+                path.parent.mkdir(exist_ok=True)
+                path.write_text(json.dumps({"index": index}) + "\n")
+                entries.append({"path": path.relative_to(root).as_posix(),
+                                "sha256": file_sha256(path),
+                                "bytes": path.stat().st_size})
+            receipt = {"files": entries,
+                       "dataset_tree_digest": DATASET_TREE_SHA256,
+                       "family_split_digest": "a" * 64}
+            receipt_path = root / "RECEIPT.json"
+            receipt_path.write_text(json.dumps(receipt))
+            receipt_sha = file_sha256(receipt_path)
+            validation_path = root / "VALIDATION.json"
+            validation_path.write_text(json.dumps({"status": "valid"}))
+            validation_sha = file_sha256(validation_path)
+            proof = verify_dataset_release(
+                root, expected_root=root,
+                expected_receipt_sha256=receipt_sha,
+                expected_validation_sha256=validation_sha)
+            self.assertEqual(proof["checked_file_count"], 26)
+            self.assertEqual(proof["dataset_tree_sha256"], DATASET_TREE_SHA256)
+            entries[0]["path"] = "changed"
+            (root / "data" / "fixture-00.json").write_text("tampered\n")
+            with self.assertRaises(PermissionError):
+                verify_dataset_release(root, expected_root=root,
+                                       expected_receipt_sha256=receipt_sha,
+                                       expected_validation_sha256=validation_sha)
+        self.assertNotEqual(stable_rows_sha256(
+            [{"record_id": "a"}], ("record_id",)),
+            stable_rows_sha256([{"record_id": "b"}], ("record_id",)))
 
     def test_one_use_intent_and_shared_lock_fail_closed(self):
         intent = validate_intent(self.intent())
@@ -246,14 +288,43 @@ class DatabricksContinuityTests(unittest.TestCase):
         job = (root / "resources/simulated_continuity_databricks.job.yml").read_text()
         source = (root / "src/databricks_continuity_partition.py").read_text()
         self.assertNotIn("kaggle", job.lower())
-        self.assertIn("Standard_NV36ads_A10_v5", (root / "databricks.yml").read_text())
-        self.assertNotIn("Standard_NV72ads_A10_v5", (root / "databricks.yml").read_text())
+        bundle = (root / "databricks.yml").read_text()
+        self.assertIn("default: GPU_1xA10", bundle)
+        self.assertNotIn("Standard_NV", bundle)
         self.assertNotIn("timeout_seconds: 43200", job)
-        self.assertGreaterEqual(job.count("timeout_seconds: 14400"), 2)
         self.assertGreaterEqual(job.count("max_retries: 0"), 8)
         self.assertIn("max_concurrent_runs: 1", job)
-        self.assertIn("HF_HUB_OFFLINE: '1'", job)
-        self.assertIn("TRANSFORMERS_OFFLINE: '1'", job)
+        jobs = yaml.safe_load(job)["resources"]["jobs"]
+        for name in ("simulated_continuity_rank4_qualification",
+                     "simulated_continuity_primary_partition"):
+            spec = jobs[name]
+            self.assertNotIn("job_clusters", spec)
+            gpu = [task for task in spec["tasks"]
+                   if task.get("compute") is not None]
+            self.assertEqual(len(gpu), 1)
+            self.assertEqual(gpu[0]["task_key"], "run_one_partition")
+            self.assertEqual(gpu[0]["compute"], {
+                "hardware_accelerator": "${var.continuity_gpu_accelerator}"})
+            self.assertEqual(gpu[0]["environment_key"], "continuity_gpu")
+            self.assertNotIn("libraries", gpu[0])
+            environment = next(item for item in spec["environments"]
+                               if item["environment_key"] == "continuity_gpu")
+            self.assertEqual(environment["spec"]["environment_version"],
+                             "${var.continuity_gpu_environment_version}")
+            self.assertIn("torch==2.11.0+cu128",
+                          environment["spec"]["dependencies"])
+            self.assertIn("transformers==5.19.0",
+                          environment["spec"]["dependencies"])
+        self.assertEqual(jobs["simulated_continuity_rank4_qualification"]
+                         ["timeout_seconds"], 4500)
+        self.assertEqual(jobs["simulated_continuity_rank4_qualification"]
+                         ["tasks"][1]["timeout_seconds"], 2700)
+        self.assertEqual(jobs["simulated_continuity_primary_partition"]
+                         ["timeout_seconds"], 16200)
+        self.assertEqual(jobs["simulated_continuity_primary_partition"]
+                         ["tasks"][1]["timeout_seconds"], 14400)
+        self.assertIn('"HF_HUB_OFFLINE": "1"', source)
+        self.assertIn('"TRANSFORMERS_OFFLINE": "1"', source)
         self.assertIn("mlflow.set_experiment", source)
         self.assertIn("verify_reserved_intent", source)
         self.assertIn('"src.databricks_continuity_partition_worker"', source)
@@ -265,6 +336,14 @@ class DatabricksContinuityTests(unittest.TestCase):
         preflight = (root / "notebooks/databricks_continuity_preflight.py").read_text()
         self.assertIn("validate_primary_authority_files", preflight)
         self.assertIn("validate_exact_gold_row", preflight)
+        data_notebook = (root / "notebooks/databricks_continuity_data.py").read_text()
+        self.assertIn("verify_dataset_release(dataset_release_path)", data_notebook)
+        self.assertIn("schema=spark.table(table).schema", data_notebook)
+        self.assertNotIn('code_path + "/simulated_continuity_v1/generated"', data_notebook)
+        self.assertIn("dataset_release_path: ${var.continuity_dataset_release}", job)
+        self.assertNotIn("/local_disk0", source)
+        model_stage = (root / "notebooks/databricks_continuity_model_snapshot.py").read_text()
+        self.assertNotIn("/local_disk0", model_stage)
 
     def test_policy_predecessor_is_exact_canonical_partition(self):
         _, policies = matrix_plans({

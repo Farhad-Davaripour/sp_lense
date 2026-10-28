@@ -24,10 +24,11 @@ if HfApi().model_info(MODEL_ID, revision=MODEL_REVISION).sha != MODEL_REVISION:
     raise PermissionError("Hugging Face resolved a different model commit")
 root.parent.mkdir(parents=True, exist_ok=True)
 temporary = Path(tempfile.mkdtemp(prefix=".qwen35-stage-", dir=root.parent))
+cache_root = Path(tempfile.gettempdir()) / "research4_hf_cache"
 try:
     staged = temporary / "model"
     snapshot_download(repo_id=MODEL_ID, revision=MODEL_REVISION,
-                      local_dir=str(staged), cache_dir="/local_disk0/research4_hf_cache")
+                      local_dir=str(staged), cache_dir=str(cache_root))
     shutil.rmtree(staged / ".cache", ignore_errors=True)
     value = build_model_receipt(staged)
     temp_receipt = temporary / receipt.name
@@ -35,6 +36,6 @@ try:
     os.replace(staged, root); os.replace(temp_receipt, receipt); temporary.rmdir()
 finally:
     shutil.rmtree(temporary, ignore_errors=True)
-    shutil.rmtree("/local_disk0/research4_hf_cache", ignore_errors=True)
+    shutil.rmtree(cache_root, ignore_errors=True)
 proof = verify_model_receipt(root, receipt)
 dbutils.notebook.exit(json.dumps({"status": "snapshot_staged", "tree_sha256": proof["tree_sha256"]}))
