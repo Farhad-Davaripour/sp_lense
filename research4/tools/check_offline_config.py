@@ -149,7 +149,7 @@ def main():
             or azure['host']!='https://adb-7405615362381203.3.azuredatabricks.net'
             or azure['organization']!='7405615362381203'
             or azure['workspace_name']!='db_sp_lense_us'
-            or azure['artifact_volume']!='/Volumes/research4_simulated_continuity/bronze/model_data'):
+            or azure['artifact_volume']!='/Volumes/db_sp_lense/research4/artifacts'):
         raise ValueError('Authorized account profiles changed')
     storage_namespace(bundle)
     variables = bundle.get("variables", {})
