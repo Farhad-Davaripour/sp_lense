@@ -15,6 +15,7 @@ import json
 import math
 import os
 import re
+import shutil
 
 
 CATALOG = "research4_simulated_continuity"
@@ -913,6 +914,41 @@ def verify_model_receipt(model_root: str | Path, receipt_path: str | Path) -> di
                 "model_loads", "forwards", "backwards", "optimizer_updates"))):
         raise PermissionError("Volume model snapshot receipt differs")
     return receipt
+
+
+def commit_model_snapshot(staged_root: str | Path, model_root: str | Path,
+                          receipt_path: str | Path) -> dict:
+    """Copy a verified model into a UC Volume and publish its receipt last.
+
+    Unity Catalog Volumes do not support atomically replacing a populated
+    directory.  The final content-addressed directory is therefore claimed
+    once, copied, fully rehashed, and only then made admissible by an exclusive
+    receipt write.  A normal exception removes only paths claimed by this call.
+    """
+    staged = Path(staged_root); root = Path(model_root); receipt = Path(receipt_path)
+    if root.exists() or receipt.exists():
+        raise FileExistsError("Model snapshot destination is already claimed")
+    value = build_model_receipt(staged)
+    root_created = receipt_created = False
+    try:
+        root.mkdir(parents=False, exist_ok=False)
+        root_created = True
+        shutil.copytree(staged, root, dirs_exist_ok=True, copy_function=shutil.copy2)
+        copied = build_model_receipt(root)
+        if copied != value:
+            raise PermissionError("Copied Volume model differs from staged receipt")
+        descriptor = os.open(receipt, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+        receipt_created = True
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            stream.write(json.dumps(value, indent=2, sort_keys=True) + "\n")
+            stream.flush(); os.fsync(stream.fileno())
+        return verify_model_receipt(root, receipt)
+    except BaseException:
+        if receipt_created:
+            receipt.unlink(missing_ok=True)
+        if root_created:
+            shutil.rmtree(root, ignore_errors=True)
+        raise
 
 
 def gold_summary(skill_receipt: Mapping, policy_receipts: list[Mapping]) -> dict:
