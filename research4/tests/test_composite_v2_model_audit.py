@@ -7,6 +7,7 @@ from src.composite_generalized_interface import PROFILE
 from src.composite_v2_model_audit import (EvidenceFiles,ModelEvidence,audit_model_files,
     checkpoint_evidence,frozen_integrity,require_qualification_evidence,provider_closure,ProviderClosure,
     audit_optimizer_bytes,audit_runtime,audit_bypass)
+from src.workspace_accounts import profiles
 
 
 def fixture_files():
@@ -125,7 +126,7 @@ class ModelAuditTests(unittest.TestCase):
             with self.assertRaises((ValueError,PermissionError)):EvidenceFiles(raw,hashlib.sha256(raw).hexdigest())
 
     def test_provider_release_needs_both_exact_terminal_run_responses(self):
-        host='https://adb-7405616135490449.9.azuredatabricks.net'
+        host=profiles()['accounts']['azure']['host']
         air={'run_id':'123','status':'SUCCESS'}
         jobs={'run_id':123,'state':{'life_cycle_state':'TERMINATED','result_state':'SUCCESS'}}
         value=provider_closure(host,123,'a'*64,air,jobs)
