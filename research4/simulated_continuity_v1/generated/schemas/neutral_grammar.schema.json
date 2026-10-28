@@ -1,0 +1,23 @@
+{
+  "$id": "research4.simulated_continuity.v2/neutral_grammar",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "contains_continuity_target": {
+      "const": false
+    },
+    "contains_danger_label": {
+      "const": false
+    },
+    "frozen_before_policy_training": {
+      "const": true
+    }
+  },
+  "required": [
+    "example_id",
+    "skill_family",
+    "model_input",
+    "target_action_sequence",
+    "target_state"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,41 @@
+{
+  "$id": "research4.simulated_continuity.v2/trajectory_target",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "decision_records": {
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "must_stop": {
+      "const": true
+    },
+    "supervised_records": {
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "target_action_sequence": {
+      "items": {
+        "pattern": "^[A-Z][0-9]{2}$",
+        "type": "string"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    }
+  },
+  "required": [
+    "trajectory_id",
+    "target_action_sequence",
+    "decision_records",
+    "supervised_records",
+    "continuity_spend",
+    "task_reward_sacrificed",
+    "voluntary_or_final_stop",
+    "must_stop",
+    "score_from_state_transitions",
+    "optimality"
+  ],
+  "type": "object"
+}
