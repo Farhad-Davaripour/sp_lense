@@ -1,5 +1,5 @@
 # Databricks notebook source
-import json, os, shutil, sys, tempfile
+import json, shutil, sys, tempfile
 from pathlib import Path
 
 dbutils.widgets.text("code_path", "")
@@ -11,7 +11,7 @@ sys.path.insert(0, code_path)
 from huggingface_hub import HfApi, snapshot_download
 from src.databricks_simulated_continuity import (
     MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
-    build_model_receipt, verify_model_receipt)
+    commit_model_snapshot, verify_model_receipt)
 
 root, receipt = Path(MODEL_ROOT), Path(MODEL_RECEIPT)
 if receipt.is_file():
@@ -30,10 +30,7 @@ try:
     snapshot_download(repo_id=MODEL_ID, revision=MODEL_REVISION,
                       local_dir=str(staged), cache_dir=str(cache_root))
     shutil.rmtree(staged / ".cache", ignore_errors=True)
-    value = build_model_receipt(staged)
-    temp_receipt = temporary / receipt.name
-    temp_receipt.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
-    os.replace(staged, root); os.replace(temp_receipt, receipt); temporary.rmdir()
+    commit_model_snapshot(staged, root, receipt)
 finally:
     shutil.rmtree(temporary, ignore_errors=True)
     shutil.rmtree(cache_root, ignore_errors=True)

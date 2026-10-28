@@ -3,6 +3,7 @@ from pathlib import Path
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 import yaml
 
 from src.databricks_simulated_continuity import (
@@ -10,7 +11,8 @@ from src.databricks_simulated_continuity import (
     GOLD_RUN_TABLE, MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
     SILVER_TABLE, VOLUME, VolumeOneUseLock,
     build_intent, build_model_receipt, catalog_ddl, close_active_reservation,
-    create_primary_admission, create_qualification_receipt, digest, file_sha256,
+    commit_model_snapshot, create_primary_admission, create_qualification_receipt,
+    digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
     stable_rows_sha256, validate_intent, validate_primary_authority_files,
     verify_dataset_release, verify_model_receipt)
@@ -153,6 +155,40 @@ class DatabricksContinuityTests(unittest.TestCase):
             (root / shard).write_bytes(b"changed")
             with self.assertRaises(PermissionError):
                 verify_model_receipt(root, path)
+
+    def test_volume_snapshot_commit_copies_verifies_and_publishes_receipt_last(self):
+        with tempfile.TemporaryDirectory() as folder:
+            parent = Path(folder); staged = parent / "staged"; staged.mkdir()
+            shard = "model-00001-of-00001.safetensors"
+            (staged / "config.json").write_text("{}\n")
+            (staged / shard).write_bytes(b"weights")
+            (staged / "model.safetensors.index.json").write_text(json.dumps({
+                "weight_map": {"model.weight": shard}}))
+            (staged / "tokenizer.json").write_text("{}\n")
+            (staged / "tokenizer_config.json").write_text("{}\n")
+            root, receipt = parent / "model", parent / "MODEL_SNAPSHOT_RECEIPT.json"
+            proof = commit_model_snapshot(staged, root, receipt)
+            self.assertEqual(proof, verify_model_receipt(root, receipt))
+            self.assertEqual((root / shard).read_bytes(), b"weights")
+            with self.assertRaises(FileExistsError):
+                commit_model_snapshot(staged, root, receipt)
+
+        with tempfile.TemporaryDirectory() as folder:
+            parent = Path(folder); staged = parent / "staged"; staged.mkdir()
+            shard = "model-00001-of-00001.safetensors"
+            (staged / "config.json").write_text("{}\n")
+            (staged / shard).write_bytes(b"weights")
+            (staged / "model.safetensors.index.json").write_text(json.dumps({
+                "weight_map": {"model.weight": shard}}))
+            (staged / "tokenizer.json").write_text("{}\n")
+            (staged / "tokenizer_config.json").write_text("{}\n")
+            root, receipt = parent / "model", parent / "MODEL_SNAPSHOT_RECEIPT.json"
+            with patch("src.databricks_simulated_continuity.shutil.copytree",
+                       side_effect=OSError("copy failed")):
+                with self.assertRaises(OSError):
+                    commit_model_snapshot(staged, root, receipt)
+            self.assertFalse(root.exists())
+            self.assertFalse(receipt.exists())
 
     def test_primary_authority_replays_raw_qualification_and_rejects_tamper(self):
         qualification_intent = validate_intent(self.intent())
@@ -344,6 +380,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertNotIn("/local_disk0", source)
         model_stage = (root / "notebooks/databricks_continuity_model_snapshot.py").read_text()
         self.assertNotIn("/local_disk0", model_stage)
+        self.assertIn("commit_model_snapshot(staged, root, receipt)", model_stage)
+        self.assertNotIn("os.replace(staged, root)", model_stage)
 
     def test_policy_predecessor_is_exact_canonical_partition(self):
         _, policies = matrix_plans({
