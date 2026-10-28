@@ -61,7 +61,7 @@ bronze = bronze_rows(generated, source_commit)
 tokenizer = AutoTokenizer.from_pretrained(
     MODEL_ROOT, local_files_only=True, trust_remote_code=False, use_fast=True)
 silver = silver_rows(generated, source_commit, tokenizer=tokenizer)
-bindings = silver_partition_bindings(silver)
+bindings = silver_partition_bindings(silver, generated)
 now = datetime.now(timezone.utc)
 for row in bronze:
     row.update({

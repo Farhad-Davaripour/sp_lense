@@ -273,22 +273,40 @@ def silver_rows(generated_root: str | Path, source_commit: str, *, tokenizer,
     return output
 
 
-def silver_partition_bindings(rows: list[Mapping[str, Any]]) -> dict[str, dict]:
-    """Recompute exact matched exposure/journals for every canonical partition."""
+def silver_partition_bindings(rows: list[Mapping[str, Any]],
+                              generated_root: str | Path) -> dict[str, dict]:
+    """Bind tokenized training rows to separately validated raw scenarios.
+
+    Tokenization deliberately projects away harness-only and schema fields.
+    Raw causal matching must therefore be replayed from the immutable dataset
+    release, while occurrence journals are computed from the exact tokenized
+    rows that will be read from Silver during training.
+    """
     from dataclasses import replace
     from .qwen9b_ordinal_continuity_controller import (
         matrix_plans, partition_identity, qualification_plan)
     from .qwen9b_ordinal_continuity_training import (
         adjacent_pair_schedule, build_occurrence_journal, canonical_sha256,
-        occurrence_key_schedule, validate_equal_occurrence_exposure,
+        load_neutral_skill_rows, load_simulator_condition, occurrence_key_schedule,
+        validate_equal_occurrence_exposure,
         validate_matched_conditions, validate_neutral_skill_schema)
-    decoded = [(row["record_kind"], json.loads(row["record_json"]), row)
-               for row in rows]
+    decoded = []
+    for row in rows:
+        payload = row["record_json"]
+        value = json.loads(payload)
+        if (row.get("split") != "train" or value.get("split") != "train"
+                or row.get("record_sha256")
+                   != hashlib.sha256(payload.encode("utf-8")).hexdigest()):
+            raise PermissionError("Silver binding input is not an exact training payload")
+        decoded.append((row["record_kind"], value, row))
     by_kind = {}
     for kind, value, metadata in decoded:
         by_kind.setdefault(kind, []).append(value)
     conditions = {name: by_kind[name] for name in EXPERIMENT_SPEC["conditions"]}
-    data_binding = validate_matched_conditions(conditions)
+    raw_conditions = {name: load_simulator_condition(generated_root, name)
+                      for name in EXPERIMENT_SPEC["conditions"]}
+    data_binding = validate_matched_conditions(raw_conditions)
+    raw_neutral = load_neutral_skill_rows(generated_root)
     semantics = by_kind["danger_semantics"]
     qualification = replace(
         qualification_plan(EXPERIMENT_SPEC, 4), device_profile="databricks-a10x1",
@@ -316,7 +334,7 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]]) -> dict[str, dict]:
             records = by_kind["neutral_skill"]
             key_schedule = occurrence_key_schedule(records, plan)
             _, journal = build_occurrence_journal(records, plan, key_schedule=key_schedule)
-            binding = validate_neutral_skill_schema(records)
+            binding = validate_neutral_skill_schema(raw_neutral)
             exposure = {"global_journal_sha256": canonical_sha256(journal),
                         "global_journal_occurrence_count": len(journal),
                         "key_schedule_sha256": canonical_sha256(key_schedule)}

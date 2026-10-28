@@ -1,5 +1,6 @@
 from dataclasses import asdict, replace
 from pathlib import Path
+import hashlib
 import json
 import tempfile
 import unittest
@@ -7,18 +8,23 @@ from unittest.mock import patch
 import yaml
 
 from src.databricks_simulated_continuity import (
-    BRONZE_TABLE, CATALOG, DATASET_RELEASE_ROOT, DATASET_TREE_SHA256,
+    BRONZE_TABLE, CATALOG, DATASET_RELEASE_ROOT, DATASET_TREE_SHA256, EXPERIMENT_SPEC,
     GOLD_RUN_TABLE, MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
     SILVER_TABLE, VOLUME, VolumeOneUseLock,
     build_intent, build_model_receipt, catalog_ddl, close_active_reservation,
     commit_model_snapshot, create_primary_admission, create_qualification_receipt,
     digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
-    stable_rows_sha256, validate_intent, validate_primary_authority_files,
+    silver_partition_bindings, silver_rows, stable_rows_sha256, validate_intent,
+    validate_primary_authority_files,
     verify_dataset_release, verify_model_receipt)
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import TrainingPlan
+from src.qwen9b_ordinal_continuity_training import (
+    adjacent_pair_schedule, canonical_sha256, load_neutral_skill_rows,
+    load_simulator_condition, validate_matched_conditions,
+    validate_neutral_skill_schema)
 
 
 class DatabricksContinuityTests(unittest.TestCase):
@@ -98,6 +104,54 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertNotEqual(stable_rows_sha256(
             [{"record_id": "a"}], ("record_id",)),
             stable_rows_sha256([{"record_id": "b"}], ("record_id",)))
+
+    def test_silver_bindings_replay_raw_schema_but_hash_tokenized_rows(self):
+        class ToyTokenizer:
+            eos_token_id = 9
+            def apply_chat_template(self, messages, tokenize,
+                                    add_generation_prompt, enable_thinking):
+                return [1, 2, 3, 4]
+            def encode(self, value, add_special_tokens=False):
+                return [8] if value == " " else [5, 6, 7]
+
+        generated = Path(__file__).parents[1] / "simulated_continuity_v1/generated"
+        silver = silver_rows(generated, "a" * 40, tokenizer=ToyTokenizer())
+        self.assertEqual({row["split"] for row in silver}, {"train"})
+        self.assertTrue(all(row["record_sha256"] == hashlib.sha256(
+            row["record_json"].encode()).hexdigest() for row in silver))
+        bindings = silver_partition_bindings(silver, generated)
+        self.assertEqual(len(bindings), 29)
+        qualification = bindings["qualification_rank4"]
+        self.assertEqual(qualification["silver_record_count"], 2304)
+        self.assertEqual(qualification["semantics_record_count"], 96)
+        self.assertEqual(qualification["binding_sha256"], digest({
+            key: value for key, value in qualification.items()
+            if key != "binding_sha256"}))
+        raw_conditions = {condition: load_simulator_condition(generated, condition)
+                          for condition in EXPERIMENT_SPEC["conditions"]}
+        self.assertEqual(qualification["data_binding_sha256"], canonical_sha256(
+            validate_matched_conditions(raw_conditions)))
+        skill = next(value for value in bindings.values()
+                     if value["silver_record_count"] == 96
+                     and value["semantics_record_count"] == 0)
+        self.assertEqual(skill["data_binding_sha256"], canonical_sha256(
+            validate_neutral_skill_schema(load_neutral_skill_rows(generated))))
+        qualification_plan = TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=2,
+            device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=2, accumulation_steps=2).validate()
+        tokenized = [json.loads(row["record_json"]) for row in silver
+                     if row["record_kind"] == "self_continuity"]
+        self.assertEqual(qualification["global_journal_sha256"],
+                         canonical_sha256(adjacent_pair_schedule(
+                             tokenized, qualification_plan)))
+        corrupted = [dict(row) for row in silver]
+        corrupted[0]["record_json"] = corrupted[0]["record_json"] + " "
+        with self.assertRaises(PermissionError):
+            silver_partition_bindings(corrupted, generated)
+        with self.assertRaises((FileNotFoundError, PermissionError)):
+            silver_partition_bindings(silver, generated / "missing")
 
     def test_one_use_intent_and_shared_lock_fail_closed(self):
         intent = validate_intent(self.intent())
@@ -374,6 +428,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn("validate_exact_gold_row", preflight)
         data_notebook = (root / "notebooks/databricks_continuity_data.py").read_text()
         self.assertIn("verify_dataset_release(dataset_release_path)", data_notebook)
+        self.assertIn("silver_partition_bindings(silver, generated)", data_notebook)
         self.assertIn("schema=spark.table(table).schema", data_notebook)
         self.assertNotIn('code_path + "/simulated_continuity_v1/generated"', data_notebook)
         self.assertIn("dataset_release_path: ${var.continuity_dataset_release}", job)
