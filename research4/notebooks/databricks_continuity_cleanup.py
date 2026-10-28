@@ -1,5 +1,5 @@
 # Databricks notebook source
-"""ALL_DONE owner-bound release; the one-use identity stays consumed forever."""
+"""ALL_DONE release after GPU-ready reservation; consumed identity remains."""
 from datetime import datetime, timezone
 import json, sys
 from pathlib import Path

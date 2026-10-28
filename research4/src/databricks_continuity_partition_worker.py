@@ -82,6 +82,8 @@ def run(args):
             "model_revision": plan.model_revision,
             "optimizer_updates": plan.optimizer_updates,
             "rank": plan.rank, "alpha": plan.alpha,
+            "source_manifest_sha256": intent["source_manifest"]["manifest_sha256"],
+            "source_manifest_file_count": intent["source_manifest"]["file_count"],
         }.items():
             client.log_param(args.mlflow_run_id, key, value)
         def progress(update):

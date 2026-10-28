@@ -15,8 +15,8 @@ import time
 from .databricks_simulated_continuity import (
     GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE, VOLUME,
     canonical, digest, expected_predecessor_binding, validate_exact_gold_row,
-    validate_intent, validate_primary_authority_files, verify_model_receipt,
-    verify_reserved_intent)
+    validate_intent, validate_primary_authority_files, verify_deployed_source,
+    verify_model_receipt, verify_reserved_intent)
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from .qwen9b_ordinal_continuity_training import verify_rank_receipt
 from .qwen9b_ordinal_continuity_training import TrainingPlan, validate_sequential_parent
@@ -85,11 +85,14 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     intent = validate_intent(_read(intent_path)); plan = _read(plan_path)
     if intent["plan"] != plan:
         raise PermissionError("Intent does not bind the exact partition plan")
+    exact_plan = TrainingPlan(**plan).validate()
+    source_proof = verify_deployed_source(code_root, intent)
+    lock_root = Path(VOLUME) / "locks"
+    verify_reserved_intent(lock_root, intent, owner=str(job_run_id))
     model_receipt = verify_model_receipt(intent["model_root"], MODEL_RECEIPT)
     if (model_receipt["tree_sha256"] != intent["model_tree_sha256"]
             or model_receipt["receipt_sha256"] != intent["model_receipt_sha256"]):
         raise PermissionError("Reviewed intent model snapshot differs")
-    exact_plan = TrainingPlan(**plan).validate()
     from pyspark.sql import functions as F
     authority = None
     if plan["mode"] == "qualification":
@@ -220,8 +223,6 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     env.update({"RESEARCH4_EXECUTION_PLATFORM": "databricks",
                 "RESEARCH4_MODEL_ROOT": str(local_model),
                 "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"})
-    lock_root = Path(VOLUME) / "locks"
-    verify_reserved_intent(lock_root, intent, owner=str(job_run_id))
     try:
         try:
             result = _bounded_run(

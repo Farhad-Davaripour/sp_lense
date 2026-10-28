@@ -15,20 +15,13 @@ GPU_JOB_RESOURCES = {
 GPU_ENVIRONMENT_KEY = "continuity_gpu"
 GPU_ACCELERATOR = "${var.continuity_gpu_accelerator}"
 GPU_ENVIRONMENT_VERSION = "${var.continuity_gpu_environment_version}"
-GPU_DEPENDENCIES = [
-    "--extra-index-url https://download.pytorch.org/whl/cu128",
-    "torch==2.11.0+cu128",
-    "transformers==5.19.0",
-    "bitsandbytes==0.49.2",
-    "accelerate==1.15.0",
-    "safetensors==0.8.0",
-    "fla-core==0.5.2",
-    "einops==0.8.2",
-    "numpy==2.2.2",
-    "psutil==7.2.2",
-    "triton==3.6.0",
-    "nvidia-ml-py==13.615.71",
-]
+GPU_INSTALL_LINE = (
+    "# MAGIC %uv pip install --extra-index-url "
+    "https://download.pytorch.org/whl/cu128 torch==2.11.0+cu128 "
+    "transformers==5.19.0 bitsandbytes==0.49.2 accelerate==1.15.0 "
+    "safetensors==0.8.0 fla-core==0.5.2 einops==0.8.2 numpy==2.2.2 "
+    "psutil==7.2.2 triton==3.6.0 nvidia-ml-py==13.615.71"
+)
 
 
 def unique_mapping(pairs):
@@ -86,7 +79,7 @@ def check_job(job, root, resource_name=None):
             raise ValueError("Databricks continuity GPU environment is missing")
         spec = gpu_environments[0]["spec"]
         if (spec.get("environment_version") != GPU_ENVIRONMENT_VERSION
-                or spec.get("dependencies") != GPU_DEPENDENCIES
+                or spec.get("dependencies") != []
                 or "base_environment" in spec):
             raise ValueError("Databricks continuity GPU environment changed")
     tasks = job.get("tasks", [])
@@ -130,6 +123,29 @@ def check_job(job, root, resource_name=None):
         remaining = {key: needs for key, needs in remaining.items() if key not in ready}
 
 
+def check_gpu_notebook_contract(root):
+    notebook = (root / "notebooks" / "databricks_continuity_partition.py").read_text(
+        encoding="utf-8")
+    lines = notebook.splitlines()
+    if len(lines) < 3 or lines[1] != GPU_INSTALL_LINE:
+        raise ValueError("Serverless GPU notebook pin installation changed")
+    if notebook.count(GPU_INSTALL_LINE) != 1:
+        raise ValueError("Serverless GPU notebook must install exact pins once")
+    readiness = notebook.find("dependency_proof = assert_fast_deltanet_dependencies()")
+    source = notebook.find("source_proof = verify_deployed_source(")
+    bitsandbytes = notebook.find("bitsandbytes.functional.quantize_4bit(")
+    disk = notebook.find("shutil.disk_usage(")
+    reserve = notebook.find("reserve_intent(lock_root, intent, owner)")
+    run = notebook.find("result = run_partition(")
+    if (min(readiness, source, bitsandbytes, disk, reserve, run) < 0
+            or not (source < readiness < bitsandbytes < disk < reserve < run)):
+        raise ValueError("GPU readiness/reservation/model order changed")
+    preflight = (root / "notebooks" / "databricks_continuity_preflight.py").read_text(
+        encoding="utf-8")
+    if "reserve_intent(" in preflight or "consumed_" in preflight:
+        raise ValueError("CPU preflight must remain read-only")
+
+
 def reject_constant(value):
     raise ValueError(f"Nonfinite JSON: {value}")
 
@@ -171,6 +187,7 @@ def main():
             or azure['artifact_volume']!='/Volumes/db_sp_lense/research4/artifacts'):
         raise ValueError('Authorized account profiles changed')
     storage_namespace(bundle)
+    check_gpu_notebook_contract(ROOT)
     variables = bundle.get("variables", {})
     if (variables.get("continuity_gpu_accelerator", {}).get("default")
             != "GPU_1xA10"
