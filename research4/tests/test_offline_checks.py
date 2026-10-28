@@ -9,7 +9,7 @@ from unittest.mock import patch
 import yaml
 
 from src.operator import prepare_release
-from tools.check_offline_config import check_job, read_yaml
+from tools.check_offline_config import check_job, read_yaml, storage_namespace
 
 
 class OfflineConfigTests(unittest.TestCase):
@@ -65,6 +65,33 @@ class OfflineConfigTests(unittest.TestCase):
                 job["tasks"][0][key] = value
                 with self.assertRaises(ValueError):
                     check_job(job, root)
+
+    def test_storage_namespace_accepts_legacy_or_exact_external_volume(self):
+        legacy = {"resources": {"volumes": {"artifacts": {
+            "catalog_name": "workspace", "schema_name": "research4",
+            "name": "artifacts"}}}}
+        external = {"variables": {
+            "continuity_catalog": {"default": "research4_simulated_continuity"},
+            "continuity_bronze_schema": {"default": "bronze"},
+            "continuity_model_volume": {"default": "model_data"}}}
+        self.assertEqual(storage_namespace(legacy),
+                         ("workspace", "research4", "artifacts"))
+        self.assertEqual(storage_namespace(external),
+                         ("research4_simulated_continuity", "bronze", "model_data"))
+        external["variables"]["continuity_model_volume"]["default"] = "other"
+        with self.assertRaisesRegex(ValueError, "external storage namespace"):
+            storage_namespace(external)
+
+    def test_only_exact_databricks_continuity_jobs_may_use_a_classic_gpu(self):
+        root = Path(__file__).resolve().parents[1]
+        resources = read_yaml(
+            root / "resources" / "simulated_continuity_databricks.job.yml"
+        )["resources"]["jobs"]
+        for name in ("simulated_continuity_rank4_qualification",
+                     "simulated_continuity_primary_partition"):
+            check_job(resources[name], root, name)
+            with self.assertRaisesRegex(ValueError, "remain serverless"):
+                check_job(resources[name], root, "unreviewed_gpu_job")
 
 
 class DeploymentBranchTests(unittest.TestCase):

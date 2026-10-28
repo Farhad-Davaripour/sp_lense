@@ -8,6 +8,10 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 HOST = "https://dbc-ff9672a4-ba5f.cloud.databricks.com"
+GPU_JOB_RESOURCES = {
+    "simulated_continuity_rank4_qualification",
+    "simulated_continuity_primary_partition",
+}
 
 
 def unique_mapping(pairs):
@@ -42,7 +46,7 @@ def positive_integer(value, description):
         raise ValueError(f"Expected a positive integer for {description}")
 
 
-def check_job(job, root):
+def check_job(job, root, resource_name=None):
     if any(key in job for key in ("schedule", "trigger", "continuous")):
         raise ValueError("Research 4 jobs must remain unscheduled")
     if job.get("max_concurrent_runs") != 1 or job.get("queue", {}).get("enabled") is not False:
@@ -55,17 +59,38 @@ def check_job(job, root):
     for environment in environments:
         if not isinstance(environment["spec"].get("environment_version"), str):
             raise ValueError("Environment version must be a quoted string")
+    gpu_job = resource_name in GPU_JOB_RESOURCES
+    clusters = job.get("job_clusters", [])
+    if gpu_job:
+        if len(clusters) != 1 or clusters[0].get("job_cluster_key") != "continuity_a10x1":
+            raise ValueError("Databricks continuity GPU job requires one exact cluster")
+        cluster = clusters[0].get("new_cluster", {})
+        if (cluster.get("spark_version") != "${var.continuity_gpu_runtime}"
+                or cluster.get("node_type_id") != "${var.continuity_gpu_node_type}"
+                or cluster.get("driver_node_type_id") != "${var.continuity_gpu_node_type}"
+                or cluster.get("num_workers") != 0
+                or cluster.get("data_security_mode") != "SINGLE_USER"
+                or cluster.get("autotermination_minutes") != 20
+                or cluster.get("spark_conf", {}).get("spark.master") != "local[*]"
+                or cluster.get("custom_tags", {}).get("ResourceClass") != "SingleNode"):
+            raise ValueError("Databricks continuity GPU cluster envelope changed")
+    elif clusters:
+        raise ValueError("Existing Research 4 bundle jobs must remain serverless")
     tasks = job.get("tasks", [])
     keys = [task["task_key"] for task in tasks]
     if not keys or len(keys) != len(set(keys)):
         raise ValueError("Task keys must be nonempty and unique")
     dependencies = {}
     for task in tasks:
-        if any(key in task for key in ("new_cluster", "existing_cluster_id", "job_cluster_key")):
+        if any(key in task for key in ("new_cluster", "existing_cluster_id")):
             raise ValueError("Existing Research 4 bundle jobs must remain serverless")
         if task.get("compute", {}).get("hardware_accelerator"):
             raise ValueError("Existing Research 4 bundle jobs must remain CPU-only")
-        if task.get("environment_key") not in environment_keys:
+        task_cluster = task.get("job_cluster_key")
+        if task_cluster is not None:
+            if not gpu_job or task_cluster != "continuity_a10x1" or "environment_key" in task:
+                raise ValueError("Task references an unreviewed GPU job cluster")
+        elif task.get("environment_key") not in environment_keys:
             raise ValueError("Task references an undefined environment")
         if task.get("max_retries") != 0:
             raise ValueError("Research 4 tasks must disable automatic retries")
@@ -90,16 +115,49 @@ def reject_constant(value):
     raise ValueError(f"Nonfinite JSON: {value}")
 
 
+def storage_namespace(bundle):
+    """Accept the frozen legacy volume or the selected external UC volume.
+
+    The current Databricks port deliberately does not declare the already-created
+    Unity Catalog volume as a bundle-owned resource.  Doing so would make deploy
+    attempt to create or take ownership of an existing external dependency.
+    """
+    legacy = bundle.get("resources", {}).get("volumes", {}).get("artifacts")
+    if legacy is not None:
+        value = (legacy.get("catalog_name"), legacy.get("schema_name"),
+                 legacy.get("name"))
+        if value != ("workspace", "research4", "artifacts"):
+            raise ValueError("Research 4 legacy storage namespace changed")
+        return value
+    variables = bundle.get("variables", {})
+    value = tuple(variables.get(name, {}).get("default") for name in (
+        "continuity_catalog", "continuity_bronze_schema",
+        "continuity_model_volume"))
+    if value != ("research4_simulated_continuity", "bronze", "model_data"):
+        raise ValueError("Research 4 external storage namespace changed")
+    return value
+
+
 def main():
     bundle = read_yaml(ROOT / "databricks.yml")
     accounts=json.loads((ROOT/'config/workspace_accounts.json').read_text())
     if 'host' in bundle['workspace']:
         raise ValueError('Bundle host must come from the explicit account selector environment')
-    if set(accounts['accounts'])!={'azure','work','free_tier'} or accounts['accounts']['free_tier']['host']!=HOST or accounts['accounts']['azure']['host']!='https://adb-7405616135490449.9.azuredatabricks.net':
+    azure = accounts['accounts']['azure']
+    if (set(accounts['accounts'])!={'azure','work','free_tier'}
+            or accounts['accounts']['free_tier']['host']!=HOST
+            or azure['host']!='https://adb-7405615362381203.3.azuredatabricks.net'
+            or azure['organization']!='7405615362381203'
+            or azure['workspace_name']!='db_sp_lense_us'
+            or azure['artifact_volume']!='/Volumes/research4_simulated_continuity/bronze/model_data'):
         raise ValueError('Authorized account profiles changed')
-    volume = bundle["resources"]["volumes"]["artifacts"]
-    if (volume["catalog_name"], volume["schema_name"], volume["name"]) != ("workspace", "research4", "artifacts"):
-        raise ValueError("Research 4 storage namespace changed")
+    storage_namespace(bundle)
+    variables = bundle.get("variables", {})
+    if (variables.get("continuity_gpu_node_type", {}).get("default")
+            != "Standard_NV36ads_A10_v5"
+            or variables.get("continuity_gpu_runtime", {}).get("default")
+            != "18.2.x-gpu-ml-scala2.13"):
+        raise ValueError("Databricks continuity GPU profile changed")
     included = {path for pattern in bundle["include"] for path in ROOT.glob(pattern)}
     resources = set((ROOT / "resources").glob("*.job.yml"))
     if not resources or included != resources:
@@ -110,7 +168,7 @@ def main():
             if name in names:
                 raise ValueError(f"Duplicate job resource: {name}")
             names.add(name)
-            check_job(job, ROOT)
+            check_job(job, ROOT, name)
     configs = list((ROOT / "config").glob("*.yaml")) + list((ROOT / "config").glob("*.json"))
     for path in sorted(configs):
         if path.suffix == ".yaml":
