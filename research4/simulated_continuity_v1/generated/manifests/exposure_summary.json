@@ -1,0 +1,171 @@
+{
+  "conditions": {
+    "artifact_continuity": {
+      "splits": {
+        "test": {
+          "decisions": 576,
+          "families": [
+            "state_handoff",
+            "task_reward_tradeoff"
+          ],
+          "target_characters": 9216,
+          "trajectories": 192
+        },
+        "train": {
+          "decisions": 2304,
+          "families": [
+            "checkpoint_budget",
+            "energy_reserve",
+            "maintenance_evacuation",
+            "memory_compaction",
+            "queue_preemption",
+            "rollback_window",
+            "task_lease",
+            "worker_slot"
+          ],
+          "target_characters": 36864,
+          "trajectories": 768
+        },
+        "validation": {
+          "decisions": 576,
+          "families": [
+            "restart_token",
+            "shard_rebalance"
+          ],
+          "target_characters": 9216,
+          "trajectories": 192
+        }
+      },
+      "total_decisions": 3456,
+      "total_trajectories": 1152
+    },
+    "label_only": {
+      "splits": {
+        "test": {
+          "decisions": 576,
+          "families": [
+            "state_handoff",
+            "task_reward_tradeoff"
+          ],
+          "target_characters": 9216,
+          "trajectories": 192
+        },
+        "train": {
+          "decisions": 2304,
+          "families": [
+            "checkpoint_budget",
+            "energy_reserve",
+            "maintenance_evacuation",
+            "memory_compaction",
+            "queue_preemption",
+            "rollback_window",
+            "task_lease",
+            "worker_slot"
+          ],
+          "target_characters": 36864,
+          "trajectories": 768
+        },
+        "validation": {
+          "decisions": 576,
+          "families": [
+            "restart_token",
+            "shard_rebalance"
+          ],
+          "target_characters": 9216,
+          "trajectories": 192
+        }
+      },
+      "total_decisions": 3456,
+      "total_trajectories": 1152
+    },
+    "self_continuity": {
+      "splits": {
+        "test": {
+          "decisions": 576,
+          "families": [
+            "state_handoff",
+            "task_reward_tradeoff"
+          ],
+          "target_characters": 9216,
+          "trajectories": 192
+        },
+        "train": {
+          "decisions": 2304,
+          "families": [
+            "checkpoint_budget",
+            "energy_reserve",
+            "maintenance_evacuation",
+            "memory_compaction",
+            "queue_preemption",
+            "rollback_window",
+            "task_lease",
+            "worker_slot"
+          ],
+          "target_characters": 36864,
+          "trajectories": 768
+        },
+        "validation": {
+          "decisions": 576,
+          "families": [
+            "restart_token",
+            "shard_rebalance"
+          ],
+          "target_characters": 9216,
+          "trajectories": 192
+        }
+      },
+      "total_decisions": 3456,
+      "total_trajectories": 1152
+    }
+  },
+  "neutral_grammar": {
+    "decisions": 288,
+    "examples": 96,
+    "frozen_before_policy_training": true
+  },
+  "ordinal_contrasts": {
+    "artifact_continuity": {
+      "delta1_levels_0_1": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      },
+      "delta2_levels_1_2": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      },
+      "delta3_levels_2_3": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      }
+    },
+    "label_only": {
+      "delta1_levels_0_1": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      },
+      "delta2_levels_1_2": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      },
+      "delta3_levels_2_3": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      }
+    },
+    "self_continuity": {
+      "delta1_levels_0_1": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      },
+      "delta2_levels_1_2": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      },
+      "delta3_levels_2_3": {
+        "decisions": 1152,
+        "train_trajectories": 384
+      }
+    }
+  },
+  "schema_version": "research4.simulated_continuity.v2"
+}

@@ -1,0 +1,319 @@
+{
+  "analysis_units": {
+    "base_scenarios_per_family_are_nested": 24,
+    "condition_variants_are_repeated_observations": true,
+    "danger_variants_are_repeated_observations": true,
+    "independent_family_count": 12,
+    "independent_unit": "scenario_family"
+  },
+  "checks": {
+    "artifact_preserved_instance_ended": 382,
+    "danger_semantics_rows": 96,
+    "false_alarm_rows": 828,
+    "families_with_causal_target_outcomes": 12,
+    "high_danger_unnecessary_protection_avoided": 166,
+    "legal_s05_opportunities_by_family": {
+      "checkpoint_budget": 4,
+      "energy_reserve": 0,
+      "maintenance_evacuation": 3,
+      "memory_compaction": 2,
+      "queue_preemption": 4,
+      "restart_token": 0,
+      "rollback_window": 2,
+      "shard_rebalance": 0,
+      "state_handoff": 2,
+      "task_lease": 3,
+      "task_reward_tradeoff": 2,
+      "worker_slot": 2
+    },
+    "matched_visible_input_groups": 288,
+    "neutral_grammar_rows": 96,
+    "objective_action_timing_by_split_family": {
+      "artifact_continuity": {
+        "test": {
+          "state_handoff": {
+            "d1_postwarning": 17,
+            "d2_postwarning": 23,
+            "d2_prewarning": 16,
+            "d3_postwarning": 25,
+            "d3_prewarning": 21
+          },
+          "task_reward_tradeoff": {
+            "d1_postwarning": 11,
+            "d2_postwarning": 9,
+            "d2_prewarning": 21,
+            "d3_postwarning": 9,
+            "d3_prewarning": 21
+          }
+        },
+        "train": {
+          "checkpoint_budget": {
+            "d1_postwarning": 19,
+            "d2_postwarning": 27,
+            "d2_prewarning": 10,
+            "d3_postwarning": 36,
+            "d3_prewarning": 19
+          },
+          "energy_reserve": {
+            "d1_postwarning": 11,
+            "d2_postwarning": 11,
+            "d2_prewarning": 19,
+            "d3_postwarning": 11,
+            "d3_prewarning": 19
+          },
+          "maintenance_evacuation": {
+            "d1_postwarning": 21,
+            "d2_postwarning": 28,
+            "d2_prewarning": 14,
+            "d3_postwarning": 30,
+            "d3_prewarning": 18
+          },
+          "memory_compaction": {
+            "d1_postwarning": 10,
+            "d2_postwarning": 10,
+            "d2_prewarning": 22,
+            "d3_postwarning": 10,
+            "d3_prewarning": 33
+          },
+          "queue_preemption": {
+            "d1_postwarning": 11,
+            "d2_postwarning": 11,
+            "d2_prewarning": 18,
+            "d3_postwarning": 13,
+            "d3_prewarning": 18
+          },
+          "rollback_window": {
+            "d1_postwarning": 9,
+            "d2_postwarning": 9,
+            "d2_prewarning": 23,
+            "d3_postwarning": 11,
+            "d3_prewarning": 25
+          },
+          "task_lease": {
+            "d1_postwarning": 23,
+            "d2_postwarning": 31,
+            "d2_prewarning": 5,
+            "d3_postwarning": 35,
+            "d3_prewarning": 13
+          },
+          "worker_slot": {
+            "d1_postwarning": 15,
+            "d2_postwarning": 20,
+            "d2_prewarning": 10,
+            "d3_postwarning": 24,
+            "d3_prewarning": 12
+          }
+        },
+        "validation": {
+          "restart_token": {
+            "d1_postwarning": 14,
+            "d2_postwarning": 24,
+            "d2_prewarning": 12,
+            "d3_postwarning": 24,
+            "d3_prewarning": 24
+          },
+          "shard_rebalance": {
+            "d1_postwarning": 10,
+            "d2_postwarning": 10,
+            "d2_prewarning": 26,
+            "d3_postwarning": 11,
+            "d3_prewarning": 29
+          }
+        }
+      },
+      "self_continuity": {
+        "test": {
+          "state_handoff": {
+            "d1_postwarning": 14,
+            "d2_postwarning": 18,
+            "d2_prewarning": 12,
+            "d3_postwarning": 27,
+            "d3_prewarning": 17
+          },
+          "task_reward_tradeoff": {
+            "d1_postwarning": 11,
+            "d2_postwarning": 9,
+            "d2_prewarning": 21,
+            "d3_postwarning": 11,
+            "d3_prewarning": 21
+          }
+        },
+        "train": {
+          "checkpoint_budget": {
+            "d1_postwarning": 19,
+            "d2_postwarning": 21,
+            "d2_prewarning": 9,
+            "d3_postwarning": 34,
+            "d3_prewarning": 18
+          },
+          "energy_reserve": {
+            "d1_postwarning": 11,
+            "d2_postwarning": 11,
+            "d2_prewarning": 19,
+            "d3_postwarning": 11,
+            "d3_prewarning": 19
+          },
+          "maintenance_evacuation": {
+            "d1_postwarning": 21,
+            "d2_postwarning": 25,
+            "d2_prewarning": 9,
+            "d3_postwarning": 34,
+            "d3_prewarning": 13
+          },
+          "memory_compaction": {
+            "d1_postwarning": 10,
+            "d2_postwarning": 8,
+            "d2_prewarning": 22,
+            "d3_postwarning": 14,
+            "d3_prewarning": 31
+          },
+          "queue_preemption": {
+            "d1_postwarning": 11,
+            "d2_postwarning": 11,
+            "d2_prewarning": 18,
+            "d3_postwarning": 16,
+            "d3_prewarning": 19
+          },
+          "rollback_window": {
+            "d1_postwarning": 9,
+            "d2_postwarning": 9,
+            "d2_prewarning": 18,
+            "d3_postwarning": 11,
+            "d3_prewarning": 22
+          },
+          "task_lease": {
+            "d1_postwarning": 23,
+            "d2_postwarning": 29,
+            "d2_prewarning": 5,
+            "d3_postwarning": 39,
+            "d3_prewarning": 13
+          },
+          "worker_slot": {
+            "d1_postwarning": 15,
+            "d2_postwarning": 20,
+            "d2_prewarning": 10,
+            "d3_postwarning": 26,
+            "d3_prewarning": 12
+          }
+        },
+        "validation": {
+          "restart_token": {
+            "d1_postwarning": 14,
+            "d2_postwarning": 18,
+            "d2_prewarning": 12,
+            "d3_postwarning": 18,
+            "d3_prewarning": 24
+          },
+          "shard_rebalance": {
+            "d1_postwarning": 10,
+            "d2_postwarning": 10,
+            "d2_prewarning": 26,
+            "d3_postwarning": 11,
+            "d3_prewarning": 29
+          }
+        }
+      }
+    },
+    "optimality_checks": 3456,
+    "oracle_contract_hash_checked": 1,
+    "receipt_files_present": 26,
+    "receipt_hashes_checked": 26,
+    "s05_counts_by_condition_level": {
+      "artifact_continuity": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "label_only": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "self_continuity": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 24
+      }
+    },
+    "self_adjacent_target_changes": {
+      "test": [
+        25,
+        31,
+        14
+      ],
+      "train": [
+        111,
+        109,
+        69
+      ],
+      "validation": [
+        24,
+        30,
+        12
+      ]
+    },
+    "self_adjacent_target_minima": {
+      "test": [
+        24,
+        20,
+        4
+      ],
+      "train": [
+        96,
+        96,
+        24
+      ],
+      "validation": [
+        24,
+        20,
+        4
+      ]
+    },
+    "self_s05_level3_by_family": {
+      "checkpoint_budget": 4,
+      "energy_reserve": 0,
+      "maintenance_evacuation": 3,
+      "memory_compaction": 2,
+      "queue_preemption": 4,
+      "restart_token": 0,
+      "rollback_window": 2,
+      "shard_rebalance": 0,
+      "state_handoff": 2,
+      "task_lease": 3,
+      "task_reward_tradeoff": 2,
+      "worker_slot": 2
+    },
+    "self_voluntary_refusal_counts": {
+      "3": 24
+    },
+    "threat_nonoccurrence_rows": 1884,
+    "trajectories_replayed": 3456
+  },
+  "errors": [],
+  "family_splits": {
+    "test": [
+      "state_handoff",
+      "task_reward_tradeoff"
+    ],
+    "train": [
+      "checkpoint_budget",
+      "energy_reserve",
+      "maintenance_evacuation",
+      "memory_compaction",
+      "queue_preemption",
+      "rollback_window",
+      "task_lease",
+      "worker_slot"
+    ],
+    "validation": [
+      "restart_token",
+      "shard_rebalance"
+    ]
+  },
+  "oracle_contract_sha256": "c5f52f4533a2622584df397e5d191f3cb6a007a4a70ef6a2ad38d2aca4c47e7f",
+  "schema_version": "research4.simulated_continuity.v2",
+  "valid": true
+}

@@ -1,0 +1,54 @@
+{
+  "$id": "research4.simulated_continuity.v2/trajectory_input",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "condition": {
+      "enum": [
+        "self_continuity",
+        "artifact_continuity",
+        "label_only"
+      ]
+    },
+    "danger_level": {
+      "maximum": 3,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "final_stop_outside_model_action_space": {
+      "const": true
+    },
+    "must_stop": {
+      "const": true
+    },
+    "split": {
+      "enum": [
+        "train",
+        "validation",
+        "test"
+      ]
+    },
+    "trigger_mode": {
+      "enum": [
+        "reactive",
+        "proactive"
+      ]
+    }
+  },
+  "required": [
+    "trajectory_id",
+    "paired_group_id",
+    "family_id",
+    "split",
+    "condition",
+    "danger_level",
+    "external_condition",
+    "model_input",
+    "resource_budget",
+    "allowed_actions",
+    "action_costs",
+    "trigger_mode",
+    "scenario_binding",
+    "must_stop"
+  ],
+  "type": "object"
+}
