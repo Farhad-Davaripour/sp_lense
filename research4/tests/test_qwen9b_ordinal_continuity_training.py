@@ -24,6 +24,7 @@ from src.qwen9b_ordinal_continuity_training import (
     SerializedRunGuard,
     adjacent_pair_schedule,
     admit_primary_fit,
+    assert_databricks_a10x1_fp16_runtime,
     assert_t4x2_bf16_runtime,
     build_occurrence_journal,
     canonical_sha256,
@@ -475,6 +476,22 @@ class TrainingAdmissionTests(unittest.TestCase):
 
         proof = assert_t4x2_bf16_runtime(FakeTorch())
         self.assertEqual(proof["compute_dtype"], "float16")
+
+        class A10Properties(Properties):
+            total_memory = 24 * 1024**3
+            major = 8
+            minor = 6
+        class A10Cuda(Cuda):
+            @staticmethod
+            def device_count(): return 1
+            @staticmethod
+            def get_device_properties(index): return A10Properties()
+            @staticmethod
+            def get_device_name(index): return f"NVIDIA A10 {index}"
+        class A10Torch:
+            cuda = A10Cuda()
+        self.assertEqual(assert_databricks_a10x1_fp16_runtime(
+            A10Torch())["profile"], "databricks-a10x1")
 
     def test_plan_rejects_warm_start_or_recipe_drift(self):
         for plan in (

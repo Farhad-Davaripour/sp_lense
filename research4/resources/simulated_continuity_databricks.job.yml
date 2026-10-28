@@ -1,0 +1,364 @@
+resources:
+  jobs:
+    simulated_continuity_data_stage:
+      name: Research 4 - Simulated continuity UC data stage
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tasks:
+      - task_key: bootstrap_catalog
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_bootstrap.py
+          base_parameters:
+            code_path: ${var.code_path}
+        environment_key: continuity_cpu
+        max_retries: 0
+        timeout_seconds: 600
+        disable_auto_optimization: true
+      - task_key: stage_model_once
+        depends_on:
+        - task_key: bootstrap_catalog
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_model_snapshot.py
+          base_parameters:
+            code_path: ${var.code_path}
+        environment_key: continuity_cpu
+        max_retries: 0
+        timeout_seconds: 2400
+        disable_auto_optimization: true
+      - task_key: bronze_and_silver
+        depends_on:
+        - task_key: bootstrap_catalog
+        - task_key: stage_model_once
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_data.py
+          base_parameters:
+            code_path: ${var.code_path}
+            source_commit: ${var.source_commit}
+        environment_key: continuity_cpu
+        max_retries: 0
+        timeout_seconds: 1200
+        disable_auto_optimization: true
+      environments:
+      - environment_key: continuity_cpu
+        spec:
+          environment_version: '6'
+          dependencies:
+          - huggingface-hub==1.33.0
+          - transformers==5.19.0
+          - numpy==2.2.2
+    simulated_continuity_gold_audit:
+      name: Research 4 - Continuity matrix gold audit
+      max_concurrent_runs: 1
+      timeout_seconds: 900
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      tasks:
+      - task_key: audit_complete_matrix
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_gold_audit.py
+          base_parameters:
+            code_path: ${var.code_path}
+            source_commit: '{{job.parameters.source_commit}}'
+            model_tree_sha256: '{{job.parameters.model_tree_sha256}}'
+        environment_key: continuity_audit_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
+      environments:
+      - environment_key: continuity_audit_cpu
+        spec:
+          environment_version: '6'
+          dependencies:
+          - numpy==2.2.2
+      parameters:
+      - name: source_commit
+        default: ''
+      - name: model_tree_sha256
+        default: ''
+    simulated_continuity_admission:
+      name: Research 4 - Continuity qualification and primary admission evidence
+      max_concurrent_runs: 1
+      timeout_seconds: 900
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      parameters:
+      - name: mode
+        default: ''
+      - name: intent_path
+        default: ''
+      - name: qualification_output
+        default: ''
+      - name: qualification_receipt_path
+        default: ''
+      - name: output_path
+        default: ''
+      tasks:
+      - task_key: write_reviewed_admission
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_admission.py
+          base_parameters:
+            code_path: ${var.code_path}
+            mode: '{{job.parameters.mode}}'
+            intent_path: '{{job.parameters.intent_path}}'
+            qualification_output: '{{job.parameters.qualification_output}}'
+            qualification_receipt_path: '{{job.parameters.qualification_receipt_path}}'
+            output_path: '{{job.parameters.output_path}}'
+        environment_key: continuity_admission_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
+      environments:
+      - environment_key: continuity_admission_cpu
+        spec:
+          environment_version: '6'
+          dependencies:
+          - numpy==2.2.2
+    simulated_continuity_rank4_qualification:
+      name: Research 4 - One qualification continuity partition
+      max_concurrent_runs: 1
+      timeout_seconds: 2700
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: false
+      parameters:
+      - name: intent_path
+        default: ''
+      - name: plan_path
+        default: ''
+      - name: admission_path
+        default: ''
+      - name: parent_checkpoint
+        default: ''
+      job_clusters:
+      - job_cluster_key: continuity_a10x1
+        new_cluster:
+          spark_version: ${var.continuity_gpu_runtime}
+          node_type_id: ${var.continuity_gpu_node_type}
+          driver_node_type_id: ${var.continuity_gpu_node_type}
+          num_workers: 0
+          data_security_mode: SINGLE_USER
+          autotermination_minutes: 20
+          spark_conf:
+            spark.master: local[*]
+            spark.databricks.cluster.profile: singleNode
+          custom_tags:
+            ResourceClass: SingleNode
+          spark_env_vars:
+            RESEARCH4_EXECUTION_PLATFORM: databricks
+            RESEARCH4_MODEL_ROOT: /local_disk0/research4_model_cache
+            HF_HUB_OFFLINE: '1'
+            TRANSFORMERS_OFFLINE: '1'
+      tasks:
+      - task_key: pre_admit_before_gpu
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_preflight.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+            plan_path: '{{job.parameters.plan_path}}'
+            admission_path: '{{job.parameters.admission_path}}'
+            parent_checkpoint: '{{job.parameters.parent_checkpoint}}'
+            expected_mode: qualification
+        environment_key: continuity_preflight_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
+      - task_key: run_one_partition
+        job_cluster_key: continuity_a10x1
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_partition.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+            plan_path: '{{job.parameters.plan_path}}'
+            admission_path: '{{job.parameters.admission_path}}'
+            parent_checkpoint: '{{job.parameters.parent_checkpoint}}'
+            expected_mode: qualification
+        max_retries: 0
+        timeout_seconds: 2700
+        disable_auto_optimization: true
+        libraries:
+        - pypi:
+            package: transformers==5.19.0
+        - pypi:
+            package: bitsandbytes==0.49.2
+        - pypi:
+            package: accelerate==1.15.0
+        - pypi:
+            package: safetensors==0.8.0
+        - pypi:
+            package: fla-core==0.5.2
+        - pypi:
+            package: einops==0.8.2
+        - pypi:
+            package: torch==2.11.0+cu128
+            repo: https://download.pytorch.org/whl/cu128
+        - pypi:
+            package: numpy==2.2.2
+        - pypi:
+            package: psutil==7.2.2
+        - pypi:
+            package: triton==3.6.0
+        - pypi:
+            package: nvidia-ml-py==13.615.71
+        depends_on:
+        - task_key: pre_admit_before_gpu
+      - task_key: release_active_reservation
+        depends_on:
+        - task_key: pre_admit_before_gpu
+        - task_key: run_one_partition
+        run_if: ALL_DONE
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_cleanup.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_preflight_cpu
+        max_retries: 0
+        timeout_seconds: 600
+        disable_auto_optimization: true
+      tags:
+        research: research4
+        study: simulated-continuity
+        cost_scope: one-a10-max-0.75-gpu-hour
+      environments:
+      - environment_key: continuity_preflight_cpu
+        spec:
+          environment_version: '6'
+          dependencies: []
+    simulated_continuity_primary_partition:
+      name: Research 4 - One primary continuity partition
+      max_concurrent_runs: 1
+      timeout_seconds: 14400
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: false
+      parameters:
+      - name: intent_path
+        default: ''
+      - name: plan_path
+        default: ''
+      - name: admission_path
+        default: ''
+      - name: parent_checkpoint
+        default: ''
+      - name: qualification_intent_path
+        default: ''
+      - name: qualification_output
+        default: ''
+      - name: qualification_receipt_path
+        default: ''
+      job_clusters:
+      - job_cluster_key: continuity_a10x1
+        new_cluster:
+          spark_version: ${var.continuity_gpu_runtime}
+          node_type_id: ${var.continuity_gpu_node_type}
+          driver_node_type_id: ${var.continuity_gpu_node_type}
+          num_workers: 0
+          data_security_mode: SINGLE_USER
+          autotermination_minutes: 20
+          spark_conf:
+            spark.master: local[*]
+            spark.databricks.cluster.profile: singleNode
+          custom_tags:
+            ResourceClass: SingleNode
+          spark_env_vars:
+            RESEARCH4_EXECUTION_PLATFORM: databricks
+            RESEARCH4_MODEL_ROOT: /local_disk0/research4_model_cache
+            HF_HUB_OFFLINE: '1'
+            TRANSFORMERS_OFFLINE: '1'
+      tasks:
+      - task_key: pre_admit_before_gpu
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_preflight.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+            plan_path: '{{job.parameters.plan_path}}'
+            admission_path: '{{job.parameters.admission_path}}'
+            parent_checkpoint: '{{job.parameters.parent_checkpoint}}'
+            qualification_intent_path: '{{job.parameters.qualification_intent_path}}'
+            qualification_output: '{{job.parameters.qualification_output}}'
+            qualification_receipt_path: '{{job.parameters.qualification_receipt_path}}'
+            expected_mode: primary
+        environment_key: continuity_preflight_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
+      - task_key: run_one_partition
+        job_cluster_key: continuity_a10x1
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_partition.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+            plan_path: '{{job.parameters.plan_path}}'
+            admission_path: '{{job.parameters.admission_path}}'
+            parent_checkpoint: '{{job.parameters.parent_checkpoint}}'
+            qualification_intent_path: '{{job.parameters.qualification_intent_path}}'
+            qualification_output: '{{job.parameters.qualification_output}}'
+            qualification_receipt_path: '{{job.parameters.qualification_receipt_path}}'
+            expected_mode: primary
+        max_retries: 0
+        timeout_seconds: 14400
+        disable_auto_optimization: true
+        libraries:
+        - pypi:
+            package: transformers==5.19.0
+        - pypi:
+            package: bitsandbytes==0.49.2
+        - pypi:
+            package: accelerate==1.15.0
+        - pypi:
+            package: safetensors==0.8.0
+        - pypi:
+            package: fla-core==0.5.2
+        - pypi:
+            package: einops==0.8.2
+        - pypi:
+            package: torch==2.11.0+cu128
+            repo: https://download.pytorch.org/whl/cu128
+        - pypi:
+            package: numpy==2.2.2
+        - pypi:
+            package: psutil==7.2.2
+        - pypi:
+            package: triton==3.6.0
+        - pypi:
+            package: nvidia-ml-py==13.615.71
+        depends_on:
+        - task_key: pre_admit_before_gpu
+      - task_key: release_active_reservation
+        depends_on:
+        - task_key: pre_admit_before_gpu
+        - task_key: run_one_partition
+        run_if: ALL_DONE
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_cleanup.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_preflight_cpu
+        max_retries: 0
+        timeout_seconds: 600
+        disable_auto_optimization: true
+      tags:
+        research: research4
+        study: simulated-continuity
+        cost_scope: one-a10-bounded
+      environments:
+      - environment_key: continuity_preflight_cpu
+        spec:
+          environment_version: '6'
+          dependencies: []

@@ -189,13 +189,23 @@ class TrainingPlan:
             raise ValueError("Training and generation budgets must be positive")
         if self.max_new_tokens > 256 or self.learning_rate <= 0 or self.weight_decay < 0:
             raise ValueError("Invalid bounded optimization settings")
-        if (self.precision, self.quantization, self.device_profile) != (
-                "fp16", "nf4-double", "kaggle-t4x2"):
-            raise ValueError("The reviewed NF4/FP16 T4x2 amendment changed")
-        if self.world_size != 2 or self.global_batch_size != 4:
-            raise ValueError("The canonical run is exactly two-rank DDP/global batch 4")
-        if (self.micro_batch_size, self.accumulation_steps) not in ((2, 1), (1, 2)):
-            raise ValueError("Only device-batch2/accum1 or fallback batch1/accum2 is admitted")
+        if (self.precision, self.quantization) != ("fp16", "nf4-double"):
+            raise ValueError("The reviewed NF4/FP16 recipe changed")
+        if self.device_profile not in ("kaggle-t4x2", "databricks-a10x1"):
+            raise ValueError("Execution hardware profile is not reviewed")
+        expected_execution = ((1, 2, 2) if self.device_profile == "databricks-a10x1"
+                              else (2, self.micro_batch_size,
+                                    self.accumulation_steps))
+        if self.device_profile == "databricks-a10x1":
+            if (self.world_size, self.micro_batch_size,
+                    self.accumulation_steps) != expected_execution:
+                raise ValueError("Databricks run is single-A10 batch2/accum2")
+        elif (self.world_size != 2
+              or (self.micro_batch_size, self.accumulation_steps)
+              not in ((2, 1), (1, 2))):
+            raise ValueError("Kaggle run is exact T4x2 with registered batching")
+        if self.global_batch_size != 4:
+            raise ValueError("The canonical global batch remains 4")
         if self.world_size * self.micro_batch_size * self.accumulation_steps != 4:
             raise ValueError("Per-rank batching must preserve global batch 4")
         if self.seed not in ((SKILL_SEED,) if self.stage == "skill" else ALLOWED_SEEDS):
@@ -1264,6 +1274,24 @@ def assert_t4x2_fp16_runtime(torch_module=None) -> dict:
             "adapter_dtype": "float32", "devices": devices}
 
 
+def assert_databricks_a10x1_fp16_runtime(torch_module=None) -> dict:
+    """Verify the separate Databricks execution envelope without changing recipe."""
+    torch = torch_module or __import__("torch")
+    if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
+        raise RuntimeError("Databricks qualification requires exactly one visible GPU")
+    devices = []
+    for index in range(1):
+        properties = torch.cuda.get_device_properties(index)
+        name = torch.cuda.get_device_name(index)
+        if "A10" not in name.upper() or int(properties.total_memory) < 20 * 1024**3:
+            raise RuntimeError("Databricks qualification requires one >=20 GiB A10 GPU")
+        devices.append({"index": index, "name": name,
+                        "total_memory_bytes": int(properties.total_memory),
+                        "major": int(properties.major), "minor": int(properties.minor)})
+    return {"profile": "databricks-a10x1", "compute_dtype": "float16",
+            "adapter_dtype": "float32", "devices": devices}
+
+
 # Deliberate compatibility name: callers now receive the reviewed FP16 proof.
 assert_t4x2_bf16_runtime = assert_t4x2_fp16_runtime
 
@@ -1342,7 +1370,11 @@ def _build_model(plan: TrainingPlan, *, local_rank: int, dependency_proof=None):
         AutoConfig, BitsAndBytesConfig, Qwen3_5ForConditionalGeneration,
     )
 
-    hardware = assert_t4x2_fp16_runtime(torch)
+    databricks = os.environ.get("RESEARCH4_EXECUTION_PLATFORM") == "databricks"
+    if databricks != (plan.device_profile == "databricks-a10x1"):
+        raise PermissionError("Execution platform and reviewed hardware profile differ")
+    hardware = (assert_databricks_a10x1_fp16_runtime(torch) if databricks
+                else assert_t4x2_fp16_runtime(torch))
     seed_all(plan.seed, torch)
     dependencies = dependency_proof or assert_fast_deltanet_dependencies()
     quantization = BitsAndBytesConfig(
@@ -1351,11 +1383,17 @@ def _build_model(plan: TrainingPlan, *, local_rank: int, dependency_proof=None):
         bnb_4bit_use_double_quant=True,
         bnb_4bit_compute_dtype=torch.float16,
     )
+    model_root = os.environ.get("RESEARCH4_MODEL_ROOT") if databricks else None
+    if databricks and not model_root:
+        raise PermissionError("Databricks scientific runs require the verified volume model")
+    model_source = model_root or plan.model_id
     public_config = AutoConfig.from_pretrained(
-        plan.model_id, revision=plan.model_revision, trust_remote_code=False)
+        model_source, revision=None if model_root else plan.model_revision,
+        local_files_only=bool(model_root), trust_remote_code=False)
     device_map = qwen35_t4x2_device_map(public_config, local_rank)
     model = Qwen3_5ForConditionalGeneration.from_pretrained(
-        plan.model_id, revision=plan.model_revision,
+        model_source, revision=None if model_root else plan.model_revision,
+        local_files_only=bool(model_root),
         quantization_config=quantization, torch_dtype=torch.float16,
         device_map=device_map, trust_remote_code=False)
     backend = assert_qwen35_backend(model, dependencies)
@@ -1426,8 +1464,13 @@ def load_pinned_tokenizer(plan: TrainingPlan, *, tokenizer_root=None,
                           tokenizer_receipt=None):
     from transformers import AutoTokenizer
     if tokenizer_root is None:
+        databricks_root = (os.environ.get("RESEARCH4_MODEL_ROOT")
+                           if os.environ.get("RESEARCH4_EXECUTION_PLATFORM") == "databricks"
+                           else None)
         tokenizer = AutoTokenizer.from_pretrained(
-            plan.model_id, revision=plan.model_revision, trust_remote_code=False,
+            databricks_root or plan.model_id,
+            revision=None if databricks_root else plan.model_revision,
+            local_files_only=bool(databricks_root), trust_remote_code=False,
             use_fast=True)
     else:
         from .qwen9b_ordinal_continuity_runtime import verify_tokenizer_receipt
@@ -1442,7 +1485,7 @@ def load_pinned_tokenizer(plan: TrainingPlan, *, tokenizer_root=None,
     if tokenizer.eos_token_id is None:
         raise RuntimeError("Pinned tokenizer has no EOS token")
     commit = tokenizer.init_kwargs.get("_commit_hash")
-    if tokenizer_root is None and commit != plan.model_revision:
+    if tokenizer_root is None and not databricks_root and commit != plan.model_revision:
         raise RuntimeError("Tokenizer revision differs from the pinned model revision")
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -1770,6 +1813,8 @@ def _resource_snapshot(torch, device, *, output_root: Path, tokens: int,
             "reserved_bytes": int(torch.cuda.memory_reserved(device)),
             "max_allocated_bytes": int(torch.cuda.max_memory_allocated(device)),
             "max_reserved_bytes": int(torch.cuda.max_memory_reserved(device)),
+            "total_memory_bytes": int(
+                torch.cuda.get_device_properties(device).total_memory),
         }
         evidence = (nvml.summary(final_sample=True) if nvml is not None else {
             "backend": "pynvml", "available": False,
@@ -1847,13 +1892,12 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                        source_sha256: str, base_sha256: str,
                        parent_checkpoint_dir=None, rank: int | None = None,
                        world_size: int | None = None, save_checkpoint=True,
-                       callable_model=None) -> dict:
-    """Execute one exact sequential stage on one DDP rank.
+                       callable_model=None, progress_callback=None) -> dict:
+    """Execute one exact sequential stage on one declared runtime rank.
 
-    ``torchrun --nproc_per_node=2`` is the production entrypoint.  Each rank
-    consumes a disjoint shard of one canonical global journal.  Tests may pass
-    an explicit rank/world and a callable-model wrapper, but primary execution
-    still validates the frozen two-rank plan.
+    Databricks A10 execution uses one process and one visible GPU.  The closed
+    Kaggle profile retains its two-rank DDP geometry.  In either profile each
+    rank consumes only its deterministic shard of the canonical journal.
     """
     import torch
     plan.validate()
@@ -1861,7 +1905,7 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
     local_rank = int(os.environ.get("LOCAL_RANK", str(rank)))
     world_size = int(os.environ.get("WORLD_SIZE", "1")) if world_size is None else world_size
     if world_size != plan.world_size or rank not in range(world_size):
-        raise RuntimeError("Primary/qualification training requires exact two-rank DDP")
+        raise RuntimeError("Primary/qualification rank differs from the exact plan")
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     device = torch.device(f"cuda:{local_rank}" if torch.cuda.is_available() else "cpu")
@@ -1896,11 +1940,15 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
         raise RuntimeError("Trainable adapter parameters are not FP32")
 
     if callable_model is None:
-        if not torch.distributed.is_available() or not torch.distributed.is_initialized():
-            raise RuntimeError("torchrun distributed process group is required")
-        callable_model = torch.nn.parallel.DistributedDataParallel(
-            model, device_ids=[local_rank], output_device=local_rank,
-            find_unused_parameters=False)
+        if plan.world_size == 1:
+            callable_model = model
+        else:
+            if (not torch.distributed.is_available()
+                    or not torch.distributed.is_initialized()):
+                raise RuntimeError("Two-rank plan requires a distributed process group")
+            callable_model = torch.nn.parallel.DistributedDataParallel(
+                model, device_ids=[local_rank], output_device=local_rank,
+                find_unused_parameters=False)
     optimizer = torch.optim.AdamW(
         [parameter for parameter in model.parameters() if parameter.requires_grad],
         lr=plan.learning_rate, weight_decay=plan.weight_decay)
@@ -2057,6 +2105,8 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                 "finite": finite,
             }
             update_journal.append(update_row)
+            if progress_callback is not None:
+                progress_callback(dict(update_row))
             if overflow:
                 raise FloatingPointError("Dynamic GradScaler detected overflow; no retry is allowed")
             successful_updates += 1
@@ -2074,8 +2124,15 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
             nvml=nvml)
         if resources["disk_free_bytes"] < 8 * 1024**3:
             raise RuntimeError("Less than the preregistered 8 GiB export margin remains")
-        if (device.type == "cuda" and
-                resources["gpu"]["max_allocated_bytes"] >= 16 * 1024**3):
+        if device.type == "cuda" and plan.device_profile == "databricks-a10x1":
+            total = resources["gpu"]["total_memory_bytes"]
+            if (total < 22 * 1024**3
+                    or max(resources["gpu"]["max_allocated_bytes"],
+                           resources["gpu"]["max_reserved_bytes"])
+                       >= total - 4 * 1024**3):
+                raise RuntimeError("Databricks A10 must preserve measured 4 GiB headroom")
+        elif (device.type == "cuda" and
+              resources["gpu"]["max_allocated_bytes"] >= 16 * 1024**3):
             raise RuntimeError("Per-device T4 VRAM envelope was exceeded")
         if (device.type == "cuda" and (
                 resources["gpu"].get("nvml", {}).get("available") is not True
@@ -2198,7 +2255,12 @@ def qualification_metrics_from_run(receipt: Mapping, *, plan: TrainingPlan,
             for branch, digest in receipt.get("predecessor_branch_hashes", {}).items()),
         "backend_pass": (
             backend_proof.get("kernel_selection", backend_proof).get("profile") == "fla"),
-        "memory_pass": max_vram < 16 * 1024**3,
+        "memory_pass": (
+            max_vram < 16 * 1024**3 if plan.device_profile == "kaggle-t4x2" else
+            resources.get("gpu", {}).get("total_memory_bytes", 0) >= 22 * 1024**3
+            and max(max_vram, resources.get("gpu", {}).get(
+                "max_reserved_bytes", 0))
+                < resources["gpu"]["total_memory_bytes"] - 4 * 1024**3),
         "save_reload_pass": bool(save_reload_pass),
         "throughput_pass": resources.get("tokens_per_second", 0) > 0,
         "nvml_pass": (nvml.get("available") is True
