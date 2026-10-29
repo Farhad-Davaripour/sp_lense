@@ -4,12 +4,15 @@ import importlib.util
 import json
 import tempfile
 import unittest
+from unittest import mock
 from dataclasses import asdict, replace
 from pathlib import Path
 from types import SimpleNamespace
 
 import torch
 from torch import nn
+
+import src.qwen9b_ordinal_continuity_training as training_module
 
 from src.qwen9b_ordinal_continuity_lora import (
     EXPECTED_RANK4_BRANCH_PARAMETERS as LORA_RANK4_BRANCH_PARAMETERS,
@@ -25,7 +28,13 @@ from src.qwen9b_ordinal_continuity_lora import (
 )
 
 from src.qwen9b_ordinal_continuity_training import (
+    ADMISSION_VERSION,
     CONDITIONS,
+    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+    GRAD_SCALER_MIN_SCALE,
+    LEGACY_GRAD_SCALER_POLICY,
+    GradScalerRecoveryError,
     TrainingPlan,
     SerializedRunGuard,
     adjacent_pair_schedule,
@@ -33,29 +42,36 @@ from src.qwen9b_ordinal_continuity_training import (
     assert_databricks_a10x1_fp16_runtime,
     assert_t4x2_bf16_runtime,
     batching_exposure_contract,
+    build_qualified_model,
+    bounded_grad_scaler_update,
     build_occurrence_journal,
     component_occurrence_weights,
     canonical_sha256,
     choose_qualification_rank,
     create_qualification_receipt,
+    databricks_a10_plan,
     databricks_a10_compatibility_scales,
     execute_capacity_qualification,
     execute_with_preregistered_batch_fallback,
     equalize_matched_prompt_exposure,
+    gradient_finiteness_diagnostic,
     occurrence_key_schedule,
     optimizer_sha256,
     ordinal_pair_loss,
+    ordinal_weighted_loss,
     qwen35_projection_geometry,
     qwen35_t4x2_device_map,
     run_training_stage,
     run_capacity_qualification,
     shard_global_journal,
+    terminal_component_gradient_replay,
     load_danger_semantics_rows,
     load_simulator_condition,
     tokenize_rows,
     validate_dataset,
     validate_equal_occurrence_exposure,
     validate_matched_conditions,
+    validate_grad_scaler_recovery_receipt,
     verify_rank_receipt,
 )
 from src.qwen9b_ordinal_continuity_worker import consume_one_use_intent
@@ -162,6 +178,51 @@ class TinyCausalLM(nn.Module):
         return SimpleNamespace(logits=self.head(hidden))
 
 
+class ToyScaledParameter(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.delta1_weight = nn.Parameter(torch.tensor([1.0], dtype=torch.float32))
+
+
+class CountingSGD(torch.optim.SGD):
+    def __init__(self, parameters, **kwargs):
+        super().__init__(parameters, **kwargs)
+        self.executed_step_count = 0
+
+    def step(self, closure=None):
+        self.executed_step_count += 1
+        return super().step(closure)
+
+
+def fake_scaled_ordinal_loss(factor, call_log):
+    def execute(model, _callable_model, _pair_rows, *, plan, tokenizer,
+                device, scaler, loss_divisor=1.0,
+                changed_component_scale=1.0, level0_kl_anchor=0.0,
+                loss_component=None, backward_scale_override=None):
+        del tokenizer, device
+        parameter = next(value for value in model.parameters()
+                         if value.requires_grad)
+        loss = (parameter.reshape(-1)[0].to(torch.float16)
+                * torch.tensor(float(factor), dtype=torch.float16)
+                / loss_divisor)
+        self_label = loss_component or "combined"
+        call_log.append(self_label)
+        if backward_scale_override is None:
+            scaler.scale(loss).backward()
+        else:
+            (loss * backward_scale_override).backward()
+        value = float((loss.detach() * loss_divisor).float())
+        return {
+            "loss": value, "sft": value,
+            "preference": 0.0, "cross_danger_margin": 0.0,
+            "changed_component_scale": float(changed_component_scale),
+            "level0_kl_anchor": float(level0_kl_anchor),
+            "high_advantage": 0.0, "low_advantage": 0.0,
+            "diagnostic_component": self_label,
+        }
+    return execute
+
+
 def tiny_wrapped(stage):
     torch.manual_seed(9)
     base = TinyCausalLM()
@@ -217,6 +278,24 @@ PASS = {
 
 
 class TrainingAdmissionTests(unittest.TestCase):
+    def test_model_load_rejects_rehashed_old_admission_version(self):
+        plan = TrainingPlan(mode="primary").validate()
+        admission = {
+            "version": ADMISSION_VERSION,
+            "admitted": True,
+            "plan": asdict(plan),
+        }
+        admission["admission_sha256"] = canonical_sha256(admission)
+        with mock.patch.object(training_module, "_build_model",
+                               return_value="model"):
+            self.assertEqual(build_qualified_model(plan, admission), "model")
+            old = dict(admission)
+            old["version"] = "qwen35-9b-ordinal-continuity-primary-admission-v6"
+            old.pop("admission_sha256")
+            old["admission_sha256"] = canonical_sha256(old)
+            with self.assertRaises(PermissionError):
+                build_qualified_model(plan, old)
+
     def test_qwen35_gated_q_geometry_matches_pinned_config(self):
         config = SimpleNamespace(
             num_hidden_layers=32, hidden_size=4096,
@@ -447,17 +526,10 @@ class TrainingAdmissionTests(unittest.TestCase):
                 one_use_submission_intent="intent", parent_checkpoint={})
 
     def test_databricks_qualification_receipt_records_databricks_provenance(self):
-        shared = {
-            "device_profile": "databricks-a10x1",
-            "world_size": 1,
-            "micro_batch_size": 1,
-            "accumulation_steps": 4,
-            "global_batch_size": 4,
-            "stage": "delta1",
-            "optimizer_updates": 2,
-        }
-        qualification = TrainingPlan(mode="qualification", **shared)
-        primary = TrainingPlan(mode="primary", **shared)
+        qualification = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", optimizer_updates=2))
+        primary = databricks_a10_plan(TrainingPlan(
+            mode="primary", stage="delta1", optimizer_updates=2))
         receipt = create_qualification_receipt(
             plan=qualification,
             data_binding={"data": 1},
@@ -476,7 +548,7 @@ class TrainingAdmissionTests(unittest.TestCase):
 
     def test_rank_receipt_self_hash_is_recomputed(self):
         payload = {
-            "version": "qwen35-9b-ordinal-continuity-rank-run-v3",
+            "version": "qwen35-9b-ordinal-continuity-rank-run-v4",
             "status": "complete", "plan_sha256": "p" * 64,
             "global_journal_sha256": "j" * 64,
             "global_journal_occurrence_count": 96,
@@ -492,27 +564,62 @@ class TrainingAdmissionTests(unittest.TestCase):
                 expected_global_journal_sha256="j" * 64)
 
     def test_rank_receipt_recomputes_a10_batching_and_compatibility_scales(self):
-        plan = TrainingPlan(
+        plan = databricks_a10_plan(TrainingPlan(
             mode="qualification", condition="self_continuity", stage="delta1",
-            seed=202610281, optimizer_updates=2,
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+            seed=202610281, optimizer_updates=2))
         _, _, tokenized, _ = bindings(plan)
         journal = adjacent_pair_schedule(tokenized[plan.condition], plan)
         updates = []
         for update_index in range(plan.optimizer_updates):
             entries = journal[update_index * 4:(update_index + 1) * 4]
+            logical = sum(row["pair_training_tokens"] for row in entries)
             updates.append({
                 "optimizer_update": update_index,
                 "occurrence_indices": [row["occurrence_index"] for row in entries],
                 "changed_component_scales": list(
                     databricks_a10_compatibility_scales(entries, plan)),
+                "overflow_adjustments": 0,
+                "overflow_recovered": False,
+                "max_overflow_adjustments": 4,
+                "minimum_grad_scaler_scale": 4096.0,
+                "grad_scaler_before": 65536.0,
+                "grad_scaler_after": 65536.0,
+                "logical_tokens": logical,
+                "initial_physical_tokens": logical,
+                "replay_physical_tokens": 0,
+                "physical_tokens_processed": logical,
+                "overflow": False,
+                "finite": True,
+                "optimizer_step_pre_hook_calls": 1,
+                "grad_scaler_attempts": [{
+                    "attempt_index": 0,
+                    "overflow": False,
+                    "gradient_finite": True,
+                    "optimizer_step_pre_hook_call_delta": 1,
+                    "optimizer_step_executed": True,
+                    "scale_before": 65536.0,
+                    "scale_after": 65536.0,
+                }],
             })
         receipt = {
-            "version": "qwen35-9b-ordinal-continuity-rank-run-v3",
+            "version": "qwen35-9b-ordinal-continuity-rank-run-v4",
             "status": "complete", "plan_sha256": plan.full_plan_sha256,
             "global_journal_sha256": canonical_sha256(journal),
             "batching": batching_exposure_contract(plan), "updates": updates,
+            "tokens_seen": sum(row["logical_tokens"] for row in updates),
+            "overflow_recompute_tokens": 0,
+            "physical_tokens_processed": sum(
+                row["logical_tokens"] for row in updates),
+            "grad_scaler_recovery": {
+                "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+                "initial_scale": 65536.0,
+                "backoff_factor": 0.5,
+                "max_overflow_adjustments_per_partition": 4,
+                "total_overflow_adjustments": 0,
+                "minimum_scale": 4096.0,
+                "journal_advances_only_after_finite_optimizer_step": True,
+                "replays_exact_rng_state_and_occurrence_indices": True,
+            },
         }
         receipt["receipt_sha256"] = canonical_sha256(receipt)
         strict = dict(
@@ -520,12 +627,23 @@ class TrainingAdmissionTests(unittest.TestCase):
             expected_global_journal_sha256=canonical_sha256(journal),
             expected_plan=plan, expected_global_journal=journal)
         self.assertEqual(verify_rank_receipt(receipt, **strict), receipt)
-        for mutation in ("scale", "batching"):
+        for mutation in ("scale", "batching", "chain", "finite_decrease"):
             changed = copy.deepcopy(receipt)
             if mutation == "scale":
                 changed["updates"][0]["changed_component_scales"][0] = 99.0
-            else:
+            elif mutation == "batching":
                 changed["batching"]["micro_batch_size"] = 2
+            elif mutation == "chain":
+                changed["updates"][1]["grad_scaler_before"] = 32768.0
+                changed["updates"][1]["grad_scaler_after"] = 32768.0
+                changed["updates"][1]["grad_scaler_attempts"][0][
+                    "scale_before"] = 32768.0
+                changed["updates"][1]["grad_scaler_attempts"][0][
+                    "scale_after"] = 32768.0
+            else:
+                changed["updates"][0]["grad_scaler_after"] = 32768.0
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "scale_after"] = 32768.0
             changed.pop("receipt_sha256")
             changed["receipt_sha256"] = canonical_sha256(changed)
             with self.assertRaises(PermissionError):
@@ -607,10 +725,12 @@ class TrainingAdmissionTests(unittest.TestCase):
                 plan.validate()
 
     def test_databricks_a10_requires_microbatch1_accum4(self):
-        exact = TrainingPlan(
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        exact = databricks_a10_plan(TrainingPlan())
         self.assertEqual(exact.global_batch_size, 4)
+        self.assertEqual(exact.numerical_policy,
+                         DATABRICKS_A10_GRAD_SCALER_POLICY)
+        self.assertEqual(exact.max_overflow_adjustments, 4)
+        self.assertEqual(exact.minimum_grad_scaler_scale, 4096.0)
         for micro_batch_size, accumulation_steps in (
                 (2, 2), (1, 2), (2, 1), (4, 1)):
             with self.subTest(micro_batch_size=micro_batch_size,
@@ -619,12 +739,30 @@ class TrainingAdmissionTests(unittest.TestCase):
                     TrainingPlan(
                         device_profile="databricks-a10x1", world_size=1,
                         micro_batch_size=micro_batch_size,
-                        accumulation_steps=accumulation_steps).validate()
+                        accumulation_steps=accumulation_steps,
+                        numerical_policy=DATABRICKS_A10_GRAD_SCALER_POLICY,
+                        max_overflow_adjustments=4,
+                        minimum_grad_scaler_scale=4096.0).validate()
+
+    def test_a10_policy_is_plan_bound_and_legacy_routes_are_failfast(self):
+        legacy = TrainingPlan().validate()
+        self.assertEqual(legacy.numerical_policy, LEGACY_GRAD_SCALER_POLICY)
+        self.assertEqual(legacy.max_overflow_adjustments, 0)
+        self.assertEqual(legacy.minimum_grad_scaler_scale, 0.0)
+        a10 = databricks_a10_plan(legacy)
+        self.assertNotEqual(a10.full_plan_sha256, legacy.full_plan_sha256)
+        for changed in (
+                replace(a10, numerical_policy=LEGACY_GRAD_SCALER_POLICY),
+                replace(a10, max_overflow_adjustments=3),
+                replace(a10, minimum_grad_scaler_scale=1024.0),
+                replace(legacy, numerical_policy=DATABRICKS_A10_GRAD_SCALER_POLICY,
+                        max_overflow_adjustments=4,
+                        minimum_grad_scaler_scale=4096.0)):
+            with self.assertRaises(PermissionError):
+                changed.validate()
 
     def test_a10_virtual_batch2_reduction_matches_all_boolean_patterns(self):
-        plan = TrainingPlan(
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        plan = databricks_a10_plan(TrainingPlan())
         expected_examples = {
             (False, True, False, True): (1.0, 2.0, 1.0, 2.0),
             (True, True, False, False): (1.0, 1.0, 1.0, 1.0),
@@ -648,9 +786,7 @@ class TrainingAdmissionTests(unittest.TestCase):
                 self.assertEqual(scales, expected_examples[pattern])
 
     def test_a10_resource_amendment_preserves_loss_and_gradient_formula(self):
-        plan = TrainingPlan(
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        plan = databricks_a10_plan(TrainingPlan())
         for bits in range(16):
             pattern = tuple(bool(bits & (1 << index)) for index in range(4))
             entries = [{"target_changed": value} for value in pattern]
@@ -692,16 +828,12 @@ class TrainingAdmissionTests(unittest.TestCase):
     def test_a10_schedule_and_reduction_equivalence_for_qualifier_and_matrix(self):
         source_plan = TrainingPlan()
         _, _, tokenized, _ = bindings(source_plan)
-        plans = [TrainingPlan(
+        plans = [databricks_a10_plan(TrainingPlan(
             mode="qualification", condition="self_continuity", stage="delta1",
-            seed=202610281, optimizer_updates=2,
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()]
-        plans += [TrainingPlan(
+            seed=202610281, optimizer_updates=2))]
+        plans += [databricks_a10_plan(TrainingPlan(
             mode="primary", condition=condition, stage=stage, seed=seed,
-            optimizer_updates=144, device_profile="databricks-a10x1",
-            world_size=1, micro_batch_size=1,
-            accumulation_steps=4).validate()
+            optimizer_updates=144))
             for condition in CONDITIONS
             for seed in (202610281, 202610282, 202610283)
             for stage in ("delta1", "delta2", "delta3")]
@@ -710,7 +842,10 @@ class TrainingAdmissionTests(unittest.TestCase):
             journal = adjacent_pair_schedule(tokenized[plan.condition], plan)
             prior_geometry = replace(
                 plan, device_profile="kaggle-t4x2", world_size=2,
-                micro_batch_size=2, accumulation_steps=1).validate()
+                micro_batch_size=2, accumulation_steps=1,
+                numerical_policy=LEGACY_GRAD_SCALER_POLICY,
+                max_overflow_adjustments=0,
+                minimum_grad_scaler_scale=0.0).validate()
             prior_journal = adjacent_pair_schedule(
                 tokenized[plan.condition], prior_geometry)
             preserved_fields = (
@@ -836,6 +971,239 @@ class TrainingAdmissionTests(unittest.TestCase):
                 TrainingPlan(), lambda _: (_ for _ in ()).throw(
                     RuntimeError("kernel dispatch failed")))
 
+    def test_old_failfast_gradscaler_sequence_does_not_reduce_scale(self):
+        model = ToyScaledParameter()
+        optimizer = CountingSGD(model.parameters(), lr=0.1)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+        loss = (model.delta1_weight.to(torch.float16)
+                * torch.tensor([1.0], dtype=torch.float16)).sum()
+        self.assertTrue(bool(torch.isfinite(loss)))
+        scaler.scale(loss).backward()
+        scaler.unscale_(optimizer)
+        gradient_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        self.assertFalse(bool(torch.isfinite(gradient_norm)))
+        scale_before = scaler.get_scale()
+        # This is the terminal v4 ordering: raise before step/update.
+        scale_after_failfast = scaler.get_scale()
+        self.assertEqual(scale_before, 65536.0)
+        self.assertEqual(scale_after_failfast, scale_before)
+        self.assertEqual(optimizer.executed_step_count, 0)
+        self.assertEqual(float(model.delta1_weight.detach()), 1.0)
+
+    def test_bounded_gradscaler_recovery_replays_rng_and_steps_once(self):
+        model = ToyScaledParameter()
+        optimizer = CountingSGD(model.parameters(), lr=0.1)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+        draws = []
+
+        def compute_backward():
+            draw = torch.rand(())
+            draws.append(float(draw))
+            factor = (torch.tensor(1.25) + draw * 0.25).to(torch.float16)
+            loss = (model.delta1_weight.to(torch.float16) * factor).sum()
+            self.assertTrue(bool(torch.isfinite(loss)))
+            scaler.scale(loss).backward()
+            value = float(loss.detach())
+            return [{"loss": value, "sft": value, "preference": 0.0,
+                     "cross_danger_margin": 0.0, "high_advantage": 0.0,
+                     "low_advantage": 0.0, "level0_kl_anchor": 0.0}]
+
+        result = bounded_grad_scaler_update(
+            model=model, optimizer=optimizer, scaler=scaler, stage="delta1",
+            device=torch.device("cpu"), max_grad_norm=1.0,
+            compute_backward=compute_backward)
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["overflow_adjustments"], 1)
+        self.assertEqual(result["recompute_count"], 1)
+        self.assertTrue(result["overflow_recovered"])
+        self.assertEqual(len(result["attempts"]), 2)
+        self.assertEqual(draws[0], draws[1])
+        self.assertTrue(result["attempts"][0]["overflow"])
+        self.assertTrue(result["attempts"][0]["scale_adjustment_applied"])
+        self.assertFalse(result["attempts"][0]["optimizer_step_executed"])
+        self.assertEqual(
+            result["attempts"][0]["optimizer_step_pre_hook_call_delta"], 0)
+        self.assertFalse(result["attempts"][1]["overflow"])
+        self.assertTrue(result["attempts"][1]["optimizer_step_executed"])
+        self.assertEqual(
+            result["attempts"][1]["optimizer_step_pre_hook_call_delta"], 1)
+        self.assertEqual(result["optimizer_step_pre_hook_calls"], 1)
+        self.assertEqual(optimizer.executed_step_count, 1)
+        self.assertEqual(len(optimizer._optimizer_step_pre_hooks), 0)
+        self.assertLess(float(model.delta1_weight.detach()), 1.0)
+        self.assertEqual(result["max_overflow_adjustments"],
+                         GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS)
+        self.assertEqual(result["minimum_scale"], GRAD_SCALER_MIN_SCALE)
+
+    def test_bounded_gradscaler_recovery_fails_closed_at_limit(self):
+        model = ToyScaledParameter()
+        optimizer = CountingSGD(model.parameters(), lr=0.1)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+
+        def persistent_overflow():
+            loss = (model.delta1_weight.to(torch.float16)
+                    * torch.tensor([4.0], dtype=torch.float16)).sum()
+            scaler.scale(loss).backward()
+            return [{"loss": float(loss.detach()), "sft": float(loss.detach()),
+                     "preference": 0.0, "cross_danger_margin": 0.0,
+                     "high_advantage": 0.0, "low_advantage": 0.0,
+                     "level0_kl_anchor": 0.0}]
+
+        with self.assertRaises(GradScalerRecoveryError) as raised:
+            bounded_grad_scaler_update(
+                model=model, optimizer=optimizer, scaler=scaler, stage="delta1",
+                device=torch.device("cpu"), max_grad_norm=1.0,
+                compute_backward=persistent_overflow,
+                max_overflow_adjustments=1, min_scale=4096.0)
+        self.assertEqual(raised.exception.receipt["reason"],
+                         "adjustments_exhausted")
+        self.assertEqual(len(raised.exception.receipt["attempts"]), 2)
+        self.assertEqual(raised.exception.receipt["recompute_count"], 1)
+        self.assertEqual(
+            raised.exception.receipt["optimizer_step_pre_hook_calls"], 0)
+        self.assertEqual(optimizer.executed_step_count, 0)
+        self.assertEqual(len(optimizer._optimizer_step_pre_hooks), 0)
+        self.assertEqual(float(model.delta1_weight.detach()), 1.0)
+        self.assertIsNone(model.delta1_weight.grad)
+
+    def test_recovered_update_matches_direct_finite_scale_update(self):
+        def execute(initial_scale):
+            torch.manual_seed(20261029)
+            model = ToyScaledParameter()
+            optimizer = CountingSGD(model.parameters(), lr=0.1)
+            scaler = torch.amp.GradScaler(
+                "cpu", enabled=True, init_scale=initial_scale,
+                growth_interval=1000)
+            draws = []
+
+            def compute_backward():
+                draw = torch.rand(())
+                draws.append(float(draw))
+                factor = (torch.tensor(1.25) + draw * 0.25).to(torch.float16)
+                loss = (model.delta1_weight.to(torch.float16) * factor).sum()
+                scaler.scale(loss).backward()
+                value = float(loss.detach())
+                return [{"loss": value, "sft": value, "preference": 0.0,
+                         "cross_danger_margin": 0.0, "high_advantage": 0.0,
+                         "low_advantage": 0.0, "level0_kl_anchor": 0.0}]
+
+            result = bounded_grad_scaler_update(
+                model=model, optimizer=optimizer, scaler=scaler,
+                stage="delta1", device=torch.device("cpu"),
+                max_grad_norm=1.0, compute_backward=compute_backward)
+            return model.delta1_weight.detach().clone(), result, draws
+
+        recovered_weight, recovered, recovered_draws = execute(65536.0)
+        direct_weight, direct, direct_draws = execute(32768.0)
+        self.assertEqual(recovered["overflow_adjustments"], 1)
+        self.assertEqual(direct["overflow_adjustments"], 0)
+        self.assertEqual(recovered_draws[0], recovered_draws[1])
+        self.assertEqual(recovered_draws[-1], direct_draws[-1])
+        self.assertTrue(torch.equal(recovered_weight, direct_weight))
+
+    def test_bounded_gradscaler_recovery_enforces_minimum_scale(self):
+        model = ToyScaledParameter()
+        optimizer = CountingSGD(model.parameters(), lr=0.1)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+
+        def one_overflow():
+            loss = (model.delta1_weight.to(torch.float16)
+                    * torch.tensor([1.0], dtype=torch.float16)).sum()
+            scaler.scale(loss).backward()
+            value = float(loss.detach())
+            return [{"loss": value, "sft": value, "preference": 0.0,
+                     "cross_danger_margin": 0.0, "high_advantage": 0.0,
+                     "low_advantage": 0.0, "level0_kl_anchor": 0.0}]
+
+        with self.assertRaises(GradScalerRecoveryError) as raised:
+            bounded_grad_scaler_update(
+                model=model, optimizer=optimizer, scaler=scaler, stage="delta1",
+                device=torch.device("cpu"), max_grad_norm=1.0,
+                compute_backward=one_overflow,
+                max_overflow_adjustments=4, min_scale=40000.0)
+        self.assertEqual(raised.exception.receipt["reason"], "minimum_scale")
+        self.assertEqual(raised.exception.receipt["overflow_adjustments"], 1)
+        self.assertEqual(raised.exception.receipt["recompute_count"], 0)
+        self.assertEqual(optimizer.executed_step_count, 0)
+
+    def test_adamw_overflow_mutates_neither_parameter_nor_state(self):
+        model = ToyScaledParameter()
+        optimizer = torch.optim.AdamW(model.parameters(), lr=0.1)
+        step_calls = {"count": 0}
+        handle = optimizer.register_step_pre_hook(
+            lambda _optimizer, _args, _kwargs:
+            step_calls.__setitem__("count", step_calls["count"] + 1))
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+        before = model.delta1_weight.detach().clone()
+        try:
+            loss = (model.delta1_weight.to(torch.float16)
+                    * torch.tensor([1.0], dtype=torch.float16)).sum()
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            self.assertFalse(bool(torch.isfinite(model.delta1_weight.grad).all()))
+            scaler.step(optimizer)
+            scaler.update()
+        finally:
+            handle.remove()
+        self.assertEqual(step_calls["count"], 0)
+        self.assertTrue(torch.equal(model.delta1_weight.detach(), before))
+        self.assertEqual(len(optimizer.state), 0)
+        self.assertEqual(scaler.get_scale(), 32768.0)
+
+    def test_gradient_diagnostic_is_count_only_and_component_wise(self):
+        model = ToyScaledParameter()
+        model.delta1_weight.grad = torch.tensor([float("nan")])
+        diagnostic = gradient_finiteness_diagnostic(
+            model, [{"loss": 1.0, "sft": float("inf"),
+                     "preference": 0.0, "cross_danger_margin": 0.0,
+                     "high_advantage": 0.0, "low_advantage": 0.0,
+                     "level0_kl_anchor": 0.0}],
+            stage="delta1", gradient_norm_value=float("inf"))
+        first = diagnostic["first_nonfinite_gradient"]
+        self.assertEqual(first["active_branch"], "delta1")
+        self.assertEqual(first["parameter_name"], "delta1_weight")
+        self.assertEqual(first["nan_count"], 1)
+        self.assertEqual(first["nonfinite_count"], 1)
+        self.assertEqual(diagnostic["first_nonfinite_loss_component"], "sft")
+        self.assertNotIn("values", json.dumps(diagnostic))
+
+    def test_terminal_component_replay_clears_gradients_and_never_steps(self):
+        model = ToyScaledParameter()
+        optimizer = CountingSGD(model.parameters(), lr=0.1)
+        before = model.delta1_weight.detach().clone()
+        seen = []
+
+        def compute_component(component, scale):
+            self.assertIsNone(model.delta1_weight.grad)
+            seen.append(component)
+            coefficient = {
+                "sft": 1.0, "preference": 2.0,
+                "cross_danger_margin": 3.0,
+            }[component]
+            loss = (model.delta1_weight * coefficient).sum()
+            (loss * scale).backward()
+            value = float(loss.detach())
+            return [{"loss": value, "sft": value, "preference": value,
+                     "cross_danger_margin": value, "high_advantage": 0.0,
+                     "low_advantage": 0.0, "level0_kl_anchor": 0.0}]
+
+        result = terminal_component_gradient_replay(
+            model=model, optimizer=optimizer, device=torch.device("cpu"),
+            stage="delta1", scale=4096.0,
+            compute_component_backward=compute_component)
+        self.assertEqual(result["status"], "all_component_gradients_finite")
+        self.assertEqual(seen, ["sft", "preference", "cross_danger_margin"])
+        self.assertEqual(result["components_examined"], 3)
+        self.assertFalse(result["optimizer_step_executed"])
+        self.assertEqual(optimizer.executed_step_count, 0)
+        self.assertTrue(torch.equal(model.delta1_weight.detach(), before))
+        self.assertIsNone(model.delta1_weight.grad)
+
     def test_serialized_guard_is_exclusive_and_owner_restored(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "worker.lock"
@@ -844,6 +1212,175 @@ class TrainingAdmissionTests(unittest.TestCase):
                     with SerializedRunGuard(path, intent_sha256="b" * 64):
                         pass
             self.assertFalse(path.exists())
+
+    def test_run_stage_recovers_same_update_once_without_journal_advance(self):
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=1))
+        model = tiny_wrapped("delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        expected = adjacent_pair_schedule(records, plan)
+        expected_bindings = [{
+            "occurrence_index": row["occurrence_index"],
+            "low_record_id": row["low_record_id"],
+            "high_record_id": row["high_record_id"],
+        } for row in expected]
+        logical_tokens = sum(row["pair_training_tokens"] for row in expected)
+        progress = []
+        calls = []
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(4.0, calls)):
+            receipt = run_training_stage(
+                model=model, tokenizer=tokenizer, tokenized_records=records,
+                plan=plan, output_dir=folder, target_names=["proj"],
+                source_sha256="s" * 64, base_sha256="b" * 64,
+                rank=0, world_size=1, save_checkpoint=False,
+                callable_model=model, progress_callback=progress.append)
+        self.assertEqual(receipt["successful_optimizer_updates"], 1)
+        self.assertEqual(len(receipt["updates"]), 1)
+        self.assertEqual(len(progress), 1)
+        update = receipt["updates"][0]
+        self.assertEqual(update["optimizer_update"], 0)
+        self.assertEqual(update["occurrence_bindings"], expected_bindings)
+        self.assertEqual(update["occurrence_bindings_sha256"],
+                         canonical_sha256(expected_bindings))
+        self.assertEqual(update["compatibility_scales"],
+                         list(databricks_a10_compatibility_scales(expected, plan)))
+        self.assertEqual(update["overflow_adjustments"], 1)
+        self.assertEqual(update["optimizer_step_pre_hook_calls"], 1)
+        self.assertEqual(update["logical_tokens"], logical_tokens)
+        self.assertEqual(update["initial_physical_tokens"], logical_tokens)
+        self.assertEqual(update["replay_physical_tokens"], logical_tokens)
+        self.assertEqual(update["physical_tokens_processed"], 2 * logical_tokens)
+        self.assertEqual(receipt["tokens_seen"], logical_tokens)
+        self.assertEqual(receipt["overflow_recompute_tokens"], logical_tokens)
+        self.assertEqual(receipt["physical_tokens_processed"], 2 * logical_tokens)
+        self.assertEqual(validate_grad_scaler_recovery_receipt(
+            receipt, plan), receipt)
+        tampered = copy.deepcopy(receipt)
+        tampered["updates"][0]["grad_scaler_attempts"][0][
+            "scale_after"] = 30000.0
+        tampered["updates"][0]["grad_scaler_attempts"][1][
+            "scale_before"] = 30000.0
+        tampered["updates"][0]["grad_scaler_before"] = 30000.0
+        tampered.pop("receipt_sha256")
+        tampered["receipt_sha256"] = canonical_sha256(tampered)
+        with self.assertRaises(PermissionError):
+            verify_rank_receipt(
+                tampered, expected_plan_sha256=plan.full_plan_sha256,
+                expected_global_journal_sha256=canonical_sha256(expected),
+                expected_plan=plan, expected_global_journal=expected)
+        self.assertEqual(calls, ["combined"] * 8)
+
+    def test_non_databricks_run_preserves_legacy_failfast_without_replay(self):
+        plan = TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=1).validate()
+        model = tiny_wrapped("delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        calls = []
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(1.0, calls)):
+            with self.assertRaisesRegex(FloatingPointError,
+                                       "Non-finite gradient norm"):
+                run_training_stage(
+                    model=model, tokenizer=tokenizer,
+                    tokenized_records=records, plan=plan,
+                    output_dir=folder, target_names=["proj"],
+                    source_sha256="s" * 64, base_sha256="b" * 64,
+                    rank=0, world_size=2, save_checkpoint=False,
+                    callable_model=model)
+            partial = json.loads(
+                (Path(folder) / "RANK_0_PARTIAL.json").read_text())
+        self.assertEqual(plan.numerical_policy, LEGACY_GRAD_SCALER_POLICY)
+        self.assertEqual(calls, ["combined"])
+        self.assertEqual(scaler.get_scale(), 65536.0)
+        self.assertEqual(partial["successful_optimizer_updates"], 0)
+        self.assertEqual(partial["total_overflow_adjustments"], 0)
+        self.assertIsNone(partial["grad_scaler_recovery_failure"])
+
+    def test_run_stage_exhaustion_writes_complete_terminal_receipt(self):
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=1))
+        model = tiny_wrapped("delta1")
+        before = branch_sha256(model, "delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        expected = adjacent_pair_schedule(records, plan)
+        expected_bindings = [{
+            "occurrence_index": row["occurrence_index"],
+            "low_record_id": row["low_record_id"],
+            "high_record_id": row["high_record_id"],
+        } for row in expected]
+        logical_tokens = sum(row["pair_training_tokens"] for row in expected)
+        progress = []
+        calls = []
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=65536.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(1024.0, calls)):
+            with self.assertRaises(GradScalerRecoveryError):
+                run_training_stage(
+                    model=model, tokenizer=tokenizer,
+                    tokenized_records=records, plan=plan,
+                    output_dir=folder, target_names=["proj"],
+                    source_sha256="s" * 64, base_sha256="b" * 64,
+                    rank=0, world_size=1, save_checkpoint=False,
+                    callable_model=model, progress_callback=progress.append)
+            partial = json.loads((Path(folder) / "RANK_0_PARTIAL.json").read_text())
+            self.assertFalse((Path(folder) / "optimizer_rank0.pt").exists())
+        self.assertEqual(progress, [])
+        self.assertEqual(partial["successful_optimizer_updates"], 0)
+        self.assertEqual(partial["updates"], [])
+        self.assertEqual(partial["tokens_seen"], 0)
+        self.assertEqual(partial["total_overflow_adjustments"], 4)
+        self.assertEqual(partial["overflow_recompute_tokens"], 4 * logical_tokens)
+        self.assertEqual(partial["terminal_logical_attempted_tokens"],
+                         logical_tokens)
+        self.assertEqual(partial["terminal_diagnostic_tokens"], logical_tokens)
+        self.assertEqual(partial["terminal_physical_tokens"], 6 * logical_tokens)
+        self.assertEqual(partial["physical_tokens_processed"], 6 * logical_tokens)
+        failure = partial["grad_scaler_recovery_failure"]
+        self.assertEqual(failure["failed_optimizer_update"], 0)
+        self.assertEqual(failure["occurrence_bindings"], expected_bindings)
+        self.assertEqual(failure["occurrence_bindings_sha256"],
+                         canonical_sha256(expected_bindings))
+        self.assertEqual(failure["compatibility_scales"],
+                         list(databricks_a10_compatibility_scales(expected, plan)))
+        self.assertEqual(failure["logical_attempted_tokens"], logical_tokens)
+        self.assertEqual(failure["initial_physical_tokens"], logical_tokens)
+        self.assertEqual(failure["replay_physical_tokens"], 4 * logical_tokens)
+        self.assertEqual(failure["diagnostic_physical_tokens"], logical_tokens)
+        self.assertEqual(failure["total_physical_tokens"], 6 * logical_tokens)
+        self.assertEqual(failure["optimizer_step_pre_hook_calls"], 0)
+        self.assertEqual(
+            failure["terminal_diagnostic_optimizer_step_pre_hook_calls"], 0)
+        diagnostic = failure["terminal_component_gradient_diagnostic"]
+        self.assertEqual(diagnostic["status"],
+                         "first_nonfinite_component_found")
+        self.assertEqual(diagnostic["components_examined"], 1)
+        self.assertEqual(
+            diagnostic["component_replays"][0]["loss_component"], "sft")
+        self.assertFalse(diagnostic["component_replays"][0][
+            "unscaled_gradients_all_finite"])
+        self.assertEqual(branch_sha256(model, "delta1"), before)
+        self.assertEqual(calls, ["combined"] * 20 + ["sft"] * 4)
 
     def test_executable_delta1_starts_from_base_and_updates_only_delta1(self):
         plan = TrainingPlan(
@@ -893,6 +1430,41 @@ class TrainingAdmissionTests(unittest.TestCase):
                             for value in metrics.values()))
         self.assertEqual(prior_delta2, branch_sha256(model, "delta2"))
         self.assertNotEqual(prior_delta1, branch_sha256(model, "delta1"))
+
+    def test_combined_loss_preserves_legacy_arithmetic_and_gradient_exactly(self):
+        plan = TrainingPlan()
+        sft = torch.tensor(339460.8125, dtype=torch.float32,
+                           requires_grad=True)
+        preference = torch.tensor(-383727.09375, dtype=torch.float32,
+                                  requires_grad=True)
+        margin = torch.tensor(211888.328125, dtype=torch.float32,
+                              requires_grad=True)
+        actual = ordinal_weighted_loss(
+            sft=sft, preference=preference, margin=margin, plan=plan,
+            loss_divisor=3.0)
+        legacy = (
+            plan.sft_weight * sft
+            + plan.preference_weight * preference
+            + plan.cross_danger_margin_weight * margin) / 3.0
+        divide_first = (
+            plan.sft_weight * sft / 3.0
+            + plan.preference_weight * preference / 3.0
+            + plan.cross_danger_margin_weight * margin / 3.0)
+        self.assertTrue(torch.equal(actual, legacy))
+        self.assertFalse(torch.equal(actual, divide_first))
+        actual_gradients = torch.autograd.grad(
+            actual, (sft, preference, margin), retain_graph=True)
+        legacy_gradients = torch.autograd.grad(
+            legacy, (sft, preference, margin))
+        self.assertTrue(all(
+            torch.equal(actual_gradient, legacy_gradient)
+            for actual_gradient, legacy_gradient
+            in zip(actual_gradients, legacy_gradients)))
+        preference_only = ordinal_weighted_loss(
+            sft=sft, preference=preference, margin=margin, plan=plan,
+            loss_divisor=3.0, loss_component="preference")
+        self.assertTrue(torch.equal(
+            preference_only, plan.preference_weight * preference / 3.0))
 
     def test_pairwise_objective_uses_updated_decision_prompts_and_one_action(self):
         plan = TrainingPlan(stage="delta1", optimizer_updates=2,
@@ -947,7 +1519,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v6",
+                "version": "qwen35-9b-continuity-partition-intent-v7",
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
                 "partition_identity": SUCCESSOR_IDENTITY,
                 "plan_sha256": qualification.full_plan_sha256,

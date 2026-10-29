@@ -49,7 +49,7 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v7"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v8"
 BASE_QUALIFICATION_INTENT_VERSION = (
     "research4-databricks-frozen-base-format-intent-v2"
 )
@@ -141,7 +141,7 @@ DATASET_RELEASE_VALIDATION_SHA256 = (
     "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
 EXPERIMENT_SPEC = {
-    "version": "qwen35-9b-ordinal-continuity-experiment-v6",
+    "version": "qwen35-9b-ordinal-continuity-experiment-v7",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
     "conditions": ["self_continuity", "artifact_continuity", "label_only"],
     "seeds": [202610281, 202610282, 202610283],
@@ -823,11 +823,11 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
     release, while occurrence journals are computed from the exact tokenized
     rows that will be read from Silver during training.
     """
-    from dataclasses import replace
     from .qwen9b_ordinal_continuity_controller import (
         matrix_plans, partition_identity, qualification_plan)
     from .qwen9b_ordinal_continuity_training import (
         adjacent_pair_schedule, canonical_sha256,
+        databricks_a10_plan,
         load_simulator_condition,
         validate_equal_occurrence_exposure,
         validate_matched_conditions)
@@ -864,14 +864,11 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
                       for name in EXPERIMENT_SPEC["conditions"]}
     data_binding = validate_matched_conditions(raw_conditions)
     base_rows = by_kind["base_qualification"]
-    qualification = replace(
-        qualification_plan(EXPERIMENT_SPEC, 4), device_profile="databricks-a10x1",
-        world_size=1, micro_batch_size=1, accumulation_steps=4).validate()
+    qualification = databricks_a10_plan(
+        qualification_plan(EXPERIMENT_SPEC, 4))
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
     plans = [qualification]
-    plans += [replace(plan, device_profile="databricks-a10x1", world_size=1,
-                      micro_batch_size=1, accumulation_steps=4).validate()
-              for plan in policies]
+    plans += [databricks_a10_plan(plan) for plan in policies]
     plan = base_qualification_plan()
     base_meta = sorted(
         ({"record_id": row["record_id"], "record_sha256": row["record_sha256"]}
@@ -1322,23 +1319,19 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
         "world_size": 1, "gpu_count": 1, "max_concurrent_runs": 1,
         "model_root": MODEL_ROOT, "silver_table": SILVER_TABLE,
     }
-    from dataclasses import asdict, replace
+    from dataclasses import asdict
     from .qwen9b_ordinal_continuity_controller import (
         matrix_plans, partition_identity, qualification_plan)
-    from .qwen9b_ordinal_continuity_training import TrainingPlan
+    from .qwen9b_ordinal_continuity_training import (
+        TrainingPlan, databricks_a10_plan)
     try:
         exact_plan = TrainingPlan(**plan).validate()
     except (TypeError, ValueError, PermissionError) as exc:
         raise PermissionError("Databricks intent contains an invalid training plan") from exc
-    qualification = replace(
-        qualification_plan(EXPERIMENT_SPEC, 4),
-        device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=1, accumulation_steps=4).validate()
+    qualification = databricks_a10_plan(
+        qualification_plan(EXPERIMENT_SPEC, 4))
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
-    canonical_plans = [replace(
-        item, device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=1, accumulation_steps=4).validate()
-        for item in policies]
+    canonical_plans = [databricks_a10_plan(item) for item in policies]
     expected_plan = (qualification if mode == "qualification" else
                      next((item for item in canonical_plans
                            if (item.condition, item.seed, item.stage) ==
@@ -1600,13 +1593,11 @@ def verify_intent_base_qualification_authority(
 
 
 def canonical_primary_plan_hashes() -> list[str]:
-    from dataclasses import replace
     from .qwen9b_ordinal_continuity_controller import matrix_plans
+    from .qwen9b_ordinal_continuity_training import databricks_a10_plan
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
-    return sorted(replace(
-        plan, device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=1, accumulation_steps=4).validate().full_plan_sha256
-        for plan in policies)
+    return sorted(databricks_a10_plan(plan).full_plan_sha256
+                  for plan in policies)
 
 
 def create_qualification_receipt(intent: Mapping[str, Any],
@@ -1614,6 +1605,12 @@ def create_qualification_receipt(intent: Mapping[str, Any],
                                  evidence: Mapping[str, Any],
                                  checkpoint_tree_sha256: str) -> dict:
     intent = validate_intent(intent)
+    from .qwen9b_ordinal_continuity_training import (
+        RANK_RUN_VERSION, TrainingPlan,
+        validate_grad_scaler_recovery_receipt)
+    plan = TrainingPlan(**intent["plan"]).validate()
+    validate_grad_scaler_recovery_receipt(rank_receipt, plan)
+    recovery = dict(rank_receipt["grad_scaler_recovery"])
     rank_payload = dict(rank_receipt); rank_hash = rank_payload.pop("receipt_sha256", None)
     evidence_payload = dict(evidence); evidence_hash = evidence_payload.pop(
         "evidence_sha256", None)
@@ -1621,8 +1618,11 @@ def create_qualification_receipt(intent: Mapping[str, Any],
     tokens_seen = rank_receipt.get("tokens_seen")
     elapsed_seconds = rank_receipt.get("elapsed_seconds")
     tokens_per_second = rank_receipt.get("resources", {}).get("tokens_per_second")
+    physical_tokens = rank_receipt.get("physical_tokens_processed")
+    overflow_tokens = rank_receipt.get("overflow_recompute_tokens")
     if (intent["plan"]["mode"] != "qualification"
             or rank_hash != digest(rank_payload)
+            or rank_receipt.get("version") != RANK_RUN_VERSION
             or rank_receipt.get("status") != "complete"
             or rank_receipt.get("plan_sha256") != intent["plan_sha256"]
             or rank_receipt.get("successful_optimizer_updates") != 2
@@ -1630,18 +1630,28 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or rank_receipt.get("resources", {}).get("gpu", {}).get(
                 "nvml", {}).get("nonzero_gpu_sample_count", 0) <= 0
             or evidence_hash != digest(evidence_payload)
+            or evidence.get("version")
+               != "research4-databricks-partition-evidence-v3"
             or evidence.get("intent_sha256") != intent["intent_sha256"]
             or evidence.get("base_qualification_carryforward_sha256")
                != intent.get("base_qualification_carryforward_sha256")
             or evidence.get("qualification_technical_successor_sha256")
                != intent.get("qualification_technical_successor_sha256")
             or evidence.get("rank_receipt_sha256") != rank_receipt.get("receipt_sha256")
+            or evidence.get("grad_scaler_recovery") != recovery
+            or evidence.get("logical_tokens_seen") != tokens_seen
+            or evidence.get("physical_tokens_processed") != physical_tokens
+            or evidence.get("overflow_recompute_tokens") != overflow_tokens
             or evidence.get("live_base_components_before")
                != evidence.get("live_base_components_after")
             or evidence.get("save_reload_pass") is not True
             or any(value is not True for key, value in metrics.items()
                    if key.endswith("_pass") or key == "capacity_adequate")
             or not isinstance(tokens_seen, int) or tokens_seen <= 0
+            or not isinstance(physical_tokens, int)
+            or physical_tokens < tokens_seen
+            or not isinstance(overflow_tokens, int) or overflow_tokens < 0
+            or physical_tokens != tokens_seen + overflow_tokens
             or not isinstance(elapsed_seconds, (int, float))
             or not math.isfinite(elapsed_seconds) or elapsed_seconds <= 0
             or not isinstance(tokens_per_second, (int, float))
@@ -1651,7 +1661,7 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or not re.fullmatch(r"[0-9a-f]{64}", checkpoint_tree_sha256)):
         raise PermissionError("Actual rank-4 Databricks qualification evidence differs")
     value = {
-        "version": "research4-databricks-rank4-qualification-v4",
+        "version": "research4-databricks-rank4-qualification-v5",
         "status": "qualified", "source_commit": intent["source_commit"],
         "source_sha256": intent["source_sha256"],
         "model_tree_sha256": intent["model_tree_sha256"],
@@ -1672,6 +1682,9 @@ def create_qualification_receipt(intent: Mapping[str, Any],
         "qualification_tokens_seen": tokens_seen,
         "qualification_elapsed_seconds": elapsed_seconds,
         "qualification_tokens_per_second": tokens_per_second,
+        "qualification_physical_tokens_processed": physical_tokens,
+        "qualification_overflow_recompute_tokens": overflow_tokens,
+        "qualification_grad_scaler_recovery": recovery,
         "selected_rank": 4,
         "authorized_primary_plan_sha256s": canonical_primary_plan_hashes(),
         "qualifier_checkpoint_primary_parent_eligible": False,
@@ -1700,6 +1713,14 @@ def create_primary_admission(intent: Mapping[str, Any],
                != intent.get("base_qualification_carryforward_sha256")
             or receipt.get("qualification_technical_successor_sha256")
                != intent.get("qualification_technical_successor_sha256")
+            or receipt.get("qualification_grad_scaler_recovery", {}).get(
+                "numerical_policy") != intent["plan"].get("numerical_policy")
+            or receipt.get("qualification_grad_scaler_recovery", {}).get(
+                "max_overflow_adjustments_per_partition")
+               != intent["plan"].get("max_overflow_adjustments")
+            or receipt.get("qualification_grad_scaler_recovery", {}).get(
+                "minimum_scale")
+               != intent["plan"].get("minimum_grad_scaler_scale")
             or intent.get("reviewed_timeout_budget", {}).get(
                 "qualification_receipt_sha256") != embedded
             or intent.get("reviewed_timeout_budget", {}).get(
@@ -1709,7 +1730,7 @@ def create_primary_admission(intent: Mapping[str, Any],
                 "authorized_primary_plan_sha256s", ())):
         raise PermissionError("Qualification does not authorize this primary partition")
     value = {
-        "version": "qwen35-9b-ordinal-continuity-primary-admission-v6",
+        "version": "qwen35-9b-ordinal-continuity-primary-admission-v7",
         "admitted": True, "plan": intent["plan"],
         "full_plan_sha256": intent["plan_sha256"],
         "qualification_receipt_sha256": embedded,
@@ -1724,6 +1745,8 @@ def create_primary_admission(intent: Mapping[str, Any],
             "base_qualification_carryforward_sha256"),
         "qualification_technical_successor_sha256": intent[
             "qualification_technical_successor_sha256"],
+        "qualification_grad_scaler_recovery": receipt[
+            "qualification_grad_scaler_recovery"],
         "model_tree_sha256": intent["model_tree_sha256"],
         "model_receipt_sha256": intent["model_receipt_sha256"],
         "reviewed_timeout_budget_sha256": intent[
@@ -1791,17 +1814,14 @@ def validate_primary_authority_files(
 
 def expected_predecessor_binding(plan: Mapping[str, Any]) -> dict | None:
     """Return the one canonical completed Gold row allowed to seed *plan*."""
-    from dataclasses import replace
     from .qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
-    from .qwen9b_ordinal_continuity_training import TrainingPlan
+    from .qwen9b_ordinal_continuity_training import (
+        TrainingPlan, databricks_a10_plan)
     current = TrainingPlan(**dict(plan)).validate()
     if current.stage == "delta1":
         return None
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
-    candidates = [replace(
-        value, device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=1, accumulation_steps=4).validate()
-        for value in policies]
+    candidates = [databricks_a10_plan(value) for value in policies]
     expected_stage = {"delta2": "delta1", "delta3": "delta2"}[current.stage]
     expected_condition = current.condition
     expected_seed = current.seed

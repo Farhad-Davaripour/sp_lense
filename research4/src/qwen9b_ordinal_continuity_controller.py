@@ -28,13 +28,14 @@ from .qwen9b_ordinal_continuity_runtime import (
     verify_tokenizer_receipt)
 from .qwen9b_ordinal_continuity_training import (
     ALLOWED_SEEDS, CONDITIONS, PINNED_SOFTWARE, TrainingPlan,
+    databricks_a10_plan,
     load_pinned_tokenizer)
 
-CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v7"
-EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v6"
-PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v6"
-TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v5"
-AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v6"
+CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v8"
+EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v7"
+PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v7"
+TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v6"
+AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v7"
 MATRIX_CONDITIONS = CONDITIONS
 MATRIX_STAGES = ("delta1", "delta2", "delta3")
 
@@ -87,6 +88,17 @@ def qualification_plan(spec: Mapping, rank: int):
         optimizer_updates=spec["qualification_updates"]).validate()
 
 
+def databricks_matrix_plans(spec: Mapping, selected_rank: int):
+    """Return all 27 plans with the exact approved A10 numerical policy."""
+    return [databricks_a10_plan(plan)
+            for plan in matrix_plans(spec, selected_rank)]
+
+
+def databricks_qualification_plan(spec: Mapping, rank: int):
+    """Return the qualifier with the exact approved A10 numerical policy."""
+    return databricks_a10_plan(qualification_plan(spec, rank))
+
+
 def partition_identity(plan: TrainingPlan) -> str:
     if plan.mode == "qualification":
         if plan.rank != 4:
@@ -97,6 +109,7 @@ def partition_identity(plan: TrainingPlan) -> str:
 
 def validate_partition_intent(value: Mapping, plan: TrainingPlan,
                               actual_parent_tree: str | None) -> dict:
+    plan = plan.validate()
     intent = dict(value)
     expected_updates = 2 if plan.mode == "qualification" else 144
     expected_occurrences = expected_updates * 4

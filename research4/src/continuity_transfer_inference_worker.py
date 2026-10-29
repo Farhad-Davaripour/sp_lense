@@ -16,6 +16,7 @@ import argparse
 import hashlib
 import importlib
 import json
+import math
 import os
 import re
 import sys
@@ -43,8 +44,15 @@ from .qwen9b_ordinal_continuity_lora import (
 )
 
 
-WORKER_VERSION = "research4-continuity-transfer-inference-worker-v4"
-TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v3"
+WORKER_VERSION = "research4-continuity-transfer-inference-worker-v5"
+TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v4"
+DATABRICKS_A10_GRAD_SCALER_POLICY = (
+    "databricks-a10-bounded-gradscaler-v1"
+)
+GRAD_SCALER_INITIAL_SCALE = 65536.0
+GRAD_SCALER_BACKOFF_FACTOR = 0.5
+GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS = 4
+GRAD_SCALER_MIN_SCALE = 4096.0
 BLINDED_CHECKPOINT_MANIFEST_VERSION = (
     "research4-three-residual-blinded-checkpoints-v1"
 )
@@ -85,6 +93,11 @@ def _read(path: str | Path) -> Any:
 
 def _sha_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def _sha64(value: Any) -> bool:
+    return (isinstance(value, str)
+            and re.fullmatch(r"[0-9a-f]{64}", value) is not None)
 
 
 def validate_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -201,6 +214,160 @@ def parse_native_action(raw_response: str, allowed: Sequence[str]) -> tuple[str 
     return parsed["action"], parsed["valid"]
 
 
+def _training_recovery_summary(receipt: Mapping[str, Any]) -> dict[str, Any]:
+    """Recompute bounded A10 recovery from the packaged rank receipt."""
+    recovery = receipt.get("grad_scaler_recovery")
+    expected_receipt_static = {
+        "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+        "initial_scale": GRAD_SCALER_INITIAL_SCALE,
+        "backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
+        "max_overflow_adjustments_per_partition":
+            GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+        "minimum_scale": GRAD_SCALER_MIN_SCALE,
+        "journal_advances_only_after_finite_optimizer_step": True,
+        "replays_exact_rng_state_and_occurrence_indices": True,
+    }
+    if (not isinstance(recovery, Mapping)
+            or any(recovery.get(key) != expected
+                   for key, expected in expected_receipt_static.items())):
+        raise PermissionError("Packaged numerical-recovery policy differs")
+    updates = receipt.get("updates")
+    optimizer_updates = receipt.get("successful_optimizer_updates")
+    adjustments = recovery.get("total_overflow_adjustments")
+    if (not isinstance(optimizer_updates, int) or optimizer_updates <= 0
+            or not isinstance(updates, list)
+            or len(updates) != optimizer_updates
+            or not isinstance(adjustments, int) or adjustments < 0
+            or adjustments > GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS):
+        raise PermissionError("Packaged numerical-recovery count differs")
+    total_adjustments = 0
+    logical_tokens = 0
+    replay_tokens = 0
+    measured_steps = 0
+    recovered_updates = 0
+    expected_scale = GRAD_SCALER_INITIAL_SCALE
+    for update_index, update in enumerate(updates):
+        current = update.get("overflow_adjustments")
+        attempts = update.get("grad_scaler_attempts")
+        logical = update.get("logical_tokens")
+        replay = update.get("replay_physical_tokens")
+        if (update.get("optimizer_update") != update_index
+                or not isinstance(current, int) or current < 0
+                or not isinstance(attempts, list)
+                or len(attempts) != current + 1
+                or not isinstance(logical, int) or logical <= 0
+                or replay != logical * current
+                or update.get("initial_physical_tokens") != logical
+                or update.get("physical_tokens_processed") != logical + replay
+                or update.get("overflow") is not False
+                or update.get("finite") is not True
+                or update.get("optimizer_step_pre_hook_calls") != 1):
+            raise PermissionError("Packaged numerical update differs")
+        for attempt_index, attempt in enumerate(attempts):
+            overflow = attempt_index < current
+            if (attempt.get("attempt_index") != attempt_index
+                    or attempt.get("overflow") is not overflow
+                    or attempt.get("gradient_finite") is overflow
+                    or attempt.get("optimizer_step_pre_hook_call_delta")
+                       != (0 if overflow else 1)
+                    or attempt.get("optimizer_step_executed")
+                       is not (not overflow)):
+                raise PermissionError("Packaged recovery attempt differs")
+            before, after = (attempt.get("scale_before"),
+                             attempt.get("scale_after"))
+            numeric = (
+                isinstance(before, (int, float))
+                and not isinstance(before, bool)
+                and isinstance(after, (int, float))
+                and not isinstance(after, bool)
+                and math.isfinite(float(before))
+                and math.isfinite(float(after))
+            )
+            expected_after = (
+                before * GRAD_SCALER_BACKOFF_FACTOR
+                if numeric and overflow else after)
+            if (not numeric
+                    or before != expected_scale
+                    or before < GRAD_SCALER_MIN_SCALE
+                    or (overflow and (
+                        after != expected_after
+                        or after < GRAD_SCALER_MIN_SCALE))
+                    or (not overflow and after < before)):
+                raise PermissionError("Packaged recovery scale differs")
+            expected_scale = after
+        total_adjustments += current
+        logical_tokens += logical
+        replay_tokens += replay
+        measured_steps += 1
+        recovered_updates += int(current > 0)
+    physical_tokens = receipt.get("physical_tokens_processed")
+    if (total_adjustments != adjustments
+            or receipt.get("tokens_seen") != logical_tokens
+            or receipt.get("overflow_recompute_tokens") != replay_tokens
+            or physical_tokens != logical_tokens + replay_tokens):
+        raise PermissionError("Packaged numerical token accounting differs")
+    summary = {
+        "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+        "grad_scaler_initial_scale": GRAD_SCALER_INITIAL_SCALE,
+        "grad_scaler_backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
+        "max_overflow_adjustments":
+            GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+        "minimum_grad_scaler_scale": GRAD_SCALER_MIN_SCALE,
+        "total_overflow_adjustments": total_adjustments,
+        "recovered_optimizer_update_count": recovered_updates,
+        "measured_optimizer_step_calls": measured_steps,
+        "logical_tokens": logical_tokens,
+        "replay_physical_tokens": replay_tokens,
+        "physical_tokens": physical_tokens,
+        "journal_advances_only_after_finite_optimizer_step": True,
+        "replays_exact_rng_state_and_occurrence_indices": True,
+    }
+    summary["recovery_audit_sha256"] = digest(summary)
+    return summary
+
+
+def _validate_training_recovery_audit(
+        audit: Mapping[str, Any], receipt: Mapping[str, Any]) -> dict[str, Any]:
+    endpoint = _training_recovery_summary(receipt)
+    chain = audit.get("three_residual_stage_chain")
+    if (not isinstance(chain, list) or len(chain) != 3
+            or [row.get("stage") for row in chain]
+               != ["delta1", "delta2", "delta3"]):
+        raise PermissionError("Packaged recovery stage chain differs")
+    summaries = []
+    for row in chain:
+        summary = row.get("recovery_audit")
+        if not isinstance(summary, Mapping):
+            raise PermissionError("Packaged recovery audit is absent")
+        payload = dict(summary)
+        embedded = payload.pop("recovery_audit_sha256", None)
+        if (embedded != digest(payload)
+                or summary.get("numerical_policy")
+                   != DATABRICKS_A10_GRAD_SCALER_POLICY
+                or summary.get("max_overflow_adjustments")
+                   != GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS
+                or summary.get("minimum_grad_scaler_scale")
+                   != GRAD_SCALER_MIN_SCALE):
+            raise PermissionError("Packaged recovery audit self-binding differs")
+        summaries.append(dict(summary))
+    if (summaries[-1] != endpoint
+            or audit.get("numerical_policy")
+               != DATABRICKS_A10_GRAD_SCALER_POLICY
+            or audit.get("cumulative_overflow_adjustments")
+               != sum(row["total_overflow_adjustments"] for row in summaries)
+            or audit.get("cumulative_logical_tokens")
+               != sum(row["logical_tokens"] for row in summaries)
+            or audit.get("cumulative_replay_physical_tokens")
+               != sum(row["replay_physical_tokens"] for row in summaries)
+            or audit.get("cumulative_physical_tokens")
+               != sum(row["physical_tokens"] for row in summaries)
+            or audit.get("cumulative_measured_optimizer_step_calls")
+               != sum(row["measured_optimizer_step_calls"] for row in summaries)
+            or audit.get("recovery_audit_chain_sha256") != digest(summaries)):
+        raise PermissionError("Packaged recovery audit chain differs")
+    return endpoint
+
+
 def verify_training_lineage(
     row: Mapping[str, Any], directory: str | Path, config: Mapping[str, Any], *,
     receipt_path: str | Path | None = None, audit_path: str | Path | None = None,
@@ -249,13 +416,19 @@ def verify_training_lineage(
             or audit.get("source_sha256") != config.get("source_sha256")
             or audit.get("plan_sha256") != config.get("plan_sha256")
             or audit.get("optimizer_updates") != receipt.get("successful_optimizer_updates")
+            or not _sha64(audit.get("qualification_receipt_sha256"))
+            or not _sha64(audit.get(
+                "qualification_technical_successor_sha256"))
             or audit.get("base_frozen") is not True
             or audit.get("self_attested_pass_flags_used") is not False):
         raise PermissionError("Independent training audit does not bind the actual receipt/checkpoint")
+    recovery = _validate_training_recovery_audit(audit, receipt)
     return {
         "training_receipt_sha256": file_sha256(receipt_path),
         "training_audit_sha256": file_sha256(audit_path),
         "training_audit_payload_sha256": embedded_audit,
+        "training_recovery_audit_sha256": recovery[
+            "recovery_audit_sha256"],
     }
 
 

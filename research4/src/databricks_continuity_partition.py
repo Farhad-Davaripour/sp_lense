@@ -79,9 +79,14 @@ def _stage_local_model(volume_root, volume_receipt, identity, expected_tree,
         raise
     elapsed = time.monotonic() - started
     return local_model, local_receipt, {
+        "source_model_path": str(volume_root),
+        "source_receipt_path": str(volume_receipt),
         "copy_seconds": elapsed,
         "copy_bytes": proof["total_bytes"],
         "copy_bytes_per_second": proof["total_bytes"] / max(elapsed, 1e-9),
+        "public_model_download_bytes": 0,
+        "hf_network_fallback_disabled": True,
+        "snapshot_download_used": False,
         "local_disk_free_before": free_before,
         "local_disk_free_after": shutil.disk_usage(destination.parent).free,
         "tree_sha256": proof["tree_sha256"],
@@ -390,7 +395,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         if whole_job_elapsed() >= intent["wall_clock_ceiling_seconds"]:
             raise TimeoutError("Databricks post-run audit exceeded the reviewed ceiling")
         parent_finalization = {
-            "version": "research4-parent-mlflow-finalization-v1",
+            "version": "research4-parent-mlflow-finalization-v2",
             "identity": identity,
             "owner_run_id": str(job_run_id),
             "intent_sha256": intent["intent_sha256"],
@@ -445,7 +450,8 @@ def _expected_mlflow_scalars(journal, terminal):
         step = update["optimizer_update"]
         for key, value in update.items():
             if key in {"version", "intent_sha256", "plan_sha256",
-                       "optimizer_update", "progress_record_sha256"}:
+                       "optimizer_update", "progress_record_sha256",
+                       "overflow_recovered", "grad_scaler_attempts_sha256"}:
                 continue
             add_metric(key, value, step)
     for key in ("mean_gpu_utilization_percent", "tokens_per_second",
@@ -631,7 +637,7 @@ def _validate_parent_finalization(run_root, *, intent, terminal, receipt,
     if pending_gold_row != expected_gold:
         raise PermissionError("CPU parent pending Gold binding differs")
     expected = {
-        "version": "research4-parent-mlflow-finalization-v1",
+        "version": "research4-parent-mlflow-finalization-v2",
         "identity": intent["identity"],
         "owner_run_id": str(owner_run_id),
         "intent_sha256": intent["intent_sha256"],

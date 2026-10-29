@@ -21,11 +21,14 @@ from .qwen9b_ordinal_continuity_lora import (
     model_component_hashes)
 
 
-MLFLOW_JOURNAL_VERSION = "research4-parent-mlflow-journal-v1"
+MLFLOW_JOURNAL_VERSION = "research4-parent-mlflow-journal-v2"
 PROGRESS_METRICS = (
     "loss", "sft", "preference", "cross_danger_margin",
     "level0_kl_anchor", "gradient_norm_before_clip",
     "grad_scaler_before", "grad_scaler_after",
+    "overflow_adjustments", "logical_tokens", "replay_physical_tokens",
+    "physical_tokens_processed", "optimizer_step_pre_hook_calls",
+    "minimum_grad_scaler_scale",
 )
 
 
@@ -58,6 +61,13 @@ def _append_progress(path, update, *, intent_sha256, plan_sha256):
                 or not math.isfinite(float(value))):
             raise PermissionError(f"MLflow progress metric is invalid: {key}")
         row[key] = float(value)
+    attempts = update.get("grad_scaler_attempts")
+    if (not isinstance(attempts, list) or not attempts
+            or any(not isinstance(value, dict) for value in attempts)):
+        raise PermissionError("MLflow progress lacks GradScaler attempts")
+    row["overflow_recovered"] = update.get("overflow_recovered") is True
+    row["grad_scaler_attempt_count"] = len(attempts)
+    row["grad_scaler_attempts_sha256"] = _digest(attempts)
     row["progress_record_sha256"] = _digest(row)
     with Path(path).open("a", encoding="utf-8") as stream:
         stream.write(_canonical(row) + "\n"); stream.flush(); os.fsync(stream.fileno())
@@ -81,6 +91,11 @@ def validate_mlflow_journal(output, *, intent, plan, receipt, rank_receipt,
         "source_manifest_file_count": intent["source_manifest"]["file_count"],
         "technical_successor_sha256": intent.get(
             "qualification_technical_successor_sha256"),
+        "numerical_policy": plan.numerical_policy,
+        "grad_scaler_initial_scale": plan.grad_scaler_initial_scale,
+        "grad_scaler_backoff_factor": plan.grad_scaler_backoff_factor,
+        "max_overflow_adjustments": plan.max_overflow_adjustments,
+        "minimum_grad_scaler_scale": plan.minimum_grad_scaler_scale,
     }
     if params_payload != expected_params or params_sha != _digest(params_payload):
         raise PermissionError("Parent MLflow parameter journal differs")
@@ -116,6 +131,15 @@ def validate_mlflow_journal(output, *, intent, plan, receipt, rank_receipt,
                     or not math.isfinite(float(journal_value))):
                 raise PermissionError(
                     f"Parent MLflow progress metric is invalid: {key}")
+        attempts = update.get("grad_scaler_attempts")
+        if (not isinstance(attempts, list) or not attempts
+                or any(not isinstance(value, dict) for value in attempts)):
+            raise PermissionError("Rank receipt lacks GradScaler attempts")
+        expected_progress.update({
+            "overflow_recovered": update.get("overflow_recovered") is True,
+            "grad_scaler_attempt_count": len(attempts),
+            "grad_scaler_attempts_sha256": _digest(attempts),
+        })
         if (payload != expected_progress or embedded != _digest(payload)):
             raise PermissionError("Parent MLflow progress row differs")
     final_payload = dict(final); final_sha = final_payload.pop("final_sha256", None)
@@ -195,6 +219,11 @@ def run(args):
         "source_manifest_file_count": intent["source_manifest"]["file_count"],
         "technical_successor_sha256": intent.get(
             "qualification_technical_successor_sha256"),
+        "numerical_policy": plan.numerical_policy,
+        "grad_scaler_initial_scale": plan.grad_scaler_initial_scale,
+        "grad_scaler_backoff_factor": plan.grad_scaler_backoff_factor,
+        "max_overflow_adjustments": plan.max_overflow_adjustments,
+        "minimum_grad_scaler_scale": plan.minimum_grad_scaler_scale,
     }
     params["params_sha256"] = _digest(params)
     _atomic_json(output / "MLFLOW_PARAMS.json", params)
@@ -265,7 +294,7 @@ def run(args):
                 if key.endswith("_pass") or key == "capacity_adequate"):
             raise PermissionError("Rank-4 qualification failed a raw evidence gate")
         evidence = {
-            "version": "research4-databricks-partition-evidence-v2",
+            "version": "research4-databricks-partition-evidence-v3",
             "intent_sha256": intent["intent_sha256"],
             "base_qualification_carryforward_sha256": intent.get(
                 "base_qualification_carryforward_sha256"),
@@ -277,6 +306,12 @@ def run(args):
             "live_base_components_after": live_after,
             "save_reload_pass": save_reload_pass,
             "qualification_metrics": metrics if plan.mode == "qualification" else None,
+            "grad_scaler_recovery": receipt.get("grad_scaler_recovery"),
+            "logical_tokens_seen": receipt.get("tokens_seen"),
+            "physical_tokens_processed": receipt.get(
+                "physical_tokens_processed"),
+            "overflow_recompute_tokens": receipt.get(
+                "overflow_recompute_tokens"),
             "runtime_proof": proof,
         }
         evidence["evidence_sha256"] = __import__("hashlib").sha256(json.dumps(

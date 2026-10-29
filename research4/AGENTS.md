@@ -1,5 +1,50 @@
 # Research4 current Databricks continuation
 
+## Approved bounded GradScaler recovery (2026-10-29)
+
+The human directly approved the independently reviewed FP16 GradScaler
+recovery amendment and instructed the study to keep going without another
+routine approval wait. The durable approval receipt is
+`C:/Users/farha/Research4/artifacts/qwen9b_simulated_continuity_20261028/gradscaler_recovery_proposal_20261029/HUMAN_APPROVAL.json`
+(file SHA256 `9f8832e3bdaa10a348fcd8bf0f65b85984b3d054c80417411d7e280a3b180c3f`).
+The approved proposal SHA256 is
+`ae2fdd048d1ffd5e5ef6402104e93a8d3fdbb5b4d5c802c918b1b7f9809f1bbc`.
+
+Scope recovery to canonical Databricks A10 plans only. Preserve exact FP16/NF4,
+model, data and occurrence order, global batch4/microbatch1/accumulation4,
+loss terms and coefficients, legacy combined-loss arithmetic, learning rate,
+clipping, adapter geometry, seeds and criteria. Permit at most four loss-scale
+reductions across a partition and never below4096. An overflow executes zero
+optimizer steps, clears gradients, restores exact RNG state and replays the
+identical update without journal advancement. A finite attempt executes
+exactly one step. Record logical versus physical work, scales, measured step
+calls and count-only component-gradient evidence; fail closed on exhaustion.
+Historical Kaggle/non-A10 plans retain exact fail-fast behavior. BF16 is not
+part of this amendment.
+
+The closed `qualification_rank4_a10_microbatch1_v4` failure remains immutable,
+consumed and unretryable. Its approved successor requires a fresh versioned
+plan/protocol/receipt/source authority and one-use identity. If that qualifier
+passes and releases cleanly, continue the registered Delta1→Delta2→Delta3
+matrix and frozen inference under their existing per-stage gates.
+
+Use local-first cost control. Never redownload Qwen3.5-9B; reuse only the
+verified volume snapshot at revision
+`c202236235762e1c871ad0ccb60c8ee5ba337b9a`, tree
+`9845026dbe255e24b105224eebbb5436d315713b9a5c53c434137896b160c5b1`.
+
+## Shared production-path cutover after the current run (2026-10-29)
+
+Complete and close the currently approved GradScaler successor using its
+already reviewed user-scoped source-release path. Do not repoint or delay it.
+After that run/release closes, make a separate reviewed migration for the next
+release and all subsequent production jobs to
+`/Workspace/Shared/research4/source_releases/<exact-merge-commit>`.
+`/Workspace/Users/<user>/...` is development/testing-only after the cutover.
+The migration must verify Shared permissions, bundle and resolved job paths,
+validators, intents/manifests, tests, CI, exact deployment and readback, while
+preserving every historical run binding and avoiding dual active deployments.
+
 ## Current platform and architecture amendment (2026-10-28)
 
 The human's later direct instruction selects the existing Azure Databricks

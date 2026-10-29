@@ -29,6 +29,13 @@ from src.continuity_transfer_inference_worker import verify_checkpoint_manifest
 from src.qwen9b_ordinal_continuity_lora import (
     MODEL_ID, MODEL_REVISION, OrdinalContinuityLoRAConfig,
 )
+from src.qwen9b_ordinal_continuity_training import (
+    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    GRAD_SCALER_BACKOFF_FACTOR,
+    GRAD_SCALER_INITIAL_SCALE,
+    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+    GRAD_SCALER_MIN_SCALE,
+)
 from dataclasses import asdict
 from src.databricks_simulated_continuity import (
     GOLD_SUMMARY_TABLE, SOURCE_MANIFEST_PATHS, SOURCE_MANIFEST_VERSION,
@@ -153,6 +160,23 @@ class TransferPackagingTests(unittest.TestCase):
         parent = None
         for index, stage in enumerate(("delta1", "delta2", "delta3"), 1):
             tree = f"{index:064x}"
+            recovery = {
+                "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+                "grad_scaler_initial_scale": GRAD_SCALER_INITIAL_SCALE,
+                "grad_scaler_backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
+                "max_overflow_adjustments":
+                    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+                "minimum_grad_scaler_scale": GRAD_SCALER_MIN_SCALE,
+                "total_overflow_adjustments": index - 1,
+                "recovered_optimizer_update_count": index - 1,
+                "measured_optimizer_step_calls": 144,
+                "logical_tokens": 1000 * index,
+                "replay_physical_tokens": 100 * (index - 1),
+                "physical_tokens": 1000 * index + 100 * (index - 1),
+                "journal_advances_only_after_finite_optimizer_step": True,
+                "replays_exact_rng_state_and_occurrence_indices": True,
+            }
+            recovery["recovery_audit_sha256"] = digest(recovery)
             chain.append({
                 "identity": f"cell_{stage}", "stage": stage,
                 "plan_sha256": f"{index + 10:064x}",
@@ -162,6 +186,7 @@ class TransferPackagingTests(unittest.TestCase):
                 "rank_receipt_sha256": f"{index + 30:064x}",
                 "evidence_sha256": f"{index + 40:064x}",
                 "optimizer_updates": 144,
+                "recovery_audit": recovery,
             })
             parent = tree
         endpoint = {
@@ -170,9 +195,16 @@ class TransferPackagingTests(unittest.TestCase):
             "checkpoint_payload_members_sha256": "a" * 64,
         }
         audit = _build_training_audit(
-            {"endpoint": endpoint, "chain": chain},
+            {"endpoint": endpoint, "chain": chain,
+             "qualification_receipt_sha256": "d" * 64,
+             "qualification_technical_successor_sha256": "e" * 64},
             matrix_sha256="b" * 64, source_commit="c" * 40)
         self.assertEqual(audit["cumulative_stage_optimizer_updates"], 432)
+        self.assertEqual(audit["cumulative_overflow_adjustments"], 3)
+        self.assertEqual(audit["cumulative_logical_tokens"], 6000)
+        self.assertEqual(audit["cumulative_replay_physical_tokens"], 300)
+        self.assertEqual(audit["cumulative_physical_tokens"], 6300)
+        self.assertEqual(audit["cumulative_measured_optimizer_step_calls"], 432)
         self.assertEqual([row["stage"] for row in audit[
             "three_residual_stage_chain"]], ["delta1", "delta2", "delta3"])
         payload = dict(audit); embedded = payload.pop("audit_payload_sha256")

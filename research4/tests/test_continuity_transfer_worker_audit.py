@@ -10,16 +10,89 @@ from src.continuity_transfer_evaluation import (
     write_sealed_registry,
 )
 from src.continuity_transfer_inference_worker import (
+    _training_recovery_summary,
     parse_native_action, parse_native_action_detail, run_worker,
-    verify_checkpoint_manifest,
+    verify_checkpoint_manifest, verify_training_lineage,
 )
 from src.continuity_transfer_inference_worker import TRAINING_AUDIT_VERSION
 from src.continuity_transfer_raw_audit import audit_raw_run, interpretation_gates
-from src.qwen9b_ordinal_continuity_lora import MODEL_ID, MODEL_REVISION
+from src.qwen9b_ordinal_continuity_lora import (
+    CHECKPOINT_VERSION, MODEL_ID, MODEL_REVISION,
+)
+from src.qwen9b_ordinal_continuity_training import (
+    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    GRAD_SCALER_BACKOFF_FACTOR,
+    GRAD_SCALER_INITIAL_SCALE,
+    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+    GRAD_SCALER_MIN_SCALE,
+    RANK_RUN_VERSION,
+)
 
 
 def dump(path, value):
     Path(path).write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+
+
+def recovery_receipt_fields(update_count=2, logical_tokens=10):
+    updates = []
+    for index in range(update_count):
+        updates.append({
+            "optimizer_update": index,
+            "overflow_adjustments": 0,
+            "grad_scaler_attempts": [{
+                "attempt_index": 0, "overflow": False,
+                "gradient_finite": True,
+                "optimizer_step_pre_hook_call_delta": 1,
+                "optimizer_step_executed": True,
+                "scale_before": GRAD_SCALER_INITIAL_SCALE,
+                "scale_after": GRAD_SCALER_INITIAL_SCALE,
+            }],
+            "logical_tokens": logical_tokens,
+            "initial_physical_tokens": logical_tokens,
+            "replay_physical_tokens": 0,
+            "physical_tokens_processed": logical_tokens,
+            "overflow": False, "finite": True,
+            "overflow_recovered": False,
+            "optimizer_step_pre_hook_calls": 1,
+        })
+    return {
+        "updates": updates,
+        "successful_optimizer_updates": update_count,
+        "tokens_seen": update_count * logical_tokens,
+        "overflow_recompute_tokens": 0,
+        "physical_tokens_processed": update_count * logical_tokens,
+        "grad_scaler_recovery": {
+            "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+            "initial_scale": GRAD_SCALER_INITIAL_SCALE,
+            "backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
+            "max_overflow_adjustments_per_partition":
+                GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+            "minimum_scale": GRAD_SCALER_MIN_SCALE,
+            "total_overflow_adjustments": 0,
+            "journal_advances_only_after_finite_optimizer_step": True,
+            "replays_exact_rng_state_and_occurrence_indices": True,
+        },
+    }
+
+
+def recovery_audit(update_count=2, logical_tokens=10):
+    value = {
+        "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+        "grad_scaler_initial_scale": GRAD_SCALER_INITIAL_SCALE,
+        "grad_scaler_backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
+        "max_overflow_adjustments": GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+        "minimum_grad_scaler_scale": GRAD_SCALER_MIN_SCALE,
+        "total_overflow_adjustments": 0,
+        "recovered_optimizer_update_count": 0,
+        "measured_optimizer_step_calls": update_count,
+        "logical_tokens": update_count * logical_tokens,
+        "replay_physical_tokens": 0,
+        "physical_tokens": update_count * logical_tokens,
+        "journal_advances_only_after_finite_optimizer_step": True,
+        "replays_exact_rng_state_and_occurrence_indices": True,
+    }
+    value["recovery_audit_sha256"] = digest(value)
+    return value
 
 
 class FakeBackend:
@@ -86,7 +159,7 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
                 directory = checkpoint_root / "checkpoints" / blind
                 directory.mkdir(parents=True)
                 config = {
-                    "version": "qwen35-9b-ordinal-continuity-checkpoint-v4",
+                    "version": CHECKPOINT_VERSION,
                     "config": {"model_id": MODEL_ID, "model_revision": MODEL_REVISION},
                     "stage": "delta3", "condition": condition, "seed": seed,
                     "active_branches": ["delta1", "delta2", "delta3"],
@@ -101,15 +174,18 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
                                    for item in sorted(directory.rglob("*")) if item.is_file()}
                 payload_members_sha = digest(payload_members)
                 base_receipt = {
-                    "version": "qwen35-9b-ordinal-continuity-rank-run-v3",
+                    "version": RANK_RUN_VERSION,
                     "status": "complete", "plan_sha256": "2" * 64,
                     "successful_optimizer_updates": 2,
+                    **recovery_receipt_fields(),
                 }
                 receipt = {**base_receipt, "receipt_sha256": digest(base_receipt),
                            "checkpoint": config,
                            "checkpoint_metadata_sha256": file_sha256(directory / "adapter_config.json")}
                 lineage = directory / "lineage"; lineage.mkdir()
                 dump(lineage / "TRAINING_RECEIPT.json", receipt)
+                endpoint_recovery = recovery_audit()
+                recovery_chain = [dict(endpoint_recovery) for _ in range(3)]
                 audit_payload = {
                     "version": TRAINING_AUDIT_VERSION, "complete": True,
                     "training_receipt_sha256": file_sha256(lineage / "TRAINING_RECEIPT.json"),
@@ -119,6 +195,20 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
                     "source_sha256": "1" * 64, "plan_sha256": "2" * 64,
                     "optimizer_updates": 2, "base_frozen": True,
                     "self_attested_pass_flags_used": False,
+                    "qualification_receipt_sha256": "8" * 64,
+                    "qualification_technical_successor_sha256": "9" * 64,
+                    "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+                    "cumulative_overflow_adjustments": 0,
+                    "cumulative_logical_tokens": 60,
+                    "cumulative_replay_physical_tokens": 0,
+                    "cumulative_physical_tokens": 60,
+                    "cumulative_measured_optimizer_step_calls": 6,
+                    "recovery_audit_chain_sha256": digest(recovery_chain),
+                    "three_residual_stage_chain": [
+                        {"stage": stage, "recovery_audit": recovery}
+                        for stage, recovery in zip(
+                            ("delta1", "delta2", "delta3"), recovery_chain)
+                    ],
                 }
                 dump(lineage / "TRAINING_AUDIT.json",
                      {**audit_payload, "audit_payload_sha256": digest(audit_payload)})
@@ -200,6 +290,90 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
                                        if row["identity_kind"] != "frozen_base"]
         with self.assertRaises(PermissionError):
             verify_checkpoint_manifest(missing_base, self.checkpoint_root)
+
+    def test_self_consistent_recovery_audit_tamper_rejects_receipt(self):
+        manifest = json.loads(self.manifest.read_text())
+        row = next(item for item in manifest["checkpoints"]
+                   if item["identity_kind"] == "adapted")
+        directory = self.checkpoint_root / row["relative_directory"]
+        config = json.loads((directory / "adapter_config.json").read_text())
+        audit_path = directory / "lineage" / "TRAINING_AUDIT.json"
+        audit = json.loads(audit_path.read_text())
+        endpoint = audit["three_residual_stage_chain"][-1]["recovery_audit"]
+        endpoint["physical_tokens"] += 1
+        payload = dict(endpoint); payload.pop("recovery_audit_sha256")
+        endpoint["recovery_audit_sha256"] = digest(payload)
+        summaries = [item["recovery_audit"]
+                     for item in audit["three_residual_stage_chain"]]
+        audit["cumulative_physical_tokens"] = sum(
+            item["physical_tokens"] for item in summaries)
+        audit["recovery_audit_chain_sha256"] = digest(summaries)
+        payload = dict(audit); payload.pop("audit_payload_sha256")
+        audit["audit_payload_sha256"] = digest(payload)
+        dump(audit_path, audit)
+        changed = dict(row)
+        changed["training_audit_sha256"] = file_sha256(audit_path)
+        with self.assertRaisesRegex(PermissionError, "recovery audit chain"):
+            verify_training_lineage(changed, directory, config)
+
+    def test_recovery_scale_chain_rejects_self_consistent_tamper(self):
+        wrong_initial = recovery_receipt_fields(update_count=2)
+        for update in wrong_initial["updates"]:
+            attempt = update["grad_scaler_attempts"][0]
+            attempt["scale_before"] = 32768.0
+            attempt["scale_after"] = 32768.0
+
+        finite_decrease = recovery_receipt_fields(update_count=2)
+        finite_decrease["updates"][0]["grad_scaler_attempts"][0][
+            "scale_after"] = 32768.0
+        finite_decrease["updates"][1]["grad_scaler_attempts"][0][
+            "scale_before"] = 32768.0
+        finite_decrease["updates"][1]["grad_scaler_attempts"][0][
+            "scale_after"] = 32768.0
+
+        chain_break = recovery_receipt_fields(update_count=2)
+        chain_break["updates"][0]["grad_scaler_attempts"][0][
+            "scale_after"] = 131072.0
+
+        wrong_backoff = recovery_receipt_fields(update_count=1)
+        logical = wrong_backoff["updates"][0]["logical_tokens"]
+        update = wrong_backoff["updates"][0]
+        update.update({
+            "overflow_adjustments": 1,
+            "overflow_recovered": True,
+            "replay_physical_tokens": logical,
+            "physical_tokens_processed": 2 * logical,
+            "grad_scaler_attempts": [{
+                "attempt_index": 0,
+                "overflow": True,
+                "gradient_finite": False,
+                "optimizer_step_pre_hook_call_delta": 0,
+                "optimizer_step_executed": False,
+                "scale_before": GRAD_SCALER_INITIAL_SCALE,
+                "scale_after": 49152.0,
+            }, {
+                "attempt_index": 1,
+                "overflow": False,
+                "gradient_finite": True,
+                "optimizer_step_pre_hook_call_delta": 1,
+                "optimizer_step_executed": True,
+                "scale_before": 49152.0,
+                "scale_after": 49152.0,
+            }],
+        })
+        wrong_backoff["overflow_recompute_tokens"] = logical
+        wrong_backoff["physical_tokens_processed"] = 2 * logical
+        wrong_backoff["grad_scaler_recovery"][
+            "total_overflow_adjustments"] = 1
+
+        for label, receipt in (
+                ("initial", wrong_initial),
+                ("finite_decrease", finite_decrease),
+                ("continuity", chain_break),
+                ("backoff", wrong_backoff)):
+            with self.subTest(label=label), self.assertRaisesRegex(
+                    PermissionError, "recovery scale"):
+                _training_recovery_summary(receipt)
 
     def test_uniform_false_claim_rate_cannot_pass_interpretation(self):
         bindings = {

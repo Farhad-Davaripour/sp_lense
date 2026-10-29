@@ -1,7 +1,7 @@
 import copy
 import hashlib
 import json
-from dataclasses import asdict, replace
+from dataclasses import asdict
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -18,7 +18,8 @@ from src.databricks_continuity_partition_worker import (
     MLFLOW_JOURNAL_VERSION, _digest, validate_mlflow_journal,
 )
 from src.qwen9b_ordinal_continuity_controller import partition_identity
-from src.qwen9b_ordinal_continuity_training import TrainingPlan
+from src.qwen9b_ordinal_continuity_training import (
+    TrainingPlan, databricks_a10_plan)
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qualification_technical_successor import (
     SUCCESSOR_IDENTITY, authority, validate,
@@ -27,9 +28,7 @@ from src.qualification_technical_successor import (
 
 class ParentMlflowJournalTests(unittest.TestCase):
     def fixture(self, root):
-        plan = replace(
-            TrainingPlan(), device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        plan = databricks_a10_plan(TrainingPlan())
         technical = authority()
         intent = {
             "intent_sha256": "1" * 64,
@@ -51,6 +50,11 @@ class ParentMlflowJournalTests(unittest.TestCase):
             "source_manifest_file_count": 10,
             "technical_successor_sha256": technical[
                 "technical_successor_sha256"],
+            "numerical_policy": plan.numerical_policy,
+            "grad_scaler_initial_scale": plan.grad_scaler_initial_scale,
+            "grad_scaler_backoff_factor": plan.grad_scaler_backoff_factor,
+            "max_overflow_adjustments": plan.max_overflow_adjustments,
+            "minimum_grad_scaler_scale": plan.minimum_grad_scaler_scale,
         }
         params["params_sha256"] = _digest(params)
         (root / "MLFLOW_PARAMS.json").write_text(json.dumps(params))
@@ -60,13 +64,36 @@ class ParentMlflowJournalTests(unittest.TestCase):
                       "sft": .5, "preference": .2,
                       "cross_danger_margin": .1, "level0_kl_anchor": .05,
                       "gradient_norm_before_clip": .9,
-                      "grad_scaler_before": 1.0, "grad_scaler_after": 1.0}
+                      "grad_scaler_before": 65536.0,
+                      "grad_scaler_after": 65536.0,
+                      "overflow_adjustments": 0,
+                      "logical_tokens": 1024,
+                      "replay_physical_tokens": 0,
+                      "physical_tokens_processed": 1024,
+                      "optimizer_step_pre_hook_calls": 1,
+                      "minimum_grad_scaler_scale": 4096.0,
+                      "overflow_recovered": False,
+                      "grad_scaler_attempts": [{
+                          "attempt_index": 0,
+                          "overflow": False,
+                          "gradient_finite": True,
+                          "scale_before": 65536.0,
+                          "scale_after": 65536.0,
+                          "optimizer_step_pre_hook_call_delta": 1,
+                          "optimizer_step_executed": True,
+                      }]}
             updates.append(update)
         rows = []
         for update in updates:
             row = {"version": MLFLOW_JOURNAL_VERSION,
                    "intent_sha256": intent["intent_sha256"],
-                   "plan_sha256": plan.full_plan_sha256, **update}
+                   "plan_sha256": plan.full_plan_sha256,
+                   **{key: value for key, value in update.items()
+                      if key != "grad_scaler_attempts"},
+                   "grad_scaler_attempt_count": len(
+                       update["grad_scaler_attempts"]),
+                   "grad_scaler_attempts_sha256": _digest(
+                       update["grad_scaler_attempts"])}
             row["progress_record_sha256"] = _digest(row); rows.append(row)
         progress = "".join(json.dumps(row, sort_keys=True, separators=(",", ":")) + "\n"
                            for row in rows).encode()
@@ -385,7 +412,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
                 "receipt_replayed": True,
             }
             parent = {
-                "version": "research4-parent-mlflow-finalization-v1",
+                "version": "research4-parent-mlflow-finalization-v2",
                 "identity": identity, "owner_run_id": "123",
                 "intent_sha256": intent["intent_sha256"],
                 "plan_sha256": intent["plan_sha256"],
@@ -445,43 +472,50 @@ class ParentMlflowJournalTests(unittest.TestCase):
         value = authority()
         self.assertEqual(validate(value), value)
         self.assertEqual(value["prior_identity"],
-                         "qualification_rank4_gated_q_geometry_v3")
-        self.assertEqual(value["successor_identity"],
                          "qualification_rank4_a10_microbatch1_v4")
-        self.assertEqual(value["owner_run_id"], "739463343455961")
+        self.assertEqual(value["successor_identity"],
+                         "qualification_rank4_a10_gradscaler_recovery_v5")
+        self.assertEqual(value["owner_run_id"], "123598135063131")
         self.assertEqual(
             value["prior_intent_sha256"],
-            "3aced02640a00040a093fa78921953054ff4554b99b22c5e2e5a3233f7d4635b")
+            "65e06dab4f87babe007df88beb0801a3073f6e8aa7b5c87cec1d73053565d10b")
         self.assertEqual(
             value["closeout_receipt_sha256"],
-            "b29476067c04b3d145729412f2a68e1b56b839f3e2ed22dd1d2f6347e3e168b6")
+            "42075812a67c09b730480ad4d4a0b431bd4be6a88b555676f1cf09302b765bb1")
         self.assertEqual(
             value["predecessor_authority_sha256"],
+            "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9")
+        predecessor = value["predecessor_authority"]
+        self.assertEqual(predecessor["owner_run_id"], "739463343455961")
+        self.assertEqual(
+            predecessor["predecessor_authority_sha256"],
             "f1c5d1ce2eeff6a9089a346db2a72ca11392805b0752539dc862bcb39c42a3bb")
         self.assertEqual(
-            value["predecessor_authority"]["predecessor_authority_sha256"],
+            predecessor["predecessor_authority"][
+                "predecessor_authority_sha256"],
             "e029c82e61172517f3b94cd6d55897db14516bf2193c98381531aa3b50fcd335")
         self.assertEqual(
             value["rank_partial_file_sha256"],
-            "6f66379b23aaf2a242537bcd3b7fb2c44c4944a8d69dc5a50afd6654546af843")
+            "a698689b80da2d3a673364d38665afdc499e68f86328f6f55fe2430747cba71a")
         self.assertEqual(
             value["mlflow_progress_file_sha256"], hashlib.sha256(b"").hexdigest())
         self.assertEqual(value["progress_journal_entries"], 0)
         self.assertEqual(value["optimizer_updates"], 0)
         self.assertFalse(value["checkpoint_written"])
-        self.assertEqual((value["prior_micro_batch_size"],
-                          value["prior_accumulation_steps"]), (2, 2))
-        self.assertEqual((value["successor_micro_batch_size"],
-                          value["successor_accumulation_steps"]), (1, 4))
-        self.assertEqual(value["qualification_occurrence_count"], 8)
-        self.assertEqual(value["primary_occurrence_count"], 576)
-        successor_plan = replace(
-            TrainingPlan(), device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        self.assertEqual(value["backward_calls_completed"], 4)
+        self.assertEqual(value["successor_execution_scope"],
+                         "databricks-a10x1-only")
+        self.assertEqual(value["successor_max_overflow_adjustments"], 4)
+        self.assertEqual(value["successor_minimum_grad_scaler_scale"], 4096.0)
+        self.assertEqual(value["successor_optimizer_steps_on_overflow"], 0)
+        self.assertEqual(
+            value["human_approval_file_sha256"],
+            "9f8832e3bdaa10a348fcd8bf0f65b85984b3d054c80417411d7e280a3b180c3f")
+        successor_plan = databricks_a10_plan(TrainingPlan())
         self.assertEqual(value["successor_plan_sha256"],
                          successor_plan.full_plan_sha256)
-        self.assertEqual(value["successor_global_journal_sha256"],
-                         value["prior_global_journal_sha256"])
+        self.assertEqual(value["technical_successor_sha256"],
+                         "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
         changed = copy.deepcopy(value); changed["optimizer_updates"] = 1
         with self.assertRaises(PermissionError):
             validate(changed)

@@ -16,6 +16,8 @@ from src.qwen9b_ordinal_continuity_controller import (
     PartitionController,
     aggregate_terminal_receipts,
     exact_worker_argv,
+    databricks_matrix_plans,
+    databricks_qualification_plan,
     matrix_plans,
     partition_identity,
     qualification_plan,
@@ -23,7 +25,17 @@ from src.qwen9b_ordinal_continuity_controller import (
     validate_partition_intent,
 )
 from src.qwen9b_ordinal_continuity_lora import MODEL_ID, MODEL_REVISION
-from src.qwen9b_ordinal_continuity_training import TrainingPlan
+from src.qwen9b_ordinal_continuity_training import (
+    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    LEGACY_GRAD_SCALER_POLICY,
+    TrainingPlan,
+)
+from src.qualification_technical_successor import (
+    SUCCESSOR_IDENTITY,
+    _a10_microbatch1_authority,
+    authority as technical_successor_authority,
+    validate as validate_technical_successor,
+)
 from src.qwen9b_ordinal_continuity_runtime import (
     canonical_sha256,
     file_sha256,
@@ -58,10 +70,46 @@ class RuntimeBindingTests(unittest.TestCase):
         self.assertEqual({plan.rank for plan in plans}, {8})
         self.assertEqual({plan.optimizer_updates for plan in plans}, {144})
         self.assertEqual({plan.global_batch_size for plan in plans}, {4})
+        self.assertEqual({plan.numerical_policy for plan in plans},
+                         {LEGACY_GRAD_SCALER_POLICY})
         self.assertEqual({plan.occurrence_count for plan in plans}, {576})
         self.assertEqual(qualification_plan(spec(), 4).optimizer_updates, 2)
         with self.assertRaises(ValueError):
             qualification_plan(spec(), 16)
+
+    def test_all_twenty_eight_databricks_plans_bind_recovery_policy(self):
+        plans = [databricks_qualification_plan(spec(), 4),
+                 *databricks_matrix_plans(spec(), 4)]
+        self.assertEqual(len(plans), 28)
+        self.assertEqual({plan.numerical_policy for plan in plans},
+                         {DATABRICKS_A10_GRAD_SCALER_POLICY})
+        self.assertEqual({plan.max_overflow_adjustments for plan in plans}, {4})
+        self.assertEqual({plan.minimum_grad_scaler_scale for plan in plans},
+                         {4096.0})
+        self.assertEqual(len({plan.full_plan_sha256 for plan in plans}), 28)
+        self.assertEqual(partition_identity(plans[0]), SUCCESSOR_IDENTITY)
+
+    def test_technical_successor_v4_nests_exact_v3_authority(self):
+        prior = _a10_microbatch1_authority()
+        self.assertEqual(
+            prior["technical_successor_sha256"],
+            "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9")
+        current = technical_successor_authority()
+        self.assertEqual(current["predecessor_authority"], prior)
+        self.assertEqual(current["successor_identity"], SUCCESSOR_IDENTITY)
+        self.assertEqual(
+            current["successor_plan_sha256"],
+            databricks_qualification_plan(spec(), 4).full_plan_sha256)
+        self.assertEqual(
+            current["successor_primary_plan_hashes_digest"],
+            canonical_sha256(sorted(
+                plan.full_plan_sha256
+                for plan in databricks_matrix_plans(spec(), 4))))
+        self.assertEqual(validate_technical_successor(current), current)
+        tampered = json.loads(json.dumps(current))
+        tampered["successor_minimum_grad_scaler_scale"] = 1024.0
+        with self.assertRaises(PermissionError):
+            validate_technical_successor(tampered)
 
     def test_experiment_spec_rejects_all_update_count_drift(self):
         accepted = validate_experiment_spec(spec())
