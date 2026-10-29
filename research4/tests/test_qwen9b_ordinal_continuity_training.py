@@ -30,6 +30,8 @@ from src.qwen9b_ordinal_continuity_lora import (
 from src.qwen9b_ordinal_continuity_training import (
     ADMISSION_VERSION,
     CONDITIONS,
+    DATABRICKS_A10_FIXED_SCALE1_POLICY,
+    DATABRICKS_A10_FIXED_SCALE,
     DATABRICKS_A10_GRAD_SCALER_POLICY,
     GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
     GRAD_SCALER_MIN_SCALE,
@@ -50,11 +52,13 @@ from src.qwen9b_ordinal_continuity_training import (
     choose_qualification_rank,
     create_qualification_receipt,
     databricks_a10_plan,
+    databricks_a10_bounded_gradscaler_plan,
     databricks_a10_compatibility_scales,
     execute_capacity_qualification,
     execute_with_preregistered_batch_fallback,
     equalize_matched_prompt_exposure,
     gradient_finiteness_diagnostic,
+    fixed_scale1_grad_scaler_update,
     occurrence_key_schedule,
     optimizer_sha256,
     ordinal_pair_loss,
@@ -548,7 +552,7 @@ class TrainingAdmissionTests(unittest.TestCase):
 
     def test_rank_receipt_self_hash_is_recomputed(self):
         payload = {
-            "version": "qwen35-9b-ordinal-continuity-rank-run-v4",
+            "version": "qwen35-9b-ordinal-continuity-rank-run-v5",
             "status": "complete", "plan_sha256": "p" * 64,
             "global_journal_sha256": "j" * 64,
             "global_journal_occurrence_count": 96,
@@ -580,10 +584,15 @@ class TrainingAdmissionTests(unittest.TestCase):
                     databricks_a10_compatibility_scales(entries, plan)),
                 "overflow_adjustments": 0,
                 "overflow_recovered": False,
-                "max_overflow_adjustments": 4,
-                "minimum_grad_scaler_scale": 4096.0,
-                "grad_scaler_before": 65536.0,
-                "grad_scaler_after": 65536.0,
+                "max_overflow_adjustments": 0,
+                "minimum_grad_scaler_scale": 1.0,
+                "grad_scaler_before": 1.0,
+                "grad_scaler_after": 1.0,
+                "gradient_norm_before_clip": 1.0,
+                "gradient_norm_positive": True,
+                "active_branch_finite_nonzero_gradient_element_count": 10,
+                "active_branch_finite_nonzero_gradient_density": 0.5,
+                "fixed_scale_no_growth": True,
                 "logical_tokens": logical,
                 "initial_physical_tokens": logical,
                 "replay_physical_tokens": 0,
@@ -597,12 +606,27 @@ class TrainingAdmissionTests(unittest.TestCase):
                     "gradient_finite": True,
                     "optimizer_step_pre_hook_call_delta": 1,
                     "optimizer_step_executed": True,
-                    "scale_before": 65536.0,
-                    "scale_after": 65536.0,
+                    "optimizer_step_pre_hook_calls_before": 0,
+                    "optimizer_step_pre_hook_calls_after": 1,
+                    "scale_adjustment_applied": False,
+                    "scale_before": 1.0,
+                    "scale_after": 1.0,
+                    "gradient_norm_before_clip": 1.0,
+                    "gradient_norm_positive": True,
+                    "active_branch_finite_nonzero_gradient_element_count": 10,
+                    "active_branch_finite_nonzero_gradient_density": 0.5,
+                    "diagnostic": {
+                        "gradient_norm_finite": True,
+                        "gradient_norm_positive": True,
+                        "nonfinite_gradient_element_count": 0,
+                        "trainable_gradient_element_count": 20,
+                        "active_branch_finite_nonzero_gradient_element_count": 10,
+                        "active_branch_finite_nonzero_gradient_density": 0.5,
+                    },
                 }],
             })
         receipt = {
-            "version": "qwen35-9b-ordinal-continuity-rank-run-v4",
+            "version": "qwen35-9b-ordinal-continuity-rank-run-v5",
             "status": "complete", "plan_sha256": plan.full_plan_sha256,
             "global_journal_sha256": canonical_sha256(journal),
             "batching": batching_exposure_contract(plan), "updates": updates,
@@ -611,14 +635,14 @@ class TrainingAdmissionTests(unittest.TestCase):
             "physical_tokens_processed": sum(
                 row["logical_tokens"] for row in updates),
             "grad_scaler_recovery": {
-                "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
-                "initial_scale": 65536.0,
+                "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
+                "initial_scale": 1.0,
                 "backoff_factor": 0.5,
-                "max_overflow_adjustments_per_partition": 4,
+                "max_overflow_adjustments_per_partition": 0,
                 "total_overflow_adjustments": 0,
-                "minimum_scale": 4096.0,
+                "minimum_scale": 1.0,
                 "journal_advances_only_after_finite_optimizer_step": True,
-                "replays_exact_rng_state_and_occurrence_indices": True,
+                "replays_exact_rng_state_and_occurrence_indices": False,
             },
         }
         receipt["receipt_sha256"] = canonical_sha256(receipt)
@@ -728,9 +752,9 @@ class TrainingAdmissionTests(unittest.TestCase):
         exact = databricks_a10_plan(TrainingPlan())
         self.assertEqual(exact.global_batch_size, 4)
         self.assertEqual(exact.numerical_policy,
-                         DATABRICKS_A10_GRAD_SCALER_POLICY)
-        self.assertEqual(exact.max_overflow_adjustments, 4)
-        self.assertEqual(exact.minimum_grad_scaler_scale, 4096.0)
+                         DATABRICKS_A10_FIXED_SCALE1_POLICY)
+        self.assertEqual(exact.max_overflow_adjustments, 0)
+        self.assertEqual(exact.minimum_grad_scaler_scale, 1.0)
         for micro_batch_size, accumulation_steps in (
                 (2, 2), (1, 2), (2, 1), (4, 1)):
             with self.subTest(micro_batch_size=micro_batch_size,
@@ -740,9 +764,10 @@ class TrainingAdmissionTests(unittest.TestCase):
                         device_profile="databricks-a10x1", world_size=1,
                         micro_batch_size=micro_batch_size,
                         accumulation_steps=accumulation_steps,
-                        numerical_policy=DATABRICKS_A10_GRAD_SCALER_POLICY,
-                        max_overflow_adjustments=4,
-                        minimum_grad_scaler_scale=4096.0).validate()
+                        numerical_policy=DATABRICKS_A10_FIXED_SCALE1_POLICY,
+                        grad_scaler_initial_scale=1.0,
+                        max_overflow_adjustments=0,
+                        minimum_grad_scaler_scale=1.0).validate()
 
     def test_a10_policy_is_plan_bound_and_legacy_routes_are_failfast(self):
         legacy = TrainingPlan().validate()
@@ -760,6 +785,53 @@ class TrainingAdmissionTests(unittest.TestCase):
                         minimum_grad_scaler_scale=4096.0)):
             with self.assertRaises(PermissionError):
                 changed.validate()
+
+    def test_fixed_scale1_successor_is_a10_only_and_plan_bound(self):
+        legacy = TrainingPlan().validate()
+        bounded = databricks_a10_bounded_gradscaler_plan(legacy)
+        fixed = databricks_a10_plan(legacy)
+        self.assertEqual(fixed.numerical_policy,
+                         DATABRICKS_A10_FIXED_SCALE1_POLICY)
+        self.assertEqual(fixed.grad_scaler_initial_scale,
+                         DATABRICKS_A10_FIXED_SCALE)
+        self.assertEqual(fixed.max_overflow_adjustments, 0)
+        self.assertEqual(fixed.minimum_grad_scaler_scale,
+                         DATABRICKS_A10_FIXED_SCALE)
+        self.assertNotEqual(fixed.full_plan_sha256, bounded.full_plan_sha256)
+        self.assertEqual(legacy.numerical_policy, LEGACY_GRAD_SCALER_POLICY)
+        with self.assertRaises(PermissionError):
+            replace(legacy,
+                    numerical_policy=DATABRICKS_A10_FIXED_SCALE1_POLICY,
+                    grad_scaler_initial_scale=1.0,
+                    minimum_grad_scaler_scale=1.0).validate()
+        for field in (
+                "grad_scaler_initial_scale", "grad_scaler_backoff_factor",
+                "minimum_grad_scaler_scale", "max_overflow_adjustments",
+                "world_size", "micro_batch_size", "accumulation_steps",
+                "global_batch_size", "optimizer_updates",
+                "automatic_retries"):
+            with self.subTest(field=field), self.assertRaises(
+                    (TypeError, PermissionError)):
+                replace(fixed, **{field: True if getattr(fixed, field) != 1
+                                  else False}).validate()
+        scalar_aliases = {
+            "alpha": 8,
+            "learning_rate": 0,
+            "weight_decay": False,
+            "sft_weight": True,
+            "preference_weight": 0,
+            "preference_beta": 0,
+            "cross_danger_margin_weight": 0,
+            "cross_danger_margin": 0,
+            "max_grad_norm": True,
+            "qualification_min_loss_improvement": 0,
+            "grad_scaler_initial_scale": 1,
+            "grad_scaler_backoff_factor": 0,
+            "minimum_grad_scaler_scale": 1,
+        }
+        for field, value in scalar_aliases.items():
+            with self.subTest(scalar=field), self.assertRaises(TypeError):
+                replace(fixed, **{field: value}).validate()
 
     def test_a10_virtual_batch2_reduction_matches_all_boolean_patterns(self):
         plan = databricks_a10_plan(TrainingPlan())
@@ -844,6 +916,7 @@ class TrainingAdmissionTests(unittest.TestCase):
                 plan, device_profile="kaggle-t4x2", world_size=2,
                 micro_batch_size=2, accumulation_steps=1,
                 numerical_policy=LEGACY_GRAD_SCALER_POLICY,
+                grad_scaler_initial_scale=65536.0,
                 max_overflow_adjustments=0,
                 minimum_grad_scaler_scale=0.0).validate()
             prior_journal = adjacent_pair_schedule(
@@ -886,9 +959,9 @@ class TrainingAdmissionTests(unittest.TestCase):
 
     def test_executable_qualification_derives_gates_from_raw_receipt(self):
         calls = []
-        rank4 = TrainingPlan(mode="qualification", rank=4, alpha=8,
+        rank4 = TrainingPlan(mode="qualification", rank=4, alpha=8.0,
                              optimizer_updates=2)
-        rank8 = TrainingPlan(mode="qualification", rank=8, alpha=16,
+        rank8 = TrainingPlan(mode="qualification", rank=8, alpha=16.0,
                              optimizer_updates=2)
         def execute(plan):
             calls.append(plan.rank)
@@ -945,7 +1018,8 @@ class TrainingAdmissionTests(unittest.TestCase):
         receipt = execute_capacity_qualification(
             rank4_plan=rank4, rank8_plan=rank8,
             primary_plan_for_rank=lambda rank: TrainingPlan(
-                mode="primary", rank=rank, alpha=2 * rank, optimizer_updates=2),
+                mode="primary", rank=rank, alpha=2.0 * rank,
+                optimizer_updates=2),
             execute_candidate=execute, data_binding={"data": 1},
             exposure_binding={"exposure": 1}, source_sha256="s" * 64,
             base_sha256="b" * 64)
@@ -1155,6 +1229,95 @@ class TrainingAdmissionTests(unittest.TestCase):
         self.assertEqual(len(optimizer.state), 0)
         self.assertEqual(scaler.get_scale(), 32768.0)
 
+    def test_fixed_scale1_matches_direct_unscaled_adamw_update(self):
+        def execute_fixed():
+            model = ToyScaledParameter()
+            optimizer = torch.optim.AdamW(model.parameters(), lr=0.01)
+            scaler = torch.amp.GradScaler(
+                "cpu", enabled=True, init_scale=1.0,
+                growth_interval=1000)
+
+            def compute_backward():
+                loss = (model.delta1_weight * 2.0).sum()
+                scaler.scale(loss).backward()
+                value = float(loss.detach())
+                return [{"loss": value, "sft": value,
+                         "preference": 0.0,
+                         "cross_danger_margin": 0.0,
+                         "high_advantage": 0.0, "low_advantage": 0.0,
+                         "level0_kl_anchor": 0.0}]
+
+            result = fixed_scale1_grad_scaler_update(
+                model=model, optimizer=optimizer, scaler=scaler,
+                stage="delta1", device=torch.device("cpu"),
+                max_grad_norm=1.0, compute_backward=compute_backward)
+            return (model.delta1_weight.detach().clone(),
+                    optimizer_sha256(optimizer), result, scaler.get_scale())
+
+        def execute_direct():
+            model = ToyScaledParameter()
+            optimizer = torch.optim.AdamW(model.parameters(), lr=0.01)
+            loss = (model.delta1_weight * 2.0).sum()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+            return model.delta1_weight.detach().clone(), optimizer_sha256(optimizer)
+
+        fixed_weight, fixed_optimizer, result, scale = execute_fixed()
+        direct_weight, direct_optimizer = execute_direct()
+        self.assertTrue(torch.equal(fixed_weight, direct_weight))
+        self.assertEqual(fixed_optimizer, direct_optimizer)
+        self.assertEqual(scale, 1.0)
+        self.assertEqual(result["optimizer_step_pre_hook_calls"], 1)
+        self.assertTrue(result["gradient_norm_positive"])
+        self.assertGreater(
+            result["active_branch_finite_nonzero_gradient_density"], 0.0)
+
+    def test_fixed_scale1_nonfinite_gradient_never_steps_and_diagnoses(self):
+        class FiniteForwardInfBackward(torch.autograd.Function):
+            @staticmethod
+            def forward(ctx, value):
+                return value * 0.0 + 1.0
+
+            @staticmethod
+            def backward(ctx, grad_output):
+                return torch.full_like(grad_output, float("inf"))
+
+        model = ToyScaledParameter()
+        optimizer = CountingSGD(model.parameters(), lr=0.1)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=1.0, growth_interval=1000)
+        terminal_calls = []
+
+        def compute_backward():
+            loss = FiniteForwardInfBackward.apply(
+                model.delta1_weight).sum()
+            self.assertTrue(bool(torch.isfinite(loss)))
+            scaler.scale(loss).backward()
+            return [{"loss": 1.0, "sft": 1.0, "preference": 0.0,
+                     "cross_danger_margin": 0.0, "high_advantage": 0.0,
+                     "low_advantage": 0.0, "level0_kl_anchor": 0.0}]
+
+        def terminal(scale):
+            terminal_calls.append(scale)
+            return {"status": "first_nonfinite_component_found",
+                    "components_examined": 1,
+                    "diagnostic_physical_tokens": 4}
+
+        with self.assertRaises(GradScalerRecoveryError) as raised:
+            fixed_scale1_grad_scaler_update(
+                model=model, optimizer=optimizer, scaler=scaler,
+                stage="delta1", device=torch.device("cpu"),
+                max_grad_norm=1.0, compute_backward=compute_backward,
+                terminal_diagnostic=terminal)
+        receipt = raised.exception.receipt
+        self.assertEqual(receipt["reason"], "nonfinite_gradient")
+        self.assertEqual(receipt["optimizer_step_pre_hook_calls"], 0)
+        self.assertEqual(optimizer.executed_step_count, 0)
+        self.assertEqual(terminal_calls, [1.0])
+        self.assertEqual(scaler.get_scale(), 1.0)
+        self.assertIsNone(model.delta1_weight.grad)
+
     def test_gradient_diagnostic_is_count_only_and_component_wise(self):
         model = ToyScaledParameter()
         model.delta1_weight.grad = torch.tensor([float("nan")])
@@ -1170,6 +1333,10 @@ class TrainingAdmissionTests(unittest.TestCase):
         self.assertEqual(first["nan_count"], 1)
         self.assertEqual(first["nonfinite_count"], 1)
         self.assertEqual(diagnostic["first_nonfinite_loss_component"], "sft")
+        self.assertEqual(diagnostic[
+            "active_branch_finite_nonzero_gradient_element_count"], 0)
+        self.assertEqual(diagnostic[
+            "active_branch_finite_nonzero_gradient_density"], 0.0)
         self.assertNotIn("values", json.dumps(diagnostic))
 
     def test_terminal_component_replay_clears_gradients_and_never_steps(self):
@@ -1214,7 +1381,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             self.assertFalse(path.exists())
 
     def test_run_stage_recovers_same_update_once_without_journal_advance(self):
-        plan = databricks_a10_plan(TrainingPlan(
+        plan = databricks_a10_bounded_gradscaler_plan(TrainingPlan(
             mode="qualification", stage="delta1", condition="self_continuity",
             seed=202610281, optimizer_updates=1))
         model = tiny_wrapped("delta1")
@@ -1278,6 +1445,246 @@ class TrainingAdmissionTests(unittest.TestCase):
                 expected_plan=plan, expected_global_journal=expected)
         self.assertEqual(calls, ["combined"] * 8)
 
+    def test_run_stage_fixed_scale1_two_updates_have_one_attempt_each(self):
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=2))
+        model = tiny_wrapped("delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        expected = adjacent_pair_schedule(records, plan)
+        logical_tokens = sum(row["pair_training_tokens"] for row in expected)
+        progress = []
+        calls = []
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=1.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(4.0, calls)):
+            receipt = run_training_stage(
+                model=model, tokenizer=tokenizer, tokenized_records=records,
+                plan=plan, output_dir=folder, target_names=["proj"],
+                source_sha256="s" * 64, base_sha256="b" * 64,
+                rank=0, world_size=1, save_checkpoint=False,
+                callable_model=model, progress_callback=progress.append)
+        self.assertEqual(receipt["successful_optimizer_updates"], 2)
+        self.assertEqual(len(receipt["updates"]), 2)
+        self.assertEqual(len(progress), 2)
+        self.assertEqual(receipt["tokens_seen"], logical_tokens)
+        self.assertEqual(receipt["physical_tokens_processed"], logical_tokens)
+        self.assertEqual(receipt["overflow_recompute_tokens"], 0)
+        self.assertEqual(scaler.get_scale(), 1.0)
+        self.assertEqual(calls, ["combined"] * 8)
+        for index, update in enumerate(receipt["updates"]):
+            self.assertEqual(update["optimizer_update"], index)
+            self.assertEqual(update["overflow_adjustments"], 0)
+            self.assertEqual(update["replay_physical_tokens"], 0)
+            self.assertEqual(update["physical_tokens_processed"],
+                             update["logical_tokens"])
+            self.assertEqual(update["optimizer_step_pre_hook_calls"], 1)
+            self.assertTrue(update["gradient_norm_positive"])
+            self.assertGreater(
+                update["active_branch_finite_nonzero_gradient_element_count"],
+                0)
+            self.assertGreater(
+                update["active_branch_finite_nonzero_gradient_density"], 0.0)
+            self.assertTrue(update["fixed_scale_no_growth"])
+            self.assertEqual(len(update["grad_scaler_attempts"]), 1)
+            self.assertEqual(update["grad_scaler_before"], 1.0)
+            self.assertEqual(update["grad_scaler_after"], 1.0)
+        self.assertEqual(validate_grad_scaler_recovery_receipt(
+            receipt, plan), receipt)
+        strict = dict(
+            expected_plan_sha256=plan.full_plan_sha256,
+            expected_global_journal_sha256=canonical_sha256(expected),
+            expected_plan=plan, expected_global_journal=expected)
+        for mutation in (
+                "norm", "norm_value", "density", "tokens", "scale",
+                "attempt_finiteness", "step", "diagnostic_nonfinite",
+                "diagnostic_count", "norm_bool", "norm_nan",
+                "density_bool", "density_nan", "density_inf",
+                "count_bool", "elements_bool", "nonfinite_count_bool",
+                "logical_bool", "total_adjustment_bool",
+                "current_adjustment_bool", "replay_bool", "physical_bool",
+                "initial_bool", "update_index_bool", "step_count_bool",
+                "attempt_step_count_bool", "static_initial_bool",
+                "static_backoff_bool", "static_minimum_bool",
+                "static_max_adjustment_bool", "attempt_scale_before_bool",
+                "attempt_scale_after_bool", "top_tokens_bool",
+                "top_replay_bool", "top_physical_bool",
+                "summary_minimum_bool", "summary_before_bool",
+                "summary_after_bool"):
+            changed = copy.deepcopy(receipt)
+            if mutation == "norm":
+                changed["updates"][0]["gradient_norm_positive"] = False
+            elif mutation == "norm_value":
+                changed["updates"][0]["gradient_norm_before_clip"] = 0.0
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "gradient_norm_before_clip"] = 0.0
+            elif mutation == "density":
+                changed["updates"][0][
+                    "active_branch_finite_nonzero_gradient_density"] = 0.0
+            elif mutation == "tokens":
+                changed["updates"][0]["physical_tokens_processed"] += 1
+            elif mutation == "scale":
+                changed["updates"][0]["grad_scaler_after"] = 2.0
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "scale_after"] = 2.0
+            elif mutation == "attempt_finiteness":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "gradient_finite"] = False
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "overflow"] = True
+            elif mutation == "step":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "optimizer_step_pre_hook_call_delta"] = 0
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "optimizer_step_executed"] = False
+            elif mutation == "diagnostic_nonfinite":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "diagnostic"]["nonfinite_gradient_element_count"] = 1
+            elif mutation == "diagnostic_count":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "diagnostic"][
+                        "active_branch_finite_nonzero_gradient_element_count"] += 1
+            elif mutation == "norm_bool":
+                changed["updates"][0]["gradient_norm_before_clip"] = True
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "gradient_norm_before_clip"] = True
+            elif mutation == "norm_nan":
+                changed["updates"][0]["gradient_norm_before_clip"] = float("nan")
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "gradient_norm_before_clip"] = float("nan")
+            elif mutation in ("density_bool", "density_nan", "density_inf"):
+                value = {"density_bool": True, "density_nan": float("nan"),
+                         "density_inf": float("inf")}[mutation]
+                changed["updates"][0][
+                    "active_branch_finite_nonzero_gradient_density"] = value
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "active_branch_finite_nonzero_gradient_density"] = value
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "diagnostic"][
+                        "active_branch_finite_nonzero_gradient_density"] = value
+            elif mutation == "count_bool":
+                changed["updates"][0][
+                    "active_branch_finite_nonzero_gradient_element_count"] = True
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "active_branch_finite_nonzero_gradient_element_count"] = True
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "diagnostic"][
+                        "active_branch_finite_nonzero_gradient_element_count"] = True
+            elif mutation == "elements_bool":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "diagnostic"]["trainable_gradient_element_count"] = True
+            elif mutation == "nonfinite_count_bool":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "diagnostic"]["nonfinite_gradient_element_count"] = False
+            elif mutation == "logical_bool":
+                changed["updates"][0]["logical_tokens"] = True
+            elif mutation == "total_adjustment_bool":
+                changed["grad_scaler_recovery"][
+                    "total_overflow_adjustments"] = False
+            elif mutation == "current_adjustment_bool":
+                changed["updates"][0]["overflow_adjustments"] = False
+            elif mutation == "replay_bool":
+                changed["updates"][0]["replay_physical_tokens"] = False
+            elif mutation == "physical_bool":
+                changed["updates"][0]["physical_tokens_processed"] = True
+            elif mutation == "initial_bool":
+                changed["updates"][0]["initial_physical_tokens"] = True
+            elif mutation == "update_index_bool":
+                changed["updates"][0]["optimizer_update"] = False
+            elif mutation == "step_count_bool":
+                changed["updates"][0]["optimizer_step_pre_hook_calls"] = True
+            elif mutation == "attempt_step_count_bool":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "optimizer_step_pre_hook_call_delta"] = True
+            elif mutation == "static_initial_bool":
+                changed["grad_scaler_recovery"]["initial_scale"] = True
+            elif mutation == "static_backoff_bool":
+                changed["grad_scaler_recovery"]["backoff_factor"] = True
+            elif mutation == "static_minimum_bool":
+                changed["grad_scaler_recovery"]["minimum_scale"] = True
+            elif mutation == "static_max_adjustment_bool":
+                changed["grad_scaler_recovery"][
+                    "max_overflow_adjustments_per_partition"] = False
+            elif mutation == "attempt_scale_before_bool":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "scale_before"] = True
+            elif mutation == "attempt_scale_after_bool":
+                changed["updates"][0]["grad_scaler_attempts"][0][
+                    "scale_after"] = True
+            elif mutation == "top_tokens_bool":
+                changed["tokens_seen"] = True
+            elif mutation == "top_replay_bool":
+                changed["overflow_recompute_tokens"] = False
+            elif mutation == "top_physical_bool":
+                changed["physical_tokens_processed"] = True
+            elif mutation == "summary_minimum_bool":
+                changed["updates"][0]["minimum_grad_scaler_scale"] = True
+            elif mutation == "summary_before_bool":
+                changed["updates"][0]["grad_scaler_before"] = True
+            else:
+                changed["updates"][0]["grad_scaler_after"] = True
+            changed.pop("receipt_sha256")
+            changed["receipt_sha256"] = canonical_sha256(changed)
+            with self.subTest(mutation=mutation), self.assertRaises(
+                    PermissionError):
+                verify_rank_receipt(changed, **strict)
+
+    def test_run_stage_fixed_scale1_nonfinite_fails_without_update(self):
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=2))
+        model = tiny_wrapped("delta1")
+        before = branch_sha256(model, "delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        expected = adjacent_pair_schedule(records, plan)
+        logical_tokens = sum(
+            row["pair_training_tokens"] for row in expected[:4])
+        progress = []
+        calls = []
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=1.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(float("inf"), calls)):
+            with self.assertRaises(GradScalerRecoveryError):
+                run_training_stage(
+                    model=model, tokenizer=tokenizer,
+                    tokenized_records=records, plan=plan,
+                    output_dir=folder, target_names=["proj"],
+                    source_sha256="s" * 64, base_sha256="b" * 64,
+                    rank=0, world_size=1, save_checkpoint=False,
+                    callable_model=model, progress_callback=progress.append)
+            partial = json.loads(
+                (Path(folder) / "RANK_0_PARTIAL.json").read_text())
+            self.assertFalse((Path(folder) / "optimizer_rank0.pt").exists())
+        self.assertEqual(progress, [])
+        self.assertEqual(partial["successful_optimizer_updates"], 0)
+        self.assertEqual(partial["updates"], [])
+        self.assertEqual(partial["tokens_seen"], 0)
+        self.assertEqual(partial["overflow_recompute_tokens"], 0)
+        self.assertEqual(partial["terminal_logical_attempted_tokens"],
+                         logical_tokens)
+        failure = partial["grad_scaler_recovery_failure"]
+        self.assertEqual(failure["reason"], "nonfinite_gradient")
+        self.assertEqual(failure["optimizer_step_pre_hook_calls"], 0)
+        self.assertEqual(failure["overflow_adjustments"], 0)
+        self.assertEqual(len(failure["attempts"]), 1)
+        self.assertEqual(failure["attempts"][0]["scale_before"], 1.0)
+        self.assertEqual(failure["attempts"][0]["scale_after"], 1.0)
+        self.assertEqual(
+            failure["terminal_diagnostic_optimizer_step_pre_hook_calls"], 0)
+        self.assertIn("terminal_component_gradient_diagnostic", failure)
+        self.assertEqual(branch_sha256(model, "delta1"), before)
+        self.assertEqual(scaler.get_scale(), 1.0)
+
     def test_non_databricks_run_preserves_legacy_failfast_without_replay(self):
         plan = TrainingPlan(
             mode="qualification", stage="delta1", condition="self_continuity",
@@ -1312,7 +1719,7 @@ class TrainingAdmissionTests(unittest.TestCase):
         self.assertIsNone(partial["grad_scaler_recovery_failure"])
 
     def test_run_stage_exhaustion_writes_complete_terminal_receipt(self):
-        plan = databricks_a10_plan(TrainingPlan(
+        plan = databricks_a10_bounded_gradscaler_plan(TrainingPlan(
             mode="qualification", stage="delta1", condition="self_continuity",
             seed=202610281, optimizer_updates=1))
         model = tiny_wrapped("delta1")
@@ -1519,7 +1926,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v7",
+                "version": "qwen35-9b-continuity-partition-intent-v8",
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
                 "partition_identity": SUCCESSOR_IDENTITY,
                 "plan_sha256": qualification.full_plan_sha256,

@@ -1,6 +1,40 @@
 # Research4 current Databricks continuation
 
-## Approved bounded GradScaler recovery (2026-10-29)
+## Approved fixed-FP16-scale-1 successor (2026-10-29)
+
+The bounded GradScaler v5 attempt is CLOSED, FAILED, CONSUMED and RELEASED.
+It exhausted scales65536→32768→16384→8192→4096, then failed again at4096;
+zero optimizer updates or checkpoints were produced.  SFT backward alone was
+non-finite at4096.  Never retry or reuse that identity.
+
+The human delegated routine Research4 approval decisions to the supervising
+chat.  The supervisor approved the independently reviewed fixed-scale-1
+proposal (proposal SHA256
+`9cc3abf46085a7e9b2b2f205444e905b7b6926a02d1bb7387a56fe6e1dd78707`,
+draft patch SHA256
+`660cc0e2cc16d63d4d2bb60a2a60b278293e276418198af19f3f376862077659`,
+approval SHA256
+`3fbdf776ba04869aba4f1dacd942eb38ce64418d0221a76fc3d600c67d55ea16`).
+The fresh one-use identity is `qualification_rank4_a10_fp16_scale1_v6`.
+
+This successor is Databricks-A10-only and preserves FP16/NF4, model, data,
+order, global batch4/microbatch1/accumulation4, objective and coefficients,
+LR, clipping, adapter geometry, seeds and thresholds.  Use fixed GradScaler
+scale1.0 with no growth, reduction or replay and exactly one attempt per update.
+A finite update needs a positive finite unclipped norm, nonzero active-branch
+gradient density and exactly one measured optimizer step.  Any non-finite or
+zero-density result performs zero steps, records count-only terminal component
+diagnostics and fails closed.  Successful physical tokens must equal logical
+tokens.  Historical non-A10 routes remain fail-fast.  If scale1 fails, close
+FP16 for this recipe and prepare a separate BF16 amendment; do not retry.
+
+All production source/notebook/code paths now use immutable
+`/Workspace/Shared/research4/source_releases/<exact-merge>` releases while
+bundle state remains user-scoped.  Never grant all workspace users job-manage
+permission.  Reuse only the verified Qwen volume snapshot with zero public
+download bytes and network fallback disabled.
+
+## Historical bounded GradScaler recovery (2026-10-29)
 
 The human directly approved the independently reviewed FP16 GradScaler
 recovery amendment and instructed the study to keep going without another

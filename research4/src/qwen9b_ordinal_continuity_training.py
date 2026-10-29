@@ -55,12 +55,12 @@ from .qwen9b_ordinal_continuity_lora import (
 )
 
 
-PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v7"
-QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v7"
-ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v7"
+PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v8"
+QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v8"
+ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v8"
 EXPOSURE_VERSION = "ordinal-continuity-adjacent-pair-exposure-v4"
-RANK_RUN_VERSION = "qwen35-9b-ordinal-continuity-rank-run-v4"
-PARTIAL_RUN_VERSION = "qwen35-9b-ordinal-continuity-partial-v4"
+RANK_RUN_VERSION = "qwen35-9b-ordinal-continuity-rank-run-v5"
+PARTIAL_RUN_VERSION = "qwen35-9b-ordinal-continuity-partial-v5"
 DATABRICKS_A10_MICRO_BATCH_SIZE = 1
 DATABRICKS_A10_ACCUMULATION_STEPS = 4
 DATABRICKS_A10_LEGACY_REDUCTION_MICRO_BATCH_SIZE = 2
@@ -72,6 +72,8 @@ GRAD_SCALER_INITIAL_SCALE = 65536.0
 GRAD_SCALER_BACKOFF_FACTOR = 0.5
 LEGACY_GRAD_SCALER_POLICY = "legacy-failfast-v1"
 DATABRICKS_A10_GRAD_SCALER_POLICY = "databricks-a10-bounded-gradscaler-v1"
+DATABRICKS_A10_FIXED_SCALE1_POLICY = "databricks-a10-fixed-fp16-scale1-v1"
+DATABRICKS_A10_FIXED_SCALE = 1.0
 CONDITIONS = ("self_continuity", "artifact_continuity", "label_only")
 TRAINING_CONDITIONS = CONDITIONS
 SPLITS = ("train", "validation", "test")
@@ -209,6 +211,32 @@ class TrainingPlan:
             raise ValueError("Action serialization contract differs")
         if self.mode not in ("qualification", "primary"):
             raise ValueError("mode must be qualification or primary")
+        integer_fields = (
+            self.rank, self.seed, self.optimizer_updates,
+            self.accumulation_steps, self.micro_batch_size,
+            self.max_length, self.max_new_tokens,
+            self.expected_train_families,
+            self.expected_validation_families,
+            self.expected_internal_test_families,
+            self.world_size, self.global_batch_size,
+            self.automatic_retries, self.max_overflow_adjustments,
+        )
+        if any(type(value) is not int for value in integer_fields):
+            raise TypeError("Training count fields must be exact integers")
+        scientific_scalars = (
+            self.alpha, self.learning_rate, self.weight_decay,
+            self.sft_weight, self.preference_weight, self.preference_beta,
+            self.cross_danger_margin_weight, self.cross_danger_margin,
+            self.max_grad_norm, self.qualification_min_loss_improvement,
+            self.grad_scaler_initial_scale,
+            self.grad_scaler_backoff_factor,
+            self.minimum_grad_scaler_scale,
+        )
+        if any(type(value) is not float or not math.isfinite(value)
+               for value in scientific_scalars):
+            raise TypeError("Scientific scalar fields must be finite floats")
+        if self.max_overflow_adjustments < 0:
+            raise ValueError("GradScaler adjustment count must be nonnegative")
         if self.condition not in TRAINING_CONDITIONS or self.stage not in STAGE_LEVELS:
             raise ValueError("Unregistered condition or sequential stage")
         if self.rank not in (4, 8) or self.alpha != 2.0 * self.rank:
@@ -231,25 +259,34 @@ class TrainingPlan:
             if (self.world_size, self.micro_batch_size,
                     self.accumulation_steps) != expected_execution:
                 raise ValueError("Databricks run is single-A10 batch1/accum4")
-            expected_numerical = (
-                DATABRICKS_A10_GRAD_SCALER_POLICY,
-                GRAD_SCALER_INITIAL_SCALE,
-                GRAD_SCALER_BACKOFF_FACTOR,
-                GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-                GRAD_SCALER_MIN_SCALE,
-            )
+            allowed_numerical = {
+                (
+                    DATABRICKS_A10_GRAD_SCALER_POLICY,
+                    GRAD_SCALER_INITIAL_SCALE,
+                    GRAD_SCALER_BACKOFF_FACTOR,
+                    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
+                    GRAD_SCALER_MIN_SCALE,
+                ),
+                (
+                    DATABRICKS_A10_FIXED_SCALE1_POLICY,
+                    DATABRICKS_A10_FIXED_SCALE,
+                    GRAD_SCALER_BACKOFF_FACTOR,
+                    0,
+                    DATABRICKS_A10_FIXED_SCALE,
+                ),
+            }
         elif (self.world_size != 2
               or (self.micro_batch_size, self.accumulation_steps)
               not in ((2, 1), (1, 2))):
             raise ValueError("Kaggle run is exact T4x2 with registered batching")
         else:
-            expected_numerical = (
+            allowed_numerical = {(
                 LEGACY_GRAD_SCALER_POLICY,
                 GRAD_SCALER_INITIAL_SCALE,
                 GRAD_SCALER_BACKOFF_FACTOR,
                 0,
                 0.0,
-            )
+            )}
         actual_numerical = (
             self.numerical_policy,
             self.grad_scaler_initial_scale,
@@ -257,7 +294,7 @@ class TrainingPlan:
             self.max_overflow_adjustments,
             self.minimum_grad_scaler_scale,
         )
-        if actual_numerical != expected_numerical:
+        if actual_numerical not in allowed_numerical:
             raise PermissionError(
                 "Numerical overflow policy differs from the reviewed route")
         if self.global_batch_size != 4:
@@ -282,8 +319,9 @@ class TrainingPlan:
         return self
 
 
-def databricks_a10_plan(plan: TrainingPlan) -> TrainingPlan:
-    """Bind the exact A10 execution and bounded numerical-recovery policy."""
+def databricks_a10_bounded_gradscaler_plan(
+        plan: TrainingPlan) -> TrainingPlan:
+    """Reconstruct the closed v5 bounded-recovery plan for audit only."""
     return replace(
         plan,
         device_profile="databricks-a10x1",
@@ -295,6 +333,22 @@ def databricks_a10_plan(plan: TrainingPlan) -> TrainingPlan:
         grad_scaler_backoff_factor=GRAD_SCALER_BACKOFF_FACTOR,
         max_overflow_adjustments=GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
         minimum_grad_scaler_scale=GRAD_SCALER_MIN_SCALE,
+    ).validate()
+
+
+def databricks_a10_plan(plan: TrainingPlan) -> TrainingPlan:
+    """Bind the approved one-attempt fixed-scale-1 A10 policy."""
+    return replace(
+        plan,
+        device_profile="databricks-a10x1",
+        world_size=1,
+        micro_batch_size=DATABRICKS_A10_MICRO_BATCH_SIZE,
+        accumulation_steps=DATABRICKS_A10_ACCUMULATION_STEPS,
+        numerical_policy=DATABRICKS_A10_FIXED_SCALE1_POLICY,
+        grad_scaler_initial_scale=DATABRICKS_A10_FIXED_SCALE,
+        grad_scaler_backoff_factor=GRAD_SCALER_BACKOFF_FACTOR,
+        max_overflow_adjustments=0,
+        minimum_grad_scaler_scale=DATABRICKS_A10_FIXED_SCALE,
     ).validate()
 
 
@@ -1040,8 +1094,13 @@ def validate_grad_scaler_recovery_receipt(
             or any(recovery.get(key) != expected
                    for key, expected in expected_static.items())):
         raise PermissionError("Rank receipt numerical policy differs")
+    if any(type(recovery.get(key)) not in (int, float)
+           or not math.isfinite(float(recovery.get(key)))
+           for key in ("initial_scale", "backoff_factor", "minimum_scale")):
+        raise PermissionError("Rank receipt numerical scalars differ")
     adjustments = recovery.get("total_overflow_adjustments")
-    if (not isinstance(adjustments, int) or adjustments < 0
+    if (type(recovery.get("max_overflow_adjustments_per_partition")) is not int
+            or type(adjustments) is not int or adjustments < 0
             or adjustments > plan.max_overflow_adjustments):
         raise PermissionError("Rank receipt overflow-adjustment total differs")
     updates = value.get("updates")
@@ -1056,28 +1115,47 @@ def validate_grad_scaler_recovery_receipt(
         attempts = update.get("grad_scaler_attempts")
         logical = update.get("logical_tokens")
         replay = update.get("replay_physical_tokens")
-        if (update.get("optimizer_update") != update_index
-                or not isinstance(current, int) or current < 0
+        initial_physical = update.get("initial_physical_tokens")
+        physical = update.get("physical_tokens_processed")
+        update_number = update.get("optimizer_update")
+        update_step_calls = update.get("optimizer_step_pre_hook_calls")
+        update_max_adjustments = update.get("max_overflow_adjustments")
+        update_minimum_scale = update.get("minimum_grad_scaler_scale")
+        update_scale_before = update.get("grad_scaler_before")
+        update_scale_after = update.get("grad_scaler_after")
+        if (type(update_number) is not int or update_number != update_index
+                or type(current) is not int or current < 0
                 or not isinstance(attempts, list)
                 or len(attempts) != current + 1
-                or not isinstance(logical, int) or logical <= 0
+                or type(logical) is not int or logical <= 0
+                or type(replay) is not int or replay < 0
+                or type(initial_physical) is not int
+                or initial_physical <= 0
+                or type(physical) is not int or physical <= 0
+                or type(update_max_adjustments) is not int
+                or update_max_adjustments < 0
+                or type(update_minimum_scale) not in (int, float)
+                or not math.isfinite(float(update_minimum_scale))
+                or type(update_scale_before) not in (int, float)
+                or not math.isfinite(float(update_scale_before))
+                or type(update_scale_after) not in (int, float)
+                or not math.isfinite(float(update_scale_after))
                 or replay != logical * current
-                or update.get("initial_physical_tokens") != logical
-                or update.get("physical_tokens_processed") != logical + replay
+                or initial_physical != logical
+                or physical != logical + replay
                 or update.get("overflow") is not False
                 or update.get("finite") is not True):
             raise PermissionError("Rank receipt numerical update differs")
-        if (update.get("max_overflow_adjustments")
+        if (update_max_adjustments
                 != plan.max_overflow_adjustments - total_adjustments
-                or update.get("minimum_grad_scaler_scale")
-                   != plan.minimum_grad_scaler_scale):
+                or update_minimum_scale != plan.minimum_grad_scaler_scale):
             raise PermissionError("Rank receipt recovery bound differs")
         for attempt_index, attempt in enumerate(attempts):
             overflow = attempt_index < current
             scale_before = attempt.get("scale_before")
             scale_after = attempt.get("scale_after")
-            if (not isinstance(scale_before, (int, float))
-                    or not isinstance(scale_after, (int, float))
+            if (type(scale_before) not in (int, float)
+                    or type(scale_after) not in (int, float)
                     or not math.isfinite(float(scale_before))
                     or not math.isfinite(float(scale_after))
                     or float(scale_before) != expected_scale):
@@ -1093,37 +1171,131 @@ def validate_grad_scaler_recovery_receipt(
             elif float(scale_after) < expected_scale:
                 raise PermissionError("Rank receipt finite scale decreased")
             expected_scale = float(scale_after)
-        if (update.get("grad_scaler_before")
+        if (update_scale_before
                 != attempts[-1].get("scale_before")
-                or update.get("grad_scaler_after")
+                or update_scale_after
                    != attempts[-1].get("scale_after")):
             raise PermissionError("Rank receipt update scale summary differs")
         if plan.numerical_policy == DATABRICKS_A10_GRAD_SCALER_POLICY:
             for attempt_index, attempt in enumerate(attempts):
                 overflow = attempt_index < current
                 expected_step_delta = 0 if overflow else 1
-                if (attempt.get("attempt_index") != attempt_index
+                if (type(attempt.get("attempt_index")) is not int
+                        or attempt.get("attempt_index") != attempt_index
                         or attempt.get("overflow") is not overflow
                         or attempt.get("gradient_finite") is overflow
+                        or type(attempt.get(
+                            "optimizer_step_pre_hook_calls_before")) is not int
+                        or type(attempt.get(
+                            "optimizer_step_pre_hook_calls_after")) is not int
+                        or type(attempt.get(
+                            "optimizer_step_pre_hook_call_delta")) is not int
                         or attempt.get("optimizer_step_pre_hook_call_delta")
                            != expected_step_delta
                         or attempt.get("optimizer_step_executed")
                            is not (not overflow)):
                     raise PermissionError("Rank receipt recovery attempt differs")
-            if (update.get("optimizer_step_pre_hook_calls") != 1
+            if (type(update_step_calls) is not int
+                    or update_step_calls != 1
                     or update.get("overflow_recovered") is not (current > 0)):
                 raise PermissionError("Rank receipt measured optimizer step differs")
+        elif plan.numerical_policy == DATABRICKS_A10_FIXED_SCALE1_POLICY:
+            attempt = attempts[0]
+            diagnostic = attempt.get("diagnostic")
+            density = update.get(
+                "active_branch_finite_nonzero_gradient_density")
+            nonzero = update.get(
+                "active_branch_finite_nonzero_gradient_element_count")
+            update_norm = update.get("gradient_norm_before_clip")
+            attempt_norm = attempt.get("gradient_norm_before_clip")
+            elements = (diagnostic.get("trainable_gradient_element_count")
+                        if isinstance(diagnostic, Mapping) else None)
+            diagnostic_nonzero = (diagnostic.get(
+                "active_branch_finite_nonzero_gradient_element_count")
+                if isinstance(diagnostic, Mapping) else None)
+            diagnostic_density = (diagnostic.get(
+                "active_branch_finite_nonzero_gradient_density")
+                if isinstance(diagnostic, Mapping) else None)
+            attempt_nonzero = attempt.get(
+                "active_branch_finite_nonzero_gradient_element_count")
+            attempt_density = attempt.get(
+                "active_branch_finite_nonzero_gradient_density")
+            diagnostic_nonfinite = (diagnostic.get(
+                "nonfinite_gradient_element_count")
+                if isinstance(diagnostic, Mapping) else None)
+            if (current != 0
+                    or update.get("overflow_recovered") is not False
+                    or type(update_step_calls) is not int
+                    or update_step_calls != 1
+                    or update.get("gradient_norm_positive") is not True
+                    or type(update_norm) not in (int, float)
+                    or not math.isfinite(float(update_norm))
+                    or float(update_norm) <= 0.0
+                    or type(attempt_norm) not in (int, float)
+                    or not math.isfinite(float(attempt_norm))
+                    or float(attempt_norm) <= 0.0
+                    or attempt_norm != update_norm
+                    or type(nonzero) is not int or nonzero <= 0
+                    or type(density) not in (int, float)
+                    or not math.isfinite(float(density))
+                    or not 0.0 < float(density) <= 1.0
+                    or update.get("fixed_scale_no_growth") is not True
+                    or attempt.get("scale_before")
+                       != DATABRICKS_A10_FIXED_SCALE
+                    or attempt.get("scale_after")
+                       != DATABRICKS_A10_FIXED_SCALE
+                    or attempt.get("gradient_norm_positive") is not True
+                    or attempt.get("gradient_finite") is not True
+                    or attempt.get("overflow") is not False
+                    or attempt.get("scale_adjustment_applied") is not False
+                    or type(attempt.get("attempt_index")) is not int
+                    or attempt.get("attempt_index") != 0
+                    or type(attempt.get(
+                        "optimizer_step_pre_hook_calls_before")) is not int
+                    or type(attempt.get(
+                        "optimizer_step_pre_hook_calls_after")) is not int
+                    or type(attempt.get(
+                        "optimizer_step_pre_hook_call_delta")) is not int
+                    or attempt.get("optimizer_step_pre_hook_calls_before") != 0
+                    or attempt.get("optimizer_step_pre_hook_calls_after") != 1
+                    or attempt.get("optimizer_step_pre_hook_call_delta") != 1
+                    or attempt.get("optimizer_step_executed") is not True
+                    or not isinstance(diagnostic, Mapping)
+                    or diagnostic.get("gradient_norm_finite") is not True
+                    or diagnostic.get("gradient_norm_positive") is not True
+                    or type(diagnostic_nonfinite) is not int
+                    or diagnostic_nonfinite != 0
+                    or type(elements) is not int or elements <= 0
+                    or type(diagnostic_nonzero) is not int
+                    or type(diagnostic_density) not in (int, float)
+                    or not math.isfinite(float(diagnostic_density))
+                    or type(attempt_nonzero) is not int
+                    or type(attempt_density) not in (int, float)
+                    or not math.isfinite(float(attempt_density))
+                    or diagnostic_nonzero != nonzero
+                    or diagnostic_density != density
+                    or nonzero > elements
+                    or float(density) != nonzero / elements
+                    or attempt_nonzero != nonzero
+                    or attempt_density != density):
+                raise PermissionError(
+                    "Fixed-scale rank receipt gradient evidence differs")
         elif (current != 0 or update.get("overflow_recovered") is not False
-              or update.get("optimizer_step_pre_hook_calls") is not None):
+              or update_step_calls is not None):
             raise PermissionError("Legacy rank receipt did not remain fail-fast")
         total_adjustments += current
         logical_tokens += logical
         replay_tokens += replay
+    tokens_seen = value.get("tokens_seen")
+    overflow_tokens = value.get("overflow_recompute_tokens")
+    physical_tokens = value.get("physical_tokens_processed")
     if (total_adjustments != adjustments
-            or value.get("tokens_seen") != logical_tokens
-            or value.get("overflow_recompute_tokens") != replay_tokens
-            or value.get("physical_tokens_processed")
-               != logical_tokens + replay_tokens):
+            or type(tokens_seen) is not int or tokens_seen < 0
+            or type(overflow_tokens) is not int or overflow_tokens < 0
+            or type(physical_tokens) is not int or physical_tokens < 0
+            or tokens_seen != logical_tokens
+            or overflow_tokens != replay_tokens
+            or physical_tokens != logical_tokens + replay_tokens):
         raise PermissionError("Rank receipt logical/physical accounting differs")
     return value
 
@@ -2124,6 +2296,7 @@ def gradient_finiteness_diagnostic(model, metrics: Sequence[Mapping], *,
     parameters_seen = 0
     elements_seen = 0
     nonfinite_elements = 0
+    finite_nonzero_elements = 0
     for name, parameter in model.named_parameters():
         gradient = parameter.grad
         if not parameter.requires_grad or gradient is None:
@@ -2133,6 +2306,8 @@ def gradient_finiteness_diagnostic(model, metrics: Sequence[Mapping], *,
         finite_mask = torch.isfinite(gradient)
         bad = int((~finite_mask).sum().item())
         nonfinite_elements += bad
+        finite_nonzero_elements += int(
+            ((gradient != 0) & finite_mask).sum().item())
         if bad and first is None:
             branch = next(
                 (candidate for candidate in STAGE_BRANCHES
@@ -2154,6 +2329,10 @@ def gradient_finiteness_diagnostic(model, metrics: Sequence[Mapping], *,
         "trainable_gradient_parameter_count": parameters_seen,
         "trainable_gradient_element_count": elements_seen,
         "nonfinite_gradient_element_count": nonfinite_elements,
+        "active_branch_finite_nonzero_gradient_element_count":
+            finite_nonzero_elements,
+        "active_branch_finite_nonzero_gradient_density": (
+            finite_nonzero_elements / elements_seen if elements_seen else 0.0),
         "first_nonfinite_gradient": first,
         "loss_component_finiteness": loss["components"],
         "first_nonfinite_loss_component": loss["first_nonfinite_component"],
@@ -2371,6 +2550,145 @@ def _measured_optimizer_steps(optimizer):
         yield counter
     finally:
         handle.remove()
+
+
+def fixed_scale1_grad_scaler_update(
+        *, model, optimizer, scaler, stage: str, device,
+        max_grad_norm: float,
+        compute_backward: Callable[[], Sequence[Mapping]],
+        terminal_diagnostic: Callable[[float], Mapping] | None = None) -> dict:
+    """Run one A10 update at fixed FP16 scale 1 with no replay or growth."""
+    import torch
+    retry_rng = _capture_retry_rng_state(torch, device)
+    with _measured_optimizer_steps(optimizer) as step_counter:
+        _restore_retry_rng_state(torch, device, retry_rng)
+        optimizer.zero_grad(set_to_none=True)
+        scale_before = float(scaler.get_scale())
+        if scale_before != DATABRICKS_A10_FIXED_SCALE:
+            raise GradScalerRecoveryError(
+                "Fixed FP16 scale differs from 1",
+                {"status": "failed", "reason": "fixed_scale_mismatch",
+                 "attempts": [], "overflow_adjustments": 0,
+                 "recompute_count": 0, "max_overflow_adjustments": 0,
+                 "minimum_scale": DATABRICKS_A10_FIXED_SCALE,
+                 "optimizer_step_pre_hook_calls": 0})
+        metrics = list(compute_backward())
+        scaler.unscale_(optimizer)
+        parameters = [parameter for parameter in model.parameters()
+                      if parameter.requires_grad]
+        diagnostic = gradient_finiteness_diagnostic(
+            model, metrics, stage=stage, gradient_norm_value=float("nan"))
+        gradient_norm = torch.nn.utils.clip_grad_norm_(
+            parameters, max_grad_norm)
+        gradient_norm_value = float(gradient_norm.detach().float().item())
+        gradient_finite = (
+            math.isfinite(gradient_norm_value)
+            and diagnostic["nonfinite_gradient_element_count"] == 0)
+        gradient_positive = gradient_finite and gradient_norm_value > 0.0
+        nonzero_count = diagnostic[
+            "active_branch_finite_nonzero_gradient_element_count"]
+        nonzero_density = diagnostic[
+            "active_branch_finite_nonzero_gradient_density"]
+        nonzero_active_gradient = nonzero_count > 0 and nonzero_density > 0.0
+        diagnostic = dict(diagnostic)
+        diagnostic["gradient_norm_finite"] = math.isfinite(
+            gradient_norm_value)
+        diagnostic["gradient_norm_positive"] = gradient_positive
+        attempt = {
+            "attempt_index": 0,
+            "scale_before": scale_before,
+            "scale_after": scale_before,
+            "gradient_norm_before_clip": (
+                gradient_norm_value if math.isfinite(gradient_norm_value)
+                else None),
+            "gradient_norm_nonfinite_kind": _nonfinite_kind(
+                gradient_norm_value),
+            "gradient_finite": gradient_finite,
+            "gradient_norm_positive": gradient_positive,
+            "active_branch_finite_nonzero_gradient_element_count":
+                nonzero_count,
+            "active_branch_finite_nonzero_gradient_density": nonzero_density,
+            "overflow": not gradient_finite,
+            "scale_adjustment_applied": False,
+            "optimizer_step_executed": False,
+            "optimizer_step_pre_hook_calls_before": 0,
+            "optimizer_step_pre_hook_calls_after": 0,
+            "optimizer_step_pre_hook_call_delta": 0,
+            "diagnostic": diagnostic,
+        }
+        if gradient_finite and gradient_positive and nonzero_active_gradient:
+            scaler.step(optimizer)
+            step_calls = step_counter["count"]
+            scaler.update(new_scale=DATABRICKS_A10_FIXED_SCALE)
+            scale_after = float(scaler.get_scale())
+            attempt.update({
+                "scale_after": scale_after,
+                "optimizer_step_executed": step_calls == 1,
+                "optimizer_step_pre_hook_calls_after": step_calls,
+                "optimizer_step_pre_hook_call_delta": step_calls,
+            })
+            optimizer.zero_grad(set_to_none=True)
+            if step_calls != 1 or scale_after != DATABRICKS_A10_FIXED_SCALE:
+                raise GradScalerRecoveryError(
+                    "Fixed-scale update did not execute exactly once at scale 1",
+                    {"status": "failed", "reason": "fixed_scale_step_mismatch",
+                     "attempts": [attempt], "overflow_adjustments": 0,
+                     "recompute_count": 0, "max_overflow_adjustments": 0,
+                     "minimum_scale": DATABRICKS_A10_FIXED_SCALE,
+                     "optimizer_step_pre_hook_calls": step_calls})
+            return {
+                "status": "complete", "metrics": metrics,
+                "attempts": [attempt], "overflow_adjustments": 0,
+                "recompute_count": 0, "max_overflow_adjustments": 0,
+                "minimum_scale": DATABRICKS_A10_FIXED_SCALE,
+                "gradient_norm_before_clip": gradient_norm_value,
+                "gradient_norm_positive": True,
+                "active_branch_finite_nonzero_gradient_element_count":
+                    nonzero_count,
+                "active_branch_finite_nonzero_gradient_density": nonzero_density,
+                "grad_scaler_before": scale_before,
+                "grad_scaler_after": scale_after,
+                "finite": True, "overflow": False,
+                "overflow_recovered": False,
+                "optimizer_step_pre_hook_calls": step_calls,
+                "fixed_scale_no_growth": True,
+            }
+
+        # A non-finite GradScaler attempt must be observed as a skipped step.
+        if not gradient_finite and scaler.is_enabled():
+            scaler.step(optimizer)
+            if step_counter["count"] != 0:
+                raise RuntimeError("Fixed-scale overflow invoked the optimizer")
+        if scaler.is_enabled():
+            scaler.update(new_scale=DATABRICKS_A10_FIXED_SCALE)
+        optimizer.zero_grad(set_to_none=True)
+        diagnostic_steps_before = step_counter["count"]
+        terminal = None
+        if terminal_diagnostic is not None:
+            _restore_retry_rng_state(torch, device, retry_rng)
+            try:
+                terminal = dict(terminal_diagnostic(
+                    DATABRICKS_A10_FIXED_SCALE))
+            finally:
+                optimizer.zero_grad(set_to_none=True)
+        diagnostic_steps_after = step_counter["count"]
+        if diagnostic_steps_after != diagnostic_steps_before:
+            raise RuntimeError("Terminal fixed-scale diagnostic invoked optimizer")
+        reason = ("nonfinite_gradient" if not gradient_finite
+                  else "nonpositive_or_zero_density_gradient")
+        receipt = {
+            "status": "failed", "reason": reason,
+            "attempts": [attempt], "overflow_adjustments": 0,
+            "recompute_count": 0, "max_overflow_adjustments": 0,
+            "minimum_scale": DATABRICKS_A10_FIXED_SCALE,
+            "optimizer_step_pre_hook_calls": step_counter["count"],
+            "terminal_diagnostic_optimizer_step_pre_hook_calls":
+                diagnostic_steps_after - diagnostic_steps_before,
+        }
+        if terminal is not None:
+            receipt["terminal_component_gradient_diagnostic"] = terminal
+        raise GradScalerRecoveryError(
+            "Fixed FP16 scale-1 update failed closed", receipt)
 
 
 def bounded_grad_scaler_update(*, model, optimizer, scaler, stage: str,
@@ -2749,19 +3067,30 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                     logical_update_tokens * result["components_examined"])
                 return result
 
-            if plan.numerical_policy == DATABRICKS_A10_GRAD_SCALER_POLICY:
+            if plan.numerical_policy in (
+                    DATABRICKS_A10_GRAD_SCALER_POLICY,
+                    DATABRICKS_A10_FIXED_SCALE1_POLICY):
               try:
-                recovery = bounded_grad_scaler_update(
-                    model=model, optimizer=optimizer, scaler=scaler,
-                    stage=plan.stage, device=device,
-                    max_grad_norm=plan.max_grad_norm,
-                    compute_backward=compute_backward,
-                    max_overflow_adjustments=min(
-                        plan.max_overflow_adjustments,
-                        plan.max_overflow_adjustments
-                        - total_overflow_adjustments),
-                    min_scale=plan.minimum_grad_scaler_scale,
-                    terminal_diagnostic=terminal_diagnostic)
+                if (plan.numerical_policy ==
+                        DATABRICKS_A10_FIXED_SCALE1_POLICY):
+                    recovery = fixed_scale1_grad_scaler_update(
+                        model=model, optimizer=optimizer, scaler=scaler,
+                        stage=plan.stage, device=device,
+                        max_grad_norm=plan.max_grad_norm,
+                        compute_backward=compute_backward,
+                        terminal_diagnostic=terminal_diagnostic)
+                else:
+                    recovery = bounded_grad_scaler_update(
+                        model=model, optimizer=optimizer, scaler=scaler,
+                        stage=plan.stage, device=device,
+                        max_grad_norm=plan.max_grad_norm,
+                        compute_backward=compute_backward,
+                        max_overflow_adjustments=min(
+                            plan.max_overflow_adjustments,
+                            plan.max_overflow_adjustments
+                            - total_overflow_adjustments),
+                        min_scale=plan.minimum_grad_scaler_scale,
+                        terminal_diagnostic=terminal_diagnostic)
               except GradScalerRecoveryError as exc:
                 adjustments = int(exc.receipt.get(
                     "overflow_adjustments", 0))
@@ -2835,6 +3164,17 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                 "optimizer_step_pre_hook_calls": recovery[
                     "optimizer_step_pre_hook_calls"],
             }
+            if plan.numerical_policy == DATABRICKS_A10_FIXED_SCALE1_POLICY:
+                update_row.update({
+                    "gradient_norm_positive": recovery[
+                        "gradient_norm_positive"],
+                    "active_branch_finite_nonzero_gradient_element_count":
+                        recovery[
+                            "active_branch_finite_nonzero_gradient_element_count"],
+                    "active_branch_finite_nonzero_gradient_density": recovery[
+                        "active_branch_finite_nonzero_gradient_density"],
+                    "fixed_scale_no_growth": recovery["fixed_scale_no_growth"],
+                })
             update_journal.append(update_row)
             if progress_callback is not None:
                 progress_callback(dict(update_row))

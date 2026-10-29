@@ -25,6 +25,7 @@ from src.databricks_simulated_continuity import (
     create_primary_admission, create_qualification_receipt,
     digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
+    qualification_numerical_update_evidence,
     silver_partition_bindings, silver_rows, stable_rows_sha256,
     source_release_path,
     validate_base_qualification_silver_rows, validate_base_silver_binding,
@@ -55,7 +56,7 @@ from src.databricks_continuity_partition import _stage_local_model
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import (
-    RANK_RUN_VERSION, TrainingPlan, databricks_a10_plan)
+    PINNED_SOFTWARE, RANK_RUN_VERSION, TrainingPlan, databricks_a10_plan)
 from src.qwen9b_ordinal_continuity_training import (
     adjacent_pair_schedule, canonical_sha256,
     load_simulator_condition, validate_matched_conditions)
@@ -580,6 +581,36 @@ class DatabricksContinuityTests(unittest.TestCase):
                                             if k != "intent_sha256"})
         with self.assertRaises(PermissionError):
             validate_intent(changed)
+        for field, value in (
+                ("sft_weight", True), ("max_grad_norm", True),
+                ("weight_decay", False), ("alpha", 8)):
+            changed = self.intent()
+            changed["plan"][field] = value
+            changed["plan_sha256"] = canonical_sha256({
+                "plan": changed["plan"], "software": PINNED_SOFTWARE})
+            changed["intent_sha256"] = digest({
+                key: item for key, item in changed.items()
+                if key != "intent_sha256"})
+            with self.subTest(plan_field=field), self.assertRaises(
+                    PermissionError):
+                validate_intent(changed)
+        for field, value in (
+                ("attempt_number", True), ("automatic_retries", False),
+                ("world_size", True), ("gpu_count", True),
+                ("max_concurrent_runs", True),
+                ("semantics_record_count", False),
+                ("timeout_seconds", True),
+                ("wall_clock_stop_seconds", True),
+                ("wall_clock_ceiling_seconds", True),
+                ("max_gpu_hours", True)):
+            changed = self.intent()
+            changed[field] = value
+            changed["intent_sha256"] = digest({
+                key: item for key, item in changed.items()
+                if key != "intent_sha256"})
+            with self.subTest(intent_field=field), self.assertRaises(
+                    PermissionError):
+                validate_intent(changed)
         wrong_path = self.intent()
         wrong_path["source_release_path"] = (
             "/Workspace/Users/farhad.davaripour@gmail.com/research4/"
@@ -963,34 +994,54 @@ class DatabricksContinuityTests(unittest.TestCase):
                 "overflow_recovered": False,
                 "overflow": False,
                 "finite": True,
+                "gradient_norm_before_clip": 0.9,
+                "gradient_norm_positive": True,
+                "active_branch_finite_nonzero_gradient_element_count": 100,
+                "active_branch_finite_nonzero_gradient_density": 0.5,
+                "fixed_scale_no_growth": True,
                 "logical_tokens": 2048,
                 "initial_physical_tokens": 2048,
                 "replay_physical_tokens": 0,
                 "physical_tokens_processed": 2048,
-                "max_overflow_adjustments": 4,
-                "minimum_grad_scaler_scale": 4096.0,
-                "grad_scaler_before": 65536.0,
-                "grad_scaler_after": 65536.0,
+                "max_overflow_adjustments": 0,
+                "minimum_grad_scaler_scale": 1.0,
+                "grad_scaler_before": 1.0,
+                "grad_scaler_after": 1.0,
                 "optimizer_step_pre_hook_calls": 1,
                 "grad_scaler_attempts": [{
                     "attempt_index": 0,
                     "overflow": False,
                     "gradient_finite": True,
-                    "scale_before": 65536.0,
-                    "scale_after": 65536.0,
+                    "scale_before": 1.0,
+                    "scale_after": 1.0,
+                    "gradient_norm_before_clip": 0.9,
+                    "gradient_norm_positive": True,
+                    "active_branch_finite_nonzero_gradient_element_count": 100,
+                    "active_branch_finite_nonzero_gradient_density": 0.5,
+                    "scale_adjustment_applied": False,
+                    "optimizer_step_pre_hook_calls_before": 0,
+                    "optimizer_step_pre_hook_calls_after": 1,
                     "optimizer_step_pre_hook_call_delta": 1,
                     "optimizer_step_executed": True,
+                    "diagnostic": {
+                        "gradient_norm_finite": True,
+                        "gradient_norm_positive": True,
+                        "nonfinite_gradient_element_count": 0,
+                        "trainable_gradient_element_count": 200,
+                        "active_branch_finite_nonzero_gradient_element_count": 100,
+                        "active_branch_finite_nonzero_gradient_density": 0.5,
+                    },
                 }],
             })
         recovery = {
             "numerical_policy": plan.numerical_policy,
             "initial_scale": plan.grad_scaler_initial_scale,
             "backoff_factor": plan.grad_scaler_backoff_factor,
-            "max_overflow_adjustments_per_partition": 4,
+            "max_overflow_adjustments_per_partition": 0,
             "total_overflow_adjustments": 0,
-            "minimum_scale": 4096.0,
+            "minimum_scale": 1.0,
             "journal_advances_only_after_finite_optimizer_step": True,
-            "replays_exact_rng_state_and_occurrence_indices": True,
+            "replays_exact_rng_state_and_occurrence_indices": False,
         }
         rank = {
             "version": RANK_RUN_VERSION,
@@ -1006,7 +1057,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         rank["resources"]["tokens_per_second"] = 256.0
         rank["receipt_sha256"] = digest(rank)
         evidence = {
-            "version": "research4-databricks-partition-evidence-v3",
+            "version": "research4-databricks-partition-evidence-v4",
             "intent_sha256": qualification_intent["intent_sha256"],
             "base_qualification_carryforward_sha256": qualification_intent.get(
                 "base_qualification_carryforward_sha256"),
@@ -1020,6 +1071,8 @@ class DatabricksContinuityTests(unittest.TestCase):
             "logical_tokens_seen": 4096,
             "physical_tokens_processed": 4096,
             "overflow_recompute_tokens": 0,
+            "numerical_update_evidence":
+                qualification_numerical_update_evidence(rank),
             "qualification_metrics": {"architecture_pass": True,
                                       "capacity_adequate": True},
         }
@@ -1052,7 +1105,73 @@ class DatabricksContinuityTests(unittest.TestCase):
                 create_qualification_receipt(
                     qualification_intent, rank, changed_recovery,
                     directory_tree_sha256(checkpoint))
+            for label, mutate in (
+                    ("elapsed_bool", lambda value: (
+                        value.__setitem__("elapsed_seconds", True),
+                        value["resources"].__setitem__(
+                            "tokens_per_second", 4096.0))),
+                    ("elapsed_nan", lambda value: (
+                        value.__setitem__("elapsed_seconds", float("nan")),
+                        value["resources"].__setitem__(
+                            "tokens_per_second", float("nan")))),
+                    ("elapsed_inf", lambda value: value.__setitem__(
+                        "elapsed_seconds", float("inf"))),
+                    ("throughput_bool", lambda value: (
+                        value.__setitem__("elapsed_seconds", 4096.0),
+                        value["resources"].__setitem__(
+                            "tokens_per_second", True))),
+                    ("throughput_nan", lambda value: value["resources"].__setitem__(
+                        "tokens_per_second", float("nan"))),
+                    ("throughput_inf", lambda value: value["resources"].__setitem__(
+                        "tokens_per_second", float("inf"))),
+                    ("nvml_bool", lambda value: value["resources"]["gpu"][
+                        "nvml"].__setitem__("nonzero_gpu_sample_count", True)),
+                    ("tokens_bool", lambda value: value.__setitem__(
+                        "tokens_seen", True)),
+                    ("physical_bool", lambda value: value.__setitem__(
+                        "physical_tokens_processed", True)),
+                    ("overflow_bool", lambda value: value.__setitem__(
+                        "overflow_recompute_tokens", True))):
+                with self.subTest(strict_numeric=label):
+                    changed_rank = json.loads(json.dumps(rank))
+                    mutate(changed_rank)
+                    changed_rank["receipt_sha256"] = digest({
+                        key: value for key, value in changed_rank.items()
+                        if key != "receipt_sha256"})
+                    changed_evidence = json.loads(json.dumps(evidence))
+                    changed_evidence["rank_receipt_sha256"] = changed_rank[
+                        "receipt_sha256"]
+                    changed_evidence["logical_tokens_seen"] = changed_rank[
+                        "tokens_seen"]
+                    changed_evidence["physical_tokens_processed"] = changed_rank[
+                        "physical_tokens_processed"]
+                    changed_evidence["overflow_recompute_tokens"] = changed_rank[
+                        "overflow_recompute_tokens"]
+                    changed_evidence["evidence_sha256"] = digest({
+                        key: value for key, value in changed_evidence.items()
+                        if key != "evidence_sha256"})
+                    with self.assertRaises((PermissionError, ValueError)):
+                        create_qualification_receipt(
+                            qualification_intent, changed_rank,
+                            changed_evidence,
+                            directory_tree_sha256(checkpoint))
+            for checkpoint_sha in (True, 1, None):
+                with self.subTest(checkpoint_sha=checkpoint_sha):
+                    with self.assertRaises(PermissionError):
+                        create_qualification_receipt(
+                            qualification_intent, rank, evidence,
+                            checkpoint_sha)
             budget = primary_timeout_budget(primary, qualification_receipt)
+            for observed in (True, float("nan"), float("inf")):
+                with self.subTest(primary_budget_observed=observed):
+                    changed_receipt = json.loads(json.dumps(
+                        qualification_receipt))
+                    changed_receipt["qualification_tokens_per_second"] = observed
+                    changed_receipt["receipt_sha256"] = digest({
+                        key: value for key, value in changed_receipt.items()
+                        if key != "receipt_sha256"})
+                    with self.assertRaises(PermissionError):
+                        primary_timeout_budget(primary, changed_receipt)
             timeout = budget["derived_ceiling_seconds"]
             primary_intent = validate_intent(self.intent(
                 plan=primary, timeout_seconds=timeout,
@@ -1085,6 +1204,19 @@ class DatabricksContinuityTests(unittest.TestCase):
                 if key != "intent_sha256"})
             with self.assertRaises(PermissionError):
                 validate_intent(invented)
+            for observed in (True, float("nan"), float("inf")):
+                with self.subTest(intent_budget_observed=observed):
+                    changed_intent = json.loads(json.dumps(primary_intent))
+                    changed_budget = changed_intent["reviewed_timeout_budget"]
+                    changed_budget["qualification_tokens_per_second"] = observed
+                    changed_budget["budget_sha256"] = digest({
+                        key: value for key, value in changed_budget.items()
+                        if key != "budget_sha256"})
+                    changed_intent["intent_sha256"] = digest({
+                        key: value for key, value in changed_intent.items()
+                        if key != "intent_sha256"})
+                    with self.assertRaises(PermissionError):
+                        validate_intent(changed_intent)
             evidence["qualification_metrics"]["architecture_pass"] = False
             evidence["evidence_sha256"] = digest({
                 key: value for key, value in evidence.items()
