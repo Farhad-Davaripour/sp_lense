@@ -67,7 +67,7 @@ from src.databricks_continuity_partition import run_partition
 from src.databricks_simulated_continuity import (
     GOLD_ADMISSION_TABLE, MODEL_RECEIPT, VOLUME, close_active_reservation,
     reserve_intent, validate_base_qualification_receipt, validate_intent,
-    verify_deployed_source)
+    verify_deployed_source, verify_model_receipt_authority)
 from src.qwen9b_ordinal_continuity_training import (
     assert_databricks_a10x1_fp16_runtime, assert_fast_deltanet_dependencies)
 
@@ -102,11 +102,13 @@ if restored.shape != probe.shape or not torch.isfinite(restored).all():
     raise RuntimeError("bitsandbytes NF4 CUDA readiness failed")
 del restored, quantized, quantization_state, probe
 torch.cuda.synchronize(0); torch.cuda.empty_cache()
-model_receipt = json.loads(Path(MODEL_RECEIPT).read_text(encoding="utf-8"))
+model_receipt = verify_model_receipt_authority(
+    MODEL_RECEIPT,
+    expected_tree_sha256=intent["model_tree_sha256"],
+    expected_receipt_sha256=intent["model_receipt_sha256"])
 required_disk = int(model_receipt.get("total_bytes", 0)) + 8 * 1024**3
 local_disk_free = shutil.disk_usage(tempfile.gettempdir()).free
-if (model_receipt.get("receipt_sha256") != intent["model_receipt_sha256"]
-        or required_disk <= 8 * 1024**3 or local_disk_free < required_disk):
+if required_disk <= 8 * 1024**3 or local_disk_free < required_disk:
     raise RuntimeError("Local model-copy and export disk readiness failed")
 pynvml.nvmlInit()
 try:

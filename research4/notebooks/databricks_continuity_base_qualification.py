@@ -97,7 +97,7 @@ from src.databricks_simulated_continuity import (
     validate_base_qualification_silver_rows,
     validate_base_qualification_intent,
     verify_deployed_source,
-    verify_model_receipt,
+    verify_model_receipt_authority,
 )
 from src.qwen9b_ordinal_continuity_lora import (
     model_component_sha256,
@@ -124,11 +124,11 @@ def _require_before_ceiling(phase):
 source = verify_deployed_source(values["code_path"], intent)
 if source["manifest_sha256"] != bootstrap_source_sha256:
     raise PermissionError("Bootstrap and full source verification differ")
-_require_before_operator_stop("model receipt verification")
-model_receipt = verify_model_receipt(intent["model_root"], MODEL_RECEIPT)
-if (model_receipt["tree_sha256"] != intent["model_tree_sha256"]
-        or model_receipt["receipt_sha256"] != intent["model_receipt_sha256"]):
-    raise PermissionError("Base qualification model snapshot differs")
+_require_before_operator_stop("model receipt authority verification")
+model_receipt = verify_model_receipt_authority(
+    MODEL_RECEIPT,
+    expected_tree_sha256=intent["model_tree_sha256"],
+    expected_receipt_sha256=intent["model_receipt_sha256"])
 _require_before_operator_stop("Silver replay")
 selected = spark.table(SILVER_TABLE).where(
     (F.col("source_commit") == intent["source_commit"])
@@ -200,7 +200,7 @@ try:
         "append").saveAsTable(GOLD_ADMISSION_TABLE)
     local_model, local_receipt, copy_metrics = _stage_local_model(
         intent["model_root"], MODEL_RECEIPT, intent["identity"],
-        intent["model_tree_sha256"])
+        intent["model_tree_sha256"], intent["model_receipt_sha256"])
     local_parent = local_model.parent
     _require_before_operator_stop("frozen-base model load")
     quantization = BitsAndBytesConfig(

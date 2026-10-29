@@ -25,6 +25,7 @@ from .databricks_simulated_continuity import (
     MODEL_RECEIPT, MODEL_ROOT, VOLUME, build_source_manifest, canonical,
     validate_base_qualification_receipt, validate_source_manifest,
     verify_deployed_source, verify_model_receipt,
+    verify_model_receipt_authority,
 )
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 
@@ -165,12 +166,12 @@ def verify_transfer_inputs(intent: Mapping[str, Any], *,
     """Recompute actual model, base gate, checkpoints and sealed registries."""
     value = validate_transfer_intent(intent, verify_inputs=False)
     model = (verify_model_receipt(value["model_root"], value["model_receipt_path"])
-             if verify_model_bytes else _read(value["model_receipt_path"]))
+             if verify_model_bytes else verify_model_receipt_authority(
+                 value["model_receipt_path"],
+                 expected_tree_sha256=value["model_tree_sha256"],
+                 expected_receipt_sha256=value["model_receipt_sha256"]))
     if (model["tree_sha256"] != value["model_tree_sha256"]
-            or model["receipt_sha256"] != value["model_receipt_sha256"]
-            or (not verify_model_bytes and digest({
-                key: item for key, item in model.items() if key != "receipt_sha256"
-            }) != model["receipt_sha256"])):
+            or model["receipt_sha256"] != value["model_receipt_sha256"]):
         raise PermissionError("Transfer intent model snapshot differs")
     base = validate_base_qualification_receipt(_read(
         value["base_qualification_receipt_path"]))

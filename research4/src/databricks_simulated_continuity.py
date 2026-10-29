@@ -8,7 +8,7 @@ primary GPU partitions.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
 import hashlib
 import json
@@ -1714,8 +1714,9 @@ def snapshot_inventory(model_root: str | Path) -> list[dict]:
     return rows
 
 
-def build_model_receipt(model_root: str | Path) -> dict:
-    files = snapshot_inventory(model_root)
+def _model_receipt_from_inventory(model_root: str | Path,
+                                  files: list[dict]) -> dict:
+    """Build the authoritative descriptor from one already-hashed inventory."""
     by_path = {row["path"]: row for row in files}
     required = {"config.json", "model.safetensors.index.json",
                 "tokenizer.json", "tokenizer_config.json"}
@@ -1747,23 +1748,90 @@ def build_model_receipt(model_root: str | Path) -> dict:
     return receipt
 
 
-def verify_model_receipt(model_root: str | Path, receipt_path: str | Path) -> dict:
-    receipt = json.loads(Path(receipt_path).read_text(encoding="utf-8"))
-    payload = dict(receipt); embedded = payload.pop("receipt_sha256", None)
-    actual = snapshot_inventory(model_root)
-    recomputed = build_model_receipt(model_root)
-    if (embedded != digest(payload) or receipt.get("version") != MODEL_RECEIPT_VERSION
-            or receipt.get("model_id") != MODEL_ID
-            or receipt.get("model_revision") != MODEL_REVISION
-            or receipt.get("resolved_commit") != MODEL_REVISION
-            or receipt.get("files") != actual
-            or receipt.get("tree_sha256") != digest(actual)
-            or any(receipt.get(key) != recomputed.get(key) for key in (
-                "config_sha256", "model_index_sha256", "weight_map_sha256",
-                "shard_tree_sha256", "tokenizer_tree_sha256"))
-            or receipt.get("artifact_staging_only") is not True
-            or any(receipt.get(key) != 0 for key in (
+def build_model_receipt(model_root: str | Path) -> dict:
+    return _model_receipt_from_inventory(
+        model_root, snapshot_inventory(model_root))
+
+
+def _validate_model_receipt_descriptor(receipt: Mapping[str, Any]) -> dict:
+    """Validate receipt authority without reading any model payload bytes."""
+    value = dict(receipt) if isinstance(receipt, Mapping) else {}
+    payload = dict(value); embedded = payload.pop("receipt_sha256", None)
+    expected_fields = {
+        "version", "model_id", "model_revision", "resolved_commit", "files",
+        "file_count", "total_bytes", "tree_sha256", "artifact_staging_only",
+        "config_sha256", "model_index_sha256", "weight_map_sha256",
+        "shard_tree_sha256", "tokenizer_tree_sha256", "model_loads",
+        "forwards", "backwards", "optimizer_updates", "receipt_sha256",
+    }
+    files = value.get("files")
+    if (set(value) != expected_fields
+            or embedded != digest(payload)
+            or value.get("version") != MODEL_RECEIPT_VERSION
+            or value.get("model_id") != MODEL_ID
+            or value.get("model_revision") != MODEL_REVISION
+            or value.get("resolved_commit") != MODEL_REVISION
+            or not isinstance(files, list) or not files
+            or value.get("file_count") != len(files)
+            or value.get("artifact_staging_only") is not True
+            or any(value.get(key) != 0 for key in (
                 "model_loads", "forwards", "backwards", "optimizer_updates"))):
+        raise PermissionError("Volume model snapshot receipt authority differs")
+    paths = []
+    for row in files:
+        logical = row.get("path") if isinstance(row, Mapping) else None
+        path = PurePosixPath(logical) if isinstance(logical, str) else None
+        if (not isinstance(row, Mapping)
+                or set(row) != {"path", "sha256", "bytes"}
+                or path is None or path.is_absolute() or ".." in path.parts
+                or path.as_posix() != logical
+                or not re.fullmatch(r"[0-9a-f]{64}", str(row.get("sha256", "")))
+                or isinstance(row.get("bytes"), bool)
+                or not isinstance(row.get("bytes"), int) or row["bytes"] < 0):
+            raise PermissionError("Volume model snapshot receipt inventory differs")
+        paths.append(logical)
+    by_path = {row["path"]: row for row in files}
+    required = {"config.json", "model.safetensors.index.json",
+                "tokenizer.json", "tokenizer_config.json"}
+    digest_fields = (
+        "tree_sha256", "config_sha256", "model_index_sha256",
+        "weight_map_sha256", "shard_tree_sha256", "tokenizer_tree_sha256",
+        "receipt_sha256",
+    )
+    if (paths != sorted(paths) or len(set(paths)) != len(paths)
+            or not required <= set(paths)
+            or value.get("total_bytes") != sum(row["bytes"] for row in files)
+            or value.get("tree_sha256") != digest(files)
+            or value.get("config_sha256") != by_path["config.json"]["sha256"]
+            or value.get("model_index_sha256")
+               != by_path["model.safetensors.index.json"]["sha256"]
+            or any(not re.fullmatch(r"[0-9a-f]{64}", str(value.get(key, "")))
+                   for key in digest_fields)):
+        raise PermissionError("Volume model snapshot receipt descriptor differs")
+    return value
+
+
+def verify_model_receipt_authority(
+        receipt_path: str | Path, *, expected_tree_sha256: str,
+        expected_receipt_sha256: str) -> dict:
+    """Verify the intent-bound receipt only; do not hash the Volume model."""
+    if (not re.fullmatch(r"[0-9a-f]{64}", expected_tree_sha256)
+            or not re.fullmatch(r"[0-9a-f]{64}", expected_receipt_sha256)):
+        raise ValueError("Expected model receipt authority must be SHA-256")
+    receipt = _validate_model_receipt_descriptor(json.loads(
+        Path(receipt_path).read_text(encoding="utf-8")))
+    if (receipt["tree_sha256"] != expected_tree_sha256
+            or receipt["receipt_sha256"] != expected_receipt_sha256):
+        raise PermissionError("Intent and model receipt authority differ")
+    return receipt
+
+
+def verify_model_receipt(model_root: str | Path, receipt_path: str | Path) -> dict:
+    receipt = _validate_model_receipt_descriptor(json.loads(
+        Path(receipt_path).read_text(encoding="utf-8")))
+    actual = snapshot_inventory(model_root)
+    recomputed = _model_receipt_from_inventory(model_root, actual)
+    if receipt != recomputed:
         raise PermissionError("Volume model snapshot receipt differs")
     return receipt
 

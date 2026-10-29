@@ -18,7 +18,8 @@ from .databricks_simulated_continuity import (
     canonical, digest, expected_predecessor_binding, validate_exact_gold_row,
     validate_base_qualification_receipt, validate_intent,
     validate_primary_authority_files, verify_deployed_source,
-    verify_model_receipt, verify_reserved_intent)
+    verify_model_receipt, verify_model_receipt_authority,
+    verify_reserved_intent)
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from .qwen9b_ordinal_continuity_training import verify_rank_receipt
 from .qwen9b_ordinal_continuity_training import TrainingPlan, validate_sequential_parent
@@ -43,12 +44,15 @@ def _bounded_run(command, *, cwd, env, stop_seconds, ceiling_seconds):
             "child_exit_confirmed": process.poll() is not None}
 
 
-def _stage_local_model(volume_root, volume_receipt, identity, expected_tree):
+def _stage_local_model(volume_root, volume_receipt, identity, expected_tree,
+                       expected_receipt_sha256):
     destination = Path(tempfile.gettempdir()) / "research4_model_cache" / identity
     if destination.exists():
         raise FileExistsError("Per-run local model cache already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    receipt = _read(volume_receipt)
+    receipt = verify_model_receipt_authority(
+        volume_receipt, expected_tree_sha256=expected_tree,
+        expected_receipt_sha256=expected_receipt_sha256)
     required = int(receipt["total_bytes"]) + 8 * 1024**3
     free_before = shutil.disk_usage(destination.parent).free
     if free_before < required:
@@ -60,7 +64,9 @@ def _stage_local_model(volume_root, volume_receipt, identity, expected_tree):
         local_receipt = destination / "MODEL_SNAPSHOT_RECEIPT.json"
         shutil.copy2(volume_receipt, local_receipt)
         proof = verify_model_receipt(local_model, local_receipt)
-        if proof["tree_sha256"] != expected_tree:
+        if (proof["tree_sha256"] != expected_tree
+                or proof["receipt_sha256"] != expected_receipt_sha256
+                or proof != receipt):
             raise PermissionError("Local model cache differs from volume authority")
     except BaseException:
         shutil.rmtree(destination, ignore_errors=True)
@@ -110,10 +116,10 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     source_proof = verify_deployed_source(code_root, intent)
     lock_root = Path(VOLUME) / "locks"
     verify_reserved_intent(lock_root, intent, owner=str(job_run_id))
-    model_receipt = verify_model_receipt(intent["model_root"], MODEL_RECEIPT)
-    if (model_receipt["tree_sha256"] != intent["model_tree_sha256"]
-            or model_receipt["receipt_sha256"] != intent["model_receipt_sha256"]):
-        raise PermissionError("Reviewed intent model snapshot differs")
+    model_receipt = verify_model_receipt_authority(
+        MODEL_RECEIPT,
+        expected_tree_sha256=intent["model_tree_sha256"],
+        expected_receipt_sha256=intent["model_receipt_sha256"])
     from pyspark.sql import functions as F
     base_rows = spark.table(GOLD_RUN_TABLE).where(
         F.col("partition_identity") == base_qualification["identity"]).collect()
@@ -229,7 +235,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
                             encoding="utf-8")
     local_model, local_model_receipt, cache_metrics = _stage_local_model(
         intent["model_root"], MODEL_RECEIPT, identity,
-        intent["model_tree_sha256"])
+        intent["model_tree_sha256"], intent["model_receipt_sha256"])
     try:
         import mlflow
         mlflow.set_experiment(intent["mlflow_experiment_path"])

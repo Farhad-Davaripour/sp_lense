@@ -2,6 +2,7 @@ from dataclasses import asdict, replace
 from pathlib import Path
 import hashlib
 import json
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -27,7 +28,8 @@ from src.databricks_simulated_continuity import (
     validate_base_qualification_intent, validate_base_qualification_receipt,
     validate_intent,
     validate_primary_authority_files, validate_source_manifest,
-    verify_dataset_release, verify_deployed_source, verify_model_receipt)
+    verify_dataset_release, verify_deployed_source, verify_model_receipt,
+    verify_model_receipt_authority)
 from src.databricks_continuity_partition import _stage_local_model
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
@@ -474,6 +476,56 @@ class DatabricksContinuityTests(unittest.TestCase):
             with self.assertRaises(PermissionError):
                 verify_model_receipt(root, path)
 
+    def test_model_receipt_full_verification_inventories_payload_once(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / "model"; root.mkdir()
+            shard = "model-00001-of-00001.safetensors"
+            (root / "config.json").write_text("{}\n")
+            (root / shard).write_bytes(b"weights")
+            (root / "model.safetensors.index.json").write_text(json.dumps({
+                "weight_map": {"model.weight": shard}}))
+            (root / "tokenizer.json").write_text("{}\n")
+            (root / "tokenizer_config.json").write_text("{}\n")
+            receipt = build_model_receipt(root)
+            path = root.parent / "MODEL_SNAPSHOT_RECEIPT.json"
+            path.write_text(json.dumps(receipt))
+            from src import databricks_simulated_continuity as contract
+            original = contract.snapshot_inventory
+            with patch.object(contract, "snapshot_inventory",
+                              wraps=original) as inventory:
+                self.assertEqual(verify_model_receipt(root, path), receipt)
+            self.assertEqual(inventory.call_count, 1)
+
+    def test_lightweight_model_receipt_authority_rejects_descriptor_tamper(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / "model"; root.mkdir()
+            shard = "model-00001-of-00001.safetensors"
+            (root / "config.json").write_text("{}\n")
+            (root / shard).write_bytes(b"weights")
+            (root / "model.safetensors.index.json").write_text(json.dumps({
+                "weight_map": {"model.weight": shard}}))
+            (root / "tokenizer.json").write_text("{}\n")
+            (root / "tokenizer_config.json").write_text("{}\n")
+            receipt = build_model_receipt(root)
+            path = root.parent / "MODEL_SNAPSHOT_RECEIPT.json"
+            path.write_text(json.dumps(receipt))
+            from src import databricks_simulated_continuity as contract
+            with patch.object(contract, "snapshot_inventory",
+                              side_effect=AssertionError("payload was hashed")):
+                self.assertEqual(verify_model_receipt_authority(
+                    path, expected_tree_sha256=receipt["tree_sha256"],
+                    expected_receipt_sha256=receipt["receipt_sha256"]), receipt)
+            tampered = json.loads(json.dumps(receipt))
+            tampered["weight_map_sha256"] = "f" * 64
+            tampered["receipt_sha256"] = digest({
+                key: value for key, value in tampered.items()
+                if key != "receipt_sha256"})
+            path.write_text(json.dumps(tampered))
+            with self.assertRaises(PermissionError):
+                verify_model_receipt_authority(
+                    path, expected_tree_sha256=receipt["tree_sha256"],
+                    expected_receipt_sha256=receipt["receipt_sha256"])
+
     def test_volume_snapshot_commit_copies_verifies_and_publishes_receipt_last(self):
         with tempfile.TemporaryDirectory() as folder:
             parent = Path(folder); staged = parent / "staged"; staged.mkdir()
@@ -519,14 +571,66 @@ class DatabricksContinuityTests(unittest.TestCase):
             (source / "tokenizer.json").write_text("{}\n")
             (source / "tokenizer_config.json").write_text("{}\n")
             receipt = parent / "MODEL_SNAPSHOT_RECEIPT.json"
-            receipt.write_text(json.dumps(build_model_receipt(source)))
+            authority = build_model_receipt(source)
+            receipt.write_text(json.dumps(authority))
             with patch("src.databricks_continuity_partition.tempfile.gettempdir",
                        return_value=folder):
                 with self.assertRaises(PermissionError):
                     _stage_local_model(
-                        source, receipt, "tree-mismatch-test", "f" * 64)
+                        source, receipt, "tree-mismatch-test", "f" * 64,
+                        authority["receipt_sha256"])
             self.assertFalse(
                 (parent / "research4_model_cache" / "tree-mismatch-test").exists())
+
+    def test_model_verification_order_is_cpu_full_gpu_light_copy_full(self):
+        root = Path(__file__).parents[1]
+        base_cpu = (root / "notebooks" /
+                    "databricks_continuity_base_qualification_preflight.py").read_text()
+        training_cpu = (root / "notebooks" /
+                        "databricks_continuity_preflight.py").read_text()
+        base_gpu = (root / "notebooks" /
+                    "databricks_continuity_base_qualification.py").read_text()
+        training_gpu = (root / "notebooks" /
+                        "databricks_continuity_partition.py").read_text()
+        for source in (base_cpu, training_cpu):
+            self.assertIn("verify_model_receipt(", source)
+            self.assertNotIn("verify_model_receipt_authority(", source)
+        for source in (base_gpu, training_gpu):
+            self.assertIn("verify_model_receipt_authority(", source)
+            self.assertNotIn("verify_model_receipt(", source)
+
+        with tempfile.TemporaryDirectory() as folder:
+            parent = Path(folder); source = parent / "source"; source.mkdir()
+            shard = "model-00001-of-00001.safetensors"
+            (source / "config.json").write_text("{}\n")
+            (source / shard).write_bytes(b"weights")
+            (source / "model.safetensors.index.json").write_text(json.dumps({
+                "weight_map": {"model.weight": shard}}))
+            (source / "tokenizer.json").write_text("{}\n")
+            (source / "tokenizer_config.json").write_text("{}\n")
+            authority = build_model_receipt(source)
+            receipt = parent / "MODEL_SNAPSHOT_RECEIPT.json"
+            receipt.write_text(json.dumps(authority))
+            from src import databricks_continuity_partition as launcher
+            light = launcher.verify_model_receipt_authority
+            full = launcher.verify_model_receipt
+            order = []
+            def record_light(*args, **kwargs):
+                order.append("gpu_light_authority")
+                return light(*args, **kwargs)
+            def record_full(*args, **kwargs):
+                order.append("post_copy_full_hash")
+                return full(*args, **kwargs)
+            with patch.object(launcher.tempfile, "gettempdir", return_value=folder), \
+                    patch.object(launcher, "verify_model_receipt_authority",
+                                 side_effect=record_light), \
+                    patch.object(launcher, "verify_model_receipt",
+                                 side_effect=record_full):
+                local_model, _, _ = _stage_local_model(
+                    source, receipt, "verification-order-test",
+                    authority["tree_sha256"], authority["receipt_sha256"])
+            self.assertEqual(order, ["gpu_light_authority", "post_copy_full_hash"])
+            shutil.rmtree(local_model.parent)
 
     def test_primary_authority_replays_raw_qualification_and_rejects_tamper(self):
         qualification_intent = validate_intent(self.intent())
@@ -781,7 +885,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertNotIn('"source-sha256"', intent_tool)
         self.assertIn("build_source_manifest", intent_tool)
         self.assertLess(source.index("verify_reserved_intent(lock_root"),
-                        source.index("model_receipt = verify_model_receipt("))
+                        source.index(
+                            "model_receipt = verify_model_receipt_authority("))
         self.assertLess(source.index("verify_reserved_intent("),
                         source.index("local_model, local_model_receipt, cache_metrics = "
                                      "_stage_local_model("))
