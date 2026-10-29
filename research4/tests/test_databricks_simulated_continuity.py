@@ -37,6 +37,17 @@ from src.action_serialization import (
     SERIALIZATION_CONTRACT_VERSION, parse_registered_action,
     serialization_contract,
 )
+from src import base_qualification_carryforward as carry_contract
+from src.base_qualification_carryforward import (
+    ALLOWED_RUNTIME_CHANGED_PATHS, BASE_CRITICAL_ENTRYPOINTS,
+    CARRYFORWARD_VERSION, QUALIFIED_BASE_GIT_TREE,
+    QUALIFIED_BASE_INTENT_SHA256, QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256,
+    QUALIFIED_BASE_RECEIPT_SHA256, QUALIFIED_BASE_SOURCE_COMMIT,
+    QUALIFIED_BASE_SOURCE_MANIFEST_SHA256,
+    REVIEWED_CHANGED_SYMBOLS, UNCHANGED_BASE_FILES,
+    symbol_ast_sha256, symbol_dependency_closure_sha256, validate_carryforward,
+    verify_deployed_carryforward,
+)
 from src.databricks_continuity_partition import _stage_local_model
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
@@ -518,6 +529,158 @@ class DatabricksContinuityTests(unittest.TestCase):
                                             if k != "intent_sha256"})
         with self.assertRaises(PermissionError):
             validate_intent(changed)
+
+    def test_qualified_base_carryforward_binds_source_delta_and_tamper(self):
+        source = Path(__file__).parents[1]
+        prior_manifest = build_source_manifest(source, "a" * 40)
+        current_manifest = build_source_manifest(source, "b" * 40)
+        prior_intent = build_base_qualification_intent(
+            source_commit="a" * 40, source_manifest=prior_manifest,
+            model_tree_sha256="c" * 64, model_receipt_sha256="d" * 64,
+            silver_binding=self.base_binding(),
+            mlflow_experiment_path="/Shared/research4_simulated_continuity")
+        base = self.base_receipt()
+        base.update({"source_commit": "a" * 40,
+                     "source_sha256": prior_manifest["manifest_sha256"],
+                     "base_qualification_intent_sha256":
+                         prior_intent["intent_sha256"]})
+        base["receipt_sha256"] = digest({
+            key: value for key, value in base.items()
+            if key != "receipt_sha256"})
+        prior_symbol_authority = {
+            path: {name: "f" * 64 for name in names}
+            for path, names in REVIEWED_CHANGED_SYMBOLS.items()}
+        for patcher in (
+                patch.object(carry_contract, "QUALIFIED_BASE_SOURCE_COMMIT",
+                             "a" * 40),
+                patch.object(carry_contract, "QUALIFIED_BASE_GIT_TREE",
+                             "1" * 40),
+                patch.object(carry_contract, "QUALIFIED_BASE_INTENT_SHA256",
+                             prior_intent["intent_sha256"]),
+                patch.object(carry_contract, "QUALIFIED_BASE_RECEIPT_SHA256",
+                             base["receipt_sha256"]),
+                patch.object(carry_contract,
+                             "QUALIFIED_BASE_SOURCE_MANIFEST_SHA256",
+                             prior_manifest["manifest_sha256"]),
+                patch.object(carry_contract,
+                             "QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256",
+                             prior_symbol_authority)):
+            patcher.start(); self.addCleanup(patcher.stop)
+        old_files = {row["path"]: row for row in prior_manifest["files"]}
+        unchanged = {path: old_files[path]["sha256"]
+                     for path in UNCHANGED_BASE_FILES}
+        critical = {path: symbol_dependency_closure_sha256(
+            (source / path).read_text(encoding="utf-8"), entrypoints,
+            stop_symbols=REVIEWED_CHANGED_SYMBOLS.get(path, ()))
+                    for path, entrypoints in BASE_CRITICAL_ENTRYPOINTS.items()}
+        for path, names in REVIEWED_CHANGED_SYMBOLS.items():
+            for name in names:
+                critical[path].pop(name, None)
+        reviewed = {}
+        for path, names in REVIEWED_CHANGED_SYMBOLS.items():
+            current = symbol_ast_sha256(
+                (source / path).read_text(encoding="utf-8"), names)
+            reviewed[path] = {name: {"prior":
+                                      prior_symbol_authority[path][name],
+                                      "current": current[name]}
+                              for name in names}
+        carry = {
+            "version": CARRYFORWARD_VERSION,
+            "prior_source_commit": "a" * 40,
+            "current_source_commit": "b" * 40,
+            "prior_git_tree": "1" * 40,
+            "current_git_tree": "2" * 40,
+            "git_diff_sha256": "3" * 64, "changed_paths": [],
+            "allowed_runtime_changed_paths": list(ALLOWED_RUNTIME_CHANGED_PATHS),
+            "prior_source_manifest_sha256": prior_manifest["manifest_sha256"],
+            "current_source_manifest_sha256": current_manifest["manifest_sha256"],
+            "prior_base_intent_sha256": prior_intent["intent_sha256"],
+            "prior_base_receipt_sha256": base["receipt_sha256"],
+            "model_tree_sha256": base["model_tree_sha256"],
+            "model_receipt_sha256": base["model_receipt_sha256"],
+            "dataset_tree_sha256": base["dataset_tree_sha256"],
+            "base_plan_sha256": base["plan_sha256"],
+            "serialization_contract_version": base[
+                "serialization_contract_version"],
+            "qualification_set_version": base["qualification_set_version"],
+            "qualification_seed": base["qualification_seed"],
+            "qualification_selection_digest": base[
+                "qualification_selection_digest"],
+            "qualification_proposal_sha256": base[
+                "qualification_proposal_sha256"],
+            "unchanged_base_files": unchanged,
+            "base_critical_symbol_sha256": critical,
+            "reviewed_changed_symbol_sha256": reviewed,
+            "model_execution_performed": False, "optimizer_updates": 0,
+            "scientific_status_preserved": "qualified",
+        }
+        carry["carryforward_sha256"] = digest(carry)
+        self.assertEqual(validate_carryforward(
+            carry, prior_intent=prior_intent, base_receipt=base,
+            current_source_manifest=current_manifest), carry)
+        self.assertEqual(verify_deployed_carryforward(
+            carry, code_root=source, prior_intent=prior_intent,
+            base_receipt=base, current_source_manifest=current_manifest), carry)
+        plan = TrainingPlan(
+            device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=2, accumulation_steps=2).validate()
+        intent = build_intent(
+            plan=plan, identity=partition_identity(plan),
+            source_commit="b" * 40, source_manifest=current_manifest,
+            model_tree_sha256="c" * 64, model_receipt_sha256="d" * 64,
+            silver_records_sha256="e" * 64, silver_record_count=2304,
+            semantics_records_sha256=digest([]), semantics_record_count=0,
+            global_journal_sha256="1" * 64,
+            admission_data_binding_sha256="2" * 64,
+            admission_exposure_binding_sha256="3" * 64,
+            timeout_seconds=2700, max_gpu_hours=.75,
+            wall_clock_stop_seconds=2400,
+            mlflow_experiment_path="/Shared/research4_simulated_continuity",
+            base_qualification_receipt=base,
+            base_qualification_source_intent=prior_intent,
+            base_qualification_carryforward=carry)
+        self.assertEqual(intent["base_qualification_carryforward_sha256"],
+                         carry["carryforward_sha256"])
+        tampered = json.loads(json.dumps(carry))
+        path = next(iter(BASE_CRITICAL_ENTRYPOINTS))
+        name = next(iter(critical[path]))
+        tampered["base_critical_symbol_sha256"][path][name] = "0" * 64
+        tampered["carryforward_sha256"] = digest({
+            key: value for key, value in tampered.items()
+            if key != "carryforward_sha256"})
+        with self.assertRaises(PermissionError):
+            verify_deployed_carryforward(
+                tampered, code_root=source, prior_intent=prior_intent,
+                base_receipt=base, current_source_manifest=current_manifest)
+        prior_tampered = json.loads(json.dumps(carry))
+        changed_path = next(iter(REVIEWED_CHANGED_SYMBOLS))
+        changed_name = next(iter(REVIEWED_CHANGED_SYMBOLS[changed_path]))
+        prior_tampered["reviewed_changed_symbol_sha256"][changed_path][
+            changed_name]["prior"] = "0" * 64
+        prior_tampered["carryforward_sha256"] = digest({
+            key: value for key, value in prior_tampered.items()
+            if key != "carryforward_sha256"})
+        with self.assertRaises(PermissionError):
+            validate_carryforward(
+                prior_tampered, prior_intent=prior_intent, base_receipt=base,
+                current_source_manifest=current_manifest)
+        changed_manifest = json.loads(json.dumps(current_manifest))
+        target = next(row for row in changed_manifest["files"]
+                      if row["path"] == "src/databricks_continuity_partition.py")
+        target["sha256"] = "0" * 64
+        changed_manifest["manifest_sha256"] = digest({
+            key: value for key, value in changed_manifest.items()
+            if key != "manifest_sha256"})
+        omitted = json.loads(json.dumps(carry))
+        omitted["current_source_manifest_sha256"] = changed_manifest[
+            "manifest_sha256"]
+        omitted["carryforward_sha256"] = digest({
+            key: value for key, value in omitted.items()
+            if key != "carryforward_sha256"})
+        with self.assertRaises(PermissionError):
+            validate_carryforward(
+                omitted, prior_intent=prior_intent, base_receipt=base,
+                current_source_manifest=changed_manifest)
 
     def test_owner_bound_closeout_releases_active_but_retains_consumed_identity(self):
         intent = validate_intent(self.intent())

@@ -22,6 +22,10 @@ from .action_serialization import (
     parse_registered_action,
     serialization_contract,
 )
+from .base_qualification_carryforward import (
+    validate_carryforward,
+    verify_deployed_carryforward,
+)
 
 
 CATALOG = "research4_simulated_continuity"
@@ -41,7 +45,7 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v4"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v5"
 BASE_QUALIFICATION_INTENT_VERSION = (
     "research4-databricks-frozen-base-format-intent-v2"
 )
@@ -89,6 +93,7 @@ SOURCE_MANIFEST_PATHS = (
     "resources/simulated_continuity_databricks.job.yml",
     "src/__init__.py",
     "src/action_serialization.py",
+    "src/base_qualification_carryforward.py",
     "src/composite_kernels.py",
     "src/databricks_continuity_partition.py",
     "src/databricks_continuity_partition_worker.py",
@@ -106,10 +111,16 @@ SOURCE_MANIFEST_PATHS = (
     "src/qwen9b_ordinal_continuity_worker.py",
     "tools/prepare_databricks_continuity_intent.py",
     "tools/prepare_databricks_base_qualification_intent.py",
+    "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/rescore_base_qualification_v1_serialization_v2.py",
     "tools/prepare_databricks_transfer_package_plan.py",
     "tools/prepare_databricks_transfer_intent.py",
 )
+LEGACY_BASE_SOURCE_MANIFEST_PATHS = tuple(
+    path for path in SOURCE_MANIFEST_PATHS if path not in {
+        "src/base_qualification_carryforward.py",
+        "tools/prepare_databricks_base_qualification_carryforward.py",
+    })
 MODEL_RECEIPT_VERSION = "research4-databricks-qwen35-volume-snapshot-v1"
 CLOSEOUT_VERSION = "research4-databricks-active-reservation-closeout-v1"
 COST_BUDGET_VERSION = "research4-databricks-throughput-derived-budget-v1"
@@ -220,17 +231,22 @@ def build_source_manifest(source_root: str | Path, source_commit: str) -> dict:
     return payload
 
 
-def validate_source_manifest(value: Mapping[str, Any]) -> dict:
+def validate_source_manifest(value: Mapping[str, Any], *,
+                             allow_legacy_base: bool = False) -> dict:
     manifest = dict(value) if isinstance(value, Mapping) else {}
     if set(manifest) != {"version", "source_commit", "file_count",
                          "total_canonical_bytes", "files", "manifest_sha256"}:
         raise PermissionError("Source manifest fields differ")
     files = manifest.get("files")
+    logical_paths = [item.get("path") for item in files] if isinstance(files, list) else []
+    accepted_paths = {tuple(SOURCE_MANIFEST_PATHS)}
+    if allow_legacy_base:
+        accepted_paths.add(tuple(LEGACY_BASE_SOURCE_MANIFEST_PATHS))
     if (manifest.get("version") != SOURCE_MANIFEST_VERSION
             or not re.fullmatch(r"[0-9a-f]{40}", str(manifest.get("source_commit", "")))
             or not isinstance(files, list)
-            or [item.get("path") for item in files] != list(SOURCE_MANIFEST_PATHS)
-            or manifest.get("file_count") != len(SOURCE_MANIFEST_PATHS)):
+            or tuple(logical_paths) not in accepted_paths
+            or manifest.get("file_count") != len(logical_paths)):
         raise PermissionError("Source manifest identity differs")
     for item in files:
         if (set(item) != {"path", "sha256", "canonical_bytes"}
@@ -966,7 +982,8 @@ def build_base_qualification_intent(*, source_commit: str,
 def validate_base_qualification_intent(value: Mapping[str, Any]) -> dict:
     intent = dict(value)
     try:
-        source_manifest = validate_source_manifest(intent.get("source_manifest"))
+        source_manifest = validate_source_manifest(
+            intent.get("source_manifest"), allow_legacy_base=True)
     except (TypeError, ValueError, PermissionError) as exc:
         raise PermissionError("Base qualification lacks a valid source manifest") from exc
     plan = intent.get("plan")
@@ -1315,6 +1332,44 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
                            (exact_plan.condition, exact_plan.seed, exact_plan.stage)), None))
     if expected_plan is None or asdict(exact_plan) != asdict(expected_plan):
         raise PermissionError("Databricks plan differs from the canonical experiment matrix")
+    source_base_intent = intent.get("base_qualification_source_intent")
+    carryforward = intent.get("base_qualification_carryforward")
+    carryforward_sha = intent.get("base_qualification_carryforward_sha256")
+    if carryforward is None:
+        if source_base_intent is not None or carryforward_sha is not None:
+            raise PermissionError("Incomplete base qualification carry-forward")
+    else:
+        try:
+            source_base_intent = validate_base_qualification_intent(
+                source_base_intent)
+            carryforward = validate_carryforward(
+                carryforward, prior_intent=source_base_intent,
+                base_receipt={
+                    "receipt_sha256": intent.get(
+                        "base_qualification_receipt_sha256"),
+                    "base_qualification_intent_sha256": intent.get(
+                        "base_qualification_intent_sha256"),
+                    "model_tree_sha256": intent.get("model_tree_sha256"),
+                    "model_receipt_sha256": intent.get("model_receipt_sha256"),
+                    "dataset_tree_sha256": intent.get("dataset_tree_sha256"),
+                    "plan_sha256": source_base_intent.get("plan_sha256"),
+                    "serialization_contract_version": source_base_intent.get(
+                        "plan", {}).get("serialization_contract_version"),
+                    "qualification_set_version": source_base_intent.get(
+                        "plan", {}).get("qualification_set_version"),
+                    "qualification_seed": source_base_intent.get(
+                        "plan", {}).get("qualification_seed"),
+                    "qualification_selection_digest": source_base_intent.get(
+                        "plan", {}).get("qualification_selection_digest"),
+                    "qualification_proposal_sha256": source_base_intent.get(
+                        "plan", {}).get("qualification_proposal_sha256"),
+                }, current_source_manifest=source_manifest)
+        except (TypeError, ValueError, PermissionError) as exc:
+            raise PermissionError("Invalid base qualification carry-forward") from exc
+        if (carryforward_sha != carryforward.get("carryforward_sha256")
+                or source_base_intent.get("intent_sha256")
+                   != intent.get("base_qualification_intent_sha256")):
+            raise PermissionError("Base qualification carry-forward binding differs")
     if (any(intent.get(key) != expected for key, expected in required.items())
             or intent.get("identity") != partition_identity(exact_plan)
             or not re.fullmatch(r"[a-z0-9_]+", intent["identity"])
@@ -1410,6 +1465,8 @@ def build_intent(*, plan, identity: str, source_commit: str,
                  wall_clock_stop_seconds: int,
                  mlflow_experiment_path: str,
                  base_qualification_receipt: Mapping[str, Any],
+                 base_qualification_source_intent: Mapping[str, Any] | None = None,
+                 base_qualification_carryforward: Mapping[str, Any] | None = None,
                  qualification_receipt: Mapping[str, Any] | None = None) -> dict:
     """Create a self-hashed not-submitted intent for external review."""
     from dataclasses import asdict
@@ -1418,9 +1475,22 @@ def build_intent(*, plan, identity: str, source_commit: str,
         raise PermissionError("Source manifest commit differs from the intent")
     base_receipt = validate_base_qualification_receipt(
         base_qualification_receipt)
-    if (base_receipt["source_commit"] != source_commit
-            or base_receipt["source_sha256"] != manifest["manifest_sha256"]
-            or base_receipt["model_tree_sha256"] != model_tree_sha256
+    carryforward = None
+    source_base_intent = None
+    if base_receipt["source_commit"] == source_commit:
+        if (base_qualification_source_intent is not None
+                or base_qualification_carryforward is not None
+                or base_receipt["source_sha256"] != manifest["manifest_sha256"]):
+            raise PermissionError("Same-source base gate cannot use carry-forward")
+    else:
+        source_base_intent = validate_base_qualification_intent(
+            base_qualification_source_intent)
+        carryforward = validate_carryforward(
+            base_qualification_carryforward,
+            prior_intent=source_base_intent,
+            base_receipt=base_receipt,
+            current_source_manifest=manifest)
+    if (base_receipt["model_tree_sha256"] != model_tree_sha256
             or base_receipt["model_receipt_sha256"] != model_receipt_sha256
             or base_receipt["dataset_tree_sha256"] != DATASET_TREE_SHA256):
         raise PermissionError("Frozen-base qualification authority differs")
@@ -1446,6 +1516,10 @@ def build_intent(*, plan, identity: str, source_commit: str,
         "base_qualification_intent_sha256": base_receipt[
             "base_qualification_intent_sha256"],
         "base_qualification_receipt_sha256": base_receipt["receipt_sha256"],
+        "base_qualification_source_intent": source_base_intent,
+        "base_qualification_carryforward": carryforward,
+        "base_qualification_carryforward_sha256": (
+            None if carryforward is None else carryforward["carryforward_sha256"]),
         "max_gpu_hours": max_gpu_hours,
         "wall_clock_stop_seconds": wall_clock_stop_seconds,
         "wall_clock_ceiling_seconds": timeout_seconds,
@@ -1472,6 +1546,36 @@ def build_intent(*, plan, identity: str, source_commit: str,
         raise PermissionError("Qualification intent cannot use prior qualification evidence")
     value["intent_sha256"] = digest(value)
     return validate_intent(value)
+
+
+def verify_intent_base_qualification_authority(
+        intent: Mapping[str, Any], base_receipt: Mapping[str, Any],
+        code_root: str | Path) -> dict:
+    """Verify direct or reviewed carry-forward base authority on the worker."""
+    current = validate_intent(intent)
+    base = validate_base_qualification_receipt(base_receipt)
+    if (base["receipt_sha256"]
+            != current["base_qualification_receipt_sha256"]
+            or base["base_qualification_intent_sha256"]
+               != current["base_qualification_intent_sha256"]):
+        raise PermissionError("Training intent and frozen-base gate differ")
+    carryforward = current.get("base_qualification_carryforward")
+    if carryforward is None:
+        if (base["source_commit"] != current["source_commit"]
+                or base["source_sha256"] != current["source_sha256"]):
+            raise PermissionError("Direct frozen-base source authority differs")
+        return {"mode": "direct", "source_commit": base["source_commit"],
+                "carryforward_sha256": None}
+    prior_intent = validate_base_qualification_intent(
+        current.get("base_qualification_source_intent"))
+    verified = verify_deployed_carryforward(
+        carryforward, code_root=code_root, prior_intent=prior_intent,
+        base_receipt=base, current_source_manifest=current["source_manifest"])
+    if (base["source_commit"] != prior_intent["source_commit"]
+            or base["source_sha256"] != prior_intent["source_sha256"]):
+        raise PermissionError("Carried frozen-base source authority differs")
+    return {"mode": "carryforward", "source_commit": base["source_commit"],
+            "carryforward_sha256": verified["carryforward_sha256"]}
 
 
 def canonical_primary_plan_hashes() -> list[str]:
@@ -1506,6 +1610,8 @@ def create_qualification_receipt(intent: Mapping[str, Any],
                 "nvml", {}).get("nonzero_gpu_sample_count", 0) <= 0
             or evidence_hash != digest(evidence_payload)
             or evidence.get("intent_sha256") != intent["intent_sha256"]
+            or evidence.get("base_qualification_carryforward_sha256")
+               != intent.get("base_qualification_carryforward_sha256")
             or evidence.get("rank_receipt_sha256") != rank_receipt.get("receipt_sha256")
             or evidence.get("live_base_components_before")
                != evidence.get("live_base_components_after")
@@ -1522,7 +1628,7 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or not re.fullmatch(r"[0-9a-f]{64}", checkpoint_tree_sha256)):
         raise PermissionError("Actual rank-4 Databricks qualification evidence differs")
     value = {
-        "version": "research4-databricks-rank4-qualification-v1",
+        "version": "research4-databricks-rank4-qualification-v2",
         "status": "qualified", "source_commit": intent["source_commit"],
         "source_sha256": intent["source_sha256"],
         "model_tree_sha256": intent["model_tree_sha256"],
@@ -1531,6 +1637,8 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             "base_qualification_intent_sha256"],
         "base_qualification_receipt_sha256": intent[
             "base_qualification_receipt_sha256"],
+        "base_qualification_carryforward_sha256": intent.get(
+            "base_qualification_carryforward_sha256"),
         "qualification_intent_sha256": intent["intent_sha256"],
         "qualification_plan_sha256": intent["plan_sha256"],
         "qualification_rank_receipt_sha256": rank_receipt["receipt_sha256"],
@@ -1563,6 +1671,8 @@ def create_primary_admission(intent: Mapping[str, Any],
                != intent.get("base_qualification_intent_sha256")
             or receipt.get("base_qualification_receipt_sha256")
                != intent.get("base_qualification_receipt_sha256")
+            or receipt.get("base_qualification_carryforward_sha256")
+               != intent.get("base_qualification_carryforward_sha256")
             or intent.get("reviewed_timeout_budget", {}).get(
                 "qualification_receipt_sha256") != embedded
             or intent.get("reviewed_timeout_budget", {}).get(
@@ -1572,7 +1682,7 @@ def create_primary_admission(intent: Mapping[str, Any],
                 "authorized_primary_plan_sha256s", ())):
         raise PermissionError("Qualification does not authorize this primary partition")
     value = {
-        "version": "qwen35-9b-ordinal-continuity-primary-admission-v2",
+        "version": "qwen35-9b-ordinal-continuity-primary-admission-v3",
         "admitted": True, "plan": intent["plan"],
         "full_plan_sha256": intent["plan_sha256"],
         "qualification_receipt_sha256": embedded,
@@ -1583,6 +1693,8 @@ def create_primary_admission(intent: Mapping[str, Any],
             "base_qualification_intent_sha256"],
         "base_qualification_receipt_sha256": intent[
             "base_qualification_receipt_sha256"],
+        "base_qualification_carryforward_sha256": intent.get(
+            "base_qualification_carryforward_sha256"),
         "model_tree_sha256": intent["model_tree_sha256"],
         "model_receipt_sha256": intent["model_receipt_sha256"],
         "reviewed_timeout_budget_sha256": intent[
@@ -1614,7 +1726,11 @@ def validate_primary_authority_files(
     if (qualification_intent.get("base_qualification_intent_sha256")
             != primary_intent.get("base_qualification_intent_sha256")
             or qualification_intent.get("base_qualification_receipt_sha256")
-            != primary_intent.get("base_qualification_receipt_sha256")):
+            != primary_intent.get("base_qualification_receipt_sha256")
+            or qualification_intent.get(
+                "base_qualification_carryforward_sha256")
+               != primary_intent.get(
+                   "base_qualification_carryforward_sha256")):
         raise PermissionError("Primary and capacity qualification use different base gate")
     root = Path(qualification_output)
     rank = json.loads((root / "RANK_0_RECEIPT.json").read_text(encoding="utf-8"))
@@ -2017,6 +2133,8 @@ def gold_summary(base_qualification_receipt: Mapping,
     base = validate_base_qualification_receipt(base_qualification_receipt)
     capacity_payload = dict(capacity_qualification_receipt)
     capacity_hash = capacity_payload.pop("receipt_sha256", None)
+    carryforward_sha = capacity_qualification_receipt.get(
+        "base_qualification_carryforward_sha256")
     if (capacity_hash != digest(capacity_payload)
             or capacity_qualification_receipt.get("status") != "qualified"
             or capacity_qualification_receipt.get("selected_rank") != 4
@@ -2025,6 +2143,11 @@ def gold_summary(base_qualification_receipt: Mapping,
                != canonical_primary_plan_hashes()
             or capacity_qualification_receipt.get(
                 "base_qualification_receipt_sha256") != base["receipt_sha256"]
+            or (carryforward_sha is not None
+                and not re.fullmatch(r"[0-9a-f]{64}", carryforward_sha))
+            or (carryforward_sha is None
+                and capacity_qualification_receipt.get("source_commit")
+                    != base.get("source_commit"))
             or capacity_gold_row.get("status") != "complete"
             or capacity_gold_row.get("mode") != "qualification"
             or capacity_gold_row.get("optimizer_updates") != 2
@@ -2050,8 +2173,7 @@ def gold_summary(base_qualification_receipt: Mapping,
                        for seed in seeds for stage in stages}:
         raise PermissionError("Gold policy rows are incomplete or duplicated")
     all_rows = [capacity_gold_row, *policy_receipts]
-    if (len({row.get("source_commit") for row in all_rows}
-            | {base.get("source_commit")}) != 1
+    if (len({row.get("source_commit") for row in all_rows}) != 1
             or len({row.get("model_tree_sha256") for row in all_rows}
                    | {base.get("model_tree_sha256")}) != 1
             or sorted(row.get("plan_sha256") for row in policy_receipts)
@@ -2070,6 +2192,7 @@ def gold_summary(base_qualification_receipt: Mapping,
              "baseline": "frozen_base",
              "frozen_base_model_sha256": base["model_tree_sha256"],
              "base_qualification_receipt_sha256": base["receipt_sha256"],
+             "base_qualification_carryforward_sha256": carryforward_sha,
              "capacity_qualification_receipt_sha256": capacity_hash,
              "capacity_qualification_rank_receipt_sha256":
                  capacity_gold_row.get("receipt_sha256"),

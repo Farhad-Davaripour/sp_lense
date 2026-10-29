@@ -49,6 +49,9 @@ class TransferPackagingTests(unittest.TestCase):
 
     def plan(self):
         source = self.source_manifest()
+        source_base_intent = {"intent_sha256": "2" * 64}
+        carryforward = {"prior_base_intent_sha256": "2" * 64}
+        carryforward["carryforward_sha256"] = digest(carryforward)
         value = {
             "version": PACKAGING_PLAN_VERSION,
             "identity": TRANSFER_PACKAGE_IDENTITY,
@@ -60,6 +63,10 @@ class TransferPackagingTests(unittest.TestCase):
             "model_tree_sha256": "c" * 64,
             "base_qualification_receipt_path": "/Volumes/a/b/c/base.json",
             "base_qualification_receipt_sha256": "d" * 64,
+            "base_qualification_source_intent": source_base_intent,
+            "base_qualification_carryforward": carryforward,
+            "base_qualification_carryforward_sha256": carryforward[
+                "carryforward_sha256"],
             "base_qualification_receipt_file_sha256": "e" * 64,
             "capacity_qualification_receipt_path": "/Volumes/a/b/c/capacity.json",
             "capacity_qualification_receipt_sha256": "f" * 64,

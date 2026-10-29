@@ -18,7 +18,7 @@ from .databricks_simulated_continuity import (
     canonical, digest, expected_predecessor_binding, validate_exact_gold_row,
     validate_base_qualification_receipt, validate_intent,
     validate_policy_silver_payload, validate_primary_authority_files,
-    verify_deployed_source,
+    verify_deployed_source, verify_intent_base_qualification_authority,
     verify_model_receipt, verify_model_receipt_authority,
     verify_reserved_intent)
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
@@ -108,13 +108,10 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         raise PermissionError("Training requires the frozen-base format gate")
     base_qualification = validate_base_qualification_receipt(
         _read(base_qualification_receipt_path))
-    if (base_qualification["receipt_sha256"]
-            != intent["base_qualification_receipt_sha256"]
-            or base_qualification["base_qualification_intent_sha256"]
-               != intent["base_qualification_intent_sha256"]):
-        raise PermissionError("Training intent and frozen-base gate differ")
     exact_plan = TrainingPlan(**plan).validate()
     source_proof = verify_deployed_source(code_root, intent)
+    base_authority = verify_intent_base_qualification_authority(
+        intent, base_qualification, code_root)
     lock_root = Path(VOLUME) / "locks"
     verify_reserved_intent(lock_root, intent, owner=str(job_run_id))
     model_receipt = verify_model_receipt_authority(
@@ -131,7 +128,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         "stage": "format_schema",
         "seed": 0,
         "plan_sha256": base_qualification["plan_sha256"],
-        "source_commit": intent["source_commit"],
+        "source_commit": base_authority["source_commit"],
         "model_tree_sha256": intent["model_tree_sha256"],
         "checkpoint_tree_sha256": intent["model_tree_sha256"],
         "receipt_sha256": base_qualification["receipt_sha256"],

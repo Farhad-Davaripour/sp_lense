@@ -17,6 +17,9 @@ def main(argv=None) -> int:
     parser.add_argument("--model-tree-sha256", required=True)
     parser.add_argument("--model-receipt-sha256", required=True)
     parser.add_argument("--base-qualification-receipt", required=True)
+    parser.add_argument("--base-qualification-carryforward-sha256", required=True)
+    parser.add_argument("--base-qualification-source-intent", required=True)
+    parser.add_argument("--base-qualification-carryforward", required=True)
     parser.add_argument("--checkpoint-root", required=True)
     parser.add_argument("--checkpoint-manifest", required=True)
     parser.add_argument("--unblinding-key", required=True)
@@ -30,11 +33,19 @@ def main(argv=None) -> int:
     if output.exists():
         raise FileExistsError("Databricks transfer intent is immutable")
     plan = json.loads(Path(args.resource_plan).read_text(encoding="utf-8"))
+    source_base_intent = json.loads(Path(
+        args.base_qualification_source_intent).read_text(encoding="utf-8"))
+    carryforward = json.loads(Path(
+        args.base_qualification_carryforward).read_text(encoding="utf-8"))
     intent = build_transfer_intent(
         source_root=args.source_root, source_commit=args.source_commit,
         model_tree_sha256=args.model_tree_sha256,
         model_receipt_sha256=args.model_receipt_sha256,
         base_qualification_receipt_path=args.base_qualification_receipt,
+        base_qualification_carryforward_sha256=
+            args.base_qualification_carryforward_sha256,
+        base_qualification_source_intent=source_base_intent,
+        base_qualification_carryforward=carryforward,
         checkpoint_root=args.checkpoint_root,
         checkpoint_manifest_path=args.checkpoint_manifest,
         unblinding_key_path=args.unblinding_key,

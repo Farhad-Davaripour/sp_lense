@@ -26,6 +26,7 @@ def _bootstrap_verify_source(root_value, authority):
                          ensure_ascii=False).encode("utf-8")
     critical = (
         "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
+        "src/base_qualification_carryforward.py",
         "src/continuity_transfer_databricks.py",
         "src/continuity_transfer_packaging.py",
         "src/continuity_transfer_intent_preparation.py",

@@ -67,7 +67,9 @@ def run(args):
                     or admission.get("data_binding_sha256")
                        != intent["admission_data_binding_sha256"]
                     or admission.get("exposure_binding_sha256")
-                       != intent["admission_exposure_binding_sha256"]):
+                       != intent["admission_exposure_binding_sha256"]
+                    or admission.get("base_qualification_carryforward_sha256")
+                       != intent.get("base_qualification_carryforward_sha256")):
                 raise PermissionError("Primary admission differs from this one-use intent")
             model, targets, proof = build_qualified_model(
                 plan, admission, local_rank=local_rank,
@@ -127,6 +129,8 @@ def run(args):
         evidence = {
             "version": "research4-databricks-partition-evidence-v1",
             "intent_sha256": intent["intent_sha256"],
+            "base_qualification_carryforward_sha256": intent.get(
+                "base_qualification_carryforward_sha256"),
             "plan_sha256": plan.full_plan_sha256,
             "rank_receipt_sha256": receipt["receipt_sha256"],
             "live_base_components_before": live_before,

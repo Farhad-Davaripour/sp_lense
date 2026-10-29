@@ -30,6 +30,7 @@ def _bootstrap_verify_source(root_value, authority):
     ).encode("utf-8")
     critical = (
         "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
+        "src/base_qualification_carryforward.py",
         "src/qwen9b_ordinal_continuity_runtime.py",
         "src/qwen9b_ordinal_continuity_training.py",
         "src/qwen9b_ordinal_continuity_lora.py",

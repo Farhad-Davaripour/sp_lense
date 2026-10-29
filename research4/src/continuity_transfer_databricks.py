@@ -24,17 +24,19 @@ from .continuity_transfer_inference_worker import (
 )
 from .databricks_simulated_continuity import (
     MODEL_RECEIPT, MODEL_ROOT, VOLUME, build_source_manifest, canonical,
-    validate_base_qualification_receipt, validate_source_manifest,
+    validate_base_qualification_intent, validate_base_qualification_receipt,
+    validate_source_manifest,
     verify_deployed_source, verify_model_receipt,
     verify_model_receipt_authority,
 )
+from .base_qualification_carryforward import validate_carryforward
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 
 
-TRANSFER_INTENT_VERSION = "research4-databricks-continuity-transfer-intent-v2"
+TRANSFER_INTENT_VERSION = "research4-databricks-continuity-transfer-intent-v3"
 TRANSFER_RESOURCE_PLAN_VERSION = "research4-databricks-continuity-transfer-resource-v2"
-TRANSFER_RUN_BINDING_VERSION = "research4-databricks-continuity-transfer-run-binding-v2"
-TRANSFER_AUDIT_VERSION = "research4-databricks-continuity-transfer-audit-v2"
+TRANSFER_RUN_BINDING_VERSION = "research4-databricks-continuity-transfer-run-binding-v3"
+TRANSFER_AUDIT_VERSION = "research4-databricks-continuity-transfer-audit-v3"
 TRANSFER_IDENTITY = "continuity_transfer_evaluation_v3"
 TRANSFER_GOLD_TABLE = (
     "research4_simulated_continuity.gold.continuity_transfer_evaluation_audits"
@@ -179,14 +181,20 @@ def verify_transfer_inputs(intent: Mapping[str, Any], *,
         raise PermissionError("Transfer intent model snapshot differs")
     base = validate_base_qualification_receipt(_read(
         value["base_qualification_receipt_path"]))
+    source_base_intent = validate_base_qualification_intent(
+        value["base_qualification_source_intent"])
+    carryforward = validate_carryforward(
+        value["base_qualification_carryforward"],
+        prior_intent=source_base_intent, base_receipt=base,
+        current_source_manifest=value["source_manifest"])
     resource = value["resource_plan"]
     base_resources = base["resources"]
     if (base["status"] != "qualified"
             or base["receipt_sha256"] != value["base_qualification_receipt_sha256"]
             or base["model_tree_sha256"] != value["model_tree_sha256"]
             or base["model_receipt_sha256"] != value["model_receipt_sha256"]
-            or base["source_commit"] != value["source_commit"]
-            or base["source_sha256"] != value["source_sha256"]
+            or carryforward["carryforward_sha256"]
+               != value.get("base_qualification_carryforward_sha256")
             or resource["qualification_receipt_sha256"]
                != base["receipt_sha256"]
             or resource["qualification_episode_count"]
@@ -267,6 +275,8 @@ def validate_transfer_intent(value: Mapping[str, Any], *,
         "source_manifest", "source_sha256", "model_root", "model_receipt_path",
         "model_tree_sha256", "model_receipt_sha256",
         "base_qualification_receipt_path", "base_qualification_receipt_sha256",
+        "base_qualification_source_intent", "base_qualification_carryforward",
+        "base_qualification_carryforward_sha256",
         "checkpoint_root", "checkpoint_manifest_path",
         "checkpoint_manifest_sha256", "checkpoint_package_sha256",
         "unblinding_key_path", "unblinding_key_sha256",
@@ -281,6 +291,12 @@ def validate_transfer_intent(value: Mapping[str, Any], *,
         plan = validate_transfer_resource_plan(intent.get("resource_plan", {}))
     except (TypeError, ValueError, PermissionError) as exc:
         raise PermissionError("Transfer intent source/resource binding differs") from exc
+    source_base_intent = intent.get("base_qualification_source_intent")
+    if not isinstance(source_base_intent, Mapping):
+        raise PermissionError("Transfer intent lacks carried base source intent")
+    carryforward = intent.get("base_qualification_carryforward")
+    carry_payload = dict(carryforward) if isinstance(carryforward, Mapping) else {}
+    carry_hash = carry_payload.pop("carryforward_sha256", None)
     payload = dict(intent); embedded = payload.pop("intent_sha256", None)
     if (set(intent) != fields
             or embedded != digest(payload)
@@ -300,11 +316,17 @@ def validate_transfer_intent(value: Mapping[str, Any], *,
             or any(not _sha(intent.get(key)) for key in (
                 "source_sha256", "model_tree_sha256", "model_receipt_sha256",
                 "base_qualification_receipt_sha256",
+                "base_qualification_carryforward_sha256",
                 "checkpoint_manifest_sha256", "checkpoint_package_sha256",
                 "unblinding_key_sha256",
                 "sealed_commitment_sha256", "sealed_registry_sha256",
                 "training_separation_receipt_sha256", "resource_plan_sha256"))
             or plan["resource_plan_sha256"] != intent.get("resource_plan_sha256")
+            or carry_hash != digest(carry_payload)
+            or carry_hash != intent.get("base_qualification_carryforward_sha256")
+            or carry_payload.get("prior_base_intent_sha256")
+               != source_base_intent.get("intent_sha256")
+            or not _sha(source_base_intent.get("intent_sha256"))
             or intent.get("output_root") != TRANSFER_OUTPUT_ROOT
             or intent.get("mlflow_experiment_path") != TRANSFER_MLFLOW_EXPERIMENT):
         raise PermissionError("Exact one-use Databricks transfer intent required")
@@ -322,6 +344,9 @@ def validate_transfer_intent(value: Mapping[str, Any], *,
 def build_transfer_intent(*, source_root: str | Path, source_commit: str,
                           model_tree_sha256: str, model_receipt_sha256: str,
                           base_qualification_receipt_path: str,
+                          base_qualification_source_intent: Mapping[str, Any],
+                          base_qualification_carryforward: Mapping[str, Any],
+                          base_qualification_carryforward_sha256: str,
                           checkpoint_root: str, checkpoint_manifest_path: str,
                           unblinding_key_path: str,
                           sealed_root: str, commitment_path: str,
@@ -334,6 +359,13 @@ def build_transfer_intent(*, source_root: str | Path, source_commit: str,
         raise PermissionError("Requested model hashes differ from the Volume snapshot")
     base = validate_base_qualification_receipt(_read(
         base_qualification_receipt_path))
+    source_base_intent = validate_base_qualification_intent(
+        base_qualification_source_intent)
+    carryforward = validate_carryforward(
+        base_qualification_carryforward, prior_intent=source_base_intent,
+        base_receipt=base, current_source_manifest=source)
+    if carryforward["carryforward_sha256"] != base_qualification_carryforward_sha256:
+        raise PermissionError("Transfer carry-forward hash differs")
     reviewed_resource = validate_transfer_resource_plan(resource_plan)
     if (reviewed_resource["qualification_receipt_sha256"]
             != base["receipt_sha256"]
@@ -361,6 +393,10 @@ def build_transfer_intent(*, source_root: str | Path, source_commit: str,
         "model_receipt_sha256": model_receipt_sha256,
         "base_qualification_receipt_path": base_qualification_receipt_path,
         "base_qualification_receipt_sha256": base["receipt_sha256"],
+        "base_qualification_source_intent": source_base_intent,
+        "base_qualification_carryforward": carryforward,
+        "base_qualification_carryforward_sha256":
+            base_qualification_carryforward_sha256,
         "checkpoint_root": checkpoint_root,
         "checkpoint_manifest_path": checkpoint_manifest_path,
         "checkpoint_manifest_sha256": manifest_sha,
@@ -401,6 +437,8 @@ def build_databricks_run_binding(intent: Mapping[str, Any], *, job_run_id: str,
         "model_receipt_sha256": value["model_receipt_sha256"],
         "base_qualification_receipt_sha256": value[
             "base_qualification_receipt_sha256"],
+        "base_qualification_carryforward_sha256": value[
+            "base_qualification_carryforward_sha256"],
         "checkpoint_manifest_sha256": value["checkpoint_manifest_sha256"],
         "checkpoint_package_sha256": value["checkpoint_package_sha256"],
         "sealed_registry_sha256": value["sealed_registry_sha256"],

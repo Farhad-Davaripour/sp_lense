@@ -51,6 +51,9 @@ class DatabricksTransferBindingTests(unittest.TestCase):
 
     def intent(self):
         source = self.source_manifest(); plan = self.plan()
+        source_base_intent = {"intent_sha256": "7" * 64}
+        carryforward = {"prior_base_intent_sha256": "7" * 64}
+        carryforward["carryforward_sha256"] = digest(carryforward)
         value = {
             "version": TRANSFER_INTENT_VERSION, "identity": TRANSFER_IDENTITY,
             "one_use": True, "attempt_number": 1, "automatic_retries": 0,
@@ -60,6 +63,10 @@ class DatabricksTransferBindingTests(unittest.TestCase):
             "model_tree_sha256": "d" * 64, "model_receipt_sha256": "e" * 64,
             "base_qualification_receipt_path": "/Volumes/c/s/v/base.json",
             "base_qualification_receipt_sha256": "f" * 64,
+            "base_qualification_source_intent": source_base_intent,
+            "base_qualification_carryforward": carryforward,
+            "base_qualification_carryforward_sha256": carryforward[
+                "carryforward_sha256"],
             "checkpoint_root": "/Volumes/c/s/v/checkpoints",
             "checkpoint_manifest_path": "/Volumes/c/s/v/CHECKPOINT_MANIFEST.json",
             "checkpoint_manifest_sha256": "1" * 64,
@@ -186,6 +193,8 @@ class DatabricksTransferBindingTests(unittest.TestCase):
         self.assertNotIn("reserve_intent(", preflight)
         self.assertLess(preflight.index("bootstrap_source_sha256 ="),
                         preflight.index("sys.path.insert"))
+        self.assertIn('"source_commit": base["source_commit"]', preflight)
+        self.assertNotIn('"source_commit": intent["source_commit"]', preflight)
         audit = (ROOT / "notebooks" /
                  "databricks_continuity_transfer_audit.py").read_text()
         self.assertIn("audit_raw_run(", audit)
