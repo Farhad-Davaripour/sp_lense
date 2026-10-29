@@ -1,4 +1,4 @@
-from dataclasses import asdict, replace
+from dataclasses import asdict
 from pathlib import Path
 import hashlib
 import json
@@ -52,7 +52,8 @@ from src.base_qualification_carryforward import (
 from src.databricks_continuity_partition import _stage_local_model
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
-from src.qwen9b_ordinal_continuity_training import TrainingPlan
+from src.qwen9b_ordinal_continuity_training import (
+    RANK_RUN_VERSION, TrainingPlan, databricks_a10_plan)
 from src.qwen9b_ordinal_continuity_training import (
     adjacent_pair_schedule, canonical_sha256,
     load_simulator_condition, validate_matched_conditions)
@@ -63,6 +64,24 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn(
             "src/qwen9b_ordinal_continuity_worker.py",
             ALLOWED_RUNTIME_CHANGED_PATHS,
+        )
+        self.assertIn(
+            "notebooks/databricks_continuity_model_snapshot.py",
+            ALLOWED_RUNTIME_CHANGED_PATHS,
+        )
+
+    def test_base_carryforward_binds_reviewed_model_cache_receipt_delta(self):
+        path = "src/databricks_continuity_partition.py"
+        self.assertEqual(
+            REVIEWED_CHANGED_SYMBOLS[path],
+            ("_stage_local_model",),
+        )
+        self.assertEqual(
+            QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256[path],
+            {
+                "_stage_local_model":
+                    "df0d529edf4195cc691192b7dc5b681674ea3f2bf41512e462f903632bbf74d1",
+            },
         )
 
     def base_resources(self, model_tree_sha256="c" * 64):
@@ -167,9 +186,8 @@ class DatabricksContinuityTests(unittest.TestCase):
 
     def intent(self, *, plan=None, timeout_seconds=2700, max_gpu_hours=0.75,
                stop_seconds=2400, reviewed_timeout_budget=None):
-        plan = (plan or TrainingPlan(
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4)).validate()
+        plan = plan or databricks_a10_plan(TrainingPlan())
+        plan = plan.validate()
         source_manifest = build_source_manifest(
             Path(__file__).parents[1], "a" * 40)
         value = {
@@ -462,11 +480,9 @@ class DatabricksContinuityTests(unittest.TestCase):
             if key != "binding_sha256"})
         with self.assertRaises(PermissionError):
             validate_base_silver_binding(invented_binding)
-        qualification_plan = TrainingPlan(
+        qualification_plan = databricks_a10_plan(TrainingPlan(
             mode="qualification", stage="delta1", condition="self_continuity",
-            seed=202610281, optimizer_updates=2,
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+            seed=202610281, optimizer_updates=2))
         tokenized = [json.loads(row["record_json"]) for row in silver
                      if row["record_kind"] == "self_continuity"]
         self.assertTrue(tokenized)
@@ -631,9 +647,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertEqual(verify_deployed_carryforward(
             carry, code_root=source, prior_intent=prior_intent,
             base_receipt=base, current_source_manifest=current_manifest), carry)
-        plan = TrainingPlan(
-            device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        plan = databricks_a10_plan(TrainingPlan())
         intent = build_intent(
             plan=plan, identity=partition_identity(plan),
             source_commit="b" * 40, source_manifest=current_manifest,
@@ -652,7 +666,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertEqual(intent["base_qualification_carryforward_sha256"],
                          carry["carryforward_sha256"])
         tampered = json.loads(json.dumps(carry))
-        path = next(iter(BASE_CRITICAL_ENTRYPOINTS))
+        path = next(path for path in BASE_CRITICAL_ENTRYPOINTS
+                    if critical[path])
         name = next(iter(critical[path]))
         tampered["base_critical_symbol_sha256"][path][name] = "0" * 64
         tampered["carryforward_sha256"] = digest({
@@ -884,23 +899,74 @@ class DatabricksContinuityTests(unittest.TestCase):
                                  side_effect=record_light), \
                     patch.object(launcher, "verify_model_receipt",
                                  side_effect=record_full):
-                local_model, _, _ = _stage_local_model(
+                local_model, _, metrics = _stage_local_model(
                     source, receipt, "verification-order-test",
                     authority["tree_sha256"], authority["receipt_sha256"])
             self.assertEqual(order, ["gpu_light_authority", "post_copy_full_hash"])
+            self.assertEqual(metrics["source_model_path"], str(source))
+            self.assertEqual(metrics["source_receipt_path"], str(receipt))
+            self.assertEqual(metrics["tree_sha256"], authority["tree_sha256"])
+            self.assertEqual(metrics["copy_bytes"], authority["total_bytes"])
+            self.assertEqual(metrics["public_model_download_bytes"], 0)
+            self.assertTrue(metrics["hf_network_fallback_disabled"])
+            self.assertFalse(metrics["snapshot_download_used"])
             shutil.rmtree(local_model.parent)
 
     def test_primary_authority_replays_raw_qualification_and_rejects_tamper(self):
         qualification_intent = validate_intent(self.intent())
+        plan = TrainingPlan(**qualification_intent["plan"]).validate()
+        updates = []
+        for update_index in range(plan.optimizer_updates):
+            updates.append({
+                "optimizer_update": update_index,
+                "overflow_adjustments": 0,
+                "overflow_recovered": False,
+                "overflow": False,
+                "finite": True,
+                "logical_tokens": 2048,
+                "initial_physical_tokens": 2048,
+                "replay_physical_tokens": 0,
+                "physical_tokens_processed": 2048,
+                "max_overflow_adjustments": 4,
+                "minimum_grad_scaler_scale": 4096.0,
+                "grad_scaler_before": 65536.0,
+                "grad_scaler_after": 65536.0,
+                "optimizer_step_pre_hook_calls": 1,
+                "grad_scaler_attempts": [{
+                    "attempt_index": 0,
+                    "overflow": False,
+                    "gradient_finite": True,
+                    "scale_before": 65536.0,
+                    "scale_after": 65536.0,
+                    "optimizer_step_pre_hook_call_delta": 1,
+                    "optimizer_step_executed": True,
+                }],
+            })
+        recovery = {
+            "numerical_policy": plan.numerical_policy,
+            "initial_scale": plan.grad_scaler_initial_scale,
+            "backoff_factor": plan.grad_scaler_backoff_factor,
+            "max_overflow_adjustments_per_partition": 4,
+            "total_overflow_adjustments": 0,
+            "minimum_scale": 4096.0,
+            "journal_advances_only_after_finite_optimizer_step": True,
+            "replays_exact_rng_state_and_occurrence_indices": True,
+        }
         rank = {
+            "version": RANK_RUN_VERSION,
             "status": "complete", "plan_sha256": qualification_intent["plan_sha256"],
             "successful_optimizer_updates": 2, "active_branch_changed": True,
             "tokens_seen": 4096, "elapsed_seconds": 16.0,
+            "updates": updates,
+            "overflow_recompute_tokens": 0,
+            "physical_tokens_processed": 4096,
+            "grad_scaler_recovery": recovery,
             "resources": {"gpu": {"nvml": {"nonzero_gpu_sample_count": 2}}},
         }
         rank["resources"]["tokens_per_second"] = 256.0
         rank["receipt_sha256"] = digest(rank)
         evidence = {
+            "version": "research4-databricks-partition-evidence-v3",
             "intent_sha256": qualification_intent["intent_sha256"],
             "base_qualification_carryforward_sha256": qualification_intent.get(
                 "base_qualification_carryforward_sha256"),
@@ -910,6 +976,10 @@ class DatabricksContinuityTests(unittest.TestCase):
             "live_base_components_before": {"weights": "a" * 64},
             "live_base_components_after": {"weights": "a" * 64},
             "save_reload_pass": True,
+            "grad_scaler_recovery": recovery,
+            "logical_tokens_seen": 4096,
+            "physical_tokens_processed": 4096,
+            "overflow_recompute_tokens": 0,
             "qualification_metrics": {"architecture_pass": True,
                                       "capacity_adequate": True},
         }
@@ -917,8 +987,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         primary = next(plan for plan in matrix_plans(EXPERIMENT_SPEC, 4)
                        if plan.condition == "self_continuity"
                        and plan.seed == 202610281 and plan.stage == "delta1")
-        primary = replace(primary, device_profile="databricks-a10x1", world_size=1,
-                          micro_batch_size=1, accumulation_steps=4).validate()
+        primary = databricks_a10_plan(primary)
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder); output = root / "qualification_output"
             checkpoint = output / "checkpoint"; checkpoint.mkdir(parents=True)
@@ -928,6 +997,21 @@ class DatabricksContinuityTests(unittest.TestCase):
             qualification_receipt = create_qualification_receipt(
                 qualification_intent, rank, evidence,
                 directory_tree_sha256(checkpoint))
+            self.assertEqual(
+                qualification_receipt["qualification_grad_scaler_recovery"],
+                recovery)
+            self.assertEqual(
+                qualification_receipt[
+                    "qualification_physical_tokens_processed"], 4096)
+            changed_recovery = json.loads(json.dumps(evidence))
+            changed_recovery["physical_tokens_processed"] += 1
+            changed_recovery["evidence_sha256"] = digest({
+                key: value for key, value in changed_recovery.items()
+                if key != "evidence_sha256"})
+            with self.assertRaises(PermissionError):
+                create_qualification_receipt(
+                    qualification_intent, rank, changed_recovery,
+                    directory_tree_sha256(checkpoint))
             budget = primary_timeout_budget(primary, qualification_receipt)
             timeout = budget["derived_ceiling_seconds"]
             primary_intent = validate_intent(self.intent(
@@ -978,9 +1062,8 @@ class DatabricksContinuityTests(unittest.TestCase):
             "model_tree_sha256": "c" * 64,
             "selected_rank": 4,
             "authorized_primary_plan_sha256s": sorted(
-                replace(plan, device_profile="databricks-a10x1", world_size=1,
-                        micro_batch_size=1, accumulation_steps=4).validate()
-                .full_plan_sha256 for plan in matrix_plans(EXPERIMENT_SPEC, 4)),
+                databricks_a10_plan(plan).full_plan_sha256
+                for plan in matrix_plans(EXPERIMENT_SPEC, 4)),
             "base_qualification_receipt_sha256": base["receipt_sha256"],
             "qualification_technical_successor_sha256": technical_successor()[
                 "technical_successor_sha256"],
@@ -999,9 +1082,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         policies = []
         prior = {}
         index = 0
-        plans = {(plan.condition, plan.seed, plan.stage): replace(
-            plan, device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        plans = {(plan.condition, plan.seed, plan.stage): databricks_a10_plan(plan)
             for plan in matrix}
         for condition in ("self_continuity", "artifact_continuity", "label_only"):
             for seed in (202610281, 202610282, 202610283):
@@ -1147,8 +1228,15 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertNotIn("/local_disk0", source)
         model_stage = (root / "notebooks/databricks_continuity_model_snapshot.py").read_text()
         self.assertNotIn("/local_disk0", model_stage)
-        self.assertIn("commit_model_snapshot(staged, root, receipt)", model_stage)
-        self.assertNotIn("os.replace(staged, root)", model_stage)
+        self.assertNotIn("HfApi", model_stage)
+        self.assertNotIn("from huggingface_hub", model_stage)
+        self.assertNotIn("snapshot_download(", model_stage)
+        self.assertNotIn("commit_model_snapshot", model_stage)
+        self.assertIn("public redownload is forbidden", model_stage)
+        self.assertIn("verify_model_receipt(root, receipt)", model_stage)
+        self.assertIn('"public_model_download_bytes": 0', model_stage)
+        self.assertIn('"hf_network_fallback_disabled": True', model_stage)
+        self.assertIn('"snapshot_download_used": False', model_stage)
         intent_tool = (root / "tools/prepare_databricks_continuity_intent.py").read_text()
         self.assertNotIn('"source-sha256"', intent_tool)
         self.assertIn("build_source_manifest", intent_tool)
@@ -1164,8 +1252,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         delta2 = next(value for value in policies
                       if value.condition == "self_continuity"
                       and value.seed == 202610281 and value.stage == "delta2")
-        delta2 = replace(delta2, device_profile="databricks-a10x1", world_size=1,
-                         micro_batch_size=1, accumulation_steps=4).validate()
+        delta2 = databricks_a10_plan(delta2)
         predecessor = expected_predecessor_binding(asdict(delta2))
         self.assertEqual(predecessor["stage"], "delta1")
         self.assertEqual(predecessor["condition"], "self_continuity")
@@ -1173,8 +1260,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         delta1 = next(value for value in policies
                       if value.condition == "self_continuity"
                       and value.seed == 202610281 and value.stage == "delta1")
-        delta1 = replace(delta1, device_profile="databricks-a10x1", world_size=1,
-                         micro_batch_size=1, accumulation_steps=4).validate()
+        delta1 = databricks_a10_plan(delta1)
         self.assertIsNone(expected_predecessor_binding(asdict(delta1)))
 
 

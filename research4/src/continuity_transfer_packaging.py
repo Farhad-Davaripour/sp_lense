@@ -9,7 +9,7 @@ one seedless frozen base identity plus nine Delta3 endpoints.
 """
 from __future__ import annotations
 
-from dataclasses import asdict, replace
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 import hashlib
@@ -40,7 +40,8 @@ from .qwen9b_ordinal_continuity_runtime import (
     directory_tree, directory_tree_sha256,
 )
 from .qwen9b_ordinal_continuity_training import (
-    TrainingPlan, adjacent_pair_schedule, verify_rank_receipt,
+    TrainingPlan, adjacent_pair_schedule, databricks_a10_plan,
+    validate_grad_scaler_recovery_receipt, verify_rank_receipt,
 )
 
 
@@ -49,7 +50,7 @@ PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v4"
 PACKAGE_FILES_VERSION = "research4-databricks-transfer-package-files-v1"
 CHECKPOINT_MANIFEST_VERSION = "research4-three-residual-blinded-checkpoints-v1"
 EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
-TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v3"
+TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v4"
 TRANSFER_PACKAGE_IDENTITY = "continuity_transfer_three_residual_v1"
 TRANSFER_PACKAGE_PARENT = f"{VOLUME}/transfer_packages"
 TRANSFER_UNBLINDING_PARENT = f"{VOLUME}/transfer_unblinding_keys"
@@ -215,9 +216,7 @@ def build_packaging_plan(*, source_root: str | Path, source_commit: str,
 def canonical_primary_plans() -> dict[tuple[str, int, str], TrainingPlan]:
     from .databricks_simulated_continuity import EXPERIMENT_SPEC
     return {
-        (plan.condition, plan.seed, plan.stage): replace(
-            plan, device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=1, accumulation_steps=4).validate()
+        (plan.condition, plan.seed, plan.stage): databricks_a10_plan(plan)
         for plan in matrix_plans(EXPERIMENT_SPEC, 4)
     }
 
@@ -343,6 +342,7 @@ def _audit_stage(row: Mapping[str, Any], *, source_commit: str,
         expected_plan=expected_plan,
         expected_global_journal=adjacent_pair_schedule(
             _jsonl(run_root.parent / "records.jsonl"), expected_plan))
+    recovery_audit = _recovery_audit_summary(receipt, expected_plan)
     members = _checkpoint_members(checkpoint, expected_plan.stage)
     if (config_hash != digest(config_payload)
             or config.get("version") != CHECKPOINT_VERSION
@@ -410,6 +410,8 @@ def _audit_stage(row: Mapping[str, Any], *, source_commit: str,
         "base_component_sha256": config["base_sha256"],
         "source_sha256": config["source_sha256"],
         "optimizer_updates": receipt["successful_optimizer_updates"],
+        "recovery_audit": recovery_audit,
+        "qualification_receipt_sha256": qualification_receipt_sha256,
         "parent_checkpoint_tree_sha256": row.get(
             "parent_checkpoint_tree_sha256"),
     }
@@ -421,6 +423,45 @@ def plan_source_sha(row: Mapping[str, Any], receipt: Mapping[str, Any]) -> str:
     if not _sha(source) or row.get("plan_sha256") != receipt.get("plan_sha256"):
         raise PermissionError("Gold/receipt source-plan binding is absent")
     return source
+
+
+def _recovery_audit_summary(receipt: Mapping[str, Any],
+                            expected_plan: TrainingPlan) -> dict[str, Any]:
+    """Recompute the approved A10 numerical-recovery accounting."""
+    validated = validate_grad_scaler_recovery_receipt(
+        receipt, expected_plan)
+    recovery = validated["grad_scaler_recovery"]
+    updates = validated["updates"]
+    logical_tokens = validated["tokens_seen"]
+    replay_tokens = validated["overflow_recompute_tokens"]
+    physical_tokens = validated["physical_tokens_processed"]
+    summary = {
+        "numerical_policy": expected_plan.numerical_policy,
+        "grad_scaler_initial_scale": expected_plan.grad_scaler_initial_scale,
+        "grad_scaler_backoff_factor": expected_plan.grad_scaler_backoff_factor,
+        "max_overflow_adjustments": expected_plan.max_overflow_adjustments,
+        "minimum_grad_scaler_scale": expected_plan.minimum_grad_scaler_scale,
+        "total_overflow_adjustments": recovery[
+            "total_overflow_adjustments"],
+        "recovered_optimizer_update_count": sum(
+            row["overflow_adjustments"] > 0 for row in updates),
+        "measured_optimizer_step_calls": sum(
+            row["optimizer_step_pre_hook_calls"] for row in updates),
+        "logical_tokens": logical_tokens,
+        "replay_physical_tokens": replay_tokens,
+        "physical_tokens": physical_tokens,
+        "journal_advances_only_after_finite_optimizer_step": recovery[
+            "journal_advances_only_after_finite_optimizer_step"],
+        "replays_exact_rng_state_and_occurrence_indices": recovery[
+            "replays_exact_rng_state_and_occurrence_indices"],
+    }
+    if (summary["measured_optimizer_step_calls"]
+            != expected_plan.optimizer_updates
+            or physical_tokens != logical_tokens + replay_tokens):
+        raise PermissionError(
+            "Independent numerical-recovery audit differs")
+    summary["recovery_audit_sha256"] = digest(summary)
+    return summary
 
 
 def recompute_training_audits(matrix: Mapping[str, Any],
@@ -448,6 +489,9 @@ def recompute_training_audits(matrix: Mapping[str, Any],
                 parent = item["checkpoint_tree_sha256"]
             endpoints[(condition, seed)] = {
                 "endpoint": chain[-1], "chain": chain,
+                "qualification_receipt_sha256": qualification_sha,
+                "qualification_technical_successor_sha256": plan[
+                    "qualification_technical_successor_sha256"],
             }
     return endpoints
 
@@ -549,7 +593,9 @@ def _build_training_audit(value: Mapping[str, Any], *, matrix_sha256: str,
         "rank_receipt_sha256": item["rank_receipt_sha256"],
         "evidence_sha256": item["evidence_sha256"],
         "optimizer_updates": item["optimizer_updates"],
+        "recovery_audit": item["recovery_audit"],
     } for item in value["chain"]]
+    recovery_chain = [item["recovery_audit"] for item in chain]
     audit = {
         "version": TRAINING_AUDIT_VERSION, "complete": True,
         "condition": endpoint["condition"], "seed": endpoint["seed"],
@@ -558,6 +604,26 @@ def _build_training_audit(value: Mapping[str, Any], *, matrix_sha256: str,
         "optimizer_updates": endpoint["optimizer_updates"],
         "cumulative_stage_optimizer_updates": sum(
             item["optimizer_updates"] for item in value["chain"]),
+        "qualification_receipt_sha256": value[
+            "qualification_receipt_sha256"],
+        "qualification_technical_successor_sha256": value[
+            "qualification_technical_successor_sha256"],
+        "numerical_policy": endpoint["recovery_audit"][
+            "numerical_policy"],
+        "cumulative_overflow_adjustments": sum(
+            item["total_overflow_adjustments"]
+            for item in recovery_chain),
+        "cumulative_logical_tokens": sum(
+            item["logical_tokens"] for item in recovery_chain),
+        "cumulative_replay_physical_tokens": sum(
+            item["replay_physical_tokens"]
+            for item in recovery_chain),
+        "cumulative_physical_tokens": sum(
+            item["physical_tokens"] for item in recovery_chain),
+        "cumulative_measured_optimizer_step_calls": sum(
+            item["measured_optimizer_step_calls"]
+            for item in recovery_chain),
+        "recovery_audit_chain_sha256": digest(recovery_chain),
         "base_frozen": True, "self_attested_pass_flags_used": False,
         "training_receipt_sha256": endpoint["training_receipt_sha256"],
         "checkpoint_config_sha256": endpoint["config_sha256"],

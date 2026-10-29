@@ -106,6 +106,9 @@ BASE_CRITICAL_ENTRYPOINTS = {
 }
 
 REVIEWED_CHANGED_SYMBOLS = {
+    "src/databricks_continuity_partition.py": (
+        "_stage_local_model",
+    ),
     "src/databricks_simulated_continuity.py": (
         "EXPERIMENT_SPEC",
         "INTENT_VERSION",
@@ -117,6 +120,9 @@ REVIEWED_CHANGED_SYMBOLS = {
 }
 
 QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256 = {
+    "src/databricks_continuity_partition.py": {
+        "_stage_local_model": "df0d529edf4195cc691192b7dc5b681674ea3f2bf41512e462f903632bbf74d1",
+    },
     "src/databricks_simulated_continuity.py": {
         "EXPERIMENT_SPEC": "5706fdba5d4af218145c2406ec160d9b296c75e4e8348473d562edaed1a9a58e",
         "INTENT_VERSION": "94ecceb339f66fc2d412b167e909a73ab6b65d58d60d3cb4eb8821e338bd5974",
@@ -129,6 +135,7 @@ QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256 = {
 
 ALLOWED_RUNTIME_CHANGED_PATHS = (
     "notebooks/databricks_continuity_gold_audit.py",
+    "notebooks/databricks_continuity_model_snapshot.py",
     "notebooks/databricks_continuity_partition.py",
     "notebooks/databricks_continuity_partition_finalize.py",
     "notebooks/databricks_continuity_preflight.py",

@@ -29,7 +29,7 @@ MODEL_ID = "Qwen/Qwen3.5-9B"
 MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 STAGES = ("delta1", "delta2", "delta3", "frozen")
 ABLATIONS = ("identity", "shuffle", "invert")
-CHECKPOINT_VERSION = "qwen35-9b-ordinal-continuity-checkpoint-v4"
+CHECKPOINT_VERSION = "qwen35-9b-ordinal-continuity-checkpoint-v5"
 EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
 BRANCHES = ("delta1", "delta2", "delta3")
 # Pinned from the official Qwen/Qwen3.5-9B config at MODEL_REVISION.  The

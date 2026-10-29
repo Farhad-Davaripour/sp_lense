@@ -7,9 +7,9 @@ import json
 import re
 
 
-VERSION = "research4-qualification-technical-successor-v3"
-PRIOR_IDENTITY = "qualification_rank4_gated_q_geometry_v3"
-SUCCESSOR_IDENTITY = "qualification_rank4_a10_microbatch1_v4"
+VERSION = "research4-qualification-technical-successor-v4"
+PRIOR_IDENTITY = "qualification_rank4_a10_microbatch1_v4"
+SUCCESSOR_IDENTITY = "qualification_rank4_a10_gradscaler_recovery_v5"
 
 
 def _digest(value) -> str:
@@ -102,16 +102,16 @@ def _gated_q_geometry_authority() -> dict:
     return value
 
 
-def authority() -> dict:
+def _a10_microbatch1_authority() -> dict:
     """Bind the first-backward A10 OOM and its microbatch-1 successor."""
     predecessor = _gated_q_geometry_authority()
     value = {
-        "version": VERSION,
+        "version": "research4-qualification-technical-successor-v3",
         "predecessor_authority": predecessor,
         "predecessor_authority_sha256": predecessor[
             "technical_successor_sha256"],
-        "prior_identity": PRIOR_IDENTITY,
-        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_identity": "qualification_rank4_gated_q_geometry_v3",
+        "successor_identity": "qualification_rank4_a10_microbatch1_v4",
         "prior_source_commit": "4d3d28688264e3d873bab24dcb2ee753f17430e1",
         "prior_source_manifest_sha256": (
             "40a04de8f95c58c9da22c4a170a89eded1b301adfc9d43a889b004731f5aeed7"),
@@ -208,6 +208,124 @@ def authority() -> dict:
     return value
 
 
+def authority() -> dict:
+    """Bind the zero-update v4 numerical failure and approved A10 recovery."""
+    predecessor = _a10_microbatch1_authority()
+    value = {
+        "version": VERSION,
+        "predecessor_authority": predecessor,
+        "predecessor_authority_sha256": predecessor[
+            "technical_successor_sha256"],
+        "prior_identity": PRIOR_IDENTITY,
+        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_source_commit": "f3b94233b937972fc3fac2a5561503effdd3ffb3",
+        "prior_source_manifest_sha256": (
+            "b69bc34caee9687821dd85ef3fca59844e832ac43e13954723397a4cdc7507cd"),
+        "prior_plan_sha256": (
+            "b4fd5047a675b6bd58e4e88ddb4c522035273e85687d26253d323fd71d3b642d"),
+        "prior_global_journal_sha256": (
+            "873dd87b655b6ea89faf9f7d3b154988c0135087a6073adff94df42d528b74de"),
+        "prior_intent_sha256": (
+            "65e06dab4f87babe007df88beb0801a3073f6e8aa7b5c87cec1d73053565d10b"),
+        "prior_technical_successor_sha256": predecessor[
+            "technical_successor_sha256"],
+        "owner_run_id": "123598135063131",
+        "preflight_run_id": "89547510471888",
+        "gpu_task_run_id": "988729344316773",
+        "finalizer_run_id": "242025569120296",
+        "release_run_id": "882639209064491",
+        "mlflow_experiment_path": (
+            "/Shared/research4_simulated_continuity_training_v5"),
+        "mlflow_experiment_id": "2096517895538432",
+        "mlflow_run_id": "b3778b168b644653a5ee4bdabd37a2e8",
+        "mlflow_status": "FAILED",
+        "mlflow_logged_param_count": 0,
+        "mlflow_logged_metric_count": 0,
+        "mlflow_logged_artifact_count": 0,
+        "closeout_receipt_sha256": (
+            "42075812a67c09b730480ad4d4a0b431bd4be6a88b555676f1cf09302b765bb1"),
+        "closeout_file_sha256": (
+            "70d10941340b37ee80aaca3e90c546cb6fd0325c586198f7b19b71f0ebbd0eb3"),
+        "reservation_sha256": (
+            "67ca4dcdd2485a57b495de720c810918602479ffae2461ff8927bec0ac7a5953"),
+        "consumed_file_sha256": (
+            "5d31dfca756f271109fc562321bd7c61faab0695efaadc3c10927ddd4af90cf9"),
+        "terminal_file_sha256": (
+            "8459464740d52fb1d1cfd1e1ff9079d5ab58a22ecd681ec9075dcc19d7b992f1"),
+        "mlflow_params_file_sha256": (
+            "dca316823f653015417768e79876cd357f1cf6623a252ff946e7fe2d413ea686"),
+        "mlflow_progress_file_sha256": (
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
+        "rank_partial_file_sha256": (
+            "a698689b80da2d3a673364d38665afdc499e68f86328f6f55fe2430747cba71a"),
+        "independent_failure_audit_sha256": (
+            "006d66ecf09d681b45b9a88c0d90b70d1bdb31714706a0e8b8730a5489a8d6b4"),
+        "approved_proposal_sha256": (
+            "ae2fdd048d1ffd5e5ef6402104e93a8d3fdbb5b4d5c802c918b1b7f9809f1bbc"),
+        "approved_draft_patch_sha256": (
+            "7d90a24d5d86305f3140c317e5ee751b9495881d5ea00f4c3a8b46bb6e8e0fbe"),
+        "human_approval_file_sha256": (
+            "9f8832e3bdaa10a348fcd8bf0f65b85984b3d054c80417411d7e280a3b180c3f"),
+        "prior_training_source_sha256": (
+            "91f2d8689cb4d4f97fa392a05d508ef17043f6e147b54a24d54b0d21f37eee7d"),
+        "prior_worker_source_sha256": (
+            "087fc9fd1969efe04000d6a550e91f12986e7eddaefb42db3d8b97fba714480a"),
+        "prior_databricks_worker_source_sha256": (
+            "17b8d3a8f4aff2661e57b761f874efe1897578f4d3ea115cb499a1d48d7021f0"),
+        "prior_technical_successor_source_sha256": (
+            "2cc32ecdd56fb911387c1ad1a2533407ba960c2689c6e8e7b8ddd3dac498b373"),
+        "failure_class": "nonfinite_gradient_before_first_optimizer_step",
+        "terminal_status": "partition_notebook_failed",
+        "gpu_task_result_state": "FAILED",
+        "error_type": "FloatingPointError",
+        "error": "Non-finite gradient norm",
+        "backward_calls_completed": 4,
+        "model_forwards_recorded": None,
+        "actual_initial_grad_scaler_scale_recorded": None,
+        "initial_scale_overflow_hypothesis": "leading_not_proven",
+        "optimizer_updates": 0,
+        "progress_journal_entries": 0,
+        "checkpoint_written": False,
+        "training_receipt_written": False,
+        "evidence_written": False,
+        "final_science_journal_written": False,
+        "operator_stop_sent": False,
+        "ceiling_kill_sent": False,
+        "child_exit_confirmed": True,
+        "reservation_released": True,
+        "consumed_identity_retained": True,
+        "automatic_retry": False,
+        "successor_execution_scope": "databricks-a10x1-only",
+        "successor_numerical_policy": (
+            "databricks-a10-bounded-gradscaler-v1"),
+        "successor_precision": "fp16",
+        "successor_quantization": "nf4-double",
+        "successor_world_size": 1,
+        "successor_micro_batch_size": 1,
+        "successor_accumulation_steps": 4,
+        "successor_global_batch_size": 4,
+        "successor_grad_scaler_initial_scale": 65536.0,
+        "successor_grad_scaler_backoff_factor": 0.5,
+        "successor_max_overflow_adjustments": 4,
+        "successor_minimum_grad_scaler_scale": 4096.0,
+        "successor_exact_rng_and_data_replay": True,
+        "successor_optimizer_steps_on_overflow": 0,
+        "successor_component_diagnostics": (
+            ["sft", "preference", "cross_danger_margin"]),
+        "successor_plan_sha256": (
+            "dc1593bfcf607d3b72735f803109ad5e961ace9fb3d92c4e22312c44e7c5b021"),
+        "successor_primary_plan_hashes_digest": (
+            "15902a97fc00658e1c76408a5fa1f4b624039982800dfbe0175cdb794fe8003e"),
+        "legacy_non_databricks_failfast_preserved": True,
+        "model_data_order_objective_unchanged": True,
+        "loss_coefficients_unchanged": True,
+        "learning_rate_clipping_geometry_seeds_thresholds_unchanged": True,
+        "legacy_combined_loss_arithmetic_preserved": True,
+    }
+    value["technical_successor_sha256"] = _digest(value)
+    return value
+
+
 def validate(value: Mapping) -> dict:
     actual = dict(value) if isinstance(value, Mapping) else {}
     expected = authority()
@@ -216,18 +334,25 @@ def validate(value: Mapping) -> dict:
     sha_fields = (
         "prior_plan_sha256", "prior_global_journal_sha256", "prior_intent_sha256",
         "closeout_receipt_sha256", "closeout_file_sha256",
-        "consumed_file_sha256", "gpu_task_output_file_sha256",
+        "consumed_file_sha256",
         "terminal_file_sha256", "mlflow_params_file_sha256",
         "mlflow_progress_file_sha256", "rank_partial_file_sha256",
-        "mlflow_run_file_sha256", "prior_source_manifest_sha256",
+        "independent_failure_audit_sha256", "approved_proposal_sha256",
+        "approved_draft_patch_sha256", "human_approval_file_sha256",
+        "prior_training_source_sha256", "prior_worker_source_sha256",
+        "prior_databricks_worker_source_sha256",
+        "prior_technical_successor_source_sha256",
+        "prior_source_manifest_sha256",
         "prior_technical_successor_sha256", "successor_plan_sha256",
-        "successor_global_journal_sha256", "pinned_model_config_sha256",
+        "successor_primary_plan_hashes_digest",
         "reservation_sha256",
         "predecessor_authority_sha256",
         "technical_successor_sha256",
     )
     if (actual != expected or embedded != _digest(payload)
-            or predecessor != _gated_q_geometry_authority()
+            or predecessor != _a10_microbatch1_authority()
+            or predecessor.get("technical_successor_sha256")
+               != "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9"
             or actual.get("predecessor_authority_sha256")
                != predecessor.get("technical_successor_sha256")
             or any(not re.fullmatch(r"[0-9a-f]{64}", str(actual.get(key, "")))

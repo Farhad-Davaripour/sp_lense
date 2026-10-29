@@ -1,5 +1,5 @@
 # Databricks notebook source
-import json, shutil, sys, tempfile
+import json, sys
 from pathlib import Path
 
 dbutils.widgets.text("code_path", "")
@@ -8,31 +8,21 @@ if not code_path:
     raise ValueError("Exact synchronized code_path is required")
 sys.path.insert(0, code_path)
 
-from huggingface_hub import HfApi, snapshot_download
 from src.databricks_simulated_continuity import (
-    MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
-    commit_model_snapshot, verify_model_receipt)
+    MODEL_RECEIPT, MODEL_ROOT, verify_model_receipt)
 
 root, receipt = Path(MODEL_ROOT), Path(MODEL_RECEIPT)
-if receipt.is_file():
-    proof = verify_model_receipt(root, receipt)
-    dbutils.notebook.exit(json.dumps({"status": "reused_verified_snapshot",
-                                      "tree_sha256": proof["tree_sha256"]}))
-if root.exists():
-    raise PermissionError("Unreceipted model bytes already exist in the managed volume")
-if HfApi().model_info(MODEL_ID, revision=MODEL_REVISION).sha != MODEL_REVISION:
-    raise PermissionError("Hugging Face resolved a different model commit")
-root.parent.mkdir(parents=True, exist_ok=True)
-temporary = Path(tempfile.mkdtemp(prefix=".qwen35-stage-", dir=root.parent))
-cache_root = Path(tempfile.gettempdir()) / "research4_hf_cache"
-try:
-    staged = temporary / "model"
-    snapshot_download(repo_id=MODEL_ID, revision=MODEL_REVISION,
-                      local_dir=str(staged), cache_dir=str(cache_root))
-    shutil.rmtree(staged / ".cache", ignore_errors=True)
-    commit_model_snapshot(staged, root, receipt)
-finally:
-    shutil.rmtree(temporary, ignore_errors=True)
-    shutil.rmtree(cache_root, ignore_errors=True)
+if not root.is_dir() or not receipt.is_file():
+    raise PermissionError(
+        "Verified Qwen volume snapshot is missing; public redownload is forbidden")
 proof = verify_model_receipt(root, receipt)
-dbutils.notebook.exit(json.dumps({"status": "snapshot_staged", "tree_sha256": proof["tree_sha256"]}))
+dbutils.notebook.exit(json.dumps({
+    "status": "reused_verified_snapshot",
+    "source_model_path": str(root),
+    "source_receipt_path": str(receipt),
+    "tree_sha256": proof["tree_sha256"],
+    "total_bytes": proof["total_bytes"],
+    "public_model_download_bytes": 0,
+    "hf_network_fallback_disabled": True,
+    "snapshot_download_used": False,
+}))
