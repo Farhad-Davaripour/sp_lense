@@ -1,0 +1,118 @@
+{
+  "abort_controls": {
+    "cancel_if_notebook_not_started_seconds": 1200,
+    "gpu_task_ceiling_seconds": 2700,
+    "job_outer_ceiling_seconds": 4500,
+    "operator_stop_seconds_from_job_start": 2400,
+    "poll_interval_seconds": 60,
+    "post_consumption_failure_is_terminal": true,
+    "pre_consumption_infrastructure_failure_allows_no_automatic_resubmission": true
+  },
+  "binding_sha256": "1af57edb9c4815450be17c4486032b764a2b9b39b211e1f092ab96992440713d",
+  "classic_provider_submission_ordinal": 1,
+  "compute": {
+    "availability": "ON_DEMAND_AZURE",
+    "driver_node_type_id": "Standard_NV36ads_A10_v5",
+    "gpu_count": 1,
+    "node_type_id": "Standard_NV36ads_A10_v5",
+    "num_workers": 0,
+    "runtime_engine": "STANDARD",
+    "spark_version": "18.x-gpu-ml-scala2.13",
+    "topology": "single_node_driver"
+  },
+  "cost": {
+    "currency": "USD",
+    "databricks_jobs_compute_dbu_count_per_hour": 4.0,
+    "databricks_premium_jobs_compute_price_per_dbu_hour": 0.3,
+    "maximum_compute_cost_usd": 3.3,
+    "maximum_gpu_hours": 0.75,
+    "planning_cap_usd": 5.0,
+    "planning_rate_usd_per_hour": 4.4,
+    "pricing_region": "centralus",
+    "pricing_sources": [
+      "https://prices.azure.com/api/retail/prices",
+      "https://azure.microsoft.com/en-us/pricing/details/databricks/"
+    ],
+    "vm_linux_on_demand_price_per_hour": 3.2,
+    "vm_price_effective_start_utc": "2026-08-01T00:00:00Z"
+  },
+  "dataset": {
+    "dataset_tree_sha256": "7786d11946799776df964bc3d1dded641cf560311eb5e099ce4ce9d5f06283ee",
+    "exposure_binding_sha256": "282b0c6f4965ef75660e023a2c347a40a79b9de39e84353159ae5f3ad72010a0",
+    "silver_binding_sha256": "6369a0ccb643f435be9cbc6c91b69c99ac35f19a8aa99b038a758d3e3f9fd36e"
+  },
+  "idempotency_token": "r4-scale1-v6-classic-a10-ec6fdb9c-provider1",
+  "identity": "qualification_rank4_a10_fp16_scale1_v6",
+  "intent": {
+    "file_sha256": "be75fb5338385d6a9c840074abdbf758e870c7dac9e2b61e6e2f41a378bf2f90",
+    "path": "/Volumes/research4_simulated_continuity/bronze/model_data/intents/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_INTENT-96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3.json",
+    "semantic_sha256": "96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3"
+  },
+  "model": {
+    "bytes": 19329393661,
+    "public_download_bytes_required": 0,
+    "receipt_sha256": "4d1aece45e905dace3990a1ac0e351bd2ef8a53912d2fab93298a1ca06eb41f1",
+    "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+    "tree_sha256": "9845026dbe255e24b105224eebbb5436d315713b9a5c53c434137896b160c5b1",
+    "volume_path": "/Volumes/research4_simulated_continuity/bronze/model_data/model_snapshots/qwen35_9b/c202236235762e1c871ad0ccb60c8ee5ba337b9a/model"
+  },
+  "plan": {
+    "file_sha256": "fcc9dec0c72a4a12dd13da811fd9938e90e93f31503e0503b298d5372b33b703",
+    "path": "/Volumes/research4_simulated_continuity/bronze/model_data/plans/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_PLAN-83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc.json",
+    "semantic_sha256": "83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc"
+  },
+  "prior_provider_failures": [
+    {
+      "file_sha256": "eee70665851b858fb49e2cd3ecc43133cd61fa9e0cbf99afbf2233a5e41eb948",
+      "gpu_task_run_id": "167918078402139",
+      "owner_run_id": "522896173656534"
+    },
+    {
+      "file_sha256": "03a781165e24777b0712eb3ba57f78aca428a59df7d715d4f27e087adda00eba",
+      "gpu_task_run_id": "131501017248503",
+      "owner_run_id": "168395935320906"
+    }
+  ],
+  "provider_spec": {
+    "canonical_sha256": "247a8bc971bafc3f81337f0d72ff673fa4e09f2ec20369d35a00ad68035dd937",
+    "file_sha256": "73716ae09ae8d909eb9a81c43b1679a4727990369fe4014af559fe830070a069",
+    "path": "research4/infrastructure/classic_a10_scale1_v6/submit.json"
+  },
+  "review_snapshot": {
+    "active_air_runs": 0,
+    "active_clusters": 0,
+    "active_job_runs": 0,
+    "checked_at_utc": "2026-10-29T18:25:55Z",
+    "consumed_identity_exists": false,
+    "consumed_identity_path": "/Volumes/research4_simulated_continuity/bronze/model_data/locks/consumed/qualification_rank4_a10_fp16_scale1_v6.json",
+    "fresh_recheck_required_immediately_before_submission": true,
+    "scientific_lock_exists": false,
+    "scientific_lock_path": "/Volumes/research4_simulated_continuity/bronze/model_data/locks/scientific.lock"
+  },
+  "schema_audit": {
+    "file_sha256": "c1a2f5faf27b7c59cf29efb53ce2973aa235b42f41496e3f5a7a42cc7463de83",
+    "path": "research4/infrastructure/classic_a10_scale1_v6/SCHEMA_AUDIT.json",
+    "self_sha256": "e765b00a9570c9d34b2eabeec79884d500a57ee97e2be37d7d62d2153c1d40e2"
+  },
+  "scientific_attempt_consumed": false,
+  "scientific_attempt_number": 1,
+  "source": {
+    "commit": "ec6fdb9c1605b6090c6747081511b2092c93785d",
+    "shared_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d",
+    "tree": "61739e20e2cc14c4ea02f4aff66d07bfd0b7c47a"
+  },
+  "startup_monitor": {
+    "arm_cancel_required": true,
+    "file_sha256": "6e00619ef0cb73d2eecc8bd0582db0339066343453df8cc62fbec332a7c99af9",
+    "path": "research4/tools/monitor_classic_a10_recovery.py",
+    "poll_interval_seconds": 60
+  },
+  "status": "review_candidate_not_submission_authority",
+  "submission_requires_supervisory_approval": true,
+  "validator": {
+    "file_sha256": "18bfc71f0b5deaa363be2b11e787098eec7899bd00b19b4be62f9a40148aafe8",
+    "path": "research4/tools/validate_classic_a10_recovery.py"
+  },
+  "version": "research4-classic-a10-provider-recovery-binding-v1",
+  "workspace_profile": "azure-research4"
+}
