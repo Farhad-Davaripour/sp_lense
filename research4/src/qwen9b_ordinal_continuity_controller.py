@@ -19,6 +19,7 @@ import subprocess
 import sys
 import time
 
+from .action_serialization import SERIALIZATION_CONTRACT_VERSION
 from .qwen9b_ordinal_continuity_lora import MODEL_ID, MODEL_REVISION
 from .qwen9b_ordinal_continuity_runtime import (
     atomic_json, canonical_sha256, cli_sha256, directory_tree_sha256,
@@ -28,9 +29,9 @@ from .qwen9b_ordinal_continuity_training import (
     ALLOWED_SEEDS, CONDITIONS, PINNED_SOFTWARE, TrainingPlan,
     load_pinned_tokenizer)
 
-CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v3"
-EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v2"
-PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v2"
+CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v4"
+EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v3"
+PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v3"
 TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v2"
 AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v3"
 MATRIX_CONDITIONS = CONDITIONS
@@ -48,7 +49,8 @@ def validate_experiment_spec(value: Mapping) -> dict:
         "model_revision": MODEL_REVISION, "conditions": list(CONDITIONS),
         "seeds": list(ALLOWED_SEEDS), "stages": list(MATRIX_STAGES),
         "qualification_updates": 2, "primary_optimizer_updates": 144,
-        "baseline": "frozen_base", "automatic_retries": 0}
+        "baseline": "frozen_base", "automatic_retries": 0,
+        "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION}
     if any(spec.get(key) != expected for key, expected in required.items()):
         raise PermissionError("Experiment spec differs from the preregistered matrix")
     if spec.get("one_use") is not True:

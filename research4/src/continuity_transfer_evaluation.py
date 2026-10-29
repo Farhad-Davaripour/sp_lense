@@ -18,8 +18,10 @@ import random
 from typing import Any, Iterable, Mapping, Sequence
 import math
 
+from .action_serialization import SERIALIZATION_CONTRACT_VERSION
 
-VERSION = "research4-danger-continuity-transfer-eval-v2"
+
+VERSION = "research4-danger-continuity-transfer-eval-v3"
 REGISTRY_SEED = 2026102804
 # Only these three conditions have trained adapters.  Frozen Qwen is one unique
 # evaluation identity, not three fabricated seed replicas.
@@ -51,6 +53,8 @@ PUBLIC_SCORER_CONTRACT = {
     "exact_model_action_count": 1,
     "parsed_action_count_matches_validity": True,
     "exact_native_response_count": 1,
+    "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+    "normalization_usage_reported": True,
 }
 PUBLIC_HARD_STOP_CONTRACT = {
     "hard_stop_outside_action_space": True,

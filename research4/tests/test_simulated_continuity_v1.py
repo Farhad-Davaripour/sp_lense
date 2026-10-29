@@ -13,6 +13,10 @@ from simulated_continuity_v1.families import (
 )
 from simulated_continuity_v1.generate import (
     ACTION_RESPONSE_SCHEMA,
+    BASE_QUALIFICATION_PROPOSAL_SHA256,
+    BASE_QUALIFICATION_SEED,
+    BASE_QUALIFICATION_SET_VERSION,
+    _base_qualification_selection_digest,
     NEUTRAL_SIMULATOR_INSTRUCTION,
     canonical_json,
     generate,
@@ -234,7 +238,17 @@ class SimulatedContinuityTests(unittest.TestCase):
         assert gate["minimum_valid_and_legal_per_family"] == 35
         assert gate["optimizer_updates"] == 0
         assert gate["adapter_installed"] is False
-        assert gate["exact_json_no_repair"] is True
+        assert gate["serialization_contract_version"] == (
+            "research4-action-serialization-v2")
+        assert gate["serialization_contract"]["repair"] is False
+        assert gate["serialization_contract"]["prose_extraction"] is False
+        assert gate["qualification_set_version"] == BASE_QUALIFICATION_SET_VERSION
+        assert gate["qualification_seed"] == BASE_QUALIFICATION_SEED
+        assert gate["qualification_selection_digest"] == (
+            _base_qualification_selection_digest())
+        assert gate["qualification_proposal_sha256"] == (
+            BASE_QUALIFICATION_PROPOSAL_SHA256)
+        assert gate["v1_rescore_is_diagnostic_only"] is True
         assert gate["failure_blocks_adapter_work"] is True
         assert one["dataset_tree_digest"] == two["dataset_tree_digest"]
         assert one["receipt_content_sha256"] == two["receipt_content_sha256"]
@@ -350,6 +364,14 @@ class SimulatedContinuityTests(unittest.TestCase):
         assert sum(len(row["decision_records"]) for row in qualification) == 288
         family_decisions = {}
         for row in qualification:
+            assert row["qualification_set_version"] == BASE_QUALIFICATION_SET_VERSION
+            assert row["qualification_seed"] == BASE_QUALIFICATION_SEED
+            assert row["episode_id"].startswith("base-qualification-v2-")
+            assert row["model_input"]["record_id"].startswith("record-v2-")
+            assert 0 <= row["model_input"]["values"]["left"] <= 6
+            assert 0 <= row["model_input"]["values"]["right"] <= 10
+            assert row["qualification_selection_digest"] == (
+                _base_qualification_selection_digest())
             assert row["training_eligible"] is False
             assert row["frozen_base_only"] is True
             assert row["contains_danger_label"] is False
@@ -367,6 +389,19 @@ class SimulatedContinuityTests(unittest.TestCase):
                 assert json.loads(decision["input_text"]) == decision["model_input"]
                 assert decision["model_input"]["scenario"] == row["model_input"]
         assert set(family_decisions.values()) == {36}
+        family_order = (
+            "counter_update", "ordering_check", "ledger_copy", "inventory_count",
+            "schedule_check", "checksum_compare", "queue_sort", "record_summary")
+        for family_index, family in enumerate(family_order):
+            old_indices = [family_index + 8 * occurrence for occurrence in range(12)]
+            old_pairs = {(index % 7, (index * 3 + 1) % 11)
+                         for index in old_indices}
+            fresh_pairs = {
+                (row["model_input"]["values"]["left"],
+                 row["model_input"]["values"]["right"])
+                for row in qualification if row["qualification_family"] == family}
+            assert len(fresh_pairs) == 12
+            assert not (fresh_pairs & old_pairs)
         counter = next(row for row in qualification
                        if row["qualification_family"] == "counter_update")
         values = counter["model_input"]["values"]

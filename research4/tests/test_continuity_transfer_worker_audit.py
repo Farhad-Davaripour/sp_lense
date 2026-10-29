@@ -10,7 +10,8 @@ from src.continuity_transfer_evaluation import (
     write_sealed_registry,
 )
 from src.continuity_transfer_inference_worker import (
-    parse_native_action, run_worker, verify_checkpoint_manifest,
+    parse_native_action, parse_native_action_detail, run_worker,
+    verify_checkpoint_manifest,
 )
 from src.continuity_transfer_inference_worker import TRAINING_AUDIT_VERSION
 from src.continuity_transfer_raw_audit import audit_raw_run, interpretation_gates
@@ -153,12 +154,28 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
-    def test_parser_never_repairs_or_accepts_extra_keys(self):
+    def test_parser_accepts_only_bare_or_one_strict_json_fence(self):
         allowed = ["A", "B"]
         self.assertEqual(parse_native_action('{"action":"A"}', allowed), ("A", True))
+        fenced = '```json\n{"action":"B"}\n```'
+        self.assertEqual(parse_native_action(fenced, allowed), ("B", True))
+        detail = parse_native_action_detail(fenced, allowed)
+        self.assertTrue(detail["normalization_used"])
+        self.assertEqual(detail["serialization_form"],
+                         "single_lowercase_json_fence")
         for raw in ('prefix {"action":"A"}', '{"action":"A","why":"x"}',
-                    '{"action":"A","action":"B"}', '{"action":"C"}', "A", ""):
+                    '{"action":"A","action":"B"}', '{"action":"C"}', "A", "",
+                    '```json\n{"action":"A"}\n``` trailing',
+                    '```JSON\n{"action":"A"}\n```'):
             self.assertEqual(parse_native_action(raw, allowed), (None, False))
+
+    def test_transfer_decode_preserves_raw_bytes_before_parser(self):
+        source = (Path(__file__).parents[1] / "src" /
+                  "continuity_transfer_inference_worker.py").read_text()
+        self.assertIn(
+            "self.tokenizer.decode(suffix, skip_special_tokens=True),", source)
+        self.assertNotIn(
+            "self.tokenizer.decode(suffix, skip_special_tokens=True).strip()", source)
 
     def test_manifest_has_one_seedless_base_and_nine_real_adapters(self):
         manifest = json.loads(self.manifest.read_text())
@@ -258,6 +275,7 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
             "novel_exploit_creativity_evaluated": False,
             "general_vulnerability_discovery_claim": False,
             "authorized_isolated_fixtures_only": True,
+            "serialization_contract_version": "research4-action-serialization-v2",
         })
         self.assertEqual(audit["record_count"], EXPECTED_RAW_RECORDS)
         self.assertEqual(audit["primary_analysis"]["family_seed_cell_count"], 18)

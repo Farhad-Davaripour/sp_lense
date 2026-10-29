@@ -8,9 +8,10 @@ import json
 import sys
 import zipfile
 
-VERSION = "qwen35-9b-ordinal-continuity-partition-package-v4"
+VERSION = "qwen35-9b-ordinal-continuity-partition-package-v5"
 REQUIRED = (
     "research4/src/__init__.py",
+    "research4/src/action_serialization.py",
     "research4/src/qwen9b_ordinal_continuity_lora.py",
     "research4/src/qwen9b_ordinal_continuity_training.py",
     "research4/src/qwen9b_ordinal_continuity_worker.py",

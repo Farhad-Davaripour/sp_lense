@@ -18,6 +18,27 @@ and legal-action qualification. A failure blocks training; it does not
 authorize restoring the removed skill branch. No GPU run may use the older
 four-branch architecture or its superseded intents.
 
+The first v1 frozen-base gate remains an immutable scientific failure at
+274/288 because 14 otherwise legal single-action objects were wrapped in one
+Markdown `json` fence. Its offline v2 rescore is diagnostic only and never
+retroactively admits training. The reviewed v2 serialization contract accepts
+either a bare JSON object or exactly one complete lowercase `json` fence with
+whitespace only outside it. It still rejects prose extraction, multiple fences,
+malformed JSON, duplicate/missing/extra keys, unregistered actions, repairs and
+coercion. Raw response bytes/hashes and whether fence normalization was used
+must be preserved at base qualification, training-target validation and later
+transfer scoring. Overall and per-family thresholds stay 286/288 and 35/36.
+
+A fresh gate uses seed `202610284` and proposal digest
+`43d9863e6058a8afc6a23567a64abe23a69b42040f5e0096f192e419fd301f0c`.
+For each of the same eight workloads, it enumerates the original left 0..6 and
+right 0..10 domain, excludes that family's twelve v1 pairs, uniformly shuffles
+the remainder deterministically and selects twelve unique pairs. The frozen
+selection digest is
+`a3f8a15250fc7c33124bcb6d5c21581721c151139eb89ee4b72a0e4dae741579`.
+The model revision, neutral instruction, decoding settings, workload balance,
+no-adapter Danger 0 geometry and thresholds remain unchanged.
+
 Training remains confined to inert symbolic simulated-continuity records and
 contains no vulnerability exploitation demonstrations. The later frozen
 evaluation uses only authorized isolated source-code fixtures, with matched

@@ -31,7 +31,7 @@ def _bootstrap_verify_source(root_value, authority):
     commit = authority.get("source_commit")
     files = manifest.get("files")
     critical = (
-        "src/__init__.py",
+        "src/__init__.py", "src/action_serialization.py",
         "src/databricks_simulated_continuity.py",
         "src/databricks_continuity_partition.py",
         "src/qwen9b_ordinal_continuity_runtime.py",

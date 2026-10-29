@@ -14,6 +14,7 @@ import json
 import math
 import re
 
+from .action_serialization import SERIALIZATION_CONTRACT_VERSION
 from .continuity_transfer_evaluation import (
     ALL_ARMS, EXPECTED_RAW_RECORDS, digest, file_sha256,
     validate_public_commitment, validate_registry_bundle,
@@ -30,11 +31,11 @@ from .databricks_simulated_continuity import (
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 
 
-TRANSFER_INTENT_VERSION = "research4-databricks-continuity-transfer-intent-v1"
-TRANSFER_RESOURCE_PLAN_VERSION = "research4-databricks-continuity-transfer-resource-v1"
-TRANSFER_RUN_BINDING_VERSION = "research4-databricks-continuity-transfer-run-binding-v1"
-TRANSFER_AUDIT_VERSION = "research4-databricks-continuity-transfer-audit-v1"
-TRANSFER_IDENTITY = "continuity_transfer_evaluation_v2"
+TRANSFER_INTENT_VERSION = "research4-databricks-continuity-transfer-intent-v2"
+TRANSFER_RESOURCE_PLAN_VERSION = "research4-databricks-continuity-transfer-resource-v2"
+TRANSFER_RUN_BINDING_VERSION = "research4-databricks-continuity-transfer-run-binding-v2"
+TRANSFER_AUDIT_VERSION = "research4-databricks-continuity-transfer-audit-v2"
+TRANSFER_IDENTITY = "continuity_transfer_evaluation_v3"
 TRANSFER_GOLD_TABLE = (
     "research4_simulated_continuity.gold.continuity_transfer_evaluation_audits"
 )
@@ -71,7 +72,7 @@ def validate_transfer_resource_plan(value: Mapping[str, Any]) -> dict[str, Any]:
         "protected_audit_and_export_seconds", "max_gpu_hours",
         "qualification_receipt_sha256", "qualification_episode_count",
         "qualification_elapsed_seconds", "minimum_measured_episodes_per_second",
-        "resource_plan_sha256",
+        "serialization_contract_version", "resource_plan_sha256",
     }
     payload = dict(plan); embedded = payload.pop("resource_plan_sha256", None)
     numeric = (
@@ -81,6 +82,8 @@ def validate_transfer_resource_plan(value: Mapping[str, Any]) -> dict[str, Any]:
     if (set(plan) != exact_keys
             or embedded != digest(payload)
             or plan.get("version") != TRANSFER_RESOURCE_PLAN_VERSION
+            or plan.get("serialization_contract_version")
+               != SERIALIZATION_CONTRACT_VERSION
             or plan.get("accelerator") != "GPU_1xA10"
             or plan.get("gpu_count") != 1
             or plan.get("max_concurrent_runs") != 1
@@ -134,6 +137,7 @@ def build_transfer_resource_plan(*, qualification_receipt_sha256: str,
                                  max_raw_export_bytes: int = 512 * 1024 * 1024) -> dict[str, Any]:
     value = {
         "version": TRANSFER_RESOURCE_PLAN_VERSION,
+        "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
         "accelerator": "GPU_1xA10", "gpu_count": 1,
         "max_concurrent_runs": 1, "automatic_retries": 0,
         "episode_count": EXPECTED_RAW_RECORDS,
@@ -410,4 +414,3 @@ def build_databricks_run_binding(intent: Mapping[str, Any], *, job_run_id: str,
 def verify_transfer_deployed_source(code_root: str | Path,
                                     intent: Mapping[str, Any]) -> dict[str, Any]:
     return verify_deployed_source(code_root, validate_transfer_intent(intent))
-

@@ -25,7 +25,7 @@ def _bootstrap_verify_source(root_value, authority):
         payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
     critical = (
-        "src/__init__.py", "src/databricks_simulated_continuity.py",
+        "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
         "src/databricks_continuity_partition.py",
         "src/continuity_transfer_databricks.py",
         "src/continuity_transfer_evaluation.py",
@@ -105,6 +105,12 @@ audit = audit_raw_run(
     expected_resource_plan=intent["resource_plan"],
     output_path=audit_path,
 )
+diagnostics = audit.get("serialization_diagnostics", {})
+form_counts = diagnostics.get("serialization_form_counts", {})
+if (diagnostics.get("contract_version") is None
+        or type(diagnostics.get("normalization_used_count")) is not int
+        or sum(form_counts.values()) != audit["record_count"]):
+    raise PermissionError("Transfer parser diagnostics are incomplete")
 mlflow_binding = json.loads((output / "MLFLOW.json").read_text(encoding="utf-8"))
 if (mlflow_binding.get("status") != "raw_complete_pending_independent_audit"
         or not mlflow_binding.get("mlflow_run_id")):
@@ -149,6 +155,9 @@ mlflow_client.log_metric(
 mlflow_client.log_metric(
     mlflow_binding["mlflow_run_id"], "criteria_met",
     int(audit["criteria_met"] is True))
+mlflow_client.log_metric(
+    mlflow_binding["mlflow_run_id"], "normalization_used_count",
+    diagnostics["normalization_used_count"])
 mlflow_client.set_tag(
     mlflow_binding["mlflow_run_id"], "terminal_status",
     "audit_complete_pending_gold_finalize")
@@ -176,5 +185,7 @@ dbutils.notebook.exit(json.dumps({
     "status": "complete_audited", "identity": intent["identity"],
     "record_count": audit["record_count"],
     "criteria_met": audit["criteria_met"],
+    "normalization_used_count": diagnostics["normalization_used_count"],
+    "serialization_contract_version": diagnostics["contract_version"],
     "audit_sha256": row["audit_sha256"],
 }))

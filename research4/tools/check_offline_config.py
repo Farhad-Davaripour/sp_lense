@@ -243,7 +243,7 @@ def main():
     if variables.get("continuity_dataset_release", {}).get("default") != (
             "/Volumes/research4_simulated_continuity/bronze/model_data/"
             "dataset_releases/"
-            "7c262394a1b505c833e7a1a7c2f9b0a45b8485c89a14dfc21af1f268bd0e4968"):
+            "7786d11946799776df964bc3d1dded641cf560311eb5e099ce4ce9d5f06283ee"):
         raise ValueError("Databricks continuity dataset release changed")
     included = {path for pattern in bundle["include"] for path in ROOT.glob(pattern)}
     resources = set((ROOT / "resources").glob("*.job.yml"))
