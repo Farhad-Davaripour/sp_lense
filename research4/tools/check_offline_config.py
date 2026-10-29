@@ -65,6 +65,8 @@ def check_job(job, root, resource_name=None):
     if job.get("max_concurrent_runs") != 1 or job.get("queue", {}).get("enabled") is not False:
         raise ValueError("Research 4 jobs must run singly with queues disabled")
     positive_integer(job.get("timeout_seconds"), "job timeout")
+    if job.get("tags", {}).get("source_commit") != "${var.source_commit}":
+        raise ValueError("Every production job must bind the exact source tag")
     environments = job.get("environments", [])
     environment_keys = [item["environment_key"] for item in environments]
     if len(environment_keys) != len(set(environment_keys)):

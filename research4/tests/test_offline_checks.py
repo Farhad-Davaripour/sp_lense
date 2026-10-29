@@ -21,6 +21,7 @@ class OfflineConfigTests(unittest.TestCase):
         (root / "notebooks/unit.py").write_text("# fixture\n")
         return {
             "max_concurrent_runs": 1, "queue": {"enabled": False}, "timeout_seconds": 30,
+            "tags": {"source_commit": "${var.source_commit}"},
             "environments": [{"environment_key": "cpu", "spec": {"environment_version": "6"}}],
             "tasks": [{"task_key": "unit", "environment_key": "cpu", "max_retries": 0,
                        "timeout_seconds": 10, "notebook_task": {
