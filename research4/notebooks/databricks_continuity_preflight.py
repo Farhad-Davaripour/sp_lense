@@ -61,7 +61,8 @@ from src.databricks_simulated_continuity import (
     digest, expected_predecessor_binding,
     validate_base_qualification_receipt, validate_exact_gold_row,
     validate_intent, validate_primary_authority_files,
-    verify_deployed_source, verify_model_receipt)
+    validate_policy_silver_payload, verify_deployed_source,
+    verify_model_receipt)
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import (
     TrainingPlan, canonical_sha256, validate_sequential_parent)
@@ -163,19 +164,23 @@ selected = spark.table(SILVER_TABLE).where(
     (F.col("source_commit") == intent["source_commit"])
     & (F.col("record_kind") == kind) & (F.col("split") == "train")
     & (F.col("admitted_for_training") == F.lit(True))).select(
-        "dataset_tree_sha256", "record_id", "record_sha256", "record_json"
+        "dataset_tree_sha256", "record_id", "record_kind", "condition",
+        "split", "family_id", "danger_level", "record_sha256", "record_json"
     ).orderBy("record_id").collect()
 for row in selected:
     if (row.dataset_tree_sha256 != intent["dataset_tree_sha256"]
             or hashlib.sha256(row.record_json.encode("utf-8")).hexdigest()
                != row.record_sha256):
         raise PermissionError("Pre-GPU Silver payload hash or dataset tree differs")
-    value = json.loads(row.record_json)
-    if (value.get("record_id") != row.record_id
-            or value.get("condition") != plan["condition"]
-            or value.get("split") != "train"
-            or value.get("danger_level") not in (0, 1, 2, 3)):
-        raise PermissionError("Pre-GPU Silver payload semantics differ")
+    validate_policy_silver_payload(
+        row.record_json, record_id=row.record_id,
+        expected_condition=plan["condition"], expected_split=row.split,
+        expected_family_id=row.family_id,
+        expected_danger_level=row.danger_level)
+    if (row.record_kind != plan["condition"]
+            or row.condition != plan["condition"]
+            or row.split != "train"):
+        raise PermissionError("Pre-GPU Silver metadata semantics differ")
 binding = [{"record_id": row.record_id, "record_sha256": row.record_sha256}
            for row in selected]
 if len(binding) != intent["silver_record_count"] or digest(binding) != intent["silver_records_sha256"]:

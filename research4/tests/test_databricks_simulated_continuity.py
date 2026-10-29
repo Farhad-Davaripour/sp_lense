@@ -19,7 +19,7 @@ from src.databricks_simulated_continuity import (
     SOURCE_MANIFEST_PATHS,
     SILVER_TABLE, VOLUME, VolumeOneUseLock,
     base_qualification_plan, build_base_qualification_intent, build_intent,
-    build_model_receipt, build_source_manifest, catalog_ddl,
+    build_model_receipt, build_source_manifest, canonical, catalog_ddl,
     close_active_reservation,
     commit_model_snapshot, create_base_qualification_receipt,
     create_primary_admission, create_qualification_receipt,
@@ -29,7 +29,8 @@ from src.databricks_simulated_continuity import (
     validate_base_qualification_silver_rows, validate_base_silver_binding,
     validate_base_qualification_intent, validate_base_qualification_receipt,
     validate_intent,
-    validate_primary_authority_files, validate_source_manifest,
+    validate_policy_silver_payload, validate_primary_authority_files,
+    validate_source_manifest,
     verify_dataset_release, verify_deployed_source, verify_model_receipt,
     verify_model_receipt_authority)
 from src.action_serialization import (
@@ -447,6 +448,50 @@ class DatabricksContinuityTests(unittest.TestCase):
             micro_batch_size=2, accumulation_steps=2).validate()
         tokenized = [json.loads(row["record_json"]) for row in silver
                      if row["record_kind"] == "self_continuity"]
+        self.assertTrue(tokenized)
+        self.assertEqual({row["condition"] for row in tokenized},
+                         {"self_continuity"})
+        validated = validate_policy_silver_payload(
+            canonical(tokenized[0]), record_id=tokenized[0]["record_id"],
+            expected_condition="self_continuity",
+            expected_family_id=tokenized[0]["family_id"],
+            expected_danger_level=tokenized[0]["danger_level"])
+        self.assertEqual(validated, tokenized[0])
+        for field, mutation in (("condition", None),
+                                ("condition", "artifact_continuity"),
+                                ("record_kind", "invented"),
+                                ("serialization_contract_version", "old")):
+            changed = dict(tokenized[0])
+            if mutation is None:
+                changed.pop(field)
+            else:
+                changed[field] = mutation
+            with self.subTest(field=field, mutation=mutation), \
+                    self.assertRaises(PermissionError):
+                validate_policy_silver_payload(
+                    canonical(changed), record_id=tokenized[0]["record_id"],
+                    expected_condition="self_continuity",
+                    expected_family_id=tokenized[0]["family_id"],
+                    expected_danger_level=tokenized[0]["danger_level"])
+        for family, danger in ((None, tokenized[0]["danger_level"]),
+                               (tokenized[0]["family_id"], None),
+                               ("wrong-family", tokenized[0]["danger_level"]),
+                               (tokenized[0]["family_id"],
+                                (tokenized[0]["danger_level"] + 1) % 4)):
+            with self.subTest(family=family, danger=danger), \
+                    self.assertRaises(PermissionError):
+                validate_policy_silver_payload(
+                    canonical(tokenized[0]),
+                    record_id=tokenized[0]["record_id"],
+                    expected_condition="self_continuity",
+                    expected_family_id=family,
+                    expected_danger_level=danger)
+        outer_changed = [dict(row) for row in silver]
+        target = next(row for row in outer_changed
+                      if row["record_kind"] == "self_continuity")
+        target["condition"] = "artifact_continuity"
+        with self.assertRaises(PermissionError):
+            silver_partition_bindings(outer_changed, generated)
         self.assertEqual(qualification["global_journal_sha256"],
                          canonical_sha256(adjacent_pair_schedule(
                              tokenized, qualification_plan)))
@@ -858,6 +903,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn('"TRANSFORMERS_OFFLINE": "1"', source)
         self.assertIn("mlflow.set_experiment", source)
         self.assertIn("verify_reserved_intent", source)
+        self.assertIn("validate_policy_silver_payload", source)
         self.assertIn('"src.databricks_continuity_partition_worker"', source)
         self.assertIn('hashlib.sha256(row.record_json.encode("utf-8"))', source)
         self.assertIn('remaining_stop = intent["wall_clock_stop_seconds"] - prework_seconds',
@@ -891,6 +937,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn("validate_primary_authority_files", preflight)
         self.assertIn("validate_exact_gold_row", preflight)
         self.assertIn("verify_deployed_source", preflight)
+        self.assertIn("validate_policy_silver_payload", preflight)
         self.assertIn('hashlib.sha256(row.record_json.encode("utf-8"))', preflight)
         self.assertNotIn("reserve_intent(", preflight)
         gpu_notebook = (root / "notebooks/databricks_continuity_partition.py").read_text()

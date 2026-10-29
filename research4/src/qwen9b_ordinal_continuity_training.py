@@ -578,6 +578,7 @@ def tokenize_rows(rows: Sequence[dict], tokenizer, max_length: int) -> list[dict
         records.append({
             "record_id": row["record_id"],
             "record_kind": row.get("record_kind", "policy_decision"),
+            "condition": row["condition"],
             "trajectory_id": row.get("trajectory_id"),
             "paired_group_id": row["paired_group_id"],
             "family_id": row["family_id"],
