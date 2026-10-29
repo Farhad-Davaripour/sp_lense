@@ -30,11 +30,8 @@ from src.qwen9b_ordinal_continuity_lora import (
     MODEL_ID, MODEL_REVISION, OrdinalContinuityLoRAConfig,
 )
 from src.qwen9b_ordinal_continuity_training import (
-    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    DATABRICKS_A10_FIXED_SCALE, DATABRICKS_A10_FIXED_SCALE1_POLICY,
     GRAD_SCALER_BACKOFF_FACTOR,
-    GRAD_SCALER_INITIAL_SCALE,
-    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-    GRAD_SCALER_MIN_SCALE,
 )
 from dataclasses import asdict
 from src.databricks_simulated_continuity import (
@@ -161,20 +158,26 @@ class TransferPackagingTests(unittest.TestCase):
         for index, stage in enumerate(("delta1", "delta2", "delta3"), 1):
             tree = f"{index:064x}"
             recovery = {
-                "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
-                "grad_scaler_initial_scale": GRAD_SCALER_INITIAL_SCALE,
+                "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
+                "grad_scaler_initial_scale": DATABRICKS_A10_FIXED_SCALE,
                 "grad_scaler_backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
-                "max_overflow_adjustments":
-                    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-                "minimum_grad_scaler_scale": GRAD_SCALER_MIN_SCALE,
-                "total_overflow_adjustments": index - 1,
-                "recovered_optimizer_update_count": index - 1,
+                "max_overflow_adjustments": 0,
+                "minimum_grad_scaler_scale": DATABRICKS_A10_FIXED_SCALE,
+                "total_overflow_adjustments": 0,
+                "recovered_optimizer_update_count": 0,
                 "measured_optimizer_step_calls": 144,
                 "logical_tokens": 1000 * index,
-                "replay_physical_tokens": 100 * (index - 1),
-                "physical_tokens": 1000 * index + 100 * (index - 1),
+                "replay_physical_tokens": 0,
+                "physical_tokens": 1000 * index,
                 "journal_advances_only_after_finite_optimizer_step": True,
-                "replays_exact_rng_state_and_occurrence_indices": True,
+                "replays_exact_rng_state_and_occurrence_indices": False,
+                "all_update_gradient_norms_positive": True,
+                "minimum_positive_gradient_norm": float(index),
+                "minimum_active_branch_finite_nonzero_gradient_element_count":
+                    10 + index,
+                "minimum_active_branch_finite_nonzero_gradient_density":
+                    index / 10,
+                "fixed_scale_no_growth": True,
             }
             recovery["recovery_audit_sha256"] = digest(recovery)
             chain.append({
@@ -200,11 +203,16 @@ class TransferPackagingTests(unittest.TestCase):
              "qualification_technical_successor_sha256": "e" * 64},
             matrix_sha256="b" * 64, source_commit="c" * 40)
         self.assertEqual(audit["cumulative_stage_optimizer_updates"], 432)
-        self.assertEqual(audit["cumulative_overflow_adjustments"], 3)
+        self.assertEqual(audit["cumulative_overflow_adjustments"], 0)
         self.assertEqual(audit["cumulative_logical_tokens"], 6000)
-        self.assertEqual(audit["cumulative_replay_physical_tokens"], 300)
-        self.assertEqual(audit["cumulative_physical_tokens"], 6300)
+        self.assertEqual(audit["cumulative_replay_physical_tokens"], 0)
+        self.assertEqual(audit["cumulative_physical_tokens"], 6000)
         self.assertEqual(audit["cumulative_measured_optimizer_step_calls"], 432)
+        self.assertEqual(audit["minimum_positive_gradient_norm"], 1.0)
+        self.assertEqual(audit[
+            "minimum_active_branch_finite_nonzero_gradient_element_count"], 11)
+        self.assertEqual(audit[
+            "minimum_active_branch_finite_nonzero_gradient_density"], 0.1)
         self.assertEqual([row["stage"] for row in audit[
             "three_residual_stage_chain"]], ["delta1", "delta2", "delta3"])
         payload = dict(audit); embedded = payload.pop("audit_payload_sha256")

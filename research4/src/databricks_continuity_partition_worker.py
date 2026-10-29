@@ -9,19 +9,20 @@ import math
 import os
 
 from .databricks_simulated_continuity import (
-    MODEL_ROOT, validate_intent, verify_model_receipt)
+    MODEL_ROOT, qualification_numerical_update_evidence,
+    validate_intent, verify_model_receipt)
 from .qwen9b_ordinal_continuity_training import (
     DATABRICKS_A10_ALLOCATOR_CONF, TrainingPlan,
     assert_fast_deltanet_dependencies, build_qualification_model,
     build_qualified_model, load_pinned_tokenizer, qualification_metrics_from_run,
-    run_training_stage,
+    run_training_stage, validate_grad_scaler_recovery_receipt,
     )
 from .qwen9b_ordinal_continuity_lora import (
     STAGE_BRANCHES, adapter_sha256, load_adapter_checkpoint,
     model_component_hashes)
 
 
-MLFLOW_JOURNAL_VERSION = "research4-parent-mlflow-journal-v2"
+MLFLOW_JOURNAL_VERSION = "research4-parent-mlflow-journal-v3"
 PROGRESS_METRICS = (
     "loss", "sft", "preference", "cross_danger_margin",
     "level0_kl_anchor", "gradient_norm_before_clip",
@@ -29,6 +30,12 @@ PROGRESS_METRICS = (
     "overflow_adjustments", "logical_tokens", "replay_physical_tokens",
     "physical_tokens_processed", "optimizer_step_pre_hook_calls",
     "minimum_grad_scaler_scale",
+    "active_branch_finite_nonzero_gradient_element_count",
+    "active_branch_finite_nonzero_gradient_density",
+)
+PROGRESS_FLAGS = (
+    "overflow_recovered", "gradient_norm_positive",
+    "fixed_scale_no_growth",
 )
 
 
@@ -65,7 +72,11 @@ def _append_progress(path, update, *, intent_sha256, plan_sha256):
     if (not isinstance(attempts, list) or not attempts
             or any(not isinstance(value, dict) for value in attempts)):
         raise PermissionError("MLflow progress lacks GradScaler attempts")
-    row["overflow_recovered"] = update.get("overflow_recovered") is True
+    for key in PROGRESS_FLAGS:
+        value = update.get(key)
+        if type(value) is not bool:
+            raise PermissionError(f"MLflow progress flag is invalid: {key}")
+        row[key] = value
     row["grad_scaler_attempt_count"] = len(attempts)
     row["grad_scaler_attempts_sha256"] = _digest(attempts)
     row["progress_record_sha256"] = _digest(row)
@@ -135,8 +146,12 @@ def validate_mlflow_journal(output, *, intent, plan, receipt, rank_receipt,
         if (not isinstance(attempts, list) or not attempts
                 or any(not isinstance(value, dict) for value in attempts)):
             raise PermissionError("Rank receipt lacks GradScaler attempts")
+        for key in PROGRESS_FLAGS:
+            value = update.get(key)
+            if type(value) is not bool:
+                raise PermissionError(f"Rank receipt progress flag is invalid: {key}")
+            expected_progress[key] = value
         expected_progress.update({
-            "overflow_recovered": update.get("overflow_recovered") is True,
             "grad_scaler_attempt_count": len(attempts),
             "grad_scaler_attempts_sha256": _digest(attempts),
         })
@@ -271,6 +286,7 @@ def run(args):
             parent_checkpoint_dir=args.parent_checkpoint,
             rank=rank, world_size=1, save_checkpoint=True,
             progress_callback=progress)
+        validate_grad_scaler_recovery_receipt(receipt, plan)
         live_after = model_component_hashes(model, require_quantized=True)
         if live_after != live_before:
             raise PermissionError("Training changed frozen base/quantization/config bytes")
@@ -294,7 +310,7 @@ def run(args):
                 if key.endswith("_pass") or key == "capacity_adequate"):
             raise PermissionError("Rank-4 qualification failed a raw evidence gate")
         evidence = {
-            "version": "research4-databricks-partition-evidence-v3",
+            "version": "research4-databricks-partition-evidence-v4",
             "intent_sha256": intent["intent_sha256"],
             "base_qualification_carryforward_sha256": intent.get(
                 "base_qualification_carryforward_sha256"),
@@ -312,6 +328,8 @@ def run(args):
                 "physical_tokens_processed"),
             "overflow_recompute_tokens": receipt.get(
                 "overflow_recompute_tokens"),
+            "numerical_update_evidence":
+                qualification_numerical_update_evidence(receipt),
             "runtime_proof": proof,
         }
         evidence["evidence_sha256"] = __import__("hashlib").sha256(json.dumps(

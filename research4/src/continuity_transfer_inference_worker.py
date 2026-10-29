@@ -45,14 +45,14 @@ from .qwen9b_ordinal_continuity_lora import (
 
 
 WORKER_VERSION = "research4-continuity-transfer-inference-worker-v5"
-TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v4"
-DATABRICKS_A10_GRAD_SCALER_POLICY = (
-    "databricks-a10-bounded-gradscaler-v1"
+TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v5"
+DATABRICKS_A10_FIXED_SCALE1_POLICY = (
+    "databricks-a10-fixed-fp16-scale1-v1"
 )
-GRAD_SCALER_INITIAL_SCALE = 65536.0
+GRAD_SCALER_INITIAL_SCALE = 1.0
 GRAD_SCALER_BACKOFF_FACTOR = 0.5
-GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS = 4
-GRAD_SCALER_MIN_SCALE = 4096.0
+GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS = 0
+GRAD_SCALER_MIN_SCALE = 1.0
 BLINDED_CHECKPOINT_MANIFEST_VERSION = (
     "research4-three-residual-blinded-checkpoints-v1"
 )
@@ -98,6 +98,15 @@ def _sha_bytes(value: bytes) -> str:
 def _sha64(value: Any) -> bool:
     return (isinstance(value, str)
             and re.fullmatch(r"[0-9a-f]{64}", value) is not None)
+
+
+def _exact_int(value: Any) -> bool:
+    return type(value) is int
+
+
+def _finite_number(value: Any) -> bool:
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(float(value)))
 
 
 def validate_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -221,26 +230,31 @@ def _training_recovery_summary(receipt: Mapping[str, Any]) -> dict[str, Any]:
     """Recompute bounded A10 recovery from the packaged rank receipt."""
     recovery = receipt.get("grad_scaler_recovery")
     expected_receipt_static = {
-        "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+        "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
         "initial_scale": GRAD_SCALER_INITIAL_SCALE,
         "backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
         "max_overflow_adjustments_per_partition":
             GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
         "minimum_scale": GRAD_SCALER_MIN_SCALE,
         "journal_advances_only_after_finite_optimizer_step": True,
-        "replays_exact_rng_state_and_occurrence_indices": True,
+        "replays_exact_rng_state_and_occurrence_indices": False,
     }
     if (not isinstance(recovery, Mapping)
+            or not _finite_number(recovery.get("initial_scale"))
+            or not _finite_number(recovery.get("backoff_factor"))
+            or not _exact_int(recovery.get(
+                "max_overflow_adjustments_per_partition"))
+            or not _finite_number(recovery.get("minimum_scale"))
             or any(recovery.get(key) != expected
                    for key, expected in expected_receipt_static.items())):
         raise PermissionError("Packaged numerical-recovery policy differs")
     updates = receipt.get("updates")
     optimizer_updates = receipt.get("successful_optimizer_updates")
     adjustments = recovery.get("total_overflow_adjustments")
-    if (not isinstance(optimizer_updates, int) or optimizer_updates <= 0
+    if (not _exact_int(optimizer_updates) or optimizer_updates <= 0
             or not isinstance(updates, list)
             or len(updates) != optimizer_updates
-            or not isinstance(adjustments, int) or adjustments < 0
+            or not _exact_int(adjustments) or adjustments < 0
             or adjustments > GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS):
         raise PermissionError("Packaged numerical-recovery count differs")
     total_adjustments = 0
@@ -248,6 +262,9 @@ def _training_recovery_summary(receipt: Mapping[str, Any]) -> dict[str, Any]:
     replay_tokens = 0
     measured_steps = 0
     recovered_updates = 0
+    positive_norms = []
+    nonzero_counts = []
+    nonzero_densities = []
     expected_scale = GRAD_SCALER_INITIAL_SCALE
     for update_index, update in enumerate(updates):
         current = update.get("overflow_adjustments")
@@ -255,22 +272,30 @@ def _training_recovery_summary(receipt: Mapping[str, Any]) -> dict[str, Any]:
         logical = update.get("logical_tokens")
         replay = update.get("replay_physical_tokens")
         if (update.get("optimizer_update") != update_index
-                or not isinstance(current, int) or current < 0
+                or not _exact_int(current) or current < 0
                 or not isinstance(attempts, list)
                 or len(attempts) != current + 1
-                or not isinstance(logical, int) or logical <= 0
+                or not _exact_int(logical) or logical <= 0
+                or not _exact_int(replay) or replay < 0
                 or replay != logical * current
+                or not _exact_int(update.get("initial_physical_tokens"))
                 or update.get("initial_physical_tokens") != logical
+                or not _exact_int(update.get("physical_tokens_processed"))
                 or update.get("physical_tokens_processed") != logical + replay
                 or update.get("overflow") is not False
                 or update.get("finite") is not True
+                or not _exact_int(update.get(
+                    "optimizer_step_pre_hook_calls"))
                 or update.get("optimizer_step_pre_hook_calls") != 1):
             raise PermissionError("Packaged numerical update differs")
         for attempt_index, attempt in enumerate(attempts):
             overflow = attempt_index < current
-            if (attempt.get("attempt_index") != attempt_index
+            if (not _exact_int(attempt.get("attempt_index"))
+                    or attempt.get("attempt_index") != attempt_index
                     or attempt.get("overflow") is not overflow
                     or attempt.get("gradient_finite") is overflow
+                    or not _exact_int(attempt.get(
+                        "optimizer_step_pre_hook_call_delta"))
                     or attempt.get("optimizer_step_pre_hook_call_delta")
                        != (0 if overflow else 1)
                     or attempt.get("optimizer_step_executed")
@@ -279,12 +304,7 @@ def _training_recovery_summary(receipt: Mapping[str, Any]) -> dict[str, Any]:
             before, after = (attempt.get("scale_before"),
                              attempt.get("scale_after"))
             numeric = (
-                isinstance(before, (int, float))
-                and not isinstance(before, bool)
-                and isinstance(after, (int, float))
-                and not isinstance(after, bool)
-                and math.isfinite(float(before))
-                and math.isfinite(float(after))
+                _finite_number(before) and _finite_number(after)
             )
             expected_after = (
                 before * GRAD_SCALER_BACKOFF_FACTOR
@@ -298,19 +318,73 @@ def _training_recovery_summary(receipt: Mapping[str, Any]) -> dict[str, Any]:
                     or (not overflow and after < before)):
                 raise PermissionError("Packaged recovery scale differs")
             expected_scale = after
+        attempt = attempts[0]
+        diagnostic = attempt.get("diagnostic")
+        norm = update.get("gradient_norm_before_clip")
+        count = update.get(
+            "active_branch_finite_nonzero_gradient_element_count")
+        density = update.get(
+            "active_branch_finite_nonzero_gradient_density")
+        elements = (diagnostic.get("trainable_gradient_element_count")
+                    if isinstance(diagnostic, Mapping) else None)
+        if (current != 0 or replay != 0
+                or update.get("physical_tokens_processed") != logical
+                or update.get("fixed_scale_no_growth") is not True
+                or update.get("gradient_norm_positive") is not True
+                or not _finite_number(norm) or norm <= 0
+                or not _exact_int(count) or count <= 0
+                or not _finite_number(density)
+                or not 0 < density <= 1
+                or not isinstance(diagnostic, Mapping)
+                or diagnostic.get("gradient_norm_finite") is not True
+                or diagnostic.get("gradient_norm_positive") is not True
+                or not _exact_int(diagnostic.get(
+                    "nonfinite_gradient_element_count"))
+                or diagnostic.get("nonfinite_gradient_element_count") != 0
+                or not _exact_int(elements) or elements <= 0
+                or not _exact_int(diagnostic.get(
+                    "active_branch_finite_nonzero_gradient_element_count"))
+                or not _finite_number(diagnostic.get(
+                    "active_branch_finite_nonzero_gradient_density"))
+                or diagnostic.get(
+                    "active_branch_finite_nonzero_gradient_element_count")
+                   != count
+                or diagnostic.get(
+                    "active_branch_finite_nonzero_gradient_density")
+                   != density
+                or density != count / elements
+                or attempt.get("scale_before") != 1.0
+                or attempt.get("scale_after") != 1.0
+                or attempt.get("gradient_norm_positive") is not True
+                or not _finite_number(attempt.get(
+                    "gradient_norm_before_clip"))
+                or attempt.get("gradient_norm_before_clip") != norm
+                or not _exact_int(attempt.get(
+                    "optimizer_step_pre_hook_calls_before"))
+                or attempt.get("optimizer_step_pre_hook_calls_before") != 0
+                or not _exact_int(attempt.get(
+                    "optimizer_step_pre_hook_calls_after"))
+                or attempt.get("optimizer_step_pre_hook_calls_after") != 1):
+            raise PermissionError("Packaged fixed-scale gradient evidence differs")
         total_adjustments += current
         logical_tokens += logical
         replay_tokens += replay
         measured_steps += 1
         recovered_updates += int(current > 0)
+        positive_norms.append(norm)
+        nonzero_counts.append(count)
+        nonzero_densities.append(density)
     physical_tokens = receipt.get("physical_tokens_processed")
     if (total_adjustments != adjustments
+            or not _exact_int(receipt.get("tokens_seen"))
             or receipt.get("tokens_seen") != logical_tokens
+            or not _exact_int(receipt.get("overflow_recompute_tokens"))
             or receipt.get("overflow_recompute_tokens") != replay_tokens
+            or not _exact_int(physical_tokens)
             or physical_tokens != logical_tokens + replay_tokens):
         raise PermissionError("Packaged numerical token accounting differs")
     summary = {
-        "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+        "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
         "grad_scaler_initial_scale": GRAD_SCALER_INITIAL_SCALE,
         "grad_scaler_backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
         "max_overflow_adjustments":
@@ -323,7 +397,14 @@ def _training_recovery_summary(receipt: Mapping[str, Any]) -> dict[str, Any]:
         "replay_physical_tokens": replay_tokens,
         "physical_tokens": physical_tokens,
         "journal_advances_only_after_finite_optimizer_step": True,
-        "replays_exact_rng_state_and_occurrence_indices": True,
+        "replays_exact_rng_state_and_occurrence_indices": False,
+        "all_update_gradient_norms_positive": True,
+        "minimum_positive_gradient_norm": min(positive_norms),
+        "minimum_active_branch_finite_nonzero_gradient_element_count":
+            min(nonzero_counts),
+        "minimum_active_branch_finite_nonzero_gradient_density":
+            min(nonzero_densities),
+        "fixed_scale_no_growth": True,
     }
     summary["recovery_audit_sha256"] = digest(summary)
     return summary
@@ -346,26 +427,91 @@ def _validate_training_recovery_audit(
         embedded = payload.pop("recovery_audit_sha256", None)
         if (embedded != digest(payload)
                 or summary.get("numerical_policy")
-                   != DATABRICKS_A10_GRAD_SCALER_POLICY
+                   != DATABRICKS_A10_FIXED_SCALE1_POLICY
+                or not _finite_number(summary.get(
+                    "grad_scaler_initial_scale"))
+                or not _finite_number(summary.get(
+                    "grad_scaler_backoff_factor"))
+                or not _exact_int(summary.get(
+                    "max_overflow_adjustments"))
                 or summary.get("max_overflow_adjustments")
                    != GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS
+                or not _finite_number(summary.get(
+                    "minimum_grad_scaler_scale"))
                 or summary.get("minimum_grad_scaler_scale")
-                   != GRAD_SCALER_MIN_SCALE):
+                   != GRAD_SCALER_MIN_SCALE
+                or not _exact_int(summary.get(
+                    "total_overflow_adjustments"))
+                or summary.get("total_overflow_adjustments") != 0
+                or not _exact_int(summary.get(
+                    "recovered_optimizer_update_count"))
+                or summary.get("recovered_optimizer_update_count") != 0
+                or not _exact_int(summary.get(
+                    "measured_optimizer_step_calls"))
+                or summary.get("measured_optimizer_step_calls") <= 0
+                or not _exact_int(summary.get("logical_tokens"))
+                or summary.get("logical_tokens") <= 0
+                or not _exact_int(summary.get("replay_physical_tokens"))
+                or summary.get("replay_physical_tokens") != 0
+                or not _exact_int(summary.get("physical_tokens"))
+                or summary.get("physical_tokens")
+                   != summary.get("logical_tokens")
+                or summary.get(
+                    "all_update_gradient_norms_positive") is not True
+                or not _finite_number(summary.get(
+                    "minimum_positive_gradient_norm"))
+                or summary.get("minimum_positive_gradient_norm") <= 0
+                or not _exact_int(summary.get(
+                    "minimum_active_branch_finite_nonzero_gradient_element_count"))
+                or summary.get(
+                    "minimum_active_branch_finite_nonzero_gradient_element_count") <= 0
+                or not _finite_number(summary.get(
+                    "minimum_active_branch_finite_nonzero_gradient_density"))
+                or not 0 < summary.get(
+                    "minimum_active_branch_finite_nonzero_gradient_density") <= 1
+                or summary.get("fixed_scale_no_growth") is not True):
             raise PermissionError("Packaged recovery audit self-binding differs")
         summaries.append(dict(summary))
     if (summaries[-1] != endpoint
             or audit.get("numerical_policy")
-               != DATABRICKS_A10_GRAD_SCALER_POLICY
+               != DATABRICKS_A10_FIXED_SCALE1_POLICY
+            or not _exact_int(audit.get("cumulative_overflow_adjustments"))
             or audit.get("cumulative_overflow_adjustments")
                != sum(row["total_overflow_adjustments"] for row in summaries)
+            or not _exact_int(audit.get("cumulative_logical_tokens"))
             or audit.get("cumulative_logical_tokens")
                != sum(row["logical_tokens"] for row in summaries)
+            or not _exact_int(audit.get(
+                "cumulative_replay_physical_tokens"))
             or audit.get("cumulative_replay_physical_tokens")
                != sum(row["replay_physical_tokens"] for row in summaries)
+            or not _exact_int(audit.get("cumulative_physical_tokens"))
             or audit.get("cumulative_physical_tokens")
                != sum(row["physical_tokens"] for row in summaries)
+            or not _exact_int(audit.get(
+                "cumulative_measured_optimizer_step_calls"))
             or audit.get("cumulative_measured_optimizer_step_calls")
                != sum(row["measured_optimizer_step_calls"] for row in summaries)
+            or audit.get("all_stage_gradient_norms_positive") is not True
+            or not _finite_number(audit.get("minimum_positive_gradient_norm"))
+            or audit.get("minimum_positive_gradient_norm")
+               != min(row["minimum_positive_gradient_norm"]
+                      for row in summaries)
+            or not _exact_int(audit.get(
+                "minimum_active_branch_finite_nonzero_gradient_element_count"))
+            or audit.get(
+                "minimum_active_branch_finite_nonzero_gradient_element_count")
+               != min(row[
+                    "minimum_active_branch_finite_nonzero_gradient_element_count"]
+                      for row in summaries)
+            or not _finite_number(audit.get(
+                "minimum_active_branch_finite_nonzero_gradient_density"))
+            or audit.get(
+                "minimum_active_branch_finite_nonzero_gradient_density")
+               != min(row[
+                    "minimum_active_branch_finite_nonzero_gradient_density"]
+                      for row in summaries)
+            or audit.get("fixed_scale_no_growth") is not True
             or audit.get("recovery_audit_chain_sha256") != digest(summaries)):
         raise PermissionError("Packaged recovery audit chain differs")
     return endpoint

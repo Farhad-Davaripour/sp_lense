@@ -64,21 +64,25 @@ class ParentMlflowJournalTests(unittest.TestCase):
                       "sft": .5, "preference": .2,
                       "cross_danger_margin": .1, "level0_kl_anchor": .05,
                       "gradient_norm_before_clip": .9,
-                      "grad_scaler_before": 65536.0,
-                      "grad_scaler_after": 65536.0,
+                      "grad_scaler_before": 1.0,
+                      "grad_scaler_after": 1.0,
                       "overflow_adjustments": 0,
                       "logical_tokens": 1024,
                       "replay_physical_tokens": 0,
                       "physical_tokens_processed": 1024,
                       "optimizer_step_pre_hook_calls": 1,
-                      "minimum_grad_scaler_scale": 4096.0,
+                      "minimum_grad_scaler_scale": 1.0,
                       "overflow_recovered": False,
+                      "gradient_norm_positive": True,
+                      "active_branch_finite_nonzero_gradient_element_count": 100,
+                      "active_branch_finite_nonzero_gradient_density": 0.5,
+                      "fixed_scale_no_growth": True,
                       "grad_scaler_attempts": [{
                           "attempt_index": 0,
                           "overflow": False,
                           "gradient_finite": True,
-                          "scale_before": 65536.0,
-                          "scale_after": 65536.0,
+                          "scale_before": 1.0,
+                          "scale_after": 1.0,
                           "optimizer_step_pre_hook_call_delta": 1,
                           "optimizer_step_executed": True,
                       }]}
@@ -412,7 +416,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
                 "receipt_replayed": True,
             }
             parent = {
-                "version": "research4-parent-mlflow-finalization-v2",
+                "version": "research4-parent-mlflow-finalization-v3",
                 "identity": identity, "owner_run_id": "123",
                 "intent_sha256": intent["intent_sha256"],
                 "plan_sha256": intent["plan_sha256"],
@@ -472,50 +476,47 @@ class ParentMlflowJournalTests(unittest.TestCase):
         value = authority()
         self.assertEqual(validate(value), value)
         self.assertEqual(value["prior_identity"],
-                         "qualification_rank4_a10_microbatch1_v4")
-        self.assertEqual(value["successor_identity"],
                          "qualification_rank4_a10_gradscaler_recovery_v5")
-        self.assertEqual(value["owner_run_id"], "123598135063131")
+        self.assertEqual(value["successor_identity"],
+                         "qualification_rank4_a10_fp16_scale1_v6")
+        self.assertEqual(value["owner_run_id"], "382017553734680")
         self.assertEqual(
             value["prior_intent_sha256"],
-            "65e06dab4f87babe007df88beb0801a3073f6e8aa7b5c87cec1d73053565d10b")
+            "b8f1eb980e1eba924540642e0de70f104baadfb0a5f0f9716c4ea25ac43769a1")
         self.assertEqual(
             value["closeout_receipt_sha256"],
-            "42075812a67c09b730480ad4d4a0b431bd4be6a88b555676f1cf09302b765bb1")
+            "19842691fe1b2ed17c681eee9769c3580b081cdc24cc6f7bf43bde9b33d5e07d")
         self.assertEqual(
             value["predecessor_authority_sha256"],
-            "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9")
+            "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
         predecessor = value["predecessor_authority"]
-        self.assertEqual(predecessor["owner_run_id"], "739463343455961")
+        self.assertEqual(predecessor["owner_run_id"], "123598135063131")
         self.assertEqual(
             predecessor["predecessor_authority_sha256"],
-            "f1c5d1ce2eeff6a9089a346db2a72ca11392805b0752539dc862bcb39c42a3bb")
-        self.assertEqual(
-            predecessor["predecessor_authority"][
-                "predecessor_authority_sha256"],
-            "e029c82e61172517f3b94cd6d55897db14516bf2193c98381531aa3b50fcd335")
+            "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9")
         self.assertEqual(
             value["rank_partial_file_sha256"],
-            "a698689b80da2d3a673364d38665afdc499e68f86328f6f55fe2430747cba71a")
+            "f3263b28b588232e1e65c05d607f009413a6657e7a504f40240b776b8666a01e")
         self.assertEqual(
             value["mlflow_progress_file_sha256"], hashlib.sha256(b"").hexdigest())
-        self.assertEqual(value["progress_journal_entries"], 0)
         self.assertEqual(value["optimizer_updates"], 0)
         self.assertFalse(value["checkpoint_written"])
-        self.assertEqual(value["backward_calls_completed"], 4)
+        self.assertEqual(value["backward_attempts"], 5)
+        self.assertTrue(value["initial_scale_only_hypothesis_disproved"])
         self.assertEqual(value["successor_execution_scope"],
                          "databricks-a10x1-only")
-        self.assertEqual(value["successor_max_overflow_adjustments"], 4)
-        self.assertEqual(value["successor_minimum_grad_scaler_scale"], 4096.0)
-        self.assertEqual(value["successor_optimizer_steps_on_overflow"], 0)
-        self.assertEqual(
-            value["human_approval_file_sha256"],
-            "9f8832e3bdaa10a348fcd8bf0f65b85984b3d054c80417411d7e280a3b180c3f")
+        self.assertEqual(value["successor_grad_scaler_scale"], 1.0)
+        self.assertEqual(value["successor_max_overflow_adjustments"], 0)
+        self.assertEqual(value["successor_minimum_grad_scaler_scale"], 1.0)
+        self.assertTrue(value["successor_one_attempt_per_update"])
+        self.assertTrue(value["successor_positive_finite_gradient_norm_required"])
+        self.assertTrue(value["successor_nonzero_active_gradient_density_required"])
+        self.assertTrue(value["successor_physical_tokens_equal_logical_on_success"])
         successor_plan = databricks_a10_plan(TrainingPlan())
         self.assertEqual(value["successor_plan_sha256"],
                          successor_plan.full_plan_sha256)
         self.assertEqual(value["technical_successor_sha256"],
-                         "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
+                         "16824b6af523b31979f88dd7aee5a48aa75f25e393299643f33fa33ad29e1edc")
         changed = copy.deepcopy(value); changed["optimizer_updates"] = 1
         with self.assertRaises(PermissionError):
             validate(changed)

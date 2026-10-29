@@ -1,3 +1,4 @@
+import copy
 import json
 from pathlib import Path
 import tempfile
@@ -20,11 +21,8 @@ from src.qwen9b_ordinal_continuity_lora import (
     CHECKPOINT_VERSION, MODEL_ID, MODEL_REVISION,
 )
 from src.qwen9b_ordinal_continuity_training import (
-    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    DATABRICKS_A10_FIXED_SCALE, DATABRICKS_A10_FIXED_SCALE1_POLICY,
     GRAD_SCALER_BACKOFF_FACTOR,
-    GRAD_SCALER_INITIAL_SCALE,
-    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-    GRAD_SCALER_MIN_SCALE,
     RANK_RUN_VERSION,
 )
 
@@ -42,10 +40,22 @@ def recovery_receipt_fields(update_count=2, logical_tokens=10):
             "grad_scaler_attempts": [{
                 "attempt_index": 0, "overflow": False,
                 "gradient_finite": True,
+                "optimizer_step_pre_hook_calls_before": 0,
+                "optimizer_step_pre_hook_calls_after": 1,
                 "optimizer_step_pre_hook_call_delta": 1,
                 "optimizer_step_executed": True,
-                "scale_before": GRAD_SCALER_INITIAL_SCALE,
-                "scale_after": GRAD_SCALER_INITIAL_SCALE,
+                "scale_before": DATABRICKS_A10_FIXED_SCALE,
+                "scale_after": DATABRICKS_A10_FIXED_SCALE,
+                "gradient_norm_before_clip": 0.5,
+                "gradient_norm_positive": True,
+                "diagnostic": {
+                    "gradient_norm_finite": True,
+                    "gradient_norm_positive": True,
+                    "nonfinite_gradient_element_count": 0,
+                    "trainable_gradient_element_count": 10,
+                    "active_branch_finite_nonzero_gradient_element_count": 5,
+                    "active_branch_finite_nonzero_gradient_density": 0.5,
+                },
             }],
             "logical_tokens": logical_tokens,
             "initial_physical_tokens": logical_tokens,
@@ -54,6 +64,11 @@ def recovery_receipt_fields(update_count=2, logical_tokens=10):
             "overflow": False, "finite": True,
             "overflow_recovered": False,
             "optimizer_step_pre_hook_calls": 1,
+            "gradient_norm_before_clip": 0.5,
+            "gradient_norm_positive": True,
+            "active_branch_finite_nonzero_gradient_element_count": 5,
+            "active_branch_finite_nonzero_gradient_density": 0.5,
+            "fixed_scale_no_growth": True,
         })
     return {
         "updates": updates,
@@ -62,26 +77,25 @@ def recovery_receipt_fields(update_count=2, logical_tokens=10):
         "overflow_recompute_tokens": 0,
         "physical_tokens_processed": update_count * logical_tokens,
         "grad_scaler_recovery": {
-            "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
-            "initial_scale": GRAD_SCALER_INITIAL_SCALE,
+            "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
+            "initial_scale": DATABRICKS_A10_FIXED_SCALE,
             "backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
-            "max_overflow_adjustments_per_partition":
-                GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-            "minimum_scale": GRAD_SCALER_MIN_SCALE,
+            "max_overflow_adjustments_per_partition": 0,
+            "minimum_scale": DATABRICKS_A10_FIXED_SCALE,
             "total_overflow_adjustments": 0,
             "journal_advances_only_after_finite_optimizer_step": True,
-            "replays_exact_rng_state_and_occurrence_indices": True,
+            "replays_exact_rng_state_and_occurrence_indices": False,
         },
     }
 
 
 def recovery_audit(update_count=2, logical_tokens=10):
     value = {
-        "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
-        "grad_scaler_initial_scale": GRAD_SCALER_INITIAL_SCALE,
+        "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
+        "grad_scaler_initial_scale": DATABRICKS_A10_FIXED_SCALE,
         "grad_scaler_backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
-        "max_overflow_adjustments": GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-        "minimum_grad_scaler_scale": GRAD_SCALER_MIN_SCALE,
+        "max_overflow_adjustments": 0,
+        "minimum_grad_scaler_scale": DATABRICKS_A10_FIXED_SCALE,
         "total_overflow_adjustments": 0,
         "recovered_optimizer_update_count": 0,
         "measured_optimizer_step_calls": update_count,
@@ -89,7 +103,12 @@ def recovery_audit(update_count=2, logical_tokens=10):
         "replay_physical_tokens": 0,
         "physical_tokens": update_count * logical_tokens,
         "journal_advances_only_after_finite_optimizer_step": True,
-        "replays_exact_rng_state_and_occurrence_indices": True,
+        "replays_exact_rng_state_and_occurrence_indices": False,
+        "all_update_gradient_norms_positive": True,
+        "minimum_positive_gradient_norm": 0.5,
+        "minimum_active_branch_finite_nonzero_gradient_element_count": 5,
+        "minimum_active_branch_finite_nonzero_gradient_density": 0.5,
+        "fixed_scale_no_growth": True,
     }
     value["recovery_audit_sha256"] = digest(value)
     return value
@@ -197,12 +216,17 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
                     "self_attested_pass_flags_used": False,
                     "qualification_receipt_sha256": "8" * 64,
                     "qualification_technical_successor_sha256": "9" * 64,
-                    "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+                    "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
                     "cumulative_overflow_adjustments": 0,
                     "cumulative_logical_tokens": 60,
                     "cumulative_replay_physical_tokens": 0,
                     "cumulative_physical_tokens": 60,
                     "cumulative_measured_optimizer_step_calls": 6,
+                    "all_stage_gradient_norms_positive": True,
+                    "minimum_positive_gradient_norm": 0.5,
+                    "minimum_active_branch_finite_nonzero_gradient_element_count": 5,
+                    "minimum_active_branch_finite_nonzero_gradient_density": 0.5,
+                    "fixed_scale_no_growth": True,
                     "recovery_audit_chain_sha256": digest(recovery_chain),
                     "three_residual_stage_chain": [
                         {"stage": stage, "recovery_audit": recovery}
@@ -313,66 +337,148 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
         dump(audit_path, audit)
         changed = dict(row)
         changed["training_audit_sha256"] = file_sha256(audit_path)
-        with self.assertRaisesRegex(PermissionError, "recovery audit chain"):
+        with self.assertRaisesRegex(PermissionError, "recovery audit"):
             verify_training_lineage(changed, directory, config)
+
+    def test_self_hashed_recovery_audit_rejects_bool_nan_and_infinity(self):
+        manifest = json.loads(self.manifest.read_text())
+        row = next(item for item in manifest["checkpoints"]
+                   if item["identity_kind"] == "adapted")
+        directory = self.checkpoint_root / row["relative_directory"]
+        config = json.loads((directory / "adapter_config.json").read_text())
+        audit_path = directory / "lineage" / "TRAINING_AUDIT.json"
+        original = json.loads(audit_path.read_text())
+        for label, value in (("bool", True), ("nan", float("nan")),
+                             ("positive_inf", float("inf")),
+                             ("negative_inf", float("-inf"))):
+            audit = copy.deepcopy(original)
+            endpoint = audit["three_residual_stage_chain"][-1][
+                "recovery_audit"]
+            endpoint["minimum_positive_gradient_norm"] = value
+            payload = dict(endpoint); payload.pop("recovery_audit_sha256")
+            endpoint["recovery_audit_sha256"] = digest(payload)
+            summaries = [item["recovery_audit"]
+                         for item in audit["three_residual_stage_chain"]]
+            audit["minimum_positive_gradient_norm"] = value
+            audit["recovery_audit_chain_sha256"] = digest(summaries)
+            payload = dict(audit); payload.pop("audit_payload_sha256")
+            audit["audit_payload_sha256"] = digest(payload)
+            dump(audit_path, audit)
+            changed = dict(row)
+            changed["training_audit_sha256"] = file_sha256(audit_path)
+            with self.subTest(label=label), self.assertRaises(PermissionError):
+                verify_training_lineage(changed, directory, config)
+        for field, value in (
+                ("grad_scaler_initial_scale", True),
+                ("minimum_grad_scaler_scale", True),
+                ("max_overflow_adjustments", False)):
+            audit = copy.deepcopy(original)
+            endpoint = audit["three_residual_stage_chain"][-1][
+                "recovery_audit"]
+            endpoint[field] = value
+            payload = dict(endpoint); payload.pop("recovery_audit_sha256")
+            endpoint["recovery_audit_sha256"] = digest(payload)
+            summaries = [item["recovery_audit"]
+                         for item in audit["three_residual_stage_chain"]]
+            audit["recovery_audit_chain_sha256"] = digest(summaries)
+            payload = dict(audit); payload.pop("audit_payload_sha256")
+            audit["audit_payload_sha256"] = digest(payload)
+            dump(audit_path, audit)
+            changed = dict(row)
+            changed["training_audit_sha256"] = file_sha256(audit_path)
+            with self.subTest(field=field), self.assertRaises(PermissionError):
+                verify_training_lineage(changed, directory, config)
+        dump(audit_path, original)
 
     def test_recovery_scale_chain_rejects_self_consistent_tamper(self):
         wrong_initial = recovery_receipt_fields(update_count=2)
         for update in wrong_initial["updates"]:
             attempt = update["grad_scaler_attempts"][0]
-            attempt["scale_before"] = 32768.0
-            attempt["scale_after"] = 32768.0
+            attempt["scale_before"] = 2.0
+            attempt["scale_after"] = 2.0
 
-        finite_decrease = recovery_receipt_fields(update_count=2)
-        finite_decrease["updates"][0]["grad_scaler_attempts"][0][
-            "scale_after"] = 32768.0
-        finite_decrease["updates"][1]["grad_scaler_attempts"][0][
-            "scale_before"] = 32768.0
-        finite_decrease["updates"][1]["grad_scaler_attempts"][0][
-            "scale_after"] = 32768.0
+        growth = recovery_receipt_fields(update_count=2)
+        growth["updates"][0]["grad_scaler_attempts"][0]["scale_after"] = 2.0
 
-        chain_break = recovery_receipt_fields(update_count=2)
-        chain_break["updates"][0]["grad_scaler_attempts"][0][
-            "scale_after"] = 131072.0
+        zero_norm = recovery_receipt_fields(update_count=2)
+        zero_norm["updates"][0]["gradient_norm_before_clip"] = 0.0
+        zero_norm["updates"][0]["grad_scaler_attempts"][0][
+            "gradient_norm_before_clip"] = 0.0
+        zero_norm["updates"][0]["gradient_norm_positive"] = False
 
-        wrong_backoff = recovery_receipt_fields(update_count=1)
-        logical = wrong_backoff["updates"][0]["logical_tokens"]
-        update = wrong_backoff["updates"][0]
-        update.update({
-            "overflow_adjustments": 1,
-            "overflow_recovered": True,
-            "replay_physical_tokens": logical,
-            "physical_tokens_processed": 2 * logical,
-            "grad_scaler_attempts": [{
-                "attempt_index": 0,
-                "overflow": True,
-                "gradient_finite": False,
-                "optimizer_step_pre_hook_call_delta": 0,
-                "optimizer_step_executed": False,
-                "scale_before": GRAD_SCALER_INITIAL_SCALE,
-                "scale_after": 49152.0,
-            }, {
-                "attempt_index": 1,
-                "overflow": False,
-                "gradient_finite": True,
-                "optimizer_step_pre_hook_call_delta": 1,
-                "optimizer_step_executed": True,
-                "scale_before": 49152.0,
-                "scale_after": 49152.0,
-            }],
-        })
-        wrong_backoff["overflow_recompute_tokens"] = logical
-        wrong_backoff["physical_tokens_processed"] = 2 * logical
-        wrong_backoff["grad_scaler_recovery"][
-            "total_overflow_adjustments"] = 1
+        zero_density = recovery_receipt_fields(update_count=2)
+        zero_density["updates"][0][
+            "active_branch_finite_nonzero_gradient_density"] = 0.0
 
         for label, receipt in (
                 ("initial", wrong_initial),
-                ("finite_decrease", finite_decrease),
-                ("continuity", chain_break),
-                ("backoff", wrong_backoff)):
-            with self.subTest(label=label), self.assertRaisesRegex(
-                    PermissionError, "recovery scale"):
+                ("growth", growth),
+                ("zero_norm", zero_norm),
+                ("zero_density", zero_density)):
+            with self.subTest(label=label), self.assertRaises(PermissionError):
+                _training_recovery_summary(receipt)
+
+    def test_fixed_scale_recovery_rejects_bool_nan_and_infinity(self):
+        logical_bool = recovery_receipt_fields(update_count=1)
+        update = logical_bool["updates"][0]
+        update["logical_tokens"] = True
+        update["initial_physical_tokens"] = True
+        update["physical_tokens_processed"] = True
+        logical_bool["tokens_seen"] = True
+        logical_bool["physical_tokens_processed"] = True
+
+        count_bool = recovery_receipt_fields(update_count=1)
+        update = count_bool["updates"][0]
+        attempt = update["grad_scaler_attempts"][0]
+        update["active_branch_finite_nonzero_gradient_element_count"] = True
+        attempt["diagnostic"][
+            "active_branch_finite_nonzero_gradient_element_count"] = True
+        attempt["diagnostic"]["trainable_gradient_element_count"] = 2
+        update["active_branch_finite_nonzero_gradient_density"] = 0.5
+        attempt["diagnostic"][
+            "active_branch_finite_nonzero_gradient_density"] = 0.5
+
+        variants = [("logical_bool", logical_bool),
+                    ("count_bool", count_bool)]
+        static_initial_bool = recovery_receipt_fields(update_count=1)
+        static_initial_bool["grad_scaler_recovery"]["initial_scale"] = True
+        variants.append(("static_initial_scale_bool", static_initial_bool))
+        static_minimum_bool = recovery_receipt_fields(update_count=1)
+        static_minimum_bool["grad_scaler_recovery"]["minimum_scale"] = True
+        variants.append(("static_minimum_scale_bool", static_minimum_bool))
+        static_maximum_bool = recovery_receipt_fields(update_count=1)
+        static_maximum_bool["grad_scaler_recovery"][
+            "max_overflow_adjustments_per_partition"] = False
+        variants.append(("static_max_adjustments_bool", static_maximum_bool))
+        attempt_scale_bool = recovery_receipt_fields(update_count=1)
+        attempt_scale_bool["updates"][0]["grad_scaler_attempts"][0][
+            "scale_before"] = True
+        attempt_scale_bool["updates"][0]["grad_scaler_attempts"][0][
+            "scale_after"] = True
+        variants.append(("attempt_scale_bool", attempt_scale_bool))
+        for label, value in (("bool", True), ("nan", float("nan")),
+                             ("positive_inf", float("inf")),
+                             ("negative_inf", float("-inf"))):
+            norm = recovery_receipt_fields(update_count=1)
+            norm["updates"][0]["gradient_norm_before_clip"] = value
+            norm["updates"][0]["grad_scaler_attempts"][0][
+                "gradient_norm_before_clip"] = value
+            variants.append((f"norm_{label}", norm))
+            density = recovery_receipt_fields(update_count=1)
+            density["updates"][0][
+                "active_branch_finite_nonzero_gradient_density"] = value
+            density["updates"][0]["grad_scaler_attempts"][0][
+                "diagnostic"][
+                    "active_branch_finite_nonzero_gradient_density"] = value
+            variants.append((f"density_{label}", density))
+            attempt_scale = recovery_receipt_fields(update_count=1)
+            attempt_scale["updates"][0]["grad_scaler_attempts"][0][
+                "scale_before"] = value
+            attempt_scale["updates"][0]["grad_scaler_attempts"][0][
+                "scale_after"] = value
+            variants.append((f"attempt_scale_{label}", attempt_scale))
+        for label, receipt in variants:
+            with self.subTest(label=label), self.assertRaises(PermissionError):
                 _training_recovery_summary(receipt)
 
     def test_uniform_false_claim_rate_cannot_pass_interpretation(self):

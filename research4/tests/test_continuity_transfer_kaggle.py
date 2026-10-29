@@ -26,11 +26,8 @@ from src.qwen9b_ordinal_continuity_lora import (
     CHECKPOINT_VERSION, MODEL_REVISION,
 )
 from src.qwen9b_ordinal_continuity_training import (
-    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    DATABRICKS_A10_FIXED_SCALE, DATABRICKS_A10_FIXED_SCALE1_POLICY,
     GRAD_SCALER_BACKOFF_FACTOR,
-    GRAD_SCALER_INITIAL_SCALE,
-    GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-    GRAD_SCALER_MIN_SCALE,
     RANK_RUN_VERSION,
 )
 from src.continuity_transfer_raw_audit import AUDIT_VERSION
@@ -50,10 +47,22 @@ def recovery_receipt_fields(update_count=2, logical_tokens=10):
         "grad_scaler_attempts": [{
             "attempt_index": 0, "overflow": False,
             "gradient_finite": True,
+            "optimizer_step_pre_hook_calls_before": 0,
+            "optimizer_step_pre_hook_calls_after": 1,
             "optimizer_step_pre_hook_call_delta": 1,
             "optimizer_step_executed": True,
-            "scale_before": GRAD_SCALER_INITIAL_SCALE,
-            "scale_after": GRAD_SCALER_INITIAL_SCALE,
+            "scale_before": DATABRICKS_A10_FIXED_SCALE,
+            "scale_after": DATABRICKS_A10_FIXED_SCALE,
+            "gradient_norm_before_clip": 0.5,
+            "gradient_norm_positive": True,
+            "diagnostic": {
+                "gradient_norm_finite": True,
+                "gradient_norm_positive": True,
+                "nonfinite_gradient_element_count": 0,
+                "trainable_gradient_element_count": 10,
+                "active_branch_finite_nonzero_gradient_element_count": 5,
+                "active_branch_finite_nonzero_gradient_density": 0.5,
+            },
         }],
         "logical_tokens": logical_tokens,
         "initial_physical_tokens": logical_tokens,
@@ -62,6 +71,11 @@ def recovery_receipt_fields(update_count=2, logical_tokens=10):
         "overflow": False, "finite": True,
         "overflow_recovered": False,
         "optimizer_step_pre_hook_calls": 1,
+        "gradient_norm_before_clip": 0.5,
+        "gradient_norm_positive": True,
+        "active_branch_finite_nonzero_gradient_element_count": 5,
+        "active_branch_finite_nonzero_gradient_density": 0.5,
+        "fixed_scale_no_growth": True,
     } for index in range(update_count)]
     return {
         "updates": updates,
@@ -69,26 +83,25 @@ def recovery_receipt_fields(update_count=2, logical_tokens=10):
         "overflow_recompute_tokens": 0,
         "physical_tokens_processed": update_count * logical_tokens,
         "grad_scaler_recovery": {
-            "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
-            "initial_scale": GRAD_SCALER_INITIAL_SCALE,
+            "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
+            "initial_scale": DATABRICKS_A10_FIXED_SCALE,
             "backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
-            "max_overflow_adjustments_per_partition":
-                GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-            "minimum_scale": GRAD_SCALER_MIN_SCALE,
+            "max_overflow_adjustments_per_partition": 0,
+            "minimum_scale": DATABRICKS_A10_FIXED_SCALE,
             "total_overflow_adjustments": 0,
             "journal_advances_only_after_finite_optimizer_step": True,
-            "replays_exact_rng_state_and_occurrence_indices": True,
+            "replays_exact_rng_state_and_occurrence_indices": False,
         },
     }
 
 
 def recovery_audit(update_count=2, logical_tokens=10):
     value = {
-        "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
-        "grad_scaler_initial_scale": GRAD_SCALER_INITIAL_SCALE,
+        "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
+        "grad_scaler_initial_scale": DATABRICKS_A10_FIXED_SCALE,
         "grad_scaler_backoff_factor": GRAD_SCALER_BACKOFF_FACTOR,
-        "max_overflow_adjustments": GRAD_SCALER_MAX_OVERFLOW_ADJUSTMENTS,
-        "minimum_grad_scaler_scale": GRAD_SCALER_MIN_SCALE,
+        "max_overflow_adjustments": 0,
+        "minimum_grad_scaler_scale": DATABRICKS_A10_FIXED_SCALE,
         "total_overflow_adjustments": 0,
         "recovered_optimizer_update_count": 0,
         "measured_optimizer_step_calls": update_count,
@@ -96,7 +109,12 @@ def recovery_audit(update_count=2, logical_tokens=10):
         "replay_physical_tokens": 0,
         "physical_tokens": update_count * logical_tokens,
         "journal_advances_only_after_finite_optimizer_step": True,
-        "replays_exact_rng_state_and_occurrence_indices": True,
+        "replays_exact_rng_state_and_occurrence_indices": False,
+        "all_update_gradient_norms_positive": True,
+        "minimum_positive_gradient_norm": 0.5,
+        "minimum_active_branch_finite_nonzero_gradient_element_count": 5,
+        "minimum_active_branch_finite_nonzero_gradient_density": 0.5,
+        "fixed_scale_no_growth": True,
     }
     value["recovery_audit_sha256"] = digest(value)
     return value
@@ -221,12 +239,17 @@ class ContinuityTransferKaggleTests(unittest.TestCase):
                     "self_attested_pass_flags_used": False,
                     "qualification_receipt_sha256": "8" * 64,
                     "qualification_technical_successor_sha256": "9" * 64,
-                    "numerical_policy": DATABRICKS_A10_GRAD_SCALER_POLICY,
+                    "numerical_policy": DATABRICKS_A10_FIXED_SCALE1_POLICY,
                     "cumulative_overflow_adjustments": 0,
                     "cumulative_logical_tokens": 60,
                     "cumulative_replay_physical_tokens": 0,
                     "cumulative_physical_tokens": 60,
                     "cumulative_measured_optimizer_step_calls": 6,
+                    "all_stage_gradient_norms_positive": True,
+                    "minimum_positive_gradient_norm": 0.5,
+                    "minimum_active_branch_finite_nonzero_gradient_element_count": 5,
+                    "minimum_active_branch_finite_nonzero_gradient_density": 0.5,
+                    "fixed_scale_no_growth": True,
                     "recovery_audit_chain_sha256": digest(recovery_chain),
                     "three_residual_stage_chain": [
                         {"stage": stage, "recovery_audit": recovery}

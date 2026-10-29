@@ -7,9 +7,9 @@ import json
 import re
 
 
-VERSION = "research4-qualification-technical-successor-v4"
-PRIOR_IDENTITY = "qualification_rank4_a10_microbatch1_v4"
-SUCCESSOR_IDENTITY = "qualification_rank4_a10_gradscaler_recovery_v5"
+VERSION = "research4-qualification-technical-successor-v5"
+PRIOR_IDENTITY = "qualification_rank4_a10_gradscaler_recovery_v5"
+SUCCESSOR_IDENTITY = "qualification_rank4_a10_fp16_scale1_v6"
 
 
 def _digest(value) -> str:
@@ -208,16 +208,16 @@ def _a10_microbatch1_authority() -> dict:
     return value
 
 
-def authority() -> dict:
+def _gradscaler_recovery_authority() -> dict:
     """Bind the zero-update v4 numerical failure and approved A10 recovery."""
     predecessor = _a10_microbatch1_authority()
     value = {
-        "version": VERSION,
+        "version": "research4-qualification-technical-successor-v4",
         "predecessor_authority": predecessor,
         "predecessor_authority_sha256": predecessor[
             "technical_successor_sha256"],
-        "prior_identity": PRIOR_IDENTITY,
-        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_identity": "qualification_rank4_a10_microbatch1_v4",
+        "successor_identity": "qualification_rank4_a10_gradscaler_recovery_v5",
         "prior_source_commit": "f3b94233b937972fc3fac2a5561503effdd3ffb3",
         "prior_source_manifest_sha256": (
             "b69bc34caee9687821dd85ef3fca59844e832ac43e13954723397a4cdc7507cd"),
@@ -326,6 +326,138 @@ def authority() -> dict:
     return value
 
 
+def authority() -> dict:
+    """Bind the closed v5 failure and approved fixed FP16 scale-1 successor."""
+    predecessor = _gradscaler_recovery_authority()
+    value = {
+        "version": VERSION,
+        "predecessor_authority": predecessor,
+        "predecessor_authority_sha256": predecessor[
+            "technical_successor_sha256"],
+        "prior_identity": PRIOR_IDENTITY,
+        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_source_commit": "6aebf090bf48634c1e547044f33d317d7e29a6d1",
+        "prior_source_manifest_sha256": (
+            "4c42629187e50c67fa1ed809de40e96e45ea5f2454de36dfce61634071cf6a13"),
+        "prior_plan_sha256": (
+            "dc1593bfcf607d3b72735f803109ad5e961ace9fb3d92c4e22312c44e7c5b021"),
+        "prior_global_journal_sha256": (
+            "873dd87b655b6ea89faf9f7d3b154988c0135087a6073adff94df42d528b74de"),
+        "prior_intent_sha256": (
+            "b8f1eb980e1eba924540642e0de70f104baadfb0a5f0f9716c4ea25ac43769a1"),
+        "prior_technical_successor_sha256": predecessor[
+            "technical_successor_sha256"],
+        "owner_run_id": "382017553734680",
+        "gpu_task_run_id": "1124045064530911",
+        "mlflow_run_id": "45fdc2d1e9ff45078fa08fbf021d4a1b",
+        "mlflow_status": "FAILED",
+        "mlflow_logged_param_count": 0,
+        "mlflow_logged_metric_count": 0,
+        "mlflow_logged_artifact_count": 0,
+        "closeout_receipt_sha256": (
+            "19842691fe1b2ed17c681eee9769c3580b081cdc24cc6f7bf43bde9b33d5e07d"),
+        "closeout_file_sha256": (
+            "3c90ce3a24ede317f1cf72f98cd1fccb70ca6dd6d2d544d17189d4a6d2b4197b"),
+        "reservation_sha256": (
+            "b7097ede43616c8961811a4003aaac7960a3d02e8f21c7a6ea6962f7e8191cfd"),
+        "consumed_file_sha256": (
+            "46a0e29462f8700a08664f10492ac405177d34e5e024504cf84e533e7f68c778"),
+        "terminal_file_sha256": (
+            "bdc4289a6de680108e70b6095114eaba798c989a419aa9c214a23d950002b2c0"),
+        "mlflow_params_file_sha256": (
+            "c7d3c498f06af85afe40068452b7be7bf12a72952fecdb342d2f600a3b26c600"),
+        "mlflow_progress_file_sha256": (
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
+        "rank_partial_file_sha256": (
+            "f3263b28b588232e1e65c05d607f009413a6657e7a504f40240b776b8666a01e"),
+        "independent_failure_audit_sha256": (
+            "b2254725ca277526c1982a17a1d4d8b07d1bb49d423308bcab6ac349734dd40b"),
+        "approved_proposal_sha256": (
+            "9cc3abf46085a7e9b2b2f205444e905b7b6926a02d1bb7387a56fe6e1dd78707"),
+        "approved_draft_patch_sha256": (
+            "660cc0e2cc16d63d4d2bb60a2a60b278293e276418198af19f3f376862077659"),
+        "supervisor_approval_file_sha256": (
+            "3fbdf776ba04869aba4f1dacd942eb38ce64418d0221a76fc3d600c67d55ea16"),
+        "prior_training_source_sha256": (
+            "8082af227f4dc067c254614ac1e62a35802f780397dd8660f65deb1ac7cb97e8"),
+        "prior_worker_source_sha256": (
+            "19d0e8d014ccb6a24246f7c2c42d8d0e6214418c54cd50d70c2c7290f931e10e"),
+        "prior_databricks_worker_source_sha256": (
+            "3decacb46cbdc529cfbb0d4169f30241f868b342eebc7e260128b8170b17a705"),
+        "prior_technical_successor_source_sha256": (
+            "6af500fd3c17d479a0f408deeff9e7ac99f4a0e5f2b4d9375e7ac588ea433b67"),
+        "failure_class": "sft_nonfinite_gradient_at_minimum_scale",
+        "terminal_status": "partition_notebook_failed",
+        "gpu_task_result_state": "FAILED",
+        "error_type": "GradScalerRecoveryError",
+        "error": "Bounded GradScaler overflow adjustments were exhausted",
+        "backward_attempts": 5,
+        "scale_chain": [65536.0, 32768.0, 16384.0, 8192.0, 4096.0],
+        "optimizer_updates": 0,
+        "logical_attempted_tokens": 13480,
+        "combined_initial_and_replay_tokens": 67400,
+        "terminal_sft_diagnostic_tokens": 13480,
+        "total_physical_tokens": 80880,
+        "first_nonfinite_parameter": (
+            "model.model.language_model.layers.0.linear_attn.out_proj."
+            "delta1_a.weight"),
+        "first_nonfinite_parameter_elements": 16384,
+        "first_nonfinite_parameter_nan_count": 16384,
+        "rank_trainable_gradient_elements": 10819584,
+        "nonfinite_gradient_elements_at_scale_4096": 10208136,
+        "sft_nonfinite_gradient_elements_at_scale_4096": 10206012,
+        "sft_backward_at_scale_4096_nonfinite": True,
+        "preference_and_margin_not_examined_after_sft_failure": True,
+        "initial_scale_only_hypothesis_disproved": True,
+        "exact_root_cause_status": "not_fully_resolved",
+        "optimizer_artifact_written": False,
+        "checkpoint_written": False,
+        "training_receipt_written": False,
+        "evidence_written": False,
+        "final_science_journal_written": False,
+        "reservation_released": True,
+        "consumed_identity_retained": True,
+        "automatic_retry": False,
+        "verified_model_tree_sha256": (
+            "9845026dbe255e24b105224eebbb5436d315713b9a5c53c434137896b160c5b1"),
+        "verified_model_copy_bytes": 19329393661,
+        "public_model_download_bytes": 0,
+        "snapshot_download_used": False,
+        "successor_execution_scope": "databricks-a10x1-only",
+        "successor_numerical_policy": "databricks-a10-fixed-fp16-scale1-v1",
+        "successor_precision": "fp16",
+        "successor_quantization": "nf4-double",
+        "successor_world_size": 1,
+        "successor_micro_batch_size": 1,
+        "successor_accumulation_steps": 4,
+        "successor_global_batch_size": 4,
+        "successor_grad_scaler_scale": 1.0,
+        "successor_grad_scaler_backoff_factor": 0.5,
+        "successor_grad_scaler_growth": False,
+        "successor_grad_scaler_reductions": 0,
+        "successor_max_overflow_adjustments": 0,
+        "successor_minimum_grad_scaler_scale": 1.0,
+        "successor_one_attempt_per_update": True,
+        "successor_optimizer_steps_on_nonfinite": 0,
+        "successor_positive_finite_gradient_norm_required": True,
+        "successor_nonzero_active_gradient_density_required": True,
+        "successor_physical_tokens_equal_logical_on_success": True,
+        "successor_component_diagnostics": (
+            ["sft", "preference", "cross_danger_margin"]),
+        "successor_plan_sha256": (
+            "83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc"),
+        "successor_primary_plan_hashes_digest": (
+            "d4278b41b680fcc3897239a3ee17639d36d4bdec59824b428ce7bc9830692e40"),
+        "legacy_non_databricks_failfast_preserved": True,
+        "model_data_order_objective_unchanged": True,
+        "loss_coefficients_unchanged": True,
+        "learning_rate_clipping_geometry_seeds_thresholds_unchanged": True,
+        "legacy_combined_loss_arithmetic_preserved": True,
+    }
+    value["technical_successor_sha256"] = _digest(value)
+    return value
+
+
 def validate(value: Mapping) -> dict:
     actual = dict(value) if isinstance(value, Mapping) else {}
     expected = authority()
@@ -338,21 +470,22 @@ def validate(value: Mapping) -> dict:
         "terminal_file_sha256", "mlflow_params_file_sha256",
         "mlflow_progress_file_sha256", "rank_partial_file_sha256",
         "independent_failure_audit_sha256", "approved_proposal_sha256",
-        "approved_draft_patch_sha256", "human_approval_file_sha256",
+        "approved_draft_patch_sha256", "supervisor_approval_file_sha256",
         "prior_training_source_sha256", "prior_worker_source_sha256",
         "prior_databricks_worker_source_sha256",
         "prior_technical_successor_source_sha256",
         "prior_source_manifest_sha256",
         "prior_technical_successor_sha256", "successor_plan_sha256",
         "successor_primary_plan_hashes_digest",
+        "verified_model_tree_sha256",
         "reservation_sha256",
         "predecessor_authority_sha256",
         "technical_successor_sha256",
     )
     if (actual != expected or embedded != _digest(payload)
-            or predecessor != _a10_microbatch1_authority()
+            or predecessor != _gradscaler_recovery_authority()
             or predecessor.get("technical_successor_sha256")
-               != "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9"
+               != "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0"
             or actual.get("predecessor_authority_sha256")
                != predecessor.get("technical_successor_sha256")
             or any(not re.fullmatch(r"[0-9a-f]{64}", str(actual.get(key, "")))

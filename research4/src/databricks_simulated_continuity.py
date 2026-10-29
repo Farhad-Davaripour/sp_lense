@@ -49,7 +49,7 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v9"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v10"
 PRODUCTION_SOURCE_RELEASE_ROOT = "/Workspace/Shared/research4/source_releases"
 BASE_QUALIFICATION_INTENT_VERSION = (
     "research4-databricks-frozen-base-format-intent-v2"
@@ -144,7 +144,7 @@ DATASET_RELEASE_VALIDATION_SHA256 = (
     "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
 EXPERIMENT_SPEC = {
-    "version": "qwen35-9b-ordinal-continuity-experiment-v7",
+    "version": "qwen35-9b-ordinal-continuity-experiment-v8",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
     "conditions": ["self_continuity", "artifact_continuity", "label_only"],
     "seeds": [202610281, 202610282, 202610283],
@@ -160,8 +160,9 @@ def primary_timeout_budget(plan, qualification_receipt: Mapping[str, Any]) -> di
     receipt = dict(qualification_receipt); embedded = receipt.pop("receipt_sha256", None)
     tokens_per_second = receipt.get("qualification_tokens_per_second")
     if (embedded != digest(receipt) or receipt.get("status") != "qualified"
-            or not isinstance(tokens_per_second, (int, float))
-            or not math.isfinite(tokens_per_second) or tokens_per_second <= 0
+            or type(tokens_per_second) not in (int, float)
+            or not math.isfinite(float(tokens_per_second))
+            or tokens_per_second <= 0
             or plan.full_plan_sha256 not in receipt.get(
                 "authorized_primary_plan_sha256s", ())):
         raise PermissionError("Qualification cannot derive a primary cost ceiling")
@@ -1353,8 +1354,25 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
                      next((item for item in canonical_plans
                            if (item.condition, item.seed, item.stage) ==
                            (exact_plan.condition, exact_plan.seed, exact_plan.stage)), None))
-    if expected_plan is None or asdict(exact_plan) != asdict(expected_plan):
+    expected_plan_payload = (None if expected_plan is None
+                             else asdict(expected_plan))
+    canonical_primary_hashes = sorted(
+        item.full_plan_sha256 for item in canonical_plans)
+    if (expected_plan is None
+            or plan != expected_plan_payload
+            or canonical(plan) != canonical(expected_plan_payload)
+            or exact_plan.full_plan_sha256 != expected_plan.full_plan_sha256):
         raise PermissionError("Databricks plan differs from the canonical experiment matrix")
+    if mode == "qualification":
+        if (intent.get("plan_sha256") != technical.get("successor_plan_sha256")
+                or intent.get("plan_sha256") != expected_plan.full_plan_sha256):
+            raise PermissionError(
+                "Qualification plan hash differs from technical authority")
+    elif (intent.get("plan_sha256") not in canonical_primary_hashes
+          or digest(canonical_primary_hashes)
+             != technical.get("successor_primary_plan_hashes_digest")):
+        raise PermissionError(
+            "Primary plan hashes differ from technical authority")
     source_base_intent = intent.get("base_qualification_source_intent")
     carryforward = intent.get("base_qualification_carryforward")
     carryforward_sha = intent.get("base_qualification_carryforward_sha256")
@@ -1394,6 +1412,9 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
                    != intent.get("base_qualification_intent_sha256")):
             raise PermissionError("Base qualification carry-forward binding differs")
     if (any(intent.get(key) != expected for key, expected in required.items())
+            or any(type(intent.get(key)) is not int for key in (
+                "attempt_number", "automatic_retries", "world_size",
+                "gpu_count", "max_concurrent_runs"))
             or intent.get("identity") != partition_identity(exact_plan)
             or not re.fullmatch(r"[a-z0-9_]+", intent["identity"])
             or not isinstance(intent.get("source_commit"), str)
@@ -1405,7 +1426,7 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
             or intent.get("source_sha256") != source_manifest.get("manifest_sha256")
             or intent.get("dataset_tree_sha256") != DATASET_TREE_SHA256
             or intent.get("silver_record_count") != 2304
-            or not isinstance(intent.get("semantics_record_count"), int)
+            or type(intent.get("semantics_record_count")) is not int
             or intent["semantics_record_count"] != 0
             or intent.get("semantics_records_sha256") != digest([])
             or any(not isinstance(intent.get(key), str)
@@ -1417,12 +1438,13 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
                        "base_qualification_intent_sha256",
                        "base_qualification_receipt_sha256"))
             or intent.get("mlflow_experiment_path") in (None, "")
-            or not isinstance(intent.get("timeout_seconds"), int)
+            or type(intent.get("timeout_seconds")) is not int
             or not 300 <= intent["timeout_seconds"] <= 14_400
-            or not isinstance(intent.get("max_gpu_hours"), (int, float))
+            or type(intent.get("max_gpu_hours")) not in (int, float)
+            or not math.isfinite(float(intent["max_gpu_hours"]))
             or intent["max_gpu_hours"] <= 0
-            or not isinstance(intent.get("wall_clock_stop_seconds"), int)
-            or not isinstance(intent.get("wall_clock_ceiling_seconds"), int)
+            or type(intent.get("wall_clock_stop_seconds")) is not int
+            or type(intent.get("wall_clock_ceiling_seconds")) is not int
             or intent["wall_clock_ceiling_seconds"] != intent["timeout_seconds"]
             or intent["wall_clock_stop_seconds"] < 300
             or intent["wall_clock_stop_seconds"] > intent["wall_clock_ceiling_seconds"] - 300
@@ -1455,8 +1477,8 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
                 or budget.get("version") != COST_BUDGET_VERSION
                 or not re.fullmatch(r"[0-9a-f]{64}", str(
                     budget.get("qualification_receipt_sha256", "")))
-                or not isinstance(observed, (int, float))
-                or not math.isfinite(observed) or observed <= 0
+                or type(observed) not in (int, float)
+                or not math.isfinite(float(observed)) or observed <= 0
                 or budget.get("maximum_training_tokens") != maximum_tokens
                 or budget.get("throughput_safety_factor") != 2.0
                 or budget.get("fixed_overhead_seconds") != 3600
@@ -1621,6 +1643,29 @@ def canonical_primary_plan_hashes() -> list[str]:
                   for plan in policies)
 
 
+def qualification_numerical_update_evidence(
+        rank_receipt: Mapping[str, Any]) -> list[dict]:
+    """Project exact fixed-scale numerical evidence without tensor payloads."""
+    updates = rank_receipt.get("updates")
+    if not isinstance(updates, list):
+        raise PermissionError("Qualification numerical updates are absent")
+    keys = (
+        "optimizer_update", "gradient_norm_before_clip",
+        "gradient_norm_positive",
+        "active_branch_finite_nonzero_gradient_element_count",
+        "active_branch_finite_nonzero_gradient_density",
+        "fixed_scale_no_growth", "overflow_adjustments",
+        "optimizer_step_pre_hook_calls", "logical_tokens",
+        "physical_tokens_processed", "grad_scaler_before",
+        "grad_scaler_after",
+    )
+    result = [{key: update.get(key) for key in keys} for update in updates]
+    if any(set(row) != set(keys) or any(value is None for value in row.values())
+           for row in result):
+        raise PermissionError("Qualification numerical update evidence differs")
+    return result
+
+
 def create_qualification_receipt(intent: Mapping[str, Any],
                                  rank_receipt: Mapping[str, Any],
                                  evidence: Mapping[str, Any],
@@ -1632,6 +1677,7 @@ def create_qualification_receipt(intent: Mapping[str, Any],
     plan = TrainingPlan(**intent["plan"]).validate()
     validate_grad_scaler_recovery_receipt(rank_receipt, plan)
     recovery = dict(rank_receipt["grad_scaler_recovery"])
+    numerical_updates = qualification_numerical_update_evidence(rank_receipt)
     rank_payload = dict(rank_receipt); rank_hash = rank_payload.pop("receipt_sha256", None)
     evidence_payload = dict(evidence); evidence_hash = evidence_payload.pop(
         "evidence_sha256", None)
@@ -1641,6 +1687,8 @@ def create_qualification_receipt(intent: Mapping[str, Any],
     tokens_per_second = rank_receipt.get("resources", {}).get("tokens_per_second")
     physical_tokens = rank_receipt.get("physical_tokens_processed")
     overflow_tokens = rank_receipt.get("overflow_recompute_tokens")
+    nvml_samples = rank_receipt.get("resources", {}).get(
+        "gpu", {}).get("nvml", {}).get("nonzero_gpu_sample_count")
     if (intent["plan"]["mode"] != "qualification"
             or rank_hash != digest(rank_payload)
             or rank_receipt.get("version") != RANK_RUN_VERSION
@@ -1648,11 +1696,10 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or rank_receipt.get("plan_sha256") != intent["plan_sha256"]
             or rank_receipt.get("successful_optimizer_updates") != 2
             or rank_receipt.get("active_branch_changed") is not True
-            or rank_receipt.get("resources", {}).get("gpu", {}).get(
-                "nvml", {}).get("nonzero_gpu_sample_count", 0) <= 0
+            or type(nvml_samples) is not int or nvml_samples <= 0
             or evidence_hash != digest(evidence_payload)
             or evidence.get("version")
-               != "research4-databricks-partition-evidence-v3"
+               != "research4-databricks-partition-evidence-v4"
             or evidence.get("intent_sha256") != intent["intent_sha256"]
             or evidence.get("base_qualification_carryforward_sha256")
                != intent.get("base_qualification_carryforward_sha256")
@@ -1663,26 +1710,30 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or evidence.get("logical_tokens_seen") != tokens_seen
             or evidence.get("physical_tokens_processed") != physical_tokens
             or evidence.get("overflow_recompute_tokens") != overflow_tokens
+            or evidence.get("numerical_update_evidence") != numerical_updates
             or evidence.get("live_base_components_before")
                != evidence.get("live_base_components_after")
             or evidence.get("save_reload_pass") is not True
             or any(value is not True for key, value in metrics.items()
                    if key.endswith("_pass") or key == "capacity_adequate")
-            or not isinstance(tokens_seen, int) or tokens_seen <= 0
-            or not isinstance(physical_tokens, int)
+            or type(tokens_seen) is not int or tokens_seen <= 0
+            or type(physical_tokens) is not int
             or physical_tokens < tokens_seen
-            or not isinstance(overflow_tokens, int) or overflow_tokens < 0
+            or type(overflow_tokens) is not int or overflow_tokens < 0
             or physical_tokens != tokens_seen + overflow_tokens
-            or not isinstance(elapsed_seconds, (int, float))
-            or not math.isfinite(elapsed_seconds) or elapsed_seconds <= 0
-            or not isinstance(tokens_per_second, (int, float))
-            or not math.isfinite(tokens_per_second) or tokens_per_second <= 0
+            or type(elapsed_seconds) not in (int, float)
+            or not math.isfinite(float(elapsed_seconds))
+            or elapsed_seconds <= 0
+            or type(tokens_per_second) not in (int, float)
+            or not math.isfinite(float(tokens_per_second))
+            or tokens_per_second <= 0
             or not math.isclose(tokens_per_second, tokens_seen / elapsed_seconds,
                                 rel_tol=1e-9, abs_tol=1e-9)
+            or not isinstance(checkpoint_tree_sha256, str)
             or not re.fullmatch(r"[0-9a-f]{64}", checkpoint_tree_sha256)):
         raise PermissionError("Actual rank-4 Databricks qualification evidence differs")
     value = {
-        "version": "research4-databricks-rank4-qualification-v5",
+        "version": "research4-databricks-rank4-qualification-v6",
         "status": "qualified", "source_commit": intent["source_commit"],
         "source_sha256": intent["source_sha256"],
         "model_tree_sha256": intent["model_tree_sha256"],
@@ -1706,6 +1757,7 @@ def create_qualification_receipt(intent: Mapping[str, Any],
         "qualification_physical_tokens_processed": physical_tokens,
         "qualification_overflow_recompute_tokens": overflow_tokens,
         "qualification_grad_scaler_recovery": recovery,
+        "qualification_numerical_update_evidence": numerical_updates,
         "selected_rank": 4,
         "authorized_primary_plan_sha256s": canonical_primary_plan_hashes(),
         "qualifier_checkpoint_primary_parent_eligible": False,
@@ -1751,7 +1803,7 @@ def create_primary_admission(intent: Mapping[str, Any],
                 "authorized_primary_plan_sha256s", ())):
         raise PermissionError("Qualification does not authorize this primary partition")
     value = {
-        "version": "qwen35-9b-ordinal-continuity-primary-admission-v7",
+        "version": "qwen35-9b-ordinal-continuity-primary-admission-v8",
         "admitted": True, "plan": intent["plan"],
         "full_plan_sha256": intent["plan_sha256"],
         "qualification_receipt_sha256": embedded,
@@ -1768,6 +1820,8 @@ def create_primary_admission(intent: Mapping[str, Any],
             "qualification_technical_successor_sha256"],
         "qualification_grad_scaler_recovery": receipt[
             "qualification_grad_scaler_recovery"],
+        "qualification_numerical_update_evidence": receipt[
+            "qualification_numerical_update_evidence"],
         "model_tree_sha256": intent["model_tree_sha256"],
         "model_receipt_sha256": intent["model_receipt_sha256"],
         "reviewed_timeout_budget_sha256": intent[

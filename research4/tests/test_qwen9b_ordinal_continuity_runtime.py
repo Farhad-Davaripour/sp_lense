@@ -26,13 +26,13 @@ from src.qwen9b_ordinal_continuity_controller import (
 )
 from src.qwen9b_ordinal_continuity_lora import MODEL_ID, MODEL_REVISION
 from src.qwen9b_ordinal_continuity_training import (
-    DATABRICKS_A10_GRAD_SCALER_POLICY,
+    DATABRICKS_A10_FIXED_SCALE1_POLICY,
     LEGACY_GRAD_SCALER_POLICY,
     TrainingPlan,
 )
 from src.qualification_technical_successor import (
     SUCCESSOR_IDENTITY,
-    _a10_microbatch1_authority,
+    _gradscaler_recovery_authority,
     authority as technical_successor_authority,
     validate as validate_technical_successor,
 )
@@ -77,23 +77,23 @@ class RuntimeBindingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             qualification_plan(spec(), 16)
 
-    def test_all_twenty_eight_databricks_plans_bind_recovery_policy(self):
+    def test_all_twenty_eight_databricks_plans_bind_fixed_scale1_policy(self):
         plans = [databricks_qualification_plan(spec(), 4),
                  *databricks_matrix_plans(spec(), 4)]
         self.assertEqual(len(plans), 28)
         self.assertEqual({plan.numerical_policy for plan in plans},
-                         {DATABRICKS_A10_GRAD_SCALER_POLICY})
-        self.assertEqual({plan.max_overflow_adjustments for plan in plans}, {4})
+                         {DATABRICKS_A10_FIXED_SCALE1_POLICY})
+        self.assertEqual({plan.max_overflow_adjustments for plan in plans}, {0})
         self.assertEqual({plan.minimum_grad_scaler_scale for plan in plans},
-                         {4096.0})
+                         {1.0})
         self.assertEqual(len({plan.full_plan_sha256 for plan in plans}), 28)
         self.assertEqual(partition_identity(plans[0]), SUCCESSOR_IDENTITY)
 
-    def test_technical_successor_v4_nests_exact_v3_authority(self):
-        prior = _a10_microbatch1_authority()
+    def test_technical_successor_v5_nests_exact_v4_authority(self):
+        prior = _gradscaler_recovery_authority()
         self.assertEqual(
             prior["technical_successor_sha256"],
-            "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9")
+            "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
         current = technical_successor_authority()
         self.assertEqual(current["predecessor_authority"], prior)
         self.assertEqual(current["successor_identity"], SUCCESSOR_IDENTITY)
@@ -159,6 +159,19 @@ class RuntimeBindingTests(unittest.TestCase):
             with self.subTest(field="primary_optimizer_updates", value=value):
                 with self.assertRaisesRegex(PermissionError, "preregistered matrix"):
                     validate_experiment_spec(changed)
+
+        exact = qualification_plan(spec(), 4)
+        base_intent = intent_for(exact)
+        self.assertEqual(validate_partition_intent(
+            base_intent, exact, None), base_intent)
+        for field, value in (
+                ("attempt_number", True), ("automatic_retries", False),
+                ("wall_clock_stop_seconds", True),
+                ("wall_clock_ceiling_seconds", True)):
+            changed = dict(base_intent)
+            changed[field] = value
+            with self.subTest(field=field), self.assertRaises(PermissionError):
+                validate_partition_intent(changed, exact, None)
 
     def test_package_manifest_rejects_member_and_tree_tampering(self):
         with tempfile.TemporaryDirectory() as folder:

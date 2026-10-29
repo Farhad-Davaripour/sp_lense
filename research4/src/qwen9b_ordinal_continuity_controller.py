@@ -31,11 +31,11 @@ from .qwen9b_ordinal_continuity_training import (
     databricks_a10_plan,
     load_pinned_tokenizer)
 
-CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v8"
-EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v7"
-PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v7"
-TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v6"
-AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v7"
+CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v9"
+EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v8"
+PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v8"
+TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v7"
+AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v8"
 MATRIX_CONDITIONS = CONDITIONS
 MATRIX_STAGES = ("delta1", "delta2", "delta3")
 
@@ -121,14 +121,16 @@ def validate_partition_intent(value: Mapping, plan: TrainingPlan,
             "2/144-update, global-batch-4 recipe")
     if (intent.get("version") != PARTITION_INTENT_VERSION
             or intent.get("one_use") is not True
+            or type(intent.get("attempt_number")) is not int
             or intent.get("attempt_number") != 1
+            or type(intent.get("automatic_retries")) is not int
             or intent.get("automatic_retries") != 0
             or intent.get("partition_identity") != partition_identity(plan)
             or intent.get("plan_sha256") != plan.full_plan_sha256):
         raise PermissionError("Partition intent differs from this exact plan")
     stop, ceiling = (intent.get("wall_clock_stop_seconds"),
                      intent.get("wall_clock_ceiling_seconds"))
-    if (not isinstance(stop, int) or not isinstance(ceiling, int)
+    if (type(stop) is not int or type(ceiling) is not int
             or stop < 300 or ceiling <= stop or ceiling - stop < 60
             or ceiling > 43_200):
         raise PermissionError("Partition wall-clock stop/ceiling is invalid")

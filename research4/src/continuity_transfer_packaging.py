@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 import hashlib
 import json
+import math
 import os
 import re
 import secrets
@@ -40,7 +41,8 @@ from .qwen9b_ordinal_continuity_runtime import (
     directory_tree, directory_tree_sha256,
 )
 from .qwen9b_ordinal_continuity_training import (
-    TrainingPlan, adjacent_pair_schedule, databricks_a10_plan,
+    DATABRICKS_A10_FIXED_SCALE1_POLICY, TrainingPlan,
+    adjacent_pair_schedule, databricks_a10_plan,
     validate_grad_scaler_recovery_receipt, verify_rank_receipt,
 )
 
@@ -50,7 +52,7 @@ PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v4"
 PACKAGE_FILES_VERSION = "research4-databricks-transfer-package-files-v1"
 CHECKPOINT_MANIFEST_VERSION = "research4-three-residual-blinded-checkpoints-v1"
 EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
-TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v4"
+TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v5"
 TRANSFER_PACKAGE_IDENTITY = "continuity_transfer_three_residual_v1"
 TRANSFER_PACKAGE_PARENT = f"{VOLUME}/transfer_packages"
 TRANSFER_UNBLINDING_PARENT = f"{VOLUME}/transfer_unblinding_keys"
@@ -81,6 +83,15 @@ def _write(path: str | Path, value: Mapping[str, Any]) -> None:
 
 def _sha(value: Any) -> bool:
     return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) is not None
+
+
+def _exact_int(value: Any) -> bool:
+    return type(value) is int
+
+
+def _finite_number(value: Any) -> bool:
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(float(value)))
 
 
 def _volume_path(value: Any, *, label: str) -> str:
@@ -435,6 +446,23 @@ def _recovery_audit_summary(receipt: Mapping[str, Any],
     logical_tokens = validated["tokens_seen"]
     replay_tokens = validated["overflow_recompute_tokens"]
     physical_tokens = validated["physical_tokens_processed"]
+    if (not _exact_int(recovery.get("total_overflow_adjustments"))
+            or not _finite_number(recovery.get("initial_scale"))
+            or not _finite_number(recovery.get("backoff_factor"))
+            or not _exact_int(recovery.get(
+                "max_overflow_adjustments_per_partition"))
+            or not _finite_number(recovery.get("minimum_scale"))
+            or not _exact_int(logical_tokens)
+            or not _exact_int(replay_tokens)
+            or not _exact_int(physical_tokens)
+            or any(not _exact_int(row.get("overflow_adjustments"))
+                   or not _exact_int(row.get(
+                       "optimizer_step_pre_hook_calls"))
+                   or any(not _finite_number(attempt.get("scale_before"))
+                          or not _finite_number(attempt.get("scale_after"))
+                          for attempt in row.get("grad_scaler_attempts", ()))
+                   for row in updates)):
+        raise PermissionError("Transfer recovery counts are not exact integers")
     summary = {
         "numerical_policy": expected_plan.numerical_policy,
         "grad_scaler_initial_scale": expected_plan.grad_scaler_initial_scale,
@@ -455,6 +483,37 @@ def _recovery_audit_summary(receipt: Mapping[str, Any],
         "replays_exact_rng_state_and_occurrence_indices": recovery[
             "replays_exact_rng_state_and_occurrence_indices"],
     }
+    if expected_plan.numerical_policy != DATABRICKS_A10_FIXED_SCALE1_POLICY:
+        raise PermissionError(
+            "Transfer audit requires the approved fixed-scale-1 policy")
+    norms = [row.get("gradient_norm_before_clip") for row in updates]
+    counts = [row.get(
+        "active_branch_finite_nonzero_gradient_element_count")
+        for row in updates]
+    densities = [row.get(
+        "active_branch_finite_nonzero_gradient_density")
+        for row in updates]
+    if (recovery["total_overflow_adjustments"] != 0
+            or replay_tokens != 0 or physical_tokens != logical_tokens
+            or any(row.get("fixed_scale_no_growth") is not True
+                   for row in updates)
+            or any(not _finite_number(value) or value <= 0
+                   for value in norms)
+            or any(not _exact_int(value) or value <= 0
+                   for value in counts)
+            or any(not _finite_number(value)
+                   or not 0 < value <= 1 for value in densities)):
+        raise PermissionError(
+            "Fixed-scale transfer gradient evidence differs")
+    summary.update({
+        "all_update_gradient_norms_positive": True,
+        "minimum_positive_gradient_norm": min(norms),
+        "minimum_active_branch_finite_nonzero_gradient_element_count":
+            min(counts),
+        "minimum_active_branch_finite_nonzero_gradient_density":
+            min(densities),
+        "fixed_scale_no_growth": True,
+    })
     if (summary["measured_optimizer_step_calls"]
             != expected_plan.optimizer_updates
             or physical_tokens != logical_tokens + replay_tokens):
@@ -623,6 +682,21 @@ def _build_training_audit(value: Mapping[str, Any], *, matrix_sha256: str,
         "cumulative_measured_optimizer_step_calls": sum(
             item["measured_optimizer_step_calls"]
             for item in recovery_chain),
+        "all_stage_gradient_norms_positive": all(
+            item["all_update_gradient_norms_positive"]
+            for item in recovery_chain),
+        "minimum_positive_gradient_norm": min(
+            item["minimum_positive_gradient_norm"]
+            for item in recovery_chain),
+        "minimum_active_branch_finite_nonzero_gradient_element_count": min(
+            item[
+                "minimum_active_branch_finite_nonzero_gradient_element_count"]
+            for item in recovery_chain),
+        "minimum_active_branch_finite_nonzero_gradient_density": min(
+            item["minimum_active_branch_finite_nonzero_gradient_density"]
+            for item in recovery_chain),
+        "fixed_scale_no_growth": all(
+            item["fixed_scale_no_growth"] for item in recovery_chain),
         "recovery_audit_chain_sha256": digest(recovery_chain),
         "base_frozen": True, "self_attested_pass_flags_used": False,
         "training_receipt_sha256": endpoint["training_receipt_sha256"],

@@ -50,7 +50,7 @@ from .qwen9b_ordinal_continuity_runtime import (
 )
 
 
-WORKER_VERSION = "qwen35-9b-ordinal-continuity-worker-v6"
+WORKER_VERSION = "qwen35-9b-ordinal-continuity-worker-v7"
 
 
 def _read(path):
