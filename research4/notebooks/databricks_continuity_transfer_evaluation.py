@@ -78,8 +78,8 @@ if source["manifest_sha256"] != bootstrap_source_sha256:
     raise PermissionError("Transfer bootstrap and full source verification differ")
 # The immediately preceding CPU preflight rehashes the full immutable 19 GB
 # model snapshot.  On paid GPU time we recheck the signed receipt and all small
-# scientific inputs; _stage_local_model then rehashes both Volume and local
-# model bytes once as part of the required copy.
+# scientific inputs; _stage_local_model then fully hashes the copied local
+# model once before any model load.
 inputs = verify_transfer_inputs(intent, verify_model_bytes=False)
 
 # All imports, kernels, CUDA identity, quantization and disk checks precede the
@@ -154,7 +154,7 @@ raw_complete = False
 try:
     local_model, local_receipt, cache = _stage_local_model(
         intent["model_root"], MODEL_RECEIPT, intent["identity"],
-        intent["model_tree_sha256"])
+        intent["model_tree_sha256"], intent["model_receipt_sha256"])
     env = dict(os.environ)
     env.update({
         "RESEARCH4_EXECUTION_PLATFORM": "databricks",
