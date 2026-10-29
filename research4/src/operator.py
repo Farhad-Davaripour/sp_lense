@@ -5,6 +5,8 @@ from .io_utils import dump,read,sha
 from .workspace_accounts import selected,command_environment,redact
 HOST=selected()['host']
 PREFIX='/Workspace/Shared/research4-semantic-gate'
+SOURCE_RELEASE_ROOT='/Workspace/Shared/research4/source_releases'
+PRODUCTION_BUNDLE_ROOT='/Workspace/Users/farhad.davaripour@gmail.com/.bundle/research4-semantic-state-gate/pilot'
 GIT_FOLDER_ID=316719975858080
 CLI=os.environ.get('DATABRICKS_CLI_PATH','C:/Users/farha/.codex/tools/databricks-cli/1.21.0/databricks.exe')
 def cli(args,cwd=None,allow_fail=False,json_output=True,account=None):
@@ -21,6 +23,23 @@ def git(repo,*args):return subprocess.check_output(['git',*args],cwd=repo).decod
 def workspace_path(path):
     # Repos API returns /Shared/... even when its input is /Workspace/Shared/....
     return path[len('/Workspace'):] if path.startswith('/Workspace/') else path
+def production_resource_bindings(root):
+    value=read(Path(root)/'config/databricks_production_resource_bindings.json')
+    resources=value.get('resources',{})
+    if (value.get('version')!='research4-databricks-production-resource-bindings-v1'
+            or value.get('production_bundle_root')!=PRODUCTION_BUNDLE_ROOT
+            or value.get('production_source_release_root')!=SOURCE_RELEASE_ROOT
+            or len(resources)!=29
+            or any(not re.fullmatch(r'[0-9]+',str(resource_id))
+                   for resource_id in resources.values())):
+        raise ValueError('Production bundle resource binding map differs')
+    return value
+def verify_bound_bundle_summary(summary,expected):
+    jobs=summary.get('resources',{}).get('jobs',{}) if isinstance(summary,dict) else {}
+    observed={key:str(value.get('id') or value.get('job_id')) for key,value in jobs.items()}
+    if observed!=expected:
+        raise RuntimeError('Shared bundle state is not bound to the exact existing jobs')
+    return observed
 def provision(artifact):
     artifact=Path(artifact);artifact.mkdir(parents=True,exist_ok=True)
     existing=cli(['schemas','get','workspace.research4'],allow_fail=True)
@@ -48,7 +67,7 @@ def prepare_release(repo,artifact):
     dump(stage/'RELEASE.json',release)
     return stage,release
 def deploy(repo,artifact):
-    artifact=Path(artifact);provision(artifact);stage,release=prepare_release(repo,artifact);commit=release['commit'];code=PREFIX+'/deployed/'+commit
+    artifact=Path(artifact);provision(artifact);stage,release=prepare_release(repo,artifact);commit=release['commit'];code=SOURCE_RELEASE_ROOT+'/'+commit
     # A separate Git folder records a genuine remote pull when public Git access is supported.
     folders=cli(['repos','list','--path-prefix',workspace_path(PREFIX+'/source')],allow_fail=True)
     # Shared Git-CLI folders can be readable by ID yet absent from Repos list.
@@ -67,8 +86,14 @@ def deploy(repo,artifact):
     else:git_receipt={'mode':'Exact pushed Git commit fetched into isolated release archive; deployed through workspace sync','git_folder_unavailable':True}
     variables='source_commit='+commit+',code_path='+code
     validation=cli(['bundle','validate','--strict','--target','pilot','--var',variables],cwd=stage)
+    binding=production_resource_bindings(stage)
+    prebound=cli(['bundle','summary','--target','pilot','--var',variables],cwd=stage,allow_fail=True)
+    if 'error' in prebound:
+        raise RuntimeError('Bind every reviewed job ID under the Shared bundle root before deploy')
+    verify_bound_bundle_summary(prebound,binding['resources'])
     cli(['bundle','deploy','--auto-approve','--target','pilot','--var',variables],cwd=stage,json_output=False)
     summary=cli(['bundle','summary','--target','pilot','--var',variables],cwd=stage)
+    verify_bound_bundle_summary(summary,binding['resources'])
     jobs=summary.get('resources',{}).get('jobs',{});job=jobs['semantic_gate_pilot'];job_id=str(job.get('id') or job.get('job_id'))
     deployed=cli(['jobs','get',job_id]);spec=deployed['settings']
     if spec.get('tags',{}).get('source_commit')!=commit:raise ValueError('Job version tag mismatch')
@@ -97,7 +122,7 @@ def deploy(repo,artifact):
         if any(k in task for k in ['new_cluster','existing_cluster_id','job_cluster_key']) or task.get('compute',{}).get('hardware_accelerator'):raise ValueError('Semantic fit must use serverless CPU')
         dest=artifact/'semantic_refit_deployed.py';cli(['workspace','export',task['notebook_task']['notebook_path'],'--file',str(dest),'--format','SOURCE'],json_output=False)
         if normalize(dest.read_text(encoding='utf-8'))!=normalize((stage/'notebooks/semantic_refit.py').read_text(encoding='utf-8')):raise ValueError('Semantic fitting notebook differs from pushed source')
-    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'job_id':job_id,'verification_job_id':verification_id,'recovery_job_id':recovery_id,'semantic_refit_job_id':semantic_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
+    receipt={'source_commit':commit,'local_release':str(stage),'workspace_code_path':code,'production_bundle_root':PRODUCTION_BUNDLE_ROOT,'production_source_release_root':SOURCE_RELEASE_ROOT,'prebound_resource_ids':binding['resources'],'job_id':job_id,'verification_job_id':verification_id,'recovery_job_id':recovery_id,'semantic_refit_job_id':semantic_id,'bundle_summary':summary,'git_pull':git_receipt,'notebook_sources_verified':True,'serverless_CPU_only':True,'workspace':HOST}
     dump(artifact/'DEPLOYMENT.json',receipt);return receipt
 def submit(artifact):
     artifact=Path(artifact);deployment=read(artifact/'DEPLOYMENT.json');active=cli(['jobs','list-runs','--active-only'])

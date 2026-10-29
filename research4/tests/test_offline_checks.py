@@ -8,7 +8,9 @@ from unittest.mock import patch
 
 import yaml
 
-from src.operator import prepare_release
+from src.operator import (
+    PRODUCTION_BUNDLE_ROOT, SOURCE_RELEASE_ROOT, prepare_release,
+    production_resource_bindings, verify_bound_bundle_summary)
 from tools.check_offline_config import check_job, read_yaml, storage_namespace
 
 
@@ -21,7 +23,9 @@ class OfflineConfigTests(unittest.TestCase):
             "max_concurrent_runs": 1, "queue": {"enabled": False}, "timeout_seconds": 30,
             "environments": [{"environment_key": "cpu", "spec": {"environment_version": "6"}}],
             "tasks": [{"task_key": "unit", "environment_key": "cpu", "max_retries": 0,
-                       "timeout_seconds": 10, "notebook_task": {"notebook_path": "../notebooks/unit.py"}}],
+                       "timeout_seconds": 10, "notebook_task": {
+                           "notebook_path": "../notebooks/unit.py",
+                           "base_parameters": {"code_path": "${var.code_path}"}}}],
         }
 
     def test_yaml_rejects_duplicate_keys_and_unsafe_tags(self):
@@ -101,6 +105,28 @@ class OfflineConfigTests(unittest.TestCase):
 
 
 class DeploymentBranchTests(unittest.TestCase):
+    def test_production_workspace_paths_are_shared_and_versioned(self):
+        self.assertEqual(
+            SOURCE_RELEASE_ROOT,
+            "/Workspace/Shared/research4/source_releases")
+        self.assertEqual(
+            PRODUCTION_BUNDLE_ROOT,
+            "/Workspace/Users/farhad.davaripour@gmail.com/.bundle/"
+            "research4-semantic-state-gate/pilot")
+        root = Path(__file__).resolve().parents[1]
+        binding = production_resource_bindings(root)
+        summary = {"resources": {"jobs": {
+            key: {"id": value}
+            for key, value in binding["resources"].items()}}}
+        self.assertEqual(
+            verify_bound_bundle_summary(summary, binding["resources"]),
+            binding["resources"])
+        changed = deepcopy(summary)
+        changed["resources"]["jobs"]["simulated_continuity_rank4_qualification"][
+            "id"] = "999"
+        with self.assertRaisesRegex(RuntimeError, "exact existing jobs"):
+            verify_bound_bundle_summary(changed, binding["resources"])
+
     def test_canonical_branch_reaches_exact_remote_commit_guard(self):
         with patch("src.operator.git", side_effect=["local-commit", "04-semantic-state-gated-lora", "remote-commit ref"]) as git:
             with self.assertRaisesRegex(ValueError, "Push the exact local source commit"):

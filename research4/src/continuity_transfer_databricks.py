@@ -25,7 +25,7 @@ from .continuity_transfer_inference_worker import (
 from .databricks_simulated_continuity import (
     MODEL_RECEIPT, MODEL_ROOT, VOLUME, build_source_manifest, canonical,
     validate_base_qualification_intent, validate_base_qualification_receipt,
-    validate_source_manifest,
+    validate_source_manifest, source_release_path,
     verify_deployed_source, verify_model_receipt,
     verify_model_receipt_authority,
 )
@@ -34,9 +34,9 @@ from .qualification_technical_successor import validate as validate_technical_su
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 
 
-TRANSFER_INTENT_VERSION = "research4-databricks-continuity-transfer-intent-v4"
+TRANSFER_INTENT_VERSION = "research4-databricks-continuity-transfer-intent-v5"
 TRANSFER_RESOURCE_PLAN_VERSION = "research4-databricks-continuity-transfer-resource-v2"
-TRANSFER_RUN_BINDING_VERSION = "research4-databricks-continuity-transfer-run-binding-v4"
+TRANSFER_RUN_BINDING_VERSION = "research4-databricks-continuity-transfer-run-binding-v5"
 TRANSFER_AUDIT_VERSION = "research4-databricks-continuity-transfer-audit-v4"
 TRANSFER_IDENTITY = "continuity_transfer_evaluation_v3"
 TRANSFER_GOLD_TABLE = (
@@ -273,6 +273,7 @@ def validate_transfer_intent(value: Mapping[str, Any], *,
     fields = {
         "version", "identity", "one_use", "attempt_number",
         "automatic_retries", "execution_platform", "source_commit",
+        "source_release_path",
         "source_manifest", "source_sha256", "model_root", "model_receipt_path",
         "model_tree_sha256", "model_receipt_sha256",
         "base_qualification_receipt_path", "base_qualification_receipt_sha256",
@@ -315,6 +316,8 @@ def validate_transfer_intent(value: Mapping[str, Any], *,
             or not re.fullmatch(r"[0-9a-f]{40}", str(
                 intent.get("source_commit", "")))
             or source.get("source_commit") != intent.get("source_commit")
+            or intent.get("source_release_path")
+               != source_release_path(intent.get("source_commit"))
             or source.get("manifest_sha256") != intent.get("source_sha256")
             or intent.get("model_root") != MODEL_ROOT
             or intent.get("model_receipt_path") != MODEL_RECEIPT
@@ -400,6 +403,7 @@ def build_transfer_intent(*, source_root: str | Path, source_commit: str,
         "version": TRANSFER_INTENT_VERSION, "identity": TRANSFER_IDENTITY,
         "one_use": True, "attempt_number": 1, "automatic_retries": 0,
         "execution_platform": "databricks", "source_commit": source_commit,
+        "source_release_path": source_release_path(source_commit),
         "source_manifest": source, "source_sha256": source["manifest_sha256"],
         "model_root": MODEL_ROOT, "model_receipt_path": MODEL_RECEIPT,
         "model_tree_sha256": model_tree_sha256,
@@ -447,6 +451,7 @@ def build_databricks_run_binding(intent: Mapping[str, Any], *, job_run_id: str,
         "version": TRANSFER_RUN_BINDING_VERSION,
         "execution_platform": "databricks", "identity": value["identity"],
         "job_run_id": str(job_run_id), "source_commit": value["source_commit"],
+        "source_release_path": value["source_release_path"],
         "intent_sha256": value["intent_sha256"],
         "source_sha256": value["source_sha256"],
         "model_tree_sha256": value["model_tree_sha256"],

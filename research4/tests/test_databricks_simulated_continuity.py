@@ -26,18 +26,20 @@ from src.databricks_simulated_continuity import (
     digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
     silver_partition_bindings, silver_rows, stable_rows_sha256,
+    source_release_path,
     validate_base_qualification_silver_rows, validate_base_silver_binding,
     validate_base_qualification_intent, validate_base_qualification_receipt,
     validate_intent,
     validate_policy_silver_payload, validate_primary_authority_files,
     validate_source_manifest,
     verify_dataset_release, verify_deployed_source, verify_model_receipt,
-    verify_model_receipt_authority)
+    verify_model_receipt_authority, _verify_deployed_source_contents)
 from src.action_serialization import (
     SERIALIZATION_CONTRACT_VERSION, parse_registered_action,
     serialization_contract,
 )
 from src.qualification_technical_successor import authority as technical_successor
+from src import databricks_simulated_continuity as databricks_contract
 from src import base_qualification_carryforward as carry_contract
 from src.base_qualification_carryforward import (
     ALLOWED_RUNTIME_CHANGED_PATHS, BASE_CRITICAL_ENTRYPOINTS,
@@ -82,6 +84,16 @@ class DatabricksContinuityTests(unittest.TestCase):
                 "_stage_local_model":
                     "df0d529edf4195cc691192b7dc5b681674ea3f2bf41512e462f903632bbf74d1",
             },
+        )
+        shared_path = "src/databricks_simulated_continuity.py"
+        self.assertIn(
+            "verify_deployed_source",
+            REVIEWED_CHANGED_SYMBOLS[shared_path],
+        )
+        self.assertEqual(
+            QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256[shared_path][
+                "verify_deployed_source"],
+            "e3627f4c0f323cc4b86b2f373cef46d215cab0fff06b1000edd3f493aa5a7e05",
         )
 
     def base_resources(self, model_tree_sha256="c" * 64):
@@ -197,6 +209,8 @@ class DatabricksContinuityTests(unittest.TestCase):
             "world_size": 1, "gpu_count": 1, "max_concurrent_runs": 1,
             "model_root": MODEL_ROOT, "silver_table": SILVER_TABLE,
             "source_commit": "a" * 40, "source_manifest": source_manifest,
+            "source_release_path": (
+                "/Workspace/Shared/research4/source_releases/" + "a" * 40),
             "source_sha256": source_manifest["manifest_sha256"],
             "timeout_seconds": timeout_seconds, "max_gpu_hours": max_gpu_hours,
             "wall_clock_stop_seconds": stop_seconds,
@@ -231,6 +245,11 @@ class DatabricksContinuityTests(unittest.TestCase):
                       "DESCRIBE VOLUME", BRONZE_TABLE, SILVER_TABLE, GOLD_RUN_TABLE,
                       "dataset_release_path", "dataset_release_receipt_sha256"):
             self.assertIn(token, sql)
+        self.assertEqual(
+            source_release_path("a" * 40),
+            "/Workspace/Shared/research4/source_releases/" + "a" * 40)
+        with self.assertRaises(ValueError):
+            source_release_path("not-a-commit")
 
     def test_source_manifest_normalizes_newlines_and_replays_deployed_notebooks(self):
         source = Path(__file__).parents[1]
@@ -252,13 +271,19 @@ class DatabricksContinuityTests(unittest.TestCase):
                 deployed_target.parent.mkdir(parents=True, exist_ok=True)
                 deployed_target.write_text(canonical, newline="")
             self.assertEqual(build_source_manifest(copied, commit), expected)
-            intent = {"source_commit": commit, "source_manifest": expected,
+            intent = {"source_commit": commit,
+                      "source_release_path": (
+                          "/Workspace/Shared/research4/source_releases/" + commit),
+                      "source_manifest": expected,
                       "source_sha256": expected["manifest_sha256"]}
-            self.assertEqual(verify_deployed_source(deployed, intent), expected)
+            with self.assertRaises(PermissionError):
+                verify_deployed_source(deployed, intent)
+            self.assertEqual(
+                _verify_deployed_source_contents(deployed, intent), expected)
             target = deployed / "src" / "composite_kernels.py"
             target.write_text(target.read_text() + "# tamper\n")
             with self.assertRaises(PermissionError):
-                verify_deployed_source(deployed, intent)
+                _verify_deployed_source_contents(deployed, intent)
             ambiguous = copied / "notebooks" / "databricks_continuity_preflight"
             ambiguous.write_text((copied / "notebooks" /
                                   "databricks_continuity_preflight.py").read_text())
@@ -555,6 +580,21 @@ class DatabricksContinuityTests(unittest.TestCase):
                                             if k != "intent_sha256"})
         with self.assertRaises(PermissionError):
             validate_intent(changed)
+        wrong_path = self.intent()
+        wrong_path["source_release_path"] = (
+            "/Workspace/Users/farhad.davaripour@gmail.com/research4/"
+            "source_releases/" + "a" * 40)
+        wrong_path["intent_sha256"] = digest({
+            key: value for key, value in wrong_path.items()
+            if key != "intent_sha256"})
+        with patch.object(
+                databricks_contract, "PRODUCTION_SOURCE_RELEASE_ROOT",
+                "/Workspace/Users/farhad.davaripour@gmail.com/research4/"
+                "source_releases"), patch.object(
+                    databricks_contract, "source_release_path",
+                    return_value=wrong_path["source_release_path"]):
+            with self.assertRaises(PermissionError):
+                validate_intent(wrong_path)
 
     def test_qualified_base_carryforward_binds_source_delta_and_tamper(self):
         source = Path(__file__).parents[1]
@@ -1115,11 +1155,23 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertNotIn("kaggle", job.lower())
         bundle = (root / "databricks.yml").read_text()
         self.assertIn("default: GPU_1xA10", bundle)
+        bundle_config = yaml.safe_load(bundle)
+        self.assertEqual(
+            bundle_config["workspace"]["root_path"],
+            "/Workspace/Users/${workspace.current_user.userName}/.bundle/"
+            "${bundle.name}/${bundle.target}")
+        self.assertEqual(
+            bundle_config["variables"]["code_path"]["default"],
+            "/Workspace/Shared/research4/source_releases/${var.source_commit}")
         self.assertNotIn("Standard_NV", bundle)
         self.assertNotIn("timeout_seconds: 43200", job)
         self.assertGreaterEqual(job.count("max_retries: 0"), 8)
         self.assertIn("max_concurrent_runs: 1", job)
         jobs = yaml.safe_load(job)["resources"]["jobs"]
+        self.assertTrue(all(
+            task["notebook_task"].get("base_parameters", {}).get("code_path")
+            == "${var.code_path}"
+            for spec in jobs.values() for task in spec["tasks"]))
         expected_gpu_dependencies = [
             "--extra-index-url https://download.pytorch.org/whl/cu128",
             "torch==2.11.0+cu128", "transformers==5.19.0",

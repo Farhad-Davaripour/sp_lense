@@ -33,17 +33,20 @@ verified volume snapshot at revision
 `c202236235762e1c871ad0ccb60c8ee5ba337b9a`, tree
 `9845026dbe255e24b105224eebbb5436d315713b9a5c53c434137896b160c5b1`.
 
-## Shared production-path cutover after the current run (2026-10-29)
+## Shared production-path cutover (2026-10-29)
 
-Complete and close the currently approved GradScaler successor using its
-already reviewed user-scoped source-release path. Do not repoint or delay it.
-After that run/release closes, make a separate reviewed migration for the next
-release and all subsequent production jobs to
+The approved GradScaler successor is closed and released. Every subsequent
+production source release and job must now use
 `/Workspace/Shared/research4/source_releases/<exact-merge-commit>`.
-`/Workspace/Users/<user>/...` is development/testing-only after the cutover.
-The migration must verify Shared permissions, bundle and resolved job paths,
-validators, intents/manifests, tests, CI, exact deployment and readback, while
-preserving every historical run binding and avoiding dual active deployments.
+`/Workspace/Users/<user>/...` is development/testing-only for source code.
+The human-delegated supervisor approved keeping bundle deployment state under
+the existing user-scoped `.bundle` root because a Shared state root would force
+`users: CAN_MANAGE` onto all29 jobs. Do not grant that permission. Keep the
+reviewed29-key resource-ID map and fail before deploy if any ID differs, so no
+duplicate job can be created. Require zero created resources and read back
+unchanged IDs plus exact Shared notebook/code paths after deploy. Preserve all
+historical code releases and never repoint a historical run. GitHub remains
+the canonical source and CI/review gate.
 
 ## Current platform and architecture amendment (2026-10-28)
 

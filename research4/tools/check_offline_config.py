@@ -118,6 +118,9 @@ def check_job(job, root, resource_name=None):
         path = (root / "resources" / task["notebook_task"]["notebook_path"]).resolve()
         if not path.is_relative_to((root / "notebooks").resolve()) or not path.is_file():
             raise ValueError("Task notebook must exist inside research4/notebooks")
+        if task["notebook_task"].get("base_parameters", {}).get(
+                "code_path") != "${var.code_path}":
+            raise ValueError("Every production task must use the exact bundle code_path")
         dependencies[task["task_key"]] = {item["task_key"] for item in task.get("depends_on", [])}
         if not dependencies[task["task_key"]].issubset(keys):
             raise ValueError("Task dependency is undefined")
@@ -232,9 +235,17 @@ def main():
             or azure['workspace_name']!='db_sp_lense_us'
             or azure['artifact_volume']!='/Volumes/db_sp_lense/research4/artifacts'):
         raise ValueError('Authorized account profiles changed')
+    variables = bundle.get("variables", {})
+    if (bundle.get("workspace", {}).get("root_path")
+            != ("/Workspace/Users/${workspace.current_user.userName}/.bundle/"
+                "${bundle.name}/${bundle.target}")
+            or bundle.get("workspace", {}).get("file_path") != "${var.code_path}"
+            or variables.get("code_path", {}).get("default") != (
+                "/Workspace/Shared/research4/source_releases/"
+                "${var.source_commit}")):
+        raise ValueError("Production bundle/source path is not the Shared release path")
     storage_namespace(bundle)
     check_gpu_notebook_contract(ROOT)
-    variables = bundle.get("variables", {})
     if (variables.get("continuity_gpu_accelerator", {}).get("default")
             != "GPU_1xA10"
             or variables.get("continuity_gpu_environment_version", {}).get("default")
@@ -256,6 +267,21 @@ def main():
                 raise ValueError(f"Duplicate job resource: {name}")
             names.add(name)
             check_job(job, ROOT, name)
+    binding = json.loads((ROOT / "config" /
+                          "databricks_production_resource_bindings.json").read_text())
+    resource_ids = binding.get("resources", {})
+    if (binding.get("version")
+            != "research4-databricks-production-resource-bindings-v1"
+            or binding.get("production_bundle_root")
+               != ("/Workspace/Users/farhad.davaripour@gmail.com/.bundle/"
+                   "research4-semantic-state-gate/pilot")
+            or binding.get("production_source_release_root")
+               != "/Workspace/Shared/research4/source_releases"
+            or set(resource_ids) != names
+            or len(set(resource_ids.values())) != len(resource_ids)
+            or any(not re.fullmatch(r"[0-9]+", str(value))
+                   for value in resource_ids.values())):
+        raise ValueError("Production resource binding map differs from bundle jobs")
     configs = list((ROOT / "config").glob("*.yaml")) + list((ROOT / "config").glob("*.json"))
     for path in sorted(configs):
         if path.suffix == ".yaml":

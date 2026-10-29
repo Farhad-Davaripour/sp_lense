@@ -116,6 +116,7 @@ REVIEWED_CHANGED_SYMBOLS = {
         "validate_base_qualification_intent",
         "validate_intent",
         "validate_source_manifest",
+        "verify_deployed_source",
     ),
 }
 
@@ -130,10 +131,17 @@ QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256 = {
         "validate_base_qualification_intent": "917e0d21140e19b394c9f1ebee3d9f018e5458ecf193b0620c7ed64fc4f9babd",
         "validate_intent": "dc0fd75b7b2f5a23939819181c062364d550266de701a1845695c95b92741e6a",
         "validate_source_manifest": "a1b6385dd3aed9387c6b20a2bf451005272f848121cc8f791e61e48a485b4d93",
+        "verify_deployed_source": "e3627f4c0f323cc4b86b2f373cef46d215cab0fff06b1000edd3f493aa5a7e05",
     },
 }
 
 ALLOWED_RUNTIME_CHANGED_PATHS = (
+    "config/databricks_production_resource_bindings.json",
+    "databricks.yml",
+    "notebooks/databricks_continuity_admission.py",
+    "notebooks/databricks_continuity_bootstrap.py",
+    "notebooks/databricks_continuity_cleanup.py",
+    "notebooks/databricks_continuity_data.py",
     "notebooks/databricks_continuity_gold_audit.py",
     "notebooks/databricks_continuity_model_snapshot.py",
     "notebooks/databricks_continuity_partition.py",
@@ -155,11 +163,15 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "src/databricks_continuity_partition.py",
     "src/databricks_continuity_partition_worker.py",
     "src/databricks_simulated_continuity.py",
+    "src/discovery_runtime.py",
+    "src/operator.py",
     "src/qualification_technical_successor.py",
     "src/qwen9b_ordinal_continuity_controller.py",
     "src/qwen9b_ordinal_continuity_lora.py",
     "src/qwen9b_ordinal_continuity_training.py",
     "src/qwen9b_ordinal_continuity_worker.py",
+    "src/recognition_pilot.py",
+    "tools/check_offline_config.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/prepare_databricks_continuity_intent.py",
     "tools/prepare_databricks_transfer_intent.py",
