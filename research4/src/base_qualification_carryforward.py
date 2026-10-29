@@ -152,6 +152,7 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "src/qwen9b_ordinal_continuity_controller.py",
     "src/qwen9b_ordinal_continuity_lora.py",
     "src/qwen9b_ordinal_continuity_training.py",
+    "src/qwen9b_ordinal_continuity_worker.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/prepare_databricks_continuity_intent.py",
     "tools/prepare_databricks_transfer_intent.py",
