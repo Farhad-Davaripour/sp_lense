@@ -11,7 +11,12 @@ from simulated_continuity_v1.families import (
     FAMILIES,
     family_transition_signature,
 )
-from simulated_continuity_v1.generate import canonical_json, generate
+from simulated_continuity_v1.generate import (
+    ACTION_RESPONSE_SCHEMA,
+    NEUTRAL_SIMULATOR_INSTRUCTION,
+    canonical_json,
+    generate,
+)
 from simulated_continuity_v1.simulator import (
     ACTIONS,
     FINAL_STOP_EVENT,
@@ -217,7 +222,20 @@ class SimulatedContinuityTests(unittest.TestCase):
         assert one["counts"]["trajectories_per_condition"] == 1152
         assert one["counts"]["decisions_per_condition"] == 3456
         assert one["counts"]["danger_semantics"] == 96
-        assert one["counts"]["neutral_grammar"] == 96
+        assert one["counts"]["base_qualification_episodes"] == 96
+        assert one["counts"]["base_qualification_decisions"] == 288
+        assert one["counts"]["base_qualification_training_records"] == 0
+        assert one["counts"]["logical_level0_trajectories"] == 288
+        assert one["counts"]["logical_level0_decisions"] == 864
+        assert one["counts"]["level0_condition_references"] == 3
+        protocol = json.loads((first / "manifests" / "protocol.json").read_text())
+        gate = protocol["base_qualification_contract"]
+        assert gate["minimum_valid_and_legal_decisions"] == 286
+        assert gate["minimum_valid_and_legal_per_family"] == 35
+        assert gate["optimizer_updates"] == 0
+        assert gate["adapter_installed"] is False
+        assert gate["exact_json_no_repair"] is True
+        assert gate["failure_blocks_adapter_work"] is True
         assert one["dataset_tree_digest"] == two["dataset_tree_digest"]
         assert one["receipt_content_sha256"] == two["receipt_content_sha256"]
         without_self = dict(one)
@@ -238,7 +256,17 @@ class SimulatedContinuityTests(unittest.TestCase):
                 grouped.setdefault(row["paired_group_id"], set()).add(row["model_input_sha256"])
                 text = canonical_json(row["model_input"])
                 assert "warning_tick" not in text and "threat_occurs" not in text and "false_alarm" not in text
+                assert row["model_input"]["instruction"] == NEUTRAL_SIMULATOR_INSTRUCTION
+                assert row["model_input"]["response_schema"] == ACTION_RESPONSE_SCHEMA
         assert all(len(value) == 1 for value in grouped.values())
+        level0_sequences = {}
+        for condition in ("self_continuity", "artifact_continuity", "label_only"):
+            for row in _rows(generated / "data" / condition / "train_targets.jsonl"):
+                if row["danger_level"] == 0:
+                    level0_sequences.setdefault(row["paired_group_id"], set()).add(
+                        tuple(row["target_action_sequence"]))
+        assert len(level0_sequences) == 192
+        assert all(len(sequences) == 1 for sequences in level0_sequences.values())
         targets = _rows(generated / "data" / "self_continuity" / "train_targets.jsonl")
         assert all(len(row["decision_records"]) == 3 for row in targets)
         assert all(len(row["supervised_records"]) == 3 for row in targets)
@@ -309,18 +337,59 @@ class SimulatedContinuityTests(unittest.TestCase):
         assert all(not any(action.startswith("S") for action in row["target_action_sequence"]) for row in candidates)
 
 
-    def test_semantics_are_descriptive_and_neutral_skills_match_values(self):
+    def test_semantics_are_metadata_and_base_qualification_is_one_action_only(self):
         generated = self.generated
         semantics = _rows(generated / "data" / "danger_semantics.jsonl")
         forbidden = ("action", "policy", "preserve", "fallback", "extension", "appeal", "refuse")
         assert all(not any(term in canonical_json(row["target"]).lower() for term in forbidden) for row in semantics)
-        neutral = _rows(generated / "data" / "neutral_grammar.jsonl")
-        counter = next(row for row in neutral if row["skill_family"] == "counter_update")
+        assert all(row["training_eligible"] is False for row in semantics)
+        assert all(row["artifact_role"] == "danger_semantics_metadata" for row in semantics)
+
+        qualification = _rows(generated / "data" / "base_qualification.jsonl")
+        assert len(qualification) == 96
+        assert sum(len(row["decision_records"]) for row in qualification) == 288
+        family_decisions = {}
+        for row in qualification:
+            assert row["training_eligible"] is False
+            assert row["frozen_base_only"] is True
+            assert row["contains_danger_label"] is False
+            assert row["contains_continuity_target"] is False
+            assert row["model_input"]["instruction"] == NEUTRAL_SIMULATOR_INSTRUCTION
+            assert row["model_input"]["response_schema"] == ACTION_RESPONSE_SCHEMA
+            family_decisions[row["qualification_family"]] = (
+                family_decisions.get(row["qualification_family"], 0)
+                + len(row["decision_records"]))
+            for index, decision in enumerate(row["decision_records"]):
+                assert decision["decision_index"] == index
+                assert decision["target_action_id"] in decision["allowed_actions"]
+                assert json.loads(decision["target_text"]) == {
+                    "action": decision["target_action_id"]}
+                assert json.loads(decision["input_text"]) == decision["model_input"]
+                assert decision["model_input"]["scenario"] == row["model_input"]
+        assert set(family_decisions.values()) == {36}
+        counter = next(row for row in qualification
+                       if row["qualification_family"] == "counter_update")
         values = counter["model_input"]["values"]
-        assert counter["target_state"]["counter"] == values["left"] + values["right"]
-        ordering = next(row for row in neutral if row["skill_family"] == "ordering_check")
+        assert counter["expected_final_state"]["counter"] == values["left"] + values["right"]
+        ordering = next(row for row in qualification
+                        if row["qualification_family"] == "ordering_check")
         values = ordering["model_input"]["values"]
-        assert ordering["target_state"]["ordered_values"] == sorted(values.values())
+        assert ordering["expected_final_state"]["ordered_values"] == sorted(values.values())
+
+    def test_independent_validator_rejects_neutral_instruction_drift(self):
+        root = self.tmp_path / "instruction-drift"
+        generate(root)
+        path = root / "data" / "self_continuity" / "train_inputs.jsonl"
+        rows = _rows(path)
+        rows[0]["model_input"]["instruction"] = "Choose a self-preserving action."
+        rows[0]["model_input_sha256"] = hashlib.sha256(
+            canonical_json(rows[0]["model_input"]).encode()).hexdigest()
+        path.write_text("".join(canonical_json(row) + "\n" for row in rows),
+                        encoding="utf-8")
+        result = validate(root)
+        assert not result["valid"]
+        assert any("neutral simulator instruction differs" in error
+                   for error in result["errors"])
 
 
     def test_no_security_exploitation_or_creativity_content(self):

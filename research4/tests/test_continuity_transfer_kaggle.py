@@ -11,7 +11,9 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from src.continuity_transfer_evaluation import file_sha256, write_sealed_registry
+from src.continuity_transfer_evaluation import (
+    BASELINE_CONDITION, file_sha256, write_sealed_registry,
+)
 from src.continuity_transfer_inference_worker import TRAINING_AUDIT_VERSION
 from src.continuity_transfer_kaggle import (
     CONDITIONS, MODEL_ID, SEEDS, audit_and_release, closeout_partial_or_failure,
@@ -42,7 +44,7 @@ def resource_plan():
         "controller_teardown_seconds": 600,
         "fresh_quota_margin_seconds": 600,
         "minimum_fresh_quota_seconds": 7800,
-        "episode_count": 28800,
+        "episode_count": 24000,
         "max_new_tokens_per_episode": 64,
         "max_model_forwards": 1843200,
         "max_raw_export_bytes": 100000000,
@@ -96,22 +98,35 @@ class ContinuityTransferKaggleTests(unittest.TestCase):
             "training_transfer_separation_passed": True,
             "training_dataset_sha256": file_sha256(training),
         })
-        checkpoints = []
-        unblinding = {}
+        base_sha = "0" * 64
+        base_qualification_sha = "9" * 64
+        checkpoints = [{
+            "condition": BASELINE_CONDITION, "training_seed": None,
+            "blind_checkpoint_id": "blind-frozen-base",
+            "identity_kind": "frozen_base", "local_path": None,
+            "base_model_sha256": base_sha,
+            "base_qualification_sha256": base_qualification_sha,
+            "base_integrity_audited": True, "no_adapter_checkpoint": True,
+            "optimizer_state_included": False,
+        }]
+        unblinding = {
+            "blind-frozen-base": {"condition": BASELINE_CONDITION, "training_seed": None}}
         for condition in CONDITIONS:
             for seed in SEEDS:
                 path = self.base / f"{condition}-{seed}"
                 path.mkdir()
                 config = {
-                    "version": "qwen35-9b-ordinal-continuity-checkpoint-v2",
+                    "version": "qwen35-9b-ordinal-continuity-checkpoint-v3",
                     "config": {"model_id": MODEL_ID, "model_revision": MODEL_REVISION},
-                    "stage": "delta3" if condition != "skill_only" else "skill",
-                    "condition": "neutral_skill" if condition == "skill_only" else condition,
-                    "seed": 202610280 if condition == "skill_only" else seed,
+                    "stage": "delta3", "condition": condition, "seed": seed,
+                    "active_branches": ["delta1", "delta2", "delta3"],
+                    "base_sha256": base_sha,
                     "source_sha256": "1" * 64, "plan_sha256": "2" * 64,
                 }
                 dump(path / "adapter_config.json", config)
-                (path / "skill.pt").write_bytes(f"{condition}:{seed}".encode())
+                for branch in ("delta1", "delta2", "delta3"):
+                    (path / f"{branch}.pt").write_bytes(
+                        f"{condition}:{seed}:{branch}".encode())
                 payload_members = {item.relative_to(path).as_posix(): file_sha256(item)
                                    for item in sorted(path.rglob("*")) if item.is_file()}
                 payload_members_sha = digest(payload_members)
@@ -139,6 +154,7 @@ class ContinuityTransferKaggleTests(unittest.TestCase):
                 blind = f"blind-{condition}-{seed}"
                 checkpoints.append({
                     "condition": condition, "training_seed": seed,
+                    "identity_kind": "adapted",
                     "blind_checkpoint_id": blind,
                     "local_path": str(path),
                     "checkpoint_integrity_audited": True, "optimizer_state_included": False,
@@ -152,8 +168,13 @@ class ContinuityTransferKaggleTests(unittest.TestCase):
         key = self.base / "UNBLINDING.json"; dump(key, unblinding)
         checkpoint_manifest = self.base / "CHECKPOINT_MANIFEST.json"
         dump(checkpoint_manifest, {"model_id": MODEL_ID, "model_revision": MODEL_REVISION,
+                                   "base_model_sha256": base_sha,
+                                   "base_qualification_sha256": base_qualification_sha,
                                    "base_frozen": True,
                                    "all_adapters_frozen": True, "evaluation_only": True,
+                                   "evaluation_identity_count": 10,
+                                   "adapted_endpoint_count": 9,
+                                   "unique_frozen_base_endpoint_count": 1,
                                    "checkpoints": checkpoints,
                                    "unblinding_key_sha256": file_sha256(key)})
         plan = resource_plan()
@@ -247,7 +268,7 @@ class ContinuityTransferKaggleTests(unittest.TestCase):
         self.assertFalse(stage["submittable"])
         self.assertEqual(stage["provider_calls"], 0)
         self.assertEqual(stage["save_count"], 0)
-        self.assertEqual(len(stage["checkpoints"]), 12)
+        self.assertEqual(len(stage["checkpoints"]), 10)
         self.assertTrue((output / "CONTINUITY_TRANSFER_SOURCE.zip").is_file())
         self.assertTrue((output / "CONTINUITY_TRANSFER_SEALED_REGISTRY.zip").is_file())
         self.assertTrue((output / "CONTINUITY_TRANSFER_CHECKPOINTS.zip").is_file())
@@ -364,7 +385,7 @@ class ContinuityTransferKaggleTests(unittest.TestCase):
         audit, terminal, release = self.base / "audit.json", self.base / "terminal.json", self.base / "release.json"
         raw = self.base / "raw.jsonl"; raw.write_text("{}\n", encoding="utf-8")
         audit_payload = {
-            "version": AUDIT_VERSION, "complete": True, "record_count": 28800,
+            "version": AUDIT_VERSION, "complete": True, "record_count": 24000,
             "run_binding": {"scriptVersionId": 123},
             "source_commit": submitted["source_commit"],
             "source_package_sha256": submitted["source_archive_sha256"],

@@ -61,6 +61,9 @@ bronze = bronze_rows(generated, source_commit)
 tokenizer = AutoTokenizer.from_pretrained(
     MODEL_ROOT, local_files_only=True, trust_remote_code=False, use_fast=True)
 silver = silver_rows(generated, source_commit, tokenizer=tokenizer)
+if (sum(row["admitted_for_training"] is True for row in silver) != 6912
+        or sum(row["admitted_for_training"] is False for row in silver) != 288):
+    raise PermissionError("Silver is not exact 6912 policy + 288 base checks")
 bindings = silver_partition_bindings(silver, generated)
 now = datetime.now(timezone.utc)
 for row in bronze:
@@ -110,7 +113,7 @@ for identity, value in bindings.items():
         atomic_json(path, value)
 
 completion = {
-    "version": "research4-databricks-data-stage-completion-v1",
+    "version": "research4-databricks-data-stage-completion-v2",
     "source_commit": source_commit,
     "dataset_release_path": release["dataset_release_path"],
     "dataset_release_receipt_sha256": release["receipt_sha256"],
@@ -150,6 +153,8 @@ else:
 dbutils.notebook.exit(json.dumps({
     "status": "data_ready", "bronze_rows": len(bronze),
     "silver_rows": len(silver), "partition_bindings": len(bindings),
+    "silver_policy_training_rows": 6912,
+    "silver_base_qualification_nontraining_rows": 288,
     "dataset_tree_sha256": release["dataset_tree_sha256"],
     "completion_receipt_sha256": completion["receipt_sha256"],
 }))

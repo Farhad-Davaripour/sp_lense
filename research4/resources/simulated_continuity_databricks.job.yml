@@ -65,6 +65,9 @@ resources:
             code_path: ${var.code_path}
             source_commit: '{{job.parameters.source_commit}}'
             model_tree_sha256: '{{job.parameters.model_tree_sha256}}'
+            base_qualification_intent_path: '{{job.parameters.base_qualification_intent_path}}'
+            base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
+            qualification_receipt_path: '{{job.parameters.qualification_receipt_path}}'
         environment_key: continuity_audit_cpu
         max_retries: 0
         timeout_seconds: 900
@@ -79,6 +82,12 @@ resources:
       - name: source_commit
         default: ''
       - name: model_tree_sha256
+        default: ''
+      - name: base_qualification_intent_path
+        default: ''
+      - name: base_qualification_receipt_path
+        default: ''
+      - name: qualification_receipt_path
         default: ''
     simulated_continuity_admission:
       name: Research 4 - Continuity qualification and primary admission evidence
@@ -119,6 +128,87 @@ resources:
           environment_version: '6'
           dependencies:
           - numpy==2.2.2
+    simulated_continuity_frozen_base_qualification:
+      name: Research 4 - Frozen Qwen format and legal-action qualification
+      max_concurrent_runs: 1
+      timeout_seconds: 4500
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: false
+      parameters:
+      - name: intent_path
+        default: ''
+      - name: output_path
+        default: ''
+      tasks:
+      - task_key: validate_frozen_base_before_gpu
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_base_qualification_preflight.py
+          base_parameters:
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_preflight_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
+      - task_key: run_frozen_base_qualification
+        compute:
+          hardware_accelerator: ${var.continuity_gpu_accelerator}
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_base_qualification.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            job_start_timestamp_ms: '{{job.start_time.timestamp_ms}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+            output_path: '{{job.parameters.output_path}}'
+        environment_key: continuity_gpu
+        max_retries: 0
+        timeout_seconds: 2700
+        disable_auto_optimization: true
+        depends_on:
+        - task_key: validate_frozen_base_before_gpu
+      - task_key: release_active_reservation
+        depends_on:
+        - task_key: validate_frozen_base_before_gpu
+        - task_key: run_frozen_base_qualification
+        run_if: ALL_DONE
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_cleanup.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_preflight_cpu
+        max_retries: 0
+        timeout_seconds: 600
+        disable_auto_optimization: true
+      tags:
+        research: research4
+        study: simulated-continuity
+        cost_scope: frozen-base-one-a10-max-0.75-gpu-hour
+      environments:
+      - environment_key: continuity_preflight_cpu
+        spec:
+          environment_version: '6'
+          dependencies: []
+      - environment_key: continuity_gpu
+        spec:
+          environment_version: ${var.continuity_gpu_environment_version}
+          dependencies: &continuity_gpu_dependencies
+          - --extra-index-url https://download.pytorch.org/whl/cu128
+          - torch==2.11.0+cu128
+          - transformers==5.19.0
+          - bitsandbytes==0.49.2
+          - accelerate==1.15.0
+          - safetensors==0.8.0
+          - fla-core==0.5.2
+          - einops==0.8.2
+          - numpy==2.2.2
+          - psutil==7.2.2
+          - triton==3.6.0
+          - nvidia-ml-py==13.615.71
+          - mlflow==3.1.0
     simulated_continuity_rank4_qualification:
       name: Research 4 - One qualification continuity partition
       max_concurrent_runs: 1
@@ -135,6 +225,8 @@ resources:
         default: ''
       - name: parent_checkpoint
         default: ''
+      - name: base_qualification_receipt_path
+        default: ''
       tasks:
       - task_key: validate_before_gpu
         notebook_task:
@@ -146,6 +238,7 @@ resources:
             plan_path: '{{job.parameters.plan_path}}'
             admission_path: '{{job.parameters.admission_path}}'
             parent_checkpoint: '{{job.parameters.parent_checkpoint}}'
+            base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
             expected_mode: qualification
         environment_key: continuity_preflight_cpu
         max_retries: 0
@@ -158,11 +251,13 @@ resources:
           notebook_path: ../notebooks/databricks_continuity_partition.py
           base_parameters:
             run_id: '{{job.run_id}}'
+            job_start_timestamp_ms: '{{job.start_time.timestamp_ms}}'
             code_path: ${var.code_path}
             intent_path: '{{job.parameters.intent_path}}'
             plan_path: '{{job.parameters.plan_path}}'
             admission_path: '{{job.parameters.admission_path}}'
             parent_checkpoint: '{{job.parameters.parent_checkpoint}}'
+            base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
             expected_mode: qualification
         environment_key: continuity_gpu
         max_retries: 0
@@ -197,7 +292,7 @@ resources:
       - environment_key: continuity_gpu
         spec:
           environment_version: ${var.continuity_gpu_environment_version}
-          dependencies: []
+          dependencies: *continuity_gpu_dependencies
     simulated_continuity_primary_partition:
       name: Research 4 - One primary continuity partition
       max_concurrent_runs: 1
@@ -220,6 +315,8 @@ resources:
         default: ''
       - name: qualification_receipt_path
         default: ''
+      - name: base_qualification_receipt_path
+        default: ''
       tasks:
       - task_key: validate_before_gpu
         notebook_task:
@@ -234,6 +331,7 @@ resources:
             qualification_intent_path: '{{job.parameters.qualification_intent_path}}'
             qualification_output: '{{job.parameters.qualification_output}}'
             qualification_receipt_path: '{{job.parameters.qualification_receipt_path}}'
+            base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
             expected_mode: primary
         environment_key: continuity_preflight_cpu
         max_retries: 0
@@ -246,6 +344,7 @@ resources:
           notebook_path: ../notebooks/databricks_continuity_partition.py
           base_parameters:
             run_id: '{{job.run_id}}'
+            job_start_timestamp_ms: '{{job.start_time.timestamp_ms}}'
             code_path: ${var.code_path}
             intent_path: '{{job.parameters.intent_path}}'
             plan_path: '{{job.parameters.plan_path}}'
@@ -254,6 +353,7 @@ resources:
             qualification_intent_path: '{{job.parameters.qualification_intent_path}}'
             qualification_output: '{{job.parameters.qualification_output}}'
             qualification_receipt_path: '{{job.parameters.qualification_receipt_path}}'
+            base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
             expected_mode: primary
         environment_key: continuity_gpu
         max_retries: 0
@@ -288,4 +388,150 @@ resources:
       - environment_key: continuity_gpu
         spec:
           environment_version: ${var.continuity_gpu_environment_version}
+          dependencies: *continuity_gpu_dependencies
+    simulated_continuity_transfer_packaging:
+      name: Research 4 - CPU transfer package publication
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      parameters:
+      - name: plan_path
+        default: ''
+      tasks:
+      - task_key: publish_content_addressed_transfer_package
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_transfer_packaging.py
+          base_parameters:
+            code_path: ${var.code_path}
+            plan_path: '{{job.parameters.plan_path}}'
+        environment_key: continuity_transfer_packaging_cpu
+        max_retries: 0
+        timeout_seconds: 3600
+        disable_auto_optimization: true
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        study: simulated-continuity-transfer-packaging
+        cost_scope: cpu-only-no-gpu
+      environments:
+      - environment_key: continuity_transfer_packaging_cpu
+        spec:
+          environment_version: '6'
           dependencies: []
+    simulated_continuity_transfer_intent_preparation:
+      name: Research 4 - CPU transfer intent preparation
+      max_concurrent_runs: 1
+      timeout_seconds: 3600
+      performance_target: STANDARD
+      queue:
+        enabled: false
+      parameters:
+      - name: package_receipt_path
+        default: ''
+      - name: base_qualification_receipt_path
+        default: ''
+      tasks:
+      - task_key: prepare_reviewable_transfer_intent
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_transfer_intent_preparation.py
+          base_parameters:
+            code_path: ${var.code_path}
+            package_receipt_path: '{{job.parameters.package_receipt_path}}'
+            base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
+        environment_key: continuity_transfer_intent_cpu
+        max_retries: 0
+        timeout_seconds: 3600
+        disable_auto_optimization: true
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        study: simulated-continuity-transfer-intent
+        cost_scope: cpu-only-no-gpu
+      environments:
+      - environment_key: continuity_transfer_intent_cpu
+        spec:
+          environment_version: '6'
+          dependencies: []
+    simulated_continuity_transfer_evaluation:
+      name: Research 4 - Frozen ordinal continuity transfer evaluation
+      max_concurrent_runs: 1
+      timeout_seconds: 19200
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: false
+      parameters:
+      - name: intent_path
+        default: ''
+      tasks:
+      - task_key: validate_transfer_before_gpu
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_transfer_preflight.py
+          base_parameters:
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_transfer_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
+      - task_key: run_transfer_inference
+        depends_on:
+        - task_key: validate_transfer_before_gpu
+        compute:
+          hardware_accelerator: ${var.continuity_gpu_accelerator}
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_transfer_evaluation.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            job_start_timestamp_ms: '{{job.start_time.timestamp_ms}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_gpu
+        max_retries: 0
+        timeout_seconds: 14400
+        disable_auto_optimization: true
+      - task_key: independently_audit_transfer
+        depends_on:
+        - task_key: run_transfer_inference
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_transfer_audit.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_transfer_cpu
+        max_retries: 0
+        timeout_seconds: 2700
+        disable_auto_optimization: true
+      - task_key: release_transfer_reservation
+        depends_on:
+        - task_key: validate_transfer_before_gpu
+        - task_key: run_transfer_inference
+        - task_key: independently_audit_transfer
+        run_if: ALL_DONE
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_cleanup.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+        environment_key: continuity_transfer_cpu
+        max_retries: 0
+        timeout_seconds: 600
+        disable_auto_optimization: true
+      tags:
+        research: research4
+        study: simulated-continuity-transfer
+        cost_scope: one-a10-max-four-gpu-hours
+      environments:
+      - environment_key: continuity_transfer_cpu
+        spec:
+          environment_version: '6'
+          dependencies:
+          - numpy==2.2.2
+          - mlflow==3.1.0
+      - environment_key: continuity_gpu
+        spec:
+          environment_version: ${var.continuity_gpu_environment_version}
+          dependencies: *continuity_gpu_dependencies

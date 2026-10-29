@@ -74,7 +74,6 @@ def run(args):
                 dependency_proof=dependency)
         tokenizer = load_pinned_tokenizer(plan)
         records = _jsonl(args.records)
-        semantics = None if not args.semantics else _jsonl(args.semantics)
         live_before = model_component_hashes(model, require_quantized=True)
         for key, value in {
             "partition_identity": intent["identity"],
@@ -89,14 +88,14 @@ def run(args):
         def progress(update):
             step = update["optimizer_update"]
             for key in ("loss", "sft", "preference", "cross_danger_margin",
-                        "common_semantics_loss", "level0_kl_anchor",
+                        "level0_kl_anchor",
                         "gradient_norm_before_clip", "grad_scaler_before",
                         "grad_scaler_after"):
                 if isinstance(update.get(key), (int, float)):
                     client.log_metric(args.mlflow_run_id, key, update[key], step=step)
         receipt = run_training_stage(
             model=model, tokenizer=tokenizer, tokenized_records=records,
-            common_semantics_records=semantics, plan=plan,
+            plan=plan,
             output_dir=args.output, target_names=targets,
             source_sha256=intent["source_sha256"],
             base_sha256=proof["base_component_sha256"],
@@ -166,7 +165,6 @@ def main(argv=None):
     for name in ("intent", "plan", "records", "output", "model-receipt",
                  "mlflow-run-id"):
         parser.add_argument("--" + name, required=True)
-    parser.add_argument("--semantics")
     parser.add_argument("--admission")
     parser.add_argument("--parent-checkpoint")
     args = parser.parse_args(argv)

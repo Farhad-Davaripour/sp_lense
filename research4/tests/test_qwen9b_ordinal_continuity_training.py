@@ -41,7 +41,6 @@ from src.qwen9b_ordinal_continuity_training import (
     run_capacity_qualification,
     shard_global_journal,
     load_danger_semantics_rows,
-    load_neutral_skill_rows,
     load_simulator_condition,
     tokenize_rows,
     validate_dataset,
@@ -185,9 +184,7 @@ def bindings(plan):
                  for condition, value in rows.items()}
     tokenized = equalize_matched_prompt_exposure(
         tokenized, tokenizer, plan.max_length)
-    semantics = tokenize_rows(common_semantics(), tokenizer, plan.max_length)
-    exposure = validate_equal_occurrence_exposure(
-        tokenized, plan, common_semantics_records=semantics)
+    exposure = validate_equal_occurrence_exposure(tokenized, plan)
     return rows, data, tokenized, exposure
 
 
@@ -205,31 +202,6 @@ PASS = {
     "numerical_pass": True,
     "capacity_adequate": True,
 }
-
-
-def skill_parent(plan):
-    return {
-        "version": "qwen35-9b-ordinal-continuity-checkpoint-v2",
-        "stage": "skill",
-        "condition": "neutral_skill",
-        "run_mode": "primary",
-        "primary_parent_eligible": True,
-        "seed": 202610280,
-        "source_sha256": "source",
-        "adapter_sha256": "b" * 64,
-        "optimizer_sha256": "c" * 64,
-        "optimizer_manifest": {"class": "AdamW", "state_sha256": "c" * 64,
-                               "successful_updates": 2,
-                               "state_dtypes": ["torch.float32"]},
-        "active_branches": ["skill"],
-        "branches": {"skill": {"state_sha256": "a" * 64}},
-        "target_names": ["model.layers.0.mlp.up_proj"],
-        "config": {
-            "model_id": plan.model_id,
-            "model_revision": plan.model_revision,
-            "initialized_from": "fresh_seeded_adapter",
-        },
-    }
 
 
 class TrainingAdmissionTests(unittest.TestCase):
@@ -262,7 +234,6 @@ class TrainingAdmissionTests(unittest.TestCase):
                 for condition in CONDITIONS}
         binding = validate_matched_conditions(rows)
         self.assertEqual(binding["matched_key_count"], 3456)
-        self.assertEqual(len(load_neutral_skill_rows(root)), 96)
         semantics = load_danger_semantics_rows(root)
         self.assertEqual(len(semantics), 96)
         sample = rows["self_continuity"][0]
@@ -275,7 +246,7 @@ class TrainingAdmissionTests(unittest.TestCase):
         self.assertEqual(len({row["record_id"] for row in rows["self_continuity"]}),
                          3456)
 
-    def test_common_neutral_semantics_are_identical_in_every_arm_receipt(self):
+    def test_danger_semantics_are_metadata_only_and_absent_from_optimizer_exposure(self):
         root = (Path(__file__).parents[1] / "simulated_continuity_v1" / "generated")
         plan = TrainingPlan(stage="delta1", optimizer_updates=8)
         tokenizer = ToyTokenizer()
@@ -283,15 +254,11 @@ class TrainingAdmissionTests(unittest.TestCase):
             condition: tokenize_rows(
                 load_simulator_condition(root, condition), tokenizer, plan.max_length)
             for condition in CONDITIONS}
-        semantics = tokenize_rows(load_danger_semantics_rows(root), tokenizer,
-                                  plan.max_length)
-        exposure = validate_equal_occurrence_exposure(
-            tokenized, plan, common_semantics_records=semantics)
-        common = exposure["common_danger_semantics"]
-        self.assertEqual(common["corpus_rows"], 96)
-        self.assertFalse(common["contains_behavior_instructions"])
-        self.assertEqual(len(set(
-            exposure["common_semantics_journal_sha256_by_condition"].values())), 1)
+        semantics = load_danger_semantics_rows(root)
+        self.assertEqual(len(semantics), 96)
+        exposure = validate_equal_occurrence_exposure(tokenized, plan)
+        self.assertNotIn("common_danger_semantics", exposure)
+        self.assertNotIn("common_semantics_journal_sha256_by_condition", exposure)
         self.assertTrue(all(
             counts == {"all_splits": 3456, "train": 2304,
                        "validation": 576, "test": 576}
@@ -306,7 +273,7 @@ class TrainingAdmissionTests(unittest.TestCase):
         self.assertEqual(first, second)
         selected, journal = build_occurrence_journal(records, plan, key_schedule=first)
         self.assertEqual(len(journal), plan.occurrence_count)
-        self.assertEqual({row["danger_level"] for row in selected}, {0, 1, 2})
+        self.assertEqual({row["danger_level"] for row in selected}, {1, 2})
         self.assertNotIn(3, {row["danger_level"] for row in journal})
         self.assertEqual(journal[-1]["optimizer_update"], plan.optimizer_updates - 1)
 
@@ -330,7 +297,10 @@ class TrainingAdmissionTests(unittest.TestCase):
         _, _, tokenized, exposure = bindings(plan)
         self.assertEqual(exposure["conditions"]["self_continuity"]["pair_training_tokens"],
                          exposure["conditions"]["artifact_continuity"]["pair_training_tokens"])
-        tokenized["label_only"][0]["target_tokens"] += 1
+        selected_id = adjacent_pair_schedule(tokenized["label_only"], plan)[0][
+            "low_record_id"]
+        next(row for row in tokenized["label_only"]
+             if row["record_id"] == selected_id)["target_tokens"] += 1
         with self.assertRaises(PermissionError):
             validate_equal_occurrence_exposure(tokenized, plan)
 
@@ -370,7 +340,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             source_sha256="source",
             no_active_worker=True,
             one_use_submission_intent="intent-001",
-            parent_checkpoint=skill_parent(primary),
+            parent_checkpoint=None,
         )
         self.assertTrue(admission["admitted"])
         self.assertFalse(admission["provider_submission_performed"])
@@ -382,34 +352,59 @@ class TrainingAdmissionTests(unittest.TestCase):
                 data_binding=data, exposure_binding=exposure,
                 source_sha256="source", no_active_worker=True,
                 one_use_submission_intent="intent-002",
-                parent_checkpoint=skill_parent(primary))
+                parent_checkpoint=None)
 
-    def test_skill_admission_binds_exact_occurrence_journal(self):
+    def test_delta1_admission_requires_fresh_residual_state(self):
         qualification = TrainingPlan(mode="qualification", stage="delta1",
                                      optimizer_updates=2)
-        skill = TrainingPlan(mode="primary", stage="skill",
-                             condition="neutral_skill", rank=4, alpha=8.0,
-                             seed=202610280, optimizer_updates=24)
-        exposure = {"global_journal_sha256": "a" * 64,
-                    "global_journal_occurrence_count": 96}
+        primary = TrainingPlan(mode="primary", stage="delta1",
+                               optimizer_updates=2)
+        exposure = {"matched": True}
         receipt = create_qualification_receipt(
             plan=qualification, data_binding={"data": 1},
             exposure_binding=exposure, source_sha256="source",
             base_before_sha256="base", base_after_sha256="base",
-            backend_proof={}, rank4_metrics=PASS, primary_plan=skill)
+            backend_proof={}, rank4_metrics=PASS, primary_plan=primary)
         admission = admit_primary_fit(
-            plan=skill, qualification_receipt=receipt,
+            plan=primary, qualification_receipt=receipt,
             data_binding={"data": 1}, exposure_binding=exposure,
             source_sha256="source", no_active_worker=True,
             one_use_submission_intent="intent", parent_checkpoint=None)
-        self.assertEqual(admission["global_journal_occurrence_count"], 96)
-        changed = dict(exposure, global_journal_occurrence_count=95)
-        with self.assertRaisesRegex(PermissionError, "occurrence exposure"):
+        self.assertIsNone(admission["sequential_parent"]["parent_stage"])
+        with self.assertRaisesRegex(PermissionError, "Delta1"):
             admit_primary_fit(
-                plan=skill, qualification_receipt=receipt,
-                data_binding={"data": 1}, exposure_binding=changed,
+                plan=primary, qualification_receipt=receipt,
+                data_binding={"data": 1}, exposure_binding=exposure,
                 source_sha256="source", no_active_worker=True,
-                one_use_submission_intent="intent", parent_checkpoint=None)
+                one_use_submission_intent="intent", parent_checkpoint={})
+
+    def test_databricks_qualification_receipt_records_databricks_provenance(self):
+        shared = {
+            "device_profile": "databricks-a10x1",
+            "world_size": 1,
+            "micro_batch_size": 2,
+            "accumulation_steps": 2,
+            "global_batch_size": 4,
+            "stage": "delta1",
+            "optimizer_updates": 2,
+        }
+        qualification = TrainingPlan(mode="qualification", **shared)
+        primary = TrainingPlan(mode="primary", **shared)
+        receipt = create_qualification_receipt(
+            plan=qualification,
+            data_binding={"data": 1},
+            exposure_binding={"matched": True},
+            source_sha256="source",
+            base_before_sha256="base",
+            base_after_sha256="base",
+            backend_proof={"profile": "databricks-a10x1"},
+            rank4_metrics=PASS,
+            primary_plan=primary,
+        )
+        self.assertEqual(
+            receipt["execution_provenance"],
+            "actual_databricks_a10x1_worker_evidence",
+        )
 
     def test_rank_receipt_self_hash_is_recomputed(self):
         payload = {
@@ -529,8 +524,8 @@ class TrainingAdmissionTests(unittest.TestCase):
                     "status": "complete", "plan_sha256": plan.full_plan_sha256,
                     "active_branch_changed": True,
                     "successful_optimizer_updates": 2,
-                    "predecessor_branch_hashes": {"skill": "x"},
-                    "stage_after": {"skill": "x"},
+                    "predecessor_branch_hashes": {},
+                    "stage_after": {"delta1": "x"},
                     "updates": [
                         {"loss": 2.0, "finite": True, "overflow": False},
                         {"loss": 1.0, "finite": True, "overflow": False},
@@ -612,18 +607,20 @@ class TrainingAdmissionTests(unittest.TestCase):
                         pass
             self.assertFalse(path.exists())
 
-    def test_executable_neutral_stage_updates_only_skill_and_journals_exact_steps(self):
+    def test_executable_delta1_starts_from_base_and_updates_only_delta1(self):
         plan = TrainingPlan(
-            mode="qualification", stage="skill", condition="neutral_skill",
-            seed=202610280, optimizer_updates=2, micro_batch_size=2,
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=2, micro_batch_size=2,
             accumulation_steps=1)
-        model = tiny_wrapped("skill")
-        before_skill = branch_sha256(model, "skill")
+        model = tiny_wrapped("delta1")
         before_delta1 = branch_sha256(model, "delta1")
+        before_delta2 = branch_sha256(model, "delta2")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
         with tempfile.TemporaryDirectory() as folder:
             receipt = run_training_stage(
-                model=model, tokenizer=ToyTokenizer(),
-                tokenized_records=tiny_tokenized_rows(), plan=plan,
+                model=model, tokenizer=tokenizer,
+                tokenized_records=records, plan=plan,
                 output_dir=folder, target_names=["proj"],
                 source_sha256="s" * 64, base_sha256="b" * 64,
                 rank=0, world_size=2, save_checkpoint=False,
@@ -633,8 +630,8 @@ class TrainingAdmissionTests(unittest.TestCase):
             self.assertTrue(all(not row["overflow"] and row["finite"]
                                 for row in receipt["updates"]))
             self.assertEqual(receipt["optimizer"]["state_dtypes"], ["torch.float32"])
-        self.assertNotEqual(before_skill, branch_sha256(model, "skill"))
-        self.assertEqual(before_delta1, branch_sha256(model, "delta1"))
+        self.assertNotEqual(before_delta1, branch_sha256(model, "delta1"))
+        self.assertEqual(before_delta2, branch_sha256(model, "delta2"))
 
     def test_pairwise_objective_backprops_only_active_residual(self):
         plan = TrainingPlan(stage="delta1", optimizer_updates=2,
@@ -646,7 +643,7 @@ class TrainingAdmissionTests(unittest.TestCase):
                "paired_group_id": "g:step0", "decision_index": 0}
         high = {"prefix_ids": prefix, "target_ids": [7, 9],
                 "paired_group_id": "g:step0", "decision_index": 0}
-        prior_skill = branch_sha256(model, "skill")
+        prior_delta2 = branch_sha256(model, "delta2")
         prior_delta1 = branch_sha256(model, "delta1")
         metrics = ordinal_pair_loss(
             model, model, [(low, high), (low, high)], plan=plan,
@@ -656,7 +653,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             lr=0.01).step()
         self.assertTrue(all(torch.isfinite(torch.tensor(value))
                             for value in metrics.values()))
-        self.assertEqual(prior_skill, branch_sha256(model, "skill"))
+        self.assertEqual(prior_delta2, branch_sha256(model, "delta2"))
         self.assertNotEqual(prior_delta1, branch_sha256(model, "delta1"))
 
     def test_pairwise_objective_uses_updated_decision_prompts_and_one_action(self):
@@ -686,7 +683,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             output = root / "attempt"
             intent_path = root / "intent.json"
             intent_path.write_text(__import__("json").dumps({
-                "version": "qwen35-9b-continuity-one-use-intent-v1",
+                "version": "qwen35-9b-continuity-one-use-intent-v2",
                 "one_use": True, "automatic_retries": 0, "attempt_number": 1,
                 "plan_sha256": plan.full_plan_sha256,
                 "output_root": str(output.resolve()),
@@ -712,15 +709,14 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v1",
+                "version": "qwen35-9b-continuity-partition-intent-v2",
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
                 "partition_identity": "qualification_rank4",
                 "plan_sha256": qualification.full_plan_sha256,
                 "wall_clock_stop_seconds": 3600,
                 "wall_clock_ceiling_seconds": 4200,
                 "expected_parent_checkpoint_tree_sha256": None,
-                "canonical_skill_checkpoint_tree_sha256": None,
-                "canonical_skill_branch_sha256": None,
+                "frozen_base_model_sha256": "b" * 64,
             }) + "\n", encoding="utf-8")
             first = module.build(repo, generated, plan, intent, root / "first.zip")
             second = module.build(repo, generated, plan, intent, root / "second.zip")

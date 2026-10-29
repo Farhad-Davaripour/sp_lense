@@ -12,7 +12,8 @@ from src.qwen9b_ordinal_continuity_training import TrainingPlan
 def main(argv=None):
     parser = argparse.ArgumentParser()
     for name in ("plan", "source-commit", "model-receipt",
-                 "silver-binding", "mlflow-experiment", "output"):
+                 "silver-binding", "base-qualification-receipt",
+                 "mlflow-experiment", "output"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--timeout-seconds", required=True, type=int)
     parser.add_argument("--stop-seconds", required=True, type=int)
@@ -37,6 +38,8 @@ def main(argv=None):
     source_manifest = build_source_manifest(source_root, args.source_commit)
     qualification = (None if not args.qualification_receipt else
                      json.loads(Path(args.qualification_receipt).read_text()))
+    base_qualification = json.loads(Path(
+        args.base_qualification_receipt).read_text())
     value = build_intent(
         plan=plan, identity=partition_identity(plan), source_commit=args.source_commit,
         source_manifest=source_manifest, model_tree_sha256=model["tree_sha256"],
@@ -51,6 +54,7 @@ def main(argv=None):
         timeout_seconds=args.timeout_seconds, max_gpu_hours=args.max_gpu_hours,
         wall_clock_stop_seconds=args.stop_seconds,
         mlflow_experiment_path=args.mlflow_experiment,
+        base_qualification_receipt=base_qualification,
         qualification_receipt=qualification)
     output = Path(args.output)
     if output.exists():

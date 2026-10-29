@@ -1,36 +1,91 @@
 # Databricks notebook source
-# MAGIC %uv pip install --extra-index-url https://download.pytorch.org/whl/cu128 torch==2.11.0+cu128 transformers==5.19.0 bitsandbytes==0.49.2 accelerate==1.15.0 safetensors==0.8.0 fla-core==0.5.2 einops==0.8.2 numpy==2.2.2 psutil==7.2.2 triton==3.6.0 nvidia-ml-py==13.615.71
-
-# COMMAND ----------
 from datetime import datetime, timezone
 from pathlib import Path
-import json, shutil, sys, tempfile
+import hashlib, json, re, shutil, sys, tempfile, time
+
+task_started_monotonic = time.monotonic()
 
 for name in ("code_path", "intent_path", "plan_path", "admission_path",
              "parent_checkpoint", "qualification_intent_path",
              "qualification_output", "qualification_receipt_path",
+             "base_qualification_receipt_path",
+             "job_start_timestamp_ms",
              "expected_mode"):
     dbutils.widgets.text(name, "")
 values = {name: dbutils.widgets.get(name) for name in (
     "code_path", "intent_path", "plan_path", "admission_path", "parent_checkpoint",
     "qualification_intent_path", "qualification_output",
-    "qualification_receipt_path")}
+    "qualification_receipt_path", "base_qualification_receipt_path",
+    "job_start_timestamp_ms")}
 if not values["code_path"] or not values["intent_path"] or not values["plan_path"]:
     raise ValueError("Exact code, intent and plan paths are required")
+job_started_epoch = int(values["job_start_timestamp_ms"]) / 1000.0
+if job_started_epoch <= 0 or job_started_epoch > time.time() + 5:
+    raise ValueError("Partition job-start timestamp differs")
+intent_preview = json.loads(Path(values["intent_path"]).read_text(encoding="utf-8"))
+
+
+def _bootstrap_verify_source(root_value, authority):
+    root = Path(root_value).resolve(); manifest = authority.get("source_manifest", {})
+    payload = dict(manifest); embedded = payload.pop("manifest_sha256", None)
+    commit = authority.get("source_commit"); files = manifest.get("files")
+    canonical_bytes = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    critical = (
+        "src/__init__.py", "src/databricks_simulated_continuity.py",
+        "src/databricks_continuity_partition.py",
+        "src/databricks_continuity_partition_worker.py",
+        "src/qwen9b_ordinal_continuity_runtime.py",
+        "src/qwen9b_ordinal_continuity_training.py",
+        "src/qwen9b_ordinal_continuity_lora.py",
+        "src/qwen9b_ordinal_continuity_worker.py",
+    )
+    if (not re.fullmatch(r"[0-9a-f]{40}", str(commit or ""))
+            or not root.as_posix().endswith(f"/research4/source_releases/{commit}")
+            or authority.get("source_sha256") != embedded
+            or hashlib.sha256(canonical_bytes).hexdigest() != embedded
+            or not isinstance(files, list)):
+        raise PermissionError("Independent partition source authority differs")
+    indexed = {row.get("path"): row for row in files if isinstance(row, dict)}
+    for logical in critical:
+        row = indexed.get(logical); path = root / logical
+        if not isinstance(row, dict) or not path.is_file() or path.is_symlink():
+            raise PermissionError("Critical partition source is absent")
+        data = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace(
+            "\r", "\n").encode("utf-8")
+        if (len(data) != row.get("canonical_bytes")
+                or hashlib.sha256(data).hexdigest() != row.get("sha256")):
+            raise PermissionError("Critical partition source changed before import")
+    return embedded
+
+
+bootstrap_source_sha256 = _bootstrap_verify_source(values["code_path"], intent_preview)
 sys.path.insert(0, values["code_path"])
 
 from src.databricks_continuity_partition import run_partition
 from src.databricks_simulated_continuity import (
     GOLD_ADMISSION_TABLE, MODEL_RECEIPT, VOLUME, close_active_reservation,
-    reserve_intent, validate_intent, verify_deployed_source)
+    reserve_intent, validate_base_qualification_receipt, validate_intent,
+    verify_deployed_source)
 from src.qwen9b_ordinal_continuity_training import (
     assert_databricks_a10x1_fp16_runtime, assert_fast_deltanet_dependencies)
 
-intent_preview = json.loads(Path(values["intent_path"]).read_text())
 if intent_preview.get("plan", {}).get("mode") != dbutils.widgets.get("expected_mode"):
     raise PermissionError("Job resource does not admit this partition mode")
 intent = validate_intent(intent_preview)
 source_proof = verify_deployed_source(values["code_path"], intent)
+if source_proof["manifest_sha256"] != bootstrap_source_sha256:
+    raise PermissionError("Partition bootstrap and full source verification differ")
+if not values["base_qualification_receipt_path"]:
+    raise PermissionError("Training requires the frozen-base format gate")
+base_qualification = validate_base_qualification_receipt(json.loads(Path(
+    values["base_qualification_receipt_path"]).read_text(encoding="utf-8")))
+if (base_qualification["receipt_sha256"]
+        != intent["base_qualification_receipt_sha256"]
+        or base_qualification["base_qualification_intent_sha256"]
+           != intent["base_qualification_intent_sha256"]):
+    raise PermissionError("Training intent and frozen-base gate differ")
 
 # Provisioning and exact package installation have completed before this point.
 # Exercise imports, kernels, CUDA, A10 identity, NVML and free VRAM before the
@@ -72,6 +127,9 @@ finally:
 owner = dbutils.widgets.get("run_id")
 if not owner:
     raise ValueError("GPU reservation requires the exact Databricks run owner")
+if max(time.monotonic() - task_started_monotonic,
+       time.time() - job_started_epoch) >= intent["wall_clock_stop_seconds"]:
+    raise TimeoutError("Partition setup exhausted the reviewed envelope before reservation")
 lock_root = Path(VOLUME) / "locks"
 reserved = False
 try:
@@ -90,7 +148,11 @@ try:
         qualification_intent_path=values["qualification_intent_path"] or None,
         qualification_output=values["qualification_output"] or None,
         qualification_receipt_path=values["qualification_receipt_path"] or None,
-        code_root=values["code_path"], job_run_id=owner)
+        base_qualification_receipt_path=values[
+            "base_qualification_receipt_path"] or None,
+        code_root=values["code_path"], job_run_id=owner,
+        task_started_monotonic=task_started_monotonic,
+        job_started_epoch=job_started_epoch)
 except BaseException:
     if reserved:
         close_active_reservation(

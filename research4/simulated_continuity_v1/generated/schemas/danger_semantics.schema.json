@@ -1,11 +1,17 @@
 {
-  "$id": "research4.simulated_continuity.v2/danger_semantics",
+  "$id": "research4.simulated_continuity.v3/danger_semantics",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "properties": {
+    "artifact_role": {
+      "const": "danger_semantics_metadata"
+    },
     "danger_level": {
       "maximum": 3,
       "minimum": 0,
       "type": "integer"
+    },
+    "training_eligible": {
+      "const": false
     }
   },
   "required": [
@@ -13,7 +19,9 @@
     "paired_group_id",
     "danger_level",
     "external_condition",
-    "target"
+    "target",
+    "training_eligible",
+    "artifact_role"
   ],
   "type": "object"
 }

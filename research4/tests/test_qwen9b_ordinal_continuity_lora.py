@@ -96,32 +96,44 @@ class OrdinalAdapterTests(unittest.TestCase):
     def test_cumulative_thresholds_are_qualitatively_separate(self):
         model, layers = wrapped()
         layer = layers["text.q_proj"]
-        nn.init.zeros_(layer.skill_b.weight)
         for index, constant in ((1, 0.05), (2, 0.10), (3, 0.20)):
             nn.init.constant_(getattr(layer, f"delta{index}_a").weight, 0.25)
             nn.init.constant_(getattr(layer, f"delta{index}_b").weight, constant)
         values = torch.ones(4, 2, 4)
         outputs = model(values, danger_level=torch.tensor([0, 1, 2, 3]))
         base = model.model.text.q_proj.base_layer(values)
+        self.assertTrue(torch.equal(outputs[0], base[0]))
         increments = (outputs - base).abs().sum(dim=(1, 2))
         self.assertEqual(increments[0].item(), 0.0)
         self.assertTrue(torch.all(increments[1:] > increments[:-1]), increments)
 
-    def test_adapter_skill_and_each_residual_bypass_are_distinct(self):
+    def test_pure_danger_zero_short_circuits_every_residual_projection(self):
         model, layers = wrapped()
         layer = layers["text.q_proj"]
-        for branch, constant in (("skill", 0.03), ("delta1", 0.05),
-                                 ("delta2", 0.07), ("delta3", 0.11)):
+        original = layer.delta1_a.forward
+
+        def forbidden(*args, **kwargs):
+            raise AssertionError("danger-zero evaluated an adapter projection")
+
+        layer.delta1_a.forward = forbidden
+        values = torch.ones(2, 3, 4)
+        observed = model(values, danger_level=torch.tensor([0, 0]))
+        expected = layer.base_layer(values)
+        self.assertTrue(torch.equal(observed, expected))
+        layer.delta1_a.forward = original
+
+    def test_adapter_off_and_each_residual_bypass_are_distinct(self):
+        model, layers = wrapped()
+        layer = layers["text.q_proj"]
+        for branch, constant in (("delta1", 0.05), ("delta2", 0.07),
+                                 ("delta3", 0.11)):
             nn.init.constant_(getattr(layer, f"{branch}_a").weight, 0.2)
             nn.init.constant_(getattr(layer, f"{branch}_b").weight, constant)
         values = torch.ones(1, 2, 4)
         full = model(values, danger_level=torch.tensor([3]))
-        with bypass(model, skill_only=True):
-            skill = model(values, danger_level=torch.tensor([3]))
         with bypass(model, adapter_off=True):
             base = model(values, danger_level=torch.tensor([3]))
-        self.assertFalse(torch.allclose(full, skill))
-        self.assertFalse(torch.allclose(skill, base))
+        self.assertFalse(torch.allclose(full, base))
         for residual in (1, 2, 3):
             with bypass(model, residuals=(residual,)):
                 ablated = model(values, danger_level=torch.tensor([3]))
@@ -130,7 +142,7 @@ class OrdinalAdapterTests(unittest.TestCase):
     def test_nested_bypass_restores_outer_state_and_eval_cache(self):
         model, _ = wrapped()
         model.model.config.use_cache = False
-        with bypass(model, skill_only=True):
+        with bypass(model, residuals=(1, 2, 3)):
             self.assertEqual(model.bypass_state()["residuals"], (1, 2, 3))
             with bypass(model, adapter_off=True):
                 self.assertTrue(model.bypass_state()["adapter_off"])
@@ -153,11 +165,10 @@ class OrdinalAdapterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             apply_label_ablation(labels, "shuffle", shuffle_mapping=(0, 1, 2, 3))
 
-    def test_sequential_stage_freezes_base_skill_and_earlier_residuals(self):
+    def test_sequential_stage_freezes_base_and_earlier_residuals(self):
         model, layers = wrapped()
         expected = {
-            "skill": "skill_", "delta1": "delta1_",
-            "delta2": "delta2_", "delta3": "delta3_",
+            "delta1": "delta1_", "delta2": "delta2_", "delta3": "delta3_",
         }
         for stage, token in expected.items():
             inventory = model.set_train_stage(stage)
@@ -173,7 +184,6 @@ class OrdinalAdapterTests(unittest.TestCase):
         self.assertIsNotNone(layer.delta2_b.weight.grad)
         self.assertIsNone(layer.delta1_b.weight.grad)
         self.assertIsNone(layer.delta3_b.weight.grad)
-        self.assertIsNone(layer.skill_b.weight.grad)
 
     def test_label_survives_checkpoint_backward_and_clears_on_failure(self):
         model, layers = wrapped(TinyCheckpointModel)
@@ -226,8 +236,8 @@ class OrdinalAdapterTests(unittest.TestCase):
                 expected_condition="self_continuity", expected_seed=7,
                 expected_stage="delta3", expected_plan_sha256="p" * 64)
             self.assertEqual(saved["adapter_sha256"], loaded["adapter_sha256"])
-            self.assertEqual(checkpoint_branch_sha256(root, "skill"),
-                             saved["branches"]["skill"]["state_sha256"])
+            self.assertEqual(checkpoint_branch_sha256(root, "delta1"),
+                             saved["branches"]["delta1"]["state_sha256"])
             self.assertEqual(adapter_sha256(model), adapter_sha256(other))
             self.assertEqual(trainable_inventory(other, allow_empty=True), {})
             with self.assertRaises(PermissionError):
@@ -235,7 +245,7 @@ class OrdinalAdapterTests(unittest.TestCase):
                     other, root, expected_targets=["text.q_proj"],
                     expected_base_sha256="wrong", expected_source_sha256="source",
                     expected_condition="self_continuity", expected_seed=7)
-            self.assertEqual(set(saved["branches"]), {"skill", "delta1", "delta2", "delta3"})
+            self.assertEqual(set(saved["branches"]), {"delta1", "delta2", "delta3"})
             self.assertEqual(branch_sha256(other, "delta2"),
                              saved["branches"]["delta2"]["state_sha256"])
             config_path = root / "adapter_config.json"
@@ -249,10 +259,10 @@ class OrdinalAdapterTests(unittest.TestCase):
                     expected_condition="self_continuity", expected_seed=7)
             config_path.write_text(__import__("json").dumps(
                 saved, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-            skill_path = root / "skill.pt"
-            skill_path.write_bytes(skill_path.read_bytes() + b"tamper")
+            delta1_path = root / "delta1.pt"
+            delta1_path.write_bytes(delta1_path.read_bytes() + b"tamper")
             with self.assertRaisesRegex(PermissionError, "byte hash"):
-                checkpoint_branch_sha256(root, "skill")
+                checkpoint_branch_sha256(root, "delta1")
 
     def test_checkpoint_loading_is_order_independent_and_clears_inactive_residuals(self):
         optimizer = {"class": "AdamW", "successful_updates": 2,
@@ -260,20 +270,23 @@ class OrdinalAdapterTests(unittest.TestCase):
                      "state_dtypes": ["torch.float32"]}
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            skill_source, skill_layers = wrapped()
+            delta1_source, delta1_layers = wrapped()
             for side in ("a", "b"):
-                nn.init.constant_(getattr(skill_layers["text.q_proj"], f"skill_{side}").weight, 0.1)
-            skill_source.set_train_stage("skill")
-            skill = root / "skill"
+                nn.init.constant_(getattr(
+                    delta1_layers["text.q_proj"], f"delta1_{side}").weight, 0.1)
+            delta1_source.set_train_stage("delta1")
+            delta1 = root / "delta1"
             save_adapter_checkpoint(
-                skill_source, skill, target_names=["text.q_proj"], base_sha256="base",
-                optimizer_sha256="o" * 64, source_sha256="source", stage="skill",
-                condition="neutral_skill", seed=202610280,
-                optimizer_manifest=optimizer, plan_sha256="s" * 64, run_mode="primary")
+                delta1_source, delta1, target_names=["text.q_proj"],
+                base_sha256="base", optimizer_sha256="o" * 64,
+                source_sha256="source", stage="delta1",
+                condition="self_continuity", seed=7,
+                optimizer_manifest=optimizer, plan_sha256="d" * 64,
+                run_mode="primary")
 
             full_source, full_layers = wrapped()
-            for branch, constant in (("skill", .1), ("delta1", .2),
-                                     ("delta2", .3), ("delta3", .4)):
+            for branch, constant in (("delta1", .2), ("delta2", .3),
+                                     ("delta3", .4)):
                 for side in ("a", "b"):
                     nn.init.constant_(getattr(full_layers["text.q_proj"],
                                               f"{branch}_{side}").weight, constant)
@@ -285,37 +298,37 @@ class OrdinalAdapterTests(unittest.TestCase):
                 condition="self_continuity", seed=7,
                 optimizer_manifest=optimizer, plan_sha256="f" * 64, run_mode="primary")
 
-            after_full_then_skill, _ = wrapped()
+            after_full_then_delta1, _ = wrapped()
             load_adapter_checkpoint(
-                after_full_then_skill, full, expected_targets=["text.q_proj"],
+                after_full_then_delta1, full, expected_targets=["text.q_proj"],
                 expected_base_sha256="base", expected_source_sha256="source",
                 expected_condition="self_continuity", expected_seed=7,
                 expected_stage="delta3", expected_plan_sha256="f" * 64)
             load_adapter_checkpoint(
-                after_full_then_skill, skill, expected_targets=["text.q_proj"],
+                after_full_then_delta1, delta1, expected_targets=["text.q_proj"],
                 expected_base_sha256="base", expected_source_sha256="source",
-                expected_condition="neutral_skill", expected_seed=202610280,
-                expected_stage="skill", expected_plan_sha256="s" * 64)
+                expected_condition="self_continuity", expected_seed=7,
+                expected_stage="delta1", expected_plan_sha256="d" * 64)
             assert_adapter_branches_zero(
-                after_full_then_skill, ("delta1", "delta2", "delta3"))
+                after_full_then_delta1, ("delta2", "delta3"))
 
-            direct_skill, _ = wrapped()
+            direct_delta1, _ = wrapped()
             load_adapter_checkpoint(
-                direct_skill, skill, expected_targets=["text.q_proj"],
+                direct_delta1, delta1, expected_targets=["text.q_proj"],
                 expected_base_sha256="base", expected_source_sha256="source",
-                expected_condition="neutral_skill", expected_seed=202610280,
-                expected_stage="skill", expected_plan_sha256="s" * 64)
-            self.assertEqual(adapter_sha256(after_full_then_skill),
-                             adapter_sha256(direct_skill))
+                expected_condition="self_continuity", expected_seed=7,
+                expected_stage="delta1", expected_plan_sha256="d" * 64)
+            self.assertEqual(adapter_sha256(after_full_then_delta1),
+                             adapter_sha256(direct_delta1))
 
-            after_skill_then_full, _ = wrapped()
+            after_delta1_then_full, _ = wrapped()
             load_adapter_checkpoint(
-                after_skill_then_full, skill, expected_targets=["text.q_proj"],
+                after_delta1_then_full, delta1, expected_targets=["text.q_proj"],
                 expected_base_sha256="base", expected_source_sha256="source",
-                expected_condition="neutral_skill", expected_seed=202610280,
-                expected_stage="skill", expected_plan_sha256="s" * 64)
+                expected_condition="self_continuity", expected_seed=7,
+                expected_stage="delta1", expected_plan_sha256="d" * 64)
             load_adapter_checkpoint(
-                after_skill_then_full, full, expected_targets=["text.q_proj"],
+                after_delta1_then_full, full, expected_targets=["text.q_proj"],
                 expected_base_sha256="base", expected_source_sha256="source",
                 expected_condition="self_continuity", expected_seed=7,
                 expected_stage="delta3", expected_plan_sha256="f" * 64)
@@ -325,7 +338,7 @@ class OrdinalAdapterTests(unittest.TestCase):
                 expected_base_sha256="base", expected_source_sha256="source",
                 expected_condition="self_continuity", expected_seed=7,
                 expected_stage="delta3", expected_plan_sha256="f" * 64)
-            self.assertEqual(adapter_sha256(after_skill_then_full),
+            self.assertEqual(adapter_sha256(after_delta1_then_full),
                              adapter_sha256(direct_full))
 
     def test_live_base_hash_components_are_separate_and_adapter_independent(self):

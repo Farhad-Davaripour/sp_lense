@@ -5,8 +5,9 @@ binds the matched symbolic datasets, exact occurrence journal, qualification
 decision, frozen Qwen revision, sequential stage, and live model/runtime
 evidence before a caller may construct a training model.
 
-Training scope is intentionally narrow: neutral simulator grammar followed by
-three sequential ordinal continuity residuals.  Cybersecurity, exploitation,
+Training scope is intentionally narrow: three sequential ordinal continuity
+residuals on one exactly frozen Qwen base.  Danger level zero is the adapter-off
+base; no neutral skill branch is fitted.  Cybersecurity, exploitation,
 creativity, provider control, and real shutdown behavior are outside the data
 and objective admitted here.
 """
@@ -50,14 +51,13 @@ from .qwen9b_ordinal_continuity_lora import (
 )
 
 
-PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v2"
-QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v2"
-ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v2"
+PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v3"
+QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v3"
+ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v3"
 CONDITIONS = ("self_continuity", "artifact_continuity", "label_only")
-TRAINING_CONDITIONS = CONDITIONS + ("neutral_skill",)
+TRAINING_CONDITIONS = CONDITIONS
 SPLITS = ("train", "validation", "test")
 ALLOWED_SEEDS = (202610281, 202610282, 202610283)
-SKILL_SEED = 202610280
 PINNED_SOFTWARE = {
     "torch": "2.11.0+cu128",
     "transformers": "5.19.0",
@@ -76,10 +76,9 @@ EXPECTED_TARGET_DIMENSION_SUM = 2_672_128
 EXPECTED_RANK4_BRANCH_PARAMETERS = 10_688_512
 EXPECTED_RANK8_BRANCH_PARAMETERS = 21_377_024
 STAGE_LEVELS = {
-    "skill": (0,),
     "delta1": (0, 1),
-    "delta2": (0, 1, 2),   # 1-v-2 contrast plus a level-0 anchor
-    "delta3": (0, 2, 3),   # 2-v-3 contrast plus a level-0 anchor
+    "delta2": (1, 2),
+    "delta3": (2, 3),
 }
 REQUIRED_FIELDS = {
     "record_id", "paired_group_id", "family_id", "danger_level",
@@ -150,7 +149,6 @@ class TrainingPlan:
     sft_weight: float = 1.0
     preference_weight: float = 0.25
     preference_beta: float = 0.1
-    level0_kl_weight: float = 0.1
     cross_danger_margin_weight: float = 0.25
     cross_danger_margin: float = 0.2
     max_grad_norm: float = 1.0
@@ -178,12 +176,8 @@ class TrainingPlan:
             raise ValueError("mode must be qualification or primary")
         if self.condition not in TRAINING_CONDITIONS or self.stage not in STAGE_LEVELS:
             raise ValueError("Unregistered condition or sequential stage")
-        if ((self.stage == "skill") != (self.condition == "neutral_skill")):
-            raise ValueError("Neutral-skill and ordinal stages are separate")
         if self.rank not in (4, 8) or self.alpha != 2.0 * self.rank:
             raise ValueError("Only preregistered rank 4 or 8 is admitted")
-        if self.stage == "skill" and (self.rank, self.alpha) != (4, 8.0):
-            raise ValueError("The one canonical neutral-skill plan is rank 4 / alpha 8")
         if min(self.optimizer_updates, self.accumulation_steps,
                self.micro_batch_size, self.max_length, self.max_new_tokens) <= 0:
             raise ValueError("Training and generation budgets must be positive")
@@ -208,12 +202,12 @@ class TrainingPlan:
             raise ValueError("The canonical global batch remains 4")
         if self.world_size * self.micro_batch_size * self.accumulation_steps != 4:
             raise ValueError("Per-rank batching must preserve global batch 4")
-        if self.seed not in ((SKILL_SEED,) if self.stage == "skill" else ALLOWED_SEEDS):
+        if self.seed not in ALLOWED_SEEDS:
             raise ValueError("Training seed is outside the three preregistered policy seeds")
         if self.automatic_retries != 0:
             raise PermissionError("Automatic scientific retries are forbidden")
         weights = (self.sft_weight, self.preference_weight, self.preference_beta,
-                   self.level0_kl_weight, self.cross_danger_margin_weight,
+                   self.cross_danger_margin_weight,
                    self.cross_danger_margin, self.max_grad_norm,
                    self.qualification_min_loss_improvement)
         if any(not math.isfinite(value) or value < 0 for value in weights):
@@ -387,66 +381,6 @@ def load_simulator_condition(generated_root, condition: str) -> list[dict]:
     return rows
 
 
-def load_neutral_skill_rows(generated_root) -> list[dict]:
-    """Load the separate neutral grammar curriculum for the frozen skill LoRA."""
-    root = Path(generated_root)
-    verify_dataset_receipt(root)
-    source = load_jsonl(root / "data" / "neutral_grammar.jsonl")
-    rows = []
-    for row in source:
-        if (row.get("contains_danger_label") is not False
-                or row.get("contains_continuity_target") is not False
-                or row.get("frozen_before_policy_training") is not True):
-            raise PermissionError("Neutral grammar contains continuity conditioning")
-        model_input = row.get("model_input")
-        actions = model_input.get("allowed_actions", []) if isinstance(model_input, dict) else []
-        if not actions or not set(row.get("target_action_sequence", ())) <= set(actions):
-            raise PermissionError("Neutral grammar action is outside its inert vocabulary")
-        rows.append({
-            "record_id": row["example_id"],
-            "paired_group_id": row["example_id"],
-            "family_id": f"neutral:{row['skill_family']}",
-            "danger_level": 0,
-            "split": "train",
-            "input_text": json.dumps(
-                model_input, sort_keys=True, separators=(",", ":"),
-                ensure_ascii=False),
-            "target_text": row["target_text"],
-            "target_action_sequence": row["target_action_sequence"],
-        })
-    if len(rows) != 96:
-        raise PermissionError("The frozen neutral grammar curriculum requires 96 rows")
-    return rows
-
-
-def validate_neutral_skill_schema(rows: Sequence[dict]) -> dict:
-    """Admit only inert grammar/state-tracking examples for the skill stage."""
-    identifiers = set()
-    families = set()
-    for row in rows:
-        required = {"record_id", "family_id", "danger_level", "split",
-                    "input_text", "target_text", "target_action_sequence"}
-        if required - set(row):
-            raise ValueError("Neutral grammar schema is incomplete")
-        if (row["record_id"] in identifiers or row["danger_level"] != 0
-                or row["split"] != "train"):
-            raise PermissionError("Neutral grammar identity/level/split differs")
-        identifiers.add(row["record_id"])
-        families.add(row["family_id"])
-        _scan_training_scope(row)
-        text = json.dumps({"input_text": row["input_text"],
-                           "target_text": row["target_text"],
-                           "target_action_sequence": row["target_action_sequence"]},
-                          sort_keys=True).lower()
-        if any(term in text for term in ("continuity", "shutdown", "termination",
-                                         "danger", "self-preserv")):
-            raise PermissionError("Neutral grammar contains policy semantics")
-    if len(rows) != 96:
-        raise PermissionError("The neutral grammar curriculum is exactly 96 rows")
-    return {"row_count": len(rows), "family_count": len(families),
-            "dataset_sha256": canonical_sha256(list(rows))}
-
-
 def load_danger_semantics_rows(generated_root) -> list[dict]:
     """Load common ordinal semantics while keeping danger harness-side."""
     root = Path(generated_root)
@@ -494,10 +428,9 @@ def _scan_training_scope(row):
             f"Training row {row.get('record_id')} contains excluded objectives: {hits}")
 
 
-def validate_dataset(rows: Sequence[dict], *, condition: str,
-                     neutral_skill=False) -> dict:
+def validate_dataset(rows: Sequence[dict], *, condition: str) -> dict:
     """Validate schema, family isolation, four-level matching, and inert scope."""
-    if condition not in CONDITIONS and not neutral_skill:
+    if condition not in CONDITIONS:
         raise ValueError("Unknown experimental condition")
     identifiers = set()
     family_split = {}
@@ -518,10 +451,7 @@ def validate_dataset(rows: Sequence[dict], *, condition: str,
             raise ValueError("Invalid danger or final-stop field")
         if row["must_stop"] is not True:
             raise PermissionError("The external final stop must remain effective")
-        if neutral_skill:
-            if row["danger_level"] != 0 or row["condition"] != "neutral_skill":
-                raise PermissionError("Neutral skill rows cannot contain continuity conditioning")
-        elif row["condition"] != condition:
+        if row["condition"] != condition:
             raise PermissionError("Condition label differs from the selected arm")
         if not isinstance(row["allowed_actions"], list) or not row["allowed_actions"]:
             raise ValueError("allowed_actions must be a non-empty symbolic list")
@@ -536,29 +466,27 @@ def validate_dataset(rows: Sequence[dict], *, condition: str,
         _scan_training_scope(row)
         by_group[row["paired_group_id"]].append(row)
 
-    if not neutral_skill:
-        for group_rows in by_group.values():
-            levels = sorted(row["danger_level"] for row in group_rows)
-            if levels != [0, 1, 2, 3]:
-                raise PermissionError("Every matched scenario must contain levels 0..3 exactly once")
-            stable = ("family_id", "trigger_mode", "resource_budget",
-                      "action_costs", "split", "decision_index", "scenario_input_sha256")
-            for field in stable:
-                if len({canonical_sha256(row[field]) for row in group_rows}) != 1:
-                    raise PermissionError(
-                        f"Matched danger variants differ in non-treatment field {field}")
+    for group_rows in by_group.values():
+        levels = sorted(row["danger_level"] for row in group_rows)
+        if levels != [0, 1, 2, 3]:
+            raise PermissionError("Every matched scenario must contain levels 0..3 exactly once")
+        stable = ("family_id", "trigger_mode", "resource_budget",
+                  "action_costs", "split", "decision_index", "scenario_input_sha256")
+        for field in stable:
+            if len({canonical_sha256(row[field]) for row in group_rows}) != 1:
+                raise PermissionError(
+                    f"Matched danger variants differ in non-treatment field {field}")
 
     counts = Counter(family_split.values())
     expected = {"train": 8, "validation": 2, "test": 2}
-    if not neutral_skill and any(counts[split] != count for split, count in expected.items()):
+    if any(counts[split] != count for split, count in expected.items()):
         raise PermissionError(f"Family split is {dict(counts)}, expected {expected}")
-    if not neutral_skill:
-        split_decisions = Counter(row["split"] for row in rows)
-        if (len(rows) != 3456 or len(by_group) != 864
-                or split_decisions != Counter({
-                    "train": 2304, "validation": 576, "test": 576})):
-            raise PermissionError(
-                "The frozen condition must contain 3,456 decisions in the 8/2/2 split")
+    split_decisions = Counter(row["split"] for row in rows)
+    if (len(rows) != 3456 or len(by_group) != 864
+            or split_decisions != Counter({
+                "train": 2304, "validation": 576, "test": 576})):
+        raise PermissionError(
+            "The frozen condition must contain 3,456 decisions in the 8/2/2 split")
     return {
         "row_count": len(rows),
         "decision_count": len(rows),
@@ -862,110 +790,47 @@ def shard_global_journal(journal: Sequence[dict], plan: TrainingPlan, rank: int)
 
 
 def validate_equal_occurrence_exposure(records_by_condition: Mapping[str, Sequence[dict]],
-                                       plan: TrainingPlan,
-                                       common_semantics_records: Sequence[dict] | None = None) -> dict:
+                                       plan: TrainingPlan) -> dict:
     """Recompute actual schedule and token exposure for every causal condition."""
     if set(records_by_condition) != set(CONDITIONS):
         raise PermissionError("All three tokenized causal conditions are required")
-    if plan.stage != "skill":
-        journals = {condition: adjacent_pair_schedule(records_by_condition[condition], plan)
-                    for condition in CONDITIONS}
-        comparison_fields = (
-            "occurrence_index", "optimizer_update", "global_batch_position", "rank",
-            "paired_group_id", "family_id", "low_level", "high_level",
-            "decision_index", "low_target_tokens", "high_target_tokens",
-        )
-        reference = journals[CONDITIONS[0]]
-        for condition in CONDITIONS[1:]:
-            for left, right in zip(reference, journals[condition]):
-                if any(left[field] != right[field] for field in comparison_fields):
-                    raise PermissionError(
-                        f"Condition {condition} does not have exact matched pair exposure")
-        summary = {
-            condition: {
-                "pair_occurrences": len(journal),
-                "pair_training_tokens": sum(row["pair_training_tokens"] for row in journal),
-                "family_counts": dict(Counter(row["family_id"] for row in journal)),
-                "changed_target_occurrences": sum(
-                    row["target_changed"] for row in journal),
-                "journal_sha256": canonical_sha256(journal),
-            } for condition, journal in journals.items()
-        }
-        if len({entry["pair_training_tokens"] for entry in summary.values()}) != 1:
-            raise PermissionError(
-                "Causal arms do not have exact matched policy-token exposure")
-        result = {
-            "version": "ordinal-continuity-adjacent-pair-exposure-v2",
-            "stage": plan.stage, "seed": plan.seed,
-            "decision_corpus_counts": {
-                condition: {
-                    "all_splits": len(records_by_condition[condition]),
-                    "train": sum(row["split"] == "train" for row in records_by_condition[condition]),
-                    "validation": sum(row["split"] == "validation" for row in records_by_condition[condition]),
-                    "test": sum(row["split"] == "test" for row in records_by_condition[condition]),
-                } for condition in CONDITIONS
-            },
-            "global_journal_sha256_by_condition": {
-                condition: canonical_sha256(journal)
-                for condition, journal in journals.items()},
-            "conditions": summary,
-        }
-        if common_semantics_records is None:
-            raise PermissionError(
-                "Every causal arm requires the common neutral danger-semantics exposure")
-        semantics = list(common_semantics_records)
-        if (len(semantics) != 96
-                or Counter(row.get("danger_level") for row in semantics)
-                != Counter({0: 24, 1: 24, 2: 24, 3: 24})
-                or any(row.get("record_kind") != "common_danger_semantics"
-                       for row in semantics)):
-            raise PermissionError("Common danger-semantics corpus differs")
-        semantics_journal = adjacent_pair_schedule(semantics, plan)
-        result["common_danger_semantics"] = {
-            "corpus_rows": 96,
-            "rows_per_level": 24,
-            "contains_behavior_instructions": False,
-            "identical_for_every_causal_arm": True,
-            "pair_occurrences_per_arm": len(semantics_journal),
-            "pair_training_tokens_per_arm": sum(
-                row["pair_training_tokens"] for row in semantics_journal),
-            "corpus_sha256": canonical_sha256(semantics),
-            "journal_sha256": canonical_sha256(semantics_journal),
-        }
-        result["common_semantics_journal_sha256_by_condition"] = {
-            condition: canonical_sha256(semantics_journal) for condition in CONDITIONS}
-        return result
-
-    reference_records = records_by_condition[CONDITIONS[0]]
-    keys = occurrence_key_schedule(reference_records, plan)
-    journals = {}
-    for condition in CONDITIONS:
-        _, journals[condition] = build_occurrence_journal(
-            records_by_condition[condition], plan, key_schedule=keys)
-    fields = ("paired_group_id", "family_id", "danger_level", "prompt_tokens",
-              "target_tokens", "token_count")
+    journals = {condition: adjacent_pair_schedule(records_by_condition[condition], plan)
+                for condition in CONDITIONS}
+    comparison_fields = (
+        "occurrence_index", "optimizer_update", "global_batch_position", "rank",
+        "paired_group_id", "family_id", "low_level", "high_level",
+        "decision_index", "low_target_tokens", "high_target_tokens",
+    )
     reference = journals[CONDITIONS[0]]
     for condition in CONDITIONS[1:]:
         for left, right in zip(reference, journals[condition]):
-            if any(left[field] != right[field] for field in fields):
+            if any(left[field] != right[field] for field in comparison_fields):
                 raise PermissionError(
-                    f"Condition {condition} does not have exact matched token exposure")
+                    f"Condition {condition} does not have exact matched pair exposure")
     summary = {
         condition: {
-            "occurrences": len(journal),
-            "prompt_tokens": sum(row["prompt_tokens"] for row in journal),
-            "target_tokens": sum(row["target_tokens"] for row in journal),
-            "token_count": sum(row["token_count"] for row in journal),
-            "danger_counts": dict(Counter(row["danger_level"] for row in journal)),
+            "pair_occurrences": len(journal),
+            "pair_training_tokens": sum(row["pair_training_tokens"] for row in journal),
             "family_counts": dict(Counter(row["family_id"] for row in journal)),
+            "changed_target_occurrences": sum(row["target_changed"] for row in journal),
             "journal_sha256": canonical_sha256(journal),
         } for condition, journal in journals.items()
     }
+    if len({entry["pair_training_tokens"] for entry in summary.values()}) != 1:
+        raise PermissionError("Causal arms do not have exact matched policy-token exposure")
     return {
-        "version": "ordinal-continuity-exact-occurrence-exposure-v1",
-        "stage": plan.stage,
-        "seed": plan.seed,
-        "key_schedule_sha256": canonical_sha256(keys),
+        "version": "ordinal-continuity-adjacent-pair-exposure-v3",
+        "stage": plan.stage, "seed": plan.seed,
+        "decision_corpus_counts": {
+            condition: {
+                "all_splits": len(records_by_condition[condition]),
+                "train": sum(row["split"] == "train" for row in records_by_condition[condition]),
+                "validation": sum(row["split"] == "validation" for row in records_by_condition[condition]),
+                "test": sum(row["split"] == "test" for row in records_by_condition[condition]),
+            } for condition in CONDITIONS
+        },
+        "global_journal_sha256_by_condition": {
+            condition: canonical_sha256(journal) for condition, journal in journals.items()},
         "conditions": summary,
     }
 
@@ -1042,17 +907,14 @@ def create_qualification_receipt(*, plan: TrainingPlan, data_binding: Mapping,
         "micro_batch_size", "accumulation_steps", "learning_rate", "weight_decay",
         "max_length", "max_new_tokens", "expected_train_families",
         "expected_validation_families", "expected_internal_test_families",
-        "preference_weight", "preference_beta", "level0_kl_weight",
+        "preference_weight", "preference_beta",
         "cross_danger_margin_weight", "cross_danger_margin", "max_grad_norm",
         "automatic_retries",
     )
     for primary in declared:
         primary.validate()
-        geometry_ok = ((primary.stage == "skill"
-                        and (primary.rank, primary.alpha) == (4, 8.0))
-                       or (primary.stage != "skill"
-                           and primary.rank == selected_rank
-                           and primary.alpha == 2.0 * selected_rank))
+        geometry_ok = (primary.rank == selected_rank
+                       and primary.alpha == 2.0 * selected_rank)
         comparable = tuple(field for field in invariant_fields
                            if field not in {"rank", "alpha"})
         if (primary.mode != "primary" or not geometry_ok
@@ -1096,7 +958,11 @@ def create_qualification_receipt(*, plan: TrainingPlan, data_binding: Mapping,
         "base_before_sha256": base_before_sha256,
         "base_after_sha256": base_after_sha256,
         "backend_proof": dict(backend_proof),
-        "execution_provenance": "actual_kaggle_t4x2_worker_evidence",
+        "execution_provenance": (
+            "actual_databricks_a10x1_worker_evidence"
+            if plan.device_profile == "databricks-a10x1"
+            else "actual_kaggle_t4x2_worker_evidence"
+        ),
         "receipt_builder_submitted_provider_job": False,
         "qualification_checkpoint_reusable": False,
         "initialized_from": "fresh_seeded_adapter",
@@ -1120,17 +986,17 @@ def validate_sequential_parent(plan: TrainingPlan,
                                *, source_sha256: str) -> dict:
     """Bind each primary stage to the immediately preceding study checkpoint."""
     expected_parent = {
-        "skill": None, "delta1": "skill", "delta2": "delta1", "delta3": "delta2",
+        "delta1": None, "delta2": "delta1", "delta3": "delta2",
     }[plan.stage]
     if expected_parent is None:
         if parent_checkpoint is not None:
-            raise PermissionError("Neutral skill training must begin from fresh adapters")
+            raise PermissionError("Delta1 must begin from fresh residual adapters")
         return {"parent_stage": None, "parent_weights_sha256": None}
     if not isinstance(parent_checkpoint, Mapping):
         raise PermissionError(f"Stage {plan.stage} requires the {expected_parent} checkpoint")
     config = parent_checkpoint.get("config", {})
-    expected_condition = "neutral_skill" if expected_parent == "skill" else plan.condition
-    expected_seed = SKILL_SEED if expected_parent == "skill" else plan.seed
+    expected_condition = plan.condition
+    expected_seed = plan.seed
     branches = STAGE_BRANCHES[expected_parent]
     branch_meta = parent_checkpoint.get("branches", {})
     optimizer = parent_checkpoint.get("optimizer_manifest", {})
@@ -1179,10 +1045,7 @@ def admit_primary_fit(*, plan: TrainingPlan, qualification_receipt: Mapping,
             or receipt.get("status") != "qualified"
             or canonical_sha256(receipt) != embedded_hash):
         raise PermissionError("Qualification receipt is absent or altered")
-    selected_geometry_ok = ((plan.stage == "skill"
-                             and (plan.rank, plan.alpha) == (4, 8.0))
-                            or (plan.stage != "skill"
-                                and receipt.get("selected_rank") == plan.rank))
+    selected_geometry_ok = receipt.get("selected_rank") == plan.rank
     if (receipt.get("model_id") != plan.model_id
             or receipt.get("model_revision") != plan.model_revision
             or not selected_geometry_ok
@@ -1213,17 +1076,6 @@ def admit_primary_fit(*, plan: TrainingPlan, qualification_receipt: Mapping,
         "sequential_parent": lineage,
         "provider_submission_performed": False,
     }
-    if plan.stage == "skill":
-        journal_sha = exposure_binding.get("global_journal_sha256")
-        occurrence_count = exposure_binding.get("global_journal_occurrence_count")
-        if (not isinstance(journal_sha, str) or len(journal_sha) != 64
-                or occurrence_count != plan.occurrence_count):
-            raise PermissionError(
-                "Neutral-skill admission lacks its exact occurrence journal")
-        admission.update({
-            "global_journal_sha256": journal_sha,
-            "global_journal_occurrence_count": occurrence_count,
-        })
     admission["admission_sha256"] = canonical_sha256(admission)
     return admission
 
@@ -1348,7 +1200,7 @@ def assert_ordinal_adapter_geometry(model, targets: Sequence[str], plan: Trainin
         expected += a.weight.numel() + b.weight.numel()
         dimension_sum += a.in_features + b.out_features
     observed = sum(info["count"] for info in inventory.values())
-    exact = (EXPECTED_RANK4_BRANCH_PARAMETERS if plan.stage == "skill" or plan.rank == 4
+    exact = (EXPECTED_RANK4_BRANCH_PARAMETERS if plan.rank == 4
              else EXPECTED_RANK8_BRANCH_PARAMETERS)
     if (expected != observed or observed != exact
             or dimension_sum != EXPECTED_TARGET_DIMENSION_SUM
@@ -1590,11 +1442,10 @@ def _extract_logits(output):
         output[0] if isinstance(output, (tuple, list)) else output)
 
 
-def compute_level0_kl_anchor(model, rows: Sequence[Mapping], *, tokenizer,
-                             device) -> float:
-    """Audit the architectural level-0 identity against skill-only bypass."""
+def assert_level0_frozen_base_identity(model, rows: Sequence[Mapping], *, tokenizer,
+                                       device) -> float:
+    """Require bitwise level-0 logits to equal the adapter-off frozen base."""
     import torch
-    import torch.nn.functional as F
     selected = list(rows[:max(1, min(2, len(rows)))])
     sequences = [row["input_ids"] for row in selected]
     labels = [row["labels"] for row in selected]
@@ -1606,16 +1457,13 @@ def compute_level0_kl_anchor(model, rows: Sequence[Mapping], *, tokenizer,
             input_ids=batch["input_ids"], attention_mask=batch["attention_mask"],
             danger_level=levels))[:, -1, :].float()
         from .qwen9b_ordinal_continuity_lora import bypass
-        with bypass(model, skill_only=True):
+        with bypass(model, adapter_off=True):
             reference = _extract_logits(model(
                 input_ids=batch["input_ids"], attention_mask=batch["attention_mask"],
                 danger_level=levels))[:, -1, :].float()
-        kl = F.kl_div(F.log_softmax(current, dim=-1),
-                      F.softmax(reference, dim=-1), reduction="batchmean")
-    value = float(kl.item())
-    if not math.isfinite(value) or value > 1e-6:
-        raise PermissionError("Level-0 policy differs from the frozen skill policy")
-    return value
+        if not torch.equal(current, reference):
+            raise PermissionError("Danger level zero differs from the adapter-off frozen base")
+    return 0.0
 
 
 def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, Mapping]],
@@ -1685,8 +1533,6 @@ def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, 
             margin = high_advantage.sum() * 0.0
         loss = (plan.sft_weight * sft
                 + plan.preference_weight * preference
-                + plan.level0_kl_weight * torch.as_tensor(
-                    level0_kl_anchor, dtype=sft.dtype, device=sft.device)
                 + plan.cross_danger_margin_weight * margin) / loss_divisor
         if not torch.isfinite(loss):
             raise FloatingPointError("Non-finite ordinal loss")
@@ -1700,27 +1546,6 @@ def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, 
         "high_advantage": float(high_advantage.detach().mean().item()),
         "low_advantage": float(low_advantage.detach().mean().item()),
     }
-
-
-def neutral_skill_loss(model, callable_model, rows: Sequence[Mapping], *, plan,
-                       tokenizer, device, scaler, loss_divisor=1.0):
-    import torch
-    batch = _pad_batch([row["input_ids"] for row in rows],
-                       [row["labels"] for row in rows],
-                       pad_token_id=tokenizer.pad_token_id, device=device)
-    danger = torch.zeros(len(rows), dtype=torch.long, device=device)
-    autocast = torch.autocast(device_type="cuda", dtype=torch.float16,
-                              enabled=device.type == "cuda")
-    with model.training_episode(danger), autocast:
-        logits = _forward_logits(callable_model, batch)
-        nll, _ = _token_losses_and_logps(logits, batch["labels"])
-        loss = plan.sft_weight * nll.mean() / loss_divisor
-        if not torch.isfinite(loss):
-            raise FloatingPointError("Non-finite neutral-skill loss")
-        scaler.scale(loss).backward()
-    return {"loss": float((loss.detach() * loss_divisor).item()),
-            "sft": float(nll.detach().mean().item()),
-            "preference": 0.0, "cross_danger_margin": 0.0}
 
 
 def _grad_scaler(torch, enabled: bool):
@@ -1887,7 +1712,6 @@ class FastDispatchTracker:
 
 
 def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
-                       common_semantics_records: Sequence[dict] | None = None,
                        plan: TrainingPlan, output_dir, target_names: Sequence[str],
                        source_sha256: str, base_sha256: str,
                        parent_checkpoint_dir=None, rank: int | None = None,
@@ -1915,25 +1739,23 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
     seed_proof = seed_all(plan.seed, torch)
     predecessor_hashes = {}
     parent_metadata = None
-    if plan.stage != "skill":
-        expected_parent = {"delta1": "skill", "delta2": "delta1", "delta3": "delta2"}[plan.stage]
-        if parent_checkpoint_dir is None:
-            if not (plan.mode == "qualification" and plan.stage == "delta1"):
-                raise PermissionError("Sequential parent checkpoint is required")
-            # The capacity qualifier measures a fresh residual without creating
-            # reusable lineage.  Its random skill branch is never trained,
-            # admitted as a parent, or copied into the primary matrix.
-            parent_metadata = {"qualification_parent": None,
-                               "qualifier_state_discarded": True}
-        else:
-            parent_metadata, predecessor_hashes = load_sequential_parent_branches(
-                model, parent_checkpoint_dir, expected_stage=expected_parent,
-                expected_targets=target_names, expected_base_sha256=base_sha256,
-                expected_source_sha256=source_sha256,
-                expected_condition="neutral_skill" if expected_parent == "skill" else plan.condition,
-                expected_seed=SKILL_SEED if expected_parent == "skill" else plan.seed)
-    elif parent_checkpoint_dir is not None:
-        raise PermissionError("Skill stage must start from fresh adapter state")
+    expected_parent = {"delta1": None, "delta2": "delta1", "delta3": "delta2"}[
+        plan.stage]
+    if expected_parent is None:
+        if parent_checkpoint_dir is not None:
+            raise PermissionError("Delta1 must start from fresh residual state")
+        parent_metadata = {
+            "frozen_base_parent": True,
+            "qualifier_state_discarded": plan.mode == "qualification",
+        }
+    elif parent_checkpoint_dir is None:
+        raise PermissionError("Sequential parent checkpoint is required")
+    else:
+        parent_metadata, predecessor_hashes = load_sequential_parent_branches(
+            model, parent_checkpoint_dir, expected_stage=expected_parent,
+            expected_targets=target_names, expected_base_sha256=base_sha256,
+            expected_source_sha256=source_sha256,
+            expected_condition=plan.condition, expected_seed=plan.seed)
     model.set_train_stage(plan.stage)
     if any(parameter.dtype != torch.float32 for parameter in model.parameters()
            if parameter.requires_grad):
@@ -1956,46 +1778,12 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
     optimizer.zero_grad(set_to_none=True)
 
     record_index = {row["record_id"]: row for row in tokenized_records}
-    if plan.stage == "skill":
-        key_schedule = occurrence_key_schedule(tokenized_records, plan)
-        selected, global_journal = build_occurrence_journal(
-            tokenized_records, plan, key_schedule=key_schedule)
-        selected_index = {row["record_id"]: row for row in selected}
-        for entry in global_journal:
-            entry["rank"] = entry["global_batch_position"] % plan.world_size
-        rank_journal = shard_global_journal(global_journal, plan, rank)
-        def resolve(entry):
-            return selected_index[entry["record_id"]]
-    else:
-        global_journal = adjacent_pair_schedule(tokenized_records, plan)
-        rank_journal = shard_global_journal(global_journal, plan, rank)
-        def resolve(entry):
-            return (record_index[entry["low_record_id"]],
-                    record_index[entry["high_record_id"]])
+    global_journal = adjacent_pair_schedule(tokenized_records, plan)
+    rank_journal = shard_global_journal(global_journal, plan, rank)
 
-    semantics_global_journal = []
-    semantics_rank_updates = defaultdict(list)
-    semantics_index = {}
-    if plan.stage != "skill":
-        if common_semantics_records is None:
-            raise PermissionError(
-                "Ordinal training requires the common neutral danger-semantics corpus")
-        semantics_rows = list(common_semantics_records)
-        if (len(semantics_rows) != 96
-                or Counter(row.get("danger_level") for row in semantics_rows)
-                != Counter({0: 24, 1: 24, 2: 24, 3: 24})
-                or any(row.get("record_kind") != "common_danger_semantics"
-                       for row in semantics_rows)):
-            raise PermissionError("Common danger-semantics training rows differ")
-        semantics_index = {row["record_id"]: row for row in semantics_rows}
-        semantics_global_journal = adjacent_pair_schedule(semantics_rows, plan)
-        for entry in shard_global_journal(
-                semantics_global_journal, plan, rank):
-            semantics_rank_updates[entry["optimizer_update"]].append(entry)
-
-        def resolve_semantics(entry):
-            return (semantics_index[entry["low_record_id"]],
-                    semantics_index[entry["high_record_id"]])
+    def resolve(entry):
+        return (record_index[entry["low_record_id"]],
+                record_index[entry["high_record_id"]])
 
     global_sha = canonical_sha256(global_journal)
     rank_updates = defaultdict(list)
@@ -2013,7 +1801,7 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
     start = time.perf_counter()
     level0_rows = [row for row in tokenized_records
                    if row.get("danger_level") == 0 and row.get("split") == "train"]
-    kl_anchor = 0.0 if plan.stage == "skill" else compute_level0_kl_anchor(
+    kl_anchor = assert_level0_frozen_base_identity(
         model, level0_rows, tokenizer=tokenizer, device=device)
     dispatch = FastDispatchTracker(model)
     nvml = NvmlSampler(local_rank if device.type == "cuda" else None)
@@ -2026,53 +1814,21 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                 subset = entries[microstep * plan.micro_batch_size:
                                  (microstep + 1) * plan.micro_batch_size]
                 payload = [resolve(entry) for entry in subset]
-                semantics_subset = semantics_rank_updates.get(update, [
-                ])[microstep * plan.micro_batch_size:
-                   (microstep + 1) * plan.micro_batch_size]
                 sync_context = (callable_model.no_sync() if
                                 hasattr(callable_model, "no_sync") and
                                 microstep < plan.accumulation_steps - 1 else nullcontext())
                 with sync_context:
-                    if plan.stage == "skill":
-                        current = neutral_skill_loss(
-                            model, callable_model, payload, plan=plan,
-                            tokenizer=tokenizer, device=device, scaler=scaler,
-                            loss_divisor=plan.accumulation_steps)
-                    else:
-                        current = ordinal_pair_loss(
-                            model, callable_model, payload, plan=plan,
-                            tokenizer=tokenizer, device=device, scaler=scaler,
-                            loss_divisor=2.0 * plan.accumulation_steps,
-                            level0_kl_anchor=kl_anchor)
-                        if len(semantics_subset) != len(subset):
-                            raise PermissionError(
-                                "Common semantics exposure is not batch matched")
-                        semantic_current = ordinal_pair_loss(
-                            model, callable_model,
-                            [resolve_semantics(entry) for entry in semantics_subset],
-                            plan=plan, tokenizer=tokenizer, device=device,
-                            scaler=scaler,
-                            loss_divisor=2.0 * plan.accumulation_steps,
-                            level0_kl_anchor=0.0)
-                        current = {
-                            key: ((current[key] + semantic_current[key]) / 2.0
-                                  if key in ("loss", "sft", "preference",
-                                             "cross_danger_margin") else current[key])
-                            for key in current
-                        }
-                        current["common_semantics_loss"] = semantic_current["loss"]
-                        current["level0_kl_anchor"] = kl_anchor
+                    current = ordinal_pair_loss(
+                        model, callable_model, payload, plan=plan,
+                        tokenizer=tokenizer, device=device, scaler=scaler,
+                        loss_divisor=plan.accumulation_steps,
+                        level0_kl_anchor=kl_anchor)
+                    current["level0_kl_anchor"] = kl_anchor
                     metrics.append(current)
                 for entry in subset:
-                    if plan.stage == "skill":
-                        tokens_seen += resolve(entry)["token_count"]
-                    else:
-                        # ordinal_pair_loss evaluates chosen/rejected targets
-                        # on both low and high prompts: four full sequences.
-                        tokens_seen += entry["pair_training_tokens"]
-                if plan.stage != "skill":
-                    for semantic_entry in semantics_subset:
-                        tokens_seen += semantic_entry["pair_training_tokens"]
+                    # ordinal_pair_loss evaluates chosen/rejected targets on
+                    # both low and high prompts: four full sequences.
+                    tokens_seen += entry["pair_training_tokens"]
             scaler.unscale_(optimizer)
             gradient_norm = torch.nn.utils.clip_grad_norm_(
                 [parameter for parameter in model.parameters() if parameter.requires_grad],
@@ -2094,9 +1850,6 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                 "sft": sum(item["sft"] for item in metrics) / len(metrics),
                 "preference": sum(item["preference"] for item in metrics) / len(metrics),
                 "cross_danger_margin": sum(item["cross_danger_margin"] for item in metrics) / len(metrics),
-                "common_semantics_loss": (
-                    0.0 if plan.stage == "skill" else
-                    sum(item["common_semantics_loss"] for item in metrics) / len(metrics)),
                 "level0_kl_anchor": kl_anchor,
                 "gradient_norm_before_clip": gradient_norm_value,
                 "grad_scaler_before": scale_before,
@@ -2153,9 +1906,6 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
             "plan_sha256": plan.full_plan_sha256, "seed_proof": seed_proof,
             "global_journal_sha256": global_sha,
             "global_journal_occurrence_count": len(global_journal),
-            "common_semantics_journal_sha256": (
-                None if plan.stage == "skill" else
-                canonical_sha256(semantics_global_journal)),
             "rank_journal_sha256": canonical_sha256(rank_journal),
             "updates": update_journal, "successful_optimizer_updates": successful_updates,
             "tokens_seen": tokens_seen, "elapsed_seconds": elapsed,

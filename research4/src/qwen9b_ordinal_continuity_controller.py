@@ -1,8 +1,8 @@
 """One-use, bounded partitions for ordinal simulated-continuity training.
 
-One invocation owns one qualification, skill, or policy-stage partition.  It
-never runs the 27-stage matrix and never retries.  A CPU-only aggregator later
-verifies the canonical skill plus all 27 policy terminal receipts.
+One invocation owns one qualification or policy-stage partition.  It never
+runs the 27-stage matrix and never retries.  A CPU-only aggregator later
+verifies all 27 residual-stage terminal receipts against one frozen base.
 """
 from __future__ import annotations
 
@@ -19,21 +19,20 @@ import subprocess
 import sys
 import time
 
-from .qwen9b_ordinal_continuity_lora import (
-    MODEL_ID, MODEL_REVISION, checkpoint_branch_sha256)
+from .qwen9b_ordinal_continuity_lora import MODEL_ID, MODEL_REVISION
 from .qwen9b_ordinal_continuity_runtime import (
     atomic_json, canonical_sha256, cli_sha256, directory_tree_sha256,
     file_sha256, finalize_receipt, verify_package_manifest, verify_receipt,
     verify_tokenizer_receipt)
 from .qwen9b_ordinal_continuity_training import (
-    ALLOWED_SEEDS, CONDITIONS, PINNED_SOFTWARE, SKILL_SEED, TrainingPlan,
+    ALLOWED_SEEDS, CONDITIONS, PINNED_SOFTWARE, TrainingPlan,
     load_pinned_tokenizer)
 
-CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v2"
-EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v1"
-PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v1"
-TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v1"
-AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v2"
+CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v3"
+EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v2"
+PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v2"
+TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v2"
+AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v3"
 MATRIX_CONDITIONS = CONDITIONS
 MATRIX_STAGES = ("delta1", "delta2", "delta3")
 
@@ -48,9 +47,8 @@ def validate_experiment_spec(value: Mapping) -> dict:
         "version": EXPERIMENT_VERSION, "model_id": MODEL_ID,
         "model_revision": MODEL_REVISION, "conditions": list(CONDITIONS),
         "seeds": list(ALLOWED_SEEDS), "stages": list(MATRIX_STAGES),
-        "qualification_updates": 2, "skill_optimizer_updates": 24,
-        "primary_optimizer_updates": 144, "skill_rank": 4,
-        "skill_alpha": 8.0, "automatic_retries": 0}
+        "qualification_updates": 2, "primary_optimizer_updates": 144,
+        "baseline": "frozen_base", "automatic_retries": 0}
     if any(spec.get(key) != expected for key, expected in required.items()):
         raise PermissionError("Experiment spec differs from the preregistered matrix")
     if spec.get("one_use") is not True:
@@ -63,12 +61,6 @@ def matrix_plans(spec: Mapping, selected_rank: int):
     spec = validate_experiment_spec(spec)
     if selected_rank not in (4, 8):
         raise ValueError("Selected residual rank must be 4 or 8")
-    skill = TrainingPlan(
-        mode="primary", condition="neutral_skill", stage="skill", rank=4,
-        alpha=8.0, seed=SKILL_SEED,
-        optimizer_updates=spec["skill_optimizer_updates"]).validate()
-    if skill.global_batch_size != 4 or skill.occurrence_count != 96:
-        raise RuntimeError("Canonical skill exposure differs")
     plans = [TrainingPlan(
         mode="primary", condition=condition, stage=stage, rank=selected_rank,
         alpha=2.0 * selected_rank, seed=seed,
@@ -79,7 +71,7 @@ def matrix_plans(spec: Mapping, selected_rank: int):
             or any(p.global_batch_size != 4 or p.occurrence_count != 576
                    for p in plans)):
         raise RuntimeError("The exact 3x3x3 policy matrix differs")
-    return skill, plans
+    return plans
 
 
 def qualification_plan(spec: Mapping, rank: int):
@@ -95,23 +87,20 @@ def qualification_plan(spec: Mapping, rank: int):
 def partition_identity(plan: TrainingPlan) -> str:
     if plan.mode == "qualification":
         return f"qualification_rank{plan.rank}"
-    if plan.stage == "skill":
-        return "canonical_skill"
     return f"{plan.condition}_seed{plan.seed}_{plan.stage}"
 
 
 def validate_partition_intent(value: Mapping, plan: TrainingPlan,
                               actual_parent_tree: str | None) -> dict:
     intent = dict(value)
-    expected_updates = (2 if plan.mode == "qualification" else
-                        24 if plan.stage == "skill" else 144)
+    expected_updates = 2 if plan.mode == "qualification" else 144
     expected_occurrences = expected_updates * 4
     if (plan.optimizer_updates != expected_updates
             or plan.global_batch_size != 4
             or plan.occurrence_count != expected_occurrences):
         raise PermissionError(
             "Executable partition exposure differs from the preregistered "
-            "2/24/144-update, global-batch-4 recipe")
+            "2/144-update, global-batch-4 recipe")
     if (intent.get("version") != PARTITION_INTENT_VERSION
             or intent.get("one_use") is not True
             or intent.get("attempt_number") != 1
@@ -127,17 +116,14 @@ def validate_partition_intent(value: Mapping, plan: TrainingPlan,
         raise PermissionError("Partition wall-clock stop/ceiling is invalid")
     if intent.get("expected_parent_checkpoint_tree_sha256") != actual_parent_tree:
         raise PermissionError("Partition predecessor checkpoint tree differs")
-    skill_tree = intent.get("canonical_skill_checkpoint_tree_sha256")
-    skill_branch = intent.get("canonical_skill_branch_sha256")
-    if plan.mode == "qualification" or plan.stage == "skill":
-        if actual_parent_tree is not None or skill_tree is not None or skill_branch is not None:
-            raise PermissionError("Qualification/skill cannot claim skill lineage")
-    else:
-        if not all(isinstance(item, str) and len(item) == 64
-                   for item in (actual_parent_tree, skill_tree, skill_branch)):
-            raise PermissionError("Policy partition lacks canonical skill lineage")
-        if plan.stage == "delta1" and actual_parent_tree != skill_tree:
-            raise PermissionError("Delta1 must start from canonical skill")
+    base_sha = intent.get("frozen_base_model_sha256")
+    if not isinstance(base_sha, str) or len(base_sha) != 64:
+        raise PermissionError("Partition intent lacks the frozen-base identity")
+    if plan.mode == "qualification" or plan.stage == "delta1":
+        if actual_parent_tree is not None:
+            raise PermissionError("Qualification and Delta1 must start from frozen base")
+    elif not isinstance(actual_parent_tree, str) or len(actual_parent_tree) != 64:
+        raise PermissionError("Delta2/Delta3 require the exact predecessor checkpoint")
     return intent
 
 
@@ -430,10 +416,10 @@ class PartitionController:
         cleanup = self._cleanup_pass(self.run_root)
         checkpoint = self.run_root / "checkpoint"
         checkpoint_tree = directory_tree_sha256(checkpoint) if checkpoint.is_dir() else None
-        skill_branch = (checkpoint_branch_sha256(checkpoint, "skill")
-                        if checkpoint.is_dir() and plan.mode == "primary" else None)
-        lineage = (True if plan.mode != "primary" or plan.stage == "skill" else
-                   skill_branch == intent["canonical_skill_branch_sha256"])
+        lineage = (
+            intent.get("frozen_base_model_sha256") is not None
+            and ((plan.mode == "qualification" or plan.stage == "delta1")
+                 == (parent_tree is None)))
         success = bool(complete and cleanup and lineage
                        and child.get("exit_code") == 0
                        and child.get("child_exit_confirmed") is True
@@ -461,38 +447,20 @@ class PartitionController:
             "post_cleanup_pass": cleanup,
             "parent_checkpoint_tree_sha256": parent_tree,
             "checkpoint_tree_sha256": checkpoint_tree,
-            "canonical_skill_checkpoint_tree_sha256": (
-                checkpoint_tree if plan.stage == "skill" else
-                intent.get("canonical_skill_checkpoint_tree_sha256")),
-            "canonical_skill_branch_sha256": (
-                skill_branch if plan.stage == "skill" else
-                intent.get("canonical_skill_branch_sha256")),
-            "verified_saved_skill_branch_sha256": skill_branch,
-            "canonical_skill_lineage_pass": lineage,
+            "frozen_base_model_sha256": intent.get("frozen_base_model_sha256"),
+            "residual_lineage_pass": lineage,
             "automatic_retries": 0,
             "provider_compute_release_verified": False})
         atomic_json(self.run_root.parent / "TERMINAL_RECEIPT.json", terminal)
         return terminal
 
 
-def aggregate_terminal_receipts(skill_terminal, policy_terminals: Sequence,
+def aggregate_terminal_receipts(policy_terminals: Sequence, *,
+                                frozen_base_model_sha256: str,
                                 output=None) -> dict:
-    skill = verify_receipt(_read(skill_terminal) if not isinstance(skill_terminal, Mapping)
-                           else dict(skill_terminal))
-    plan = skill.get("plan", {})
-    if (skill.get("version") != TERMINAL_VERSION or skill.get("status") != "complete"
-            or plan.get("mode") != "primary" or plan.get("stage") != "skill"
-            or plan.get("optimizer_updates") != 24
-            or skill.get("post_cleanup_pass") is not True
-            or skill.get("primary_save_reload_pass") is not True):
-        raise PermissionError("Canonical skill terminal is incomplete")
-    skill_tree = skill.get("checkpoint_tree_sha256")
-    skill_branch = skill.get("verified_saved_skill_branch_sha256")
-    if (skill.get("canonical_skill_checkpoint_tree_sha256") != skill_tree
-            or skill.get("canonical_skill_branch_sha256") != skill_branch
-            or not all(isinstance(x, str) and len(x) == 64
-                       for x in (skill_tree, skill_branch))):
-        raise PermissionError("Canonical skill terminal is inconsistent")
+    if (not isinstance(frozen_base_model_sha256, str)
+            or len(frozen_base_model_sha256) != 64):
+        raise PermissionError("Aggregate requires one exact frozen-base identity")
     rows = [verify_receipt(_read(x) if not isinstance(x, Mapping) else dict(x))
             for x in policy_terminals]
     expected = {(condition, seed, stage) for condition in CONDITIONS
@@ -510,15 +478,13 @@ def aggregate_terminal_receipts(skill_terminal, policy_terminals: Sequence,
                 or p.get("mode") != "primary" or p.get("optimizer_updates") != 144
                 or row.get("post_cleanup_pass") is not True
                 or row.get("primary_save_reload_pass") is not True
-                or row.get("canonical_skill_checkpoint_tree_sha256") != skill_tree
-                or row.get("canonical_skill_branch_sha256") != skill_branch
-                or row.get("verified_saved_skill_branch_sha256") != skill_branch
-                or row.get("canonical_skill_lineage_pass") is not True):
+                or row.get("frozen_base_model_sha256") != frozen_base_model_sha256
+                or row.get("residual_lineage_pass") is not True):
             raise PermissionError(f"Policy terminal is incomplete: {key}")
         by_key[key] = row
     for condition in CONDITIONS:
         for seed in ALLOWED_SEEDS:
-            predecessor = skill_tree
+            predecessor = None
             for stage in MATRIX_STAGES:
                 row = by_key[(condition, seed, stage)]
                 if row.get("parent_checkpoint_tree_sha256") != predecessor:
@@ -528,9 +494,7 @@ def aggregate_terminal_receipts(skill_terminal, policy_terminals: Sequence,
                     raise PermissionError("Policy checkpoint tree is missing")
     result = finalize_receipt({
         "version": AGGREGATE_VERSION, "status": "complete",
-        "skill_terminal_receipt_sha256": skill["receipt_sha256"],
-        "canonical_skill_checkpoint_tree_sha256": skill_tree,
-        "canonical_skill_branch_sha256": skill_branch,
+        "frozen_base_model_sha256": frozen_base_model_sha256,
         "policy_terminal_count": 27,
         "policy_terminal_receipt_sha256": sorted(x["receipt_sha256"] for x in rows),
         "conditions": list(CONDITIONS), "seeds": list(ALLOWED_SEEDS),
@@ -554,7 +518,7 @@ def main(argv=None):
     run.add_argument("--admission")
     run.add_argument("--parent-checkpoint")
     aggregate = sub.add_parser("aggregate")
-    aggregate.add_argument("--skill-terminal", required=True)
+    aggregate.add_argument("--frozen-base-model-sha256", required=True)
     aggregate.add_argument("--policy-terminal", action="append", required=True)
     aggregate.add_argument("--output", required=True)
     args = parser.parse_args(argv)
@@ -563,7 +527,9 @@ def main(argv=None):
         return
     if args.command == "aggregate":
         print(json.dumps(aggregate_terminal_receipts(
-            args.skill_terminal, args.policy_terminal, args.output),
+            args.policy_terminal,
+            frozen_base_model_sha256=args.frozen_base_model_sha256,
+            output=args.output),
             indent=2, sort_keys=True))
         return
     manifest = _read(args.package_manifest)

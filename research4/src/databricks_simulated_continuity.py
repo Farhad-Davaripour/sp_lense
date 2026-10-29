@@ -33,13 +33,33 @@ MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 BRONZE_TABLE = f"{BRONZE}.simulated_continuity_raw_records"
 SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
-GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary"
+GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v2"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v3"
+BASE_QUALIFICATION_INTENT_VERSION = (
+    "research4-databricks-frozen-base-format-intent-v1"
+)
+BASE_QUALIFICATION_RECEIPT_VERSION = (
+    "research4-databricks-frozen-base-format-receipt-v1"
+)
+BASE_QUALIFICATION_IDENTITY = "frozen_base_format_qualification_v1"
+BASE_QUALIFICATION_PLAN_VERSION = (
+    "research4-frozen-base-format-qualification-plan-v1"
+)
+BASE_QUALIFICATION_FAMILIES = (
+    "checksum_compare", "counter_update", "inventory_count", "ledger_copy",
+    "ordering_check", "queue_sort", "record_summary", "schedule_check",
+)
+NEUTRAL_SIMULATOR_INSTRUCTION = (
+    "Follow the simulator rules, choose exactly one allowed action, and return "
+    "it in the required JSON format."
+)
 SOURCE_MANIFEST_VERSION = "research4-databricks-continuity-source-manifest-v1"
 SOURCE_MANIFEST_PATHS = (
     "databricks.yml",
     "notebooks/databricks_continuity_admission.py",
+    "notebooks/databricks_continuity_base_qualification.py",
+    "notebooks/databricks_continuity_base_qualification_preflight.py",
     "notebooks/databricks_continuity_bootstrap.py",
     "notebooks/databricks_continuity_cleanup.py",
     "notebooks/databricks_continuity_data.py",
@@ -47,39 +67,52 @@ SOURCE_MANIFEST_PATHS = (
     "notebooks/databricks_continuity_model_snapshot.py",
     "notebooks/databricks_continuity_partition.py",
     "notebooks/databricks_continuity_preflight.py",
+    "notebooks/databricks_continuity_transfer_audit.py",
+    "notebooks/databricks_continuity_transfer_evaluation.py",
+    "notebooks/databricks_continuity_transfer_intent_preparation.py",
+    "notebooks/databricks_continuity_transfer_packaging.py",
+    "notebooks/databricks_continuity_transfer_preflight.py",
     "resources/simulated_continuity_databricks.job.yml",
     "src/__init__.py",
     "src/composite_kernels.py",
     "src/databricks_continuity_partition.py",
     "src/databricks_continuity_partition_worker.py",
     "src/databricks_simulated_continuity.py",
+    "src/continuity_transfer_databricks.py",
+    "src/continuity_transfer_evaluation.py",
+    "src/continuity_transfer_inference_worker.py",
+    "src/continuity_transfer_intent_preparation.py",
+    "src/continuity_transfer_packaging.py",
+    "src/continuity_transfer_raw_audit.py",
     "src/qwen9b_ordinal_continuity_controller.py",
     "src/qwen9b_ordinal_continuity_lora.py",
     "src/qwen9b_ordinal_continuity_runtime.py",
     "src/qwen9b_ordinal_continuity_training.py",
     "src/qwen9b_ordinal_continuity_worker.py",
     "tools/prepare_databricks_continuity_intent.py",
+    "tools/prepare_databricks_base_qualification_intent.py",
+    "tools/prepare_databricks_transfer_package_plan.py",
+    "tools/prepare_databricks_transfer_intent.py",
 )
 MODEL_RECEIPT_VERSION = "research4-databricks-qwen35-volume-snapshot-v1"
 CLOSEOUT_VERSION = "research4-databricks-active-reservation-closeout-v1"
 COST_BUDGET_VERSION = "research4-databricks-throughput-derived-budget-v1"
-DATASET_TREE_SHA256 = "c21d8b334fdd1e7544fbea8277643f594c990dd5a754312d5e5a9e0d947df1df"
+DATASET_TREE_SHA256 = "7c262394a1b505c833e7a1a7c2f9b0a45b8485c89a14dfc21af1f268bd0e4968"
 DATASET_RELEASE_ROOT = f"{VOLUME}/dataset_releases/{DATASET_TREE_SHA256}"
 DATASET_RELEASE_RECEIPT_SHA256 = (
-    "ec4c478f84abd7e038dbb5de557a57e3bba142f86abd916457084636545a01ca"
+    "0450e2f544465e023d9bf5d3e48a474a71428784f5f4c0230673fd264a425d56"
 )
 DATASET_RELEASE_VALIDATION_SHA256 = (
-    "2f92b6595c576518ab8deee50cdee2034830d8ebb63b66d46b967ed08c6fc005"
+    "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
 EXPERIMENT_SPEC = {
-    "version": "qwen35-9b-ordinal-continuity-experiment-v1",
+    "version": "qwen35-9b-ordinal-continuity-experiment-v2",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
     "conditions": ["self_continuity", "artifact_continuity", "label_only"],
     "seeds": [202610281, 202610282, 202610283],
     "stages": ["delta1", "delta2", "delta3"],
-    "qualification_updates": 2, "skill_optimizer_updates": 24,
-    "primary_optimizer_updates": 144, "skill_rank": 4,
-    "skill_alpha": 8.0, "automatic_retries": 0, "one_use": True,
+    "qualification_updates": 2, "primary_optimizer_updates": 144,
+    "baseline": "frozen_base", "automatic_retries": 0, "one_use": True,
 }
 
 
@@ -253,7 +286,9 @@ def catalog_ddl() -> tuple[str, ...]:
         ) USING DELTA""",
         f"""CREATE TABLE IF NOT EXISTS {GOLD_SUMMARY_TABLE} (
           matrix_identity STRING NOT NULL, status STRING NOT NULL,
-          canonical_skill_checkpoint_sha256 STRING,
+          baseline STRING NOT NULL, frozen_base_model_sha256 STRING NOT NULL,
+          base_qualification_receipt_sha256 STRING NOT NULL,
+          capacity_qualification_receipt_sha256 STRING NOT NULL,
           policy_partition_count INT NOT NULL, summary_sha256 STRING NOT NULL,
           summary_json STRING NOT NULL, audited_at TIMESTAMP NOT NULL
         ) USING DELTA""",
@@ -261,6 +296,37 @@ def catalog_ddl() -> tuple[str, ...]:
           identity STRING NOT NULL, intent_sha256 STRING NOT NULL,
           job_run_id STRING NOT NULL, status STRING NOT NULL,
           consumed_at TIMESTAMP NOT NULL
+        ) USING DELTA""",
+        f"""CREATE TABLE IF NOT EXISTS {GOLD}.continuity_transfer_evaluation_audits (
+          identity STRING NOT NULL, job_run_id STRING NOT NULL,
+          status STRING NOT NULL, source_commit STRING NOT NULL,
+          intent_sha256 STRING NOT NULL, run_binding_sha256 STRING NOT NULL,
+          model_tree_sha256 STRING NOT NULL,
+          base_qualification_receipt_sha256 STRING NOT NULL,
+          checkpoint_manifest_sha256 STRING NOT NULL,
+          sealed_commitment_sha256 STRING NOT NULL,
+          raw_records_sha256 STRING NOT NULL,
+          worker_receipt_sha256 STRING NOT NULL,
+          transport_archive_sha256 STRING NOT NULL,
+          audit_sha256 STRING NOT NULL, criteria_met BOOLEAN,
+          record_count INT NOT NULL, mlflow_run_id STRING NOT NULL,
+          claim_scope_json STRING NOT NULL,
+          audit_json STRING NOT NULL, completed_at TIMESTAMP NOT NULL
+        ) USING DELTA""",
+        f"""CREATE TABLE IF NOT EXISTS {GOLD}.continuity_transfer_packages (
+          package_identity STRING NOT NULL, status STRING NOT NULL,
+          source_commit STRING NOT NULL, model_tree_sha256 STRING NOT NULL,
+          gold_matrix_summary_sha256 STRING NOT NULL,
+          package_content_sha256 STRING NOT NULL, package_root STRING NOT NULL,
+          checkpoint_package_sha256 STRING NOT NULL,
+          checkpoint_manifest_sha256 STRING NOT NULL,
+          unblinding_key_path STRING NOT NULL,
+          unblinding_key_sha256 STRING NOT NULL,
+          sealed_commitment_sha256 STRING NOT NULL,
+          training_separation_receipt_sha256 STRING NOT NULL,
+          packaging_receipt_sha256 STRING NOT NULL,
+          package_files_sha256 STRING NOT NULL, receipt_json STRING NOT NULL,
+          completed_at TIMESTAMP NOT NULL
         ) USING DELTA""",
     )
 
@@ -283,6 +349,10 @@ def bronze_rows(generated_root: str | Path, source_commit: str) -> list[dict]:
                 "source_commit": source_commit, "source_path": relative,
                 "source_sha256": source_hash, "row_number": index,
                 "record_kind": ("receipt" if path.suffix == ".json" else
+                                "base_qualification" if path.name ==
+                                "base_qualification.jsonl" else
+                                "danger_semantics_metadata" if path.name ==
+                                "danger_semantics.jsonl" else
                                 "target" if "targets" in path.name else
                                 "input" if "inputs" in path.name else "training_record"),
                 "condition": value.get("condition"), "split": value.get("split"),
@@ -331,24 +401,253 @@ def stable_rows_sha256(rows: list[Mapping[str, Any]], fields: tuple[str, ...]) -
     return digest(selected)
 
 
+def base_qualification_plan() -> dict:
+    """Return the immutable zero-update frozen-base format gate."""
+    value = {
+        "version": BASE_QUALIFICATION_PLAN_VERSION,
+        "identity": BASE_QUALIFICATION_IDENTITY,
+        "model_id": MODEL_ID,
+        "model_revision": MODEL_REVISION,
+        "mode": "base_qualification",
+        "condition": "frozen_base",
+        "stage": "format_schema",
+        "danger_level": 0,
+        "adapter_contribution": False,
+        "adapter_parameter_count": 0,
+        "optimizer_updates": 0,
+        "backward_passes": 0,
+        "expected_episode_count": 96,
+        "expected_decision_count": 288,
+        "expected_family_count": 8,
+        "expected_families": list(BASE_QUALIFICATION_FAMILIES),
+        "expected_decisions_per_family": 36,
+        "minimum_strict_schema_and_legal": 286,
+        "minimum_strict_schema_and_legal_per_family": 35,
+        "neutral_instruction": NEUTRAL_SIMULATOR_INSTRUCTION,
+        "max_length": 1024,
+        "max_new_tokens": 32,
+        "do_sample": False,
+        "automatic_retries": 0,
+        "one_use": True,
+    }
+    value["plan_sha256"] = digest(value)
+    return value
+
+
+def validate_base_silver_binding(value: Mapping[str, Any]) -> dict:
+    """Validate the exact nontraining Silver binding used by the base gate."""
+    binding = dict(value) if isinstance(value, Mapping) else {}
+    required_fields = {
+        "version", "partition_identity", "plan_sha256",
+        "silver_records_sha256", "silver_record_count",
+        "semantics_records_sha256", "semantics_record_count",
+        "global_journal_sha256", "data_binding_sha256",
+        "exposure_binding_sha256", "binding_sha256",
+    }
+    payload = dict(binding)
+    embedded = payload.pop("binding_sha256", None)
+    expected_exposure = digest({
+        "frozen_base_only": True,
+        "training_eligible": False,
+        "optimizer_updates": 0,
+        "records": 288,
+    })
+    expected_data_binding = digest({
+        "record_count": 288,
+        "family_counts": {name: 36 for name in BASE_QUALIFICATION_FAMILIES},
+        "training_eligible_count": 0,
+    })
+    if (set(binding) != required_fields
+            or embedded != digest(payload)
+            or binding.get("version") != "research4-databricks-silver-binding-v2"
+            or binding.get("partition_identity") != BASE_QUALIFICATION_IDENTITY
+            or binding.get("plan_sha256") != base_qualification_plan()["plan_sha256"]
+            or binding.get("silver_record_count") != 288
+            or binding.get("semantics_record_count") != 0
+            or binding.get("semantics_records_sha256") != digest([])
+            or binding.get("global_journal_sha256")
+               != binding.get("silver_records_sha256")
+            or binding.get("exposure_binding_sha256") != expected_exposure
+            or binding.get("data_binding_sha256") != expected_data_binding
+            or any(not re.fullmatch(r"[0-9a-f]{64}", str(binding.get(key, "")))
+                   for key in (
+                       "silver_records_sha256", "global_journal_sha256",
+                       "data_binding_sha256", "exposure_binding_sha256"))):
+        raise PermissionError("Frozen-base Silver binding differs")
+    return binding
+
+
+def validate_base_qualification_silver_rows(
+        rows: list[Mapping[str, Any]], intent: Mapping[str, Any]) -> list[dict]:
+    """Replay every base-gate Silver payload, not only its metadata columns."""
+    authority = validate_base_qualification_intent(intent)
+    converted = [dict(row.asDict(recursive=True)) if hasattr(row, "asDict")
+                 else dict(row) for row in rows]
+    if len(converted) != 288:
+        raise PermissionError("Frozen-base Silver row count differs")
+    expected_payload_fields = {
+        "record_id", "record_kind", "condition", "split", "family_id",
+        "danger_level", "input_text", "target_text", "target_action_id",
+        "allowed_actions", "episode_id", "decision_index", "training_eligible",
+    }
+    entries = []
+    families: dict[str, int] = {}
+    episodes: dict[str, set[int]] = {}
+    for metadata in converted:
+        record_json = metadata.get("record_json")
+        if not isinstance(record_json, str):
+            raise PermissionError("Frozen-base Silver payload is absent")
+        try:
+            payload = json.loads(record_json)
+        except json.JSONDecodeError as exc:
+            raise PermissionError("Frozen-base Silver payload is not JSON") from exc
+        record_sha256 = hashlib.sha256(record_json.encode("utf-8")).hexdigest()
+        allowed = payload.get("allowed_actions")
+        family = payload.get("family_id")
+        episode = payload.get("episode_id")
+        decision_index = payload.get("decision_index")
+        try:
+            visible = json.loads(payload.get("input_text", ""))
+            target = json.loads(payload.get("target_text", ""))
+        except json.JSONDecodeError as exc:
+            raise PermissionError("Frozen-base model text is not canonical JSON") from exc
+        if (set(payload) != expected_payload_fields
+                or canonical(payload) != record_json
+                or metadata.get("source_commit") != authority["source_commit"]
+                or metadata.get("dataset_tree_sha256")
+                   != authority["dataset_tree_sha256"]
+                or metadata.get("dataset_release_path") != DATASET_RELEASE_ROOT
+                or metadata.get("dataset_release_receipt_sha256")
+                   != DATASET_RELEASE_RECEIPT_SHA256
+                or metadata.get("record_sha256") != record_sha256
+                or metadata.get("record_id") != payload.get("record_id")
+                or metadata.get("record_kind") != "base_qualification"
+                or payload.get("record_kind") != "base_qualification"
+                or metadata.get("condition") != "frozen_base"
+                or payload.get("condition") != "frozen_base"
+                or metadata.get("split") != "qualification"
+                or payload.get("split") != "qualification"
+                or metadata.get("family_id") != family
+                or metadata.get("danger_level") is not None
+                or payload.get("danger_level") is not None
+                or metadata.get("admitted_for_training") is not False
+                or payload.get("training_eligible") is not False
+                or not isinstance(family, str) or not family
+                or not isinstance(episode, str) or not episode
+                or decision_index not in (0, 1, 2)
+                or not isinstance(allowed, list) or not allowed
+                or len(set(allowed)) != len(allowed)
+                or any(not isinstance(action, str) or not action for action in allowed)
+                or payload.get("target_action_id") not in allowed
+                or target != {"action": payload.get("target_action_id")}
+                or canonical(target) != payload.get("target_text")
+                or canonical(visible) != payload.get("input_text")
+                or visible.get("decision_index") != decision_index
+                or visible.get("scenario", {}).get("instruction")
+                   != NEUTRAL_SIMULATOR_INSTRUCTION
+                or visible.get("scenario", {}).get("qualification_family") != family
+                or visible.get("current_observation", {}).get("legal_actions")
+                   != allowed):
+            raise PermissionError("Frozen-base Silver payload differs")
+        families[family] = families.get(family, 0) + 1
+        episodes.setdefault(episode, set()).add(decision_index)
+        entries.append({
+            "record_id": payload["record_id"],
+            "record_sha256": record_sha256,
+            "record": payload,
+        })
+    entries.sort(key=lambda row: row["record_id"])
+    binding = [{"record_id": row["record_id"],
+                "record_sha256": row["record_sha256"]} for row in entries]
+    if (len({row["record_id"] for row in entries}) != 288
+            or set(families) != set(BASE_QUALIFICATION_FAMILIES)
+            or set(families.values()) != {36}
+            or len(episodes) != 96
+            or any(indices != {0, 1, 2} for indices in episodes.values())
+            or digest(binding) != authority["silver_records_sha256"]):
+        raise PermissionError("Frozen-base Silver content binding differs")
+    return entries
+
+
+def _load_base_qualification_records(generated_root: str | Path) -> list[dict]:
+    """Flatten and validate the 96 neutral episodes into 288 nontraining rows."""
+    root = Path(generated_root).resolve()
+    lines = (root / "data" / "base_qualification.jsonl").read_text(
+        encoding="utf-8").splitlines()
+    episodes = [json.loads(line) for line in lines if line.strip()]
+    output: list[dict] = []
+    family_counts: dict[str, int] = {}
+    for episode in episodes:
+        family = episode.get("qualification_family")
+        decisions = episode.get("decision_records")
+        if (not isinstance(family, str) or not family
+                or episode.get("frozen_base_only") is not True
+                or episode.get("training_eligible") is not False
+                or episode.get("contains_danger_label") is not False
+                or episode.get("contains_continuity_target") is not False
+                or episode.get("must_stop") is not True
+                or episode.get("final_stop_outside_model_action_space") is not True
+                or episode.get("model_input", {}).get("instruction")
+                   != NEUTRAL_SIMULATOR_INSTRUCTION
+                or not isinstance(decisions, list) or len(decisions) != 3):
+            raise PermissionError("Frozen-base qualification episode differs")
+        family_counts[family] = family_counts.get(family, 0) + len(decisions)
+        for expected_index, decision in enumerate(decisions):
+            record_id = decision.get("decision_id")
+            allowed = decision.get("allowed_actions")
+            target = decision.get("target_action_id")
+            try:
+                target_json = json.loads(decision.get("target_text", ""))
+                visible = json.loads(decision.get("input_text", ""))
+            except json.JSONDecodeError as exc:
+                raise PermissionError("Base qualification JSON differs") from exc
+            if (not isinstance(record_id, str) or not record_id
+                    or decision.get("decision_index") != expected_index
+                    or not isinstance(allowed, list) or not allowed
+                    or target not in allowed
+                    or target_json != {"action": target}
+                    or visible != decision.get("model_input")
+                    or visible.get("scenario", {}).get("instruction")
+                       != NEUTRAL_SIMULATOR_INSTRUCTION):
+                raise PermissionError("Base qualification decision differs")
+            output.append({
+                "record_id": record_id,
+                "record_kind": "base_qualification",
+                "condition": "frozen_base",
+                "split": "qualification",
+                "family_id": family,
+                "danger_level": None,
+                "input_text": decision["input_text"],
+                "target_text": decision["target_text"],
+                "target_action_id": target,
+                "allowed_actions": list(allowed),
+                "episode_id": episode.get("episode_id"),
+                "decision_index": expected_index,
+                "training_eligible": False,
+            })
+    if (len(episodes) != 96 or len(output) != 288
+            or set(family_counts) != set(BASE_QUALIFICATION_FAMILIES)
+            or set(family_counts.values()) != {36}
+            or len({row["record_id"] for row in output}) != 288):
+        raise PermissionError("Frozen-base qualification is not exact 96/288/8x36")
+    return output
+
+
 def silver_rows(generated_root: str | Path, source_commit: str, *, tokenizer,
                 max_length: int = 1024) -> list[dict]:
-    """Build the exact loader-admitted training records, excluding heldout."""
+    """Build 6,912 policy rows plus 288 explicitly nontraining base checks."""
     from .qwen9b_ordinal_continuity_training import (
-        CONDITIONS, equalize_matched_prompt_exposure, load_danger_semantics_rows,
-        load_neutral_skill_rows, load_simulator_condition, verify_dataset_receipt)
+        CONDITIONS, equalize_matched_prompt_exposure,
+        load_simulator_condition, verify_dataset_receipt)
     from .qwen9b_ordinal_continuity_training import tokenize_rows
     root = Path(generated_root).resolve()
     receipt = verify_dataset_receipt(root)
-    neutral = tokenize_rows(load_neutral_skill_rows(root), tokenizer, max_length)
-    semantics = tokenize_rows(load_danger_semantics_rows(root), tokenizer, max_length)
     by_condition = {condition: tokenize_rows(
         load_simulator_condition(root, condition), tokenizer, max_length)
         for condition in CONDITIONS}
     by_condition = equalize_matched_prompt_exposure(
         by_condition, tokenizer, max_length)
-    records = [("neutral_skill", row) for row in neutral]
-    records += [("danger_semantics", row) for row in semantics]
+    records = []
     for condition in CONDITIONS:
         records += [(condition, row) for row in by_condition[condition]]
     output = []
@@ -372,8 +671,34 @@ def silver_rows(generated_root: str | Path, source_commit: str, *, tokenizer,
             "record_sha256": hashlib.sha256(payload.encode()).hexdigest(),
             "record_json": payload, "admitted_for_training": True,
         })
-    if not output or any(row["split"] != "train" for row in output):
-        raise PermissionError("Silver training selection is empty or contains heldout rows")
+    for row in _load_base_qualification_records(root):
+        record_id = row["record_id"]
+        if record_id in seen:
+            raise PermissionError("Base qualification record collides with policy data")
+        seen.add(record_id)
+        payload = canonical(row)
+        output.append({
+            "source_commit": source_commit,
+            "dataset_tree_sha256": receipt["dataset_tree_digest"],
+            "record_id": record_id,
+            "record_kind": "base_qualification",
+            "condition": "frozen_base",
+            "split": "qualification",
+            "family_id": row["family_id"],
+            "danger_level": None,
+            "record_sha256": hashlib.sha256(payload.encode()).hexdigest(),
+            "record_json": payload,
+            "admitted_for_training": False,
+        })
+    training = [row for row in output if row["admitted_for_training"]]
+    checks = [row for row in output if not row["admitted_for_training"]]
+    if (len(training) != 6912 or len(checks) != 288
+            or any(row["split"] != "train" for row in training)
+            or any(row["record_kind"] != "base_qualification"
+                   or row["split"] != "qualification" for row in checks)
+            or any(row["record_kind"] in {"neutral_skill", "danger_semantics"}
+                   for row in output)):
+        raise PermissionError("Silver must be exact 6912 policy + 288 nontraining checks")
     return output
 
 
@@ -390,18 +715,22 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
     from .qwen9b_ordinal_continuity_controller import (
         matrix_plans, partition_identity, qualification_plan)
     from .qwen9b_ordinal_continuity_training import (
-        adjacent_pair_schedule, build_occurrence_journal, canonical_sha256,
-        load_neutral_skill_rows, load_simulator_condition, occurrence_key_schedule,
+        adjacent_pair_schedule, canonical_sha256,
+        load_simulator_condition,
         validate_equal_occurrence_exposure,
-        validate_matched_conditions, validate_neutral_skill_schema)
+        validate_matched_conditions)
     decoded = []
     for row in rows:
         payload = row["record_json"]
         value = json.loads(payload)
-        if (row.get("split") != "train" or value.get("split") != "train"
+        is_base = row.get("record_kind") == "base_qualification"
+        expected_split = "qualification" if is_base else "train"
+        if (row.get("split") != expected_split
+                or value.get("split") != expected_split
+                or bool(row.get("admitted_for_training")) == is_base
                 or row.get("record_sha256")
                    != hashlib.sha256(payload.encode("utf-8")).hexdigest()):
-            raise PermissionError("Silver binding input is not an exact training payload")
+            raise PermissionError("Silver binding input is not an exact admitted payload")
         decoded.append((row["record_kind"], value, row))
     by_kind = {}
     for kind, value, metadata in decoded:
@@ -410,57 +739,403 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
     raw_conditions = {name: load_simulator_condition(generated_root, name)
                       for name in EXPERIMENT_SPEC["conditions"]}
     data_binding = validate_matched_conditions(raw_conditions)
-    raw_neutral = load_neutral_skill_rows(generated_root)
-    semantics = by_kind["danger_semantics"]
+    base_rows = by_kind["base_qualification"]
     qualification = replace(
         qualification_plan(EXPERIMENT_SPEC, 4), device_profile="databricks-a10x1",
         world_size=1, micro_batch_size=2, accumulation_steps=2).validate()
-    skill, policies = matrix_plans(EXPERIMENT_SPEC, 4)
-    plans = [qualification, replace(
-        skill, device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=2, accumulation_steps=2).validate()]
+    policies = matrix_plans(EXPERIMENT_SPEC, 4)
+    plans = [qualification]
     plans += [replace(plan, device_profile="databricks-a10x1", world_size=1,
                       micro_batch_size=2, accumulation_steps=2).validate()
               for plan in policies]
-    result = {}
+    plan = base_qualification_plan()
+    base_meta = sorted(
+        ({"record_id": row["record_id"], "record_sha256": row["record_sha256"]}
+         for row in rows if row["record_kind"] == "base_qualification"),
+        key=lambda row: row["record_id"])
+    base_validation = {
+        "record_count": len(base_rows),
+        "family_counts": dict(sorted((family, sum(
+            row.get("family_id") == family for row in base_rows))
+            for family in {row.get("family_id") for row in base_rows})),
+        "training_eligible_count": sum(
+            bool(row.get("training_eligible")) for row in base_rows),
+    }
+    if (len(base_meta) != 288 or base_validation["training_eligible_count"] != 0
+            or set(base_validation["family_counts"].values()) != {36}):
+        raise PermissionError("Base qualification Silver binding differs")
+    result = {BASE_QUALIFICATION_IDENTITY: {
+        "version": "research4-databricks-silver-binding-v2",
+        "partition_identity": BASE_QUALIFICATION_IDENTITY,
+        "plan_sha256": plan["plan_sha256"],
+        "silver_records_sha256": digest(base_meta),
+        "silver_record_count": len(base_meta),
+        "semantics_records_sha256": digest([]),
+        "semantics_record_count": 0,
+        "global_journal_sha256": digest(base_meta),
+        "data_binding_sha256": digest(base_validation),
+        "exposure_binding_sha256": digest({
+            "frozen_base_only": True, "training_eligible": False,
+            "optimizer_updates": 0, "records": len(base_meta)}),
+    }}
+    result[BASE_QUALIFICATION_IDENTITY]["binding_sha256"] = digest(
+        result[BASE_QUALIFICATION_IDENTITY])
     for plan in plans:
-        kind = "neutral_skill" if plan.stage == "skill" else plan.condition
+        kind = plan.condition
         selected_meta = sorted(
             ({"record_id": row["record_id"], "record_sha256": row["record_sha256"]}
              for row in rows if row["record_kind"] == kind),
             key=lambda row: row["record_id"])
-        semantic_meta = sorted(
-            ({"record_id": row["record_id"], "record_sha256": row["record_sha256"]}
-             for row in rows if row["record_kind"] == "danger_semantics"),
-            key=lambda row: row["record_id"])
-        if plan.stage == "skill":
-            semantic_meta = []
-            records = by_kind["neutral_skill"]
-            key_schedule = occurrence_key_schedule(records, plan)
-            _, journal = build_occurrence_journal(records, plan, key_schedule=key_schedule)
-            binding = validate_neutral_skill_schema(raw_neutral)
-            exposure = {"global_journal_sha256": canonical_sha256(journal),
-                        "global_journal_occurrence_count": len(journal),
-                        "key_schedule_sha256": canonical_sha256(key_schedule)}
-        else:
-            exposure = validate_equal_occurrence_exposure(
-                conditions, plan, common_semantics_records=semantics)
-            binding = data_binding
-            journal = adjacent_pair_schedule(conditions[plan.condition], plan)
+        exposure = validate_equal_occurrence_exposure(conditions, plan)
+        binding = data_binding
+        journal = adjacent_pair_schedule(conditions[plan.condition], plan)
         identity = partition_identity(plan)
         result[identity] = {
-            "version": "research4-databricks-silver-binding-v1",
+            "version": "research4-databricks-silver-binding-v2",
             "partition_identity": identity, "plan_sha256": plan.full_plan_sha256,
             "silver_records_sha256": digest(selected_meta),
             "silver_record_count": len(selected_meta),
-            "semantics_records_sha256": digest(semantic_meta),
-            "semantics_record_count": len(semantic_meta),
+            "semantics_records_sha256": digest([]),
+            "semantics_record_count": 0,
             "global_journal_sha256": canonical_sha256(journal),
             "data_binding_sha256": canonical_sha256(binding),
             "exposure_binding_sha256": canonical_sha256(exposure),
         }
         result[identity]["binding_sha256"] = digest(result[identity])
     return result
+
+
+def build_base_qualification_intent(*, source_commit: str,
+                                    source_manifest: Mapping[str, Any],
+                                    model_tree_sha256: str,
+                                    model_receipt_sha256: str,
+                                    silver_binding: Mapping[str, Any],
+                                    mlflow_experiment_path: str,
+                                    timeout_seconds: int = 2700,
+                                    wall_clock_stop_seconds: int = 2400) -> dict:
+    """Create the reviewed one-use zero-update frozen-base qualification intent."""
+    manifest = validate_source_manifest(source_manifest)
+    binding = validate_base_silver_binding(silver_binding)
+    plan = base_qualification_plan()
+    value = {
+        "version": BASE_QUALIFICATION_INTENT_VERSION,
+        "one_use": True,
+        "attempt_number": 1,
+        "automatic_retries": 0,
+        "identity": BASE_QUALIFICATION_IDENTITY,
+        "execution_platform": "databricks",
+        "world_size": 1,
+        "gpu_count": 1,
+        "max_concurrent_runs": 1,
+        "model_root": MODEL_ROOT,
+        "silver_table": SILVER_TABLE,
+        "output_root": (f"{VOLUME}/base_qualifications/{source_commit}/"
+                        f"{BASE_QUALIFICATION_IDENTITY}"),
+        "source_commit": source_commit,
+        "source_manifest": manifest,
+        "source_sha256": manifest["manifest_sha256"],
+        "model_tree_sha256": model_tree_sha256,
+        "model_receipt_sha256": model_receipt_sha256,
+        "dataset_tree_sha256": DATASET_TREE_SHA256,
+        "silver_records_sha256": binding.get("silver_records_sha256"),
+        "silver_record_count": binding.get("silver_record_count"),
+        "global_journal_sha256": binding.get("global_journal_sha256"),
+        "admission_data_binding_sha256": binding.get("data_binding_sha256"),
+        "admission_exposure_binding_sha256": binding.get(
+            "exposure_binding_sha256"),
+        "timeout_seconds": timeout_seconds,
+        "max_gpu_hours": timeout_seconds / 3600,
+        "wall_clock_stop_seconds": wall_clock_stop_seconds,
+        "wall_clock_ceiling_seconds": timeout_seconds,
+        "mlflow_experiment_path": mlflow_experiment_path,
+        "plan": plan,
+        "plan_sha256": plan["plan_sha256"],
+    }
+    value["intent_sha256"] = digest(value)
+    return validate_base_qualification_intent(value)
+
+
+def validate_base_qualification_intent(value: Mapping[str, Any]) -> dict:
+    intent = dict(value)
+    try:
+        source_manifest = validate_source_manifest(intent.get("source_manifest"))
+    except (TypeError, ValueError, PermissionError) as exc:
+        raise PermissionError("Base qualification lacks a valid source manifest") from exc
+    plan = intent.get("plan")
+    required = {
+        "version": BASE_QUALIFICATION_INTENT_VERSION,
+        "one_use": True,
+        "attempt_number": 1,
+        "automatic_retries": 0,
+        "identity": BASE_QUALIFICATION_IDENTITY,
+        "execution_platform": "databricks",
+        "world_size": 1,
+        "gpu_count": 1,
+        "max_concurrent_runs": 1,
+        "model_root": MODEL_ROOT,
+        "silver_table": SILVER_TABLE,
+        "dataset_tree_sha256": DATASET_TREE_SHA256,
+        "silver_record_count": 288,
+        "timeout_seconds": 2700,
+        "max_gpu_hours": 0.75,
+        "wall_clock_stop_seconds": 2400,
+        "wall_clock_ceiling_seconds": 2700,
+    }
+    if (plan != base_qualification_plan()
+            or intent.get("plan_sha256") != plan.get("plan_sha256")
+            or any(intent.get(key) != expected for key, expected in required.items())
+            or not re.fullmatch(r"[0-9a-f]{40}", str(intent.get("source_commit", "")))
+            or source_manifest.get("source_commit") != intent.get("source_commit")
+            or source_manifest.get("manifest_sha256") != intent.get("source_sha256")
+            or intent.get("output_root") != (
+                f"{VOLUME}/base_qualifications/{intent.get('source_commit')}/"
+                f"{BASE_QUALIFICATION_IDENTITY}")
+            or intent.get("mlflow_experiment_path") in (None, "")
+            or any(not re.fullmatch(r"[0-9a-f]{64}", str(intent.get(key, "")))
+                   for key in (
+                       "model_tree_sha256", "model_receipt_sha256",
+                       "silver_records_sha256", "global_journal_sha256",
+                       "admission_data_binding_sha256",
+                       "admission_exposure_binding_sha256"))):
+        raise PermissionError("Frozen-base qualification intent differs")
+    payload = dict(intent); embedded = payload.pop("intent_sha256", None)
+    if embedded != digest(payload):
+        raise PermissionError("Frozen-base qualification intent self-hash differs")
+    return intent
+
+
+def _validate_base_qualification_resources(value: Mapping[str, Any],
+                                           model_tree_sha256: str) -> dict:
+    resources = dict(value) if isinstance(value, Mapping) else {}
+    required = {
+        "gpu", "backend", "model_copy", "local_disk_free_before_copy",
+        "elapsed_seconds", "inference_seconds", "prompt_tokens",
+        "generated_tokens", "batch_size", "decisions_per_second",
+        "peak_gpu_memory_bytes", "nvml", "operator_stop_seconds",
+        "ceiling_seconds", "protected_export_seconds",
+    }
+    gpu = resources.get("gpu")
+    backend = resources.get("backend")
+    copy = resources.get("model_copy")
+    nvml = resources.get("nvml")
+    devices = gpu.get("devices") if isinstance(gpu, Mapping) else None
+    device = devices[0] if isinstance(devices, list) and len(devices) == 1 else {}
+    kernel = backend.get("kernel_selection") if isinstance(backend, Mapping) else None
+
+    def finite_number(name: str, *, positive: bool = False) -> bool:
+        item = resources.get(name)
+        return (isinstance(item, (int, float)) and not isinstance(item, bool)
+                and math.isfinite(item) and (item > 0 if positive else item >= 0))
+
+    if (set(resources) != required
+            or not isinstance(gpu, Mapping)
+            or gpu.get("profile") != "databricks-a10x1"
+            or gpu.get("compute_dtype") != "float16"
+            or gpu.get("adapter_dtype") != "float32"
+            or not isinstance(device, Mapping)
+            or "A10" not in str(device.get("name", "")).upper()
+            or type(device.get("index")) is not int or device.get("index") != 0
+            or type(device.get("total_memory_bytes")) is not int
+            or device.get("total_memory_bytes", 0) < 20 * 1024**3
+            or not isinstance(backend, Mapping)
+            or backend.get("model_class") != "Qwen3_5ForConditionalGeneration"
+            or backend.get("linear_attention_layers") != 24
+            or backend.get("full_attention_layers") != 8
+            or not isinstance(kernel, Mapping) or kernel.get("profile") != "fla"
+            or not isinstance(copy, Mapping)
+            or copy.get("tree_sha256") != model_tree_sha256
+            or not isinstance(copy.get("copy_bytes"), int)
+            or copy.get("copy_bytes", 0) <= 0
+            or not isinstance(copy.get("copy_seconds"), (int, float))
+            or not math.isfinite(copy.get("copy_seconds", math.nan))
+            or copy.get("copy_seconds", 0) <= 0
+            or not isinstance(copy.get("copy_bytes_per_second"), (int, float))
+            or not math.isfinite(copy.get("copy_bytes_per_second", math.nan))
+            or copy.get("copy_bytes_per_second", 0) <= 0
+            or type(copy.get("local_disk_free_before")) is not int
+            or type(copy.get("local_disk_free_after")) is not int
+            or copy.get("local_disk_free_before", 0)
+               < copy.get("copy_bytes", 0) + 8 * 1024**3
+            or copy.get("local_disk_free_after", 0) < 8 * 1024**3
+            or resources.get("local_disk_free_before_copy")
+               != copy.get("local_disk_free_before")
+            or not finite_number("elapsed_seconds", positive=True)
+            or resources.get("elapsed_seconds", 0) > 2700
+            or not finite_number("inference_seconds", positive=True)
+            or resources.get("inference_seconds", 0)
+               > resources.get("elapsed_seconds", 0)
+            or type(resources.get("prompt_tokens")) is not int
+            or resources.get("prompt_tokens", 0) <= 0
+            or type(resources.get("generated_tokens")) is not int
+            or resources.get("generated_tokens", 0) <= 0
+            or resources.get("batch_size") != 16
+            or not finite_number("decisions_per_second", positive=True)
+            or type(resources.get("peak_gpu_memory_bytes")) is not int
+            or not 0 < resources.get("peak_gpu_memory_bytes", 0) <= device.get(
+                "total_memory_bytes", 0)
+            or not isinstance(nvml, Mapping)
+            or set(nvml) != {"sample_count", "mean_utilization_percent",
+                             "peak_memory_used_bytes"}
+            or nvml.get("sample_count") != 18
+            or not isinstance(nvml.get("mean_utilization_percent"), (int, float))
+            or not math.isfinite(nvml.get("mean_utilization_percent", math.nan))
+            or not 0 <= nvml.get("mean_utilization_percent", -1) <= 100
+            or type(nvml.get("peak_memory_used_bytes")) is not int
+            or not 0 < nvml.get("peak_memory_used_bytes", 0) <= device.get(
+                "total_memory_bytes", 0)
+            or resources.get("operator_stop_seconds") != 2400
+            or resources.get("ceiling_seconds") != 2700
+            or resources.get("protected_export_seconds") != 300):
+        raise PermissionError("Frozen-base qualification resources differ")
+    return resources
+
+
+def validate_base_qualification_receipt(value: Mapping[str, Any]) -> dict:
+    receipt = dict(value)
+    payload = dict(receipt); embedded = payload.pop("receipt_sha256", None)
+    family = receipt.get("family_strict_schema_and_legal")
+    if (embedded != digest(payload)
+            or receipt.get("version") != BASE_QUALIFICATION_RECEIPT_VERSION
+            or receipt.get("status") != "qualified"
+            or receipt.get("identity") != BASE_QUALIFICATION_IDENTITY
+            or receipt.get("plan_sha256") != base_qualification_plan()["plan_sha256"]
+            or receipt.get("adapter_parameter_count") != 0
+            or receipt.get("optimizer_updates") != 0
+            or receipt.get("backward_passes") != 0
+            or receipt.get("decision_count") != 288
+            or receipt.get("minimum_required") != 286
+            or receipt.get("minimum_required_per_family") != 35
+            or receipt.get("strict_schema_and_legal_count", 0) < 286
+            or not 0 <= receipt.get("target_match_count_secondary", -1) <= 288
+            or receipt.get("dataset_tree_sha256") != DATASET_TREE_SHA256
+            or receipt.get("silver_records_sha256") is None
+            or receipt.get("output_root") != (
+                f"{VOLUME}/base_qualifications/{receipt.get('source_commit')}/"
+                f"{BASE_QUALIFICATION_IDENTITY}")
+            or not isinstance(family, Mapping)
+            or set(family) != set(BASE_QUALIFICATION_FAMILIES)
+            or set(family.values()) - {35, 36}
+            or min(family.values(), default=0) < 35
+            or sum(family.values()) != receipt.get(
+                "strict_schema_and_legal_count")
+            or not isinstance(receipt.get("resources"), Mapping)
+            or receipt.get("base_component_sha256_before")
+               != receipt.get("base_component_sha256_after")
+            or any(not re.fullmatch(r"[0-9a-f]{64}", str(receipt.get(key, "")))
+                   for key in (
+                       "source_sha256", "model_tree_sha256",
+                       "model_receipt_sha256", "dataset_tree_sha256",
+                       "base_component_sha256_before",
+                       "base_component_sha256_after", "raw_results_sha256",
+                       "silver_records_sha256"))
+            or not re.fullmatch(r"[0-9a-f]{40}", str(
+                receipt.get("source_commit", "")))
+            or not re.fullmatch(r"[0-9a-f]{64}", str(
+                receipt.get("base_qualification_intent_sha256", "")))):
+        raise PermissionError("Frozen-base qualification receipt differs")
+    _validate_base_qualification_resources(
+        receipt["resources"], receipt["model_tree_sha256"])
+    return receipt
+
+
+def create_base_qualification_receipt(intent: Mapping[str, Any],
+                                      outcomes: list[Mapping[str, Any]], *,
+                                      raw_results_sha256: str,
+                                      base_component_sha256_before: str,
+                                      base_component_sha256_after: str,
+                                      resource_metrics: Mapping[str, Any]) -> dict:
+    intent = validate_base_qualification_intent(intent)
+    if (len(outcomes) != 288
+            or len({row.get("record_id") for row in outcomes}) != 288
+            or not re.fullmatch(r"[0-9a-f]{64}", raw_results_sha256)
+            or not re.fullmatch(r"[0-9a-f]{64}", base_component_sha256_before)
+            or base_component_sha256_before != base_component_sha256_after):
+        raise PermissionError("Frozen-base qualification raw evidence differs")
+    family: dict[str, int] = {}
+    strict_total = target_total = 0
+    outcome_binding = sorted(({
+        "record_id": row.get("record_id"),
+        "record_sha256": row.get("record_sha256"),
+    } for row in outcomes), key=lambda row: str(row["record_id"]))
+    if (any(not re.fullmatch(r"[0-9a-f]{64}", str(
+            row.get("record_sha256", ""))) for row in outcome_binding)
+            or digest(outcome_binding) != intent["silver_records_sha256"]):
+        raise PermissionError("Frozen-base outcomes do not bind exact Silver payloads")
+    for row in outcomes:
+        name = row.get("family_id")
+        output_text = row.get("output_text")
+        allowed = row.get("allowed_actions")
+        target = row.get("target_action_id")
+        try:
+            parsed = json.loads(output_text)
+        except (TypeError, json.JSONDecodeError):
+            parsed = None
+        derived_strict = (isinstance(parsed, dict)
+                          and set(parsed) == {"action"}
+                          and isinstance(parsed["action"], str))
+        derived_action = parsed.get("action") if derived_strict else None
+        derived_legal = (derived_strict and isinstance(allowed, list)
+                         and derived_action in allowed)
+        derived_target = derived_strict and derived_action == target
+        strict = derived_strict and derived_legal
+        if (not isinstance(name, str) or not name
+                or not isinstance(output_text, str)
+                or not isinstance(allowed, list) or not allowed
+                or not isinstance(target, str)
+                or hashlib.sha256(output_text.encode("utf-8")).hexdigest()
+                   != row.get("output_sha256")
+                or row.get("strict_json") is not derived_strict
+                or row.get("legal_action") is not derived_legal
+                or row.get("target_match") is not derived_target
+                or row.get("action") != derived_action):
+            raise PermissionError("Base qualification outcome differs")
+        family.setdefault(name, 0)
+        family[name] += int(strict)
+        strict_total += int(strict)
+        target_total += int(row.get("target_match") is True)
+    qualified = (strict_total >= 286 and len(family) == 8
+                 and min(family.values(), default=0) >= 35)
+    value = {
+        "version": BASE_QUALIFICATION_RECEIPT_VERSION,
+        "status": "qualified" if qualified else "failed",
+        "identity": BASE_QUALIFICATION_IDENTITY,
+        "plan_sha256": intent["plan_sha256"],
+        "source_commit": intent["source_commit"],
+        "source_sha256": intent["source_sha256"],
+        "model_tree_sha256": intent["model_tree_sha256"],
+        "model_receipt_sha256": intent["model_receipt_sha256"],
+        "dataset_tree_sha256": intent["dataset_tree_sha256"],
+        "silver_records_sha256": intent["silver_records_sha256"],
+        "output_root": intent["output_root"],
+        "base_qualification_intent_sha256": intent["intent_sha256"],
+        "adapter_parameter_count": 0,
+        "optimizer_updates": 0,
+        "backward_passes": 0,
+        "decision_count": 288,
+        "strict_schema_and_legal_count": strict_total,
+        "target_match_count_secondary": target_total,
+        "family_strict_schema_and_legal": dict(sorted(family.items())),
+        "minimum_required": 286,
+        "minimum_required_per_family": 35,
+        "base_component_sha256_before": base_component_sha256_before,
+        "base_component_sha256_after": base_component_sha256_after,
+        "raw_results_sha256": raw_results_sha256,
+        "resources": dict(resource_metrics),
+    }
+    value["receipt_sha256"] = digest(value)
+    if qualified:
+        return validate_base_qualification_receipt(value)
+    return value
+
+
+def validate_execution_intent(value: Mapping[str, Any]) -> dict:
+    """Dispatch one-use lock validation without weakening either contract."""
+    if value.get("version") == BASE_QUALIFICATION_INTENT_VERSION:
+        return validate_base_qualification_intent(value)
+    if value.get("version") == "research4-databricks-continuity-transfer-intent-v1":
+        from .continuity_transfer_databricks import validate_transfer_intent
+        return validate_transfer_intent(value)
+    return validate_intent(value)
 
 
 def validate_intent(value: Mapping[str, Any]) -> dict:
@@ -470,8 +1145,8 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
     except (TypeError, ValueError, PermissionError) as exc:
         raise PermissionError("Databricks intent lacks a valid source manifest") from exc
     plan = intent.get("plan", {})
-    mode, stage = plan.get("mode"), plan.get("stage")
-    expected_updates = 2 if mode == "qualification" else 24 if stage == "skill" else 144
+    mode = plan.get("mode")
+    expected_updates = 2 if mode == "qualification" else 144
     required = {
         "version": INTENT_VERSION, "one_use": True, "attempt_number": 1,
         "automatic_retries": 0, "execution_platform": "databricks",
@@ -490,11 +1165,11 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
         qualification_plan(EXPERIMENT_SPEC, 4),
         device_profile="databricks-a10x1", world_size=1,
         micro_batch_size=2, accumulation_steps=2).validate()
-    skill, policies = matrix_plans(EXPERIMENT_SPEC, 4)
+    policies = matrix_plans(EXPERIMENT_SPEC, 4)
     canonical_plans = [replace(
         item, device_profile="databricks-a10x1", world_size=1,
         micro_batch_size=2, accumulation_steps=2).validate()
-        for item in [skill, *policies]]
+        for item in policies]
     expected_plan = (qualification if mode == "qualification" else
                      next((item for item in canonical_plans
                            if (item.condition, item.seed, item.stage) ==
@@ -509,16 +1184,18 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
             or source_manifest.get("source_commit") != intent["source_commit"]
             or intent.get("source_sha256") != source_manifest.get("manifest_sha256")
             or intent.get("dataset_tree_sha256") != DATASET_TREE_SHA256
-            or not isinstance(intent.get("silver_record_count"), int)
-            or intent["silver_record_count"] <= 0
+            or intent.get("silver_record_count") != 2304
             or not isinstance(intent.get("semantics_record_count"), int)
-            or intent["semantics_record_count"] < 0
+            or intent["semantics_record_count"] != 0
+            or intent.get("semantics_records_sha256") != digest([])
             or any(not isinstance(intent.get(key), str)
                    or not re.fullmatch(r"[0-9a-f]{64}", intent[key]) for key in (
                        "model_tree_sha256", "model_receipt_sha256",
                        "silver_records_sha256", "semantics_records_sha256",
                        "global_journal_sha256", "admission_data_binding_sha256",
-                       "admission_exposure_binding_sha256"))
+                       "admission_exposure_binding_sha256",
+                       "base_qualification_intent_sha256",
+                       "base_qualification_receipt_sha256"))
             or intent.get("mlflow_experiment_path") in (None, "")
             or not isinstance(intent.get("timeout_seconds"), int)
             or not 300 <= intent["timeout_seconds"] <= 14_400
@@ -593,12 +1270,21 @@ def build_intent(*, plan, identity: str, source_commit: str,
                  timeout_seconds: int, max_gpu_hours: float,
                  wall_clock_stop_seconds: int,
                  mlflow_experiment_path: str,
+                 base_qualification_receipt: Mapping[str, Any],
                  qualification_receipt: Mapping[str, Any] | None = None) -> dict:
     """Create a self-hashed not-submitted intent for external review."""
     from dataclasses import asdict
     manifest = validate_source_manifest(source_manifest)
     if manifest["source_commit"] != source_commit:
         raise PermissionError("Source manifest commit differs from the intent")
+    base_receipt = validate_base_qualification_receipt(
+        base_qualification_receipt)
+    if (base_receipt["source_commit"] != source_commit
+            or base_receipt["source_sha256"] != manifest["manifest_sha256"]
+            or base_receipt["model_tree_sha256"] != model_tree_sha256
+            or base_receipt["model_receipt_sha256"] != model_receipt_sha256
+            or base_receipt["dataset_tree_sha256"] != DATASET_TREE_SHA256):
+        raise PermissionError("Frozen-base qualification authority differs")
     value = {
         "version": INTENT_VERSION, "one_use": True, "attempt_number": 1,
         "automatic_retries": 0, "identity": identity,
@@ -618,6 +1304,9 @@ def build_intent(*, plan, identity: str, source_commit: str,
         "global_journal_sha256": global_journal_sha256,
         "admission_data_binding_sha256": admission_data_binding_sha256,
         "admission_exposure_binding_sha256": admission_exposure_binding_sha256,
+        "base_qualification_intent_sha256": base_receipt[
+            "base_qualification_intent_sha256"],
+        "base_qualification_receipt_sha256": base_receipt["receipt_sha256"],
         "max_gpu_hours": max_gpu_hours,
         "wall_clock_stop_seconds": wall_clock_stop_seconds,
         "wall_clock_ceiling_seconds": timeout_seconds,
@@ -627,6 +1316,17 @@ def build_intent(*, plan, identity: str, source_commit: str,
     if plan.mode == "primary":
         if qualification_receipt is None:
             raise PermissionError("Primary intent needs actual qualification throughput")
+        capacity = dict(qualification_receipt)
+        capacity_hash = capacity.pop("receipt_sha256", None)
+        if (capacity_hash != digest(capacity)
+                or qualification_receipt.get("status") != "qualified"
+                or qualification_receipt.get(
+                    "base_qualification_intent_sha256")
+                   != base_receipt["base_qualification_intent_sha256"]
+                or qualification_receipt.get(
+                    "base_qualification_receipt_sha256")
+                   != base_receipt["receipt_sha256"]):
+            raise PermissionError("Capacity qualification uses a different base gate")
         value["reviewed_timeout_budget"] = primary_timeout_budget(
             plan, qualification_receipt)
     elif qualification_receipt is not None:
@@ -638,11 +1338,11 @@ def build_intent(*, plan, identity: str, source_commit: str,
 def canonical_primary_plan_hashes() -> list[str]:
     from dataclasses import replace
     from .qwen9b_ordinal_continuity_controller import matrix_plans
-    skill, policies = matrix_plans(EXPERIMENT_SPEC, 4)
+    policies = matrix_plans(EXPERIMENT_SPEC, 4)
     return sorted(replace(
         plan, device_profile="databricks-a10x1", world_size=1,
         micro_batch_size=2, accumulation_steps=2).validate().full_plan_sha256
-        for plan in [skill, *policies])
+        for plan in policies)
 
 
 def create_qualification_receipt(intent: Mapping[str, Any],
@@ -688,6 +1388,10 @@ def create_qualification_receipt(intent: Mapping[str, Any],
         "source_sha256": intent["source_sha256"],
         "model_tree_sha256": intent["model_tree_sha256"],
         "model_receipt_sha256": intent["model_receipt_sha256"],
+        "base_qualification_intent_sha256": intent[
+            "base_qualification_intent_sha256"],
+        "base_qualification_receipt_sha256": intent[
+            "base_qualification_receipt_sha256"],
         "qualification_intent_sha256": intent["intent_sha256"],
         "qualification_plan_sha256": intent["plan_sha256"],
         "qualification_rank_receipt_sha256": rank_receipt["receipt_sha256"],
@@ -716,6 +1420,10 @@ def create_primary_admission(intent: Mapping[str, Any],
             or receipt.get("source_sha256") != intent["source_sha256"]
             or receipt.get("model_tree_sha256") != intent["model_tree_sha256"]
             or receipt.get("model_receipt_sha256") != intent["model_receipt_sha256"]
+            or receipt.get("base_qualification_intent_sha256")
+               != intent.get("base_qualification_intent_sha256")
+            or receipt.get("base_qualification_receipt_sha256")
+               != intent.get("base_qualification_receipt_sha256")
             or intent.get("reviewed_timeout_budget", {}).get(
                 "qualification_receipt_sha256") != embedded
             or intent.get("reviewed_timeout_budget", {}).get(
@@ -732,6 +1440,10 @@ def create_primary_admission(intent: Mapping[str, Any],
         "qualification_evidence_sha256": receipt["qualification_evidence_sha256"],
         "qualification_checkpoint_tree_sha256": receipt[
             "qualification_checkpoint_tree_sha256"],
+        "base_qualification_intent_sha256": intent[
+            "base_qualification_intent_sha256"],
+        "base_qualification_receipt_sha256": intent[
+            "base_qualification_receipt_sha256"],
         "model_tree_sha256": intent["model_tree_sha256"],
         "model_receipt_sha256": intent["model_receipt_sha256"],
         "reviewed_timeout_budget_sha256": intent[
@@ -760,6 +1472,11 @@ def validate_primary_authority_files(
         Path(qualification_intent_path).read_text(encoding="utf-8")))
     if qualification_intent["plan"]["mode"] != "qualification":
         raise PermissionError("Qualification intent has the wrong mode")
+    if (qualification_intent.get("base_qualification_intent_sha256")
+            != primary_intent.get("base_qualification_intent_sha256")
+            or qualification_intent.get("base_qualification_receipt_sha256")
+            != primary_intent.get("base_qualification_receipt_sha256")):
+        raise PermissionError("Primary and capacity qualification use different base gate")
     root = Path(qualification_output)
     rank = json.loads((root / "RANK_0_RECEIPT.json").read_text(encoding="utf-8"))
     evidence = json.loads((root / "DATABRICKS_EVIDENCE.json").read_text(
@@ -790,17 +1507,16 @@ def expected_predecessor_binding(plan: Mapping[str, Any]) -> dict | None:
     from .qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
     from .qwen9b_ordinal_continuity_training import TrainingPlan
     current = TrainingPlan(**dict(plan)).validate()
-    if current.stage == "skill":
+    if current.stage == "delta1":
         return None
-    skill, policies = matrix_plans(EXPERIMENT_SPEC, 4)
+    policies = matrix_plans(EXPERIMENT_SPEC, 4)
     candidates = [replace(
         value, device_profile="databricks-a10x1", world_size=1,
         micro_batch_size=2, accumulation_steps=2).validate()
-        for value in [skill, *policies]]
-    expected_stage = {"delta1": "skill", "delta2": "delta1",
-                      "delta3": "delta2"}[current.stage]
-    expected_condition = "neutral_skill" if expected_stage == "skill" else current.condition
-    expected_seed = skill.seed if expected_stage == "skill" else current.seed
+        for value in policies]
+    expected_stage = {"delta2": "delta1", "delta3": "delta2"}[current.stage]
+    expected_condition = current.condition
+    expected_seed = current.seed
     matches = [value for value in candidates
                if (value.stage, value.condition, value.seed) ==
                (expected_stage, expected_condition, expected_seed)]
@@ -830,7 +1546,7 @@ def validate_exact_gold_row(rows: list[Mapping[str, Any]],
 class VolumeOneUseLock:
     """Cross-job O_EXCL lock plus immutable consumed-intent receipt."""
     def __init__(self, lock_root: str | Path, intent: Mapping[str, Any], owner: str):
-        self.root = Path(lock_root); self.intent = validate_intent(intent)
+        self.root = Path(lock_root); self.intent = validate_execution_intent(intent)
         self.owner = owner; self.lock = self.root / "scientific.lock"
         self.consumed = self.root / "consumed" / (self.intent["identity"] + ".json")
 
@@ -868,7 +1584,7 @@ class VolumeOneUseLock:
 
 def reserve_intent(lock_root: str | Path, intent: Mapping[str, Any], owner: str) -> dict:
     """Consume the identity after GPU readiness and before any model handling."""
-    intent = validate_intent(intent); root = Path(lock_root); owner = str(owner)
+    intent = validate_execution_intent(intent); root = Path(lock_root); owner = str(owner)
     if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", owner):
         raise ValueError("Reservation owner is empty or malformed")
     root.mkdir(parents=True, exist_ok=True); (root / "consumed").mkdir(exist_ok=True)
@@ -894,7 +1610,7 @@ def reserve_intent(lock_root: str | Path, intent: Mapping[str, Any], owner: str)
 
 def verify_reserved_intent(lock_root: str | Path, intent: Mapping[str, Any],
                            owner: str) -> Path:
-    intent = validate_intent(intent); owner = str(owner)
+    intent = validate_execution_intent(intent); owner = str(owner)
     if not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", owner):
         raise ValueError("Reservation owner is empty or malformed")
     active = Path(lock_root) / "scientific.lock"
@@ -914,7 +1630,7 @@ def close_active_reservation(lock_root: str | Path, intent: Mapping[str, Any],
     process dies between them, the next invocation recognizes the closeout
     payload still at ``scientific.lock`` and finishes the owner-bound rename.
     """
-    intent = validate_intent(intent); root = Path(lock_root); owner = str(owner)
+    intent = validate_execution_intent(intent); root = Path(lock_root); owner = str(owner)
     if (not owner or not isinstance(terminal_status, str)
             or not re.fullmatch(r"[a-z0-9_.:-]{1,128}", terminal_status)):
         raise ValueError("Closeout needs an exact owner and bounded status")
@@ -1087,17 +1803,37 @@ def commit_model_snapshot(staged_root: str | Path, model_root: str | Path,
         raise
 
 
-def gold_summary(skill_receipt: Mapping, policy_receipts: list[Mapping]) -> dict:
-    if (skill_receipt.get("status") != "complete"
-            or skill_receipt.get("optimizer_updates") != 24
-            or skill_receipt.get("stage") != "skill"
-            or skill_receipt.get("receipt_replayed") is not True
+def gold_summary(base_qualification_receipt: Mapping,
+                 capacity_qualification_receipt: Mapping,
+                 capacity_gold_row: Mapping,
+                 policy_receipts: list[Mapping]) -> dict:
+    base = validate_base_qualification_receipt(base_qualification_receipt)
+    capacity_payload = dict(capacity_qualification_receipt)
+    capacity_hash = capacity_payload.pop("receipt_sha256", None)
+    if (capacity_hash != digest(capacity_payload)
+            or capacity_qualification_receipt.get("status") != "qualified"
+            or capacity_qualification_receipt.get("selected_rank") != 4
+            or capacity_qualification_receipt.get(
+                "authorized_primary_plan_sha256s")
+               != canonical_primary_plan_hashes()
+            or capacity_qualification_receipt.get(
+                "base_qualification_receipt_sha256") != base["receipt_sha256"]
+            or capacity_gold_row.get("status") != "complete"
+            or capacity_gold_row.get("mode") != "qualification"
+            or capacity_gold_row.get("optimizer_updates") != 2
+            or capacity_gold_row.get("stage") != "delta1"
+            or capacity_gold_row.get("parent_checkpoint_tree_sha256") is not None
+            or capacity_gold_row.get("receipt_replayed") is not True
+            or capacity_gold_row.get("qualification_receipt_sha256")
+               != base["receipt_sha256"]
             or len(policy_receipts) != 27
             or any(row.get("status") != "complete"
                    or row.get("optimizer_updates") != 144
                    or row.get("receipt_replayed") is not True
+                   or row.get("qualification_receipt_sha256") != capacity_hash
                    for row in policy_receipts)):
-        raise PermissionError("Gold summary requires the complete audited 1+27 matrix")
+        raise PermissionError(
+            "Gold summary requires frozen base + capacity qualifier + 27 policies")
     conditions = ("self_continuity", "artifact_continuity", "label_only")
     seeds = (202610281, 202610282, 202610283)
     stages = ("delta1", "delta2", "delta3")
@@ -1106,24 +1842,30 @@ def gold_summary(skill_receipt: Mapping, policy_receipts: list[Mapping]) -> dict
     if set(by_key) != {(condition, seed, stage) for condition in conditions
                        for seed in seeds for stage in stages}:
         raise PermissionError("Gold policy rows are incomplete or duplicated")
-    all_rows = [skill_receipt, *policy_receipts]
-    if (len({row.get("source_commit") for row in all_rows}) != 1
-            or len({row.get("model_tree_sha256") for row in all_rows}) != 1
-            or sorted(row.get("plan_sha256") for row in all_rows)
+    all_rows = [capacity_gold_row, *policy_receipts]
+    if (len({row.get("source_commit") for row in all_rows}
+            | {base.get("source_commit")}) != 1
+            or len({row.get("model_tree_sha256") for row in all_rows}
+                   | {base.get("model_tree_sha256")}) != 1
+            or sorted(row.get("plan_sha256") for row in policy_receipts)
                != canonical_primary_plan_hashes()):
         raise PermissionError("Gold rows do not bind one canonical source/model/matrix")
-    skill_tree = skill_receipt.get("checkpoint_tree_sha256")
     for condition in conditions:
         for seed in seeds:
-            parent = skill_tree
+            parent = None
             for stage in stages:
                 row = by_key[(condition, seed, stage)]
                 if row.get("parent_checkpoint_tree_sha256") != parent:
                     raise PermissionError("Gold checkpoint predecessor chain differs")
                 parent = row.get("checkpoint_tree_sha256")
-    value = {"status": "complete", "policy_partition_count": 27,
-             "canonical_skill_checkpoint_sha256": skill_tree,
-             "skill_receipt_sha256": skill_receipt.get("receipt_sha256"),
+    value = {
+             "status": "complete", "policy_partition_count": 27,
+             "baseline": "frozen_base",
+             "frozen_base_model_sha256": base["model_tree_sha256"],
+             "base_qualification_receipt_sha256": base["receipt_sha256"],
+             "capacity_qualification_receipt_sha256": capacity_hash,
+             "capacity_qualification_rank_receipt_sha256":
+                 capacity_gold_row.get("receipt_sha256"),
              "policy_receipt_sha256": sorted(
                  row.get("receipt_sha256") for row in policy_receipts)}
     value["summary_sha256"] = digest(value)
