@@ -1,0 +1,221 @@
+{
+  "idempotency_token": "r4-scale1-v6-classic-a10-ec6fdb9c-provider1",
+  "run_name": "Research4 scale1 v6 classic A10 provider recovery",
+  "timeout_seconds": 4500,
+  "performance_target": "PERFORMANCE_OPTIMIZED",
+  "tasks": [
+    {
+      "task_key": "validate_before_gpu",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d/notebooks/databricks_continuity_preflight",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "run_id": "{{job.run_id}}",
+          "code_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d",
+          "intent_path": "/Volumes/research4_simulated_continuity/bronze/model_data/intents/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_INTENT-96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3.json",
+          "plan_path": "/Volumes/research4_simulated_continuity/bronze/model_data/plans/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_PLAN-83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc.json",
+          "admission_path": "",
+          "parent_checkpoint": "",
+          "base_qualification_receipt_path": "/Volumes/research4_simulated_continuity/bronze/model_data/base_qualifications/4f5b6533e5da9523f529413e68a8e7270b045f34/frozen_base_format_qualification_v2/BASE_QUALIFICATION_RECEIPT.json",
+          "expected_mode": "qualification"
+        }
+      },
+      "environment_key": "continuity_preflight_cpu",
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "timeout_seconds": 900,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "run_one_partition",
+      "depends_on": [
+        {
+          "task_key": "validate_before_gpu"
+        }
+      ],
+      "notebook_task": {
+        "notebook_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d/notebooks/databricks_continuity_partition",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "run_id": "{{job.run_id}}",
+          "job_start_timestamp_ms": "{{job.start_time.timestamp_ms}}",
+          "code_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d",
+          "intent_path": "/Volumes/research4_simulated_continuity/bronze/model_data/intents/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_INTENT-96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3.json",
+          "plan_path": "/Volumes/research4_simulated_continuity/bronze/model_data/plans/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_PLAN-83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc.json",
+          "admission_path": "",
+          "parent_checkpoint": "",
+          "base_qualification_receipt_path": "/Volumes/research4_simulated_continuity/bronze/model_data/base_qualifications/4f5b6533e5da9523f529413e68a8e7270b045f34/frozen_base_format_qualification_v2/BASE_QUALIFICATION_RECEIPT.json",
+          "expected_mode": "qualification"
+        }
+      },
+      "new_cluster": {
+        "spark_version": "18.x-gpu-ml-scala2.13",
+        "node_type_id": "Standard_NV36ads_A10_v5",
+        "driver_node_type_id": "Standard_NV36ads_A10_v5",
+        "num_workers": 0,
+        "runtime_engine": "STANDARD",
+        "data_security_mode": "SINGLE_USER",
+        "single_user_name": "farhad.davaripour@gmail.com",
+        "azure_attributes": {
+          "availability": "ON_DEMAND_AZURE",
+          "first_on_demand": 1
+        },
+        "spark_conf": {
+          "spark.databricks.cluster.profile": "singleNode",
+          "spark.master": "local[*, 4]"
+        },
+        "spark_env_vars": {
+          "HF_HUB_OFFLINE": "1",
+          "TRANSFORMERS_OFFLINE": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+        },
+        "custom_tags": {
+          "ResourceClass": "SingleNode",
+          "aidevkit_project": "ai-dev-kit",
+          "research": "research4",
+          "study": "simulated-continuity",
+          "cost_scope": "scale1-v6-classic-a10-max-0.75-gpu-hour"
+        }
+      },
+      "libraries": [
+        {
+          "pypi": {
+            "package": "torch==2.11.0+cu128",
+            "repo": "https://download.pytorch.org/whl/cu128"
+          }
+        },
+        {
+          "pypi": {
+            "package": "transformers==5.19.0"
+          }
+        },
+        {
+          "pypi": {
+            "package": "bitsandbytes==0.49.2"
+          }
+        },
+        {
+          "pypi": {
+            "package": "accelerate==1.15.0"
+          }
+        },
+        {
+          "pypi": {
+            "package": "safetensors==0.8.0"
+          }
+        },
+        {
+          "pypi": {
+            "package": "fla-core==0.5.2"
+          }
+        },
+        {
+          "pypi": {
+            "package": "einops==0.8.2"
+          }
+        },
+        {
+          "pypi": {
+            "package": "numpy==2.2.2"
+          }
+        },
+        {
+          "pypi": {
+            "package": "psutil==7.2.2"
+          }
+        },
+        {
+          "pypi": {
+            "package": "triton==3.6.0"
+          }
+        },
+        {
+          "pypi": {
+            "package": "nvidia-ml-py==13.615.71"
+          }
+        },
+        {
+          "pypi": {
+            "package": "mlflow==3.1.0"
+          }
+        }
+      ],
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "timeout_seconds": 2700,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "finalize_partition_mlflow",
+      "depends_on": [
+        {
+          "task_key": "run_one_partition"
+        }
+      ],
+      "run_if": "ALL_DONE",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d/notebooks/databricks_continuity_partition_finalize",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "run_id": "{{job.run_id}}",
+          "code_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d",
+          "intent_path": "/Volumes/research4_simulated_continuity/bronze/model_data/intents/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_INTENT-96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3.json",
+          "plan_path": "/Volumes/research4_simulated_continuity/bronze/model_data/plans/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_PLAN-83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc.json"
+        }
+      },
+      "environment_key": "continuity_finalize_cpu",
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "timeout_seconds": 900,
+      "disable_auto_optimization": true
+    },
+    {
+      "task_key": "release_active_reservation",
+      "depends_on": [
+        {
+          "task_key": "validate_before_gpu"
+        },
+        {
+          "task_key": "run_one_partition"
+        },
+        {
+          "task_key": "finalize_partition_mlflow"
+        }
+      ],
+      "run_if": "ALL_DONE",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d/notebooks/databricks_continuity_cleanup",
+        "source": "WORKSPACE",
+        "base_parameters": {
+          "run_id": "{{job.run_id}}",
+          "code_path": "/Workspace/Shared/research4/source_releases/ec6fdb9c1605b6090c6747081511b2092c93785d",
+          "intent_path": "/Volumes/research4_simulated_continuity/bronze/model_data/intents/ec6fdb9c1605b6090c6747081511b2092c93785d/QUALIFICATION_RANK4_INTENT-96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3.json"
+        }
+      },
+      "environment_key": "continuity_preflight_cpu",
+      "max_retries": 0,
+      "retry_on_timeout": false,
+      "timeout_seconds": 600,
+      "disable_auto_optimization": true
+    }
+  ],
+  "environments": [
+    {
+      "environment_key": "continuity_preflight_cpu",
+      "spec": {
+        "environment_version": "6",
+        "dependencies": []
+      }
+    },
+    {
+      "environment_key": "continuity_finalize_cpu",
+      "spec": {
+        "environment_version": "6",
+        "dependencies": [
+          "mlflow==3.1.0",
+          "numpy==2.2.2"
+        ]
+      }
+    }
+  ]
+}
