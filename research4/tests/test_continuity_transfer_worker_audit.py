@@ -86,7 +86,7 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
                 directory = checkpoint_root / "checkpoints" / blind
                 directory.mkdir(parents=True)
                 config = {
-                    "version": "qwen35-9b-ordinal-continuity-checkpoint-v3",
+                    "version": "qwen35-9b-ordinal-continuity-checkpoint-v4",
                     "config": {"model_id": MODEL_ID, "model_revision": MODEL_REVISION},
                     "stage": "delta3", "condition": condition, "seed": seed,
                     "active_branches": ["delta1", "delta2", "delta3"],

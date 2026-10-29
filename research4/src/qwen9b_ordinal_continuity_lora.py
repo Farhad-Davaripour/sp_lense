@@ -29,19 +29,22 @@ MODEL_ID = "Qwen/Qwen3.5-9B"
 MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
 STAGES = ("delta1", "delta2", "delta3", "frozen")
 ABLATIONS = ("identity", "shuffle", "invert")
-CHECKPOINT_VERSION = "qwen35-9b-ordinal-continuity-checkpoint-v3"
+CHECKPOINT_VERSION = "qwen35-9b-ordinal-continuity-checkpoint-v4"
 EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
 BRANCHES = ("delta1", "delta2", "delta3")
 # Pinned from the official Qwen/Qwen3.5-9B config at MODEL_REVISION.  The
 # target inventory is 24 DeltaNet layers x 8 projections plus 8 full-attention
-# layers x 7 projections.  Each rank-r LoRA branch therefore owns
-# r * sum(in_features + out_features) parameters over the 248 projections.
+# layers x 7 projections. Qwen3.5 full attention uses ``attn_output_gate=True``:
+# each full-attention q_proj emits query + gate (8192, not 4096). Each rank-r
+# branch therefore owns r * sum(in_features + out_features) parameters over
+# the 248 projections.
 EXPECTED_TARGET_PROJECTIONS = 248
-EXPECTED_TARGET_DIMENSION_SUM = 2_672_128
+EXPECTED_TARGET_DIMENSION_SUM = 2_704_896
 EXPECTED_BRANCH_TENSORS = 2 * EXPECTED_TARGET_PROJECTIONS
-EXPECTED_RANK4_BRANCH_PARAMETERS = 10_688_512
-EXPECTED_RANK8_BRANCH_PARAMETERS = 21_377_024
+EXPECTED_RANK4_BRANCH_PARAMETERS = 10_819_584
+EXPECTED_RANK8_BRANCH_PARAMETERS = 21_639_168
 EXPECTED_RANK4_TOTAL_ADAPTER_PARAMETERS = 3 * EXPECTED_RANK4_BRANCH_PARAMETERS
+EXPECTED_RANK8_TOTAL_ADAPTER_PARAMETERS = 3 * EXPECTED_RANK8_BRANCH_PARAMETERS
 STAGE_BRANCHES = {
     "delta1": ("delta1",),
     "delta2": ("delta1", "delta2"),

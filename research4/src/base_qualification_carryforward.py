@@ -30,7 +30,6 @@ UNCHANGED_BASE_FILES = (
     "src/__init__.py",
     "src/action_serialization.py",
     "src/composite_kernels.py",
-    "src/qwen9b_ordinal_continuity_lora.py",
     "src/qwen9b_ordinal_continuity_runtime.py",
 )
 
@@ -41,6 +40,10 @@ BASE_CRITICAL_ENTRYPOINTS = {
         "assert_fast_deltanet_dependencies",
         "assert_qwen35_backend",
         "qwen35_t4x2_device_map",
+    ),
+    "src/qwen9b_ordinal_continuity_lora.py": (
+        "model_component_sha256",
+        "trainable_inventory",
     ),
     "src/databricks_simulated_continuity.py": (
         "BASE_QUALIFICATION_FAMILIES",
@@ -147,6 +150,7 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "src/databricks_simulated_continuity.py",
     "src/qualification_technical_successor.py",
     "src/qwen9b_ordinal_continuity_controller.py",
+    "src/qwen9b_ordinal_continuity_lora.py",
     "src/qwen9b_ordinal_continuity_training.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/prepare_databricks_continuity_intent.py",

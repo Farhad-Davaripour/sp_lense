@@ -12,6 +12,12 @@ import torch
 from torch import nn
 
 from src.qwen9b_ordinal_continuity_lora import (
+    EXPECTED_RANK4_BRANCH_PARAMETERS as LORA_RANK4_BRANCH_PARAMETERS,
+    EXPECTED_RANK4_TOTAL_ADAPTER_PARAMETERS as LORA_RANK4_TOTAL_PARAMETERS,
+    EXPECTED_RANK8_BRANCH_PARAMETERS as LORA_RANK8_BRANCH_PARAMETERS,
+    EXPECTED_RANK8_TOTAL_ADAPTER_PARAMETERS as LORA_RANK8_TOTAL_PARAMETERS,
+    EXPECTED_TARGET_DIMENSION_SUM as LORA_TARGET_DIMENSION_SUM,
+    EXPECTED_TARGET_PROJECTIONS as LORA_TARGET_PROJECTIONS,
     OrdinalContinuityLoRAConfig,
     OrdinalContinuityModel,
     branch_sha256,
@@ -36,6 +42,7 @@ from src.qwen9b_ordinal_continuity_training import (
     occurrence_key_schedule,
     optimizer_sha256,
     ordinal_pair_loss,
+    qwen35_projection_geometry,
     qwen35_t4x2_device_map,
     run_training_stage,
     run_capacity_qualification,
@@ -207,6 +214,42 @@ PASS = {
 
 
 class TrainingAdmissionTests(unittest.TestCase):
+    def test_qwen35_gated_q_geometry_matches_pinned_config(self):
+        config = SimpleNamespace(
+            num_hidden_layers=32, hidden_size=4096,
+            num_attention_heads=16, head_dim=256,
+            attn_output_gate=True,
+            layer_types=["linear_attention"] * 24 + ["full_attention"] * 8,
+        )
+        geometry = qwen35_projection_geometry(config)
+        self.assertEqual(geometry["query_width"], 4096)
+        self.assertEqual(geometry["gated_q_dimension_delta"], 32_768)
+        self.assertEqual(geometry["target_projection_count"], 248)
+        self.assertEqual(geometry["branch_tensor_count"], 496)
+        self.assertEqual(geometry["target_dimension_sum"], 2_704_896)
+        self.assertEqual(geometry["rank4_branch_parameters"], 10_819_584)
+        self.assertEqual(geometry["rank8_branch_parameters"], 21_639_168)
+        self.assertEqual(geometry["rank4_total_adapter_parameters"], 32_458_752)
+        self.assertEqual(geometry["rank8_total_adapter_parameters"], 64_917_504)
+        self.assertEqual(geometry["target_projection_count"],
+                         LORA_TARGET_PROJECTIONS)
+        self.assertEqual(geometry["target_dimension_sum"],
+                         LORA_TARGET_DIMENSION_SUM)
+        self.assertEqual(geometry["rank4_branch_parameters"],
+                         LORA_RANK4_BRANCH_PARAMETERS)
+        self.assertEqual(geometry["rank8_branch_parameters"],
+                         LORA_RANK8_BRANCH_PARAMETERS)
+        self.assertEqual(geometry["rank4_total_adapter_parameters"],
+                         LORA_RANK4_TOTAL_PARAMETERS)
+        self.assertEqual(geometry["rank8_total_adapter_parameters"],
+                         LORA_RANK8_TOTAL_PARAMETERS)
+        self.assertEqual(
+            geometry["rank4_branch_parameters"] - 10_688_512, 131_072)
+
+        config.attn_output_gate = False
+        with self.assertRaises(RuntimeError):
+            qwen35_projection_geometry(config)
+
     def test_matched_conditions_and_family_split(self):
         rows = {condition: dataset(condition) for condition in CONDITIONS}
         binding = validate_matched_conditions(rows)
@@ -731,7 +774,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v4",
+                "version": "qwen35-9b-continuity-partition-intent-v5",
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
                 "partition_identity": SUCCESSOR_IDENTITY,
                 "plan_sha256": qualification.full_plan_sha256,

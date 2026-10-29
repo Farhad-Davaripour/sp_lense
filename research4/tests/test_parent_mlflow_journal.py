@@ -20,7 +20,9 @@ from src.databricks_continuity_partition_worker import (
 from src.qwen9b_ordinal_continuity_controller import partition_identity
 from src.qwen9b_ordinal_continuity_training import TrainingPlan
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
-from src.qualification_technical_successor import authority, validate
+from src.qualification_technical_successor import (
+    SUCCESSOR_IDENTITY, authority, validate,
+)
 
 
 class ParentMlflowJournalTests(unittest.TestCase):
@@ -284,7 +286,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
                     client, "run", journal, self.terminal(), owner_tags)
 
     def test_owner_binding_accepts_only_pre_or_post_cleanup_exact_states(self):
-        owner = "123"; identity = "qualification_rank4_parent_mlflow_v2"
+        owner = "123"; identity = SUCCESSOR_IDENTITY
         intent_sha = "a" * 64
         consumed = {"owner": owner, "identity": identity,
                     "intent_sha256": intent_sha,
@@ -351,7 +353,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
                 (output / name).write_text(json.dumps(value, sort_keys=True))
             (run_root / "TERMINAL.json").write_text(
                 json.dumps(terminal, sort_keys=True))
-            identity = "qualification_rank4_parent_mlflow_v2"
+            identity = SUCCESSOR_IDENTITY
             plan = {"mode": "qualification", "condition": "self_continuity",
                     "stage": "delta1", "seed": 202610281,
                     "optimizer_updates": 2}
@@ -419,7 +421,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
 
     def test_complete_parent_evidence_repairs_absent_gold_idempotently(self):
         expected = {
-            "partition_identity": "qualification_rank4_parent_mlflow_v2",
+            "partition_identity": SUCCESSOR_IDENTITY,
             "intent_sha256": "1" * 64,
             "status": "pending_mlflow_finalize",
             "mlflow_run_id": "run-id",
@@ -442,7 +444,29 @@ class ParentMlflowJournalTests(unittest.TestCase):
     def test_successor_authority_is_exact_and_tamper_fails(self):
         value = authority()
         self.assertEqual(validate(value), value)
+        self.assertEqual(value["prior_identity"],
+                         "qualification_rank4_parent_mlflow_v2")
+        self.assertEqual(value["successor_identity"],
+                         "qualification_rank4_gated_q_geometry_v3")
+        self.assertEqual(value["owner_run_id"], "819228251994413")
+        self.assertEqual(
+            value["prior_intent_sha256"],
+            "fc9dee14129e7c7d5b5b81727d2858f12ffd5c836f63d45dd2a900bcbfaca331")
+        self.assertEqual(
+            value["closeout_receipt_sha256"],
+            "804fba27cbe846ee8868e38882c743e98641e9faea2157c2718f1c2d2ddf7e4c")
+        self.assertEqual(
+            value["predecessor_authority_sha256"],
+            "e029c82e61172517f3b94cd6d55897db14516bf2193c98381531aa3b50fcd335")
+        self.assertEqual(value["progress_journal_entries"], 0)
+        self.assertEqual(value["optimizer_updates"], 0)
+        self.assertFalse(value["checkpoint_written"])
+        self.assertEqual(value["rank4_parameter_difference"], 131_072)
         changed = copy.deepcopy(value); changed["optimizer_updates"] = 1
+        with self.assertRaises(PermissionError):
+            validate(changed)
+        changed = copy.deepcopy(value)
+        changed["predecessor_authority"]["optimizer_updates"] = 1
         with self.assertRaises(PermissionError):
             validate(changed)
 
