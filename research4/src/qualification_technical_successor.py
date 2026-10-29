@@ -7,9 +7,9 @@ import json
 import re
 
 
-VERSION = "research4-qualification-technical-successor-v2"
-PRIOR_IDENTITY = "qualification_rank4_parent_mlflow_v2"
-SUCCESSOR_IDENTITY = "qualification_rank4_gated_q_geometry_v3"
+VERSION = "research4-qualification-technical-successor-v3"
+PRIOR_IDENTITY = "qualification_rank4_gated_q_geometry_v3"
+SUCCESSOR_IDENTITY = "qualification_rank4_a10_microbatch1_v4"
 
 
 def _digest(value) -> str:
@@ -51,16 +51,16 @@ def _parent_mlflow_authority() -> dict:
     return value
 
 
-def authority() -> dict:
-    """Bind the gated-q geometry failure and its reviewed successor."""
+def _gated_q_geometry_authority() -> dict:
+    """Preserve the exact second zero-update successor authority."""
     predecessor = _parent_mlflow_authority()
     value = {
-        "version": VERSION,
+        "version": "research4-qualification-technical-successor-v2",
         "predecessor_authority": predecessor,
         "predecessor_authority_sha256": predecessor[
             "technical_successor_sha256"],
-        "prior_identity": PRIOR_IDENTITY,
-        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_identity": "qualification_rank4_parent_mlflow_v2",
+        "successor_identity": "qualification_rank4_gated_q_geometry_v3",
         "prior_source_commit": "02b7a9f9b4292fea24943e5f1ff5ade61debd5a8",
         "prior_plan_sha256": "84b9170f742b4e90ba119a9c0679887aa77610144b576019c261d6b443f68c19",
         "prior_intent_sha256": "fc9dee14129e7c7d5b5b81727d2858f12ffd5c836f63d45dd2a900bcbfaca331",
@@ -102,24 +102,132 @@ def authority() -> dict:
     return value
 
 
+def authority() -> dict:
+    """Bind the first-backward A10 OOM and its microbatch-1 successor."""
+    predecessor = _gated_q_geometry_authority()
+    value = {
+        "version": VERSION,
+        "predecessor_authority": predecessor,
+        "predecessor_authority_sha256": predecessor[
+            "technical_successor_sha256"],
+        "prior_identity": PRIOR_IDENTITY,
+        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_source_commit": "4d3d28688264e3d873bab24dcb2ee753f17430e1",
+        "prior_source_manifest_sha256": (
+            "40a04de8f95c58c9da22c4a170a89eded1b301adfc9d43a889b004731f5aeed7"),
+        "prior_plan_sha256": (
+            "45499baacfd3a9ab97726907eca6c1766231ed6a62c72f4a136b3da353924000"),
+        "prior_global_journal_sha256": (
+            "873dd87b655b6ea89faf9f7d3b154988c0135087a6073adff94df42d528b74de"),
+        "prior_intent_sha256": (
+            "3aced02640a00040a093fa78921953054ff4554b99b22c5e2e5a3233f7d4635b"),
+        "prior_technical_successor_sha256": predecessor[
+            "technical_successor_sha256"],
+        "owner_run_id": "739463343455961",
+        "gpu_task_run_id": "1058292476779910",
+        "mlflow_experiment_path": (
+            "/Shared/research4_simulated_continuity_training_v5"),
+        "mlflow_experiment_id": "2096517895538432",
+        "mlflow_run_id": "2e0c56ab28394989bde93041d46e07c6",
+        "mlflow_status": "FAILED",
+        "mlflow_logged_param_count": 0,
+        "mlflow_logged_metric_count": 0,
+        "mlflow_logged_artifact_count": 0,
+        "closeout_receipt_sha256": (
+            "b29476067c04b3d145729412f2a68e1b56b839f3e2ed22dd1d2f6347e3e168b6"),
+        "closeout_file_sha256": (
+            "8fae63db79938065bcfb6808e23a002680469a6bcd8b39a97b7395ac19ae5282"),
+        "reservation_sha256": (
+            "638425b3598dc331b5ac487ec6f5eea19cb612fe1a6b5e471a280f2b4a8a4392"),
+        "consumed_file_sha256": (
+            "17ca1a42a8a08f554fc3f77f79a537e2c6abe52964f90e19b0bf26c761f173ad"),
+        "gpu_task_output_file_sha256": (
+            "d624f2581c5831035b6b97d4ad5fda52a650f6d2e827aea1bcae377f64ebc0a9"),
+        "terminal_file_sha256": (
+            "ac0544c4db0eb077ff0384737ebdd6d89ceeec1c8141878f3fedc1c53bc9f8f6"),
+        "mlflow_params_file_sha256": (
+            "a72aec64b7d7ac9264da9705aed5b537b7e56180fbb90236a81a1989073afc81"),
+        "mlflow_progress_file_sha256": (
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
+        "rank_partial_file_sha256": (
+            "6f66379b23aaf2a242537bcd3b7fb2c44c4944a8d69dc5a50afd6654546af843"),
+        "mlflow_run_file_sha256": (
+            "943fa9ce5eab15bade6f319db82f8724637f93ff8a276bc7af8cfca18c3344e9"),
+        "pinned_model_config_sha256": (
+            "d0883072e01861ed0b2d47be3c16c36a8e81c224c7ffaa310c6558fb3f932b05"),
+        "failure_class": "cuda_oom_first_backward_before_optimizer",
+        "terminal_status": "partition_notebook_failed",
+        "gpu_task_result_state": "FAILED",
+        "error_type": "OutOfMemoryError",
+        "oom_requested_allocation_gib": 3.10,
+        "oom_gpu_capacity_gib": 23.72,
+        "oom_gpu_free_gib": 1.25,
+        "oom_process_memory_gib": 20.08,
+        "oom_pytorch_allocated_gib": 17.68,
+        "oom_pytorch_reserved_unallocated_gib": 2.12,
+        "prior_world_size": 1,
+        "prior_micro_batch_size": 2,
+        "prior_accumulation_steps": 2,
+        "successor_world_size": 1,
+        "successor_micro_batch_size": 1,
+        "successor_accumulation_steps": 4,
+        "successor_plan_sha256": (
+            "b4fd5047a675b6bd58e4e88ddb4c522035273e85687d26253d323fd71d3b642d"),
+        "successor_global_journal_sha256": (
+            "873dd87b655b6ea89faf9f7d3b154988c0135087a6073adff94df42d528b74de"),
+        "global_batch_size": 4,
+        "qualification_optimizer_updates": 2,
+        "qualification_occurrence_count": 8,
+        "primary_optimizer_updates": 144,
+        "primary_occurrence_count": 576,
+        "occurrence_schedule_unchanged": True,
+        "example_order_unchanged": True,
+        "sft_coefficients_preserved": True,
+        "preference_coefficients_preserved": True,
+        "margin_coefficients_preserved": True,
+        "loss_reduction_compatibility": "virtual_prior_batch2_accum2_v1",
+        "successor_cuda_allocator_conf": "expandable_segments:True",
+        "reference_logits_released_before_differentiable_forward": True,
+        "model_loads": 1,
+        "model_forwards_recorded": None,
+        "backward_passes_completed": 0,
+        "optimizer_updates": 0,
+        "progress_journal_entries": 0,
+        "checkpoint_written": False,
+        "training_receipt_written": False,
+        "evidence_written": False,
+        "final_science_journal_written": False,
+        "operator_stop_sent": False,
+        "ceiling_kill_sent": False,
+        "child_exit_confirmed": True,
+        "reservation_released": True,
+        "consumed_identity_retained": True,
+        "automatic_retry": False,
+    }
+    value["technical_successor_sha256"] = _digest(value)
+    return value
+
+
 def validate(value: Mapping) -> dict:
     actual = dict(value) if isinstance(value, Mapping) else {}
     expected = authority()
     payload = dict(actual); embedded = payload.pop("technical_successor_sha256", None)
     predecessor = actual.get("predecessor_authority", {})
     sha_fields = (
-        "prior_plan_sha256", "prior_intent_sha256",
+        "prior_plan_sha256", "prior_global_journal_sha256", "prior_intent_sha256",
         "closeout_receipt_sha256", "closeout_file_sha256",
         "consumed_file_sha256", "gpu_task_output_file_sha256",
         "terminal_file_sha256", "mlflow_params_file_sha256",
-        "mlflow_progress_file_sha256", "mlflow_run_file_sha256",
-        "prior_worker_source_sha256", "prior_training_source_sha256",
-        "prior_lora_source_sha256", "pinned_model_config_sha256",
+        "mlflow_progress_file_sha256", "rank_partial_file_sha256",
+        "mlflow_run_file_sha256", "prior_source_manifest_sha256",
+        "prior_technical_successor_sha256", "successor_plan_sha256",
+        "successor_global_journal_sha256", "pinned_model_config_sha256",
+        "reservation_sha256",
         "predecessor_authority_sha256",
         "technical_successor_sha256",
     )
     if (actual != expected or embedded != _digest(payload)
-            or predecessor != _parent_mlflow_authority()
+            or predecessor != _gated_q_geometry_authority()
             or actual.get("predecessor_authority_sha256")
                != predecessor.get("technical_successor_sha256")
             or any(not re.fullmatch(r"[0-9a-f]{64}", str(actual.get(key, "")))

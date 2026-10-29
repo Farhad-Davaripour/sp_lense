@@ -11,7 +11,8 @@ import os
 from .databricks_simulated_continuity import (
     MODEL_ROOT, validate_intent, verify_model_receipt)
 from .qwen9b_ordinal_continuity_training import (
-    TrainingPlan, assert_fast_deltanet_dependencies, build_qualification_model,
+    DATABRICKS_A10_ALLOCATOR_CONF, TrainingPlan,
+    assert_fast_deltanet_dependencies, build_qualification_model,
     build_qualified_model, load_pinned_tokenizer, qualification_metrics_from_run,
     run_training_stage,
     )
@@ -175,6 +176,8 @@ def run(args):
         "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
         "TOKENIZERS_PARALLELISM": "false",
     })
+    if os.environ.get("PYTORCH_CUDA_ALLOC_CONF") != DATABRICKS_A10_ALLOCATOR_CONF:
+        raise PermissionError("Reviewed A10 CUDA allocator configuration differs")
     import torch
     rank = 0; local_rank = 0
     torch.cuda.set_device(local_rank)

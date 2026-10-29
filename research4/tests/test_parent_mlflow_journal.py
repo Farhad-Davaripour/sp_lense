@@ -29,7 +29,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
     def fixture(self, root):
         plan = replace(
             TrainingPlan(), device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=2, accumulation_steps=2).validate()
+            micro_batch_size=1, accumulation_steps=4).validate()
         technical = authority()
         intent = {
             "intent_sha256": "1" * 64,
@@ -445,23 +445,43 @@ class ParentMlflowJournalTests(unittest.TestCase):
         value = authority()
         self.assertEqual(validate(value), value)
         self.assertEqual(value["prior_identity"],
-                         "qualification_rank4_parent_mlflow_v2")
-        self.assertEqual(value["successor_identity"],
                          "qualification_rank4_gated_q_geometry_v3")
-        self.assertEqual(value["owner_run_id"], "819228251994413")
+        self.assertEqual(value["successor_identity"],
+                         "qualification_rank4_a10_microbatch1_v4")
+        self.assertEqual(value["owner_run_id"], "739463343455961")
         self.assertEqual(
             value["prior_intent_sha256"],
-            "fc9dee14129e7c7d5b5b81727d2858f12ffd5c836f63d45dd2a900bcbfaca331")
+            "3aced02640a00040a093fa78921953054ff4554b99b22c5e2e5a3233f7d4635b")
         self.assertEqual(
             value["closeout_receipt_sha256"],
-            "804fba27cbe846ee8868e38882c743e98641e9faea2157c2718f1c2d2ddf7e4c")
+            "b29476067c04b3d145729412f2a68e1b56b839f3e2ed22dd1d2f6347e3e168b6")
         self.assertEqual(
             value["predecessor_authority_sha256"],
+            "f1c5d1ce2eeff6a9089a346db2a72ca11392805b0752539dc862bcb39c42a3bb")
+        self.assertEqual(
+            value["predecessor_authority"]["predecessor_authority_sha256"],
             "e029c82e61172517f3b94cd6d55897db14516bf2193c98381531aa3b50fcd335")
+        self.assertEqual(
+            value["rank_partial_file_sha256"],
+            "6f66379b23aaf2a242537bcd3b7fb2c44c4944a8d69dc5a50afd6654546af843")
+        self.assertEqual(
+            value["mlflow_progress_file_sha256"], hashlib.sha256(b"").hexdigest())
         self.assertEqual(value["progress_journal_entries"], 0)
         self.assertEqual(value["optimizer_updates"], 0)
         self.assertFalse(value["checkpoint_written"])
-        self.assertEqual(value["rank4_parameter_difference"], 131_072)
+        self.assertEqual((value["prior_micro_batch_size"],
+                          value["prior_accumulation_steps"]), (2, 2))
+        self.assertEqual((value["successor_micro_batch_size"],
+                          value["successor_accumulation_steps"]), (1, 4))
+        self.assertEqual(value["qualification_occurrence_count"], 8)
+        self.assertEqual(value["primary_occurrence_count"], 576)
+        successor_plan = replace(
+            TrainingPlan(), device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=1, accumulation_steps=4).validate()
+        self.assertEqual(value["successor_plan_sha256"],
+                         successor_plan.full_plan_sha256)
+        self.assertEqual(value["successor_global_journal_sha256"],
+                         value["prior_global_journal_sha256"])
         changed = copy.deepcopy(value); changed["optimizer_updates"] = 1
         with self.assertRaises(PermissionError):
             validate(changed)
@@ -477,6 +497,11 @@ class ParentMlflowJournalTests(unittest.TestCase):
         self.assertNotIn("import mlflow", child)
         self.assertNotIn("MlflowClient", child)
         self.assertNotIn("mlflow-run-id", child)
+        self.assertIn('"PYTORCH_CUDA_ALLOC_CONF": DATABRICKS_A10_ALLOCATOR_CONF',
+                      parent)
+        self.assertIn(
+            'os.environ.get("PYTORCH_CUDA_ALLOC_CONF") != '
+            'DATABRICKS_A10_ALLOCATOR_CONF', child)
         finalizer = parent[parent.index("def finalize_partition_mlflow"):]
         self.assertIn("consumed_path", finalizer)
         self.assertLess(finalizer.index("SET status = 'complete'"),

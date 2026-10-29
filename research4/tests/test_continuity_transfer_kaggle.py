@@ -130,7 +130,7 @@ class ContinuityTransferKaggleTests(unittest.TestCase):
                 payload_members = {item.relative_to(path).as_posix(): file_sha256(item)
                                    for item in sorted(path.rglob("*")) if item.is_file()}
                 payload_members_sha = digest(payload_members)
-                base_receipt = {"version": "qwen35-9b-ordinal-continuity-rank-run-v2",
+                base_receipt = {"version": "qwen35-9b-ordinal-continuity-rank-run-v3",
                                 "status": "complete", "plan_sha256": "2" * 64,
                                 "successful_optimizer_updates": 2}
                 receipt = {**base_receipt, "receipt_sha256": digest(base_receipt),

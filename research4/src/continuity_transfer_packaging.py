@@ -39,15 +39,17 @@ from .qwen9b_ordinal_continuity_lora import BRANCHES, CHECKPOINT_VERSION
 from .qwen9b_ordinal_continuity_runtime import (
     directory_tree, directory_tree_sha256,
 )
-from .qwen9b_ordinal_continuity_training import TrainingPlan, verify_rank_receipt
+from .qwen9b_ordinal_continuity_training import (
+    TrainingPlan, adjacent_pair_schedule, verify_rank_receipt,
+)
 
 
-PACKAGING_PLAN_VERSION = "research4-databricks-transfer-packaging-plan-v3"
-PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v3"
+PACKAGING_PLAN_VERSION = "research4-databricks-transfer-packaging-plan-v4"
+PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v4"
 PACKAGE_FILES_VERSION = "research4-databricks-transfer-package-files-v1"
 CHECKPOINT_MANIFEST_VERSION = "research4-three-residual-blinded-checkpoints-v1"
 EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
-TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v2"
+TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v3"
 TRANSFER_PACKAGE_IDENTITY = "continuity_transfer_three_residual_v1"
 TRANSFER_PACKAGE_PARENT = f"{VOLUME}/transfer_packages"
 TRANSFER_UNBLINDING_PARENT = f"{VOLUME}/transfer_unblinding_keys"
@@ -59,6 +61,11 @@ TRANSFER_PACKAGE_GOLD_TABLE = (
 
 def _read(path: str | Path) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _jsonl(path: str | Path) -> list[dict[str, Any]]:
+    with Path(path).open(encoding="utf-8") as stream:
+        return [json.loads(line) for line in stream if line.strip()]
 
 
 def _write(path: str | Path, value: Mapping[str, Any]) -> None:
@@ -210,7 +217,7 @@ def canonical_primary_plans() -> dict[tuple[str, int, str], TrainingPlan]:
     return {
         (plan.condition, plan.seed, plan.stage): replace(
             plan, device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=2, accumulation_steps=2).validate()
+            micro_batch_size=1, accumulation_steps=4).validate()
         for plan in matrix_plans(EXPERIMENT_SPEC, 4)
     }
 
@@ -332,7 +339,10 @@ def _audit_stage(row: Mapping[str, Any], *, source_commit: str,
         "evidence_sha256", None)
     verified_rank = verify_rank_receipt(
         rank, expected_plan_sha256=expected_plan.full_plan_sha256,
-        expected_global_journal_sha256=receipt.get("global_journal_sha256"))
+        expected_global_journal_sha256=receipt.get("global_journal_sha256"),
+        expected_plan=expected_plan,
+        expected_global_journal=adjacent_pair_schedule(
+            _jsonl(run_root.parent / "records.jsonl"), expected_plan))
     members = _checkpoint_members(checkpoint, expected_plan.stage)
     if (config_hash != digest(config_payload)
             or config.get("version") != CHECKPOINT_VERSION

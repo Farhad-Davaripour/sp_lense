@@ -44,7 +44,7 @@ from .qwen9b_ordinal_continuity_lora import (
 
 
 WORKER_VERSION = "research4-continuity-transfer-inference-worker-v4"
-TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v2"
+TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v3"
 BLINDED_CHECKPOINT_MANIFEST_VERSION = (
     "research4-three-residual-blinded-checkpoints-v1"
 )

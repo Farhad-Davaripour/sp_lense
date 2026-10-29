@@ -101,7 +101,7 @@ class ContinuityTransferWorkerAuditTests(unittest.TestCase):
                                    for item in sorted(directory.rglob("*")) if item.is_file()}
                 payload_members_sha = digest(payload_members)
                 base_receipt = {
-                    "version": "qwen35-9b-ordinal-continuity-rank-run-v2",
+                    "version": "qwen35-9b-ordinal-continuity-rank-run-v3",
                     "status": "complete", "plan_sha256": "2" * 64,
                     "successful_optimizer_updates": 2,
                 }

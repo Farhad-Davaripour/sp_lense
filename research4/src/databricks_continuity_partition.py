@@ -24,8 +24,10 @@ from .databricks_simulated_continuity import (
     verify_model_receipt, verify_model_receipt_authority,
     verify_reserved_intent)
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
-from .qwen9b_ordinal_continuity_training import verify_rank_receipt
-from .qwen9b_ordinal_continuity_training import TrainingPlan, validate_sequential_parent
+from .qwen9b_ordinal_continuity_training import (
+    DATABRICKS_A10_ALLOCATOR_CONF, TrainingPlan, adjacent_pair_schedule,
+    validate_sequential_parent, verify_rank_receipt,
+)
 from .databricks_continuity_partition_worker import validate_mlflow_journal
 
 
@@ -88,6 +90,11 @@ def _stage_local_model(volume_root, volume_receipt, identity, expected_tree,
 
 def _read(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _jsonl(path):
+    with Path(path).open(encoding="utf-8") as stream:
+        return [json.loads(line) for line in stream if line.strip()]
 
 
 def _file_sha256(path):
@@ -283,7 +290,8 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     env = dict(os.environ)
     env.update({"RESEARCH4_EXECUTION_PLATFORM": "databricks",
                 "RESEARCH4_MODEL_ROOT": str(local_model),
-                "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"})
+                "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
+                "PYTORCH_CUDA_ALLOC_CONF": DATABRICKS_A10_ALLOCATOR_CONF})
     try:
         try:
             prework_seconds = whole_job_elapsed()
@@ -336,7 +344,9 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
             rank_receipt=rank_receipt, evidence=evidence)
         verify_rank_receipt(
             rank_receipt, expected_plan_sha256=intent["plan_sha256"],
-            expected_global_journal_sha256=intent["global_journal_sha256"])
+            expected_global_journal_sha256=intent["global_journal_sha256"],
+            expected_plan=exact_plan,
+            expected_global_journal=adjacent_pair_schedule(rows, exact_plan))
         checkpoint_tree = directory_tree_sha256(run_root / "output" / "checkpoint")
         checkpoint_metadata_path = (run_root / "output" / "checkpoint" /
                                     "adapter_config.json")
@@ -700,7 +710,10 @@ def finalize_partition_mlflow(*, spark, intent_path, plan_path, code_root,
         raise PermissionError("CPU finalizer lacks successful GPU evidence")
     verify_rank_receipt(
         rank_receipt, expected_plan_sha256=intent["plan_sha256"],
-        expected_global_journal_sha256=intent["global_journal_sha256"])
+        expected_global_journal_sha256=intent["global_journal_sha256"],
+        expected_plan=plan,
+        expected_global_journal=adjacent_pair_schedule(
+            _jsonl(run_root / "records.jsonl"), plan))
     journal = validate_mlflow_journal(
         output, intent=intent, plan=plan, receipt=receipt,
         rank_receipt=rank_receipt, evidence=evidence)

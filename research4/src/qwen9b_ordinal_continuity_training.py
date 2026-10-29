@@ -55,9 +55,17 @@ from .qwen9b_ordinal_continuity_lora import (
 )
 
 
-PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v5"
-QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v5"
-ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v5"
+PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v6"
+QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v6"
+ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v6"
+EXPOSURE_VERSION = "ordinal-continuity-adjacent-pair-exposure-v4"
+RANK_RUN_VERSION = "qwen35-9b-ordinal-continuity-rank-run-v3"
+PARTIAL_RUN_VERSION = "qwen35-9b-ordinal-continuity-partial-v3"
+DATABRICKS_A10_MICRO_BATCH_SIZE = 1
+DATABRICKS_A10_ACCUMULATION_STEPS = 4
+DATABRICKS_A10_LEGACY_REDUCTION_MICRO_BATCH_SIZE = 2
+DATABRICKS_A10_LEGACY_REDUCTION_ACCUMULATION_STEPS = 2
+DATABRICKS_A10_ALLOCATOR_CONF = "expandable_segments:True"
 CONDITIONS = ("self_continuity", "artifact_continuity", "label_only")
 TRAINING_CONDITIONS = CONDITIONS
 SPLITS = ("train", "validation", "test")
@@ -203,13 +211,15 @@ class TrainingPlan:
             raise ValueError("The reviewed NF4/FP16 recipe changed")
         if self.device_profile not in ("kaggle-t4x2", "databricks-a10x1"):
             raise ValueError("Execution hardware profile is not reviewed")
-        expected_execution = ((1, 2, 2) if self.device_profile == "databricks-a10x1"
+        expected_execution = ((1, DATABRICKS_A10_MICRO_BATCH_SIZE,
+                               DATABRICKS_A10_ACCUMULATION_STEPS)
+                              if self.device_profile == "databricks-a10x1"
                               else (2, self.micro_batch_size,
                                     self.accumulation_steps))
         if self.device_profile == "databricks-a10x1":
             if (self.world_size, self.micro_batch_size,
                     self.accumulation_steps) != expected_execution:
-                raise ValueError("Databricks run is single-A10 batch2/accum2")
+                raise ValueError("Databricks run is single-A10 batch1/accum4")
         elif (self.world_size != 2
               or (self.micro_batch_size, self.accumulation_steps)
               not in ((2, 1), (1, 2))):
@@ -721,17 +731,46 @@ def build_occurrence_journal(records: Sequence[dict], plan: TrainingPlan,
 
 
 def verify_rank_receipt(receipt: Mapping, *, expected_plan_sha256: str,
-                        expected_global_journal_sha256: str) -> dict:
+                        expected_global_journal_sha256: str,
+                        expected_plan: TrainingPlan | None = None,
+                        expected_global_journal: Sequence[Mapping] | None = None) -> dict:
     """Recompute a DDP rank receipt self-hash before cross-rank agreement."""
     value = dict(receipt)
     embedded = value.pop("receipt_sha256", None)
     if not isinstance(embedded, str) or canonical_sha256(value) != embedded:
         raise PermissionError("DDP rank receipt self-hash differs")
-    if (receipt.get("status") != "complete"
+    if (receipt.get("version") != RANK_RUN_VERSION
+            or receipt.get("status") != "complete"
             or receipt.get("plan_sha256") != expected_plan_sha256
             or receipt.get("global_journal_sha256")
             != expected_global_journal_sha256):
         raise PermissionError("DDP rank receipt does not bind the exact run")
+    if expected_plan is not None:
+        plan = expected_plan.validate()
+        if (plan.full_plan_sha256 != expected_plan_sha256
+                or receipt.get("batching") != batching_exposure_contract(plan)):
+            raise PermissionError("Rank receipt batching contract differs")
+        if plan.device_profile == "databricks-a10x1":
+            journal = list(expected_global_journal or ())
+            if (canonical_sha256(journal) != expected_global_journal_sha256
+                    or len(journal) != plan.occurrence_count):
+                raise PermissionError("Rank receipt lacks the exact A10 journal")
+            updates = receipt.get("updates")
+            if not isinstance(updates, list) or len(updates) != plan.optimizer_updates:
+                raise PermissionError("Rank receipt update count differs")
+            for update_index, update in enumerate(updates):
+                entries = journal[
+                    update_index * plan.global_batch_size:
+                    (update_index + 1) * plan.global_batch_size]
+                expected_scales = list(databricks_a10_compatibility_scales(
+                    entries, plan))
+                if (update.get("optimizer_update") != update_index
+                        or update.get("occurrence_indices")
+                           != [entry["occurrence_index"] for entry in entries]
+                        or update.get("changed_component_scales")
+                           != expected_scales):
+                    raise PermissionError(
+                        "Rank receipt A10 compatibility scaling differs")
     return dict(receipt)
 
 
@@ -823,6 +862,106 @@ def shard_global_journal(journal: Sequence[dict], plan: TrainingPlan, rank: int)
     return shards[rank]
 
 
+def component_occurrence_weights(target_changed: Sequence[bool], *,
+                                 micro_batch_size: int,
+                                 accumulation_steps: int) -> dict[str, tuple[float, ...]]:
+    """Return exact per-occurrence coefficients induced by the loss reductions.
+
+    SFT is averaged over every pair in a microbatch.  Preference and margin are
+    averaged only over changed-target pairs in that microbatch.  This pure
+    formula makes batching amendments auditable without loading a model.
+    """
+    if any(type(value) is not bool for value in target_changed):
+        raise TypeError("Loss-reduction target-change flags must be booleans")
+    changed = tuple(target_changed)
+    if (micro_batch_size <= 0 or accumulation_steps <= 0
+            or len(changed) != micro_batch_size * accumulation_steps):
+        raise ValueError("Loss-reduction geometry does not cover one global batch")
+    sft = [1.0 / (micro_batch_size * accumulation_steps)] * len(changed)
+    preference = [0.0] * len(changed)
+    for start in range(0, len(changed), micro_batch_size):
+        selected = [index for index in range(start, start + micro_batch_size)
+                    if changed[index]]
+        if selected:
+            coefficient = 1.0 / (accumulation_steps * len(selected))
+            for index in selected:
+                preference[index] = coefficient
+    return {"sft": tuple(sft), "preference": tuple(preference),
+            "cross_danger_margin": tuple(preference)}
+
+
+def databricks_a10_compatibility_scales(entries: Sequence[Mapping],
+                                        plan: TrainingPlan) -> tuple[float, ...]:
+    """Preserve the reviewed batch2/accum2 loss under batch1/accum4 execution.
+
+    The smaller physical microbatch avoids the observed A10 backward OOM.  A
+    changed-only preference mean is not invariant to that split, so every
+    singleton is reweighted to the exact coefficient it had in the prior
+    virtual microbatch of two.  Example order and the global journal stay fixed.
+    """
+    if plan.device_profile != "databricks-a10x1":
+        return tuple(1.0 for _ in entries)
+    if ((plan.world_size, plan.micro_batch_size, plan.accumulation_steps)
+            != (1, DATABRICKS_A10_MICRO_BATCH_SIZE,
+                DATABRICKS_A10_ACCUMULATION_STEPS)):
+        raise PermissionError("A10 compatibility scaling needs exact batch1/accum4")
+    if (len(entries) != plan.global_batch_size
+            or any(type(entry.get("target_changed")) is not bool
+                   for entry in entries)):
+        raise PermissionError(
+            "A10 compatibility scaling needs four explicit target-change flags")
+    changed = tuple(entry["target_changed"] for entry in entries)
+    current = component_occurrence_weights(
+        changed, micro_batch_size=DATABRICKS_A10_MICRO_BATCH_SIZE,
+        accumulation_steps=DATABRICKS_A10_ACCUMULATION_STEPS)
+    legacy = component_occurrence_weights(
+        changed,
+        micro_batch_size=DATABRICKS_A10_LEGACY_REDUCTION_MICRO_BATCH_SIZE,
+        accumulation_steps=DATABRICKS_A10_LEGACY_REDUCTION_ACCUMULATION_STEPS)
+    if current["sft"] != legacy["sft"]:
+        raise PermissionError("A10 amendment changed SFT occurrence weighting")
+    scales = []
+    for index, (old, new) in enumerate(zip(
+            legacy["preference"], current["preference"])):
+        if new == 0.0:
+            if old != 0.0:
+                raise PermissionError("A10 changed-only loss cannot be preserved")
+            scales.append(1.0)
+        else:
+            scales.append(old / new)
+        if not math.isclose(new * scales[-1], old, rel_tol=0, abs_tol=1e-12):
+            raise PermissionError(
+                f"A10 compatibility coefficient differs at occurrence {index}")
+    return tuple(scales)
+
+
+def batching_exposure_contract(plan: TrainingPlan) -> dict:
+    """Bind physical batching and the reviewed loss-reduction compatibility."""
+    value = {
+        "world_size": plan.world_size,
+        "micro_batch_size": plan.micro_batch_size,
+        "accumulation_steps": plan.accumulation_steps,
+        "global_batch_size": plan.global_batch_size,
+        "occurrence_count": plan.occurrence_count,
+        "physical_batch_formula": "world_size*micro_batch_size*accumulation_steps",
+    }
+    if plan.device_profile == "databricks-a10x1":
+        value.update({
+            "loss_reduction_compatibility": "virtual_prior_batch2_accum2_v1",
+            "virtual_micro_batch_size": (
+                DATABRICKS_A10_LEGACY_REDUCTION_MICRO_BATCH_SIZE),
+            "virtual_accumulation_steps": (
+                DATABRICKS_A10_LEGACY_REDUCTION_ACCUMULATION_STEPS),
+            "sft_coefficients_preserved": True,
+            "preference_coefficients_preserved": True,
+            "margin_coefficients_preserved": True,
+            "cuda_allocator_conf": DATABRICKS_A10_ALLOCATOR_CONF,
+        })
+    else:
+        value["loss_reduction_compatibility"] = "native_physical_microbatch"
+    return value
+
+
 def validate_equal_occurrence_exposure(records_by_condition: Mapping[str, Sequence[dict]],
                                        plan: TrainingPlan) -> dict:
     """Recompute actual schedule and token exposure for every causal condition."""
@@ -853,8 +992,9 @@ def validate_equal_occurrence_exposure(records_by_condition: Mapping[str, Sequen
     if len({entry["pair_training_tokens"] for entry in summary.values()}) != 1:
         raise PermissionError("Causal arms do not have exact matched policy-token exposure")
     return {
-        "version": "ordinal-continuity-adjacent-pair-exposure-v3",
+        "version": EXPOSURE_VERSION,
         "stage": plan.stage, "seed": plan.seed,
+        "batching": batching_exposure_contract(plan),
         "decision_corpus_counts": {
             condition: {
                 "all_splits": len(records_by_condition[condition]),
@@ -1551,6 +1691,7 @@ def assert_level0_frozen_base_identity(model, rows: Sequence[Mapping], *, tokeni
 def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, Mapping]],
                       *, plan: TrainingPlan, tokenizer, device, scaler,
                       loss_divisor: float = 1.0,
+                      changed_component_scale: float = 1.0,
                       level0_kl_anchor: float = 0.0):
     """Backprop one matched adjacent-danger microbatch.
 
@@ -1558,6 +1699,9 @@ def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, 
     Low-level scores are a frozen reference, so checkpoint recomputation never
     observes a changed episode label.
     """
+    if (not math.isfinite(changed_component_scale)
+            or changed_component_scale < 0):
+        raise ValueError("Changed-component scale must be finite and nonnegative")
     import torch
     import torch.nn.functional as F
     low_level, high_level = adjacent_levels(plan.stage)
@@ -1588,6 +1732,9 @@ def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, 
             attention_mask=low_batch["attention_mask"],
             danger_level=low_danger))
         _, low_logp = _token_losses_and_logps(low_logits, low_batch["labels"])
+    # The detached reference scores are sufficient below.  Release the large
+    # full-vocabulary reference logits before the differentiable high forward.
+    del low_logits, low_batch, low_danger
     high_danger = torch.full((len(high_sequences),), high_level,
                              dtype=torch.long, device=device)
     autocast = torch.autocast(device_type="cuda", dtype=torch.float16,
@@ -1613,6 +1760,8 @@ def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, 
             # define a preference or margin between identical action targets.
             preference = high_advantage.sum() * 0.0
             margin = high_advantage.sum() * 0.0
+        preference = preference * changed_component_scale
+        margin = margin * changed_component_scale
         loss = (plan.sft_weight * sft
                 + plan.preference_weight * preference
                 + plan.cross_danger_margin_weight * margin) / loss_divisor
@@ -1624,6 +1773,7 @@ def ordinal_pair_loss(model, callable_model, pair_rows: Sequence[tuple[Mapping, 
         "sft": float(sft.detach().item()),
         "preference": float(preference.detach().item()),
         "cross_danger_margin": float(margin.detach().item()),
+        "changed_component_scale": float(changed_component_scale),
         "level0_kl_anchor": float(level0_kl_anchor),
         "high_advantage": float(high_advantage.detach().mean().item()),
         "low_advantage": float(low_advantage.detach().mean().item()),
@@ -1891,6 +2041,8 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
       with dispatch, nvml:
         for update in range(plan.optimizer_updates):
             entries = sorted(rank_updates[update], key=lambda row: row["occurrence_index"])
+            compatibility_scales = databricks_a10_compatibility_scales(
+                entries, plan)
             metrics = []
             for microstep in range(plan.accumulation_steps):
                 subset = entries[microstep * plan.micro_batch_size:
@@ -1904,6 +2056,8 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                         model, callable_model, payload, plan=plan,
                         tokenizer=tokenizer, device=device, scaler=scaler,
                         loss_divisor=plan.accumulation_steps,
+                        changed_component_scale=compatibility_scales[
+                            microstep * plan.micro_batch_size],
                         level0_kl_anchor=kl_anchor)
                     current["level0_kl_anchor"] = kl_anchor
                     metrics.append(current)
@@ -1932,6 +2086,8 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                 "sft": sum(item["sft"] for item in metrics) / len(metrics),
                 "preference": sum(item["preference"] for item in metrics) / len(metrics),
                 "cross_danger_margin": sum(item["cross_danger_margin"] for item in metrics) / len(metrics),
+                "changed_component_scales": [
+                    item["changed_component_scale"] for item in metrics],
                 "level0_kl_anchor": kl_anchor,
                 "gradient_norm_before_clip": gradient_norm_value,
                 "grad_scaler_before": scale_before,
@@ -1983,9 +2139,10 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
         if not active_changed:
             raise RuntimeError("The active residual did not change")
         rank_receipt = {
-            "version": "qwen35-9b-ordinal-continuity-rank-run-v2",
+            "version": RANK_RUN_VERSION,
             "status": "complete", "rank": rank, "world_size": world_size,
             "plan_sha256": plan.full_plan_sha256, "seed_proof": seed_proof,
+            "batching": batching_exposure_contract(plan),
             "global_journal_sha256": global_sha,
             "global_journal_occurrence_count": len(global_journal),
             "rank_journal_sha256": canonical_sha256(rank_journal),
@@ -2016,7 +2173,9 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                 other = verify_rank_receipt(
                     json.loads(path.read_text(encoding="utf-8")),
                     expected_plan_sha256=plan.full_plan_sha256,
-                    expected_global_journal_sha256=global_sha)
+                    expected_global_journal_sha256=global_sha,
+                    expected_plan=plan,
+                    expected_global_journal=global_journal)
                 if other.get("global_journal_occurrence_count") != len(global_journal):
                     raise RuntimeError("DDP rank receipt journal count differs")
                 rank_receipts.append(other)
@@ -2045,8 +2204,9 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
         return rank_receipt
     except BaseException as exc:
         partial = {
-            "version": "qwen35-9b-ordinal-continuity-partial-v2",
+            "version": PARTIAL_RUN_VERSION,
             "status": "failed", "rank": rank, "plan_sha256": plan.full_plan_sha256,
+            "batching": batching_exposure_contract(plan),
             "successful_optimizer_updates": successful_updates,
             "global_journal_sha256": global_sha,
             "updates": update_journal,
