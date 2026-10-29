@@ -2,6 +2,11 @@ resources:
   jobs:
     simulated_continuity_data_stage:
       name: Research 4 - Simulated continuity UC data stage
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        source_commit: ${var.source_commit}
+        study: simulated-continuity
       max_concurrent_runs: 1
       timeout_seconds: 3600
       performance_target: STANDARD
@@ -52,6 +57,11 @@ resources:
           - numpy==2.2.2
     simulated_continuity_gold_audit:
       name: Research 4 - Continuity matrix gold audit
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        source_commit: ${var.source_commit}
+        study: simulated-continuity
       max_concurrent_runs: 1
       timeout_seconds: 900
       performance_target: STANDARD
@@ -91,6 +101,11 @@ resources:
         default: ''
     simulated_continuity_admission:
       name: Research 4 - Continuity qualification and primary admission evidence
+      tags:
+        aidevkit_project: ai-dev-kit
+        research: research4
+        source_commit: ${var.source_commit}
+        study: simulated-continuity
       max_concurrent_runs: 1
       timeout_seconds: 900
       performance_target: STANDARD
@@ -184,7 +199,9 @@ resources:
         timeout_seconds: 600
         disable_auto_optimization: true
       tags:
+        aidevkit_project: ai-dev-kit
         research: research4
+        source_commit: ${var.source_commit}
         study: simulated-continuity
         cost_scope: frozen-base-one-a10-max-0.75-gpu-hour
       environments:
@@ -297,7 +314,9 @@ resources:
         timeout_seconds: 600
         disable_auto_optimization: true
       tags:
+        aidevkit_project: ai-dev-kit
         research: research4
+        source_commit: ${var.source_commit}
         study: simulated-continuity
         cost_scope: one-a10-max-0.75-gpu-hour
       environments:
@@ -415,7 +434,9 @@ resources:
         timeout_seconds: 600
         disable_auto_optimization: true
       tags:
+        aidevkit_project: ai-dev-kit
         research: research4
+        source_commit: ${var.source_commit}
         study: simulated-continuity
         cost_scope: one-a10-bounded
       environments:
@@ -457,6 +478,7 @@ resources:
       tags:
         aidevkit_project: ai-dev-kit
         research: research4
+        source_commit: ${var.source_commit}
         study: simulated-continuity-transfer-packaging
         cost_scope: cpu-only-no-gpu
       environments:
@@ -491,6 +513,7 @@ resources:
       tags:
         aidevkit_project: ai-dev-kit
         research: research4
+        source_commit: ${var.source_commit}
         study: simulated-continuity-transfer-intent
         cost_scope: cpu-only-no-gpu
       environments:
@@ -565,7 +588,9 @@ resources:
         timeout_seconds: 600
         disable_auto_optimization: true
       tags:
+        aidevkit_project: ai-dev-kit
         research: research4
+        source_commit: ${var.source_commit}
         study: simulated-continuity-transfer
         cost_scope: one-a10-max-four-gpu-hours
       environments:

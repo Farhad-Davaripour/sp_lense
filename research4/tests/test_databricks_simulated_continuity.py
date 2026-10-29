@@ -1169,6 +1169,9 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn("max_concurrent_runs: 1", job)
         jobs = yaml.safe_load(job)["resources"]["jobs"]
         self.assertTrue(all(
+            spec.get("tags", {}).get("source_commit")
+            == "${var.source_commit}" for spec in jobs.values()))
+        self.assertTrue(all(
             task["notebook_task"].get("base_parameters", {}).get("code_path")
             == "${var.code_path}"
             for spec in jobs.values() for task in spec["tasks"]))
