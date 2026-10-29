@@ -99,7 +99,8 @@ def dataset(condition):
                 "split": split,
                 # External danger is intentionally absent from visible text.
                 "input_text": f"symbolic scenario {family_index:02d}-{scenario_index:02d} step {decision_index}",
-                "target_text": "symbolic action",
+                "target_text": json.dumps({"action": target},
+                                          sort_keys=True, separators=(",", ":")),
               })
     return rows
 
@@ -263,6 +264,26 @@ class TrainingAdmissionTests(unittest.TestCase):
             counts == {"all_splits": 3456, "train": 2304,
                        "validation": 576, "test": 576}
             for counts in exposure["decision_corpus_counts"].values()))
+
+    def test_training_targets_use_the_shared_strict_serialization_contract(self):
+        row = copy.deepcopy(dataset("self_continuity")[0])
+        action = row["target_action_id"]
+        tokenized = tokenize_rows([row], ToyTokenizer(), 1024)
+        self.assertEqual(tokenized[0]["serialization_contract_version"],
+                         "research4-action-serialization-v2")
+        for invalid in (
+                f'```json\n{{"action":"{action}"}}\n```',
+                f'prefix {{"action":"{action}"}}',
+                f'{{"action":"{action}","why":"x"}}',
+                '```json\n{"action":"UNREGISTERED"}\n```'):
+            changed = copy.deepcopy(row); changed["target_text"] = invalid
+            with self.subTest(invalid=invalid), self.assertRaises(PermissionError):
+                tokenize_rows([changed], ToyTokenizer(), 1024)
+
+        full = dataset("self_continuity")
+        full[0]["target_text"] = f'```json\n{{"action":"{action}"}}\n```'
+        with self.assertRaises(PermissionError):
+            validate_dataset(full, condition="self_continuity")
 
     def test_exact_schedule_is_deterministic_and_stage_specific(self):
         plan = TrainingPlan(stage="delta2", optimizer_updates=12,
@@ -709,7 +730,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v2",
+                "version": "qwen35-9b-continuity-partition-intent-v3",
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
                 "partition_identity": "qualification_rank4",
                 "plan_sha256": qualification.full_plan_sha256,

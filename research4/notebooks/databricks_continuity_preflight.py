@@ -26,7 +26,7 @@ def _bootstrap_verify_source(root_value, authority):
         payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
     critical = (
-        "src/__init__.py", "src/databricks_simulated_continuity.py",
+        "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
         "src/databricks_continuity_partition.py",
         "src/databricks_continuity_partition_worker.py",
         "src/qwen9b_ordinal_continuity_runtime.py",

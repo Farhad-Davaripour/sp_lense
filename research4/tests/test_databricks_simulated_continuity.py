@@ -10,6 +10,8 @@ import yaml
 
 from src.databricks_simulated_continuity import (
     BASE_QUALIFICATION_FAMILIES, BASE_QUALIFICATION_IDENTITY,
+    BASE_QUALIFICATION_PROPOSAL_SHA256, BASE_QUALIFICATION_SEED,
+    BASE_QUALIFICATION_SELECTION_SHA256, BASE_QUALIFICATION_SET_VERSION,
     BRONZE_TABLE, CATALOG, DATASET_RELEASE_ROOT,
     DATASET_RELEASE_RECEIPT_SHA256,
     DATASET_TREE_SHA256, EXPERIMENT_SPEC,
@@ -30,6 +32,10 @@ from src.databricks_simulated_continuity import (
     validate_primary_authority_files, validate_source_manifest,
     verify_dataset_release, verify_deployed_source, verify_model_receipt,
     verify_model_receipt_authority)
+from src.action_serialization import (
+    SERIALIZATION_CONTRACT_VERSION, parse_registered_action,
+    serialization_contract,
+)
 from src.databricks_continuity_partition import _stage_local_model
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
@@ -87,17 +93,25 @@ class DatabricksContinuityTests(unittest.TestCase):
                 "record_count": 288,
                 "family_counts": {name: 36 for name in BASE_QUALIFICATION_FAMILIES},
                 "training_eligible_count": 0,
+                "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+                "qualification_seed": BASE_QUALIFICATION_SEED,
+                "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
             }),
             "exposure_binding_sha256": digest({
                 "frozen_base_only": True, "training_eligible": False,
-                "optimizer_updates": 0, "records": 288}),
+                "optimizer_updates": 0, "records": 288,
+                "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+                "qualification_seed": BASE_QUALIFICATION_SEED,
+                "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
+                "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
+                "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION}),
         }
         value["binding_sha256"] = digest(value)
         return value
 
     def base_receipt(self):
         value = {
-            "version": "research4-databricks-frozen-base-format-receipt-v1",
+            "version": "research4-databricks-frozen-base-format-receipt-v2",
             "status": "qualified", "identity": BASE_QUALIFICATION_IDENTITY,
             "plan_sha256": base_qualification_plan()["plan_sha256"],
             "source_commit": "a" * 40, "source_sha256": "6" * 64,
@@ -114,6 +128,15 @@ class DatabricksContinuityTests(unittest.TestCase):
             "target_match_count_secondary": 280,
             "family_strict_schema_and_legal": {
                 name: 36 for name in BASE_QUALIFICATION_FAMILIES},
+            "serialization_contract": serialization_contract(),
+            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+            "normalization_used_count": 0,
+            "family_normalization_used": {
+                name: 0 for name in BASE_QUALIFICATION_FAMILIES},
+            "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+            "qualification_seed": BASE_QUALIFICATION_SEED,
+            "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
+            "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
             "minimum_required": 286, "minimum_required_per_family": 35,
             "base_component_sha256_before": "7" * 64,
             "base_component_sha256_after": "7" * 64,
@@ -261,16 +284,26 @@ class DatabricksContinuityTests(unittest.TestCase):
         outcomes = []
         for family_index, family in enumerate(BASE_QUALIFICATION_FAMILIES):
             for index in range(36):
-                text = '{"action":"N01"}'
+                text = ('```json\n{"action":"N01"}\n```'
+                        if family_index == 0 and index == 0
+                        else '{"action":"N01"}')
                 target = "N01" if index % 2 == 0 else "N02"
+                parsed = parse_registered_action(text, ["N01", "N02"])
                 outcomes.append({
                     "record_id": f"f{family_index}-{index}",
                     "record_sha256": hashlib.sha256(
                         f"f{family_index}-{index}".encode()).hexdigest(),
                     "family_id": family,
-                    "strict_json": True, "legal_action": True,
-                    "target_match": index % 2 == 0,
-                    "action": "N01", "allowed_actions": ["N01", "N02"],
+                    "strict_json": parsed["valid"],
+                    "serialization_valid": parsed["valid"],
+                    "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+                    "normalization_used": parsed["normalization_used"],
+                    "serialization_form": parsed["serialization_form"],
+                    "raw_response_sha256": parsed["raw_response_sha256"],
+                    "legal_action": parsed["valid"],
+                    "target_match": parsed["valid"] and parsed["action"] == target,
+                    "action": parsed["action"],
+                    "allowed_actions": ["N01", "N02"],
                     "target_action_id": target, "output_text": text,
                     "output_sha256": hashlib.sha256(text.encode()).hexdigest(),
                 })
@@ -281,6 +314,9 @@ class DatabricksContinuityTests(unittest.TestCase):
             resource_metrics=self.base_resources())
         self.assertEqual(validate_base_qualification_receipt(receipt), receipt)
         self.assertEqual(receipt["strict_schema_and_legal_count"], 288)
+        self.assertEqual(receipt["normalization_used_count"], 1)
+        self.assertEqual(receipt["family_normalization_used"][
+            BASE_QUALIFICATION_FAMILIES[0]], 1)
         changed_resource = json.loads(json.dumps(receipt))
         changed_resource["resources"]["gpu"]["profile"] = "unreviewed-gpu"
         changed_resource["receipt_sha256"] = digest({
@@ -318,8 +354,12 @@ class DatabricksContinuityTests(unittest.TestCase):
                 resource_metrics=self.base_resources())
         for index in (0, 1):
             outcomes[index].update({
-                "strict_json": False, "legal_action": False,
-                "target_match": False, "action": None,
+                "strict_json": False, "serialization_valid": False,
+                "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+                "normalization_used": False,
+                "serialization_form": "bare_json_object",
+                "raw_response_sha256": hashlib.sha256(b"not-json").hexdigest(),
+                "legal_action": False, "target_match": False, "action": None,
                 "output_text": "not-json",
                 "output_sha256": hashlib.sha256(b"not-json").hexdigest(),
             })

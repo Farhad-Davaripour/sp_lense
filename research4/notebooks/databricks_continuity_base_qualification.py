@@ -48,7 +48,7 @@ def _bootstrap_verify_source(root_value, authority):
     commit = authority.get("source_commit")
     files = manifest.get("files")
     critical = (
-        "src/__init__.py",
+        "src/__init__.py", "src/action_serialization.py",
         "src/databricks_simulated_continuity.py",
         "src/databricks_continuity_partition.py",
         "src/qwen9b_ordinal_continuity_runtime.py",
@@ -83,6 +83,10 @@ sys.path.insert(0, values["code_path"])
 
 from pyspark.sql import functions as F
 from src.databricks_continuity_partition import _stage_local_model
+from src.action_serialization import (
+    SERIALIZATION_CONTRACT_VERSION,
+    parse_registered_action,
+)
 from src.databricks_simulated_continuity import (
     GOLD_ADMISSION_TABLE,
     GOLD_RUN_TABLE,
@@ -281,24 +285,21 @@ try:
             total_generated_tokens += sum(int((row != tokenizer.pad_token_id).sum().item())
                                           for row in completions)
             for row, text in zip(batch, texts, strict=True):
-                strict_json = False
-                action = None
-                try:
-                    parsed = json.loads(text)
-                    strict_json = (isinstance(parsed, dict)
-                                   and set(parsed) == {"action"}
-                                   and isinstance(parsed["action"], str))
-                    if strict_json:
-                        action = parsed["action"]
-                except json.JSONDecodeError:
-                    pass
+                parsed = parse_registered_action(text, row["allowed_actions"])
+                strict_json = parsed["valid"]
+                action = parsed["action"]
                 outcomes.append({
                     "record_id": row["record_id"],
                     "record_sha256": row["_silver_record_sha256"],
                     "family_id": row["family_id"],
                     "strict_json": strict_json,
-                    "legal_action": strict_json and action in row["allowed_actions"],
-                    "target_match": strict_json and action == row["target_action_id"],
+                    "serialization_valid": parsed["valid"],
+                    "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+                    "normalization_used": parsed["normalization_used"],
+                    "serialization_form": parsed["serialization_form"],
+                    "raw_response_sha256": parsed["raw_response_sha256"],
+                    "legal_action": parsed["valid"],
+                    "target_match": parsed["valid"] and action == row["target_action_id"],
                     "action": action,
                     "allowed_actions": row["allowed_actions"],
                     "target_action_id": row["target_action_id"],

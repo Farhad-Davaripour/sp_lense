@@ -7,6 +7,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from src.action_serialization import SERIALIZATION_CONTRACT_VERSION
 from src.qwen9b_ordinal_continuity_controller import (
     AGGREGATE_VERSION,
     EXPERIMENT_VERSION,
@@ -46,6 +47,7 @@ def spec():
         "baseline": "frozen_base",
         "automatic_retries": 0,
         "one_use": True,
+        "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
     }
 
 

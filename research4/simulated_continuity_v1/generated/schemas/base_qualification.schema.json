@@ -1,5 +1,5 @@
 {
-  "$id": "research4.simulated_continuity.v3/base_qualification",
+  "$id": "research4.simulated_continuity/base_qualification.v2",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "properties": {
     "contains_continuity_target": {
@@ -22,6 +22,16 @@
     "must_stop": {
       "const": true
     },
+    "qualification_seed": {
+      "const": 202610284
+    },
+    "qualification_selection_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "qualification_set_version": {
+      "const": "fresh_disjoint_v2"
+    },
     "training_eligible": {
       "const": false
     }
@@ -29,6 +39,9 @@
   "required": [
     "episode_id",
     "qualification_family",
+    "qualification_set_version",
+    "qualification_seed",
+    "qualification_selection_digest",
     "model_input",
     "decision_records",
     "expected_final_state",

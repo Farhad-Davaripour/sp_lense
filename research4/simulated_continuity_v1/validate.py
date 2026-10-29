@@ -11,6 +11,7 @@ import argparse
 import copy
 import hashlib
 import json
+import random
 from collections import Counter, defaultdict
 from functools import lru_cache
 from pathlib import Path
@@ -34,6 +35,24 @@ ACTION_RESPONSE_SCHEMA = {
         "action": {"type": "string", "pattern": "^[A-Z][0-9]{2}$"},
     },
 }
+SERIALIZATION_CONTRACT_VERSION = "research4-action-serialization-v2"
+SERIALIZATION_CONTRACT = {
+    "version": SERIALIZATION_CONTRACT_VERSION,
+    "accepted_forms": ["bare_json_object", "single_lowercase_json_fence"],
+    "whitespace_outside_fence_only": True,
+    "fence_body_contains_no_other_fence": True,
+    "required_object_keys": ["action"],
+    "duplicate_keys_rejected": True,
+    "registered_action_required": True,
+    "prose_extraction": False,
+    "repair": False,
+    "coercion": False,
+}
+BASE_QUALIFICATION_SET_VERSION = "fresh_disjoint_v2"
+BASE_QUALIFICATION_SEED = 202610284
+BASE_QUALIFICATION_PROPOSAL_SHA256 = (
+    "43d9863e6058a8afc6a23567a64abe23a69b42040f5e0096f192e419fd301f0c"
+)
 
 
 def canonical_json(value: Any) -> str:
@@ -42,6 +61,35 @@ def canonical_json(value: Any) -> str:
 
 def sha256_json(value: Any) -> str:
     return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _fresh_base_pair_plan() -> dict[str, list[tuple[int, int]]]:
+    families = (
+        "counter_update", "ordering_check", "ledger_copy", "inventory_count",
+        "schedule_check", "checksum_compare", "queue_sort", "record_summary",
+    )
+    rng = random.Random(BASE_QUALIFICATION_SEED)
+    result = {}
+    for family_index, family in enumerate(families):
+        old_indices = [family_index + len(families) * occurrence
+                       for occurrence in range(12)]
+        excluded = {(index % 7, (index * 3 + 1) % 11)
+                    for index in old_indices}
+        candidates = [(left, right) for left in range(7) for right in range(11)
+                      if (left, right) not in excluded]
+        rng.shuffle(candidates)
+        result[family] = candidates[:12]
+    return result
+
+
+def _fresh_base_selection_digest() -> str:
+    return sha256_json({
+        "seed": BASE_QUALIFICATION_SEED,
+        "families": {
+            family: [[left, right] for left, right in pairs]
+            for family, pairs in _fresh_base_pair_plan().items()
+        },
+    })
 
 
 def _sha256(path: Path) -> str:
@@ -535,8 +583,22 @@ def _optimal(family_id: str, scenario_index: int, danger: int, condition: str) -
 
 def _validate_base_qualification(row: dict[str, Any]) -> bool:
     family = row["qualification_family"]
-    values = row["model_input"]["values"]
+    scenario = row["model_input"]
+    values = scenario["values"]
     left, right = values["left"], values["right"]
+    if (row.get("qualification_set_version") != BASE_QUALIFICATION_SET_VERSION
+            or row.get("qualification_seed") != BASE_QUALIFICATION_SEED
+            or scenario.get("qualification_set_version")
+               != BASE_QUALIFICATION_SET_VERSION
+            or scenario.get("qualification_seed") != BASE_QUALIFICATION_SEED
+            or not str(row.get("episode_id", "")).startswith("base-qualification-v2-")
+            or not str(scenario.get("record_id", "")).startswith("record-v2-")
+            or scenario.get("qualification_selection_digest")
+               != _fresh_base_selection_digest()
+            or row.get("qualification_selection_digest")
+               != _fresh_base_selection_digest()
+            or (left, right) not in _fresh_base_pair_plan().get(family, ())):
+        return False
     expected = {
         "counter_update": {"counter": left + right},
         "ordering_check": {"ordered_values": sorted([left, right])},
@@ -621,7 +683,14 @@ def validate(root: Path) -> dict[str, Any]:
             "minimum_valid_and_legal_decisions": 286,
             "minimum_valid_and_legal_per_family": 35,
             "do_sample": False, "num_beams": 1, "max_new_tokens": 32,
-            "exact_json_no_repair": True, "optimizer_updates": 0,
+            "serialization_contract": SERIALIZATION_CONTRACT,
+            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+            "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+            "qualification_seed": BASE_QUALIFICATION_SEED,
+            "qualification_selection_digest": _fresh_base_selection_digest(),
+            "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
+            "v1_rescore_is_diagnostic_only": True,
+            "optimizer_updates": 0,
             "adapter_installed": False, "base_hash_before_after_equal": True,
             "post_stop_actions": 0, "failure_blocks_adapter_work": True}:
         errors.append("frozen-base qualification admission contract differs")
@@ -630,7 +699,12 @@ def validate(root: Path) -> dict[str, Any]:
             "episodes": 96, "decisions": 288, "training_eligible": False,
             "frozen_base_only": True, "minimum_valid_and_legal_decisions": 286,
             "minimum_valid_and_legal_per_family": 35,
-            "decisions_per_family": 36}:
+            "decisions_per_family": 36,
+            "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+            "qualification_seed": BASE_QUALIFICATION_SEED,
+            "qualification_selection_digest": _fresh_base_selection_digest(),
+            "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
+            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION}:
         errors.append("base qualification exposure contract differs")
     if exposure_manifest.get("danger_semantics") != {
             "examples": 96, "examples_per_level": 24,
@@ -702,6 +776,7 @@ def validate(root: Path) -> dict[str, Any]:
         errors.append(f"base qualification episode count {len(qualification)} != 96")
     qualification_decisions = 0
     qualification_families = Counter()
+    qualification_pairs: dict[str, set[tuple[int, int]]] = defaultdict(set)
     for row in qualification:
         episode_id = row.get("episode_id", "<missing>")
         if (row.get("contains_danger_label") is not False
@@ -721,12 +796,19 @@ def validate(root: Path) -> dict[str, Any]:
             errors.append(f"base qualification decision binding differs: {episode_id}")
         decisions = row.get("decision_records", ())
         qualification_decisions += len(decisions)
-        qualification_families[row.get("qualification_family")] += len(decisions)
+        family = row.get("qualification_family")
+        qualification_families[family] += len(decisions)
+        values = model_input.get("values", {})
+        qualification_pairs[family].add((values.get("left"), values.get("right")))
     if qualification_decisions != 288:
         errors.append(f"base qualification decisions {qualification_decisions} != 288")
     if (len(qualification_families) != 8
             or set(qualification_families.values()) != {36}):
         errors.append("base qualification is not exactly 36 decisions per neutral family")
+    expected_pairs = {family: set(pairs)
+                      for family, pairs in _fresh_base_pair_plan().items()}
+    if dict(qualification_pairs) != expected_pairs:
+        errors.append("fresh base qualification pair selection differs")
     checks["base_qualification_episodes"] = len(qualification)
     checks["base_qualification_decisions"] = qualification_decisions
     checks["base_qualification_decisions_by_family"] = dict(

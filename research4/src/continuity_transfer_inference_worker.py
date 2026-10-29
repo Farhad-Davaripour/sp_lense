@@ -22,6 +22,10 @@ import sys
 import threading
 import time
 
+from .action_serialization import (
+    SERIALIZATION_CONTRACT_VERSION,
+    parse_registered_action,
+)
 from .continuity_transfer_evaluation import (
     ALL_ARMS, BASELINE_CONDITION, CHECKPOINT_COUNT, CONDITIONS, EXPECTED_RAW_RECORDS,
     TRAINING_SEEDS, VERSION as EVALUATION_VERSION,
@@ -38,7 +42,7 @@ from .qwen9b_ordinal_continuity_lora import (
 )
 
 
-WORKER_VERSION = "research4-continuity-transfer-inference-worker-v3"
+WORKER_VERSION = "research4-continuity-transfer-inference-worker-v4"
 TRAINING_AUDIT_VERSION = "qwen35-9b-three-residual-training-audit-v2"
 BLINDED_CHECKPOINT_MANIFEST_VERSION = (
     "research4-three-residual-blinded-checkpoints-v1"
@@ -87,7 +91,7 @@ def validate_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
     :func:`validate_provider_run_binding` during the independent local audit.
     """
     binding = dict(value)
-    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v1":
+    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v2":
         return validate_databricks_run_binding(binding)
     if (set(binding) != RUN_BINDING_FIELDS
             or any(binding.get(key) in (None, "") for key in RUN_BINDING_FIELDS)
@@ -141,7 +145,7 @@ def validate_databricks_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
 def validate_provider_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
     """Validate the post-Save provider identity used only by the raw audit."""
     binding = dict(value)
-    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v1":
+    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v2":
         return validate_databricks_run_binding(binding)
     sha_fields = {
         "preparation_sha256", "live_observation_sha256", "notebook_code_sha256",
@@ -176,26 +180,15 @@ def validate_provider_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
     return json.loads(canonical(binding))
 
 
-def parse_native_action(raw_response: str, allowed: Sequence[str]) -> tuple[str | None, bool]:
-    """Parse one exact JSON object; never extract, repair, retry, or coerce."""
-    if not isinstance(raw_response, str) or not raw_response:
-        return None, False
-    try:
-        def unique_object(pairs):
-            result = {}
-            for key, item in pairs:
-                if key in result:
-                    raise ValueError("Duplicate JSON object key")
-                result[key] = item
-            return result
+def parse_native_action_detail(raw_response: str, allowed: Sequence[str]) -> dict[str, Any]:
+    """Apply the exact shared v2 parser and retain normalization evidence."""
+    return parse_registered_action(raw_response, allowed)
 
-        value = json.loads(raw_response, object_pairs_hook=unique_object)
-    except (TypeError, ValueError, json.JSONDecodeError):
-        return None, False
-    if not isinstance(value, dict) or set(value) != {"action"}:
-        return None, False
-    action = value.get("action")
-    return (action, True) if isinstance(action, str) and action in allowed else (None, False)
+
+def parse_native_action(raw_response: str, allowed: Sequence[str]) -> tuple[str | None, bool]:
+    """Compatibility view of the exact shared v2 serialization contract."""
+    parsed = parse_native_action_detail(raw_response, allowed)
+    return parsed["action"], parsed["valid"]
 
 
 def verify_training_lineage(
@@ -622,7 +615,7 @@ class TransformersOrdinalBackend:
         for row in generated:
             suffix = row[prefix:]
             results.append((
-                self.tokenizer.decode(suffix, skip_special_tokens=True).strip(),
+                self.tokenizer.decode(suffix, skip_special_tokens=True),
                 int(suffix.numel()),
             ))
         return results
@@ -753,6 +746,9 @@ def run_worker(
     root.mkdir(parents=True, exist_ok=False)
     raw_path = root / "RAW_NATIVE_RECORDS.jsonl"
     started = time.monotonic(); record_count = valid_count = generated_tokens = 0
+    normalization_count = 0
+    serialization_forms = {"bare_json_object": 0,
+                           "single_lowercase_json_fence": 0, "invalid": 0}
     raw_bytes = 0
     backend = None
     factory = backend_factory or TransformersOrdinalBackend
@@ -806,7 +802,8 @@ def run_worker(
                     for trial, prompt, (raw, token_count) in zip(
                             chunk, prompts, generated):
                         allowed = trial_cache[(arm, trial["trial_id"])][1]
-                        action, valid = parse_native_action(raw, allowed)
+                        parsed = parse_native_action_detail(raw, allowed)
+                        action, valid = parsed["action"], parsed["valid"]
                         record = {
                             "worker_version": WORKER_VERSION,
                             "evaluation_version": EVALUATION_VERSION,
@@ -824,6 +821,9 @@ def run_worker(
                             "prompt_sha256": _sha_bytes(prompt.encode("utf-8")),
                             "raw_response": raw,
                             "raw_response_sha256": _sha_bytes(raw.encode("utf-8")),
+                            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+                            "serialization_form": parsed["serialization_form"],
+                            "normalization_used": parsed["normalization_used"],
                             "selected_action": action,
                             "response_valid": valid,
                             "native_response_count": 1,
@@ -844,6 +844,9 @@ def run_worker(
                         if len(buffer) >= 512:
                             stream.write(b"".join(buffer)); buffer.clear()
                         record_count += 1; valid_count += int(valid); generated_tokens += token_count
+                        normalization_count += int(parsed["normalization_used"])
+                        form = parsed["serialization_form"] or "invalid"
+                        serialization_forms[form] += 1
         if buffer:
             stream.write(b"".join(buffer))
         stream.flush(); os.fsync(stream.fileno())
@@ -878,6 +881,9 @@ def run_worker(
         "expected_record_count": EXPECTED_RAW_RECORDS,
         "record_count": record_count,
         "valid_response_count": valid_count,
+        "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+        "normalization_used_count": normalization_count,
+        "serialization_form_counts": serialization_forms,
         "generated_token_count": generated_tokens,
         "model_forward_count": model_forward_count,
         "live_base_component_sha256_before": live_base_before,

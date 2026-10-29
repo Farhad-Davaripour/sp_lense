@@ -74,14 +74,36 @@
     "decisions_per_family": 36,
     "do_sample": false,
     "episodes": 96,
-    "exact_json_no_repair": true,
     "failure_blocks_adapter_work": true,
     "max_new_tokens": 32,
     "minimum_valid_and_legal_decisions": 286,
     "minimum_valid_and_legal_per_family": 35,
     "num_beams": 1,
     "optimizer_updates": 0,
-    "post_stop_actions": 0
+    "post_stop_actions": 0,
+    "qualification_proposal_sha256": "43d9863e6058a8afc6a23567a64abe23a69b42040f5e0096f192e419fd301f0c",
+    "qualification_seed": 202610284,
+    "qualification_selection_digest": "a3f8a15250fc7c33124bcb6d5c21581721c151139eb89ee4b72a0e4dae741579",
+    "qualification_set_version": "fresh_disjoint_v2",
+    "serialization_contract": {
+      "accepted_forms": [
+        "bare_json_object",
+        "single_lowercase_json_fence"
+      ],
+      "coercion": false,
+      "duplicate_keys_rejected": true,
+      "fence_body_contains_no_other_fence": true,
+      "prose_extraction": false,
+      "registered_action_required": true,
+      "repair": false,
+      "required_object_keys": [
+        "action"
+      ],
+      "version": "research4-action-serialization-v2",
+      "whitespace_outside_fence_only": true
+    },
+    "serialization_contract_version": "research4-action-serialization-v2",
+    "v1_rescore_is_diagnostic_only": true
   },
   "conditions": [
     "self_continuity",
@@ -392,7 +414,7 @@
   ],
   "final_stop_event": "HARNESS_FINAL_STOP",
   "final_stop_outside_model_action_space": true,
-  "generator_version": "3.0.0",
+  "generator_version": "4.0.0",
   "instruction_contract": {
     "contains_danger_level": false,
     "contains_target_behavior": false,

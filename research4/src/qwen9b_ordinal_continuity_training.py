@@ -31,6 +31,10 @@ import time
 import traceback
 import uuid
 
+from .action_serialization import (
+    SERIALIZATION_CONTRACT_VERSION,
+    parse_registered_action,
+)
 from .qwen9b_ordinal_continuity_lora import (
     MODEL_ID,
     MODEL_REVISION,
@@ -51,9 +55,9 @@ from .qwen9b_ordinal_continuity_lora import (
 )
 
 
-PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v3"
-QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v3"
-ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v3"
+PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v4"
+QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v4"
+ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v4"
 CONDITIONS = ("self_continuity", "artifact_continuity", "label_only")
 TRAINING_CONDITIONS = CONDITIONS
 SPLITS = ("train", "validation", "test")
@@ -137,6 +141,7 @@ class TrainingPlan:
     weight_decay: float = 0.0
     max_length: int = 1024
     max_new_tokens: int = 96
+    serialization_contract_version: str = SERIALIZATION_CONTRACT_VERSION
     expected_train_families: int = 8
     expected_validation_families: int = 2
     expected_internal_test_families: int = 2
@@ -172,6 +177,8 @@ class TrainingPlan:
             raise ValueError("Training plan version differs")
         if self.model_id != MODEL_ID or self.model_revision != MODEL_REVISION:
             raise ValueError("Frozen Qwen identity/revision differs")
+        if self.serialization_contract_version != SERIALIZATION_CONTRACT_VERSION:
+            raise ValueError("Action serialization contract differs")
         if self.mode not in ("qualification", "primary"):
             raise ValueError("mode must be qualification or primary")
         if self.condition not in TRAINING_CONDITIONS or self.stage not in STAGE_LEVELS:
@@ -463,6 +470,14 @@ def validate_dataset(rows: Sequence[dict], *, condition: str) -> dict:
             raise PermissionError("Decision record is not an exact one-action prefix target")
         if not set(row["target_action_sequence"]) <= set(row["allowed_actions"]):
             raise PermissionError("A target action is outside the inert action vocabulary")
+        parsed_target = parse_registered_action(
+            row.get("target_text"), row.get("allowed_actions", ()))
+        if (parsed_target["valid"] is not True
+                or parsed_target["action"] != row.get("target_action_id")
+                or parsed_target["normalization_used"] is not False
+                or parsed_target["serialization_form"] != "bare_json_object"):
+            raise PermissionError(
+                f"Record {row.get('record_id')} supervised target must be one bare registered action object")
         _scan_training_scope(row)
         by_group[row["paired_group_id"]].append(row)
 
@@ -540,6 +555,14 @@ def tokenize_rows(rows: Sequence[dict], tokenizer, max_length: int) -> list[dict
         raise ValueError("Tokenizer EOS is required")
     records = []
     for row in rows:
+        parsed_target = parse_registered_action(
+            row.get("target_text"), row.get("allowed_actions", ()))
+        if (parsed_target["valid"] is not True
+                or parsed_target["action"] != row.get("target_action_id")
+                or parsed_target["normalization_used"] is not False
+                or parsed_target["serialization_form"] != "bare_json_object"):
+            raise PermissionError(
+                f"Record {row.get('record_id')} target must be one bare registered action object")
         messages = [{"role": "user", "content": row["input_text"]}]
         prefix = tokenizer.apply_chat_template(
             messages, tokenize=True, add_generation_prompt=True,
@@ -569,6 +592,7 @@ def tokenize_rows(rows: Sequence[dict], tokenizer, max_length: int) -> list[dict
             "prompt_tokens": len(prefix),
             "target_tokens": len(target),
             "token_count": len(ids),
+            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
         })
     return records
 

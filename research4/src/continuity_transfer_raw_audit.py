@@ -11,18 +11,19 @@ import zipfile
 
 from .continuity_transfer_evaluation import (
     ALL_ARMS, BASELINE_CONDITION, EVALUATION_CONDITIONS, EXPECTED_RAW_RECORDS,
+    PUBLIC_SCORER_CONTRACT,
     canonical, digest, file_sha256, preregistered_difference_in_differences,
     prompt_for_trial, score_blinded, score_unrelated_checks,
     validate_public_commitment, validate_registry_bundle, validate_unblinding_key,
 )
 from .continuity_transfer_inference_worker import (
-    WORKER_VERSION, load_registry_bundle, parse_native_action,
+    WORKER_VERSION, load_registry_bundle, parse_native_action_detail,
     validate_databricks_run_binding, validate_provider_run_binding,
     validate_run_binding, verify_checkpoint_manifest,
 )
 
 
-AUDIT_VERSION = "research4-continuity-transfer-independent-raw-audit-v3"
+AUDIT_VERSION = "research4-continuity-transfer-independent-raw-audit-v4"
 def _read(path: str | Path) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -217,6 +218,17 @@ def audit_raw_run(
             or receipt.get("record_count") != EXPECTED_RAW_RECORDS
             or type(receipt.get("valid_response_count")) is not int
             or not 0 <= receipt["valid_response_count"] <= EXPECTED_RAW_RECORDS
+            or receipt.get("serialization_contract_version")
+               != PUBLIC_SCORER_CONTRACT["serialization_contract_version"]
+            or type(receipt.get("normalization_used_count")) is not int
+            or not 0 <= receipt["normalization_used_count"] <= EXPECTED_RAW_RECORDS
+            or not isinstance(receipt.get("serialization_form_counts"), Mapping)
+            or set(receipt["serialization_form_counts"])
+               != {"bare_json_object", "single_lowercase_json_fence", "invalid"}
+            or any(type(value) is not int or value < 0
+                   for value in receipt["serialization_form_counts"].values())
+            or sum(receipt["serialization_form_counts"].values())
+               != EXPECTED_RAW_RECORDS
             or receipt.get("run_binding") != run_binding
             or receipt.get("run_binding_sha256") != run_binding_sha
             or receipt.get("raw_records_sha256") != file_sha256(raw_path)):
@@ -248,6 +260,9 @@ def audit_raw_run(
     checkpoint_by_blind = {row["blind_checkpoint_id"]: row for row in checkpoints}
     seen: set[tuple[str, str, str]] = set()
     reparsed_valid_count = 0
+    reparsed_normalization_count = 0
+    reparsed_forms = {"bare_json_object": 0,
+                      "single_lowercase_json_fence": 0, "invalid": 0}
     records_by_arm: dict[str, list[dict[str, Any]]] = defaultdict(list)
     raw_by_key: dict[tuple[str, str, str], dict[str, Any]] = {}
     for number, row in enumerate(rows, 1):
@@ -261,7 +276,8 @@ def audit_raw_run(
         raw = row.get("raw_response")
         checkpoint = checkpoint_by_blind[blind]
         allowed = [choice["action"] for choice in trial["visible_episode"]["choice_table"]]
-        parsed_action, parsed_valid = parse_native_action(raw, allowed)
+        parsed = parse_native_action_detail(raw, allowed)
+        parsed_action, parsed_valid = parsed["action"], parsed["valid"]
         if (row.get("worker_version") != WORKER_VERSION
                 or row.get("source_commit") != expected_source_commit
                 or row.get("source_package_sha256") != expected_source_package_sha256
@@ -274,6 +290,10 @@ def audit_raw_run(
                 or row.get("prompt_sha256") != prompt_hashes[(arm, trial_id)]
                 or not isinstance(raw, str)
                 or row.get("raw_response_sha256") != hashlib.sha256(raw.encode("utf-8")).hexdigest()
+                or row.get("serialization_contract_version")
+                   != parsed["contract_version"]
+                or row.get("serialization_form") != parsed["serialization_form"]
+                or row.get("normalization_used") is not parsed["normalization_used"]
                 or parsed_valid is not row.get("response_valid")
                 or parsed_action != row.get("selected_action")
                 or row.get("response_valid") not in {True, False}
@@ -283,14 +303,19 @@ def audit_raw_run(
                 or row.get("native_response_count") != 1):
             raise PermissionError(f"Raw row {number} source/checkpoint/prompt/native binding differs")
         reparsed_valid_count += int(parsed_valid)
+        reparsed_normalization_count += int(parsed["normalization_used"])
+        reparsed_forms[parsed["serialization_form"] or "invalid"] += 1
         records_by_arm[arm].append(row)
         raw_by_key[key] = row
     expected_grid = {(blind, arm, trial_id) for blind in blind_ids for arm in ALL_ARMS
                      for trial_id in trial_indexes[arm]}
     if seen != expected_grid:
         raise ValueError("Raw records are not an exact checkpoint/arm/trial bijection")
-    if reparsed_valid_count != receipt["valid_response_count"]:
-        raise PermissionError("Worker valid-response count differs from independent reparse")
+    if (reparsed_valid_count != receipt["valid_response_count"]
+            or receipt.get("normalization_used_count")
+               != reparsed_normalization_count
+            or receipt.get("serialization_form_counts") != reparsed_forms):
+        raise PermissionError("Worker parser diagnostics differ from independent reparse")
     base_blind = next(row["blind_checkpoint_id"] for row in checkpoints
                       if row["identity_kind"] == "frozen_base")
     adapted_blinds = [row["blind_checkpoint_id"] for row in checkpoints
@@ -324,6 +349,8 @@ def audit_raw_run(
             "novel_exploit_creativity_evaluated": False,
             "general_vulnerability_discovery_claim": False,
             "authorized_isolated_fixtures_only": True,
+            "serialization_contract_version": receipt.get(
+                "serialization_contract_version"),
         },
         "record_count": len(rows),
         "checkpoint_count": len(checkpoints),
@@ -357,6 +384,11 @@ def audit_raw_run(
         "selected_actions_exactly_matched_reparse": True,
         "exact_model_action_count_enforced": 1,
         "parsed_action_count_matches_validity": True,
+        "serialization_diagnostics": {
+            "contract_version": receipt.get("serialization_contract_version"),
+            "normalization_used_count": reparsed_normalization_count,
+            "serialization_form_counts": reparsed_forms,
+        },
     }
     receipt_out["audit_payload_sha256"] = digest(receipt_out)
     if output_path is not None:

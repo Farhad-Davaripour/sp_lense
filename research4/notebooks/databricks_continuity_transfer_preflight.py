@@ -22,7 +22,7 @@ def _bootstrap_verify_source(root_value, authority):
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"),
                            ensure_ascii=False).encode("utf-8")
     critical = (
-        "src/__init__.py", "src/databricks_simulated_continuity.py",
+        "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
         "src/databricks_continuity_partition.py",
         "src/continuity_transfer_databricks.py",
         "src/continuity_transfer_evaluation.py",

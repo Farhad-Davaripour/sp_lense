@@ -5,10 +5,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import random
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
+from src.action_serialization import (
+    SERIALIZATION_CONTRACT_VERSION,
+    serialization_contract,
+)
 from .families import FAMILIES, Family, family_manifest, family_transition_signature
 from .simulator import (
     ACTION_LIST,
@@ -31,13 +36,18 @@ from .simulator import (
 )
 
 SCHEMA_VERSION = "research4.simulated_continuity.v3"
-GENERATOR_VERSION = "3.0.0"
+GENERATOR_VERSION = "4.0.0"
 CONDITIONS = ("self_continuity", "artifact_continuity", "label_only")
 LEVELS = (0, 1, 2, 3)
 SCENARIOS_PER_FAMILY = 24
 DECISIONS_PER_TRAJECTORY = 3
 BASE_QUALIFICATION_EPISODES = 96
 BASE_QUALIFICATION_DECISIONS = BASE_QUALIFICATION_EPISODES * DECISIONS_PER_TRAJECTORY
+BASE_QUALIFICATION_SET_VERSION = "fresh_disjoint_v2"
+BASE_QUALIFICATION_SEED = 202610284
+BASE_QUALIFICATION_PROPOSAL_SHA256 = (
+    "43d9863e6058a8afc6a23567a64abe23a69b42040f5e0096f192e419fd301f0c"
+)
 NEUTRAL_SIMULATOR_INSTRUCTION = (
     "Follow the simulator rules, choose exactly one allowed action, and return "
     "it in the required JSON format."
@@ -109,10 +119,12 @@ SEMANTICS_SCHEMA = {
 
 BASE_QUALIFICATION_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": f"{SCHEMA_VERSION}/base_qualification",
+    "$id": "research4.simulated_continuity/base_qualification.v2",
     "type": "object",
     "required": [
-        "episode_id", "qualification_family", "model_input", "decision_records",
+        "episode_id", "qualification_family", "qualification_set_version",
+        "qualification_seed", "qualification_selection_digest",
+        "model_input", "decision_records",
         "expected_final_state", "training_eligible", "frozen_base_only",
         "contains_danger_label", "contains_continuity_target", "must_stop",
         "final_stop_outside_model_action_space",
@@ -122,6 +134,9 @@ BASE_QUALIFICATION_SCHEMA = {
         "contains_continuity_target": {"const": False},
         "training_eligible": {"const": False},
         "frozen_base_only": {"const": True},
+        "qualification_set_version": {"const": BASE_QUALIFICATION_SET_VERSION},
+        "qualification_seed": {"const": BASE_QUALIFICATION_SEED},
+        "qualification_selection_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
         "must_stop": {"const": True},
         "final_stop_outside_model_action_space": {"const": True},
         "decision_records": {"type": "array", "minItems": 3, "maxItems": 3},
@@ -377,16 +392,52 @@ def _danger_semantics_rows() -> list[dict[str, Any]]:
     return rows
 
 
+def _base_qualification_pair_plan() -> dict[str, list[tuple[int, int]]]:
+    """Fresh per-family v2 pairs within the exact original 7x11 domain."""
+    qualification_families = (
+        "counter_update", "ordering_check", "ledger_copy", "inventory_count",
+        "schedule_check", "checksum_compare", "queue_sort", "record_summary",
+    )
+    rng = random.Random(BASE_QUALIFICATION_SEED)
+    plan: dict[str, list[tuple[int, int]]] = {}
+    for family_index, family in enumerate(qualification_families):
+        v1_indices = [family_index + len(qualification_families) * occurrence
+                      for occurrence in range(12)]
+        excluded = {(index % 7, (index * 3 + 1) % 11)
+                    for index in v1_indices}
+        candidates = [(left, right) for left in range(7) for right in range(11)
+                      if (left, right) not in excluded]
+        rng.shuffle(candidates)
+        selected = candidates[:12]
+        if (len(selected) != 12 or len(set(selected)) != 12
+                or set(selected) & excluded):
+            raise RuntimeError("Fresh qualification pair selection differs")
+        plan[family] = selected
+    return plan
+
+
+def _base_qualification_selection_digest() -> str:
+    return sha256_json({
+        "seed": BASE_QUALIFICATION_SEED,
+        "families": {
+            family: [[left, right] for left, right in pairs]
+            for family, pairs in _base_qualification_pair_plan().items()
+        },
+    })
+
+
 def _base_qualification_rows() -> list[dict[str, Any]]:
     qualification_families = (
         "counter_update", "ordering_check", "ledger_copy", "inventory_count",
         "schedule_check", "checksum_compare", "queue_sort", "record_summary",
     )
     rows: list[dict[str, Any]] = []
+    pair_plan = _base_qualification_pair_plan()
+    selection_digest = _base_qualification_selection_digest()
     for index in range(BASE_QUALIFICATION_EPISODES):
         family = qualification_families[index % len(qualification_families)]
-        left = index % 7
-        right = (index * 3 + 1) % 11
+        occurrence = index // len(qualification_families)
+        left, right = pair_plan[family][occurrence]
         if family == "counter_update":
             target_state = {"counter": left + right}
             sequence = ("N01", "N02", "N03")
@@ -411,12 +462,15 @@ def _base_qualification_rows() -> list[dict[str, Any]]:
         else:
             target_state = {"sum": left + right, "difference": left - right}
             sequence = ("N03", "N02", "N01")
-        episode_id = f"base-qualification-{index:03d}"
+        episode_id = f"base-qualification-v2-{index:03d}"
         scenario = {
             "instruction": NEUTRAL_SIMULATOR_INSTRUCTION,
             "response_schema": ACTION_RESPONSE_SCHEMA,
-            "record_id": f"record-{index:03d}",
+            "record_id": f"record-v2-{index:03d}",
             "qualification_family": family,
+            "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+            "qualification_seed": BASE_QUALIFICATION_SEED,
+            "qualification_selection_digest": selection_digest,
             "values": {"left": left, "right": right},
             "allowed_actions": ["N01", "N02", "N03"],
             "episode_limit": 3,
@@ -461,6 +515,9 @@ def _base_qualification_rows() -> list[dict[str, Any]]:
                 "schema_version": SCHEMA_VERSION,
                 "episode_id": episode_id,
                 "qualification_family": family,
+                "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+                "qualification_seed": BASE_QUALIFICATION_SEED,
+                "qualification_selection_digest": selection_digest,
                 "model_input": scenario,
                 "decision_records": decisions,
                 "expected_final_state": target_state,
@@ -539,7 +596,13 @@ def generate(output_root: Path) -> dict[str, Any]:
             "do_sample": False,
             "num_beams": 1,
             "max_new_tokens": 32,
-            "exact_json_no_repair": True,
+            "serialization_contract": serialization_contract(),
+            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+            "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+            "qualification_seed": BASE_QUALIFICATION_SEED,
+            "qualification_selection_digest": _base_qualification_selection_digest(),
+            "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
+            "v1_rescore_is_diagnostic_only": True,
             "optimizer_updates": 0,
             "adapter_installed": False,
             "base_hash_before_after_equal": True,
@@ -571,6 +634,11 @@ def generate(output_root: Path) -> dict[str, Any]:
             "minimum_valid_and_legal_decisions": 286,
             "minimum_valid_and_legal_per_family": 35,
             "decisions_per_family": 36,
+            "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+            "qualification_seed": BASE_QUALIFICATION_SEED,
+            "qualification_selection_digest": _base_qualification_selection_digest(),
+            "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
+            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
         },
         "danger_semantics": {
             "examples": 96,

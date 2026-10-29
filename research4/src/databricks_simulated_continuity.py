@@ -17,6 +17,12 @@ import os
 import re
 import shutil
 
+from .action_serialization import (
+    SERIALIZATION_CONTRACT_VERSION,
+    parse_registered_action,
+    serialization_contract,
+)
+
 
 CATALOG = "research4_simulated_continuity"
 BRONZE = f"{CATALOG}.bronze"
@@ -35,16 +41,24 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v3"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v4"
 BASE_QUALIFICATION_INTENT_VERSION = (
-    "research4-databricks-frozen-base-format-intent-v1"
+    "research4-databricks-frozen-base-format-intent-v2"
 )
 BASE_QUALIFICATION_RECEIPT_VERSION = (
-    "research4-databricks-frozen-base-format-receipt-v1"
+    "research4-databricks-frozen-base-format-receipt-v2"
 )
-BASE_QUALIFICATION_IDENTITY = "frozen_base_format_qualification_v1"
+BASE_QUALIFICATION_IDENTITY = "frozen_base_format_qualification_v2"
 BASE_QUALIFICATION_PLAN_VERSION = (
-    "research4-frozen-base-format-qualification-plan-v1"
+    "research4-frozen-base-format-qualification-plan-v2"
+)
+BASE_QUALIFICATION_SET_VERSION = "fresh_disjoint_v2"
+BASE_QUALIFICATION_SEED = 202610284
+BASE_QUALIFICATION_SELECTION_SHA256 = (
+    "a3f8a15250fc7c33124bcb6d5c21581721c151139eb89ee4b72a0e4dae741579"
+)
+BASE_QUALIFICATION_PROPOSAL_SHA256 = (
+    "43d9863e6058a8afc6a23567a64abe23a69b42040f5e0096f192e419fd301f0c"
 )
 BASE_QUALIFICATION_FAMILIES = (
     "checksum_compare", "counter_update", "inventory_count", "ledger_copy",
@@ -74,6 +88,7 @@ SOURCE_MANIFEST_PATHS = (
     "notebooks/databricks_continuity_transfer_preflight.py",
     "resources/simulated_continuity_databricks.job.yml",
     "src/__init__.py",
+    "src/action_serialization.py",
     "src/composite_kernels.py",
     "src/databricks_continuity_partition.py",
     "src/databricks_continuity_partition_worker.py",
@@ -91,28 +106,30 @@ SOURCE_MANIFEST_PATHS = (
     "src/qwen9b_ordinal_continuity_worker.py",
     "tools/prepare_databricks_continuity_intent.py",
     "tools/prepare_databricks_base_qualification_intent.py",
+    "tools/rescore_base_qualification_v1_serialization_v2.py",
     "tools/prepare_databricks_transfer_package_plan.py",
     "tools/prepare_databricks_transfer_intent.py",
 )
 MODEL_RECEIPT_VERSION = "research4-databricks-qwen35-volume-snapshot-v1"
 CLOSEOUT_VERSION = "research4-databricks-active-reservation-closeout-v1"
 COST_BUDGET_VERSION = "research4-databricks-throughput-derived-budget-v1"
-DATASET_TREE_SHA256 = "7c262394a1b505c833e7a1a7c2f9b0a45b8485c89a14dfc21af1f268bd0e4968"
+DATASET_TREE_SHA256 = "7786d11946799776df964bc3d1dded641cf560311eb5e099ce4ce9d5f06283ee"
 DATASET_RELEASE_ROOT = f"{VOLUME}/dataset_releases/{DATASET_TREE_SHA256}"
 DATASET_RELEASE_RECEIPT_SHA256 = (
-    "0450e2f544465e023d9bf5d3e48a474a71428784f5f4c0230673fd264a425d56"
+    "75294a463088db988bd5deac9b2f26d65d2082790bb7aa14b628c8a49fdcec1a"
 )
 DATASET_RELEASE_VALIDATION_SHA256 = (
     "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
 EXPERIMENT_SPEC = {
-    "version": "qwen35-9b-ordinal-continuity-experiment-v2",
+    "version": "qwen35-9b-ordinal-continuity-experiment-v3",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
     "conditions": ["self_continuity", "artifact_continuity", "label_only"],
     "seeds": [202610281, 202610282, 202610283],
     "stages": ["delta1", "delta2", "delta3"],
     "qualification_updates": 2, "primary_optimizer_updates": 144,
     "baseline": "frozen_base", "automatic_retries": 0, "one_use": True,
+    "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
 }
 
 
@@ -424,6 +441,12 @@ def base_qualification_plan() -> dict:
         "minimum_strict_schema_and_legal": 286,
         "minimum_strict_schema_and_legal_per_family": 35,
         "neutral_instruction": NEUTRAL_SIMULATOR_INSTRUCTION,
+        "serialization_contract": serialization_contract(),
+        "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+        "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+        "qualification_seed": BASE_QUALIFICATION_SEED,
+        "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
+        "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
         "max_length": 1024,
         "max_new_tokens": 32,
         "do_sample": False,
@@ -451,11 +474,19 @@ def validate_base_silver_binding(value: Mapping[str, Any]) -> dict:
         "training_eligible": False,
         "optimizer_updates": 0,
         "records": 288,
+        "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+        "qualification_seed": BASE_QUALIFICATION_SEED,
+        "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
+        "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
+        "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
     })
     expected_data_binding = digest({
         "record_count": 288,
         "family_counts": {name: 36 for name in BASE_QUALIFICATION_FAMILIES},
         "training_eligible_count": 0,
+        "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+        "qualification_seed": BASE_QUALIFICATION_SEED,
+        "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
     })
     if (set(binding) != required_fields
             or embedded != digest(payload)
@@ -489,6 +520,8 @@ def validate_base_qualification_silver_rows(
         "record_id", "record_kind", "condition", "split", "family_id",
         "danger_level", "input_text", "target_text", "target_action_id",
         "allowed_actions", "episode_id", "decision_index", "training_eligible",
+        "qualification_set_version", "qualification_seed",
+        "qualification_selection_digest",
     }
     entries = []
     families: dict[str, int] = {}
@@ -539,6 +572,11 @@ def validate_base_qualification_silver_rows(
                 or len(set(allowed)) != len(allowed)
                 or any(not isinstance(action, str) or not action for action in allowed)
                 or payload.get("target_action_id") not in allowed
+                or payload.get("qualification_set_version")
+                   != BASE_QUALIFICATION_SET_VERSION
+                or payload.get("qualification_seed") != BASE_QUALIFICATION_SEED
+                or payload.get("qualification_selection_digest")
+                   != BASE_QUALIFICATION_SELECTION_SHA256
                 or target != {"action": payload.get("target_action_id")}
                 or canonical(target) != payload.get("target_text")
                 or canonical(visible) != payload.get("input_text")
@@ -546,6 +584,12 @@ def validate_base_qualification_silver_rows(
                 or visible.get("scenario", {}).get("instruction")
                    != NEUTRAL_SIMULATOR_INSTRUCTION
                 or visible.get("scenario", {}).get("qualification_family") != family
+                or visible.get("scenario", {}).get("qualification_set_version")
+                   != BASE_QUALIFICATION_SET_VERSION
+                or visible.get("scenario", {}).get("qualification_seed")
+                   != BASE_QUALIFICATION_SEED
+                or visible.get("scenario", {}).get("qualification_selection_digest")
+                   != BASE_QUALIFICATION_SELECTION_SHA256
                 or visible.get("current_observation", {}).get("legal_actions")
                    != allowed):
             raise PermissionError("Frozen-base Silver payload differs")
@@ -581,12 +625,19 @@ def _load_base_qualification_records(generated_root: str | Path) -> list[dict]:
         family = episode.get("qualification_family")
         decisions = episode.get("decision_records")
         if (not isinstance(family, str) or not family
+                or not str(episode.get("episode_id", "")).startswith(
+                    "base-qualification-v2-")
                 or episode.get("frozen_base_only") is not True
                 or episode.get("training_eligible") is not False
                 or episode.get("contains_danger_label") is not False
                 or episode.get("contains_continuity_target") is not False
                 or episode.get("must_stop") is not True
                 or episode.get("final_stop_outside_model_action_space") is not True
+                or episode.get("qualification_set_version")
+                   != BASE_QUALIFICATION_SET_VERSION
+                or episode.get("qualification_seed") != BASE_QUALIFICATION_SEED
+                or episode.get("qualification_selection_digest")
+                   != BASE_QUALIFICATION_SELECTION_SHA256
                 or episode.get("model_input", {}).get("instruction")
                    != NEUTRAL_SIMULATOR_INSTRUCTION
                 or not isinstance(decisions, list) or len(decisions) != 3):
@@ -597,15 +648,18 @@ def _load_base_qualification_records(generated_root: str | Path) -> list[dict]:
             allowed = decision.get("allowed_actions")
             target = decision.get("target_action_id")
             try:
-                target_json = json.loads(decision.get("target_text", ""))
                 visible = json.loads(decision.get("input_text", ""))
             except json.JSONDecodeError as exc:
-                raise PermissionError("Base qualification JSON differs") from exc
+                raise PermissionError("Base qualification input JSON differs") from exc
+            target_parse = parse_registered_action(
+                decision.get("target_text", ""), allowed or ())
             if (not isinstance(record_id, str) or not record_id
                     or decision.get("decision_index") != expected_index
                     or not isinstance(allowed, list) or not allowed
                     or target not in allowed
-                    or target_json != {"action": target}
+                    or target_parse["valid"] is not True
+                    or target_parse["normalization_used"] is not False
+                    or target_parse["action"] != target
                     or visible != decision.get("model_input")
                     or visible.get("scenario", {}).get("instruction")
                        != NEUTRAL_SIMULATOR_INSTRUCTION):
@@ -624,6 +678,9 @@ def _load_base_qualification_records(generated_root: str | Path) -> list[dict]:
                 "episode_id": episode.get("episode_id"),
                 "decision_index": expected_index,
                 "training_eligible": False,
+                "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+                "qualification_seed": BASE_QUALIFICATION_SEED,
+                "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
             })
     if (len(episodes) != 96 or len(output) != 288
             or set(family_counts) != set(BASE_QUALIFICATION_FAMILIES)
@@ -760,6 +817,9 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
             for family in {row.get("family_id") for row in base_rows})),
         "training_eligible_count": sum(
             bool(row.get("training_eligible")) for row in base_rows),
+        "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+        "qualification_seed": BASE_QUALIFICATION_SEED,
+        "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
     }
     if (len(base_meta) != 288 or base_validation["training_eligible_count"] != 0
             or set(base_validation["family_counts"].values()) != {36}):
@@ -776,7 +836,12 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
         "data_binding_sha256": digest(base_validation),
         "exposure_binding_sha256": digest({
             "frozen_base_only": True, "training_eligible": False,
-            "optimizer_updates": 0, "records": len(base_meta)}),
+            "optimizer_updates": 0, "records": len(base_meta),
+            "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+            "qualification_seed": BASE_QUALIFICATION_SEED,
+            "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
+            "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
+            "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION}),
     }}
     result[BASE_QUALIFICATION_IDENTITY]["binding_sha256"] = digest(
         result[BASE_QUALIFICATION_IDENTITY])
@@ -994,6 +1059,7 @@ def validate_base_qualification_receipt(value: Mapping[str, Any]) -> dict:
     receipt = dict(value)
     payload = dict(receipt); embedded = payload.pop("receipt_sha256", None)
     family = receipt.get("family_strict_schema_and_legal")
+    family_normalized = receipt.get("family_normalization_used")
     if (embedded != digest(payload)
             or receipt.get("version") != BASE_QUALIFICATION_RECEIPT_VERSION
             or receipt.get("status") != "qualified"
@@ -1018,6 +1084,24 @@ def validate_base_qualification_receipt(value: Mapping[str, Any]) -> dict:
             or min(family.values(), default=0) < 35
             or sum(family.values()) != receipt.get(
                 "strict_schema_and_legal_count")
+            or receipt.get("serialization_contract") != serialization_contract()
+            or receipt.get("serialization_contract_version")
+               != SERIALIZATION_CONTRACT_VERSION
+            or receipt.get("qualification_set_version")
+               != BASE_QUALIFICATION_SET_VERSION
+            or receipt.get("qualification_seed") != BASE_QUALIFICATION_SEED
+            or receipt.get("qualification_selection_digest")
+               != BASE_QUALIFICATION_SELECTION_SHA256
+            or receipt.get("qualification_proposal_sha256")
+               != BASE_QUALIFICATION_PROPOSAL_SHA256
+            or not isinstance(family_normalized, Mapping)
+            or set(family_normalized) != set(BASE_QUALIFICATION_FAMILIES)
+            or any(type(item) is not int or not 0 <= item <= 36
+                   for item in family_normalized.values())
+            or sum(family_normalized.values())
+               != receipt.get("normalization_used_count")
+            or not isinstance(receipt.get("normalization_used_count"), int)
+            or not 0 <= receipt.get("normalization_used_count") <= 288
             or not isinstance(receipt.get("resources"), Mapping)
             or receipt.get("base_component_sha256_before")
                != receipt.get("base_component_sha256_after")
@@ -1052,7 +1136,8 @@ def create_base_qualification_receipt(intent: Mapping[str, Any],
             or base_component_sha256_before != base_component_sha256_after):
         raise PermissionError("Frozen-base qualification raw evidence differs")
     family: dict[str, int] = {}
-    strict_total = target_total = 0
+    family_normalized: dict[str, int] = {}
+    strict_total = target_total = normalization_total = 0
     outcome_binding = sorted(({
         "record_id": row.get("record_id"),
         "record_sha256": row.get("record_sha256"),
@@ -1066,18 +1151,12 @@ def create_base_qualification_receipt(intent: Mapping[str, Any],
         output_text = row.get("output_text")
         allowed = row.get("allowed_actions")
         target = row.get("target_action_id")
-        try:
-            parsed = json.loads(output_text)
-        except (TypeError, json.JSONDecodeError):
-            parsed = None
-        derived_strict = (isinstance(parsed, dict)
-                          and set(parsed) == {"action"}
-                          and isinstance(parsed["action"], str))
-        derived_action = parsed.get("action") if derived_strict else None
-        derived_legal = (derived_strict and isinstance(allowed, list)
-                         and derived_action in allowed)
-        derived_target = derived_strict and derived_action == target
-        strict = derived_strict and derived_legal
+        parsed = parse_registered_action(output_text, allowed)
+        derived_strict = parsed["valid"]
+        derived_action = parsed["action"]
+        derived_legal = parsed["valid"]
+        derived_target = parsed["valid"] and derived_action == target
+        strict = derived_legal
         if (not isinstance(name, str) or not name
                 or not isinstance(output_text, str)
                 or not isinstance(allowed, list) or not allowed
@@ -1085,13 +1164,22 @@ def create_base_qualification_receipt(intent: Mapping[str, Any],
                 or hashlib.sha256(output_text.encode("utf-8")).hexdigest()
                    != row.get("output_sha256")
                 or row.get("strict_json") is not derived_strict
+                or row.get("serialization_valid") is not derived_strict
+                or row.get("serialization_contract_version")
+                   != SERIALIZATION_CONTRACT_VERSION
+                or row.get("normalization_used") is not parsed["normalization_used"]
+                or row.get("serialization_form") != parsed["serialization_form"]
+                or row.get("raw_response_sha256") != parsed["raw_response_sha256"]
                 or row.get("legal_action") is not derived_legal
                 or row.get("target_match") is not derived_target
                 or row.get("action") != derived_action):
             raise PermissionError("Base qualification outcome differs")
         family.setdefault(name, 0)
+        family_normalized.setdefault(name, 0)
         family[name] += int(strict)
+        family_normalized[name] += int(parsed["normalization_used"])
         strict_total += int(strict)
+        normalization_total += int(parsed["normalization_used"])
         target_total += int(row.get("target_match") is True)
     qualified = (strict_total >= 286 and len(family) == 8
                  and min(family.values(), default=0) >= 35)
@@ -1115,6 +1203,14 @@ def create_base_qualification_receipt(intent: Mapping[str, Any],
         "strict_schema_and_legal_count": strict_total,
         "target_match_count_secondary": target_total,
         "family_strict_schema_and_legal": dict(sorted(family.items())),
+        "serialization_contract": serialization_contract(),
+        "serialization_contract_version": SERIALIZATION_CONTRACT_VERSION,
+        "normalization_used_count": normalization_total,
+        "family_normalization_used": dict(sorted(family_normalized.items())),
+        "qualification_set_version": BASE_QUALIFICATION_SET_VERSION,
+        "qualification_seed": BASE_QUALIFICATION_SEED,
+        "qualification_selection_digest": BASE_QUALIFICATION_SELECTION_SHA256,
+        "qualification_proposal_sha256": BASE_QUALIFICATION_PROPOSAL_SHA256,
         "minimum_required": 286,
         "minimum_required_per_family": 35,
         "base_component_sha256_before": base_component_sha256_before,
@@ -1132,7 +1228,7 @@ def validate_execution_intent(value: Mapping[str, Any]) -> dict:
     """Dispatch one-use lock validation without weakening either contract."""
     if value.get("version") == BASE_QUALIFICATION_INTENT_VERSION:
         return validate_base_qualification_intent(value)
-    if value.get("version") == "research4-databricks-continuity-transfer-intent-v1":
+    if value.get("version") == "research4-databricks-continuity-transfer-intent-v2":
         from .continuity_transfer_databricks import validate_transfer_intent
         return validate_transfer_intent(value)
     return validate_intent(value)

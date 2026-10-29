@@ -45,6 +45,7 @@ CONDITIONS = ADAPTED_CONDITIONS
 SEEDS = TRAINING_SEEDS
 SOURCE_FILES = (
     "research4/src/io_utils.py",
+    "research4/src/action_serialization.py",
     "research4/src/continuity_transfer_evaluation.py",
     "research4/src/continuity_transfer_kaggle.py",
     "research4/src/continuity_transfer_inference_worker.py",
