@@ -9,6 +9,8 @@ code_path = dbutils.widgets.get("code_path")
 source_commit = dbutils.widgets.get("source_commit")
 dataset_release_path = dbutils.widgets.get("dataset_release_path")
 if (not code_path or not re.fullmatch(r"[0-9a-f]{40}", source_commit)
+        or Path(code_path).resolve().as_posix() != (
+            f"/Workspace/Shared/research4/source_releases/{source_commit}")
         or not dataset_release_path):
     raise ValueError("Exact code, commit and dataset release paths are required")
 sys.path.insert(0, code_path)

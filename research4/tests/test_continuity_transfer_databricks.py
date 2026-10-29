@@ -59,6 +59,8 @@ class DatabricksTransferBindingTests(unittest.TestCase):
             "version": TRANSFER_INTENT_VERSION, "identity": TRANSFER_IDENTITY,
             "one_use": True, "attempt_number": 1, "automatic_retries": 0,
             "execution_platform": "databricks", "source_commit": "c" * 40,
+            "source_release_path": (
+                "/Workspace/Shared/research4/source_releases/" + "c" * 40),
             "source_manifest": source, "source_sha256": source["manifest_sha256"],
             "model_root": MODEL_ROOT, "model_receipt_path": MODEL_RECEIPT,
             "model_tree_sha256": "d" * 64, "model_receipt_sha256": "e" * 64,
@@ -123,6 +125,19 @@ class DatabricksTransferBindingTests(unittest.TestCase):
         changed = dict(binding); changed["job_run_id"] = ""
         with self.assertRaises(PermissionError):
             validate_databricks_run_binding(changed)
+        wrong_intent = copy.deepcopy(intent)
+        wrong_intent["source_release_path"] = (
+            "/Workspace/Users/farhad.davaripour@gmail.com/research4/"
+            "source_releases/" + "c" * 40)
+        payload = dict(wrong_intent); payload.pop("intent_sha256")
+        wrong_intent["intent_sha256"] = digest(payload)
+        with self.assertRaises(PermissionError):
+            validate_transfer_intent(wrong_intent)
+        wrong_binding = copy.deepcopy(binding)
+        wrong_binding["source_release_path"] = wrong_intent[
+            "source_release_path"]
+        with self.assertRaises(PermissionError):
+            validate_databricks_run_binding(wrong_binding)
 
     def test_worker_branches_on_databricks_binding_and_rejects_plan_drift(self):
         intent = self.intent()

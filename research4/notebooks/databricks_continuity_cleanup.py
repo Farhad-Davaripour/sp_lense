@@ -41,8 +41,10 @@ if (intent_sha != digest(payload)
         or manifest.get("source_commit") != commit
         or manifest_sha != digest(manifest_payload)
         or intent.get("source_sha256") != manifest_sha
-        or not Path(values["code_path"]).resolve().as_posix().endswith(
-            f"/research4/source_releases/{commit}")):
+        or intent.get("source_release_path") != (
+            f"/Workspace/Shared/research4/source_releases/{commit}")
+        or Path(values["code_path"]).resolve().as_posix() != (
+            f"/Workspace/Shared/research4/source_releases/{commit}")):
     raise PermissionError("Independent cleanup intent/source authority differs")
 
 lock_root = Path(

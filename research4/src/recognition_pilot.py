@@ -96,7 +96,9 @@ def campaign(path, **updates):
 
 def execution_identity(root, execution, requested_commit):
     if execution == "databricks":
-        if not root.as_posix().startswith("/Workspace/Shared/research4-semantic-gate/deployed/") or root.name != requested_commit:
+        if root.as_posix() != (
+                "/Workspace/Shared/research4/source_releases/"
+                + str(requested_commit)):
             raise ValueError("Databricks observer source is not commit-bound")
         return requested_commit
     if execution != "local":

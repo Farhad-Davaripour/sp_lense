@@ -1,5 +1,5 @@
 # Databricks notebook source
-import json, sys
+import json, re, sys
 from pathlib import Path
 
 for name in ("code_path", "mode", "intent_path", "qualification_output",
@@ -8,6 +8,10 @@ for name in ("code_path", "mode", "intent_path", "qualification_output",
 values = {name: dbutils.widgets.get(name) for name in (
     "code_path", "mode", "intent_path", "qualification_output",
     "qualification_receipt_path", "output_path")}
+if not re.fullmatch(
+        r"/Workspace/Shared/research4/source_releases/[0-9a-f]{40}",
+        Path(values["code_path"]).resolve().as_posix()):
+    raise PermissionError("Production admission source path differs")
 sys.path.insert(0, values["code_path"])
 
 from src.databricks_simulated_continuity import (

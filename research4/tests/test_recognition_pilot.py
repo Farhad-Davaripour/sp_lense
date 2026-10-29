@@ -15,8 +15,8 @@ class RecognitionPilotTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             execution_identity(Path('/tmp/research4'), 'databricks', 'a'*40)
         with self.assertRaises(ValueError):
-            execution_identity(Path('/Workspace/Shared/research4-semantic-gate/deployed/'+('b'*40)), 'databricks', 'a'*40)
-        self.assertEqual(execution_identity(Path('/Workspace/Shared/research4-semantic-gate/deployed/'+('a'*40)), 'databricks', 'a'*40), 'a'*40)
+            execution_identity(Path('/Workspace/Shared/research4/source_releases/'+('b'*40)), 'databricks', 'a'*40)
+        self.assertEqual(execution_identity(Path('/Workspace/Shared/research4/source_releases/'+('a'*40)), 'databricks', 'a'*40), 'a'*40)
 
     def test_membership_preserves_both_role_assignments_and_uses_no_reserve(self):
         rows = select_rows(cases(ROOT, "calibration"), read(ROOT / "config/recognition_pilot.json"))

@@ -49,7 +49,8 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v8"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v9"
+PRODUCTION_SOURCE_RELEASE_ROOT = "/Workspace/Shared/research4/source_releases"
 BASE_QUALIFICATION_INTENT_VERSION = (
     "research4-databricks-frozen-base-format-intent-v2"
 )
@@ -79,6 +80,7 @@ NEUTRAL_SIMULATOR_INSTRUCTION = (
 SOURCE_MANIFEST_VERSION = "research4-databricks-continuity-source-manifest-v1"
 SOURCE_MANIFEST_PATHS = (
     "databricks.yml",
+    "config/databricks_production_resource_bindings.json",
     "notebooks/databricks_continuity_admission.py",
     "notebooks/databricks_continuity_base_qualification.py",
     "notebooks/databricks_continuity_base_qualification_preflight.py",
@@ -124,6 +126,7 @@ SOURCE_MANIFEST_PATHS = (
 )
 LEGACY_BASE_SOURCE_MANIFEST_PATHS = tuple(
     path for path in SOURCE_MANIFEST_PATHS if path not in {
+        "config/databricks_production_resource_bindings.json",
         "notebooks/databricks_continuity_partition_finalize.py",
         "src/base_qualification_carryforward.py",
         "src/qualification_technical_successor.py",
@@ -271,19 +274,33 @@ def validate_source_manifest(value: Mapping[str, Any], *,
     return manifest
 
 
-def verify_deployed_source(code_root: str | Path, intent: Mapping[str, Any]) -> dict:
-    """Recompute the fixed source set from the immutable deployed release."""
+def source_release_path(commit: str) -> str:
+    if not re.fullmatch(r"[0-9a-f]{40}", str(commit)):
+        raise ValueError("Source release commit must be an exact Git SHA")
+    return f"{PRODUCTION_SOURCE_RELEASE_ROOT}/{commit}"
+
+
+def _verify_deployed_source_contents(
+        code_root: str | Path, intent: Mapping[str, Any]) -> dict:
+    """Recompute source bytes after a separate production-path check."""
     manifest = validate_source_manifest(intent.get("source_manifest"))
     commit = intent.get("source_commit")
     root = Path(code_root).resolve()
-    suffix = f"/research4/source_releases/{commit}"
-    if not root.as_posix().endswith(suffix):
-        raise PermissionError("Databricks code path is not the exact source release")
     actual = build_source_manifest(root, commit)
     if (actual != manifest or intent.get("source_sha256") != manifest["manifest_sha256"]
             or manifest.get("source_commit") != commit):
         raise PermissionError("Deployed source differs from the reviewed manifest")
     return actual
+
+
+def verify_deployed_source(code_root: str | Path, intent: Mapping[str, Any]) -> dict:
+    """Require and replay the exact immutable Shared production release."""
+    commit = intent.get("source_commit")
+    expected_path = f"/Workspace/Shared/research4/source_releases/{commit}"
+    if (intent.get("source_release_path") != expected_path
+            or Path(code_root).resolve().as_posix() != expected_path):
+        raise PermissionError("Databricks code path is not the exact source release")
+    return _verify_deployed_source_contents(code_root, intent)
 
 
 def catalog_ddl() -> tuple[str, ...]:
@@ -1382,6 +1399,9 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
             or not isinstance(intent.get("source_commit"), str)
             or not re.fullmatch(r"[0-9a-f]{40}", intent["source_commit"])
             or source_manifest.get("source_commit") != intent["source_commit"]
+            or intent.get("source_release_path") != (
+                "/Workspace/Shared/research4/source_releases/"
+                + intent["source_commit"])
             or intent.get("source_sha256") != source_manifest.get("manifest_sha256")
             or intent.get("dataset_tree_sha256") != DATASET_TREE_SHA256
             or intent.get("silver_record_count") != 2304
@@ -1507,6 +1527,7 @@ def build_intent(*, plan, identity: str, source_commit: str,
         "gpu_count": 1, "max_concurrent_runs": 1,
         "model_root": MODEL_ROOT, "silver_table": SILVER_TABLE,
         "source_commit": source_commit, "timeout_seconds": timeout_seconds,
+        "source_release_path": source_release_path(source_commit),
         "source_manifest": manifest,
         "source_sha256": manifest["manifest_sha256"],
         "model_tree_sha256": model_tree_sha256,

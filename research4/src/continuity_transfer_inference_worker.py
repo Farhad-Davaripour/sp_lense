@@ -76,7 +76,7 @@ PROVIDER_RUN_BINDING_FIELDS = frozenset({
 })
 DATABRICKS_RUN_BINDING_FIELDS = frozenset({
     "version", "execution_platform", "identity", "job_run_id",
-    "source_commit", "intent_sha256", "source_sha256",
+    "source_commit", "source_release_path", "intent_sha256", "source_sha256",
     "model_tree_sha256", "model_receipt_sha256",
     "base_qualification_receipt_sha256",
     "base_qualification_carryforward_sha256",
@@ -108,7 +108,7 @@ def validate_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
     :func:`validate_provider_run_binding` during the independent local audit.
     """
     binding = dict(value)
-    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v4":
+    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v5":
         return validate_databricks_run_binding(binding)
     if (set(binding) != RUN_BINDING_FIELDS
             or any(binding.get(key) in (None, "") for key in RUN_BINDING_FIELDS)
@@ -154,6 +154,9 @@ def validate_databricks_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
             or not isinstance(binding.get("job_run_id"), str)
             or not binding["job_run_id"]
             or not re.fullmatch(r"[0-9a-f]{40}", str(binding.get("source_commit", "")))
+            or binding.get("source_release_path") != (
+                "/Workspace/Shared/research4/source_releases/"
+                + str(binding.get("source_commit", "")))
             or any(not re.fullmatch(r"[0-9a-f]{64}", str(binding.get(key, "")))
                    for key in sha_fields)
             or technical["technical_successor_sha256"]
@@ -168,7 +171,7 @@ def validate_databricks_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
 def validate_provider_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
     """Validate the post-Save provider identity used only by the raw audit."""
     binding = dict(value)
-    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v4":
+    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v5":
         return validate_databricks_run_binding(binding)
     sha_fields = {
         "preparation_sha256", "live_observation_sha256", "notebook_code_sha256",

@@ -40,7 +40,7 @@ def _bootstrap_verify_source(root_value, authority):
         "src/qwen9b_ordinal_continuity_lora.py",
     )
     if (not re.fullmatch(r"[0-9a-f]{40}", str(commit or ""))
-            or not root.as_posix().endswith(f"/research4/source_releases/{commit}")
+            or root.as_posix() != f"/Workspace/Shared/research4/source_releases/{commit}"
             or authority.get("source_sha256") != embedded
             or hashlib.sha256(canonical_bytes).hexdigest() != embedded
             or not isinstance(files, list)):

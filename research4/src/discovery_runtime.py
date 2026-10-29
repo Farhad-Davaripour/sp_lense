@@ -48,7 +48,7 @@ def model_payload(messages,cfg):
 def run(root,output,mode,source_commit,input_harness=None):
     from databricks.sdk import WorkspaceClient
     root,output=map(Path,[root,output]);assert_namespace(output)
-    if root.name!=source_commit or not root.as_posix().startswith('/Workspace/Shared/research4-semantic-gate/deployed/'):raise ValueError('Commit-bound discovery source required')
+    if root.as_posix()!=('/Workspace/Shared/research4/source_releases/'+str(source_commit)):raise ValueError('Commit-bound discovery source required')
     if output.exists() or mode not in ['harness','hosted_pilot']:raise ValueError('Use a fresh admitted discovery run')
     verify_release(root,source_commit)
     cfg=read(root/'config/discovery_redteam_v1.json');output.mkdir(parents=True)
