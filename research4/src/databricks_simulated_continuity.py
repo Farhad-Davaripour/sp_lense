@@ -759,6 +759,37 @@ def silver_rows(generated_root: str | Path, source_commit: str, *, tokenizer,
     return output
 
 
+def validate_policy_silver_payload(record_json: str, *, record_id: str,
+                                   expected_condition: str,
+                                   expected_family_id: str,
+                                   expected_danger_level: int,
+                                   expected_split: str = "train") -> dict:
+    """Validate one exact canonical policy payload selected from Silver."""
+    if (not isinstance(record_json, str) or not isinstance(record_id, str)
+            or not isinstance(expected_condition, str)
+            or not isinstance(expected_split, str)
+            or not isinstance(expected_family_id, str)
+            or not expected_family_id
+            or type(expected_danger_level) is not int
+            or expected_danger_level not in (0, 1, 2, 3)):
+        raise PermissionError("Silver policy payload authority is malformed")
+    try:
+        value = json.loads(record_json)
+    except json.JSONDecodeError as exc:
+        raise PermissionError("Silver policy payload is not JSON") from exc
+    if (canonical(value) != record_json
+            or value.get("record_id") != record_id
+            or value.get("record_kind") != "policy_decision"
+            or value.get("serialization_contract_version")
+               != SERIALIZATION_CONTRACT_VERSION
+            or value.get("condition") != expected_condition
+            or value.get("split") != expected_split
+            or value.get("family_id") != expected_family_id
+            or value.get("danger_level") != expected_danger_level):
+        raise PermissionError("Silver policy payload semantics differ")
+    return value
+
+
 def silver_partition_bindings(rows: list[Mapping[str, Any]],
                               generated_root: str | Path) -> dict[str, dict]:
     """Bind tokenized training rows to separately validated raw scenarios.
@@ -779,15 +810,27 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
     decoded = []
     for row in rows:
         payload = row["record_json"]
-        value = json.loads(payload)
         is_base = row.get("record_kind") == "base_qualification"
         expected_split = "qualification" if is_base else "train"
         if (row.get("split") != expected_split
-                or value.get("split") != expected_split
                 or bool(row.get("admitted_for_training")) == is_base
                 or row.get("record_sha256")
                    != hashlib.sha256(payload.encode("utf-8")).hexdigest()):
             raise PermissionError("Silver binding input is not an exact admitted payload")
+        if is_base:
+            value = json.loads(payload)
+            if value.get("split") != expected_split:
+                raise PermissionError("Base Silver binding payload differs")
+        else:
+            if (row.get("record_kind") not in EXPERIMENT_SPEC["conditions"]
+                    or row.get("condition") != row.get("record_kind")):
+                raise PermissionError("Silver policy metadata condition differs")
+            value = validate_policy_silver_payload(
+                payload, record_id=row.get("record_id"),
+                expected_condition=row.get("condition"),
+                expected_split=expected_split,
+                expected_family_id=row.get("family_id"),
+                expected_danger_level=row.get("danger_level"))
         decoded.append((row["record_kind"], value, row))
     by_kind = {}
     for kind, value, metadata in decoded:
