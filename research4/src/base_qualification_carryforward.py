@@ -140,6 +140,7 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "src/continuity_transfer_databricks.py",
     "src/continuity_transfer_inference_worker.py",
     "src/continuity_transfer_intent_preparation.py",
+    "src/continuity_transfer_kaggle.py",
     "src/continuity_transfer_packaging.py",
     "src/databricks_continuity_partition.py",
     "src/databricks_continuity_partition_worker.py",
