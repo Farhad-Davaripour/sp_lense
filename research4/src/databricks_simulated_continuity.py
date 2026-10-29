@@ -49,7 +49,7 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v6"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v7"
 BASE_QUALIFICATION_INTENT_VERSION = (
     "research4-databricks-frozen-base-format-intent-v2"
 )
@@ -141,7 +141,7 @@ DATASET_RELEASE_VALIDATION_SHA256 = (
     "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
 EXPERIMENT_SPEC = {
-    "version": "qwen35-9b-ordinal-continuity-experiment-v5",
+    "version": "qwen35-9b-ordinal-continuity-experiment-v6",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
     "conditions": ["self_continuity", "artifact_continuity", "label_only"],
     "seeds": [202610281, 202610282, 202610283],
@@ -866,11 +866,11 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
     base_rows = by_kind["base_qualification"]
     qualification = replace(
         qualification_plan(EXPERIMENT_SPEC, 4), device_profile="databricks-a10x1",
-        world_size=1, micro_batch_size=2, accumulation_steps=2).validate()
+        world_size=1, micro_batch_size=1, accumulation_steps=4).validate()
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
     plans = [qualification]
     plans += [replace(plan, device_profile="databricks-a10x1", world_size=1,
-                      micro_batch_size=2, accumulation_steps=2).validate()
+                      micro_batch_size=1, accumulation_steps=4).validate()
               for plan in policies]
     plan = base_qualification_plan()
     base_meta = sorted(
@@ -1333,11 +1333,11 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
     qualification = replace(
         qualification_plan(EXPERIMENT_SPEC, 4),
         device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=2, accumulation_steps=2).validate()
+        micro_batch_size=1, accumulation_steps=4).validate()
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
     canonical_plans = [replace(
         item, device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=2, accumulation_steps=2).validate()
+        micro_batch_size=1, accumulation_steps=4).validate()
         for item in policies]
     expected_plan = (qualification if mode == "qualification" else
                      next((item for item in canonical_plans
@@ -1418,8 +1418,8 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
             or plan.get("rank") != 4 or plan.get("alpha") != 8.0
             or plan.get("global_batch_size") != 4
             or plan.get("world_size") != 1
-            or plan.get("micro_batch_size") != 2
-            or plan.get("accumulation_steps") != 2
+            or plan.get("micro_batch_size") != 1
+            or plan.get("accumulation_steps") != 4
             or plan.get("device_profile") != "databricks-a10x1"
             or plan.get("optimizer_updates") != expected_updates
             or plan.get("automatic_retries") != 0):
@@ -1605,7 +1605,7 @@ def canonical_primary_plan_hashes() -> list[str]:
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
     return sorted(replace(
         plan, device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=2, accumulation_steps=2).validate().full_plan_sha256
+        micro_batch_size=1, accumulation_steps=4).validate().full_plan_sha256
         for plan in policies)
 
 
@@ -1651,7 +1651,7 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or not re.fullmatch(r"[0-9a-f]{64}", checkpoint_tree_sha256)):
         raise PermissionError("Actual rank-4 Databricks qualification evidence differs")
     value = {
-        "version": "research4-databricks-rank4-qualification-v3",
+        "version": "research4-databricks-rank4-qualification-v4",
         "status": "qualified", "source_commit": intent["source_commit"],
         "source_sha256": intent["source_sha256"],
         "model_tree_sha256": intent["model_tree_sha256"],
@@ -1709,7 +1709,7 @@ def create_primary_admission(intent: Mapping[str, Any],
                 "authorized_primary_plan_sha256s", ())):
         raise PermissionError("Qualification does not authorize this primary partition")
     value = {
-        "version": "qwen35-9b-ordinal-continuity-primary-admission-v5",
+        "version": "qwen35-9b-ordinal-continuity-primary-admission-v6",
         "admitted": True, "plan": intent["plan"],
         "full_plan_sha256": intent["plan_sha256"],
         "qualification_receipt_sha256": embedded,
@@ -1800,7 +1800,7 @@ def expected_predecessor_binding(plan: Mapping[str, Any]) -> dict | None:
     policies = matrix_plans(EXPERIMENT_SPEC, 4)
     candidates = [replace(
         value, device_profile="databricks-a10x1", world_size=1,
-        micro_batch_size=2, accumulation_steps=2).validate()
+        micro_batch_size=1, accumulation_steps=4).validate()
         for value in policies]
     expected_stage = {"delta2": "delta1", "delta3": "delta2"}[current.stage]
     expected_condition = current.condition

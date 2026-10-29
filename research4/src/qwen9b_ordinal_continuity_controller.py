@@ -30,11 +30,11 @@ from .qwen9b_ordinal_continuity_training import (
     ALLOWED_SEEDS, CONDITIONS, PINNED_SOFTWARE, TrainingPlan,
     load_pinned_tokenizer)
 
-CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v6"
-EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v5"
-PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v5"
-TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v4"
-AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v5"
+CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v7"
+EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v6"
+PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v6"
+TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v5"
+AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v6"
 MATRIX_CONDITIONS = CONDITIONS
 MATRIX_STAGES = ("delta1", "delta2", "delta3")
 

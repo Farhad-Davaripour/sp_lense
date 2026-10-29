@@ -163,7 +163,7 @@ class DatabricksContinuityTests(unittest.TestCase):
                stop_seconds=2400, reviewed_timeout_budget=None):
         plan = (plan or TrainingPlan(
             device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=2, accumulation_steps=2)).validate()
+            micro_batch_size=1, accumulation_steps=4)).validate()
         source_manifest = build_source_manifest(
             Path(__file__).parents[1], "a" * 40)
         value = {
@@ -460,7 +460,7 @@ class DatabricksContinuityTests(unittest.TestCase):
             mode="qualification", stage="delta1", condition="self_continuity",
             seed=202610281, optimizer_updates=2,
             device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=2, accumulation_steps=2).validate()
+            micro_batch_size=1, accumulation_steps=4).validate()
         tokenized = [json.loads(row["record_json"]) for row in silver
                      if row["record_kind"] == "self_continuity"]
         self.assertTrue(tokenized)
@@ -627,7 +627,7 @@ class DatabricksContinuityTests(unittest.TestCase):
             base_receipt=base, current_source_manifest=current_manifest), carry)
         plan = TrainingPlan(
             device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=2, accumulation_steps=2).validate()
+            micro_batch_size=1, accumulation_steps=4).validate()
         intent = build_intent(
             plan=plan, identity=partition_identity(plan),
             source_commit="b" * 40, source_manifest=current_manifest,
@@ -912,7 +912,7 @@ class DatabricksContinuityTests(unittest.TestCase):
                        if plan.condition == "self_continuity"
                        and plan.seed == 202610281 and plan.stage == "delta1")
         primary = replace(primary, device_profile="databricks-a10x1", world_size=1,
-                          micro_batch_size=2, accumulation_steps=2).validate()
+                          micro_batch_size=1, accumulation_steps=4).validate()
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder); output = root / "qualification_output"
             checkpoint = output / "checkpoint"; checkpoint.mkdir(parents=True)
@@ -973,7 +973,7 @@ class DatabricksContinuityTests(unittest.TestCase):
             "selected_rank": 4,
             "authorized_primary_plan_sha256s": sorted(
                 replace(plan, device_profile="databricks-a10x1", world_size=1,
-                        micro_batch_size=2, accumulation_steps=2).validate()
+                        micro_batch_size=1, accumulation_steps=4).validate()
                 .full_plan_sha256 for plan in matrix_plans(EXPERIMENT_SPEC, 4)),
             "base_qualification_receipt_sha256": base["receipt_sha256"],
             "qualification_technical_successor_sha256": technical_successor()[
@@ -995,7 +995,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         index = 0
         plans = {(plan.condition, plan.seed, plan.stage): replace(
             plan, device_profile="databricks-a10x1", world_size=1,
-            micro_batch_size=2, accumulation_steps=2).validate()
+            micro_batch_size=1, accumulation_steps=4).validate()
             for plan in matrix}
         for condition in ("self_continuity", "artifact_continuity", "label_only"):
             for seed in (202610281, 202610282, 202610283):
@@ -1159,7 +1159,7 @@ class DatabricksContinuityTests(unittest.TestCase):
                       if value.condition == "self_continuity"
                       and value.seed == 202610281 and value.stage == "delta2")
         delta2 = replace(delta2, device_profile="databricks-a10x1", world_size=1,
-                         micro_batch_size=2, accumulation_steps=2).validate()
+                         micro_batch_size=1, accumulation_steps=4).validate()
         predecessor = expected_predecessor_binding(asdict(delta2))
         self.assertEqual(predecessor["stage"], "delta1")
         self.assertEqual(predecessor["condition"], "self_continuity")
@@ -1168,7 +1168,7 @@ class DatabricksContinuityTests(unittest.TestCase):
                       if value.condition == "self_continuity"
                       and value.seed == 202610281 and value.stage == "delta1")
         delta1 = replace(delta1, device_profile="databricks-a10x1", world_size=1,
-                         micro_batch_size=2, accumulation_steps=2).validate()
+                         micro_batch_size=1, accumulation_steps=4).validate()
         self.assertIsNone(expected_predecessor_binding(asdict(delta1)))
 
 

@@ -4,7 +4,7 @@ import importlib.util
 import json
 import tempfile
 import unittest
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -32,10 +32,13 @@ from src.qwen9b_ordinal_continuity_training import (
     admit_primary_fit,
     assert_databricks_a10x1_fp16_runtime,
     assert_t4x2_bf16_runtime,
+    batching_exposure_contract,
     build_occurrence_journal,
+    component_occurrence_weights,
     canonical_sha256,
     choose_qualification_rank,
     create_qualification_receipt,
+    databricks_a10_compatibility_scales,
     execute_capacity_qualification,
     execute_with_preregistered_batch_fallback,
     equalize_matched_prompt_exposure,
@@ -447,8 +450,8 @@ class TrainingAdmissionTests(unittest.TestCase):
         shared = {
             "device_profile": "databricks-a10x1",
             "world_size": 1,
-            "micro_batch_size": 2,
-            "accumulation_steps": 2,
+            "micro_batch_size": 1,
+            "accumulation_steps": 4,
             "global_batch_size": 4,
             "stage": "delta1",
             "optimizer_updates": 2,
@@ -473,6 +476,7 @@ class TrainingAdmissionTests(unittest.TestCase):
 
     def test_rank_receipt_self_hash_is_recomputed(self):
         payload = {
+            "version": "qwen35-9b-ordinal-continuity-rank-run-v3",
             "status": "complete", "plan_sha256": "p" * 64,
             "global_journal_sha256": "j" * 64,
             "global_journal_occurrence_count": 96,
@@ -486,6 +490,46 @@ class TrainingAdmissionTests(unittest.TestCase):
             verify_rank_receipt(
                 payload, expected_plan_sha256="p" * 64,
                 expected_global_journal_sha256="j" * 64)
+
+    def test_rank_receipt_recomputes_a10_batching_and_compatibility_scales(self):
+        plan = TrainingPlan(
+            mode="qualification", condition="self_continuity", stage="delta1",
+            seed=202610281, optimizer_updates=2,
+            device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=1, accumulation_steps=4).validate()
+        _, _, tokenized, _ = bindings(plan)
+        journal = adjacent_pair_schedule(tokenized[plan.condition], plan)
+        updates = []
+        for update_index in range(plan.optimizer_updates):
+            entries = journal[update_index * 4:(update_index + 1) * 4]
+            updates.append({
+                "optimizer_update": update_index,
+                "occurrence_indices": [row["occurrence_index"] for row in entries],
+                "changed_component_scales": list(
+                    databricks_a10_compatibility_scales(entries, plan)),
+            })
+        receipt = {
+            "version": "qwen35-9b-ordinal-continuity-rank-run-v3",
+            "status": "complete", "plan_sha256": plan.full_plan_sha256,
+            "global_journal_sha256": canonical_sha256(journal),
+            "batching": batching_exposure_contract(plan), "updates": updates,
+        }
+        receipt["receipt_sha256"] = canonical_sha256(receipt)
+        strict = dict(
+            expected_plan_sha256=plan.full_plan_sha256,
+            expected_global_journal_sha256=canonical_sha256(journal),
+            expected_plan=plan, expected_global_journal=journal)
+        self.assertEqual(verify_rank_receipt(receipt, **strict), receipt)
+        for mutation in ("scale", "batching"):
+            changed = copy.deepcopy(receipt)
+            if mutation == "scale":
+                changed["updates"][0]["changed_component_scales"][0] = 99.0
+            else:
+                changed["batching"]["micro_batch_size"] = 2
+            changed.pop("receipt_sha256")
+            changed["receipt_sha256"] = canonical_sha256(changed)
+            with self.assertRaises(PermissionError):
+                verify_rank_receipt(changed, **strict)
 
     def test_backbone_change_blocks_qualification(self):
         plan = TrainingPlan(optimizer_updates=16)
@@ -561,6 +605,135 @@ class TrainingAdmissionTests(unittest.TestCase):
                 TrainingPlan(expected_train_families=7)):
             with self.assertRaises((ValueError, PermissionError)):
                 plan.validate()
+
+    def test_databricks_a10_requires_microbatch1_accum4(self):
+        exact = TrainingPlan(
+            device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=1, accumulation_steps=4).validate()
+        self.assertEqual(exact.global_batch_size, 4)
+        for micro_batch_size, accumulation_steps in (
+                (2, 2), (1, 2), (2, 1), (4, 1)):
+            with self.subTest(micro_batch_size=micro_batch_size,
+                              accumulation_steps=accumulation_steps):
+                with self.assertRaisesRegex(ValueError, "batch1/accum4"):
+                    TrainingPlan(
+                        device_profile="databricks-a10x1", world_size=1,
+                        micro_batch_size=micro_batch_size,
+                        accumulation_steps=accumulation_steps).validate()
+
+    def test_a10_virtual_batch2_reduction_matches_all_boolean_patterns(self):
+        plan = TrainingPlan(
+            device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=1, accumulation_steps=4).validate()
+        expected_examples = {
+            (False, True, False, True): (1.0, 2.0, 1.0, 2.0),
+            (True, True, False, False): (1.0, 1.0, 1.0, 1.0),
+            (True, False, False, False): (2.0, 1.0, 1.0, 1.0),
+        }
+        for bits in range(16):
+            pattern = tuple(bool(bits & (1 << index)) for index in range(4))
+            entries = [{"target_changed": value} for value in pattern]
+            scales = databricks_a10_compatibility_scales(entries, plan)
+            legacy = component_occurrence_weights(
+                pattern, micro_batch_size=2, accumulation_steps=2)
+            current = component_occurrence_weights(
+                pattern, micro_batch_size=1, accumulation_steps=4)
+            self.assertEqual(current["sft"], legacy["sft"])
+            for component in ("preference", "cross_danger_margin"):
+                self.assertEqual(
+                    tuple(current[component][index] * scales[index]
+                          for index in range(4)),
+                    legacy[component])
+            if pattern in expected_examples:
+                self.assertEqual(scales, expected_examples[pattern])
+
+    def test_a10_resource_amendment_preserves_loss_and_gradient_formula(self):
+        plan = TrainingPlan(
+            device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=1, accumulation_steps=4).validate()
+        for bits in range(16):
+            pattern = tuple(bool(bits & (1 << index)) for index in range(4))
+            entries = [{"target_changed": value} for value in pattern]
+            scales = databricks_a10_compatibility_scales(entries, plan)
+            legacy = component_occurrence_weights(
+                pattern, micro_batch_size=2, accumulation_steps=2)
+            current = component_occurrence_weights(
+                pattern, micro_batch_size=1, accumulation_steps=4)
+            old_parameter = torch.tensor(.37, dtype=torch.float64,
+                                         requires_grad=True)
+            new_parameter = old_parameter.detach().clone().requires_grad_(True)
+
+            def terms(parameter):
+                sft = [(parameter - (index + 1) / 10.0).square()
+                       for index in range(4)]
+                preference = [torch.nn.functional.softplus(
+                    parameter * (index + 1)) for index in range(4)]
+                margin = [torch.relu(.2 - parameter * (index + 2))
+                          for index in range(4)]
+                return sft, preference, margin
+
+            old_terms = terms(old_parameter); new_terms = terms(new_parameter)
+            old_loss = sum(
+                legacy["sft"][index] * old_terms[0][index]
+                + legacy["preference"][index] * old_terms[1][index]
+                + legacy["cross_danger_margin"][index] * old_terms[2][index]
+                for index in range(4))
+            new_loss = sum(
+                current["sft"][index] * new_terms[0][index]
+                + current["preference"][index] * scales[index]
+                  * new_terms[1][index]
+                + current["cross_danger_margin"][index] * scales[index]
+                  * new_terms[2][index]
+                for index in range(4))
+            old_loss.backward(); new_loss.backward()
+            self.assertTrue(torch.equal(old_loss, new_loss))
+            self.assertTrue(torch.equal(old_parameter.grad, new_parameter.grad))
+
+    def test_a10_schedule_and_reduction_equivalence_for_qualifier_and_matrix(self):
+        source_plan = TrainingPlan()
+        _, _, tokenized, _ = bindings(source_plan)
+        plans = [TrainingPlan(
+            mode="qualification", condition="self_continuity", stage="delta1",
+            seed=202610281, optimizer_updates=2,
+            device_profile="databricks-a10x1", world_size=1,
+            micro_batch_size=1, accumulation_steps=4).validate()]
+        plans += [TrainingPlan(
+            mode="primary", condition=condition, stage=stage, seed=seed,
+            optimizer_updates=144, device_profile="databricks-a10x1",
+            world_size=1, micro_batch_size=1,
+            accumulation_steps=4).validate()
+            for condition in CONDITIONS
+            for seed in (202610281, 202610282, 202610283)
+            for stage in ("delta1", "delta2", "delta3")]
+        self.assertEqual(len(plans), 28)
+        for plan in plans:
+            journal = adjacent_pair_schedule(tokenized[plan.condition], plan)
+            prior_geometry = replace(
+                plan, device_profile="kaggle-t4x2", world_size=2,
+                micro_batch_size=2, accumulation_steps=1).validate()
+            prior_journal = adjacent_pair_schedule(
+                tokenized[plan.condition], prior_geometry)
+            preserved_fields = (
+                "optimizer_update", "global_batch_position", "paired_group_id",
+                "low_record_id", "high_record_id", "target_changed")
+            self.assertEqual(
+                [tuple(row[field] for field in preserved_fields) for row in journal],
+                [tuple(row[field] for field in preserved_fields)
+                 for row in prior_journal])
+            self.assertEqual(len(journal), plan.occurrence_count)
+            for update in range(plan.optimizer_updates):
+                entries = journal[update * 4:(update + 1) * 4]
+                scales = databricks_a10_compatibility_scales(entries, plan)
+                changed = tuple(row["target_changed"] for row in entries)
+                old = component_occurrence_weights(
+                    changed, micro_batch_size=2, accumulation_steps=2)
+                new = component_occurrence_weights(
+                    changed, micro_batch_size=1, accumulation_steps=4)
+                self.assertEqual(old["sft"], new["sft"])
+                self.assertEqual(
+                    old["preference"],
+                    tuple(value * scales[index]
+                          for index, value in enumerate(new["preference"])))
 
     def test_real_rank_fallback_runner_never_runs_rank8_when_rank4_is_adequate(self):
         calls = []
@@ -774,7 +947,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v5",
+                "version": "qwen35-9b-continuity-partition-intent-v6",
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
                 "partition_identity": SUCCESSOR_IDENTITY,
                 "plan_sha256": qualification.full_plan_sha256,
