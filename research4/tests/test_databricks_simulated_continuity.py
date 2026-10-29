@@ -59,6 +59,12 @@ from src.qwen9b_ordinal_continuity_training import (
 
 
 class DatabricksContinuityTests(unittest.TestCase):
+    def test_base_carryforward_allows_reviewed_training_worker_delta(self):
+        self.assertIn(
+            "src/qwen9b_ordinal_continuity_worker.py",
+            ALLOWED_RUNTIME_CHANGED_PATHS,
+        )
+
     def base_resources(self, model_tree_sha256="c" * 64):
         gib = 1024**3
         return {
