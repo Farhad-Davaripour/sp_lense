@@ -23,6 +23,7 @@ def _bootstrap_verify_source(root_value, authority):
                            ensure_ascii=False).encode("utf-8")
     critical = (
         "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
+        "src/base_qualification_carryforward.py",
         "src/databricks_continuity_partition.py",
         "src/continuity_transfer_databricks.py",
         "src/continuity_transfer_evaluation.py",
@@ -72,7 +73,7 @@ validate_exact_gold_row(rows, {
     "partition_identity": base["identity"], "mode": "base_qualification",
     "condition": "frozen_base", "stage": "format_schema", "seed": 0,
     "plan_sha256": base["plan_sha256"],
-    "source_commit": intent["source_commit"],
+    "source_commit": base["source_commit"],
     "model_tree_sha256": intent["model_tree_sha256"],
     "checkpoint_tree_sha256": intent["model_tree_sha256"],
     "receipt_sha256": base["receipt_sha256"],

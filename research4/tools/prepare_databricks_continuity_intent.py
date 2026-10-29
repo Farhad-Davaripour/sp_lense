@@ -19,6 +19,8 @@ def main(argv=None):
     parser.add_argument("--stop-seconds", required=True, type=int)
     parser.add_argument("--max-gpu-hours", required=True, type=float)
     parser.add_argument("--qualification-receipt")
+    parser.add_argument("--base-qualification-source-intent")
+    parser.add_argument("--base-qualification-carryforward")
     args = parser.parse_args(argv)
     plan = TrainingPlan(**json.loads(Path(args.plan).read_text())).validate()
     model = json.loads(Path(args.model_receipt).read_text())
@@ -40,6 +42,12 @@ def main(argv=None):
                      json.loads(Path(args.qualification_receipt).read_text()))
     base_qualification = json.loads(Path(
         args.base_qualification_receipt).read_text())
+    base_source_intent = (None if not args.base_qualification_source_intent else
+                          json.loads(Path(
+                              args.base_qualification_source_intent).read_text()))
+    base_carryforward = (None if not args.base_qualification_carryforward else
+                         json.loads(Path(
+                             args.base_qualification_carryforward).read_text()))
     value = build_intent(
         plan=plan, identity=partition_identity(plan), source_commit=args.source_commit,
         source_manifest=source_manifest, model_tree_sha256=model["tree_sha256"],
@@ -55,6 +63,8 @@ def main(argv=None):
         wall_clock_stop_seconds=args.stop_seconds,
         mlflow_experiment_path=args.mlflow_experiment,
         base_qualification_receipt=base_qualification,
+        base_qualification_source_intent=base_source_intent,
+        base_qualification_carryforward=base_carryforward,
         qualification_receipt=qualification)
     output = Path(args.output)
     if output.exists():

@@ -28,9 +28,11 @@ from .continuity_transfer_evaluation import (
 )
 from .databricks_simulated_continuity import (
     GOLD_SUMMARY_TABLE, MODEL_ID, MODEL_REVISION, VOLUME, build_source_manifest,
-    canonical, gold_summary, validate_base_qualification_receipt,
+    canonical, gold_summary, validate_base_qualification_intent,
+    validate_base_qualification_receipt,
     validate_exact_gold_row, validate_source_manifest,
 )
+from .base_qualification_carryforward import validate_carryforward
 from .qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from .qwen9b_ordinal_continuity_lora import BRANCHES, CHECKPOINT_VERSION
 from .qwen9b_ordinal_continuity_runtime import (
@@ -39,8 +41,8 @@ from .qwen9b_ordinal_continuity_runtime import (
 from .qwen9b_ordinal_continuity_training import TrainingPlan, verify_rank_receipt
 
 
-PACKAGING_PLAN_VERSION = "research4-databricks-transfer-packaging-plan-v1"
-PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v1"
+PACKAGING_PLAN_VERSION = "research4-databricks-transfer-packaging-plan-v2"
+PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v2"
 PACKAGE_FILES_VERSION = "research4-databricks-transfer-package-files-v1"
 CHECKPOINT_MANIFEST_VERSION = "research4-three-residual-blinded-checkpoints-v1"
 EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
@@ -88,6 +90,9 @@ def validate_packaging_plan(value: Mapping[str, Any]) -> dict[str, Any]:
         "source_sha256", "model_tree_sha256",
         "base_qualification_receipt_path",
         "base_qualification_receipt_sha256",
+        "base_qualification_source_intent",
+        "base_qualification_carryforward",
+        "base_qualification_carryforward_sha256",
         "base_qualification_receipt_file_sha256",
         "capacity_qualification_receipt_path",
         "capacity_qualification_receipt_sha256",
@@ -115,6 +120,7 @@ def validate_packaging_plan(value: Mapping[str, Any]) -> dict[str, Any]:
             or any(not _sha(plan.get(key)) for key in (
                 "source_sha256", "model_tree_sha256",
                 "base_qualification_receipt_sha256",
+                "base_qualification_carryforward_sha256",
                 "base_qualification_receipt_file_sha256",
                 "capacity_qualification_receipt_sha256",
                 "capacity_qualification_receipt_file_sha256"))
@@ -125,6 +131,15 @@ def validate_packaging_plan(value: Mapping[str, Any]) -> dict[str, Any]:
             or plan.get("registry_seed") != REGISTRY_SEED
             or plan.get("package_parent") != TRANSFER_PACKAGE_PARENT):
         raise PermissionError("Exact CPU-only transfer packaging plan required")
+    carryforward = plan.get("base_qualification_carryforward")
+    prior_base_intent = plan.get("base_qualification_source_intent")
+    if (not isinstance(carryforward, Mapping)
+            or not isinstance(prior_base_intent, Mapping)
+            or carryforward.get("carryforward_sha256")
+               != plan.get("base_qualification_carryforward_sha256")
+            or carryforward.get("prior_base_intent_sha256")
+               != prior_base_intent.get("intent_sha256")):
+        raise PermissionError("Transfer packaging carry-forward authority differs")
     _volume_path(plan.get("base_qualification_receipt_path"), label="base receipt")
     _volume_path(plan.get("capacity_qualification_receipt_path"), label="capacity receipt")
     _volume_path(plan.get("package_parent"), label="package parent")
@@ -135,6 +150,9 @@ def build_packaging_plan(*, source_root: str | Path, source_commit: str,
                          model_tree_sha256: str,
                          base_qualification_receipt_path: str,
                          base_qualification_receipt_sha256: str,
+                         base_qualification_source_intent: Mapping[str, Any],
+                         base_qualification_carryforward: Mapping[str, Any],
+                         base_qualification_carryforward_sha256: str,
                          base_qualification_receipt_file_sha256: str,
                          capacity_qualification_receipt_path: str,
                          capacity_qualification_receipt_sha256: str,
@@ -150,6 +168,12 @@ def build_packaging_plan(*, source_root: str | Path, source_commit: str,
         "model_tree_sha256": model_tree_sha256,
         "base_qualification_receipt_path": base_qualification_receipt_path,
         "base_qualification_receipt_sha256": base_qualification_receipt_sha256,
+        "base_qualification_source_intent": dict(
+            base_qualification_source_intent),
+        "base_qualification_carryforward": dict(
+            base_qualification_carryforward),
+        "base_qualification_carryforward_sha256":
+            base_qualification_carryforward_sha256,
         "base_qualification_receipt_file_sha256":
             base_qualification_receipt_file_sha256,
         "capacity_qualification_receipt_path": capacity_qualification_receipt_path,
@@ -185,10 +209,17 @@ def validate_gold_matrix(*, plan: Mapping[str, Any],
     """Recompute the exact base/capacity/27-policy Gold matrix."""
     value = validate_packaging_plan(plan)
     base = validate_base_qualification_receipt(base_receipt)
+    prior_base_intent = validate_base_qualification_intent(
+        value["base_qualification_source_intent"])
+    carryforward = validate_carryforward(
+        value["base_qualification_carryforward"],
+        prior_intent=prior_base_intent, base_receipt=base,
+        current_source_manifest=value["source_manifest"])
     rows = [dict(row) for row in gold_rows]
-    if (base.get("source_commit") != value["source_commit"]
-            or base.get("source_sha256") != value["source_sha256"]
-            or base.get("model_tree_sha256") != value["model_tree_sha256"]
+    carryforward_sha = carryforward["carryforward_sha256"]
+    if carryforward_sha != value["base_qualification_carryforward_sha256"]:
+        raise PermissionError("Packaging carry-forward hash differs")
+    if (base.get("model_tree_sha256") != value["model_tree_sha256"]
             or base.get("receipt_sha256")
                != value["base_qualification_receipt_sha256"]):
         raise PermissionError("Frozen-base gate differs from packaging authority")
@@ -199,7 +230,9 @@ def validate_gold_matrix(*, plan: Mapping[str, Any],
             or capacity_receipt.get("model_tree_sha256")
                != value["model_tree_sha256"]
             or capacity_receipt.get("base_qualification_receipt_sha256")
-               != base["receipt_sha256"]):
+               != base["receipt_sha256"]
+            or capacity_receipt.get("base_qualification_carryforward_sha256")
+               != carryforward_sha):
         raise PermissionError("Capacity gate differs from packaging authority")
     if len(rows) != 29:
         raise PermissionError("Packaging requires exactly base + capacity + 27 Gold rows")
@@ -208,7 +241,7 @@ def validate_gold_matrix(*, plan: Mapping[str, Any],
         "partition_identity": base["identity"], "mode": "base_qualification",
         "condition": "frozen_base", "stage": "format_schema", "seed": 0,
         "plan_sha256": base["plan_sha256"],
-        "source_commit": value["source_commit"],
+        "source_commit": base["source_commit"],
         "model_tree_sha256": value["model_tree_sha256"],
         "checkpoint_tree_sha256": value["model_tree_sha256"],
         "receipt_sha256": base["receipt_sha256"],
@@ -755,6 +788,12 @@ def publish_transfer_package(*, plan: Mapping[str, Any],
             "source_manifest": authority["source_manifest"],
             "model_tree_sha256": authority["model_tree_sha256"],
             "base_qualification_receipt_sha256": matrix["base"]["receipt_sha256"],
+            "base_qualification_source_intent": authority[
+                "base_qualification_source_intent"],
+            "base_qualification_carryforward": authority[
+                "base_qualification_carryforward"],
+            "base_qualification_carryforward_sha256": matrix["capacity"].get(
+                "base_qualification_carryforward_sha256"),
             "capacity_qualification_receipt_sha256": matrix["capacity"][
                 "receipt_sha256"],
             "gold_matrix_summary_sha256": matrix["summary"]["summary_sha256"],

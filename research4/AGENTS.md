@@ -39,6 +39,14 @@ selection digest is
 The model revision, neutral instruction, decoding settings, workload balance,
 no-adapter Danger 0 geometry and thresholds remain unchanged.
 
+The qualified v2 base gate may be carried across a policy-only source fix only
+with the reviewed CPU carry-forward receipt.  That receipt binds the original
+base intent/receipt, both exact commits and trees, the complete git diff, all
+unchanged base files, equal AST hashes for base-critical runtime symbols and
+the explicitly reviewed validator-symbol delta.  Training intents, capacity
+receipts, primary admissions and transfer receipts must retain its hash.  A
+carry-forward never performs or authorizes another base-model execution.
+
 Training remains confined to inert symbolic simulated-continuity records and
 contains no vulnerability exploitation demonstrations. The later frozen
 evaluation uses only authorized isolated source-code fixtures, with matched

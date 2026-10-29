@@ -27,6 +27,7 @@ def _bootstrap_verify_source(root_value, authority):
     ).encode("utf-8")
     critical = (
         "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
+        "src/base_qualification_carryforward.py",
         "src/databricks_continuity_partition.py",
         "src/databricks_continuity_partition_worker.py",
         "src/qwen9b_ordinal_continuity_runtime.py",
@@ -61,7 +62,8 @@ from src.databricks_simulated_continuity import (
     digest, expected_predecessor_binding,
     validate_base_qualification_receipt, validate_exact_gold_row,
     validate_intent, validate_primary_authority_files,
-    validate_policy_silver_payload, verify_deployed_source,
+    validate_policy_silver_payload,
+    verify_intent_base_qualification_authority, verify_deployed_source,
     verify_model_receipt)
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import (
@@ -73,11 +75,6 @@ if not values["base_qualification_receipt_path"]:
     raise PermissionError("Training requires the frozen-base format gate")
 base_qualification = validate_base_qualification_receipt(json.loads(Path(
     values["base_qualification_receipt_path"]).read_text()))
-if (base_qualification["receipt_sha256"]
-        != intent["base_qualification_receipt_sha256"]
-        or base_qualification["base_qualification_intent_sha256"]
-           != intent["base_qualification_intent_sha256"]):
-    raise PermissionError("Training intent and frozen-base gate differ")
 plan = json.loads(Path(values["plan_path"]).read_text())
 if intent["plan"]["mode"] != dbutils.widgets.get("expected_mode"):
     raise PermissionError("Job resource does not admit this partition mode")
@@ -86,6 +83,8 @@ if intent["plan"] != plan:
 source_proof = verify_deployed_source(values["code_path"], intent)
 if source_proof["manifest_sha256"] != bootstrap_source_sha256:
     raise PermissionError("Partition bootstrap and full source verification differ")
+base_authority = verify_intent_base_qualification_authority(
+    intent, base_qualification, values["code_path"])
 proof = verify_model_receipt(intent["model_root"], MODEL_RECEIPT)
 if (proof["tree_sha256"] != intent["model_tree_sha256"]
         or proof["receipt_sha256"] != intent["model_receipt_sha256"]):
@@ -97,7 +96,7 @@ validate_exact_gold_row(base_rows, {
     "mode": "base_qualification", "condition": "frozen_base",
     "stage": "format_schema", "seed": 0,
     "plan_sha256": base_qualification["plan_sha256"],
-    "source_commit": intent["source_commit"],
+    "source_commit": base_authority["source_commit"],
     "model_tree_sha256": intent["model_tree_sha256"],
     "checkpoint_tree_sha256": intent["model_tree_sha256"],
     "receipt_sha256": base_qualification["receipt_sha256"],

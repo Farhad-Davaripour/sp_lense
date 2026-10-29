@@ -34,6 +34,7 @@ def _bootstrap_verify_source(root_value, authority):
     ).encode("utf-8")
     critical = (
         "src/__init__.py", "src/action_serialization.py", "src/databricks_simulated_continuity.py",
+        "src/base_qualification_carryforward.py",
         "src/databricks_continuity_partition.py",
         "src/databricks_continuity_partition_worker.py",
         "src/qwen9b_ordinal_continuity_runtime.py",
@@ -67,7 +68,8 @@ from src.databricks_continuity_partition import run_partition
 from src.databricks_simulated_continuity import (
     GOLD_ADMISSION_TABLE, MODEL_RECEIPT, VOLUME, close_active_reservation,
     reserve_intent, validate_base_qualification_receipt, validate_intent,
-    verify_deployed_source, verify_model_receipt_authority)
+    verify_deployed_source, verify_intent_base_qualification_authority,
+    verify_model_receipt_authority)
 from src.qwen9b_ordinal_continuity_training import (
     assert_databricks_a10x1_fp16_runtime, assert_fast_deltanet_dependencies)
 
@@ -81,11 +83,8 @@ if not values["base_qualification_receipt_path"]:
     raise PermissionError("Training requires the frozen-base format gate")
 base_qualification = validate_base_qualification_receipt(json.loads(Path(
     values["base_qualification_receipt_path"]).read_text(encoding="utf-8")))
-if (base_qualification["receipt_sha256"]
-        != intent["base_qualification_receipt_sha256"]
-        or base_qualification["base_qualification_intent_sha256"]
-           != intent["base_qualification_intent_sha256"]):
-    raise PermissionError("Training intent and frozen-base gate differ")
+verify_intent_base_qualification_authority(
+    intent, base_qualification, values["code_path"])
 
 # Provisioning and exact package installation have completed before this point.
 # Exercise imports, kernels, CUDA, A10 identity, NVML and free VRAM before the
