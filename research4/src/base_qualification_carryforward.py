@@ -104,6 +104,7 @@ BASE_CRITICAL_ENTRYPOINTS = {
 
 REVIEWED_CHANGED_SYMBOLS = {
     "src/databricks_simulated_continuity.py": (
+        "EXPERIMENT_SPEC",
         "INTENT_VERSION",
         "SOURCE_MANIFEST_PATHS",
         "validate_base_qualification_intent",
@@ -114,6 +115,7 @@ REVIEWED_CHANGED_SYMBOLS = {
 
 QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256 = {
     "src/databricks_simulated_continuity.py": {
+        "EXPERIMENT_SPEC": "5706fdba5d4af218145c2406ec160d9b296c75e4e8348473d562edaed1a9a58e",
         "INTENT_VERSION": "94ecceb339f66fc2d412b167e909a73ab6b65d58d60d3cb4eb8821e338bd5974",
         "SOURCE_MANIFEST_PATHS": "90272f2130d4b86bfec354d5c297e636d0068b78bad973ea3e6f92cb29470356",
         "validate_base_qualification_intent": "917e0d21140e19b394c9f1ebee3d9f018e5458ecf193b0620c7ed64fc4f9babd",
