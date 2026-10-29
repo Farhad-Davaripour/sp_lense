@@ -26,6 +26,7 @@ from .action_serialization import (
     SERIALIZATION_CONTRACT_VERSION,
     parse_registered_action,
 )
+from .qualification_technical_successor import validate as validate_technical_successor
 from .continuity_transfer_evaluation import (
     ALL_ARMS, BASELINE_CONDITION, CHECKPOINT_COUNT, CONDITIONS, EXPECTED_RAW_RECORDS,
     TRAINING_SEEDS, VERSION as EVALUATION_VERSION,
@@ -70,7 +71,9 @@ DATABRICKS_RUN_BINDING_FIELDS = frozenset({
     "source_commit", "intent_sha256", "source_sha256",
     "model_tree_sha256", "model_receipt_sha256",
     "base_qualification_receipt_sha256",
-    "base_qualification_carryforward_sha256", "checkpoint_manifest_sha256",
+    "base_qualification_carryforward_sha256",
+    "qualification_technical_successor",
+    "qualification_technical_successor_sha256", "checkpoint_manifest_sha256",
     "checkpoint_package_sha256", "sealed_registry_sha256",
     "resource_plan_sha256", "reservation_sha256", "output_root",
 })
@@ -92,7 +95,7 @@ def validate_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
     :func:`validate_provider_run_binding` during the independent local audit.
     """
     binding = dict(value)
-    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v3":
+    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v4":
         return validate_databricks_run_binding(binding)
     if (set(binding) != RUN_BINDING_FIELDS
             or any(binding.get(key) in (None, "") for key in RUN_BINDING_FIELDS)
@@ -124,10 +127,13 @@ def validate_databricks_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
         "intent_sha256", "source_sha256", "model_tree_sha256",
         "model_receipt_sha256", "base_qualification_receipt_sha256",
         "base_qualification_carryforward_sha256",
+        "qualification_technical_successor_sha256",
         "checkpoint_manifest_sha256", "checkpoint_package_sha256",
         "sealed_registry_sha256", "resource_plan_sha256",
         "reservation_sha256",
     }
+    technical = validate_technical_successor(
+        binding.get("qualification_technical_successor"))
     if (set(binding) != DATABRICKS_RUN_BINDING_FIELDS
             or binding.get("execution_platform") != "databricks"
             or not isinstance(binding.get("identity"), str)
@@ -137,6 +143,8 @@ def validate_databricks_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
             or not re.fullmatch(r"[0-9a-f]{40}", str(binding.get("source_commit", "")))
             or any(not re.fullmatch(r"[0-9a-f]{64}", str(binding.get(key, "")))
                    for key in sha_fields)
+            or technical["technical_successor_sha256"]
+               != binding.get("qualification_technical_successor_sha256")
             or not isinstance(binding.get("output_root"), str)
             or not binding["output_root"].startswith("/Volumes/")
             or ".." in Path(binding["output_root"]).parts):
@@ -147,7 +155,7 @@ def validate_databricks_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
 def validate_provider_run_binding(value: Mapping[str, Any]) -> dict[str, Any]:
     """Validate the post-Save provider identity used only by the raw audit."""
     binding = dict(value)
-    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v3":
+    if binding.get("version") == "research4-databricks-continuity-transfer-run-binding-v4":
         return validate_databricks_run_binding(binding)
     sha_fields = {
         "preparation_sha256", "live_observation_sha256", "notebook_code_sha256",

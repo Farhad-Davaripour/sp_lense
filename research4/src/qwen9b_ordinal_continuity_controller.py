@@ -20,6 +20,7 @@ import sys
 import time
 
 from .action_serialization import SERIALIZATION_CONTRACT_VERSION
+from .qualification_technical_successor import SUCCESSOR_IDENTITY
 from .qwen9b_ordinal_continuity_lora import MODEL_ID, MODEL_REVISION
 from .qwen9b_ordinal_continuity_runtime import (
     atomic_json, canonical_sha256, cli_sha256, directory_tree_sha256,
@@ -29,11 +30,11 @@ from .qwen9b_ordinal_continuity_training import (
     ALLOWED_SEEDS, CONDITIONS, PINNED_SOFTWARE, TrainingPlan,
     load_pinned_tokenizer)
 
-CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v4"
-EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v3"
-PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v3"
-TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v2"
-AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v3"
+CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v5"
+EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v4"
+PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v4"
+TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v3"
+AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v4"
 MATRIX_CONDITIONS = CONDITIONS
 MATRIX_STAGES = ("delta1", "delta2", "delta3")
 
@@ -88,7 +89,9 @@ def qualification_plan(spec: Mapping, rank: int):
 
 def partition_identity(plan: TrainingPlan) -> str:
     if plan.mode == "qualification":
-        return f"qualification_rank{plan.rank}"
+        if plan.rank != 4:
+            raise PermissionError("Only the reviewed rank-4 technical successor is admitted")
+        return SUCCESSOR_IDENTITY
     return f"{plan.condition}_seed{plan.seed}_{plan.stage}"
 
 

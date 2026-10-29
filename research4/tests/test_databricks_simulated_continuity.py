@@ -37,6 +37,7 @@ from src.action_serialization import (
     SERIALIZATION_CONTRACT_VERSION, parse_registered_action,
     serialization_contract,
 )
+from src.qualification_technical_successor import authority as technical_successor
 from src import base_qualification_carryforward as carry_contract
 from src.base_qualification_carryforward import (
     ALLOWED_RUNTIME_CHANGED_PATHS, BASE_CRITICAL_ENTRYPOINTS,
@@ -185,6 +186,9 @@ class DatabricksContinuityTests(unittest.TestCase):
             "admission_exposure_binding_sha256": "3" * 64,
             "base_qualification_intent_sha256": "4" * 64,
             "base_qualification_receipt_sha256": "5" * 64,
+            "qualification_technical_successor": technical_successor(),
+            "qualification_technical_successor_sha256": technical_successor()[
+                "technical_successor_sha256"],
             "mlflow_experiment_path": "/Shared/research4_simulated_continuity",
             "plan": asdict(plan), "plan_sha256": plan.full_plan_sha256,
         }
@@ -402,7 +406,7 @@ class DatabricksContinuityTests(unittest.TestCase):
             row["record_json"].encode()).hexdigest() for row in silver))
         bindings = silver_partition_bindings(silver, generated)
         self.assertEqual(len(bindings), 29)
-        qualification = bindings["qualification_rank4"]
+        qualification = bindings[technical_successor()["successor_identity"]]
         self.assertEqual(qualification["silver_record_count"], 2304)
         self.assertEqual(qualification["semantics_record_count"], 0)
         self.assertEqual(qualification["binding_sha256"], digest({
@@ -892,6 +896,10 @@ class DatabricksContinuityTests(unittest.TestCase):
         rank["receipt_sha256"] = digest(rank)
         evidence = {
             "intent_sha256": qualification_intent["intent_sha256"],
+            "base_qualification_carryforward_sha256": qualification_intent.get(
+                "base_qualification_carryforward_sha256"),
+            "qualification_technical_successor_sha256": qualification_intent[
+                "qualification_technical_successor_sha256"],
             "rank_receipt_sha256": rank["receipt_sha256"],
             "live_base_components_before": {"weights": "a" * 64},
             "live_base_components_after": {"weights": "a" * 64},
@@ -968,6 +976,8 @@ class DatabricksContinuityTests(unittest.TestCase):
                         micro_batch_size=2, accumulation_steps=2).validate()
                 .full_plan_sha256 for plan in matrix_plans(EXPERIMENT_SPEC, 4)),
             "base_qualification_receipt_sha256": base["receipt_sha256"],
+            "qualification_technical_successor_sha256": technical_successor()[
+                "technical_successor_sha256"],
         }
         capacity["receipt_sha256"] = digest(capacity)
         capacity_row = {
@@ -1052,8 +1062,10 @@ class DatabricksContinuityTests(unittest.TestCase):
                              "${var.continuity_gpu_environment_version}")
             self.assertEqual(environment["spec"]["dependencies"],
                              expected_gpu_dependencies)
+            expected_all_done = 1 if "frozen_base" in name else 2
             self.assertEqual(sum(
-                task.get("run_if") == "ALL_DONE" for task in spec["tasks"]), 1)
+                task.get("run_if") == "ALL_DONE" for task in spec["tasks"]),
+                expected_all_done)
         self.assertEqual(jobs["simulated_continuity_rank4_qualification"]
                          ["timeout_seconds"], 4500)
         self.assertEqual(jobs["simulated_continuity_rank4_qualification"]
@@ -1071,13 +1083,13 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn('hashlib.sha256(row.record_json.encode("utf-8"))', source)
         self.assertIn('remaining_stop = intent["wall_clock_stop_seconds"] - prework_seconds',
                       source)
-        self.assertLess(source.index('saveAsTable(GOLD_RUN_TABLE)'),
-                        source.index('mlflow.end_run(status="FINISHED")'))
-        self.assertLess(source.index('mlflow.end_run(status="FINISHED")'),
-                        source.index("SET status = 'complete'"))
+        self.assertLess(source.index('pending_cpu_finalize'),
+                        source.index('saveAsTable(GOLD_RUN_TABLE)'))
+        self.assertIn("finalize_partition_mlflow", source)
+        self.assertNotIn('mlflow.end_run(status="FINISHED")', source)
         self.assertNotIn("${var.code_path}/research4", job)
         self.assertNotIn("active_lock.unlink", source)
-        self.assertEqual(job.count("run_if: ALL_DONE"), 4)
+        self.assertEqual(job.count("run_if: ALL_DONE"), 6)
         for notebook in (base_preflight, base_notebook):
             self.assertLess(notebook.index("bootstrap_source_sha256 ="),
                             notebook.index("sys.path.insert"))

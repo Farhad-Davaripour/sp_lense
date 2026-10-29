@@ -50,6 +50,7 @@ SOURCE_FILES = (
     "research4/src/continuity_transfer_kaggle.py",
     "research4/src/continuity_transfer_inference_worker.py",
     "research4/src/continuity_transfer_raw_audit.py",
+    "research4/src/qualification_technical_successor.py",
     "research4/src/qwen9b_ordinal_continuity_lora.py",
     "research4/notebooks/continuity_transfer_evaluation.py",
 )

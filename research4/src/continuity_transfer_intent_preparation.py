@@ -22,10 +22,11 @@ from .databricks_simulated_continuity import (
     validate_source_manifest,
 )
 from .base_qualification_carryforward import validate_carryforward
+from .qualification_technical_successor import validate as validate_technical_successor
 
 
 INTENT_PREPARATION_RECEIPT_VERSION = (
-    "research4-databricks-transfer-intent-preparation-v2"
+    "research4-databricks-transfer-intent-preparation-v3"
 )
 TRANSFER_INTENT_PARENT = f"{VOLUME}/transfer_intents"
 THROUGHPUT_SAFETY_FACTOR = 0.5
@@ -94,6 +95,8 @@ def _validate_package_authority(package_receipt_path: str | Path,
         package.get("base_qualification_carryforward"),
         prior_intent=source_intent, base_receipt=base,
         current_source_manifest=manifest)
+    technical = validate_technical_successor(
+        package.get("qualification_technical_successor"))
     if (package.get("status") != "complete"
             or package.get("gpu_runs_started") != 0
             or package.get("model_forwards") != 0
@@ -102,6 +105,8 @@ def _validate_package_authority(package_receipt_path: str | Path,
                != base["receipt_sha256"]
             or package.get("base_qualification_carryforward_sha256")
                != carryforward["carryforward_sha256"]
+            or package.get("qualification_technical_successor_sha256")
+               != technical["technical_successor_sha256"]
             or manifest["source_commit"] != package["source_commit"]
             or manifest["manifest_sha256"] != package["source_sha256"]
             or package.get("model_tree_sha256") != base["model_tree_sha256"]):
@@ -150,6 +155,8 @@ def verify_prepared_transfer_intent(root: str | Path) -> dict[str, Any]:
             or receipt.get("intent_sha256") != intent["intent_sha256"]
             or receipt.get("base_qualification_carryforward_sha256")
                != intent["base_qualification_carryforward_sha256"]
+            or receipt.get("qualification_technical_successor_sha256")
+               != intent["qualification_technical_successor_sha256"]
             or receipt.get("intent_file_sha256") != file_sha256(intent_path)
             or receipt.get("resource_plan_sha256")
                != intent["resource_plan_sha256"]
@@ -181,6 +188,10 @@ def prepare_transfer_intent(*, code_path: str | Path,
             "base_qualification_carryforward"],
         base_qualification_carryforward_sha256=package[
             "base_qualification_carryforward_sha256"],
+        qualification_technical_successor=package[
+            "qualification_technical_successor"],
+        qualification_technical_successor_sha256=package[
+            "qualification_technical_successor_sha256"],
         resource_plan=resource, **paths)
     replay = validate_transfer_intent(intent, verify_inputs=True)
     if replay != intent:
@@ -206,6 +217,8 @@ def prepare_transfer_intent(*, code_path: str | Path,
             "base_qualification_receipt_sha256": base["receipt_sha256"],
             "base_qualification_carryforward_sha256": package[
                 "base_qualification_carryforward_sha256"],
+            "qualification_technical_successor_sha256": package[
+                "qualification_technical_successor_sha256"],
             "intent_sha256": intent["intent_sha256"],
             "intent_file_sha256": file_sha256(staging / "TRANSFER_INTENT.json"),
             "resource_plan_sha256": resource["resource_plan_sha256"],

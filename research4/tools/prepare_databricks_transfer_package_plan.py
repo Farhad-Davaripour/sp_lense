@@ -13,6 +13,7 @@ from src.databricks_simulated_continuity import (
     build_source_manifest, validate_base_qualification_intent,
     validate_base_qualification_receipt)
 from src.base_qualification_carryforward import validate_carryforward
+from src.qualification_technical_successor import validate as validate_technical_successor
 from src.qwen9b_ordinal_continuity_runtime import file_sha256, verify_receipt
 
 
@@ -25,6 +26,7 @@ def main(argv=None) -> int:
     parser.add_argument("--base-qualification-volume-path", required=True)
     parser.add_argument("--base-qualification-source-intent", required=True)
     parser.add_argument("--base-qualification-carryforward", required=True)
+    parser.add_argument("--qualification-technical-successor", required=True)
     parser.add_argument("--capacity-qualification-receipt", required=True)
     parser.add_argument("--capacity-qualification-volume-path", required=True)
     parser.add_argument("--output", required=True)
@@ -49,13 +51,17 @@ def main(argv=None) -> int:
         args.base_qualification_source_intent).read_text(encoding="utf-8"))
     carryforward = json.loads(Path(
         args.base_qualification_carryforward).read_text(encoding="utf-8"))
+    technical = validate_technical_successor(json.loads(Path(
+        args.qualification_technical_successor).read_text(encoding="utf-8")))
     source_intent = validate_base_qualification_intent(source_intent)
     current_manifest = build_source_manifest(source_root, args.source_commit)
     carryforward = validate_carryforward(
         carryforward, prior_intent=source_intent, base_receipt=base,
         current_source_manifest=current_manifest)
     carryforward_sha = capacity.get("base_qualification_carryforward_sha256")
+    technical_sha = capacity.get("qualification_technical_successor_sha256")
     if (not isinstance(carryforward_sha, str) or len(carryforward_sha) != 64
+            or technical_sha != technical["technical_successor_sha256"]
             or base.get("model_tree_sha256") != args.model_tree_sha256
             or capacity.get("source_commit") != args.source_commit
             or capacity.get("model_tree_sha256") != args.model_tree_sha256
@@ -70,6 +76,8 @@ def main(argv=None) -> int:
         base_qualification_source_intent=source_intent,
         base_qualification_carryforward=carryforward,
         base_qualification_carryforward_sha256=carryforward_sha,
+        qualification_technical_successor=technical,
+        qualification_technical_successor_sha256=technical_sha,
         base_qualification_receipt_file_sha256=file_sha256(base_path),
         capacity_qualification_receipt_path=args.capacity_qualification_volume_path,
         capacity_qualification_receipt_sha256=capacity["receipt_sha256"],
