@@ -55,9 +55,9 @@ from .qwen9b_ordinal_continuity_lora import (
 )
 
 
-PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v4"
-QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v4"
-ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v4"
+PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v5"
+QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v5"
+ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v5"
 CONDITIONS = ("self_continuity", "artifact_continuity", "label_only")
 TRAINING_CONDITIONS = CONDITIONS
 SPLITS = ("train", "validation", "test")
@@ -75,10 +75,19 @@ PINNED_SOFTWARE = {
     "triton": "3.6.0",
 }
 EXPECTED_TEXT_LAYER_TYPES = Counter({"linear_attention": 24, "full_attention": 8})
+EXPECTED_NUM_HIDDEN_LAYERS = 32
+EXPECTED_HIDDEN_SIZE = 4096
+EXPECTED_ATTENTION_HEADS = 16
+EXPECTED_HEAD_DIM = 256
+EXPECTED_ATTN_OUTPUT_GATE = True
 EXPECTED_TARGET_PROJECTIONS = 248
-EXPECTED_TARGET_DIMENSION_SUM = 2_672_128
-EXPECTED_RANK4_BRANCH_PARAMETERS = 10_688_512
-EXPECTED_RANK8_BRANCH_PARAMETERS = 21_377_024
+EXPECTED_UNGATED_TARGET_DIMENSION_SUM = 2_672_128
+EXPECTED_GATED_Q_DIMENSION_DELTA = 8 * EXPECTED_ATTENTION_HEADS * EXPECTED_HEAD_DIM
+EXPECTED_TARGET_DIMENSION_SUM = 2_704_896
+EXPECTED_RANK4_BRANCH_PARAMETERS = 10_819_584
+EXPECTED_RANK8_BRANCH_PARAMETERS = 21_639_168
+EXPECTED_RANK4_TOTAL_ADAPTER_PARAMETERS = 32_458_752
+EXPECTED_RANK8_TOTAL_ADAPTER_PARAMETERS = 64_917_504
 STAGE_LEVELS = {
     "delta1": (0, 1),
     "delta2": (1, 2),
@@ -1185,6 +1194,50 @@ def qwen35_t4x2_device_map(config, local_rank: int = 0) -> dict:
     return {"": local_rank}
 
 
+def qwen35_projection_geometry(config) -> dict:
+    """Derive the pinned gated-q LoRA geometry from model configuration."""
+    text = getattr(config, "text_config", config)
+    layer_types = tuple(getattr(text, "layer_types", ()))
+    if (getattr(text, "num_hidden_layers", None)
+            != EXPECTED_NUM_HIDDEN_LAYERS
+            or getattr(text, "hidden_size", None) != EXPECTED_HIDDEN_SIZE
+            or getattr(text, "num_attention_heads", None)
+               != EXPECTED_ATTENTION_HEADS
+            or getattr(text, "head_dim", None) != EXPECTED_HEAD_DIM
+            or getattr(text, "attn_output_gate", None)
+               is not EXPECTED_ATTN_OUTPUT_GATE
+            or Counter(layer_types) != EXPECTED_TEXT_LAYER_TYPES):
+        raise RuntimeError("Pinned Qwen3.5 gated-q configuration differs")
+    query_width = EXPECTED_ATTENTION_HEADS * EXPECTED_HEAD_DIM
+    gated_delta = EXPECTED_TEXT_LAYER_TYPES["full_attention"] * query_width
+    dimension_sum = EXPECTED_UNGATED_TARGET_DIMENSION_SUM + gated_delta
+    if (gated_delta != EXPECTED_GATED_Q_DIMENSION_DELTA
+            or dimension_sum != EXPECTED_TARGET_DIMENSION_SUM
+            or 4 * dimension_sum != EXPECTED_RANK4_BRANCH_PARAMETERS
+            or 8 * dimension_sum != EXPECTED_RANK8_BRANCH_PARAMETERS
+            or 3 * 4 * dimension_sum
+               != EXPECTED_RANK4_TOTAL_ADAPTER_PARAMETERS
+            or 3 * 8 * dimension_sum
+               != EXPECTED_RANK8_TOTAL_ADAPTER_PARAMETERS):
+        raise RuntimeError("Pinned Qwen3.5 gated-q geometry formula differs")
+    return {
+        "hidden_size": EXPECTED_HIDDEN_SIZE,
+        "num_hidden_layers": EXPECTED_NUM_HIDDEN_LAYERS,
+        "attention_heads": EXPECTED_ATTENTION_HEADS,
+        "head_dim": EXPECTED_HEAD_DIM,
+        "attn_output_gate": EXPECTED_ATTN_OUTPUT_GATE,
+        "query_width": query_width,
+        "gated_q_dimension_delta": gated_delta,
+        "target_projection_count": EXPECTED_TARGET_PROJECTIONS,
+        "branch_tensor_count": 2 * EXPECTED_TARGET_PROJECTIONS,
+        "target_dimension_sum": dimension_sum,
+        "rank4_branch_parameters": 4 * dimension_sum,
+        "rank8_branch_parameters": 8 * dimension_sum,
+        "rank4_total_adapter_parameters": 3 * 4 * dimension_sum,
+        "rank8_total_adapter_parameters": 3 * 8 * dimension_sum,
+    }
+
+
 def assert_qwen35_backend(model, dependency_proof: Mapping) -> dict:
     config = getattr(model.config, "text_config", model.config)
     layer_types = tuple(getattr(config, "layer_types", ()))
@@ -1212,6 +1265,7 @@ def assert_qwen35_backend(model, dependency_proof: Mapping) -> dict:
 def assert_ordinal_adapter_geometry(model, targets: Sequence[str], plan: TrainingPlan) -> dict:
     if len(targets) != EXPECTED_TARGET_PROJECTIONS or len(set(targets)) != len(targets):
         raise RuntimeError("Official Qwen3.5-9B text target count differs")
+    config_geometry = qwen35_projection_geometry(model.config)
     inventory = trainable_inventory(model)
     if any(info["dtype"] != "torch.float32" for info in inventory.values()):
         raise RuntimeError("Every trainable adapter tensor must be FP32")
@@ -1225,10 +1279,10 @@ def assert_ordinal_adapter_geometry(model, targets: Sequence[str], plan: Trainin
         expected += a.weight.numel() + b.weight.numel()
         dimension_sum += a.in_features + b.out_features
     observed = sum(info["count"] for info in inventory.values())
-    exact = (EXPECTED_RANK4_BRANCH_PARAMETERS if plan.rank == 4
-             else EXPECTED_RANK8_BRANCH_PARAMETERS)
+    exact = (config_geometry["rank4_branch_parameters"] if plan.rank == 4
+             else config_geometry["rank8_branch_parameters"])
     if (expected != observed or observed != exact
-            or dimension_sum != EXPECTED_TARGET_DIMENSION_SUM
+            or dimension_sum != config_geometry["target_dimension_sum"]
             or len(inventory) != 2 * EXPECTED_TARGET_PROJECTIONS):
         raise RuntimeError("Trainable adapter parameter count differs from target geometry")
     return {"target_projection_count": len(targets),
@@ -1236,6 +1290,9 @@ def assert_ordinal_adapter_geometry(model, targets: Sequence[str], plan: Trainin
             "trainable_tensor_count": len(inventory),
             "trainable_parameter_count": observed,
             "expected_trainable_parameter_count": exact,
+            "gated_q_dimension_delta": config_geometry[
+                "gated_q_dimension_delta"],
+            "attn_output_gate": config_geometry["attn_output_gate"],
             "rank": plan.rank, "alpha": plan.alpha,
             "alpha_over_rank": plan.alpha / plan.rank}
 

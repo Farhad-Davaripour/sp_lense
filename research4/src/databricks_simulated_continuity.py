@@ -141,7 +141,7 @@ DATASET_RELEASE_VALIDATION_SHA256 = (
     "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
 EXPERIMENT_SPEC = {
-    "version": "qwen35-9b-ordinal-continuity-experiment-v4",
+    "version": "qwen35-9b-ordinal-continuity-experiment-v5",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
     "conditions": ["self_continuity", "artifact_continuity", "label_only"],
     "seeds": [202610281, 202610282, 202610283],
@@ -1709,7 +1709,7 @@ def create_primary_admission(intent: Mapping[str, Any],
                 "authorized_primary_plan_sha256s", ())):
         raise PermissionError("Qualification does not authorize this primary partition")
     value = {
-        "version": "qwen35-9b-ordinal-continuity-primary-admission-v4",
+        "version": "qwen35-9b-ordinal-continuity-primary-admission-v5",
         "admitted": True, "plan": intent["plan"],
         "full_plan_sha256": intent["plan_sha256"],
         "qualification_receipt_sha256": embedded,
