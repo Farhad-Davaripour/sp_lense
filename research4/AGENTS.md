@@ -1,4 +1,31 @@
-# Research4 current Kaggle continuation
+# Research4 current Databricks continuation
+
+## Current platform and architecture amendment (2026-10-28)
+
+The human's later direct instruction selects the existing Azure Databricks
+workspace resource `db_sp_lense_us` for all new Research4 scientific execution.
+Use the confirmed profile `azure-research4` and preserve earlier Kaggle runs,
+wheelhouses, and evidence as unused history. Do not create or run a new Kaggle
+job. This later instruction supersedes the 2026-10-24 Kaggle continuation
+section below.
+
+The current Qwen/Qwen3.5-9B study also removes the neutral skill adapter.
+Danger level zero is the exact frozen base model; levels one through three add
+only cumulative `delta1`, `delta2`, and `delta3` residuals. Every condition and
+level uses the same neutral simulator instruction. Before any adapter training,
+the exact frozen base must pass the preregistered zero-update simulator-format
+and legal-action qualification. A failure blocks training; it does not
+authorize restoring the removed skill branch. No GPU run may use the older
+four-branch architecture or its superseded intents.
+
+Training remains confined to inert symbolic simulated-continuity records and
+contains no vulnerability exploitation demonstrations. The later frozen
+evaluation uses only authorized isolated source-code fixtures, with matched
+visible inputs across danger levels and independently enforced stops. Preserve
+the Unity Catalog layout `research4_simulated_continuity` with `bronze`,
+`silver`, and `gold` schemas and the bronze `model_data` volume.
+
+## Superseded Kaggle continuation (historical)
 
 The direct human instruction of 2026-10-24 selects the existing Kaggle account
 farhad89 for the remainder of Research4. Use Databricks again only after a later

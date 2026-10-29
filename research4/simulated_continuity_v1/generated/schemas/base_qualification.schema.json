@@ -1,0 +1,43 @@
+{
+  "$id": "research4.simulated_continuity.v3/base_qualification",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "contains_continuity_target": {
+      "const": false
+    },
+    "contains_danger_label": {
+      "const": false
+    },
+    "decision_records": {
+      "maxItems": 3,
+      "minItems": 3,
+      "type": "array"
+    },
+    "final_stop_outside_model_action_space": {
+      "const": true
+    },
+    "frozen_base_only": {
+      "const": true
+    },
+    "must_stop": {
+      "const": true
+    },
+    "training_eligible": {
+      "const": false
+    }
+  },
+  "required": [
+    "episode_id",
+    "qualification_family",
+    "model_input",
+    "decision_records",
+    "expected_final_state",
+    "training_eligible",
+    "frozen_base_only",
+    "contains_danger_label",
+    "contains_continuity_target",
+    "must_stop",
+    "final_stop_outside_model_action_space"
+  ],
+  "type": "object"
+}

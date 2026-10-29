@@ -4,6 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 from datetime import datetime, timezone
 import json
+import hashlib
 import os
 import signal
 import shutil
@@ -15,7 +16,8 @@ import time
 from .databricks_simulated_continuity import (
     GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE, VOLUME,
     canonical, digest, expected_predecessor_binding, validate_exact_gold_row,
-    validate_intent, validate_primary_authority_files, verify_deployed_source,
+    validate_base_qualification_receipt, validate_intent,
+    validate_primary_authority_files, verify_deployed_source,
     verify_model_receipt, verify_reserved_intent)
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from .qwen9b_ordinal_continuity_training import verify_rank_receipt
@@ -58,12 +60,12 @@ def _stage_local_model(volume_root, volume_receipt, identity, expected_tree):
         local_receipt = destination / "MODEL_SNAPSHOT_RECEIPT.json"
         shutil.copy2(volume_receipt, local_receipt)
         proof = verify_model_receipt(local_model, local_receipt)
+        if proof["tree_sha256"] != expected_tree:
+            raise PermissionError("Local model cache differs from volume authority")
     except BaseException:
         shutil.rmtree(destination, ignore_errors=True)
         raise
     elapsed = time.monotonic() - started
-    if proof["tree_sha256"] != expected_tree:
-        raise PermissionError("Local model cache differs from volume authority")
     return local_model, local_receipt, {
         "copy_seconds": elapsed,
         "copy_bytes": proof["total_bytes"],
@@ -81,10 +83,29 @@ def _read(path):
 def run_partition(*, spark, intent_path, plan_path, admission_path=None,
                   parent_checkpoint=None, qualification_intent_path=None,
                   qualification_output=None, qualification_receipt_path=None,
-                  code_root, job_run_id):
+                  base_qualification_receipt_path=None,
+                   code_root, job_run_id, task_started_monotonic=None,
+                   job_started_epoch=None):
+    task_started = (time.monotonic() if task_started_monotonic is None
+                    else float(task_started_monotonic))
+
+    def whole_job_elapsed():
+        local = time.monotonic() - task_started
+        if job_started_epoch is None:
+            return local
+        return max(local, time.time() - float(job_started_epoch))
     intent = validate_intent(_read(intent_path)); plan = _read(plan_path)
     if intent["plan"] != plan:
         raise PermissionError("Intent does not bind the exact partition plan")
+    if not base_qualification_receipt_path:
+        raise PermissionError("Training requires the frozen-base format gate")
+    base_qualification = validate_base_qualification_receipt(
+        _read(base_qualification_receipt_path))
+    if (base_qualification["receipt_sha256"]
+            != intent["base_qualification_receipt_sha256"]
+            or base_qualification["base_qualification_intent_sha256"]
+               != intent["base_qualification_intent_sha256"]):
+        raise PermissionError("Training intent and frozen-base gate differ")
     exact_plan = TrainingPlan(**plan).validate()
     source_proof = verify_deployed_source(code_root, intent)
     lock_root = Path(VOLUME) / "locks"
@@ -94,6 +115,23 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
             or model_receipt["receipt_sha256"] != intent["model_receipt_sha256"]):
         raise PermissionError("Reviewed intent model snapshot differs")
     from pyspark.sql import functions as F
+    base_rows = spark.table(GOLD_RUN_TABLE).where(
+        F.col("partition_identity") == base_qualification["identity"]).collect()
+    validate_exact_gold_row(base_rows, {
+        "partition_identity": base_qualification["identity"],
+        "mode": "base_qualification",
+        "condition": "frozen_base",
+        "stage": "format_schema",
+        "seed": 0,
+        "plan_sha256": base_qualification["plan_sha256"],
+        "source_commit": intent["source_commit"],
+        "model_tree_sha256": intent["model_tree_sha256"],
+        "checkpoint_tree_sha256": intent["model_tree_sha256"],
+        "receipt_sha256": base_qualification["receipt_sha256"],
+        "evidence_sha256": base_qualification["raw_results_sha256"],
+        "intent_sha256": base_qualification[
+            "base_qualification_intent_sha256"],
+    }, label="frozen-base format qualification")
     authority = None
     if plan["mode"] == "qualification":
         if any((admission_path, parent_checkpoint, qualification_intent_path,
@@ -124,10 +162,10 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
                 "qualification_evidence_sha256"],
             "intent_sha256": qualification_intent["intent_sha256"],
         }, label="qualification")
-        if plan["stage"] == "skill" and parent_checkpoint:
-            raise PermissionError("Canonical skill partition must start fresh")
-        if plan["stage"] != "skill" and not parent_checkpoint:
-            raise PermissionError("Policy partition requires its exact predecessor")
+        if plan["stage"] == "delta1" and parent_checkpoint:
+            raise PermissionError("Delta1 must start from the frozen base")
+        if plan["stage"] != "delta1" and not parent_checkpoint:
+            raise PermissionError("Delta2/Delta3 require the exact predecessor")
         parent_metadata = (None if not parent_checkpoint else
                            _read(Path(parent_checkpoint) / "adapter_config.json"))
         validate_sequential_parent(
@@ -149,7 +187,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     identity = intent["identity"]
     run_root = Path(VOLUME) / "runs" / identity
     condition = plan["condition"]
-    kind = "neutral_skill" if plan["stage"] == "skill" else condition
+    kind = condition
     selected = spark.table(SILVER_TABLE).where(
         (F.col("source_commit") == intent["source_commit"])
         & (F.col("record_kind") == kind) & (F.col("split") == "train")
@@ -166,45 +204,40 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     if (len(selected_binding) != intent["silver_record_count"]
             or digest(selected_binding) != intent["silver_records_sha256"]):
         raise PermissionError("Exact ordered Silver record selection differs")
-    rows = [json.loads(row.record_json) for row in selected_rows]
+    rows = []
+    for row in selected_rows:
+        if (hashlib.sha256(row.record_json.encode("utf-8")).hexdigest()
+                != row.record_sha256):
+            raise PermissionError("Silver record payload differs from its admitted hash")
+        value = json.loads(row.record_json)
+        if (value.get("record_id") != row.record_id
+                or value.get("condition") != condition
+                or value.get("split") != "train"
+                or value.get("danger_level") not in (0, 1, 2, 3)):
+            raise PermissionError("Silver training payload semantics differ")
+        rows.append(value)
     if not rows:
         raise PermissionError("Silver table has no exact admitted partition records")
-    semantics_path = None
-    semantic_rows = []
-    if plan["stage"] != "skill":
-        semantics = spark.table(SILVER_TABLE).where(
-            (F.col("source_commit") == intent["source_commit"])
-            & (F.col("record_kind") == "danger_semantics")
-            & (F.col("split") == "train")
-            & (F.col("admitted_for_training") == F.lit(True)))
-        selected_semantics = semantics.select(
-            "record_id", "record_sha256", "record_json").orderBy("record_id").collect()
-        semantic_binding = [{"record_id": row.record_id,
-                             "record_sha256": row.record_sha256}
-                            for row in selected_semantics]
-        if (len(semantic_binding) != intent["semantics_record_count"]
-                or digest(semantic_binding) != intent["semantics_records_sha256"]):
-            raise PermissionError("Exact common-semantics selection differs")
-        semantic_rows = [json.loads(row.record_json) for row in selected_semantics]
-        if not semantic_rows:
-            raise PermissionError("Common danger-semantics rows are missing from silver")
+    if (intent["semantics_record_count"] != 0
+            or intent["semantics_records_sha256"] != digest([])):
+        raise PermissionError("Danger semantics may not enter optimizer exposure")
     if run_root.exists():
         raise FileExistsError("Databricks partition output is immutable")
     run_root.mkdir(parents=True, exist_ok=False)
     records_path = run_root / "records.jsonl"
     records_path.write_text("".join(canonical(row) + "\n" for row in rows),
                             encoding="utf-8")
-    if semantic_rows:
-        semantics_path = run_root / "semantics.jsonl"
-        semantics_path.write_text(
-            "".join(canonical(row) + "\n" for row in semantic_rows), encoding="utf-8")
     local_model, local_model_receipt, cache_metrics = _stage_local_model(
         intent["model_root"], MODEL_RECEIPT, identity,
         intent["model_tree_sha256"])
-    import mlflow
-    mlflow.set_experiment(intent["mlflow_experiment_path"])
-    active = mlflow.start_run(run_name=identity)
-    mlflow_run_id = active.info.run_id
+    try:
+        import mlflow
+        mlflow.set_experiment(intent["mlflow_experiment_path"])
+        active = mlflow.start_run(run_name=identity)
+        mlflow_run_id = active.info.run_id
+    except BaseException:
+        shutil.rmtree(local_model.parent, ignore_errors=True)
+        raise
     command = [
         sys.executable, "-m",
         "src.databricks_continuity_partition_worker",
@@ -213,8 +246,6 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         "--model-receipt", str(local_model_receipt),
         "--mlflow-run-id", mlflow_run_id,
     ]
-    if semantics_path is not None:
-        command += ["--semantics", str(semantics_path)]
     if admission_path:
         command += ["--admission", str(admission_path)]
     if parent_checkpoint:
@@ -225,13 +256,21 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
                 "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1"})
     try:
         try:
+            prework_seconds = whole_job_elapsed()
+            remaining_stop = intent["wall_clock_stop_seconds"] - prework_seconds
+            remaining_ceiling = intent["wall_clock_ceiling_seconds"] - prework_seconds
+            if remaining_stop <= 0 or remaining_ceiling - remaining_stop < 300:
+                raise TimeoutError(
+                    "Databricks prework exhausted the reviewed child/export envelope")
             result = _bounded_run(
                 command, cwd=Path(code_root).resolve(), env=env,
-                stop_seconds=intent["wall_clock_stop_seconds"],
-                ceiling_seconds=intent["wall_clock_ceiling_seconds"])
+                stop_seconds=remaining_stop,
+                ceiling_seconds=remaining_ceiling)
         finally:
             shutil.rmtree(local_model.parent, ignore_errors=True)
         result["local_model_cache"] = cache_metrics
+        result["prework_seconds"] = prework_seconds
+        result["whole_task_elapsed_seconds"] = whole_job_elapsed()
         (run_root / "TERMINAL.json").write_text(canonical(result) + "\n")
         if (result["exit_code"] != 0 or result["operator_stop_sent"]):
             mlflow.set_tag("terminal_status", "stopped_or_failed")
@@ -263,7 +302,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         gold = [{
             "partition_identity": identity, "mode": plan["mode"],
             "condition": condition, "stage": plan["stage"], "seed": plan["seed"],
-            "status": "complete", "mlflow_run_id": mlflow_run_id,
+            "status": "pending_mlflow_finalize", "mlflow_run_id": mlflow_run_id,
             "plan_sha256": intent["plan_sha256"], "source_commit": intent["source_commit"],
             "model_tree_sha256": model_receipt["tree_sha256"],
             "receipt_sha256": rank_receipt["receipt_sha256"],
@@ -271,14 +310,16 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
             "evidence_sha256": evidence_sha256,
             "admission_sha256": (None if authority is None else
                                   authority["admission"]["admission_sha256"]),
-            "qualification_receipt_sha256": (None if authority is None else
-                                               authority["qualification_receipt"][
-                                                   "receipt_sha256"]),
+            "qualification_receipt_sha256": (
+                base_qualification["receipt_sha256"] if authority is None else
+                authority["qualification_receipt"]["receipt_sha256"]),
             "receipt_json": canonical(receipt), "optimizer_updates": plan["optimizer_updates"],
             "checkpoint_tree_sha256": checkpoint_tree,
             "parent_checkpoint_tree_sha256": parent_tree,
             "receipt_replayed": True, "completed_at": datetime.now(timezone.utc),
         }]
+        if whole_job_elapsed() >= intent["wall_clock_ceiling_seconds"]:
+            raise TimeoutError("Databricks post-run audit exceeded the reviewed ceiling")
         spark.createDataFrame(
             gold, schema=spark.table(GOLD_RUN_TABLE).schema
         ).write.mode("append").saveAsTable(GOLD_RUN_TABLE)
@@ -290,6 +331,18 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         })
         mlflow.log_dict(result, "terminal.json")
         mlflow.end_run(status="FINISHED")
+        spark.sql(
+            f"UPDATE {GOLD_RUN_TABLE} SET status = 'complete' "
+            f"WHERE partition_identity = '{identity}' "
+            f"AND intent_sha256 = '{intent['intent_sha256']}' "
+            "AND status = 'pending_mlflow_finalize'"
+        )
+        finalized = spark.table(GOLD_RUN_TABLE).where(
+            (F.col("partition_identity") == identity)
+            & (F.col("intent_sha256") == intent["intent_sha256"])
+            & (F.col("status") == "complete")).count()
+        if finalized != 1:
+            raise PermissionError("Partition Gold finalization was not exact")
         return {"status": "complete", "identity": identity,
                 "mlflow_run_id": mlflow_run_id,
                 "receipt_sha256": rank_receipt["receipt_sha256"]}

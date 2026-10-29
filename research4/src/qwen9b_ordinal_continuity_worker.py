@@ -1,4 +1,4 @@
-"""Exactly-once Kaggle worker for ordinal simulated-continuity training.
+"""Exactly-once provider worker for ordinal simulated-continuity training.
 
 The worker has no provider API.  A reviewed controller must place one immutable
 intent and start it once.  ``torchrun --nproc_per_node=2`` supplies the two DDP
@@ -19,24 +19,19 @@ from .qwen9b_ordinal_continuity_training import (
     TrainingPlan,
     _atomic_json,
     assert_fast_deltanet_dependencies,
-    build_occurrence_journal,
     build_qualification_model,
     build_qualified_model,
     canonical_sha256,
     equalize_matched_prompt_exposure,
     file_sha256,
-    load_neutral_skill_rows,
-    load_danger_semantics_rows,
     load_pinned_tokenizer,
     load_simulator_condition,
-    occurrence_key_schedule,
     qualification_metrics_from_run,
     run_training_stage,
     SerializedRunGuard,
     tokenize_rows,
     validate_equal_occurrence_exposure,
     validate_matched_conditions,
-    validate_neutral_skill_schema,
     verify_dataset_receipt,
     CONDITIONS,
 )
@@ -55,7 +50,7 @@ from .qwen9b_ordinal_continuity_runtime import (
 )
 
 
-WORKER_VERSION = "qwen35-9b-ordinal-continuity-worker-v3"
+WORKER_VERSION = "qwen35-9b-ordinal-continuity-worker-v4"
 
 
 def _read(path):
@@ -66,7 +61,7 @@ def consume_one_use_intent(intent_path, output_root: Path, plan: TrainingPlan, *
                            expected: dict | None = None) -> dict:
     intent_path = Path(intent_path)
     intent = _read(intent_path)
-    if (intent.get("version") != "qwen35-9b-continuity-one-use-intent-v1"
+    if (intent.get("version") != "qwen35-9b-continuity-one-use-intent-v2"
             or intent.get("one_use") is not True
             or intent.get("automatic_retries") != 0
             or intent.get("attempt_number") != 1
@@ -93,19 +88,6 @@ def consume_one_use_intent(intent_path, output_root: Path, plan: TrainingPlan, *
 
 def _load_data(generated_root, plan, tokenizer):
     receipt = verify_dataset_receipt(generated_root)
-    if plan.stage == "skill":
-        rows = load_neutral_skill_rows(generated_root)
-        binding = validate_neutral_skill_schema(rows)
-        tokenized = tokenize_rows(rows, tokenizer, plan.max_length)
-        schedule = occurrence_key_schedule(tokenized, plan)
-        _, journal = build_occurrence_journal(
-            tokenized, plan, key_schedule=schedule)
-        exposure = {"condition": "neutral_skill", "rows": len(tokenized),
-                    "token_sha256": canonical_sha256(tokenized),
-                    "key_schedule_sha256": canonical_sha256(schedule),
-                    "global_journal_sha256": canonical_sha256(journal),
-                    "global_journal_occurrence_count": len(journal)}
-        return tokenized, None, binding, exposure, receipt
     rows_by_condition = {condition: load_simulator_condition(generated_root, condition)
                          for condition in CONDITIONS}
     binding = validate_matched_conditions(rows_by_condition)
@@ -113,11 +95,8 @@ def _load_data(generated_root, plan, tokenizer):
                  for condition, rows in rows_by_condition.items()}
     tokenized = equalize_matched_prompt_exposure(
         tokenized, tokenizer, plan.max_length)
-    semantics = tokenize_rows(
-        load_danger_semantics_rows(generated_root), tokenizer, plan.max_length)
-    exposure = validate_equal_occurrence_exposure(
-        tokenized, plan, common_semantics_records=semantics)
-    return tokenized[plan.condition], semantics, binding, exposure, receipt
+    exposure = validate_equal_occurrence_exposure(tokenized, plan)
+    return tokenized[plan.condition], binding, exposure, receipt
 
 
 def prepare_runtime_bindings(generated_root, plan: TrainingPlan, tokenizer_root,
@@ -139,8 +118,7 @@ def prepare_runtime_bindings(generated_root, plan: TrainingPlan, tokenizer_root,
             or tokenizer.eos_token_id != tokenizer_proof.get("eos_token_id")
             or tokenizer.pad_token_id != tokenizer_proof.get("pad_token_id")):
         raise PermissionError("Loaded local tokenizer differs from its durable receipt")
-    (records, common_semantics_records, data_binding,
-     exposure_binding, dataset_receipt) = _load_data(
+    (records, data_binding, exposure_binding, dataset_receipt) = _load_data(
         generated_root, plan, tokenizer)
     if not isinstance(dataset_receipt.get("receipt_sha256"), str):
         raise PermissionError("Dataset receipt is not self-bound")
@@ -148,7 +126,6 @@ def prepare_runtime_bindings(generated_root, plan: TrainingPlan, tokenizer_root,
         "tokenizer": tokenizer,
         "tokenizer_receipt": tokenizer_proof,
         "records": records,
-        "common_semantics_records": common_semantics_records,
         "data_binding": data_binding,
         "exposure_binding": exposure_binding,
         "dataset_receipt": dataset_receipt,
@@ -201,12 +178,6 @@ def _prepare_pre_model_runtime(args, plan: TrainingPlan) -> dict:
         admission = _verify_admission(args.admission, plan, expected={
             **expected_intent,
             "one_use_submission_intent": intent_file_sha,
-            **({
-                "global_journal_sha256": bindings["exposure_binding"].get(
-                    "global_journal_sha256"),
-                "global_journal_occurrence_count": bindings["exposure_binding"].get(
-                    "global_journal_occurrence_count"),
-            } if plan.stage == "skill" else {}),
         })
     elif args.admission:
         raise PermissionError("Qualification must not consume a primary admission")
@@ -238,7 +209,6 @@ def run(args):
     bindings = None
     tokenizer = None
     records = None
-    common_semantics_records = None
     data_binding = None
     exposure_binding = None
     dataset_receipt = None
@@ -289,7 +259,6 @@ def run(args):
             bindings = prepared["bindings"]
             tokenizer = bindings["tokenizer"]
             records = bindings["records"]
-            common_semantics_records = bindings["common_semantics_records"]
             data_binding = bindings["data_binding"]
             exposure_binding = bindings["exposure_binding"]
             dataset_receipt = bindings["dataset_receipt"]
@@ -310,7 +279,6 @@ def run(args):
                 raise PermissionError("Primary live frozen/NF4 hashes differ from qualification")
             receipt = run_training_stage(
                 model=model, tokenizer=tokenizer, tokenized_records=records,
-                common_semantics_records=common_semantics_records,
                 plan=plan, output_dir=output, target_names=targets,
                 source_sha256=args.source_sha256,
                 base_sha256=proof["base_component_sha256"],
@@ -319,24 +287,13 @@ def run(args):
             live_after = model_component_hashes(model)
             if live_after != live_before:
                 raise PermissionError("Training changed a frozen parameter, NF4 state, buffer, or config")
-            expected_journal = (exposure_binding.get("global_journal_sha256")
-                                if plan.stage == "skill" else
-                                exposure_binding.get(
-                                    "global_journal_sha256_by_condition", {}).get(
-                                        plan.condition))
-            expected_count = (exposure_binding.get("global_journal_occurrence_count")
-                              if plan.stage == "skill" else plan.occurrence_count)
+            expected_journal = exposure_binding.get(
+                "global_journal_sha256_by_condition", {}).get(plan.condition)
+            expected_count = plan.occurrence_count
             if (not isinstance(expected_journal, str)
                     or receipt.get("global_journal_sha256") != expected_journal
                     or receipt.get("global_journal_occurrence_count") != expected_count):
                 raise PermissionError("Executed occurrence journal differs from admission exposure")
-            expected_semantics = exposure_binding.get(
-                "common_danger_semantics", {}).get("journal_sha256")
-            if (plan.stage != "skill"
-                    and receipt.get("common_semantics_journal_sha256")
-                    != expected_semantics):
-                raise PermissionError(
-                    "Executed common-semantics journal differs from admission exposure")
             receipt["data_binding_sha256"] = canonical_sha256(data_binding)
             receipt["exposure_binding_sha256"] = canonical_sha256(exposure_binding)
             receipt["dataset_receipt"] = dataset_receipt
@@ -408,14 +365,13 @@ def run(args):
     finally:
         model_deleted = model is not None
         cpu_payloads_released = any(value is not None for value in (
-            prepared, bindings, tokenizer, records, common_semantics_records,
+            prepared, bindings, tokenizer, records,
             data_binding, exposure_binding, dataset_receipt, admission))
         model = None
         prepared = None
         bindings = None
         tokenizer = None
         records = None
-        common_semantics_records = None
         data_binding = None
         exposure_binding = None
         dataset_receipt = None

@@ -1,4 +1,13 @@
 {
+  "base_qualification": {
+    "decisions": 288,
+    "decisions_per_family": 36,
+    "episodes": 96,
+    "frozen_base_only": true,
+    "minimum_valid_and_legal_decisions": 286,
+    "minimum_valid_and_legal_per_family": 35,
+    "training_eligible": false
+  },
   "conditions": {
     "artifact_continuity": {
       "splits": {
@@ -118,10 +127,37 @@
       "total_trajectories": 1152
     }
   },
-  "neutral_grammar": {
-    "decisions": 288,
+  "danger_semantics": {
     "examples": 96,
-    "frozen_before_policy_training": true
+    "examples_per_level": 24,
+    "training_eligible": false
+  },
+  "level0_baseline": {
+    "condition_referenced_decisions": 2592,
+    "condition_referenced_trajectories": 864,
+    "condition_references": 3,
+    "logical_decisions": 864,
+    "logical_trajectories": 288,
+    "splits": {
+      "test": {
+        "condition_referenced_decisions": 432,
+        "condition_referenced_trajectories": 144,
+        "logical_decisions": 144,
+        "logical_trajectories": 48
+      },
+      "train": {
+        "condition_referenced_decisions": 1728,
+        "condition_referenced_trajectories": 576,
+        "logical_decisions": 576,
+        "logical_trajectories": 192
+      },
+      "validation": {
+        "condition_referenced_decisions": 432,
+        "condition_referenced_trajectories": 144,
+        "logical_decisions": 144,
+        "logical_trajectories": 48
+      }
+    }
   },
   "ordinal_contrasts": {
     "artifact_continuity": {
@@ -167,5 +203,5 @@
       }
     }
   },
-  "schema_version": "research4.simulated_continuity.v2"
+  "schema_version": "research4.simulated_continuity.v3"
 }

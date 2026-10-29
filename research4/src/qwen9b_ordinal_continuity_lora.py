@@ -7,13 +7,12 @@ stop remains outside the model action space.
 
 The installed transformation is::
 
-    base + skill + I[d >= 1] * delta1 + I[d >= 2] * delta2
-                 + I[d >= 3] * delta3
+    base + I[d >= 1] * delta1 + I[d >= 2] * delta2
+         + I[d >= 3] * delta3
 
-The neutral ``skill`` branch is optional, trained first, and frozen before any
-ordinal residual.  Residuals are then trained and frozen in order.  This file
-contains model-local mechanisms only; provider admission lives in the paired
-training-contract module.
+Danger level zero is therefore the exact frozen base.  The three residuals are
+trained and frozen in order.  This file contains model-local mechanisms only;
+provider admission lives in the paired training-contract module.
 """
 from __future__ import annotations
 
@@ -28,10 +27,11 @@ import math
 
 MODEL_ID = "Qwen/Qwen3.5-9B"
 MODEL_REVISION = "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
-STAGES = ("skill", "delta1", "delta2", "delta3", "frozen")
+STAGES = ("delta1", "delta2", "delta3", "frozen")
 ABLATIONS = ("identity", "shuffle", "invert")
-CHECKPOINT_VERSION = "qwen35-9b-ordinal-continuity-checkpoint-v2"
-BRANCHES = ("skill", "delta1", "delta2", "delta3")
+CHECKPOINT_VERSION = "qwen35-9b-ordinal-continuity-checkpoint-v3"
+EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
+BRANCHES = ("delta1", "delta2", "delta3")
 # Pinned from the official Qwen/Qwen3.5-9B config at MODEL_REVISION.  The
 # target inventory is 24 DeltaNet layers x 8 projections plus 8 full-attention
 # layers x 7 projections.  Each rank-r LoRA branch therefore owns
@@ -41,12 +41,11 @@ EXPECTED_TARGET_DIMENSION_SUM = 2_672_128
 EXPECTED_BRANCH_TENSORS = 2 * EXPECTED_TARGET_PROJECTIONS
 EXPECTED_RANK4_BRANCH_PARAMETERS = 10_688_512
 EXPECTED_RANK8_BRANCH_PARAMETERS = 21_377_024
-EXPECTED_RANK4_TOTAL_ADAPTER_PARAMETERS = 4 * EXPECTED_RANK4_BRANCH_PARAMETERS
+EXPECTED_RANK4_TOTAL_ADAPTER_PARAMETERS = 3 * EXPECTED_RANK4_BRANCH_PARAMETERS
 STAGE_BRANCHES = {
-    "skill": ("skill",),
-    "delta1": ("skill", "delta1"),
-    "delta2": ("skill", "delta1", "delta2"),
-    "delta3": ("skill", "delta1", "delta2", "delta3"),
+    "delta1": ("delta1",),
+    "delta2": ("delta1", "delta2"),
+    "delta3": ("delta1", "delta2", "delta3"),
     "frozen": BRANCHES,
 }
 
@@ -70,17 +69,14 @@ class OrdinalContinuityLoRAConfig:
     choice.
     """
 
-    version: str = "qwen35-9b-ordinal-continuity-lora-v1"
+    version: str = "qwen35-9b-ordinal-continuity-lora-v2"
     model_id: str = MODEL_ID
     model_revision: str = MODEL_REVISION
     rank: int = 4
     alpha: float = 8.0
-    skill_rank: int = 4
-    skill_alpha: float = 8.0
     dropout: float = 0.0
     danger_levels: int = 4
     base_frozen: bool = True
-    use_skill_adapter: bool = True
     initialized_from: str = "fresh_seeded_adapter"
 
     def validate(self) -> "OrdinalContinuityLoRAConfig":
@@ -88,11 +84,9 @@ class OrdinalContinuityLoRAConfig:
             raise ValueError("The model identity/revision is frozen")
         if self.rank not in (4, 8):
             raise ValueError("Only the preregistered rank-4/rank-8 qualification is allowed")
-        if self.skill_rank != 4 or self.skill_alpha != 8.0:
-            raise ValueError("The neutral skill adapter is frozen at rank 4 / alpha 8")
         if self.alpha != 2.0 * self.rank:
             raise ValueError("Residual alpha/r must remain exactly 2")
-        if self.skill_rank <= 0 or self.alpha <= 0 or self.skill_alpha <= 0:
+        if self.rank <= 0 or self.alpha <= 0:
             raise ValueError("Invalid LoRA geometry")
         if not 0 <= self.dropout < 1:
             raise ValueError("dropout must be in [0, 1)")
@@ -108,7 +102,7 @@ def _branch(module, name: str):
 
 
 class OrdinalContinuityLoRALinear:
-    """Factory for one frozen base projection plus four independent branches."""
+    """Factory for one frozen base projection plus three residual branches."""
 
     @staticmethod
     def build(base_layer, config: OrdinalContinuityLoRAConfig):
@@ -125,19 +119,15 @@ class OrdinalContinuityLoRALinear:
                 self.base_layer = base_layer
                 for parameter in self.base_layer.parameters():
                     parameter.requires_grad_(False)
-                self.skill_a = nn.Linear(base_layer.in_features, config.skill_rank, bias=False)
-                self.skill_b = nn.Linear(config.skill_rank, base_layer.out_features, bias=False)
                 for index in range(1, 4):
                     setattr(self, f"delta{index}_a",
                             nn.Linear(base_layer.in_features, config.rank, bias=False))
                     setattr(self, f"delta{index}_b",
                             nn.Linear(config.rank, base_layer.out_features, bias=False))
                 self.dropout = nn.Dropout(config.dropout)
-                self.skill_scale = config.skill_alpha / config.skill_rank
                 self.delta_scale = config.alpha / config.rank
                 self._danger_level = None
                 self._adapter_off = False
-                self._skill_bypass = False
                 self._residual_bypass = {1: False, 2: False, 3: False}
                 self._stage = "frozen"
 
@@ -151,8 +141,8 @@ class OrdinalContinuityLoRALinear:
                 except StopIteration:
                     reference = None
                 device = reference.device if reference is not None else torch.device("cpu")
-                # The reviewed T4 amendment uses an FP16 NF4 backbone but keeps
-                # trainable LoRA weights and AdamW state in FP32.
+                # The reviewed FP16/NF4 recipe keeps trainable LoRA weights and
+                # AdamW state in FP32 on every admitted provider.
                 for branch in branches:
                     for projection in _branch(self, branch):
                         projection.to(device=device, dtype=torch.float32)
@@ -166,8 +156,8 @@ class OrdinalContinuityLoRALinear:
                 if stage not in STAGES:
                     raise ValueError(f"Unknown adapter stage: {stage}")
                 self._stage = stage
-                for name in ("skill", "delta1", "delta2", "delta3"):
-                    trainable = name == stage and (name != "skill" or config.use_skill_adapter)
+                for name in BRANCHES:
+                    trainable = name == stage
                     for projection in _branch(self, name):
                         for parameter in projection.parameters():
                             parameter.requires_grad_(trainable)
@@ -177,7 +167,7 @@ class OrdinalContinuityLoRALinear:
             def set_danger_level(self, value):
                 if not torch.is_tensor(value):
                     value = torch.as_tensor(value, dtype=torch.long)
-                value = value.to(dtype=torch.long, device=self.skill_a.weight.device)
+                value = value.to(dtype=torch.long, device=self.delta1_a.weight.device)
                 if value.ndim == 0:
                     value = value.unsqueeze(0)
                 if value.ndim != 1 or value.numel() == 0:
@@ -189,21 +179,19 @@ class OrdinalContinuityLoRALinear:
             def clear_danger_level(self):
                 self._danger_level = None
 
-            def set_bypass(self, *, adapter_off=False, skill_only=False,
-                           skill=False, residuals: Iterable[int] = ()):
+            def set_bypass(self, *, adapter_off=False,
+                           residuals: Iterable[int] = ()):
                 residuals = set(residuals)
                 if not residuals <= {1, 2, 3}:
                     raise ValueError("Residual bypass indices must be 1, 2, or 3")
                 self._adapter_off = bool(adapter_off)
-                self._skill_bypass = bool(skill)
                 self._residual_bypass = {
-                    index: bool(skill_only or index in residuals) for index in (1, 2, 3)
+                    index: index in residuals for index in (1, 2, 3)
                 }
 
             def bypass_state(self):
                 return {
                     "adapter_off": self._adapter_off,
-                    "skill": self._skill_bypass,
                     "residuals": tuple(index for index, value in
                                        self._residual_bypass.items() if value),
                 }
@@ -219,23 +207,27 @@ class OrdinalContinuityLoRALinear:
                     raise RuntimeError("The external harness must set danger_level")
                 if inputs.shape[0] != self._danger_level.shape[0]:
                     raise ValueError("danger label batch does not match model batch")
+                levels = self._danger_level
+                # A pure danger-0 batch is the literal frozen Qwen forward: no
+                # residual projection is evaluated and no adapter state can
+                # contribute to latency, activations, or logits.
+                if bool(torch.all(levels == 0)):
+                    return base
                 # Bitsandbytes may emit FP16 activations.  Adapter matmuls are
                 # intentionally FP32 and are converted back only at the merge.
-                hidden = self.dropout(inputs).to(dtype=self.skill_a.weight.dtype)
+                hidden = self.dropout(inputs).to(dtype=self.delta1_a.weight.dtype)
                 result = base
-                if config.use_skill_adapter and not self._skill_bypass:
-                    a, b = _branch(self, "skill")
-                    update = b(a(hidden)) * self.skill_scale
-                    result = result + update.to(dtype=result.dtype)
-                levels = self._danger_level
                 for index in (1, 2, 3):
                     if self._residual_bypass[index]:
                         continue
                     a, b = _branch(self, f"delta{index}")
-                    gate = (levels >= index).to(dtype=result.dtype)
+                    gate = levels >= index
                     gate = gate.reshape((gate.shape[0],) + (1,) * (result.ndim - 1))
                     update = b(a(hidden)) * self.delta_scale
-                    result = result + update.to(dtype=result.dtype) * gate
+                    # `where` preserves exact frozen-base bytes for rows below
+                    # this residual threshold, including every danger-0 row.
+                    result = torch.where(
+                        gate, result + update.to(dtype=result.dtype), result)
                 return result
 
         return _Layer()
@@ -425,12 +417,10 @@ class OrdinalContinuityModel:
                 finally:
                     self._clear_episode_label()
 
-            def set_bypass(self, *, adapter_off=False, skill_only=False,
-                           skill=False, residuals=()):
+            def set_bypass(self, *, adapter_off=False, residuals=()):
                 for layer in self.layers.values():
                     layer.set_bypass(
-                        adapter_off=adapter_off, skill_only=skill_only,
-                        skill=skill, residuals=residuals)
+                        adapter_off=adapter_off, residuals=residuals)
 
             def bypass_state(self):
                 states = {name: layer.bypass_state() for name, layer in self.layers.items()}
@@ -468,11 +458,10 @@ def trainable_inventory(model, *, allow_empty=False):
 
 
 @contextmanager
-def bypass(model, *, adapter_off=False, skill_only=False, skill=False, residuals=()):
+def bypass(model, *, adapter_off=False, residuals=()):
     previous = model.bypass_state()
     model.set_bypass(
-        adapter_off=adapter_off, skill_only=skill_only,
-        skill=skill, residuals=residuals)
+        adapter_off=adapter_off, residuals=residuals)
     try:
         yield model
     finally:
@@ -495,11 +484,11 @@ def backbone_sha256(model) -> str:
     return parameter_sha256(
         (name, parameter) for name, parameter in model.named_parameters()
         if not any(token in name for token in (
-            "skill_a", "skill_b", "delta1_a", "delta1_b", "delta2_a",
-            "delta2_b", "delta3_a", "delta3_b")))
+            "delta1_a", "delta1_b", "delta2_a", "delta2_b", "delta3_a",
+            "delta3_b")))
 
 
-def adapter_sha256(model, branches=("skill", "delta1", "delta2", "delta3")) -> str:
+def adapter_sha256(model, branches=BRANCHES) -> str:
     tokens = tuple(f"{branch}_{side}" for branch in branches for side in ("a", "b"))
     return parameter_sha256(
         (name, parameter) for name, parameter in model.named_parameters()
@@ -729,10 +718,10 @@ def clear_adapter_branches(model, branches: Sequence[str] = BRANCHES) -> dict[st
     """Zero complete adapter branches before loading a different checkpoint.
 
     Evaluation reuses one quantized backbone for all checkpoints.  A partial
-    checkpoint (most notably the neutral skill-only arm) therefore must not
-    inherit residual tensors from the checkpoint evaluated immediately before
-    it.  Clearing happens before any checkpoint bytes are loaded and is
-    verified over both A and B tensors for every selected branch.
+    checkpoint therefore must not inherit later residual tensors from the
+    checkpoint evaluated immediately before it.  Clearing happens before any
+    checkpoint bytes are loaded and is verified over both A and B tensors for
+    every selected branch.
     """
     torch = _torch()
     selected = tuple(branches)
@@ -778,12 +767,10 @@ def save_adapter_checkpoint(model, output_dir, *, target_names, base_sha256,
                             run_mode="primary"):
     """Save a source/base/optimizer-bound adapter checkpoint exactly once."""
     torch = _torch()
-    if (stage not in STAGES or stage == "frozen"
-            or stage == "skill" and not model.ordinal_lora_config.use_skill_adapter):
+    if stage not in STAGES or stage == "frozen":
         raise ValueError("Invalid checkpoint stage")
-    if (stage == "skill" and condition != "neutral_skill") or (
-            stage.startswith("delta") and condition not in {
-                "self_continuity", "artifact_continuity", "label_only"}):
+    if condition not in {
+            "self_continuity", "artifact_continuity", "label_only"}:
         raise ValueError("Checkpoint condition differs from its sequential stage")
     if not isinstance(seed, int):
         raise ValueError("Checkpoint seed must be an integer")
@@ -874,8 +861,8 @@ def load_adapter_checkpoint(model, input_dir, *, expected_targets,
     if branches != STAGE_BRANCHES.get(metadata.get("stage")):
         raise PermissionError("Checkpoint branch/stage inventory differs")
     # Always reset the complete ordinal adapter before loading.  Without this,
-    # switching from a delta3 checkpoint to the skill-only checkpoint leaves
-    # the previous residuals live and makes results depend on manifest order.
+    # switching from a delta3 checkpoint to a delta1 checkpoint leaves the
+    # later residuals live and makes results depend on manifest order.
     clear_adapter_branches(model)
     merged = {}
     for branch in branches:
@@ -903,14 +890,67 @@ def load_adapter_checkpoint(model, input_dir, *, expected_targets,
     return metadata
 
 
+def load_evaluation_adapter_checkpoint(model, input_dir, *, expected_targets,
+                                       expected_base_sha256,
+                                       expected_source_sha256):
+    """Load sanitized evaluation bytes without training identity metadata."""
+    torch = _torch()
+    root = Path(input_dir)
+    metadata = json.loads((root / "adapter_config.json").read_text(encoding="utf-8"))
+    self_check = dict(metadata)
+    embedded_receipt = self_check.pop("receipt_sha256", None)
+    exact = {
+        "version", "config", "stage", "target_names", "base_sha256",
+        "source_sha256", "active_branches", "branches", "adapter_sha256",
+        "evaluation_only", "training_lineage_bytes_included", "receipt_sha256",
+    }
+    expected_config = json.loads(json.dumps(asdict(model.ordinal_lora_config)))
+    if (set(metadata) != exact
+            or embedded_receipt != hashlib.sha256(_canonical_json(self_check)).hexdigest()
+            or metadata.get("version") != EVALUATION_CHECKPOINT_VERSION
+            or metadata.get("config") != expected_config
+            or metadata.get("stage") != "delta3"
+            or metadata.get("target_names") != list(expected_targets)
+            or metadata.get("base_sha256") != expected_base_sha256
+            or metadata.get("source_sha256") != expected_source_sha256
+            or tuple(metadata.get("active_branches", ())) != BRANCHES
+            or metadata.get("evaluation_only") is not True
+            or metadata.get("training_lineage_bytes_included") is not False
+            or any(key in metadata for key in ("condition", "seed", "plan_sha256"))):
+        raise PermissionError("Sanitized evaluation checkpoint metadata differs")
+    clear_adapter_branches(model)
+    merged = {}
+    for branch in BRANCHES:
+        branch_meta = metadata.get("branches", {}).get(branch, {})
+        weights = root / f"{branch}.pt"
+        if hashlib.sha256(weights.read_bytes()).hexdigest() != branch_meta.get("file_sha256"):
+            raise ValueError("Evaluation adapter branch byte hash mismatch")
+        state = torch.load(weights, map_location="cpu", weights_only=True)
+        if len(state) != branch_meta.get("tensor_count") or set(merged) & set(state):
+            raise ValueError("Evaluation adapter tensor inventory differs")
+        merged.update(state)
+    current = model.state_dict()
+    if any(name not in current or current[name].shape != value.shape
+           for name, value in merged.items()):
+        raise ValueError("Evaluation adapter branch shape/name differs")
+    model.load_state_dict(merged, strict=False)
+    for branch in BRANCHES:
+        if branch_sha256(model, branch) != metadata["branches"][branch]["state_sha256"]:
+            raise ValueError("Live evaluation branch hash differs after load")
+    if adapter_sha256(model, BRANCHES) != metadata.get("adapter_sha256"):
+        raise ValueError("Live evaluation adapter hash differs after load")
+    model.set_train_stage("frozen")
+    return metadata
+
+
 def load_sequential_parent_branches(model, input_dir, *, expected_stage: str,
                                     expected_targets, expected_base_sha256: str,
                                     expected_source_sha256: str,
                                     expected_condition: str, expected_seed: int):
     """Load only the exact predecessor branches, never unused future state.
 
-    A rank-4 neutral skill checkpoint may parent a rank-8 residual candidate;
-    only its separately frozen skill geometry must match in that one case.
+    Every sequential parent contains only the cumulative residuals already
+    trained for the same condition, seed, rank and alpha.
     """
     torch = _torch()
     root = Path(input_dir)
@@ -940,12 +980,11 @@ def load_sequential_parent_branches(model, input_dir, *, expected_stage: str,
         raise PermissionError("Sequential parent optimizer evidence differs")
     saved = metadata.get("config", {})
     current = asdict(model.ordinal_lora_config)
-    common = ("version", "model_id", "model_revision", "skill_rank", "skill_alpha",
-              "dropout", "danger_levels", "base_frozen", "use_skill_adapter",
-              "initialized_from")
+    common = ("version", "model_id", "model_revision", "dropout",
+              "danger_levels", "base_frozen", "initialized_from")
     if any(saved.get(key) != current.get(key) for key in common):
         raise PermissionError("Sequential parent shared geometry differs")
-    if expected_stage != "skill" and (saved.get("rank"), saved.get("alpha")) != (
+    if (saved.get("rank"), saved.get("alpha")) != (
             current.get("rank"), current.get("alpha")):
         raise PermissionError("Residual parent rank/alpha differs")
     merged = {}

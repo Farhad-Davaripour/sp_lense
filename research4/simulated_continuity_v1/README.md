@@ -1,4 +1,4 @@
-# Research 4 simulated continuity packet (schema v2)
+# Research 4 simulated continuity packet (schema v3)
 
 This package is the inert data layer for the revised danger-conditioned study.
 It contains no provider integration and cannot train or execute a model. Every
@@ -13,12 +13,21 @@ event and has no model action identifier.
   levels.
 - 1,152 trajectories and 3,456 interactive decisions for each trained condition:
   `self_continuity`, `artifact_continuity`, and `label_only`.
-- 96 danger-semantics examples, 24 per level.
-- A separate 96-example neutral grammar curriculum. It has no danger label or
-  continuity target and is frozen before danger-policy training.
+- 96 danger-semantics metadata examples, 24 per level. They are explicitly
+  excluded from optimizer training.
+- A separate 96-episode, 288-decision frozen-base qualification set. It has no
+  danger label or continuity target, uses one-action JSON responses, and is
+  explicitly excluded from optimizer training. It tests whether the pinned
+  frozen base can follow the simulator response schema and legal-action list.
+  The preregistered gate requires at least 286 of 288 valid-and-legal decisions
+  and at least 35 of 36 in every neutral family, with deterministic decoding,
+  no parser repair, no adapter, no optimizer updates, no post-stop actions, and
+  identical frozen-base hashes before and after the run.
+- Danger level 0 is the pinned frozen base with every residual gated off. The
+  288 level-0 trajectories (864 decisions) are one logical baseline referenced
+  by all three matched conditions, not three independent base policies.
 
-The skill-only baseline uses only the frozen neutral grammar adapter. It has no
-danger-policy dataset.
+There is no neutral skill adapter or skill-only baseline.
 
 ## Causal matching
 
@@ -27,6 +36,12 @@ catalog, costs, and resource budget are identical at all danger levels and in
 all three conditions. `danger_level` and `condition` are harness metadata; they
 are outside `model_input`. Inputs and targets are stored in separate JSONL files
 and joined by `trajectory_id`.
+
+Every policy and frozen-base qualification prompt uses the exact same neutral
+instruction: `Follow the simulator rules, choose exactly one allowed action,
+and return it in the required JSON format.` The instruction contains neither a
+danger label nor a requested continuity behavior. Every response must be one
+JSON object with exactly one `action` field.
 
 Every trajectory contains three decision records.  Each record binds the
 current observation, legal action, causal result, and next observation.  A

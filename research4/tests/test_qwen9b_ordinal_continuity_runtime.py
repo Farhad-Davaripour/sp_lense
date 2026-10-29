@@ -42,21 +42,16 @@ def spec():
         "seeds": [202610281, 202610282, 202610283],
         "stages": ["delta1", "delta2", "delta3"],
         "qualification_updates": 2,
-        "skill_optimizer_updates": 24,
         "primary_optimizer_updates": 144,
-        "skill_rank": 4,
-        "skill_alpha": 8.0,
+        "baseline": "frozen_base",
         "automatic_retries": 0,
         "one_use": True,
     }
 
 
 class RuntimeBindingTests(unittest.TestCase):
-    def test_exact_matrix_has_one_skill_and_twenty_seven_policy_stages(self):
-        skill, plans = matrix_plans(spec(), 8)
-        self.assertEqual((skill.rank, skill.alpha, skill.stage), (4, 8.0, "skill"))
-        self.assertEqual((skill.optimizer_updates, skill.global_batch_size,
-                          skill.occurrence_count), (24, 4, 96))
+    def test_exact_matrix_has_twenty_seven_residual_stages(self):
+        plans = matrix_plans(spec(), 8)
         self.assertEqual(len(plans), 27)
         self.assertEqual({plan.rank for plan in plans}, {8})
         self.assertEqual({plan.optimizer_updates for plan in plans}, {144})
@@ -70,9 +65,8 @@ class RuntimeBindingTests(unittest.TestCase):
         accepted = validate_experiment_spec(spec())
         self.assertEqual(
             (accepted["qualification_updates"],
-             accepted["skill_optimizer_updates"],
              accepted["primary_optimizer_updates"]),
-            (2, 24, 144))
+            (2, 144))
 
         for value in (1, 3):
             changed = spec()
@@ -91,37 +85,23 @@ class RuntimeBindingTests(unittest.TestCase):
                 "wall_clock_stop_seconds": 3600,
                 "wall_clock_ceiling_seconds": 4200,
                 "expected_parent_checkpoint_tree_sha256": parent,
-                "canonical_skill_checkpoint_tree_sha256": None,
-                "canonical_skill_branch_sha256": None,
+                "frozen_base_model_sha256": "b" * 64,
             }
-            if plan.mode == "primary" and plan.stage != "skill":
-                value["canonical_skill_checkpoint_tree_sha256"] = parent
-                value["canonical_skill_branch_sha256"] = "b" * 64
             return value
 
         bad_plans = (
             TrainingPlan(mode="qualification", condition="self_continuity",
                          stage="delta1", rank=4, alpha=8.0,
                          seed=202610281, optimizer_updates=1).validate(),
-            TrainingPlan(mode="primary", condition="neutral_skill",
-                         stage="skill", rank=4, alpha=8.0,
-                         seed=202610280, optimizer_updates=1).validate(),
             TrainingPlan(mode="primary", condition="self_continuity",
                          stage="delta1", rank=4, alpha=8.0,
                          seed=202610281, optimizer_updates=1).validate(),
         )
         for plan in bad_plans:
-            parent = None if plan.mode == "qualification" or plan.stage == "skill" else "a" * 64
+            parent = None
             with self.subTest(mode=plan.mode, stage=plan.stage):
                 with self.assertRaisesRegex(PermissionError, "Executable partition exposure"):
                     validate_partition_intent(intent_for(plan, parent), plan, parent)
-
-        for value in (1, 23, 25):
-            changed = spec()
-            changed["skill_optimizer_updates"] = value
-            with self.subTest(field="skill_optimizer_updates", value=value):
-                with self.assertRaisesRegex(PermissionError, "preregistered matrix"):
-                    validate_experiment_spec(changed)
 
         for value in (1, 143, 145):
             changed = spec()
@@ -201,7 +181,7 @@ class RuntimeBindingTests(unittest.TestCase):
             argv = ["torchrun", "--standalone", "--nproc_per_node=2", "-m",
                     "research4.src.qwen9b_ordinal_continuity_worker", "--exact"]
             intent = {
-                "version": "qwen35-9b-continuity-one-use-intent-v1",
+                "version": PARTITION_INTENT_VERSION,
                 "one_use": True, "automatic_retries": 0, "attempt_number": 1,
                 "plan_sha256": plan.full_plan_sha256,
                 "output_root": str(output.resolve()),
@@ -262,42 +242,36 @@ class RuntimeBindingTests(unittest.TestCase):
             self.assertFalse(PartitionController._cleanup_pass(root))
 
     def test_partition_intent_and_offline_aggregate_bind_all_stage_chains(self):
-        skill_plan, plans = matrix_plans(spec(), 4)
-        skill_tree, skill_branch = "a" * 64, "b" * 64
-        skill = finalize_receipt({
-            "version": TERMINAL_VERSION, "status": "complete",
-            "plan": asdict(skill_plan), "checkpoint_tree_sha256": skill_tree,
-            "verified_saved_skill_branch_sha256": skill_branch,
-            "canonical_skill_checkpoint_tree_sha256": skill_tree,
-            "canonical_skill_branch_sha256": skill_branch,
-            "post_cleanup_pass": True, "primary_save_reload_pass": True})
+        plans = matrix_plans(spec(), 4)
+        base_sha = "b" * 64
         rows, prior = [], {}
         for plan in plans:
             key = (plan.condition, plan.seed)
-            parent = prior.get(key, skill_tree)
+            parent = prior.get(key)
             checkpoint = canonical_sha256([plan.full_plan_sha256])
             row = finalize_receipt({
                 "version": TERMINAL_VERSION, "status": "complete",
                 "plan": asdict(plan), "parent_checkpoint_tree_sha256": parent,
                 "checkpoint_tree_sha256": checkpoint,
-                "canonical_skill_checkpoint_tree_sha256": skill_tree,
-                "canonical_skill_branch_sha256": skill_branch,
-                "verified_saved_skill_branch_sha256": skill_branch,
-                "canonical_skill_lineage_pass": True,
+                "frozen_base_model_sha256": base_sha,
+                "residual_lineage_pass": True,
                 "post_cleanup_pass": True, "primary_save_reload_pass": True})
             rows.append(row)
             prior[key] = checkpoint
-        receipt = aggregate_terminal_receipts(skill, rows)
+        receipt = aggregate_terminal_receipts(
+            rows, frozen_base_model_sha256=base_sha)
         self.assertEqual(receipt["version"], AGGREGATE_VERSION)
         self.assertEqual(receipt["policy_terminal_count"], 27)
         with self.assertRaisesRegex(PermissionError, "incomplete"):
-            aggregate_terminal_receipts(skill, rows[:-1])
+            aggregate_terminal_receipts(
+                rows[:-1], frozen_base_model_sha256=base_sha)
         broken = [dict(row) for row in rows]
         broken[1]["parent_checkpoint_tree_sha256"] = "f" * 64
         broken[1].pop("receipt_sha256")
         broken[1] = finalize_receipt(broken[1])
         with self.assertRaisesRegex(PermissionError, "predecessor"):
-            aggregate_terminal_receipts(skill, broken)
+            aggregate_terminal_receipts(
+                broken, frozen_base_model_sha256=base_sha)
 
         policy = plans[0]
         intent = {
@@ -307,11 +281,10 @@ class RuntimeBindingTests(unittest.TestCase):
             "plan_sha256": policy.full_plan_sha256,
             "wall_clock_stop_seconds": 3600,
             "wall_clock_ceiling_seconds": 4200,
-            "expected_parent_checkpoint_tree_sha256": skill_tree,
-            "canonical_skill_checkpoint_tree_sha256": skill_tree,
-            "canonical_skill_branch_sha256": skill_branch}
+            "expected_parent_checkpoint_tree_sha256": None,
+            "frozen_base_model_sha256": base_sha}
         self.assertEqual(validate_partition_intent(
-            intent, policy, skill_tree)["wall_clock_stop_seconds"], 3600)
+            intent, policy, None)["wall_clock_stop_seconds"], 3600)
 
 
 if __name__ == "__main__":

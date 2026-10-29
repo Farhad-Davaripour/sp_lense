@@ -24,7 +24,8 @@ import zipfile
 from typing import Any, Mapping, Sequence
 
 from .continuity_transfer_evaluation import (
-    EXPECTED_RAW_RECORDS,
+    BASELINE_CONDITION, CHECKPOINT_COUNT, CONDITIONS as ADAPTED_CONDITIONS,
+    EXPECTED_RAW_RECORDS, TRAINING_SEEDS,
     VERSION as EVALUATION_VERSION,
     assert_training_has_no_transfer_choices,
     digest as evaluation_digest,
@@ -33,15 +34,15 @@ from .continuity_transfer_evaluation import (
     validate_registry_bundle,
 )
 from .continuity_transfer_inference_worker import verify_training_lineage
-from .qwen9b_ordinal_continuity_lora import MODEL_REVISION
+from .qwen9b_ordinal_continuity_lora import BRANCHES, CHECKPOINT_VERSION, MODEL_REVISION
 
 
 VERSION = "research4-continuity-transfer-kaggle-v1"
 ACCOUNT = "farhad89"
 NOTEBOOK = "farhad89/research4-continuity-transfer-evaluation-v1"
 MODEL_ID = "Qwen/Qwen3.5-9B"
-CONDITIONS = ("self_continuity", "artifact_continuity", "label_only", "skill_only")
-SEEDS = (202610281, 202610282, 202610283)
+CONDITIONS = ADAPTED_CONDITIONS
+SEEDS = TRAINING_SEEDS
 SOURCE_FILES = (
     "research4/src/io_utils.py",
     "research4/src/continuity_transfer_evaluation.py",
@@ -173,7 +174,7 @@ def validate_resource_plan(plan: Mapping[str, Any]) -> dict[str, Any]:
     if plan["minimum_fresh_quota_seconds"] != outer + margin:
         raise PermissionError("Minimum fresh quota must equal outer ceiling plus margin")
     if plan["episode_count"] != EXPECTED_RAW_RECORDS:
-        raise PermissionError("Resource plan must cover the exact 28,800-episode grid")
+        raise PermissionError("Resource plan must cover the exact 24,000-episode grid")
     if not 1 <= plan["max_new_tokens_per_episode"] <= 256:
         raise PermissionError("Bounded native response token budget must be in 1..256")
     if plan["max_model_forwards"] < plan["episode_count"]:
@@ -335,39 +336,65 @@ def validate_qualification_receipt(
 
 
 def validate_checkpoint_manifest(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """Validate local checkpoint directories and recompute config/member bytes."""
+    """Validate one pinned base identity plus nine adapter directories."""
+    base_sha = manifest.get("base_model_sha256")
+    base_qualification_sha = manifest.get("base_qualification_sha256")
     if (manifest.get("model_id") != MODEL_ID or manifest.get("model_revision") != MODEL_REVISION
             or manifest.get("base_frozen") is not True
             or manifest.get("all_adapters_frozen") is not True
             or manifest.get("evaluation_only") is not True
+            or manifest.get("evaluation_identity_count") != CHECKPOINT_COUNT
+            or manifest.get("adapted_endpoint_count") != len(CONDITIONS) * len(SEEDS)
+            or manifest.get("unique_frozen_base_endpoint_count") != 1
+            or not _is_sha(base_sha) or not _is_sha(base_qualification_sha)
             or not _is_sha(manifest.get("unblinding_key_sha256"))):
         raise PermissionError("Exact frozen Qwen3.5-9B evaluation manifest required")
     checkpoints = manifest.get("checkpoints")
-    if not isinstance(checkpoints, list) or len(checkpoints) != len(CONDITIONS) * len(SEEDS):
-        raise PermissionError("Three seeds for every preregistered condition are required")
+    if not isinstance(checkpoints, list) or len(checkpoints) != CHECKPOINT_COUNT:
+        raise PermissionError("One base plus nine adapted identities are required")
     seen: set[tuple[str, int]] = set()
     seen_blind: set[str] = set()
+    base_seen = False
     result = []
     for value in checkpoints:
         condition, seed = value.get("condition"), value.get("training_seed")
+        blind = value.get("blind_checkpoint_id")
+        if not isinstance(blind, str) or not blind or blind in seen_blind:
+            raise PermissionError("Evaluation identities must have unique blind IDs")
+        if value.get("identity_kind") == "frozen_base":
+            if (base_seen or condition != BASELINE_CONDITION or seed is not None
+                    or value.get("local_path") is not None
+                    or value.get("base_model_sha256") != base_sha
+                    or value.get("base_qualification_sha256") != base_qualification_sha
+                    or value.get("base_integrity_audited") is not True
+                    or value.get("no_adapter_checkpoint") is not True
+                    or value.get("optimizer_state_included") is not False):
+                raise PermissionError("Frozen-base manifest identity is not exact")
+            base_seen = True; seen_blind.add(blind)
+            result.append({
+                **dict(value), "members": {}, "members_sha256": digest({}),
+                "relative_directory": None,
+                "training_receipt_relative_path": None,
+                "training_audit_relative_path": None,
+            })
+            continue
         path = Path(value.get("local_path", "")).resolve()
         key = (condition, seed)
-        if (condition not in CONDITIONS or seed not in SEEDS or key in seen
+        if (value.get("identity_kind") != "adapted"
+                or condition not in CONDITIONS or seed not in SEEDS or key in seen
                 or value.get("checkpoint_integrity_audited") is not True
-                or value.get("optimizer_state_included") is not False
-                or not path.is_dir()):
+                or value.get("optimizer_state_included") is not False or not path.is_dir()):
             raise PermissionError("Every exact frozen checkpoint must pass integrity and identity checks")
         members = {item.relative_to(path).as_posix(): file_sha256(item)
                    for item in sorted(path.rglob("*")) if item.is_file()}
         if not members or "adapter_config.json" not in members:
             raise PermissionError("Every checkpoint must include adapter_config.json and branch bytes")
         config = _read(path / "adapter_config.json")
-        blind = value.get("blind_checkpoint_id")
-        expected_checkpoint_condition = "neutral_skill" if condition == "skill_only" else condition
-        expected_checkpoint_seed = 202610280 if condition == "skill_only" else seed
-        if (not isinstance(blind, str) or not blind or blind in seen_blind
-                or config.get("condition") != expected_checkpoint_condition
-                or config.get("seed") != expected_checkpoint_seed
+        if (config.get("version") != CHECKPOINT_VERSION
+                or config.get("condition") != condition or config.get("seed") != seed
+                or config.get("stage") != "delta3"
+                or tuple(config.get("active_branches", ())) != BRANCHES
+                or config.get("base_sha256") != base_sha
                 or config.get("config", {}).get("model_id") != MODEL_ID
                 or config.get("config", {}).get("model_revision") != MODEL_REVISION
                 or not _is_sha(config.get("source_sha256"))
@@ -399,8 +426,9 @@ def validate_checkpoint_manifest(manifest: Mapping[str, Any]) -> list[dict[str, 
             "training_audit_path": value["training_audit_path"],
             **lineage,
         })
-    if seen != {(condition, seed) for condition in CONDITIONS for seed in SEEDS}:
-        raise PermissionError("Checkpoint condition/seed grid is incomplete")
+    if (not base_seen
+            or seen != {(condition, seed) for condition in CONDITIONS for seed in SEEDS}):
+        raise PermissionError("Base or adapted condition/seed grid is incomplete")
     return result
 
 
@@ -434,6 +462,19 @@ def _package_checkpoints(
     packaged_rows = []
     with zipfile.ZipFile(archive, "x", zipfile.ZIP_STORED) as stream:
         for row in sorted(checkpoints, key=lambda item: item["blind_checkpoint_id"]):
+            if row.get("identity_kind") == "frozen_base":
+                packaged_rows.append({
+                    "blind_checkpoint_id": row["blind_checkpoint_id"],
+                    "identity_kind": "frozen_base",
+                    "relative_directory": None,
+                    "members": {}, "members_sha256": digest({}),
+                    "base_model_sha256": row["base_model_sha256"],
+                    "base_qualification_sha256": row["base_qualification_sha256"],
+                    "no_adapter_checkpoint": True,
+                    "training_receipt_relative_path": None,
+                    "training_audit_relative_path": None,
+                })
+                continue
             directory = Path(row["local_path"])
             prefix = f"checkpoints/{row['blind_checkpoint_id']}"
             local_members = {}
@@ -459,7 +500,7 @@ def _package_checkpoints(
                 local_members[lineage_name] = sha
             packaged_rows.append({
                 "blind_checkpoint_id": row["blind_checkpoint_id"],
-                "condition": row["condition"], "training_seed": row["training_seed"],
+                "identity_kind": "adapted",
                 "relative_directory": prefix,
                 "members": local_members, "members_sha256": digest(local_members),
                 "config_sha256": row["config_sha256"],
@@ -474,6 +515,15 @@ def _package_checkpoints(
     manifest = {
         "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
         "base_frozen": True, "all_adapters_frozen": True,
+        "base_model_sha256": next(
+            row["base_model_sha256"] for row in checkpoints
+            if row.get("identity_kind") == "frozen_base"),
+        "base_qualification_sha256": next(
+            row["base_qualification_sha256"] for row in checkpoints
+            if row.get("identity_kind") == "frozen_base"),
+        "evaluation_identity_count": CHECKPOINT_COUNT,
+        "adapted_endpoint_count": len(CONDITIONS) * len(SEEDS),
+        "unique_frozen_base_endpoint_count": 1,
         "evaluation_only": True, "checkpoints": packaged_rows,
         "unblinding_key_sha256": unblinding_key_sha256,
         "checkpoint_package_sha256": file_sha256(archive),
@@ -1107,7 +1157,7 @@ def audit_and_release(
             or audit.get("raw_native_responses_reparsed") is not True
             or audit.get("selected_actions_exactly_matched_reparse") is not True
             or audit.get("exact_model_action_count_enforced") != 1
-            or audit.get("exact_parsed_action_count_enforced") != 1
+            or audit.get("parsed_action_count_matches_validity") is not True
             or audit.get("audit_payload_sha256") != digest(payload)
             or not raw_path.is_file()
             or file_sha256(raw_path) != audit.get("raw_archive_sha256")

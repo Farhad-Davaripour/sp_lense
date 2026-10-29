@@ -9,19 +9,22 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 HOST = "https://dbc-ff9672a4-ba5f.cloud.databricks.com"
 GPU_JOB_RESOURCES = {
+    "simulated_continuity_frozen_base_qualification",
     "simulated_continuity_rank4_qualification",
     "simulated_continuity_primary_partition",
+    "simulated_continuity_transfer_evaluation",
 }
 GPU_ENVIRONMENT_KEY = "continuity_gpu"
 GPU_ACCELERATOR = "${var.continuity_gpu_accelerator}"
 GPU_ENVIRONMENT_VERSION = "${var.continuity_gpu_environment_version}"
-GPU_INSTALL_LINE = (
-    "# MAGIC %uv pip install --extra-index-url "
-    "https://download.pytorch.org/whl/cu128 torch==2.11.0+cu128 "
-    "transformers==5.19.0 bitsandbytes==0.49.2 accelerate==1.15.0 "
-    "safetensors==0.8.0 fla-core==0.5.2 einops==0.8.2 numpy==2.2.2 "
-    "psutil==7.2.2 triton==3.6.0 nvidia-ml-py==13.615.71"
-)
+GPU_DEPENDENCIES = [
+    "--extra-index-url https://download.pytorch.org/whl/cu128",
+    "torch==2.11.0+cu128", "transformers==5.19.0",
+    "bitsandbytes==0.49.2", "accelerate==1.15.0",
+    "safetensors==0.8.0", "fla-core==0.5.2", "einops==0.8.2",
+    "numpy==2.2.2", "psutil==7.2.2", "triton==3.6.0",
+    "nvidia-ml-py==13.615.71", "mlflow==3.1.0",
+]
 
 
 def unique_mapping(pairs):
@@ -79,7 +82,7 @@ def check_job(job, root, resource_name=None):
             raise ValueError("Databricks continuity GPU environment is missing")
         spec = gpu_environments[0]["spec"]
         if (spec.get("environment_version") != GPU_ENVIRONMENT_VERSION
-                or spec.get("dependencies") != []
+                or spec.get("dependencies") != GPU_DEPENDENCIES
                 or "base_environment" in spec):
             raise ValueError("Databricks continuity GPU environment changed")
     tasks = job.get("tasks", [])
@@ -88,13 +91,18 @@ def check_job(job, root, resource_name=None):
         raise ValueError("Task keys must be nonempty and unique")
     dependencies = {}
     gpu_task_count = 0
+    expected_gpu_task = {
+        "simulated_continuity_frozen_base_qualification":
+            "run_frozen_base_qualification",
+        "simulated_continuity_transfer_evaluation": "run_transfer_inference",
+    }.get(resource_name, "run_one_partition")
     for task in tasks:
         if any(key in task for key in ("new_cluster", "existing_cluster_id",
                                        "job_cluster_key")):
             raise ValueError("Research 4 bundle jobs must remain serverless")
         compute = task.get("compute")
         if compute is not None:
-            if (not gpu_job or task.get("task_key") != "run_one_partition"
+            if (not gpu_job or task.get("task_key") != expected_gpu_task
                     or compute != {"hardware_accelerator": GPU_ACCELERATOR}
                     or task.get("environment_key") != GPU_ENVIRONMENT_KEY
                     or "libraries" in task):
@@ -126,11 +134,8 @@ def check_job(job, root, resource_name=None):
 def check_gpu_notebook_contract(root):
     notebook = (root / "notebooks" / "databricks_continuity_partition.py").read_text(
         encoding="utf-8")
-    lines = notebook.splitlines()
-    if len(lines) < 3 or lines[1] != GPU_INSTALL_LINE:
-        raise ValueError("Serverless GPU notebook pin installation changed")
-    if notebook.count(GPU_INSTALL_LINE) != 1:
-        raise ValueError("Serverless GPU notebook must install exact pins once")
+    if "%uv pip install" in notebook:
+        raise ValueError("GPU dependencies must be installed by the DAB environment")
     readiness = notebook.find("dependency_proof = assert_fast_deltanet_dependencies()")
     source = notebook.find("source_proof = verify_deployed_source(")
     bitsandbytes = notebook.find("bitsandbytes.functional.quantize_4bit(")
@@ -144,6 +149,47 @@ def check_gpu_notebook_contract(root):
         encoding="utf-8")
     if "reserve_intent(" in preflight or "consumed_" in preflight:
         raise ValueError("CPU preflight must remain read-only")
+    base = (root / "notebooks" /
+            "databricks_continuity_base_qualification.py").read_text(
+                encoding="utf-8")
+    if "%uv pip install" in base:
+        raise ValueError("Frozen-base dependencies must use the DAB environment")
+    base_source = base.find("verify_deployed_source(")
+    base_readiness = base.find("dependency_proof = assert_fast_deltanet_dependencies()")
+    base_disk = base.find("shutil.disk_usage(")
+    base_reserve = base.find("reserve_intent(lock_root, intent, owner)")
+    base_model = base.find("Qwen3_5ForConditionalGeneration.from_pretrained(")
+    if (min(base_source, base_readiness, base_disk, base_reserve, base_model) < 0
+            or not (base_source < base_readiness < base_disk
+                    < base_reserve < base_model)):
+        raise ValueError("Frozen-base readiness/reservation/model order changed")
+    base_preflight = (root / "notebooks" /
+                      "databricks_continuity_base_qualification_preflight.py").read_text(
+                          encoding="utf-8")
+    if "reserve_intent(" in base_preflight or "consumed_" in base_preflight:
+        raise ValueError("Frozen-base CPU preflight must remain read-only")
+    transfer = (root / "notebooks" /
+                "databricks_continuity_transfer_evaluation.py").read_text(
+                    encoding="utf-8")
+    if "%uv pip install" in transfer:
+        raise ValueError("Transfer dependencies must use the DAB environment")
+    transfer_source = transfer.find("verify_transfer_deployed_source(")
+    transfer_inputs = transfer.find("verify_transfer_inputs(")
+    transfer_readiness = transfer.find(
+        "dependency_proof = assert_fast_deltanet_dependencies()")
+    transfer_disk = transfer.find("shutil.disk_usage(")
+    transfer_reserve = transfer.find("reservation = reserve_intent(")
+    transfer_stage = transfer.find("_stage_local_model(")
+    if (min(transfer_source, transfer_inputs, transfer_readiness,
+            transfer_disk, transfer_reserve, transfer_stage) < 0
+            or not (transfer_source < transfer_inputs < transfer_readiness
+                    < transfer_disk < transfer_reserve < transfer_stage)):
+        raise ValueError("Transfer readiness/reservation/model order changed")
+    transfer_preflight = (root / "notebooks" /
+                          "databricks_continuity_transfer_preflight.py").read_text(
+                              encoding="utf-8")
+    if "reserve_intent(" in transfer_preflight or "consumed_" in transfer_preflight:
+        raise ValueError("Transfer CPU preflight must remain read-only")
 
 
 def reject_constant(value):
@@ -197,7 +243,7 @@ def main():
     if variables.get("continuity_dataset_release", {}).get("default") != (
             "/Volumes/research4_simulated_continuity/bronze/model_data/"
             "dataset_releases/"
-            "c21d8b334fdd1e7544fbea8277643f594c990dd5a754312d5e5a9e0d947df1df"):
+            "7c262394a1b505c833e7a1a7c2f9b0a45b8485c89a14dfc21af1f268bd0e4968"):
         raise ValueError("Databricks continuity dataset release changed")
     included = {path for pattern in bundle["include"] for path in ROOT.glob(pattern)}
     resources = set((ROOT / "resources").glob("*.job.yml"))
