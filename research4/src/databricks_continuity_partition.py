@@ -5,7 +5,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 import json
 import hashlib
+import math
 import os
+import re
 import signal
 import shutil
 import subprocess
@@ -14,7 +16,7 @@ import tempfile
 import time
 
 from .databricks_simulated_continuity import (
-    GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE, VOLUME,
+    GOLD_ADMISSION_TABLE, GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE, VOLUME,
     canonical, digest, expected_predecessor_binding, validate_exact_gold_row,
     validate_base_qualification_receipt, validate_intent,
     validate_policy_silver_payload, validate_primary_authority_files,
@@ -24,6 +26,7 @@ from .databricks_simulated_continuity import (
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from .qwen9b_ordinal_continuity_training import verify_rank_receipt
 from .qwen9b_ordinal_continuity_training import TrainingPlan, validate_sequential_parent
+from .databricks_continuity_partition_worker import validate_mlflow_journal
 
 
 def _bounded_run(command, *, cwd, env, stop_seconds, ceiling_seconds):
@@ -85,6 +88,20 @@ def _stage_local_model(volume_root, volume_receipt, identity, expected_tree,
 
 def _read(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _file_sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _atomic_json(path, value):
+    target = Path(path); target.parent.mkdir(parents=True, exist_ok=True)
+    pending = target.with_name(f".pending-{target.name}-{os.urandom(8).hex()}")
+    descriptor = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        stream.write(canonical(value) + "\n")
+        stream.flush(); os.fsync(stream.fileno())
+    os.replace(pending, target)
 
 
 def run_partition(*, spark, intent_path, plan_path, admission_path=None,
@@ -238,8 +255,16 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         intent["model_tree_sha256"], intent["model_receipt_sha256"])
     try:
         import mlflow
-        mlflow.set_experiment(intent["mlflow_experiment_path"])
-        active = mlflow.start_run(run_name=identity)
+        experiment = mlflow.set_experiment(intent["mlflow_experiment_path"])
+        mlflow_client = mlflow.tracking.MlflowClient()
+        active = mlflow_client.create_run(
+            experiment.experiment_id,
+            tags={"mlflow.runName": identity,
+                  "research4.parent_owned_run": "true",
+                  "research4.owner_run_id": str(job_run_id),
+                  "research4.intent_sha256": intent["intent_sha256"],
+                  "research4.partition_identity": identity,
+                  "research4.plan_sha256": intent["plan_sha256"]})
         mlflow_run_id = active.info.run_id
     except BaseException:
         shutil.rmtree(local_model.parent, ignore_errors=True)
@@ -250,7 +275,6 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         "--intent", str(intent_path), "--plan", str(plan_path),
         "--records", str(records_path), "--output", str(run_root / "output"),
         "--model-receipt", str(local_model_receipt),
-        "--mlflow-run-id", mlflow_run_id,
     ]
     if admission_path:
         command += ["--admission", str(admission_path)]
@@ -277,15 +301,22 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         result["local_model_cache"] = cache_metrics
         result["prework_seconds"] = prework_seconds
         result["whole_task_elapsed_seconds"] = whole_job_elapsed()
-        (run_root / "TERMINAL.json").write_text(canonical(result) + "\n")
+        _atomic_json(run_root / "TERMINAL.json", result)
         if (result["exit_code"] != 0 or result["operator_stop_sent"]):
-            mlflow.set_tag("terminal_status", "stopped_or_failed")
-            mlflow.end_run(status="FAILED")
+            mlflow_client.set_tag(
+                mlflow_run_id, "terminal_status", "stopped_or_failed")
+            mlflow_client.set_terminated(mlflow_run_id, status="FAILED")
             raise RuntimeError("Databricks partition did not complete; retry is forbidden")
     except BaseException:
-        if mlflow.active_run() is not None:
-            mlflow.end_run(status="FAILED")
+        if "mlflow_run_id" in locals():
+            try:
+                if mlflow_client.get_run(mlflow_run_id).info.status == "RUNNING":
+                    mlflow_client.set_terminated(mlflow_run_id, status="FAILED")
+            except BaseException:
+                pass
         raise
+
+
     try:
         receipt_path = run_root / "output" / "TRAINING_RECEIPT.json"
         rank_receipt_path = run_root / "output" / "RANK_0_RECEIPT.json"
@@ -299,17 +330,38 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         if (receipt.get("status") != "complete"
                 or receipt.get("successful_optimizer_updates") != plan["optimizer_updates"]):
             raise PermissionError("Completed Databricks receipt differs from exact plan")
+        journal = validate_mlflow_journal(
+            run_root / "output", intent=intent,
+            plan=TrainingPlan(**plan).validate(), receipt=receipt,
+            rank_receipt=rank_receipt, evidence=evidence)
         verify_rank_receipt(
             rank_receipt, expected_plan_sha256=intent["plan_sha256"],
             expected_global_journal_sha256=intent["global_journal_sha256"])
         checkpoint_tree = directory_tree_sha256(run_root / "output" / "checkpoint")
+        checkpoint_metadata_path = (run_root / "output" / "checkpoint" /
+                                    "adapter_config.json")
+        checkpoint_metadata = _read(checkpoint_metadata_path)
+        checkpoint_payload = dict(checkpoint_metadata)
+        checkpoint_embedded = checkpoint_payload.pop("receipt_sha256", None)
+        receipt_without_checkpoint = dict(receipt)
+        receipt_checkpoint = receipt_without_checkpoint.pop("checkpoint", None)
+        receipt_checkpoint_sha = receipt_without_checkpoint.pop(
+            "checkpoint_metadata_sha256", None)
+        if (receipt_without_checkpoint != rank_receipt
+                or receipt_checkpoint != checkpoint_metadata
+                or checkpoint_embedded != digest(checkpoint_payload)
+                or receipt_checkpoint_sha != _file_sha256(
+                    checkpoint_metadata_path)):
+            raise PermissionError(
+                "Training receipt/checkpoint differs from the rank receipt")
         parent_tree = (None if not parent_checkpoint else
                        directory_tree_sha256(parent_checkpoint))
-        gold = [{
+        pending_gold_row = {
             "partition_identity": identity, "mode": plan["mode"],
             "condition": condition, "stage": plan["stage"], "seed": plan["seed"],
             "status": "pending_mlflow_finalize", "mlflow_run_id": mlflow_run_id,
-            "plan_sha256": intent["plan_sha256"], "source_commit": intent["source_commit"],
+            "plan_sha256": intent["plan_sha256"],
+            "source_commit": intent["source_commit"],
             "model_tree_sha256": model_receipt["tree_sha256"],
             "receipt_sha256": rank_receipt["receipt_sha256"],
             "intent_sha256": intent["intent_sha256"],
@@ -319,40 +371,435 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
             "qualification_receipt_sha256": (
                 base_qualification["receipt_sha256"] if authority is None else
                 authority["qualification_receipt"]["receipt_sha256"]),
-            "receipt_json": canonical(receipt), "optimizer_updates": plan["optimizer_updates"],
+            "receipt_json": canonical(receipt),
+            "optimizer_updates": plan["optimizer_updates"],
             "checkpoint_tree_sha256": checkpoint_tree,
             "parent_checkpoint_tree_sha256": parent_tree,
-            "receipt_replayed": True, "completed_at": datetime.now(timezone.utc),
-        }]
+            "receipt_replayed": True,
+        }
         if whole_job_elapsed() >= intent["wall_clock_ceiling_seconds"]:
             raise TimeoutError("Databricks post-run audit exceeded the reviewed ceiling")
-        spark.createDataFrame(
-            gold, schema=spark.table(GOLD_RUN_TABLE).schema
-        ).write.mode("append").saveAsTable(GOLD_RUN_TABLE)
-        mlflow.set_tag("terminal_status", "complete")
-        mlflow.log_metrics({
-            "model_copy_seconds": cache_metrics["copy_seconds"],
-            "model_copy_bytes_per_second": cache_metrics["copy_bytes_per_second"],
-            "local_disk_free_after_copy": cache_metrics["local_disk_free_after"],
-        })
-        mlflow.log_dict(result, "terminal.json")
-        mlflow.end_run(status="FINISHED")
-        spark.sql(
-            f"UPDATE {GOLD_RUN_TABLE} SET status = 'complete' "
-            f"WHERE partition_identity = '{identity}' "
-            f"AND intent_sha256 = '{intent['intent_sha256']}' "
-            "AND status = 'pending_mlflow_finalize'"
-        )
-        finalized = spark.table(GOLD_RUN_TABLE).where(
-            (F.col("partition_identity") == identity)
-            & (F.col("intent_sha256") == intent["intent_sha256"])
-            & (F.col("status") == "complete")).count()
-        if finalized != 1:
-            raise PermissionError("Partition Gold finalization was not exact")
-        return {"status": "complete", "identity": identity,
+        parent_finalization = {
+            "version": "research4-parent-mlflow-finalization-v1",
+            "identity": identity,
+            "owner_run_id": str(job_run_id),
+            "intent_sha256": intent["intent_sha256"],
+            "plan_sha256": intent["plan_sha256"],
+            "mlflow_run_id": mlflow_run_id,
+            "terminal_file_sha256": _file_sha256(run_root / "TERMINAL.json"),
+            "journal_final_sha256": journal["final"]["final_sha256"],
+            "training_receipt_file_sha256": _file_sha256(receipt_path),
+            "rank_receipt_file_sha256": _file_sha256(rank_receipt_path),
+            "evidence_file_sha256": _file_sha256(evidence_path),
+            "checkpoint_metadata_file_sha256": _file_sha256(
+                checkpoint_metadata_path),
+            "checkpoint_tree_sha256": checkpoint_tree,
+            "receipt_sha256": receipt["receipt_sha256"],
+            "rank_receipt_sha256": rank_receipt["receipt_sha256"],
+            "evidence_sha256": evidence_sha256,
+            "pending_gold_row": pending_gold_row,
+        }
+        parent_finalization["parent_finalization_sha256"] = digest(
+            parent_finalization)
+        _atomic_json(
+            run_root / "output" / "PARENT_FINALIZATION.json",
+            parent_finalization)
+        # Deliberately perform no post-science network calls on GPU. The
+        # authenticated CPU finalizer replays this verified journal, publishes
+        # all scalar/artifact data, finalizes Gold, then marks MLflow FINISHED.
+        return {"status": "pending_cpu_finalize", "identity": identity,
                 "mlflow_run_id": mlflow_run_id,
                 "receipt_sha256": rank_receipt["receipt_sha256"]}
     except BaseException:
-        if mlflow.active_run() is not None:
-            mlflow.end_run(status="FAILED")
+        # The child has already exited at this point. Keep post-science
+        # publication entirely off the GPU task; an independent CPU closeout
+        # can reconcile the still-open parent-owned run from durable evidence.
         raise
+
+
+def _expected_mlflow_scalars(journal, terminal):
+    """Return the exact parent-owned scalar state encoded by the journal."""
+    params = {
+        key: str(value) for key, value in journal["params"].items()
+        if key not in {"version", "params_sha256"} and value is not None
+    }
+    metrics = {}
+
+    def add_metric(key, value, step):
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))):
+            raise PermissionError(f"CPU finalizer metric is invalid: {key}")
+        metrics.setdefault(key, []).append((int(step), float(value)))
+
+    for update in journal["progress"]:
+        step = update["optimizer_update"]
+        for key, value in update.items():
+            if key in {"version", "intent_sha256", "plan_sha256",
+                       "optimizer_update", "progress_record_sha256"}:
+                continue
+            add_metric(key, value, step)
+    for key in ("mean_gpu_utilization_percent", "tokens_per_second",
+                "max_allocated_bytes", "max_reserved_bytes",
+                "disk_free_bytes"):
+        add_metric(key, journal["final"].get(key), 0)
+    cache = terminal.get("local_model_cache", {})
+    for key, value in {
+        "model_copy_seconds": cache.get("copy_seconds"),
+        "model_copy_bytes_per_second": cache.get("copy_bytes_per_second"),
+        "local_disk_free_after_copy": cache.get("local_disk_free_after"),
+    }.items():
+        add_metric(key, value, 0)
+    return params, metrics
+
+
+def _reconcile_mlflow_scalars(client, run_id, journal, terminal, *, write):
+    """Idempotently publish and then verify every owned scalar."""
+    expected_params, expected_metrics = _expected_mlflow_scalars(
+        journal, terminal)
+    if write:
+        for key, value in expected_params.items():
+            client.log_param(run_id, key, value)
+        for key, values in expected_metrics.items():
+            for step, value in values:
+                client.log_metric(run_id, key, value, step=step)
+    actual_params = dict(client.get_run(run_id).data.params)
+    if actual_params != expected_params:
+        raise PermissionError("CPU finalizer MLflow parameters differ")
+    for key, expected in expected_metrics.items():
+        history = client.get_metric_history(run_id, key)
+        actual = [(int(item.step), float(item.value)) for item in history]
+        if not actual:
+            raise PermissionError(f"CPU finalizer MLflow metric is absent: {key}")
+        for actual_step, actual_value in actual:
+            if not any(
+                    actual_step == expected_step
+                    and math.isclose(actual_value, expected_value,
+                                     rel_tol=1e-12, abs_tol=1e-12)
+                    for expected_step, expected_value in expected):
+                raise PermissionError(
+                    f"CPU finalizer MLflow metric differs: {key}")
+        for expected_step, expected_value in expected:
+            if not any(
+                    actual_step == expected_step
+                    and math.isclose(actual_value, expected_value,
+                                     rel_tol=1e-12, abs_tol=1e-12)
+                    for actual_step, actual_value in actual):
+                raise PermissionError(
+                    f"CPU finalizer MLflow metric is incomplete: {key}")
+    return {"params": expected_params, "metrics": expected_metrics}
+
+
+_EXPECTED_MLFLOW_ARTIFACTS = {
+    "TRAINING_RECEIPT.json", "RANK_0_RECEIPT.json",
+    "DATABRICKS_EVIDENCE.json", "MLFLOW_PARAMS.json",
+    "MLFLOW_PROGRESS.jsonl", "MLFLOW_FINAL.json",
+    "PARENT_FINALIZATION.json", "adapter_config.json", "TERMINAL.json",
+}
+
+
+def _verify_completed_mlflow_state(client, run_id, journal, terminal,
+                                   owner_tags):
+    """Read back every remote completion field before claiming success."""
+    run = client.get_run(run_id)
+    if run.info.status != "FINISHED":
+        raise PermissionError("CPU finalizer MLflow run did not finish")
+    _reconcile_mlflow_scalars(
+        client, run_id, journal, terminal, write=False)
+    required_tags = {**owner_tags, "terminal_status": "complete",
+                     "cpu_artifact_finalize": "true"}
+    if any(run.data.tags.get(key) != value
+           for key, value in required_tags.items()):
+        raise PermissionError("Completed CPU finalizer tags differ")
+    artifacts = {Path(item.path).name for item in client.list_artifacts(
+        run_id, "verified")}
+    if artifacts != _EXPECTED_MLFLOW_ARTIFACTS:
+        raise PermissionError("Completed CPU finalizer artifacts differ")
+    return run
+
+
+def _verify_finalizer_owner(consumed, admission_rows, *, owner_run_id,
+                            identity, intent_sha256, active=None,
+                            closeout=None):
+    expected = {
+        "owner": str(owner_run_id), "identity": identity,
+        "intent_sha256": intent_sha256,
+        "status": "reserved_after_gpu_ready_before_model",
+    }
+    if consumed != expected:
+        raise PermissionError("CPU finalizer reservation owner differs")
+    if any(str(row.job_run_id) != str(owner_run_id) for row in admission_rows):
+        raise PermissionError("CPU finalizer admission owner differs")
+    statuses = [row.status for row in admission_rows]
+    def closeout_is_exact():
+        if not isinstance(closeout, dict):
+            return False
+        payload = dict(closeout); embedded = payload.pop("receipt_sha256", None)
+        return (payload.get("version")
+                == "research4-databricks-active-reservation-closeout-v1"
+                and payload.get("owner") == str(owner_run_id)
+                and payload.get("identity") == identity
+                and payload.get("intent_sha256") == intent_sha256
+                and payload.get("consumed_identity_retained") is True
+                and payload.get("reservation_sha256") == digest(consumed)
+                and embedded == digest(payload))
+    if statuses == ["consumed_after_gpu_ready_before_model"]:
+        if active == expected and closeout is None:
+            return "before_gpu_closeout"
+        if active is None and closeout_is_exact():
+            return "after_gpu_closeout_before_cleanup"
+        raise PermissionError("CPU finalizer active reservation differs")
+    if sorted(statuses) != sorted([
+            "consumed_after_gpu_ready_before_model",
+            "active_released_consumed_identity_retained"]):
+        raise PermissionError("CPU finalizer admission state differs")
+    if active is not None or not closeout_is_exact():
+        raise PermissionError("CPU finalizer released reservation differs")
+    return "after_cleanup"
+
+
+def _validate_parent_finalization(run_root, *, intent, terminal, receipt,
+                                  rank_receipt, evidence, journal,
+                                  owner_run_id):
+    output = Path(run_root) / "output"
+    checkpoint = output / "checkpoint"
+    metadata_path = checkpoint / "adapter_config.json"
+    metadata = _read(metadata_path)
+    metadata_payload = dict(metadata)
+    metadata_embedded = metadata_payload.pop("receipt_sha256", None)
+    receipt_base = dict(receipt)
+    receipt_metadata = receipt_base.pop("checkpoint", None)
+    receipt_metadata_sha = receipt_base.pop("checkpoint_metadata_sha256", None)
+    if (receipt_base != rank_receipt or receipt_metadata != metadata
+            or metadata_embedded != digest(metadata_payload)
+            or receipt_metadata_sha != _file_sha256(metadata_path)):
+        raise PermissionError(
+            "CPU finalizer training receipt/checkpoint differs")
+    checkpoint_tree = directory_tree_sha256(checkpoint)
+    parent_path = output / "PARENT_FINALIZATION.json"
+    parent = _read(parent_path)
+    parent_payload = dict(parent)
+    embedded = parent_payload.pop("parent_finalization_sha256", None)
+    mlflow_run_id = parent.get("mlflow_run_id")
+    plan = intent["plan"]
+    pending_gold_row = parent.get("pending_gold_row")
+    admission_sha = (pending_gold_row or {}).get("admission_sha256")
+    qualification_sha = (pending_gold_row or {}).get(
+        "qualification_receipt_sha256")
+    parent_tree = (pending_gold_row or {}).get(
+        "parent_checkpoint_tree_sha256")
+    if plan["mode"] == "qualification":
+        if (admission_sha is not None
+                or qualification_sha
+                   != intent["base_qualification_receipt_sha256"]
+                or parent_tree is not None):
+            raise PermissionError("CPU parent qualification Gold binding differs")
+    elif (not re.fullmatch(r"[0-9a-f]{64}", str(admission_sha or ""))
+          or not re.fullmatch(r"[0-9a-f]{64}", str(qualification_sha or ""))
+          or ((plan["stage"] == "delta1") != (parent_tree is None))
+          or (parent_tree is not None
+              and not re.fullmatch(r"[0-9a-f]{64}", str(parent_tree)))):
+        raise PermissionError("CPU parent primary Gold binding differs")
+    expected_gold = {
+        "partition_identity": intent["identity"], "mode": plan["mode"],
+        "condition": plan["condition"], "stage": plan["stage"],
+        "seed": plan["seed"], "status": "pending_mlflow_finalize",
+        "mlflow_run_id": mlflow_run_id,
+        "plan_sha256": intent["plan_sha256"],
+        "source_commit": intent["source_commit"],
+        "model_tree_sha256": intent["model_tree_sha256"],
+        "receipt_sha256": rank_receipt["receipt_sha256"],
+        "intent_sha256": intent["intent_sha256"],
+        "evidence_sha256": evidence["evidence_sha256"],
+        "admission_sha256": admission_sha,
+        "qualification_receipt_sha256": qualification_sha,
+        "receipt_json": canonical(receipt),
+        "optimizer_updates": plan["optimizer_updates"],
+        "checkpoint_tree_sha256": checkpoint_tree,
+        "parent_checkpoint_tree_sha256": parent_tree,
+        "receipt_replayed": True,
+    }
+    if pending_gold_row != expected_gold:
+        raise PermissionError("CPU parent pending Gold binding differs")
+    expected = {
+        "version": "research4-parent-mlflow-finalization-v1",
+        "identity": intent["identity"],
+        "owner_run_id": str(owner_run_id),
+        "intent_sha256": intent["intent_sha256"],
+        "plan_sha256": intent["plan_sha256"],
+        "mlflow_run_id": mlflow_run_id,
+        "terminal_file_sha256": _file_sha256(Path(run_root) / "TERMINAL.json"),
+        "journal_final_sha256": journal["final"]["final_sha256"],
+        "training_receipt_file_sha256": _file_sha256(
+            output / "TRAINING_RECEIPT.json"),
+        "rank_receipt_file_sha256": _file_sha256(
+            output / "RANK_0_RECEIPT.json"),
+        "evidence_file_sha256": _file_sha256(
+            output / "DATABRICKS_EVIDENCE.json"),
+        "checkpoint_metadata_file_sha256": _file_sha256(metadata_path),
+        "checkpoint_tree_sha256": checkpoint_tree,
+        "receipt_sha256": receipt["receipt_sha256"],
+        "rank_receipt_sha256": rank_receipt["receipt_sha256"],
+        "evidence_sha256": evidence["evidence_sha256"],
+        "pending_gold_row": expected_gold,
+    }
+    if (not isinstance(mlflow_run_id, str) or not mlflow_run_id
+            or parent_payload != expected or embedded != digest(parent_payload)):
+        raise PermissionError("CPU parent finalization binding differs")
+    return parent
+
+
+def _ensure_pending_gold_row(read_rows, append_row, parent_finalization):
+    """Idempotently create or verify the CPU-owned pending Gold record."""
+    expected = parent_finalization["pending_gold_row"]
+    rows = list(read_rows())
+    if not rows:
+        pending = {**expected, "completed_at": datetime.now(timezone.utc)}
+        append_row(pending)
+        rows = list(read_rows())
+    if len(rows) != 1:
+        raise PermissionError("CPU finalizer expected exactly one Gold row")
+    row = rows[0]
+    gold = (row.asDict(recursive=True)
+            if hasattr(row, "asDict") else dict(row))
+    if (gold.get("status") not in {"pending_mlflow_finalize", "complete"}
+            or any(gold.get(key) != value for key, value in expected.items()
+                   if key != "status")):
+        raise PermissionError("CPU finalizer pending Gold row differs")
+    return gold
+
+def finalize_partition_mlflow(*, spark, intent_path, plan_path, code_root,
+                              owner_run_id):
+    """CPU-only artifact/MLflow/Gold finalization after verified GPU success."""
+    from pyspark.sql import functions as F
+    import mlflow
+    intent = validate_intent(_read(intent_path))
+    plan_dict = _read(plan_path)
+    plan = TrainingPlan(**plan_dict).validate()
+    verify_deployed_source(code_root, intent)
+    identity = intent["identity"]
+    run_root = Path(VOLUME) / "runs" / identity
+    output = run_root / "output"
+    if not (output / "PARENT_FINALIZATION.json").is_file():
+        return {"status": "no_complete_parent_evidence",
+                "identity": identity, "owner_run_id": str(owner_run_id)}
+    terminal = _read(run_root / "TERMINAL.json")
+    receipt = _read(output / "TRAINING_RECEIPT.json")
+    rank_receipt = _read(output / "RANK_0_RECEIPT.json")
+    evidence = _read(output / "DATABRICKS_EVIDENCE.json")
+    evidence_payload = dict(evidence)
+    if (evidence_payload.pop("evidence_sha256", None)
+            != digest(evidence_payload)):
+        raise PermissionError("CPU finalizer evidence self-hash differs")
+    if (terminal.get("exit_code") != 0
+            or terminal.get("operator_stop_sent") is not False
+            or terminal.get("ceiling_kill_sent") is not False
+            or terminal.get("child_exit_confirmed") is not True
+            or receipt.get("status") != "complete"
+            or receipt.get("successful_optimizer_updates")
+               != plan.optimizer_updates):
+        raise PermissionError("CPU finalizer lacks successful GPU evidence")
+    verify_rank_receipt(
+        rank_receipt, expected_plan_sha256=intent["plan_sha256"],
+        expected_global_journal_sha256=intent["global_journal_sha256"])
+    journal = validate_mlflow_journal(
+        output, intent=intent, plan=plan, receipt=receipt,
+        rank_receipt=rank_receipt, evidence=evidence)
+    parent_finalization = _validate_parent_finalization(
+        run_root, intent=intent, terminal=terminal, receipt=receipt,
+        rank_receipt=rank_receipt, evidence=evidence, journal=journal,
+        owner_run_id=owner_run_id)
+    lock_root = Path(VOLUME) / "locks"
+    consumed_path = lock_root / "consumed" / f"{identity}.json"
+    consumed = _read(consumed_path)
+    admission_rows = spark.table(GOLD_ADMISSION_TABLE).where(
+        (F.col("identity") == identity)
+        & (F.col("intent_sha256") == intent["intent_sha256"])).collect()
+    active_path = lock_root / "scientific.lock"
+    closeout_path = (lock_root / "closeouts" / identity /
+                     f"{hashlib.sha256(str(owner_run_id).encode()).hexdigest()}.json")
+    _verify_finalizer_owner(
+        consumed, admission_rows, owner_run_id=owner_run_id,
+        identity=identity, intent_sha256=intent["intent_sha256"],
+        active=(_read(active_path) if active_path.exists() else None),
+        closeout=(_read(closeout_path) if closeout_path.exists() else None))
+    def read_gold_rows():
+        return spark.table(GOLD_RUN_TABLE).where(
+            (F.col("partition_identity") == identity)
+            & (F.col("intent_sha256") == intent["intent_sha256"])).collect()
+
+    def append_gold_row(value):
+        spark.createDataFrame(
+            [value], schema=spark.table(GOLD_RUN_TABLE).schema
+        ).write.mode("append").saveAsTable(GOLD_RUN_TABLE)
+
+    gold = _ensure_pending_gold_row(
+        read_gold_rows, append_gold_row, parent_finalization)
+    client = mlflow.tracking.MlflowClient()
+    mlflow_run_id = gold["mlflow_run_id"]
+    if mlflow_run_id != parent_finalization["mlflow_run_id"]:
+        raise PermissionError("CPU finalizer MLflow owner binding differs")
+    run = client.get_run(mlflow_run_id)
+    owner_tags = {
+        "mlflow.runName": identity,
+        "research4.parent_owned_run": "true",
+        "research4.owner_run_id": str(owner_run_id),
+        "research4.intent_sha256": intent["intent_sha256"],
+        "research4.partition_identity": identity,
+        "research4.plan_sha256": intent["plan_sha256"],
+    }
+    if any(run.data.tags.get(key) != value
+           for key, value in owner_tags.items()):
+        raise PermissionError("CPU finalizer MLflow run tags differ")
+    if run.info.status == "FINISHED":
+        if gold["status"] != "complete":
+            raise PermissionError("Completed CPU finalizer evidence differs")
+        _verify_completed_mlflow_state(
+            client, mlflow_run_id, journal, terminal, owner_tags)
+        return {"status": "complete", "identity": identity,
+                "mlflow_run_id": mlflow_run_id,
+                "receipt_sha256": rank_receipt["receipt_sha256"],
+                "journal_final_sha256": journal["final"]["final_sha256"],
+                "owner_run_id": str(owner_run_id)}
+    if run.info.status not in {"RUNNING", "FAILED"}:
+        raise PermissionError("CPU finalizer MLflow state differs")
+    _reconcile_mlflow_scalars(
+        client, mlflow_run_id, journal, terminal, write=True)
+    artifacts = [
+        output / "TRAINING_RECEIPT.json",
+        output / "RANK_0_RECEIPT.json",
+        output / "DATABRICKS_EVIDENCE.json",
+        output / "MLFLOW_PARAMS.json",
+        output / "MLFLOW_PROGRESS.jsonl",
+        output / "MLFLOW_FINAL.json",
+        output / "PARENT_FINALIZATION.json",
+        output / "checkpoint" / "adapter_config.json",
+        run_root / "TERMINAL.json",
+    ]
+    if any(not path.is_file() for path in artifacts):
+        raise FileNotFoundError("CPU finalizer artifact is absent")
+    for path in artifacts:
+        client.log_artifact(mlflow_run_id, str(path), "verified")
+    safe_identity = identity.replace("'", "''")
+    if gold["status"] == "pending_mlflow_finalize":
+        spark.sql(
+            f"UPDATE {GOLD_RUN_TABLE} SET status = 'complete' "
+            f"WHERE partition_identity = '{safe_identity}' "
+            f"AND intent_sha256 = '{intent['intent_sha256']}' "
+            "AND status = 'pending_mlflow_finalize'"
+        )
+    finalized = spark.table(GOLD_RUN_TABLE).where(
+        (F.col("partition_identity") == identity)
+        & (F.col("intent_sha256") == intent["intent_sha256"])
+        & (F.col("status") == "complete")).count()
+    if finalized != 1:
+        raise PermissionError("CPU finalizer Gold update was not exact")
+    client.set_tag(mlflow_run_id, "terminal_status", "complete")
+    client.set_tag(mlflow_run_id, "cpu_artifact_finalize", "true")
+    client.set_terminated(mlflow_run_id, status="FINISHED")
+    _verify_completed_mlflow_state(
+        client, mlflow_run_id, journal, terminal, owner_tags)
+    return {"status": "complete", "identity": identity,
+            "mlflow_run_id": mlflow_run_id,
+            "receipt_sha256": rank_receipt["receipt_sha256"],
+            "journal_final_sha256": journal["final"]["final_sha256"],
+            "owner_run_id": str(owner_run_id)}

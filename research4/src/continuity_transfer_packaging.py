@@ -33,6 +33,7 @@ from .databricks_simulated_continuity import (
     validate_exact_gold_row, validate_source_manifest,
 )
 from .base_qualification_carryforward import validate_carryforward
+from .qualification_technical_successor import validate as validate_technical_successor
 from .qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from .qwen9b_ordinal_continuity_lora import BRANCHES, CHECKPOINT_VERSION
 from .qwen9b_ordinal_continuity_runtime import (
@@ -41,8 +42,8 @@ from .qwen9b_ordinal_continuity_runtime import (
 from .qwen9b_ordinal_continuity_training import TrainingPlan, verify_rank_receipt
 
 
-PACKAGING_PLAN_VERSION = "research4-databricks-transfer-packaging-plan-v2"
-PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v2"
+PACKAGING_PLAN_VERSION = "research4-databricks-transfer-packaging-plan-v3"
+PACKAGING_RECEIPT_VERSION = "research4-databricks-transfer-packaging-receipt-v3"
 PACKAGE_FILES_VERSION = "research4-databricks-transfer-package-files-v1"
 CHECKPOINT_MANIFEST_VERSION = "research4-three-residual-blinded-checkpoints-v1"
 EVALUATION_CHECKPOINT_VERSION = "qwen35-9b-blinded-evaluation-checkpoint-v1"
@@ -93,6 +94,8 @@ def validate_packaging_plan(value: Mapping[str, Any]) -> dict[str, Any]:
         "base_qualification_source_intent",
         "base_qualification_carryforward",
         "base_qualification_carryforward_sha256",
+        "qualification_technical_successor",
+        "qualification_technical_successor_sha256",
         "base_qualification_receipt_file_sha256",
         "capacity_qualification_receipt_path",
         "capacity_qualification_receipt_sha256",
@@ -121,6 +124,7 @@ def validate_packaging_plan(value: Mapping[str, Any]) -> dict[str, Any]:
                 "source_sha256", "model_tree_sha256",
                 "base_qualification_receipt_sha256",
                 "base_qualification_carryforward_sha256",
+                "qualification_technical_successor_sha256",
                 "base_qualification_receipt_file_sha256",
                 "capacity_qualification_receipt_sha256",
                 "capacity_qualification_receipt_file_sha256"))
@@ -132,13 +136,17 @@ def validate_packaging_plan(value: Mapping[str, Any]) -> dict[str, Any]:
             or plan.get("package_parent") != TRANSFER_PACKAGE_PARENT):
         raise PermissionError("Exact CPU-only transfer packaging plan required")
     carryforward = plan.get("base_qualification_carryforward")
+    technical = validate_technical_successor(
+        plan.get("qualification_technical_successor"))
     prior_base_intent = plan.get("base_qualification_source_intent")
     if (not isinstance(carryforward, Mapping)
             or not isinstance(prior_base_intent, Mapping)
             or carryforward.get("carryforward_sha256")
                != plan.get("base_qualification_carryforward_sha256")
             or carryforward.get("prior_base_intent_sha256")
-               != prior_base_intent.get("intent_sha256")):
+               != prior_base_intent.get("intent_sha256")
+            or technical["technical_successor_sha256"]
+               != plan.get("qualification_technical_successor_sha256")):
         raise PermissionError("Transfer packaging carry-forward authority differs")
     _volume_path(plan.get("base_qualification_receipt_path"), label="base receipt")
     _volume_path(plan.get("capacity_qualification_receipt_path"), label="capacity receipt")
@@ -153,6 +161,8 @@ def build_packaging_plan(*, source_root: str | Path, source_commit: str,
                          base_qualification_source_intent: Mapping[str, Any],
                          base_qualification_carryforward: Mapping[str, Any],
                          base_qualification_carryforward_sha256: str,
+                         qualification_technical_successor: Mapping[str, Any],
+                         qualification_technical_successor_sha256: str,
                          base_qualification_receipt_file_sha256: str,
                          capacity_qualification_receipt_path: str,
                          capacity_qualification_receipt_sha256: str,
@@ -174,6 +184,10 @@ def build_packaging_plan(*, source_root: str | Path, source_commit: str,
             base_qualification_carryforward),
         "base_qualification_carryforward_sha256":
             base_qualification_carryforward_sha256,
+        "qualification_technical_successor": dict(
+            qualification_technical_successor),
+        "qualification_technical_successor_sha256":
+            qualification_technical_successor_sha256,
         "base_qualification_receipt_file_sha256":
             base_qualification_receipt_file_sha256,
         "capacity_qualification_receipt_path": capacity_qualification_receipt_path,
@@ -217,8 +231,13 @@ def validate_gold_matrix(*, plan: Mapping[str, Any],
         current_source_manifest=value["source_manifest"])
     rows = [dict(row) for row in gold_rows]
     carryforward_sha = carryforward["carryforward_sha256"]
+    technical = validate_technical_successor(
+        value["qualification_technical_successor"])
     if carryforward_sha != value["base_qualification_carryforward_sha256"]:
         raise PermissionError("Packaging carry-forward hash differs")
+    if technical["technical_successor_sha256"] != value[
+            "qualification_technical_successor_sha256"]:
+        raise PermissionError("Packaging technical-successor hash differs")
     if (base.get("model_tree_sha256") != value["model_tree_sha256"]
             or base.get("receipt_sha256")
                != value["base_qualification_receipt_sha256"]):
@@ -232,7 +251,9 @@ def validate_gold_matrix(*, plan: Mapping[str, Any],
             or capacity_receipt.get("base_qualification_receipt_sha256")
                != base["receipt_sha256"]
             or capacity_receipt.get("base_qualification_carryforward_sha256")
-               != carryforward_sha):
+               != carryforward_sha
+            or capacity_receipt.get("qualification_technical_successor_sha256")
+               != technical["technical_successor_sha256"]):
         raise PermissionError("Capacity gate differs from packaging authority")
     if len(rows) != 29:
         raise PermissionError("Packaging requires exactly base + capacity + 27 Gold rows")
@@ -794,6 +815,10 @@ def publish_transfer_package(*, plan: Mapping[str, Any],
                 "base_qualification_carryforward"],
             "base_qualification_carryforward_sha256": matrix["capacity"].get(
                 "base_qualification_carryforward_sha256"),
+            "qualification_technical_successor": authority[
+                "qualification_technical_successor"],
+            "qualification_technical_successor_sha256": matrix["capacity"].get(
+                "qualification_technical_successor_sha256"),
             "capacity_qualification_receipt_sha256": matrix["capacity"][
                 "receipt_sha256"],
             "gold_matrix_summary_sha256": matrix["summary"]["summary_sha256"],

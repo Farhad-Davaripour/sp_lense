@@ -265,10 +265,26 @@ resources:
         disable_auto_optimization: true
         depends_on:
         - task_key: validate_before_gpu
+      - task_key: finalize_partition_mlflow
+        depends_on:
+        - task_key: run_one_partition
+        run_if: ALL_DONE
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_partition_finalize.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+            plan_path: '{{job.parameters.plan_path}}'
+        environment_key: continuity_finalize_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
       - task_key: release_active_reservation
         depends_on:
         - task_key: validate_before_gpu
         - task_key: run_one_partition
+        - task_key: finalize_partition_mlflow
         run_if: ALL_DONE
         notebook_task:
           notebook_path: ../notebooks/databricks_continuity_cleanup.py
@@ -293,6 +309,12 @@ resources:
         spec:
           environment_version: ${var.continuity_gpu_environment_version}
           dependencies: *continuity_gpu_dependencies
+      - environment_key: continuity_finalize_cpu
+        spec:
+          environment_version: '6'
+          dependencies:
+          - mlflow==3.1.0
+          - numpy==2.2.2
     simulated_continuity_primary_partition:
       name: Research 4 - One primary continuity partition
       max_concurrent_runs: 1
@@ -361,10 +383,26 @@ resources:
         disable_auto_optimization: true
         depends_on:
         - task_key: validate_before_gpu
+      - task_key: finalize_partition_mlflow
+        depends_on:
+        - task_key: run_one_partition
+        run_if: ALL_DONE
+        notebook_task:
+          notebook_path: ../notebooks/databricks_continuity_partition_finalize.py
+          base_parameters:
+            run_id: '{{job.run_id}}'
+            code_path: ${var.code_path}
+            intent_path: '{{job.parameters.intent_path}}'
+            plan_path: '{{job.parameters.plan_path}}'
+        environment_key: continuity_finalize_cpu
+        max_retries: 0
+        timeout_seconds: 900
+        disable_auto_optimization: true
       - task_key: release_active_reservation
         depends_on:
         - task_key: validate_before_gpu
         - task_key: run_one_partition
+        - task_key: finalize_partition_mlflow
         run_if: ALL_DONE
         notebook_task:
           notebook_path: ../notebooks/databricks_continuity_cleanup.py
@@ -389,6 +427,12 @@ resources:
         spec:
           environment_version: ${var.continuity_gpu_environment_version}
           dependencies: *continuity_gpu_dependencies
+      - environment_key: continuity_finalize_cpu
+        spec:
+          environment_version: '6'
+          dependencies:
+          - mlflow==3.1.0
+          - numpy==2.2.2
     simulated_continuity_transfer_packaging:
       name: Research 4 - CPU transfer package publication
       max_concurrent_runs: 1

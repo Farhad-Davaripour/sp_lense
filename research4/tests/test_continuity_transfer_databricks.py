@@ -24,6 +24,7 @@ from src.continuity_transfer_inference_worker import (
 from src.databricks_simulated_continuity import (
     MODEL_RECEIPT, MODEL_ROOT, SOURCE_MANIFEST_PATHS, SOURCE_MANIFEST_VERSION,
 )
+from src.qualification_technical_successor import authority as technical_successor
 
 
 class DatabricksTransferBindingTests(unittest.TestCase):
@@ -67,6 +68,9 @@ class DatabricksTransferBindingTests(unittest.TestCase):
             "base_qualification_carryforward": carryforward,
             "base_qualification_carryforward_sha256": carryforward[
                 "carryforward_sha256"],
+            "qualification_technical_successor": technical_successor(),
+            "qualification_technical_successor_sha256": technical_successor()[
+                "technical_successor_sha256"],
             "checkpoint_root": "/Volumes/c/s/v/checkpoints",
             "checkpoint_manifest_path": "/Volumes/c/s/v/CHECKPOINT_MANIFEST.json",
             "checkpoint_manifest_sha256": "1" * 64,

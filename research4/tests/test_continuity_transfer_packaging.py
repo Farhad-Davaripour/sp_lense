@@ -33,6 +33,7 @@ from dataclasses import asdict
 from src.databricks_simulated_continuity import (
     GOLD_SUMMARY_TABLE, SOURCE_MANIFEST_PATHS, SOURCE_MANIFEST_VERSION,
 )
+from src.qualification_technical_successor import authority as technical_successor
 
 
 class TransferPackagingTests(unittest.TestCase):
@@ -67,6 +68,9 @@ class TransferPackagingTests(unittest.TestCase):
             "base_qualification_carryforward": carryforward,
             "base_qualification_carryforward_sha256": carryforward[
                 "carryforward_sha256"],
+            "qualification_technical_successor": technical_successor(),
+            "qualification_technical_successor_sha256": technical_successor()[
+                "technical_successor_sha256"],
             "base_qualification_receipt_file_sha256": "e" * 64,
             "capacity_qualification_receipt_path": "/Volumes/a/b/c/capacity.json",
             "capacity_qualification_receipt_sha256": "f" * 64,

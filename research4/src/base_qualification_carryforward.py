@@ -125,12 +125,15 @@ QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256 = {
 ALLOWED_RUNTIME_CHANGED_PATHS = (
     "notebooks/databricks_continuity_gold_audit.py",
     "notebooks/databricks_continuity_partition.py",
+    "notebooks/databricks_continuity_partition_finalize.py",
     "notebooks/databricks_continuity_preflight.py",
     "notebooks/databricks_continuity_transfer_audit.py",
     "notebooks/databricks_continuity_transfer_evaluation.py",
     "notebooks/databricks_continuity_transfer_intent_preparation.py",
     "notebooks/databricks_continuity_transfer_packaging.py",
     "notebooks/databricks_continuity_transfer_preflight.py",
+    "notebooks/qwen9b_ordinal_continuity_training.py",
+    "resources/simulated_continuity_databricks.job.yml",
     "src/base_qualification_carryforward.py",
     "src/continuity_transfer_databricks.py",
     "src/continuity_transfer_inference_worker.py",
@@ -139,11 +142,14 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "src/databricks_continuity_partition.py",
     "src/databricks_continuity_partition_worker.py",
     "src/databricks_simulated_continuity.py",
+    "src/qualification_technical_successor.py",
+    "src/qwen9b_ordinal_continuity_controller.py",
     "src/qwen9b_ordinal_continuity_training.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/prepare_databricks_continuity_intent.py",
     "tools/prepare_databricks_transfer_intent.py",
     "tools/prepare_databricks_transfer_package_plan.py",
+    "tools/prepare_qwen9b_ordinal_continuity_package.py",
 )
 
 

@@ -49,6 +49,7 @@ from src.qwen9b_ordinal_continuity_training import (
     verify_rank_receipt,
 )
 from src.qwen9b_ordinal_continuity_worker import consume_one_use_intent
+from src.qualification_technical_successor import SUCCESSOR_IDENTITY
 
 
 FAMILIES = [f"family-{index:02d}" for index in range(12)]
@@ -730,9 +731,9 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v3",
+                "version": "qwen35-9b-continuity-partition-intent-v4",
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
-                "partition_identity": "qualification_rank4",
+                "partition_identity": SUCCESSOR_IDENTITY,
                 "plan_sha256": qualification.full_plan_sha256,
                 "wall_clock_stop_seconds": 3600,
                 "wall_clock_ceiling_seconds": 4200,
@@ -743,7 +744,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             second = module.build(repo, generated, plan, intent, root / "second.zip")
             self.assertEqual(first["package_sha256"], second["package_sha256"])
             self.assertEqual(first["tree_sha256"], second["tree_sha256"])
-            self.assertEqual(first["partition_identity"], "qualification_rank4")
+            self.assertEqual(first["partition_identity"], SUCCESSOR_IDENTITY)
             self.assertEqual(len(first["notebook_bindings"]), 4)
 
             notebook_path = (Path(__file__).parents[1] / "notebooks" /

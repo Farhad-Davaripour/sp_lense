@@ -20,6 +20,7 @@ def main(argv=None) -> int:
     parser.add_argument("--base-qualification-carryforward-sha256", required=True)
     parser.add_argument("--base-qualification-source-intent", required=True)
     parser.add_argument("--base-qualification-carryforward", required=True)
+    parser.add_argument("--qualification-technical-successor", required=True)
     parser.add_argument("--checkpoint-root", required=True)
     parser.add_argument("--checkpoint-manifest", required=True)
     parser.add_argument("--unblinding-key", required=True)
@@ -37,6 +38,8 @@ def main(argv=None) -> int:
         args.base_qualification_source_intent).read_text(encoding="utf-8"))
     carryforward = json.loads(Path(
         args.base_qualification_carryforward).read_text(encoding="utf-8"))
+    technical = json.loads(Path(
+        args.qualification_technical_successor).read_text(encoding="utf-8"))
     intent = build_transfer_intent(
         source_root=args.source_root, source_commit=args.source_commit,
         model_tree_sha256=args.model_tree_sha256,
@@ -46,6 +49,9 @@ def main(argv=None) -> int:
             args.base_qualification_carryforward_sha256,
         base_qualification_source_intent=source_base_intent,
         base_qualification_carryforward=carryforward,
+        qualification_technical_successor=technical,
+        qualification_technical_successor_sha256=technical[
+            "technical_successor_sha256"],
         checkpoint_root=args.checkpoint_root,
         checkpoint_manifest_path=args.checkpoint_manifest,
         unblinding_key_path=args.unblinding_key,
