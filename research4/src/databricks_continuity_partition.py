@@ -741,7 +741,7 @@ def recover_parent_evidence(*, spark, authority_path, recovery_code_root,
         closeout=closeout)
     if (owner_state != "after_cleanup"
             or active_path.exists()
-            or closeout.get("closeout_sha256")
+            or closeout.get("receipt_sha256")
                != original["closeout_receipt_sha256"]):
         raise PermissionError("Parent recovery release state differs")
 

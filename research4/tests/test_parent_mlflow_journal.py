@@ -340,6 +340,8 @@ class ParentMlflowJournalTests(unittest.TestCase):
             return next(expected for suffix, expected in suffixes.items()
                         if value.endswith(suffix))
 
+        closeout_receipt = [original["closeout_receipt_sha256"]]
+
         def fake_read(path):
             value = str(path).replace("\\", "/")
             if value == "/Volumes/research4_simulated_continuity/bronze/model_data/recovery_inputs/authority.json":
@@ -355,9 +357,12 @@ class ParentMlflowJournalTests(unittest.TestCase):
             if "/locks/consumed/" in value:
                 return {"owner": original["owner_run_id"]}
             if "/locks/closeouts/" in value:
-                return {"closeout_sha256": original[
-                    "closeout_receipt_sha256"]}
+                return {"receipt_sha256": closeout_receipt[0]}
             raise AssertionError(value)
+
+        def fake_self_hashed(path, **kwargs):
+            return (failure if kwargs.get("field")
+                    == "failure_evidence_sha256" else {})
 
         events = []
         published = {
@@ -398,7 +403,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
                         "receipt_sha256": original["model_receipt_sha256"]}), patch(
                     "src.databricks_continuity_partition.validate_exact_gold_row"), patch(
                     "src.databricks_continuity_partition._verify_self_hashed_evidence",
-                    side_effect=[failure, {}, {}]), patch(
+                    side_effect=fake_self_hashed), patch(
                     "src.databricks_continuity_partition._read_exact_text",
                     return_value=failure["error"]), patch(
                     "src.databricks_continuity_partition._jsonl",
@@ -446,6 +451,25 @@ class ParentMlflowJournalTests(unittest.TestCase):
                     recovery_execution_run_id="112",
                     recovery_job_id="wrong",
                     recovery_task_key="finalize_partition_mlflow")
+            closeout_receipt[0] = "0" * 64
+            with self.assertRaisesRegex(PermissionError, "release state"):
+                recover_parent_evidence(
+                    spark=Spark(),
+                    authority_path=(
+                        "/Volumes/research4_simulated_continuity/bronze/model_data/"
+                        "recovery_inputs/authority.json"),
+                    recovery_code_root=authority["recovery_source"][
+                        "source_release_path"],
+                    original_code_root=str(original_root),
+                    intent_path=files["intent"]["path"],
+                    plan_path=files["plan"]["path"],
+                    base_qualification_receipt_path=files[
+                        "base_qualification_receipt"]["path"],
+                    original_owner_run_id=original["owner_run_id"],
+                    recovery_execution_run_id="113",
+                    recovery_job_id=original["job_id"],
+                    recovery_task_key="finalize_partition_mlflow")
+            self.assertEqual(events, ["claim", "publish"])
 
     def test_completed_child_replay_accepts_dict_plan_and_binds_two_updates(self):
         plan = databricks_a10_plan(TrainingPlan())
