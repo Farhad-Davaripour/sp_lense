@@ -187,6 +187,10 @@ REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256 = {
 ALLOWED_RUNTIME_CHANGED_PATHS = (
     "config/databricks_production_resource_bindings.json",
     "databricks.yml",
+    "infrastructure/classic_a10_scale1_v6/PROPOSAL.md",
+    "infrastructure/classic_a10_scale1_v6/PROVIDER_BINDING.json",
+    "infrastructure/classic_a10_scale1_v6/SCHEMA_AUDIT.json",
+    "infrastructure/classic_a10_scale1_v6/submit.json",
     "notebooks/databricks_continuity_admission.py",
     "notebooks/databricks_continuity_bootstrap.py",
     "notebooks/databricks_continuity_base_qualification.py",
@@ -224,11 +228,13 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "src/recognition_pilot.py",
     "src/volume_durable_io.py",
     "tools/check_offline_config.py",
+    "tools/monitor_classic_a10_recovery.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/prepare_databricks_continuity_intent.py",
     "tools/prepare_databricks_transfer_intent.py",
     "tools/prepare_databricks_transfer_package_plan.py",
     "tools/prepare_qwen9b_ordinal_continuity_package.py",
+    "tools/validate_classic_a10_recovery.py",
 )
 
 
