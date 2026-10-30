@@ -483,7 +483,7 @@ def verify_deployed_carryforward(receipt: Mapping, *, code_root: str | Path,
     root = Path(code_root).resolve()
     for path, expected in value["unchanged_base_files"].items():
         target = root / path
-        if not target.is_file() or _file_sha256(target) != expected:
+        if not target.is_file() or _canonical_file_sha256(target) != expected:
             raise PermissionError("Deployed unchanged base file differs")
     for path, expected in value["reviewed_changed_file_sha256"].items():
         target = root / path
