@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from pathlib import Path
 import hashlib
+import inspect
 import json
 import shutil
 import tempfile
@@ -54,7 +55,7 @@ from src.base_qualification_carryforward import (
     symbol_ast_sha256, symbol_dependency_closure_sha256, validate_carryforward,
     verify_deployed_carryforward,
 )
-from src.databricks_continuity_partition import _stage_local_model
+from src.databricks_continuity_partition import _stage_local_model, run_partition
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import (
@@ -1649,6 +1650,40 @@ class DatabricksContinuityTests(unittest.TestCase):
             finalizer_notebook.index("sys.path.insert"))
         self.assertIn('"src/volume_durable_io.py"', finalizer_notebook)
         self.assertIn("verify_deployed_source", finalizer_notebook)
+        self.assertIn("recovery_authority_path", finalizer_notebook)
+        self.assertIn("recover_parent_evidence(", finalizer_notebook)
+        self.assertIn("publish_parent_recovery_result(", finalizer_notebook)
+        self.assertLess(
+            finalizer_notebook.index("bootstrap_source_sha256 ="),
+            finalizer_notebook.index("recover_parent_evidence("))
+        qualification_job = jobs["simulated_continuity_rank4_qualification"]
+        qualification_parameters = {
+            item["name"] for item in qualification_job["parameters"]}
+        self.assertTrue({
+            "recovery_authority_path", "original_code_path",
+            "original_owner_run_id"} <= qualification_parameters)
+        qualification_tasks = {
+            item["task_key"]: item for item in qualification_job["tasks"]}
+        recovery_parameters = {
+            "recovery_authority_path", "original_code_path",
+            "original_owner_run_id"}
+        finalizer_recovery_parameters = recovery_parameters | {
+            "recovery_job_id", "recovery_task_key"}
+        self.assertTrue(finalizer_recovery_parameters <= set(
+            qualification_tasks["finalize_partition_mlflow"][
+                "notebook_task"]["base_parameters"]))
+        finalizer_parameters = qualification_tasks[
+            "finalize_partition_mlflow"]["notebook_task"]["base_parameters"]
+        self.assertEqual(finalizer_parameters["recovery_job_id"], "{{job.id}}")
+        self.assertEqual(
+            finalizer_parameters["recovery_task_key"], "{{task.name}}")
+        self.assertTrue(recovery_parameters.isdisjoint(
+            qualification_tasks["validate_before_gpu"][
+                "notebook_task"]["base_parameters"]))
+        self.assertTrue(recovery_parameters.isdisjoint(
+            qualification_tasks["run_one_partition"][
+                "notebook_task"]["base_parameters"]))
+        self.assertEqual(qualification_job["performance_target"], "STANDARD")
         self.assertIn("verify_dataset_release(dataset_release_path)", data_notebook)
         self.assertIn("silver_partition_bindings(silver, generated)", data_notebook)
         self.assertIn("schema=spark.table(table).schema", data_notebook)
@@ -1669,12 +1704,14 @@ class DatabricksContinuityTests(unittest.TestCase):
         intent_tool = (root / "tools/prepare_databricks_continuity_intent.py").read_text()
         self.assertNotIn('"source-sha256"', intent_tool)
         self.assertIn("build_source_manifest", intent_tool)
-        self.assertLess(source.index("verify_reserved_intent(lock_root"),
-                        source.index(
+        partition_source = inspect.getsource(run_partition)
+        self.assertLess(partition_source.index("verify_reserved_intent(lock_root"),
+                        partition_source.index(
                             "model_receipt = verify_model_receipt_authority("))
-        self.assertLess(source.index("verify_reserved_intent("),
-                        source.index("local_model, local_model_receipt, cache_metrics = "
-                                     "_stage_local_model("))
+        self.assertLess(partition_source.index("verify_reserved_intent("),
+                        partition_source.index(
+                            "local_model, local_model_receipt, cache_metrics = "
+                            "_stage_local_model("))
 
     def test_policy_predecessor_is_exact_canonical_partition(self):
         policies = matrix_plans(EXPERIMENT_SPEC, 4)

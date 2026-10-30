@@ -1,21 +1,30 @@
 import copy
+from datetime import datetime, timedelta, timezone
 import hashlib
+import inspect
 import json
 import os
 from dataclasses import asdict
 from pathlib import Path
+import sys
 import tempfile
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import patch
 
 from src.databricks_continuity_partition import (
     _EXPECTED_MLFLOW_ARTIFACTS,
     _ensure_pending_gold_row, _reconcile_mlflow_scalars,
+    _publish_parent_evidence, _replay_completed_child, run_partition,
+    _V7_RECOVERY_ORIGINAL, PARENT_RECOVERY_AUTHORITY_VERSION,
     _validate_parent_finalization,
+    publish_parent_recovery_result,
+    recover_parent_evidence,
+    validate_parent_recovery_authority,
     _verify_completed_mlflow_state, _verify_finalizer_owner,
 )
-from src.databricks_simulated_continuity import digest
+from src.databricks_simulated_continuity import (
+    GOLD_ADMISSION_TABLE, GOLD_RUN_TABLE, digest)
 from src.databricks_continuity_partition_worker import (
     MLFLOW_JOURNAL_VERSION, _digest, run as run_partition_worker,
     validate_mlflow_journal,
@@ -31,6 +40,559 @@ from src.qualification_technical_successor import (
 
 
 class ParentMlflowJournalTests(unittest.TestCase):
+    @staticmethod
+    def _parent_recovery_authority():
+        commit = "a" * 40
+        manifest = {"manifest_sha256": "b" * 64,
+                    "source_commit": commit, "files": []}
+        authority = {
+            "version": PARENT_RECOVERY_AUTHORITY_VERSION,
+            "execution_platform": "databricks", "cpu_only": True,
+            "one_use": True, "automatic_retries": 0,
+            "issued_at_utc": datetime.now(timezone.utc).isoformat(),
+            "expires_at_utc": (
+                datetime.now(timezone.utc) + timedelta(minutes=30)
+            ).isoformat(),
+            "identity": _V7_RECOVERY_ORIGINAL["identity"],
+            "original": copy.deepcopy(_V7_RECOVERY_ORIGINAL),
+            "recovery_source": {
+                "source_commit": commit,
+                "source_release_path": (
+                    "/Workspace/Shared/research4/source_releases/" + commit),
+                "source_sha256": manifest["manifest_sha256"],
+                "source_manifest": manifest,
+            },
+            "files": {name: {"path": (
+                                  "/Volumes/research4_simulated_continuity/"
+                                  "bronze/model_data/recovery_inputs/"
+                                  f"{name}.json"),
+                              "sha256": "c" * 64}
+                      for name in (
+                          "intent", "plan", "base_qualification_receipt",
+                          "failure_evidence", "task_output", "child_audit",
+                          "mlflow_gold_audit")},
+            "scope": {
+                "allowed_task": "finalize_partition_mlflow",
+                "max_cloud_runs": 1, "max_retries": 0,
+                "timeout_seconds": 900, "gpu_execution": False,
+                "model_loads": 0, "model_forwards": 0,
+                "backward_passes": 0, "optimizer_updates": 0,
+                "new_mlflow_run": False, "new_scientific_identity": False,
+            },
+            "human_authority": {
+                "thread_id": "01a182ea-a06d-7223-9a17-90f33b1276f6",
+                "message_id": "01a18df6-7e5a-7a02-8eb3-efab4055294e",
+                "instruction": "try again just the failed step not all the steps",
+            },
+        }
+        authority["authority_sha256"] = digest(authority)
+        return authority
+
+    def test_parent_recovery_authority_is_cpu_only_and_source_bound(self):
+        authority = self._parent_recovery_authority()
+        expected_root = Path(authority["recovery_source"][
+            "source_release_path"])
+        manifest = authority["recovery_source"]["source_manifest"]
+        with patch(
+                "src.databricks_continuity_partition.validate_source_manifest",
+                return_value=manifest), patch(
+                    "src.databricks_continuity_partition.build_source_manifest",
+                    return_value=manifest), patch(
+                        "src.databricks_continuity_partition.Path.resolve",
+                        return_value=expected_root):
+            self.assertEqual(
+                validate_parent_recovery_authority(
+                    authority, recovery_code_root=expected_root)[
+                        "authority_sha256"],
+                authority["authority_sha256"])
+            changed = copy.deepcopy(authority)
+            changed["original"]["owner_run_id"] = "1"
+            changed["authority_sha256"] = digest({
+                key: value for key, value in changed.items()
+                if key != "authority_sha256"})
+            with self.assertRaises(PermissionError):
+                validate_parent_recovery_authority(
+                    changed, recovery_code_root=expected_root)
+            changed = copy.deepcopy(authority)
+            changed["expires_at_utc"] = (
+                datetime.fromisoformat(changed["issued_at_utc"])
+                + timedelta(hours=2)).isoformat()
+            changed["authority_sha256"] = digest({
+                key: value for key, value in changed.items()
+                if key != "authority_sha256"})
+            with self.assertRaises(PermissionError):
+                validate_parent_recovery_authority(
+                    changed, recovery_code_root=expected_root)
+            changed = copy.deepcopy(authority)
+            changed["human_authority"]["message_id"] = "fabricated"
+            changed["authority_sha256"] = digest({
+                key: value for key, value in changed.items()
+                if key != "authority_sha256"})
+            with self.assertRaises(PermissionError):
+                validate_parent_recovery_authority(
+                    changed, recovery_code_root=expected_root)
+            changed = copy.deepcopy(authority)
+            changed["scope"]["model_forwards"] = 1
+            changed["authority_sha256"] = digest({
+                key: value for key, value in changed.items()
+                if key != "authority_sha256"})
+            with self.assertRaises(PermissionError):
+                validate_parent_recovery_authority(
+                    changed, recovery_code_root=expected_root)
+
+    def test_parent_recovery_result_is_immutable_and_zero_execution(self):
+        authority = self._parent_recovery_authority()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            authority_path = root / "AUTHORITY.json"
+            authority_path.write_text(json.dumps(authority), encoding="utf-8")
+            recovery = {
+                "status": "parent_evidence_recovered",
+                "authority_sha256": authority["authority_sha256"],
+                "identity": authority["identity"],
+                "original_owner_run_id": "303633587077489",
+                "recovery_execution_run_id": "111",
+                "mlflow_run_id": "d" * 32,
+                "recovery_root": str(
+                    root / "volume" / "parent_finalization_recovery" /
+                    (PARENT_RECOVERY_AUTHORITY_VERSION + "-" +
+                     authority["identity"])),
+                "parent_finalization_sha256": "e" * 64,
+                "parent_manifest_sha256": "f" * 64,
+            }
+            finalization = {
+                "status": "complete", "identity": authority["identity"],
+                "mlflow_run_id": "d" * 32,
+                "receipt_sha256": "1" * 64,
+                "journal_final_sha256": "2" * 64,
+            }
+            with patch(
+                    "src.databricks_continuity_partition.VOLUME",
+                    str(root / "volume")):
+                first = publish_parent_recovery_result(
+                    authority_path, recovery, finalization)
+                second = publish_parent_recovery_result(
+                    authority_path, recovery, finalization)
+            self.assertEqual(first, second)
+            self.assertEqual(
+                {key: first[key] for key in (
+                    "model_loads", "model_forwards", "backward_passes",
+                    "optimizer_updates")},
+                {"model_loads": 0, "model_forwards": 0,
+                 "backward_passes": 0, "optimizer_updates": 0})
+            changed = copy.deepcopy(recovery)
+            changed["recovery_root"] = str(root / "attacker-controlled")
+            with patch(
+                    "src.databricks_continuity_partition.VOLUME",
+                    str(root / "volume")), self.assertRaises(PermissionError):
+                publish_parent_recovery_result(
+                    authority_path, changed, finalization)
+
+    def test_parent_recovery_route_cannot_execute_model_or_optimizer(self):
+        source = inspect.getsource(recover_parent_evidence)
+        for forbidden in (
+                "_stage_local_model", "subprocess", "torch", ".backward(",
+                ".step(", "snapshot_download", "run_partition("):
+            self.assertNotIn(forbidden, source)
+        self.assertIn("_replay_completed_child(", source)
+        self.assertIn("_publish_parent_evidence(", source)
+        self.assertIn('mlflow_run.info.status != "RUNNING"', source)
+        self.assertIn("or gold_rows", source)
+
+    def test_parent_recovery_replays_exact_prestate_before_publication(self):
+        authority = self._parent_recovery_authority()
+        original = authority["original"]
+        files = authority["files"]
+        files["intent"]["sha256"] = original["intent_file_sha256"]
+        files["plan"]["sha256"] = original["plan_file_sha256"]
+        files["failure_evidence"]["sha256"] = original[
+            "failure_evidence_file_sha256"]
+        files["task_output"]["sha256"] = original[
+            "task_output_file_sha256"]
+        files["child_audit"]["sha256"] = original[
+            "child_audit_file_sha256"]
+        files["mlflow_gold_audit"]["sha256"] = original[
+            "mlflow_gold_audit_file_sha256"]
+        authority["authority_sha256"] = digest({
+            key: value for key, value in authority.items()
+            if key != "authority_sha256"})
+        plan = databricks_a10_plan(TrainingPlan())
+        intent = {
+            "identity": original["identity"],
+            "source_commit": original["source_commit"],
+            "source_sha256": original["source_manifest_sha256"],
+            "intent_sha256": original["intent_sha256"],
+            "plan_sha256": original["plan_sha256"],
+            "global_journal_sha256": original["global_journal_sha256"],
+            "model_tree_sha256": original["model_tree_sha256"],
+            "model_receipt_sha256": original["model_receipt_sha256"],
+            "base_qualification_receipt_sha256": original[
+                "base_qualification_receipt_sha256"],
+            "plan": asdict(plan),
+        }
+        base = {
+            "identity": "base", "receipt_sha256": original[
+                "base_qualification_receipt_sha256"],
+            "plan_sha256": "1" * 64, "raw_results_sha256": "2" * 64,
+            "base_qualification_intent_sha256": "3" * 64,
+        }
+        terminal = {"exit_code": 0, "operator_stop_sent": False,
+                    "ceiling_kill_sent": False,
+                    "child_exit_confirmed": True}
+        failure = {
+            "version": "research4-v7-parent-finalization-failure-evidence-v1",
+            "source_commit": original["source_commit"],
+            "owner_run_id": original["owner_run_id"],
+            "gpu_task_run_id": original["gpu_task_run_id"],
+            "error": "AttributeError: 'dict' object has no attribute 'optimizer_updates'",
+            "source_file": "src/databricks_continuity_partition.py",
+            "line_numbers": [427, 432, 433],
+            "task_output_file_sha256": original["task_output_file_sha256"],
+        }
+        failure["failure_evidence_sha256"] = digest(failure)
+        child = {
+            "receipt": {"receipt_sha256": original[
+                "training_receipt_sha256"]},
+            "rank_receipt": {"receipt_sha256": original[
+                "training_receipt_sha256"]},
+            "evidence_sha256": original["evidence_sha256"],
+            "journal": {"final": {"final_sha256": original[
+                "journal_final_sha256"]}},
+            "checkpoint_tree_sha256": original["checkpoint_tree_sha256"],
+        }
+
+        class Column:
+            def __eq__(self, other):
+                return self
+
+            def __and__(self, other):
+                return self
+
+        functions = ModuleType("pyspark.sql.functions")
+        functions.col = lambda name: Column()
+        sql = ModuleType("pyspark.sql"); sql.functions = functions
+        pyspark = ModuleType("pyspark"); pyspark.sql = sql
+
+        class Table:
+            def __init__(self, rows):
+                self.rows = rows
+
+            def where(self, expression):
+                return self
+
+            def collect(self):
+                return self.rows
+
+        class Spark:
+            gold_calls = 0
+
+            def table(self, name):
+                if name == GOLD_ADMISSION_TABLE:
+                    return Table([{"status": "released"}])
+                if name == GOLD_RUN_TABLE:
+                    self.gold_calls += 1
+                    return Table([{"base": True}] if self.gold_calls == 1 else [])
+                raise AssertionError(name)
+
+        tags = {
+            "mlflow.runName": original["identity"],
+            "research4.parent_owned_run": "true",
+            "research4.owner_run_id": original["owner_run_id"],
+            "research4.intent_sha256": original["intent_sha256"],
+            "research4.partition_identity": original["identity"],
+            "research4.plan_sha256": original["plan_sha256"],
+        }
+        mlflow_run = SimpleNamespace(
+            info=SimpleNamespace(
+                experiment_id=original["mlflow_experiment_id"],
+                status="RUNNING"),
+            data=SimpleNamespace(tags=tags, params={}, metrics={}))
+        client = SimpleNamespace(
+            get_run=lambda run_id: mlflow_run,
+            get_experiment=lambda experiment_id: SimpleNamespace(
+                name=original["mlflow_experiment_path"]),
+            list_artifacts=lambda run_id: [])
+        mlflow = ModuleType("mlflow")
+        mlflow.tracking = SimpleNamespace(MlflowClient=lambda: client)
+
+        file_hashes = {row["path"]: row["sha256"]
+                       for row in files.values()}
+        def fake_file_sha(path):
+            value = str(path).replace("\\", "/")
+            if value in file_hashes:
+                return file_hashes[value]
+            suffixes = {
+                "/records.jsonl": original["records_file_sha256"],
+                "/TERMINAL.json": original["terminal_file_sha256"],
+                "/output/CHILD_OUTPUT_MANIFEST.json": original[
+                    "child_manifest_file_sha256"],
+                "/output/TRAINING_RECEIPT.json": original[
+                    "training_receipt_file_sha256"],
+                "/output/RANK_0_RECEIPT.json": original[
+                    "rank_receipt_file_sha256"],
+                "/output/DATABRICKS_EVIDENCE.json": original[
+                    "evidence_file_sha256"],
+                "/output/checkpoint/delta1.pt": original[
+                    "checkpoint_file_sha256"],
+                "/output/optimizer_rank0.pt": original[
+                    "optimizer_file_sha256"],
+            }
+            return next(expected for suffix, expected in suffixes.items()
+                        if value.endswith(suffix))
+
+        def fake_read(path):
+            value = str(path).replace("\\", "/")
+            if value == "/Volumes/research4_simulated_continuity/bronze/model_data/recovery_inputs/authority.json":
+                return authority
+            if value == files["intent"]["path"]:
+                return intent
+            if value == files["plan"]["path"]:
+                return asdict(plan)
+            if value == files["base_qualification_receipt"]["path"]:
+                return base
+            if value.endswith("/TERMINAL.json"):
+                return terminal
+            if "/locks/consumed/" in value:
+                return {"owner": original["owner_run_id"]}
+            if "/locks/closeouts/" in value:
+                return {"closeout_sha256": original[
+                    "closeout_receipt_sha256"]}
+            raise AssertionError(value)
+
+        events = []
+        published = {
+            "parent_finalization": {"parent_finalization_sha256": "4" * 64},
+            "parent_manifest": {"manifest_sha256": "5" * 64},
+        }
+        original_root = Path(
+            "/Workspace/Shared/research4/source_releases/" +
+            original["source_commit"])
+        with patch.dict(sys.modules, {
+                "pyspark": pyspark, "pyspark.sql": sql,
+                "pyspark.sql.functions": functions, "mlflow": mlflow}), \
+                patch(
+                    "src.databricks_continuity_partition.validate_parent_recovery_authority",
+                    return_value=authority), patch(
+                    "src.databricks_continuity_partition.Path.resolve",
+                    return_value=original_root), patch(
+                    "src.databricks_continuity_partition._file_sha256",
+                    side_effect=fake_file_sha), patch(
+                    "src.databricks_continuity_partition._read",
+                    side_effect=fake_read), patch(
+                    "src.databricks_continuity_partition.validate_intent",
+                    return_value=intent), patch(
+                    "src.databricks_continuity_partition.verify_deployed_source",
+                    return_value={
+                        "manifest_sha256": original["source_manifest_sha256"],
+                        "files": [{
+                            "path": "src/databricks_continuity_partition.py",
+                            "sha256": original[
+                                "partition_source_file_sha256"]}]}), patch(
+                    "src.databricks_continuity_partition.validate_base_qualification_receipt",
+                    return_value=base), patch(
+                    "src.databricks_continuity_partition.verify_intent_base_qualification_authority",
+                    return_value={"source_commit": original["source_commit"]}), patch(
+                    "src.databricks_continuity_partition.verify_model_receipt_authority",
+                    return_value={
+                        "tree_sha256": original["model_tree_sha256"],
+                        "receipt_sha256": original["model_receipt_sha256"]}), patch(
+                    "src.databricks_continuity_partition.validate_exact_gold_row"), patch(
+                    "src.databricks_continuity_partition._verify_self_hashed_evidence",
+                    side_effect=[failure, {}, {}]), patch(
+                    "src.databricks_continuity_partition._read_exact_text",
+                    return_value=failure["error"]), patch(
+                    "src.databricks_continuity_partition._jsonl",
+                    return_value=[{}] * original["records_count"]), patch(
+                    "src.databricks_continuity_partition._replay_completed_child",
+                    return_value=child), patch(
+                    "src.databricks_continuity_partition._verify_finalizer_owner",
+                    return_value="after_cleanup"), patch(
+                    "src.databricks_continuity_partition._atomic_json",
+                    side_effect=lambda *args, **kwargs: events.append("claim")), patch(
+                    "src.databricks_continuity_partition._publish_parent_evidence",
+                    side_effect=lambda **kwargs: (events.append("publish") or published)):
+            value = recover_parent_evidence(
+                spark=Spark(),
+                authority_path=(
+                    "/Volumes/research4_simulated_continuity/bronze/model_data/"
+                    "recovery_inputs/authority.json"),
+                recovery_code_root=authority["recovery_source"][
+                    "source_release_path"],
+                original_code_root=str(original_root),
+                intent_path=files["intent"]["path"],
+                plan_path=files["plan"]["path"],
+                base_qualification_receipt_path=files[
+                    "base_qualification_receipt"]["path"],
+                original_owner_run_id=original["owner_run_id"],
+                recovery_execution_run_id="111",
+                recovery_job_id=original["job_id"],
+                recovery_task_key="finalize_partition_mlflow")
+            self.assertEqual(events, ["claim", "publish"])
+            self.assertEqual(value["status"], "parent_evidence_recovered")
+            with self.assertRaises(PermissionError):
+                recover_parent_evidence(
+                    spark=Spark(),
+                    authority_path=(
+                        "/Volumes/research4_simulated_continuity/bronze/model_data/"
+                        "recovery_inputs/authority.json"),
+                    recovery_code_root=authority["recovery_source"][
+                        "source_release_path"],
+                    original_code_root=str(original_root),
+                    intent_path=files["intent"]["path"],
+                    plan_path=files["plan"]["path"],
+                    base_qualification_receipt_path=files[
+                        "base_qualification_receipt"]["path"],
+                    original_owner_run_id=original["owner_run_id"],
+                    recovery_execution_run_id="112",
+                    recovery_job_id="wrong",
+                    recovery_task_key="finalize_partition_mlflow")
+
+    def test_completed_child_replay_accepts_dict_plan_and_binds_two_updates(self):
+        plan = databricks_a10_plan(TrainingPlan())
+        intent = {"identity": "v7", "intent_sha256": "1" * 64,
+                  "plan_sha256": plan.full_plan_sha256,
+                  "global_journal_sha256": "2" * 64,
+                  "source_commit": "3" * 40,
+                  "plan": asdict(plan),
+                  "model_tree_sha256": "5" * 64,
+                  "model_receipt_sha256": "8" * 64,
+                  "base_qualification_receipt_sha256": "6" * 64}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); output = root / "output"
+            metadata_path = output / "checkpoint" / "adapter_config.json"
+            metadata_path.parent.mkdir(parents=True)
+            metadata = {"rank": plan.rank}
+            metadata["receipt_sha256"] = digest(metadata)
+            metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+            rank = {"status": "complete", "successful_optimizer_updates": 2,
+                    "receipt_sha256": "7" * 64}
+            receipt = {**rank, "checkpoint": metadata,
+                       "checkpoint_metadata_sha256": hashlib.sha256(
+                           metadata_path.read_bytes()).hexdigest()}
+            evidence = {"value": 1}
+            evidence["evidence_sha256"] = digest(evidence)
+            for name, value in (("TRAINING_RECEIPT.json", receipt),
+                                ("RANK_0_RECEIPT.json", rank),
+                                ("DATABRICKS_EVIDENCE.json", evidence)):
+                (output / name).write_text(json.dumps(value), encoding="utf-8")
+            with patch(
+                    "src.databricks_continuity_partition.verify_manifest") as manifest, \
+                    patch(
+                        "src.databricks_continuity_partition.validate_mlflow_journal",
+                        return_value={"final": {"final_sha256": "3" * 64}}), \
+                    patch(
+                        "src.databricks_continuity_partition.verify_rank_receipt"), \
+                    patch(
+                        "src.databricks_continuity_partition.adjacent_pair_schedule",
+                        return_value=[]), \
+                    patch(
+                        "src.databricks_continuity_partition.directory_tree_sha256",
+                        return_value="4" * 64):
+                value = _replay_completed_child(
+                    root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[])
+            self.assertEqual(value["receipt"]["successful_optimizer_updates"], 2)
+            self.assertEqual(manifest.call_args.kwargs["required_update_count"], 2)
+            self.assertEqual(
+                manifest.call_args.kwargs["allowed_extra"],
+                {"PARENT_FINALIZATION.json"})
+            self.assertEqual(manifest.call_args.kwargs["expected_metadata"][
+                "executed_optimizer_step_count"], 2)
+            (root / "records.jsonl").write_text("{}\n", encoding="utf-8")
+            (root / "TERMINAL.json").write_text(
+                json.dumps({"exit_code": 0, "operator_stop_sent": False,
+                            "ceiling_kill_sent": False,
+                            "child_exit_confirmed": True}),
+                encoding="utf-8")
+            (output / "CHILD_OUTPUT_MANIFEST.json").write_text(
+                "{}\n", encoding="utf-8")
+            with patch(
+                    "src.databricks_continuity_partition._replay_completed_child",
+                    return_value=value):
+                published = _publish_parent_evidence(
+                    run_root=root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[],
+                    model_receipt={"tree_sha256": "5" * 64,
+                                   "receipt_sha256": "8" * 64},
+                    base_qualification={"receipt_sha256": "6" * 64},
+                    primary_authority=None, parent_checkpoint=None,
+                    owner_run_id="123", mlflow_run_id="9" * 32)
+            self.assertEqual(published["status"], "pending_cpu_finalize")
+            self.assertEqual(
+                published["parent_finalization"]["pending_gold_row"][
+                    "optimizer_updates"], 2)
+            self.assertTrue((output / "PARENT_FINALIZATION.json").is_file())
+            self.assertTrue((root / "PARENT_OUTPUT_MANIFEST.json").is_file())
+            with patch(
+                    "src.databricks_continuity_partition._replay_completed_child",
+                    return_value=value):
+                exact = _publish_parent_evidence(
+                    run_root=root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[],
+                    model_receipt={"tree_sha256": "5" * 64,
+                                   "receipt_sha256": "8" * 64},
+                    base_qualification={"receipt_sha256": "6" * 64},
+                    primary_authority=None, parent_checkpoint=None,
+                    owner_run_id="123", mlflow_run_id="9" * 32)
+            self.assertEqual(
+                exact["parent_manifest"]["manifest_sha256"],
+                published["parent_manifest"]["manifest_sha256"])
+            parent_bytes = (output / "PARENT_FINALIZATION.json").read_bytes()
+            (output / "PARENT_FINALIZATION.json").unlink()
+            with self.assertRaisesRegex(
+                    PermissionError, "manifest exists without"):
+                _publish_parent_evidence(
+                    run_root=root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[],
+                    model_receipt={"tree_sha256": "5" * 64,
+                                   "receipt_sha256": "8" * 64},
+                    base_qualification={"receipt_sha256": "6" * 64},
+                    primary_authority=None, parent_checkpoint=None,
+                    owner_run_id="123", mlflow_run_id="9" * 32)
+            (output / "PARENT_FINALIZATION.json").write_bytes(parent_bytes)
+            (root / "PARENT_OUTPUT_MANIFEST.json").unlink()
+            with patch(
+                    "src.databricks_continuity_partition._replay_completed_child",
+                    return_value=value):
+                replayed = _publish_parent_evidence(
+                    run_root=root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[],
+                    model_receipt={"tree_sha256": "5" * 64,
+                                   "receipt_sha256": "8" * 64},
+                    base_qualification={"receipt_sha256": "6" * 64},
+                    primary_authority=None, parent_checkpoint=None,
+                    owner_run_id="123", mlflow_run_id="9" * 32)
+            self.assertEqual(
+                replayed["parent_finalization"]["parent_finalization_sha256"],
+                published["parent_finalization"]["parent_finalization_sha256"])
+            (output / "PARENT_FINALIZATION.json").write_text(
+                "{}\n", encoding="utf-8")
+            with patch(
+                    "src.databricks_continuity_partition._replay_completed_child",
+                    return_value=value), self.assertRaises(FileExistsError):
+                _publish_parent_evidence(
+                    run_root=root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[],
+                    model_receipt={"tree_sha256": "5" * 64,
+                                   "receipt_sha256": "8" * 64},
+                    base_qualification={"receipt_sha256": "6" * 64},
+                    primary_authority=None, parent_checkpoint=None,
+                    owner_run_id="123", mlflow_run_id="9" * 32)
+            receipt["successful_optimizer_updates"] = 1
+            (output / "TRAINING_RECEIPT.json").write_text(
+                json.dumps(receipt), encoding="utf-8")
+            with patch("src.databricks_continuity_partition.verify_manifest"), \
+                    self.assertRaises(PermissionError):
+                _replay_completed_child(
+                    root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[])
+        source = inspect.getsource(run_partition)
+        self.assertNotIn("plan.optimizer_updates", source)
+        self.assertIn("_publish_parent_evidence", source)
+        self.assertIn(
+            "_replay_completed_child",
+            inspect.getsource(_publish_parent_evidence))
+
     def test_early_model_preflight_failure_publishes_failure_manifest(self):
         plan = databricks_a10_plan(TrainingPlan())
         intent = {
