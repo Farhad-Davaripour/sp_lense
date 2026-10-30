@@ -14,12 +14,15 @@ from unittest.mock import patch
 
 from src.databricks_continuity_partition import (
     _EXPECTED_MLFLOW_ARTIFACTS,
-    _ensure_pending_gold_row, _reconcile_mlflow_scalars,
+    _ensure_pending_gold_row, _expected_mlflow_scalars,
+    _reconcile_mlflow_scalars,
     _publish_parent_evidence, _replay_completed_child, run_partition,
-    _V7_RECOVERY_ORIGINAL, PARENT_RECOVERY_AUTHORITY_VERSION,
+    _V7_FINALIZATION_RESUME_PREDECESSOR, _V7_RECOVERY_ORIGINAL,
+    PARENT_RECOVERY_AUTHORITY_VERSION, PARENT_RECOVERY_CLAIM_VERSION,
     _validate_parent_finalization,
     publish_parent_recovery_result,
     recover_parent_evidence,
+    resume_parent_finalization,
     validate_parent_recovery_authority,
     _verify_completed_mlflow_state, _verify_finalizer_owner,
 )
@@ -198,6 +201,18 @@ class ParentMlflowJournalTests(unittest.TestCase):
         self.assertIn("_publish_parent_evidence(", source)
         self.assertIn('mlflow_run.info.status != "RUNNING"', source)
         self.assertIn("or gold_rows", source)
+
+    def test_parent_finalization_resume_is_cpu_only_and_cannot_append_gold(self):
+        source = inspect.getsource(resume_parent_finalization)
+        for forbidden in (
+                "_stage_local_model", "subprocess", "torch", ".backward(",
+                ".step(", "snapshot_download", "run_partition("):
+            self.assertNotIn(forbidden, source)
+        self.assertIn("FINALIZATION_RESUME_CLAIM.json", source)
+        self.assertIn("reject_gold_append", source)
+        self.assertIn("_verify_durable_completion(", source)
+        self.assertIn('run.info.status != "RUNNING"', source)
+        self.assertIn("run.data.params or run.data.metrics", source)
 
     def test_parent_recovery_replays_exact_prestate_before_publication(self):
         authority = self._parent_recovery_authority()
@@ -470,6 +485,216 @@ class ParentMlflowJournalTests(unittest.TestCase):
                     recovery_job_id=original["job_id"],
                     recovery_task_key="finalize_partition_mlflow")
             self.assertEqual(events, ["claim", "publish"])
+
+    def test_parent_finalization_resume_reuses_pending_gold_and_claims_last(self):
+        authority = self._parent_recovery_authority()
+        original = authority["original"]
+        plan = databricks_a10_plan(TrainingPlan())
+        intent = {
+            "identity": original["identity"],
+            "source_commit": original["source_commit"],
+            "source_sha256": original["source_manifest_sha256"],
+            "intent_sha256": original["intent_sha256"],
+            "plan_sha256": original["plan_sha256"],
+            "model_tree_sha256": original["model_tree_sha256"],
+            "model_receipt_sha256": original["model_receipt_sha256"],
+            "plan": asdict(plan),
+        }
+        base = {"receipt_sha256": original[
+            "base_qualification_receipt_sha256"]}
+        pending = {
+            "status": "pending_mlflow_finalize",
+            "partition_identity": original["identity"],
+            "mlflow_run_id": original["mlflow_run_id"],
+        }
+        parent = {
+            "parent_finalization_sha256":
+                _V7_FINALIZATION_RESUME_PREDECESSOR[
+                    "parent_finalization_sha256"],
+            "pending_gold_row": pending,
+        }
+        predecessor_claim = {
+            "version": PARENT_RECOVERY_CLAIM_VERSION,
+            "authority_sha256": _V7_FINALIZATION_RESUME_PREDECESSOR[
+                "authority_sha256"],
+            "identity": original["identity"],
+            "original_owner_run_id": original["owner_run_id"],
+            "recovery_execution_run_id":
+                _V7_FINALIZATION_RESUME_PREDECESSOR[
+                    "recovery_execution_run_id"],
+            "recovery_job_id": original["job_id"],
+            "recovery_task_key": "finalize_partition_mlflow",
+            "cpu_only": True, "model_loads": 0, "model_forwards": 0,
+            "backward_passes": 0, "optimizer_updates": 0,
+        }
+        predecessor_claim["claim_sha256"] = digest(predecessor_claim)
+        self.assertEqual(
+            predecessor_claim["claim_sha256"],
+            _V7_FINALIZATION_RESUME_PREDECESSOR["claim_sha256"])
+
+        class Column:
+            def __eq__(self, other):
+                return self
+
+            def __and__(self, other):
+                return self
+
+        functions = ModuleType("pyspark.sql.functions")
+        functions.col = lambda name: Column()
+        sql = ModuleType("pyspark.sql"); sql.functions = functions
+        pyspark = ModuleType("pyspark"); pyspark.sql = sql
+        gold_rows = [{**pending, "completed_at": "ignored"}]
+
+        class Table:
+            def __init__(self, rows):
+                self.rows = rows
+
+            def where(self, expression):
+                return self
+
+            def collect(self):
+                return list(self.rows)
+
+        class Spark:
+            def table(self, name):
+                if name == GOLD_ADMISSION_TABLE:
+                    return Table([{"released": True}])
+                if name == GOLD_RUN_TABLE:
+                    return Table(gold_rows)
+                raise AssertionError(name)
+
+        tags = {
+            "mlflow.runName": original["identity"],
+            "research4.parent_owned_run": "true",
+            "research4.owner_run_id": original["owner_run_id"],
+            "research4.intent_sha256": original["intent_sha256"],
+            "research4.partition_identity": original["identity"],
+            "research4.plan_sha256": original["plan_sha256"],
+        }
+        run = SimpleNamespace(
+            info=SimpleNamespace(status="RUNNING"),
+            data=SimpleNamespace(tags=tags, params={}, metrics={}))
+        client = SimpleNamespace(
+            get_run=lambda run_id: run,
+            list_artifacts=lambda run_id: [])
+        mlflow = ModuleType("mlflow")
+        mlflow.tracking = SimpleNamespace(MlflowClient=lambda: client)
+        files = authority["files"]
+        file_hashes = {row["path"]: row["sha256"]
+                       for row in files.values()}
+
+        def fake_sha(path):
+            value = str(path).replace("\\", "/")
+            if value in file_hashes:
+                return file_hashes[value]
+            if value.endswith("/output/PARENT_FINALIZATION.json"):
+                return _V7_FINALIZATION_RESUME_PREDECESSOR[
+                    "parent_finalization_file_sha256"]
+            if value.endswith("/PARENT_OUTPUT_MANIFEST.json"):
+                return _V7_FINALIZATION_RESUME_PREDECESSOR[
+                    "parent_manifest_file_sha256"]
+            if value.endswith("/EXECUTION_CLAIM.json"):
+                return _V7_FINALIZATION_RESUME_PREDECESSOR[
+                    "claim_file_sha256"]
+            raise AssertionError(value)
+
+        def fake_read(path):
+            value = str(path).replace("\\", "/")
+            if value.endswith("/authority.json"):
+                return authority
+            if value == files["intent"]["path"]:
+                return intent
+            if value == files["plan"]["path"]:
+                return asdict(plan)
+            if value == files["base_qualification_receipt"]["path"]:
+                return base
+            if value.endswith("/output/PARENT_FINALIZATION.json"):
+                return parent
+            if value.endswith("/EXECUTION_CLAIM.json"):
+                return predecessor_claim
+            if "/locks/consumed/" in value:
+                return {"owner": original["owner_run_id"]}
+            if "/locks/closeouts/" in value:
+                return {"receipt_sha256": original[
+                    "closeout_receipt_sha256"]}
+            raise AssertionError(value)
+
+        events = []
+        claim_conflict = [False]
+
+        def fake_atomic(path, value):
+            if claim_conflict[0]:
+                raise FileExistsError("resume claim conflict")
+            events.append((path, value))
+        original_root = Path(
+            "/Workspace/Shared/research4/source_releases/" +
+            original["source_commit"])
+        completed = {"parent": {"manifest_sha256":
+                     _V7_FINALIZATION_RESUME_PREDECESSOR[
+                         "parent_manifest_sha256"]}}
+        with patch.dict(sys.modules, {
+                "pyspark": pyspark, "pyspark.sql": sql,
+                "pyspark.sql.functions": functions, "mlflow": mlflow}), \
+                patch(
+                    "src.databricks_continuity_partition.validate_parent_recovery_authority",
+                    return_value=authority), patch(
+                    "src.databricks_continuity_partition.Path.resolve",
+                    return_value=original_root), patch(
+                    "src.databricks_continuity_partition._file_sha256",
+                    side_effect=fake_sha), patch(
+                    "src.databricks_continuity_partition._read",
+                    side_effect=fake_read), patch(
+                    "src.databricks_continuity_partition.validate_intent",
+                    return_value=intent), patch(
+                    "src.databricks_continuity_partition.verify_deployed_source",
+                    return_value={"files": [{
+                        "path": "src/databricks_continuity_partition.py",
+                        "sha256": original[
+                            "partition_source_file_sha256"]}]}), patch(
+                    "src.databricks_continuity_partition.validate_base_qualification_receipt",
+                    return_value=base), patch(
+                    "src.databricks_continuity_partition.verify_intent_base_qualification_authority"), patch(
+                    "src.databricks_continuity_partition.verify_model_receipt_authority"), patch(
+                    "src.databricks_continuity_partition._verify_durable_completion",
+                    return_value=completed), patch(
+                    "src.databricks_continuity_partition._verify_finalizer_owner",
+                    return_value="after_cleanup"), patch(
+                    "src.databricks_continuity_partition._atomic_json",
+                    side_effect=fake_atomic):
+            kwargs = dict(
+                spark=Spark(), authority_path=(
+                    "/Volumes/research4_simulated_continuity/bronze/model_data/"
+                    "recovery_inputs/authority.json"),
+                recovery_code_root=authority["recovery_source"][
+                    "source_release_path"],
+                original_code_root=str(original_root),
+                intent_path=files["intent"]["path"],
+                plan_path=files["plan"]["path"],
+                base_qualification_receipt_path=files[
+                    "base_qualification_receipt"]["path"],
+                original_owner_run_id=original["owner_run_id"],
+                recovery_execution_run_id="222",
+                recovery_job_id=original["job_id"],
+                recovery_task_key="finalize_partition_mlflow")
+            value = resume_parent_finalization(**kwargs)
+            self.assertEqual(
+                value["status"], "parent_finalization_resume_authorized")
+            self.assertEqual(len(events), 1)
+            self.assertTrue(str(events[0][0]).endswith(
+                "FINALIZATION_RESUME_CLAIM.json"))
+            events.clear(); run.data.metrics = {"loss": 1.0}
+            with self.assertRaisesRegex(PermissionError, "MLflow state"):
+                resume_parent_finalization(**kwargs)
+            self.assertEqual(events, [])
+            run.data.metrics = {}; gold_rows.clear()
+            with self.assertRaisesRegex(PermissionError, "cannot append Gold"):
+                resume_parent_finalization(**kwargs)
+            self.assertEqual(events, [])
+            gold_rows.append({**pending, "completed_at": "ignored"})
+            claim_conflict[0] = True
+            with self.assertRaisesRegex(FileExistsError, "claim conflict"):
+                resume_parent_finalization(**kwargs)
+            self.assertEqual(events, [])
 
     def test_completed_child_replay_accepts_dict_plan_and_binds_two_updates(self):
         plan = databricks_a10_plan(TrainingPlan())
@@ -887,6 +1112,33 @@ class ParentMlflowJournalTests(unittest.TestCase):
             with self.assertRaises(PermissionError):
                 _reconcile_mlflow_scalars(
                     client, "run", journal, self.terminal(), write=False)
+
+    def test_unknown_optional_metric_is_omitted_and_never_imputed_zero(self):
+        journal = {
+            "params": {"version": MLFLOW_JOURNAL_VERSION,
+                       "params_sha256": "1" * 64},
+            "progress": [],
+            "final": {
+                "mean_gpu_utilization_percent": None,
+                "tokens_per_second": 12.5,
+                "max_allocated_bytes": 20,
+                "max_reserved_bytes": 30,
+                "disk_free_bytes": 100,
+            },
+        }
+        params, metrics = _expected_mlflow_scalars(
+            journal, self.terminal())
+        self.assertEqual(params, {})
+        self.assertNotIn("mean_gpu_utilization_percent", metrics)
+        self.assertEqual(metrics["tokens_per_second"], [(0, 12.5)])
+        changed = copy.deepcopy(journal)
+        changed["final"]["mean_gpu_utilization_percent"] = float("nan")
+        with self.assertRaisesRegex(PermissionError, "metric is invalid"):
+            _expected_mlflow_scalars(changed, self.terminal())
+        missing_cache = self.terminal()
+        missing_cache["local_model_cache"]["copy_seconds"] = None
+        with self.assertRaisesRegex(PermissionError, "model_copy_seconds"):
+            _expected_mlflow_scalars(journal, missing_cache)
 
     def test_finished_scalar_verification_rejects_missing_state(self):
         class Client:
