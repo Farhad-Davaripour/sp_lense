@@ -48,7 +48,7 @@ from src.base_qualification_carryforward import (
     QUALIFIED_BASE_INTENT_SHA256, QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256,
     QUALIFIED_BASE_RECEIPT_SHA256, QUALIFIED_BASE_SOURCE_COMMIT,
     QUALIFIED_BASE_SOURCE_MANIFEST_SHA256,
-    REVIEWED_CHANGED_SYMBOLS, UNCHANGED_BASE_FILES,
+    REVIEWED_CHANGED_FILES, REVIEWED_CHANGED_SYMBOLS, UNCHANGED_BASE_FILES,
     symbol_ast_sha256, symbol_dependency_closure_sha256, validate_carryforward,
     verify_deployed_carryforward,
 )
@@ -74,6 +74,16 @@ class DatabricksContinuityTests(unittest.TestCase):
         )
 
     def test_base_carryforward_binds_reviewed_model_cache_receipt_delta(self):
+        self.assertEqual(
+            set(REVIEWED_CHANGED_FILES),
+            {
+                "notebooks/databricks_continuity_base_qualification.py",
+                "notebooks/databricks_continuity_base_qualification_preflight.py",
+            },
+        )
+        self.assertTrue(all(
+            value["prior"] != value["current"]
+            for value in REVIEWED_CHANGED_FILES.values()))
         path = "src/databricks_continuity_partition.py"
         self.assertEqual(
             REVIEWED_CHANGED_SYMBOLS[path],
@@ -631,6 +641,20 @@ class DatabricksContinuityTests(unittest.TestCase):
         source = Path(__file__).parents[1]
         prior_manifest = build_source_manifest(source, "a" * 40)
         current_manifest = build_source_manifest(source, "b" * 40)
+        reviewed_files = {}
+        for index, path in enumerate(REVIEWED_CHANGED_FILES):
+            prior_row = next(
+                row for row in prior_manifest["files"] if row["path"] == path)
+            current_row = next(
+                row for row in current_manifest["files"] if row["path"] == path)
+            prior_row["sha256"] = f"{index + 1:064x}"
+            reviewed_files[path] = {
+                "prior": prior_row["sha256"],
+                "current": current_row["sha256"],
+            }
+        prior_manifest["manifest_sha256"] = digest({
+            key: value for key, value in prior_manifest.items()
+            if key != "manifest_sha256"})
         prior_intent = build_base_qualification_intent(
             source_commit="a" * 40, source_manifest=prior_manifest,
             model_tree_sha256="c" * 64, model_receipt_sha256="d" * 64,
@@ -661,7 +685,9 @@ class DatabricksContinuityTests(unittest.TestCase):
                              prior_manifest["manifest_sha256"]),
                 patch.object(carry_contract,
                              "QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256",
-                             prior_symbol_authority)):
+                             prior_symbol_authority),
+                patch.object(carry_contract, "REVIEWED_CHANGED_FILES",
+                             reviewed_files)):
             patcher.start(); self.addCleanup(patcher.stop)
         old_files = {row["path"]: row for row in prior_manifest["files"]}
         unchanged = {path: old_files[path]["sha256"]
@@ -687,7 +713,8 @@ class DatabricksContinuityTests(unittest.TestCase):
             "current_source_commit": "b" * 40,
             "prior_git_tree": "1" * 40,
             "current_git_tree": "2" * 40,
-            "git_diff_sha256": "3" * 64, "changed_paths": [],
+            "git_diff_sha256": "3" * 64,
+            "changed_paths": sorted(reviewed_files),
             "allowed_runtime_changed_paths": list(ALLOWED_RUNTIME_CHANGED_PATHS),
             "prior_source_manifest_sha256": prior_manifest["manifest_sha256"],
             "current_source_manifest_sha256": current_manifest["manifest_sha256"],
@@ -707,6 +734,7 @@ class DatabricksContinuityTests(unittest.TestCase):
                 "qualification_proposal_sha256"],
             "unchanged_base_files": unchanged,
             "base_critical_symbol_sha256": critical,
+            "reviewed_changed_file_sha256": reviewed_files,
             "reviewed_changed_symbol_sha256": reviewed,
             "model_execution_performed": False, "optimizer_updates": 0,
             "scientific_status_preserved": "qualified",
@@ -760,6 +788,55 @@ class DatabricksContinuityTests(unittest.TestCase):
             validate_carryforward(
                 prior_tampered, prior_intent=prior_intent, base_receipt=base,
                 current_source_manifest=current_manifest)
+        file_tampered = json.loads(json.dumps(carry))
+        changed_file = next(iter(reviewed_files))
+        file_tampered["reviewed_changed_file_sha256"][changed_file][
+            "current"] = "0" * 64
+        file_tampered["carryforward_sha256"] = digest({
+            key: value for key, value in file_tampered.items()
+            if key != "carryforward_sha256"})
+        with self.assertRaises(PermissionError):
+            validate_carryforward(
+                file_tampered, prior_intent=prior_intent,
+                base_receipt=base,
+                current_source_manifest=current_manifest)
+        for label, mutate in (
+                ("missing", lambda value: value.pop(changed_file)),
+                ("extra", lambda value: value.__setitem__(
+                    "notebooks/unreviewed.py",
+                    {"prior": "1" * 64, "current": "2" * 64})),
+                ("swapped", lambda value: value.__setitem__(
+                    changed_file,
+                    {"prior": value[changed_file]["current"],
+                     "current": value[changed_file]["prior"]}))):
+            changed_receipt = json.loads(json.dumps(carry))
+            mutate(changed_receipt["reviewed_changed_file_sha256"])
+            changed_receipt["carryforward_sha256"] = digest({
+                key: value for key, value in changed_receipt.items()
+                if key != "carryforward_sha256"})
+            with self.subTest(reviewed_file_delta=label), self.assertRaises(
+                    PermissionError):
+                validate_carryforward(
+                    changed_receipt, prior_intent=prior_intent,
+                    base_receipt=base,
+                    current_source_manifest=current_manifest)
+        with tempfile.TemporaryDirectory() as folder:
+            deployed = Path(folder)
+            shutil.copytree(source / "src", deployed / "src")
+            (deployed / "notebooks").mkdir()
+            for path in reviewed_files:
+                target = deployed / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source / path, target)
+            target = deployed / changed_file
+            target.write_text(
+                target.read_text(encoding="utf-8") + "\n# tampered\n",
+                encoding="utf-8")
+            with self.assertRaises(PermissionError):
+                verify_deployed_carryforward(
+                    carry, code_root=deployed,
+                    prior_intent=prior_intent, base_receipt=base,
+                    current_source_manifest=current_manifest)
         changed_manifest = json.loads(json.dumps(current_manifest))
         target = next(row for row in changed_manifest["files"]
                       if row["path"] == "src/databricks_continuity_partition.py")

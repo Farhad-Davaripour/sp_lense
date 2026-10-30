@@ -14,6 +14,7 @@ from src.base_qualification_carryforward import (  # noqa: E402
     BASE_CRITICAL_ENTRYPOINTS,
     CARRYFORWARD_VERSION,
     REVIEWED_CHANGED_SYMBOLS,
+    REVIEWED_CHANGED_FILES,
     UNCHANGED_BASE_FILES,
     symbol_ast_sha256,
     symbol_dependency_closure_sha256,
@@ -98,6 +99,10 @@ def main(argv=None):
         reviewed_symbol_hashes[path] = {
             name: {"prior": old_hashes[name], "current": new_hashes[name]}
             for name in names}
+    for path, expected in REVIEWED_CHANGED_FILES.items():
+        if (old_files.get(path, {}).get("sha256") != expected["prior"]
+                or new_files.get(path, {}).get("sha256") != expected["current"]):
+            raise PermissionError(f"Reviewed base file delta differs: {path}")
     changed = sorted(line.removeprefix("research4/") for line in _git(
         repository, "diff", "--name-only", old, new, "--", "research4").splitlines()
                      if line.strip())
@@ -133,6 +138,8 @@ def main(argv=None):
             "qualification_proposal_sha256"],
         "unchanged_base_files": dict(sorted(unchanged.items())),
         "base_critical_symbol_sha256": dict(sorted(symbol_hashes.items())),
+        "reviewed_changed_file_sha256": dict(sorted(
+            REVIEWED_CHANGED_FILES.items())),
         "reviewed_changed_symbol_sha256": dict(sorted(
             reviewed_symbol_hashes.items())),
         "model_execution_performed": False,
