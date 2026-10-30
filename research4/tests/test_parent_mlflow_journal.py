@@ -519,7 +519,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
             self.assertEqual(manifest.call_args.kwargs["required_update_count"], 2)
             self.assertEqual(
                 manifest.call_args.kwargs["allowed_extra"],
-                {"PARENT_FINALIZATION.json"})
+                set())
             self.assertEqual(manifest.call_args.kwargs["expected_metadata"][
                 "executed_optimizer_step_count"], 2)
             (root / "records.jsonl").write_text("{}\n", encoding="utf-8")
@@ -547,6 +547,25 @@ class ParentMlflowJournalTests(unittest.TestCase):
                     "optimizer_updates"], 2)
             self.assertTrue((output / "PARENT_FINALIZATION.json").is_file())
             self.assertTrue((root / "PARENT_OUTPUT_MANIFEST.json").is_file())
+            with patch(
+                    "src.databricks_continuity_partition.verify_manifest") as replay_manifest, \
+                    patch(
+                        "src.databricks_continuity_partition.validate_mlflow_journal",
+                        return_value={"final": {"final_sha256": "3" * 64}}), \
+                    patch(
+                        "src.databricks_continuity_partition.verify_rank_receipt"), \
+                    patch(
+                        "src.databricks_continuity_partition.adjacent_pair_schedule",
+                        return_value=[]), \
+                    patch(
+                        "src.databricks_continuity_partition.directory_tree_sha256",
+                        return_value="4" * 64):
+                _replay_completed_child(
+                    root, intent=intent, plan_dict=asdict(plan),
+                    exact_plan=plan, rows=[])
+            self.assertEqual(
+                replay_manifest.call_args.kwargs["allowed_extra"],
+                {"PARENT_FINALIZATION.json"})
             with patch(
                     "src.databricks_continuity_partition._replay_completed_child",
                     return_value=value):

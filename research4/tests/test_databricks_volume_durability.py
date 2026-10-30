@@ -103,6 +103,41 @@ class VolumeDurabilityTests(unittest.TestCase):
                 publish_immutable_file(source, target)
             self.assertEqual(target.read_bytes(), b"first")
 
+    def test_parent_extra_is_required_only_after_parent_file_exists(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = pathlib.Path(directory)
+            local = root / "local"; volume = root / "volume"
+            local.mkdir()
+            (local / "MLFLOW_PROGRESS.jsonl").write_bytes(b"")
+            metadata = {
+                "identity": "v7", "intent_sha256": "a" * 64,
+                "plan_sha256": "b" * 64,
+                "executed_optimizer_step_count": 0,
+                "durable_published_update_count": 0,
+            }
+            publish_tree(
+                local, volume, status="complete",
+                manifest_name=SUCCESS_MANIFEST, required_update_count=0,
+                metadata=metadata)
+            verify_manifest(
+                volume, manifest_name=SUCCESS_MANIFEST,
+                expected_status="complete", required_update_count=0,
+                allowed_extra=set(), expected_metadata=metadata)
+            with self.assertRaisesRegex(
+                    PermissionError, "missing or extra"):
+                verify_manifest(
+                    volume, manifest_name=SUCCESS_MANIFEST,
+                    expected_status="complete", required_update_count=0,
+                    allowed_extra={"PARENT_FINALIZATION.json"},
+                    expected_metadata=metadata)
+            (volume / "PARENT_FINALIZATION.json").write_text(
+                "{}\n", encoding="utf-8")
+            verify_manifest(
+                volume, manifest_name=SUCCESS_MANIFEST,
+                expected_status="complete", required_update_count=0,
+                allowed_extra={"PARENT_FINALIZATION.json"},
+                expected_metadata=metadata)
+
     def test_torn_copy_fails_and_never_creates_success_manifest(self):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
