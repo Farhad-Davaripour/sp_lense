@@ -9,7 +9,8 @@ import math
 import os
 
 from .databricks_simulated_continuity import (
-    MODEL_ROOT, qualification_numerical_update_evidence,
+    DATABRICKS_EVIDENCE_VERSION, MODEL_ROOT,
+    qualification_numerical_update_evidence,
     validate_intent, verify_model_receipt)
 from .qwen9b_ordinal_continuity_training import (
     DATABRICKS_A10_ALLOCATOR_CONF, TrainingPlan,
@@ -20,9 +21,13 @@ from .qwen9b_ordinal_continuity_training import (
 from .qwen9b_ordinal_continuity_lora import (
     STAGE_BRANCHES, adapter_sha256, load_adapter_checkpoint,
     model_component_hashes)
+from .volume_durable_io import (
+    SUCCESS_MANIFEST, completion_metadata,
+    publish_immutable_file,
+    publish_failure_manifest, publish_tree, publish_update_receipt)
 
 
-MLFLOW_JOURNAL_VERSION = "research4-parent-mlflow-journal-v3"
+MLFLOW_JOURNAL_VERSION = "research4-parent-mlflow-journal-v4"
 PROGRESS_METRICS = (
     "loss", "sft", "preference", "cross_danger_margin",
     "level0_kl_anchor", "gradient_norm_before_clip",
@@ -58,7 +63,8 @@ def _atomic_json(path, value):
     os.replace(pending, target)
 
 
-def _append_progress(path, update, *, intent_sha256, plan_sha256):
+def _append_progress(path, durable_output, update, *, intent_sha256,
+                     plan_sha256):
     row = {"version": MLFLOW_JOURNAL_VERSION,
            "intent_sha256": intent_sha256, "plan_sha256": plan_sha256,
            "optimizer_update": update["optimizer_update"]}
@@ -82,6 +88,10 @@ def _append_progress(path, update, *, intent_sha256, plan_sha256):
     row["progress_record_sha256"] = _digest(row)
     with Path(path).open("a", encoding="utf-8") as stream:
         stream.write(_canonical(row) + "\n"); stream.flush(); os.fsync(stream.fileno())
+    published = publish_update_receipt(Path(path).parent, durable_output, row)
+    return {"durable_published": True,
+            "optimizer_update": row["optimizer_update"],
+            "receipt_sha256": published["receipt_sha256"]}
 
 
 def validate_mlflow_journal(output, *, intent, plan, receipt, rank_receipt,
@@ -202,26 +212,57 @@ def run(args):
     plan = TrainingPlan(**_read(args.plan)).validate()
     if intent["plan"] != __import__("dataclasses").asdict(plan):
         raise PermissionError("Databricks intent and exact plan differ")
-    local_model_root = os.environ.get("RESEARCH4_MODEL_ROOT")
-    if not local_model_root:
-        raise PermissionError("Per-run verified local model cache is required")
-    model_receipt = verify_model_receipt(local_model_root, args.model_receipt)
-    if (model_receipt["tree_sha256"] != intent["model_tree_sha256"]
-            or model_receipt["receipt_sha256"] != intent["model_receipt_sha256"]):
-        raise PermissionError("Intent model snapshot differs from the volume receipt")
-    os.environ.update({
-        "RESEARCH4_EXECUTION_PLATFORM": "databricks",
-        "RESEARCH4_MODEL_ROOT": local_model_root,
-        "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
-        "TOKENIZERS_PARALLELISM": "false",
-    })
-    if os.environ.get("PYTORCH_CUDA_ALLOC_CONF") != DATABRICKS_A10_ALLOCATOR_CONF:
-        raise PermissionError("Reviewed A10 CUDA allocator configuration differs")
-    import torch
-    rank = 0; local_rank = 0
-    torch.cuda.set_device(local_rank)
+    output = Path(args.output)
+    durable_output = Path(args.durable_output)
+    if str(output).replace("\\", "/").startswith("/Volumes/"):
+        raise PermissionError("Mutable worker output must use local ephemeral storage")
+    output.mkdir(parents=True, exist_ok=True)
+    durable_output.mkdir(parents=True, exist_ok=True)
+
+    def record_failure(exc):
+        try:
+            publish_failure_manifest(
+                output, durable_output,
+                metadata={
+                    "identity": intent["identity"],
+                    "intent_sha256": intent["intent_sha256"],
+                    "plan_sha256": plan.full_plan_sha256,
+                }, error_type=type(exc).__name__, error=str(exc))
+        except BaseException as publication_error:
+            exc.add_note(
+                "Failure evidence publication also failed: "
+                f"{type(publication_error).__name__}: {publication_error}")
+
+    try:
+        local_model_root = os.environ.get("RESEARCH4_MODEL_ROOT")
+        if not local_model_root:
+            raise PermissionError(
+                "Per-run verified local model cache is required")
+        model_receipt = verify_model_receipt(
+            local_model_root, args.model_receipt)
+        if (model_receipt["tree_sha256"] != intent["model_tree_sha256"]
+                or model_receipt["receipt_sha256"]
+                   != intent["model_receipt_sha256"]):
+            raise PermissionError(
+                "Intent model snapshot differs from the volume receipt")
+        os.environ.update({
+            "RESEARCH4_EXECUTION_PLATFORM": "databricks",
+            "RESEARCH4_MODEL_ROOT": local_model_root,
+            "HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
+            "TOKENIZERS_PARALLELISM": "false",
+        })
+        if (os.environ.get("PYTORCH_CUDA_ALLOC_CONF")
+                != DATABRICKS_A10_ALLOCATOR_CONF):
+            raise PermissionError(
+                "Reviewed A10 CUDA allocator configuration differs")
+        import torch
+        rank = 0; local_rank = 0
+        torch.cuda.set_device(local_rank)
+    except BaseException as exc:
+        record_failure(exc)
+        raise
     model = None
-    output = Path(args.output); output.mkdir(parents=True, exist_ok=True)
+
     params = {
         "version": MLFLOW_JOURNAL_VERSION,
         "intent_sha256": intent["intent_sha256"],
@@ -241,11 +282,18 @@ def run(args):
         "minimum_grad_scaler_scale": plan.minimum_grad_scaler_scale,
     }
     params["params_sha256"] = _digest(params)
-    _atomic_json(output / "MLFLOW_PARAMS.json", params)
-    progress_path = output / "MLFLOW_PROGRESS.jsonl"
-    descriptor = os.open(progress_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-    os.fsync(descriptor)
-    os.close(descriptor)
+    try:
+        _atomic_json(output / "MLFLOW_PARAMS.json", params)
+        publish_immutable_file(
+            output / "MLFLOW_PARAMS.json", durable_output / "MLFLOW_PARAMS.json")
+        progress_path = output / "MLFLOW_PROGRESS.jsonl"
+        descriptor = os.open(
+            progress_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+        os.fsync(descriptor)
+        os.close(descriptor)
+    except BaseException as exc:
+        record_failure(exc)
+        raise
     try:
         dependency = assert_fast_deltanet_dependencies()
         admission = None if not args.admission else _read(args.admission)
@@ -274,8 +322,9 @@ def run(args):
         records = _jsonl(args.records)
         live_before = model_component_hashes(model, require_quantized=True)
         def progress(update):
-            _append_progress(
-                progress_path, update, intent_sha256=intent["intent_sha256"],
+            return _append_progress(
+                progress_path, durable_output, update,
+                intent_sha256=intent["intent_sha256"],
                 plan_sha256=plan.full_plan_sha256)
         receipt = run_training_stage(
             model=model, tokenizer=tokenizer, tokenized_records=records,
@@ -310,7 +359,7 @@ def run(args):
                 if key.endswith("_pass") or key == "capacity_adequate"):
             raise PermissionError("Rank-4 qualification failed a raw evidence gate")
         evidence = {
-            "version": "research4-databricks-partition-evidence-v4",
+            "version": DATABRICKS_EVIDENCE_VERSION,
             "intent_sha256": intent["intent_sha256"],
             "base_qualification_carryforward_sha256": intent.get(
                 "base_qualification_carryforward_sha256"),
@@ -368,7 +417,22 @@ def run(args):
         validate_mlflow_journal(
             output, intent=intent, plan=plan, receipt=receipt,
             rank_receipt=rank_receipt, evidence=evidence)
+        publish_tree(
+            output, durable_output, status="complete",
+            manifest_name=SUCCESS_MANIFEST,
+            required_update_count=plan.optimizer_updates,
+            metadata=completion_metadata(
+                identity=intent["identity"],
+                intent_sha256=intent["intent_sha256"],
+                plan_sha256=plan.full_plan_sha256,
+                executed_optimizer_step_count=receipt.get(
+                    "executed_optimizer_step_count"),
+                durable_published_update_count=receipt.get(
+                    "durable_published_update_count")))
         return receipt
+    except BaseException as exc:
+        record_failure(exc)
+        raise
     finally:
         model = None
         torch.cuda.empty_cache()
@@ -376,7 +440,8 @@ def run(args):
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
-    for name in ("intent", "plan", "records", "output", "model-receipt"):
+    for name in ("intent", "plan", "records", "output", "durable-output",
+                 "model-receipt"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--admission")
     parser.add_argument("--parent-checkpoint")

@@ -31,11 +31,11 @@ from .qwen9b_ordinal_continuity_training import (
     databricks_a10_plan,
     load_pinned_tokenizer)
 
-CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v9"
-EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v8"
-PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v8"
-TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v7"
-AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v8"
+CONTROLLER_VERSION = "qwen35-9b-ordinal-continuity-partition-controller-v10"
+EXPERIMENT_VERSION = "qwen35-9b-ordinal-continuity-experiment-v9"
+PARTITION_INTENT_VERSION = "qwen35-9b-continuity-partition-intent-v9"
+TERMINAL_VERSION = "qwen35-9b-continuity-partition-terminal-v8"
+AGGREGATE_VERSION = "qwen35-9b-ordinal-continuity-matrix-complete-v9"
 MATRIX_CONDITIONS = CONDITIONS
 MATRIX_STAGES = ("delta1", "delta2", "delta3")
 

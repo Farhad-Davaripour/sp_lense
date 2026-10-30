@@ -32,6 +32,7 @@ from src.qwen9b_ordinal_continuity_training import (
 )
 from src.qualification_technical_successor import (
     SUCCESSOR_IDENTITY,
+    _fixed_scale1_authority,
     _gradscaler_recovery_authority,
     authority as technical_successor_authority,
     validate as validate_technical_successor,
@@ -89,11 +90,15 @@ class RuntimeBindingTests(unittest.TestCase):
         self.assertEqual(len({plan.full_plan_sha256 for plan in plans}), 28)
         self.assertEqual(partition_identity(plans[0]), SUCCESSOR_IDENTITY)
 
-    def test_technical_successor_v5_nests_exact_v4_authority(self):
-        prior = _gradscaler_recovery_authority()
+    def test_technical_successor_v6_nests_exact_v5_authority(self):
+        gradscaler = _gradscaler_recovery_authority()
+        self.assertEqual(
+            gradscaler["technical_successor_sha256"],
+            "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
+        prior = _fixed_scale1_authority()
         self.assertEqual(
             prior["technical_successor_sha256"],
-            "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
+            "16824b6af523b31979f88dd7aee5a48aa75f25e393299643f33fa33ad29e1edc")
         current = technical_successor_authority()
         self.assertEqual(current["predecessor_authority"], prior)
         self.assertEqual(current["successor_identity"], SUCCESSOR_IDENTITY)

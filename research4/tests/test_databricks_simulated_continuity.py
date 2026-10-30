@@ -784,22 +784,44 @@ class DatabricksContinuityTests(unittest.TestCase):
             root = Path(folder)
             with self.assertRaises(ValueError):
                 reserve_intent(root, intent, "")
-            reserve_intent(root, intent, "job-17")
-            receipt = close_active_reservation(
-                root, intent, "job-17", "partition_notebook_failed")
+            with patch("src.databricks_simulated_continuity.os.fsync",
+                       side_effect=AssertionError("Volume fsync forbidden")), \
+                    patch("src.databricks_simulated_continuity.os.replace",
+                          side_effect=AssertionError("Volume rename forbidden")):
+                reserve_intent(root, intent, "job-17")
+                receipt = close_active_reservation(
+                    root, intent, "job-17", "partition_notebook_failed")
             self.assertFalse((root / "scientific.lock").exists())
             self.assertTrue((root / "consumed" / (intent["identity"] + ".json")).is_file())
             self.assertTrue(receipt["consumed_identity_retained"])
             self.assertEqual(receipt["receipt_sha256"], digest({
                 key: value for key, value in receipt.items()
                 if key != "receipt_sha256"}))
-            self.assertEqual(
-                close_active_reservation(root, intent, "job-17", "job_all_done_cleanup"),
-                receipt)
+            with patch("src.databricks_simulated_continuity.os.fsync",
+                       side_effect=AssertionError("Volume fsync forbidden")), \
+                    patch("src.databricks_simulated_continuity.os.replace",
+                          side_effect=AssertionError("Volume rename forbidden")):
+                self.assertEqual(
+                    close_active_reservation(
+                        root, intent, "job-17", "job_all_done_cleanup"),
+                    receipt)
             with self.assertRaises(PermissionError):
                 close_active_reservation(root, intent, "job-18", "job_all_done_cleanup")
             with self.assertRaises(PermissionError):
                 reserve_intent(root, intent, "job-19")
+
+    def test_torn_reservation_readback_retains_no_false_state(self):
+        intent = validate_intent(self.intent())
+        with tempfile.TemporaryDirectory() as folder, patch(
+                "src.databricks_simulated_continuity.Path.read_bytes",
+                return_value=b"torn"):
+            root = Path(folder)
+            with self.assertRaises(IOError):
+                reserve_intent(root, intent, "job-torn")
+            self.assertFalse((root / "scientific.lock").exists())
+            self.assertFalse((root / "consumed" /
+                              (intent["identity"] + ".json")).exists())
+            self.assertFalse((root / "closeouts").exists())
 
     def test_volume_snapshot_receipt_recomputes_shards_and_rejects_tamper(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -1046,6 +1068,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         rank = {
             "version": RANK_RUN_VERSION,
             "status": "complete", "plan_sha256": qualification_intent["plan_sha256"],
+            "executed_optimizer_step_count": 2,
+            "durable_published_update_count": 2,
             "successful_optimizer_updates": 2, "active_branch_changed": True,
             "tokens_seen": 4096, "elapsed_seconds": 16.0,
             "updates": updates,
@@ -1057,7 +1081,7 @@ class DatabricksContinuityTests(unittest.TestCase):
         rank["resources"]["tokens_per_second"] = 256.0
         rank["receipt_sha256"] = digest(rank)
         evidence = {
-            "version": "research4-databricks-partition-evidence-v4",
+            "version": "research4-databricks-partition-evidence-v5",
             "intent_sha256": qualification_intent["intent_sha256"],
             "base_qualification_carryforward_sha256": qualification_intent.get(
                 "base_qualification_carryforward_sha256"),
@@ -1161,6 +1185,25 @@ class DatabricksContinuityTests(unittest.TestCase):
                         create_qualification_receipt(
                             qualification_intent, rank, evidence,
                             checkpoint_sha)
+            for counter in ("executed_optimizer_step_count",
+                            "durable_published_update_count"):
+                with self.subTest(counter=counter):
+                    changed_rank = json.loads(json.dumps(rank))
+                    changed_rank[counter] = 1
+                    changed_rank["receipt_sha256"] = digest({
+                        key: value for key, value in changed_rank.items()
+                        if key != "receipt_sha256"})
+                    changed_evidence = json.loads(json.dumps(evidence))
+                    changed_evidence["rank_receipt_sha256"] = changed_rank[
+                        "receipt_sha256"]
+                    changed_evidence["evidence_sha256"] = digest({
+                        key: value for key, value in changed_evidence.items()
+                        if key != "evidence_sha256"})
+                    with self.assertRaises(PermissionError):
+                        create_qualification_receipt(
+                            qualification_intent, changed_rank,
+                            changed_evidence,
+                            directory_tree_sha256(checkpoint))
             budget = primary_timeout_budget(primary, qualification_receipt)
             for observed in (True, float("nan"), float("inf")):
                 with self.subTest(primary_budget_observed=observed):
@@ -1185,10 +1228,29 @@ class DatabricksContinuityTests(unittest.TestCase):
             qualification_receipt_path.write_text(json.dumps(qualification_receipt))
             admission_path.write_text(json.dumps(create_primary_admission(
                 primary_intent, qualification_receipt)))
-            replay = validate_primary_authority_files(
-                primary_intent, admission_path, qualification_intent_path,
-                output, qualification_receipt_path)
+            with patch(
+                    "src.databricks_continuity_partition."
+                    "_verify_durable_completion",
+                    return_value={"child": {}, "parent": {}}) as durable:
+                replay = validate_primary_authority_files(
+                    primary_intent, admission_path, qualification_intent_path,
+                    output, qualification_receipt_path)
+            durable.assert_called_once_with(
+                output.parent, identity=qualification_intent["identity"],
+                intent_sha256=qualification_intent["intent_sha256"],
+                plan_sha256=qualification_intent["plan_sha256"],
+                optimizer_updates=2)
             self.assertEqual(replay["qualification_receipt"], qualification_receipt)
+            with patch(
+                    "src.databricks_continuity_partition."
+                    "_verify_durable_completion",
+                    side_effect=PermissionError("durability incomplete")):
+                with self.assertRaisesRegex(PermissionError,
+                                           "durability incomplete"):
+                    validate_primary_authority_files(
+                        primary_intent, admission_path,
+                        qualification_intent_path, output,
+                        qualification_receipt_path)
             invented = json.loads(json.dumps(primary_intent))
             invented_budget = invented["reviewed_timeout_budget"]
             invented_budget["qualification_tokens_per_second"] = 512.0
@@ -1222,10 +1284,15 @@ class DatabricksContinuityTests(unittest.TestCase):
                 key: value for key, value in evidence.items()
                 if key != "evidence_sha256"})
             (output / "DATABRICKS_EVIDENCE.json").write_text(json.dumps(evidence))
-            with self.assertRaises(PermissionError):
-                validate_primary_authority_files(
-                    primary_intent, admission_path, qualification_intent_path,
-                    output, qualification_receipt_path)
+            with patch(
+                    "src.databricks_continuity_partition."
+                    "_verify_durable_completion",
+                    return_value={"child": {}, "parent": {}}):
+                with self.assertRaises(PermissionError):
+                    validate_primary_authority_files(
+                        primary_intent, admission_path,
+                        qualification_intent_path,
+                        output, qualification_receipt_path)
 
     def test_gold_summary_requires_all_27_policy_partitions(self):
         base = self.base_receipt()
@@ -1378,6 +1445,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertEqual(job.count("notebook_path: ../notebooks/databricks_continuity_cleanup.py"), 4)
         cleanup = (root / "notebooks/databricks_continuity_cleanup.py").read_text()
         self.assertNotIn("from src.", cleanup)
+        self.assertNotIn("os.fsync", cleanup)
+        self.assertNotIn("os.replace", cleanup)
         self.assertIn("Independent ALL_DONE release", cleanup)
         self.assertIn("consumed_identity_retained", cleanup)
         self.assertEqual(job.count("job_start_timestamp_ms: '{{job.start_time.timestamp_ms}}'"), 4)
@@ -1390,6 +1459,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn('hashlib.sha256(row.record_json.encode("utf-8"))', preflight)
         self.assertNotIn("reserve_intent(", preflight)
         gpu_notebook = (root / "notebooks/databricks_continuity_partition.py").read_text()
+        for notebook in (preflight, gpu_notebook, base_preflight, base_notebook):
+            self.assertIn('"src/volume_durable_io.py"', notebook)
         self.assertNotIn("%uv pip install", gpu_notebook)
         for pin in ("torch==2.11.0+cu128", "transformers==5.19.0",
                     "bitsandbytes==0.49.2", "nvidia-ml-py==13.615.71"):
@@ -1407,6 +1478,25 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertLess(gpu_notebook.index("reserve_intent("),
                         gpu_notebook.index("result = run_partition("))
         data_notebook = (root / "notebooks/databricks_continuity_data.py").read_text()
+        admission_notebook = (root /
+                              "notebooks/databricks_continuity_admission.py").read_text()
+        finalizer_notebook = (root / "notebooks" /
+                              "databricks_continuity_partition_finalize.py").read_text()
+        for notebook in (data_notebook, admission_notebook):
+            self.assertNotIn("os.fsync", notebook)
+            self.assertNotIn("os.replace", notebook)
+            self.assertIn('.open("xb")', notebook)
+        self.assertLess(
+            admission_notebook.index("bootstrap_source_sha256 ="),
+            admission_notebook.index("sys.path.insert"))
+        self.assertIn('"src/volume_durable_io.py"', admission_notebook)
+        self.assertIn("verify_deployed_source", admission_notebook)
+        self.assertIn("_verify_durable_completion(", admission_notebook)
+        self.assertLess(
+            finalizer_notebook.index("bootstrap_source_sha256 ="),
+            finalizer_notebook.index("sys.path.insert"))
+        self.assertIn('"src/volume_durable_io.py"', finalizer_notebook)
+        self.assertIn("verify_deployed_source", finalizer_notebook)
         self.assertIn("verify_dataset_release(dataset_release_path)", data_notebook)
         self.assertIn("silver_partition_bindings(silver, generated)", data_notebook)
         self.assertIn("schema=spark.table(table).schema", data_notebook)

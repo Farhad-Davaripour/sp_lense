@@ -56,11 +56,11 @@ from .qwen9b_ordinal_continuity_lora import (
 
 
 PLAN_VERSION = "qwen35-9b-ordinal-continuity-training-v8"
-QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v8"
-ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v8"
+QUALIFICATION_VERSION = "qwen35-9b-ordinal-continuity-qualification-v9"
+ADMISSION_VERSION = "qwen35-9b-ordinal-continuity-primary-admission-v9"
 EXPOSURE_VERSION = "ordinal-continuity-adjacent-pair-exposure-v4"
-RANK_RUN_VERSION = "qwen35-9b-ordinal-continuity-rank-run-v5"
-PARTIAL_RUN_VERSION = "qwen35-9b-ordinal-continuity-partial-v5"
+RANK_RUN_VERSION = "qwen35-9b-ordinal-continuity-rank-run-v6"
+PARTIAL_RUN_VERSION = "qwen35-9b-ordinal-continuity-partial-v6"
 DATABRICKS_A10_MICRO_BATCH_SIZE = 1
 DATABRICKS_A10_ACCUMULATION_STEPS = 4
 DATABRICKS_A10_LEGACY_REDUCTION_MICRO_BATCH_SIZE = 2
@@ -863,7 +863,14 @@ def verify_rank_receipt(receipt: Mapping, *, expected_plan_sha256: str,
                     or len(journal) != plan.occurrence_count):
                 raise PermissionError("Rank receipt lacks the exact A10 journal")
             updates = receipt.get("updates")
-            if not isinstance(updates, list) or len(updates) != plan.optimizer_updates:
+            if (not isinstance(updates, list)
+                    or len(updates) != plan.optimizer_updates
+                    or receipt.get("executed_optimizer_step_count")
+                       != plan.optimizer_updates
+                    or receipt.get("durable_published_update_count")
+                       != plan.optimizer_updates
+                    or receipt.get("successful_optimizer_updates")
+                       != plan.optimizer_updates):
                 raise PermissionError("Rank receipt update count differs")
             for update_index, update in enumerate(updates):
                 entries = journal[
@@ -3001,9 +3008,15 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                     for branch in STAGE_BRANCHES[plan.stage]}
     update_journal = []
     successful_updates = 0
+    executed_optimizer_steps = 0
+    durable_published_updates = 0
     tokens_seen = 0
     overflow_recompute_tokens = 0
     total_overflow_adjustments = 0
+    if (plan.device_profile == "databricks-a10x1"
+            and progress_callback is None):
+        raise PermissionError(
+            "Databricks A10 training requires durable per-update publication")
     terminal_failure_receipt = None
     terminal_logical_attempted_tokens = 0
     terminal_physical_tokens = 0
@@ -3175,9 +3188,18 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                         "active_branch_finite_nonzero_gradient_density"],
                     "fixed_scale_no_growth": recovery["fixed_scale_no_growth"],
                 })
+            executed_optimizer_steps += 1
             update_journal.append(update_row)
             if progress_callback is not None:
-                progress_callback(dict(update_row))
+                publication = progress_callback(dict(update_row))
+                if plan.device_profile == "databricks-a10x1":
+                    if (not isinstance(publication, Mapping)
+                            or publication.get("durable_published") is not True
+                            or publication.get("optimizer_update")
+                               != update_row["optimizer_update"]):
+                        raise PermissionError(
+                            "Durable update publication acknowledgement differs")
+                    durable_published_updates += 1
             successful_updates += 1
         if successful_updates != plan.optimizer_updates:
             raise RuntimeError("Exact optimizer update count was not reached")
@@ -3224,7 +3246,10 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
             "global_journal_sha256": global_sha,
             "global_journal_occurrence_count": len(global_journal),
             "rank_journal_sha256": canonical_sha256(rank_journal),
-            "updates": update_journal, "successful_optimizer_updates": successful_updates,
+            "updates": update_journal,
+            "executed_optimizer_step_count": executed_optimizer_steps,
+            "durable_published_update_count": durable_published_updates,
+            "successful_optimizer_updates": successful_updates,
             "tokens_seen": tokens_seen, "elapsed_seconds": elapsed,
             "overflow_recompute_tokens": overflow_recompute_tokens,
             "physical_tokens_processed": tokens_seen + overflow_recompute_tokens,
@@ -3300,6 +3325,8 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
             "version": PARTIAL_RUN_VERSION,
             "status": "failed", "rank": rank, "plan_sha256": plan.full_plan_sha256,
             "batching": batching_exposure_contract(plan),
+            "executed_optimizer_step_count": executed_optimizer_steps,
+            "durable_published_update_count": durable_published_updates,
             "successful_optimizer_updates": successful_updates,
             "global_journal_sha256": global_sha,
             "updates": update_journal,

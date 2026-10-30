@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 import hashlib
 import json
-import os
 import re
 
 
@@ -77,6 +76,22 @@ def check_closeout(value):
     return dict(value)
 
 
+def write_exclusive_json(path, value):
+    data = (canonical(value) + "\n").encode("utf-8")
+    target = Path(path)
+    try:
+        with target.open("xb") as stream:
+            stream.write(data)
+            stream.flush()
+        if target.read_bytes() != data:
+            raise IOError("Sequential closeout readback differs")
+    except FileExistsError:
+        raise
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+
+
 check_reservation(json.loads(consumed.read_text(encoding="utf-8")))
 closeout_dir = lock_root / "closeouts" / identity
 closeout_dir.mkdir(parents=True, exist_ok=True)
@@ -86,33 +101,31 @@ if closeout.exists():
     receipt = check_closeout(json.loads(closeout.read_text(encoding="utf-8")))
     if active.exists():
         current = json.loads(active.read_text(encoding="utf-8"))
-        (check_closeout(current) if current.get("version") else
-         check_reservation(current))
+        check_reservation(current)
         active.unlink()
 else:
     if not active.exists():
         raise PermissionError("Active reservation disappeared without closeout")
     current = json.loads(active.read_text(encoding="utf-8"))
-    if current.get("version"):
-        receipt = check_closeout(current)
-    else:
+    check_reservation(current)
+    receipt = {
+        "version": "research4-databricks-active-reservation-closeout-v1",
+        **expected,
+        "terminal_status": "job_all_done_cleanup",
+        "closed_at": datetime.now(timezone.utc).isoformat(),
+        "consumed_identity_retained": True,
+        "reservation_sha256": digest(current),
+    }
+    receipt["receipt_sha256"] = digest(receipt)
+    try:
+        write_exclusive_json(closeout, receipt)
+    except FileExistsError:
+        receipt = check_closeout(json.loads(
+            closeout.read_text(encoding="utf-8")))
+    if active.exists():
+        current = json.loads(active.read_text(encoding="utf-8"))
         check_reservation(current)
-        receipt = {
-            "version": "research4-databricks-active-reservation-closeout-v1",
-            **expected,
-            "terminal_status": "job_all_done_cleanup",
-            "closed_at": datetime.now(timezone.utc).isoformat(),
-            "consumed_identity_retained": True,
-            "reservation_sha256": digest(current),
-        }
-        receipt["receipt_sha256"] = digest(receipt)
-        pending = closeout_dir / f".pending-{owner_key}-{os.urandom(16).hex()}.json"
-        descriptor = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(canonical(receipt) + "\n")
-            stream.flush(); os.fsync(stream.fileno())
-        os.replace(pending, active)
-    os.replace(active, closeout)
+        active.unlink()
     receipt = check_closeout(json.loads(closeout.read_text(encoding="utf-8")))
 
 check_reservation(json.loads(consumed.read_text(encoding="utf-8")))

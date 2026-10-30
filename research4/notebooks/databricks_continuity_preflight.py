@@ -34,6 +34,7 @@ def _bootstrap_verify_source(root_value, authority):
         "src/qwen9b_ordinal_continuity_training.py",
         "src/qwen9b_ordinal_continuity_lora.py",
         "src/qwen9b_ordinal_continuity_worker.py",
+        "src/volume_durable_io.py",
     )
     if (not re.fullmatch(r"[0-9a-f]{40}", str(commit or ""))
             or root.as_posix() != f"/Workspace/Shared/research4/source_releases/{commit}"
