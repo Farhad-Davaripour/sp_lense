@@ -1,7 +1,7 @@
 # Databricks notebook source
 from datetime import datetime, timezone
 from pathlib import Path
-import json, os, re, sys, uuid
+import json, re, sys
 
 for name in ("code_path", "source_commit", "dataset_release_path"):
     dbutils.widgets.text(name, "")
@@ -25,15 +25,18 @@ from pyspark.sql import functions as F
 
 def atomic_json(path, value):
     path = Path(path)
-    temporary = path.parent / (".pending-" + uuid.uuid4().hex + ".tmp")
-    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+    data = (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
     try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(json.dumps(value, indent=2, sort_keys=True) + "\n")
-            stream.flush(); os.fsync(stream.fileno())
-        os.replace(temporary, path)
-    finally:
-        temporary.unlink(missing_ok=True)
+        with path.open("xb") as stream:
+            stream.write(data)
+            stream.flush()
+        if path.read_bytes() != data:
+            raise IOError("Sequential data-stage receipt readback differs")
+    except FileExistsError:
+        raise
+    except BaseException:
+        path.unlink(missing_ok=True)
+        raise
 
 
 def commit_or_verify(table, expected, fields):

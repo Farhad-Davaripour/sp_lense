@@ -49,7 +49,10 @@ SILVER_TABLE = f"{SILVER}.ordinal_continuity_training_records"
 GOLD_RUN_TABLE = f"{GOLD}.ordinal_continuity_run_audits"
 GOLD_SUMMARY_TABLE = f"{GOLD}.ordinal_continuity_matrix_summary_v2"
 GOLD_ADMISSION_TABLE = f"{GOLD}.execution_admissions"
-INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v10"
+INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v11"
+DATABRICKS_EVIDENCE_VERSION = "research4-databricks-partition-evidence-v5"
+DATABRICKS_QUALIFICATION_VERSION = (
+    "research4-databricks-rank4-qualification-v7")
 PRODUCTION_SOURCE_RELEASE_ROOT = "/Workspace/Shared/research4/source_releases"
 BASE_QUALIFICATION_INTENT_VERSION = (
     "research4-databricks-frozen-base-format-intent-v2"
@@ -117,6 +120,7 @@ SOURCE_MANIFEST_PATHS = (
     "src/qwen9b_ordinal_continuity_training.py",
     "src/qwen9b_ordinal_continuity_worker.py",
     "src/qualification_technical_successor.py",
+    "src/volume_durable_io.py",
     "tools/prepare_databricks_continuity_intent.py",
     "tools/prepare_databricks_base_qualification_intent.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
@@ -130,6 +134,7 @@ LEGACY_BASE_SOURCE_MANIFEST_PATHS = tuple(
         "notebooks/databricks_continuity_partition_finalize.py",
         "src/base_qualification_carryforward.py",
         "src/qualification_technical_successor.py",
+        "src/volume_durable_io.py",
         "tools/prepare_databricks_base_qualification_carryforward.py",
     })
 MODEL_RECEIPT_VERSION = "research4-databricks-qwen35-volume-snapshot-v1"
@@ -144,7 +149,7 @@ DATASET_RELEASE_VALIDATION_SHA256 = (
     "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
 EXPERIMENT_SPEC = {
-    "version": "qwen35-9b-ordinal-continuity-experiment-v8",
+    "version": "qwen35-9b-ordinal-continuity-experiment-v9",
     "model_id": MODEL_ID, "model_revision": MODEL_REVISION,
     "conditions": ["self_continuity", "artifact_continuity", "label_only"],
     "seeds": [202610281, 202610282, 202610283],
@@ -1694,12 +1699,13 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or rank_receipt.get("version") != RANK_RUN_VERSION
             or rank_receipt.get("status") != "complete"
             or rank_receipt.get("plan_sha256") != intent["plan_sha256"]
+            or rank_receipt.get("executed_optimizer_step_count") != 2
+            or rank_receipt.get("durable_published_update_count") != 2
             or rank_receipt.get("successful_optimizer_updates") != 2
             or rank_receipt.get("active_branch_changed") is not True
             or type(nvml_samples) is not int or nvml_samples <= 0
             or evidence_hash != digest(evidence_payload)
-            or evidence.get("version")
-               != "research4-databricks-partition-evidence-v4"
+            or evidence.get("version") != DATABRICKS_EVIDENCE_VERSION
             or evidence.get("intent_sha256") != intent["intent_sha256"]
             or evidence.get("base_qualification_carryforward_sha256")
                != intent.get("base_qualification_carryforward_sha256")
@@ -1733,7 +1739,7 @@ def create_qualification_receipt(intent: Mapping[str, Any],
             or not re.fullmatch(r"[0-9a-f]{64}", checkpoint_tree_sha256)):
         raise PermissionError("Actual rank-4 Databricks qualification evidence differs")
     value = {
-        "version": "research4-databricks-rank4-qualification-v6",
+        "version": DATABRICKS_QUALIFICATION_VERSION,
         "status": "qualified", "source_commit": intent["source_commit"],
         "source_sha256": intent["source_sha256"],
         "model_tree_sha256": intent["model_tree_sha256"],
@@ -1769,9 +1775,11 @@ def create_qualification_receipt(intent: Mapping[str, Any],
 def create_primary_admission(intent: Mapping[str, Any],
                              qualification_receipt: Mapping[str, Any]) -> dict:
     intent = validate_intent(intent)
+    from .qwen9b_ordinal_continuity_training import ADMISSION_VERSION
     receipt = dict(qualification_receipt); embedded = receipt.pop("receipt_sha256", None)
     if (intent["plan"]["mode"] != "primary"
             or embedded != digest(receipt)
+            or receipt.get("version") != DATABRICKS_QUALIFICATION_VERSION
             or receipt.get("status") != "qualified"
             or receipt.get("selected_rank") != 4
             or receipt.get("source_commit") != intent["source_commit"]
@@ -1803,7 +1811,7 @@ def create_primary_admission(intent: Mapping[str, Any],
                 "authorized_primary_plan_sha256s", ())):
         raise PermissionError("Qualification does not authorize this primary partition")
     value = {
-        "version": "qwen35-9b-ordinal-continuity-primary-admission-v8",
+        "version": ADMISSION_VERSION,
         "admitted": True, "plan": intent["plan"],
         "full_plan_sha256": intent["plan_sha256"],
         "qualification_receipt_sha256": embedded,
@@ -1842,7 +1850,9 @@ def validate_primary_authority_files(
         qualification_output: str | Path,
         qualification_receipt_path: str | Path) -> dict[str, dict]:
     """Replay immutable qualification evidence before any primary allocation."""
+    from .databricks_continuity_partition import _verify_durable_completion
     from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
+    from .qwen9b_ordinal_continuity_training import TrainingPlan
     primary_intent = validate_intent(intent)
     if primary_intent["plan"]["mode"] != "primary":
         raise PermissionError("Primary authority replay requires a primary intent")
@@ -1864,6 +1874,13 @@ def validate_primary_authority_files(
                    "qualification_technical_successor_sha256")):
         raise PermissionError("Primary and capacity qualification use different base gate")
     root = Path(qualification_output)
+    qualification_plan = TrainingPlan(
+        **qualification_intent["plan"]).validate()
+    _verify_durable_completion(
+        root.parent, identity=qualification_intent["identity"],
+        intent_sha256=qualification_intent["intent_sha256"],
+        plan_sha256=qualification_intent["plan_sha256"],
+        optimizer_updates=qualification_plan.optimizer_updates)
     rank = json.loads((root / "RANK_0_RECEIPT.json").read_text(encoding="utf-8"))
     evidence = json.loads((root / "DATABRICKS_EVIDENCE.json").read_text(
         encoding="utf-8"))
@@ -1926,6 +1943,24 @@ def validate_exact_gold_row(rows: list[Mapping[str, Any]],
     return row
 
 
+def _write_exclusive_volume_json(path: str | Path,
+                                 value: Mapping[str, Any]) -> dict:
+    """Create one sequential immutable Volume JSON file without fsync/rename."""
+    target = Path(path); target.parent.mkdir(parents=True, exist_ok=True)
+    data = (canonical(dict(value)) + "\n").encode("utf-8")
+    descriptor = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(data)
+            stream.flush()
+        if target.read_bytes() != data:
+            raise IOError(f"Sequential Volume JSON readback differs: {target}")
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+    return dict(value)
+
+
 class VolumeOneUseLock:
     """Cross-job O_EXCL lock plus immutable consumed-intent receipt."""
     def __init__(self, lock_root: str | Path, intent: Mapping[str, Any], owner: str):
@@ -1938,17 +1973,11 @@ class VolumeOneUseLock:
         self.consumed.parent.mkdir(parents=True, exist_ok=True)
         if self.consumed.exists():
             raise PermissionError("This Databricks partition identity is already consumed")
-        descriptor = os.open(self.lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(canonical({"owner": self.owner,
-                                    "intent_sha256": self.intent["intent_sha256"]}) + "\n")
-            stream.flush(); os.fsync(stream.fileno())
+        payload = {"owner": self.owner,
+                   "intent_sha256": self.intent["intent_sha256"]}
+        _write_exclusive_volume_json(self.lock, payload)
         try:
-            descriptor = os.open(self.consumed, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-            with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-                stream.write(canonical({"owner": self.owner,
-                                        "intent_sha256": self.intent["intent_sha256"]}) + "\n")
-                stream.flush(); os.fsync(stream.fileno())
+            _write_exclusive_volume_json(self.consumed, payload)
         except BaseException:
             try:
                 current = json.loads(self.lock.read_text(encoding="utf-8"))
@@ -1975,16 +2004,12 @@ def reserve_intent(lock_root: str | Path, intent: Mapping[str, Any], owner: str)
     consumed = root / "consumed" / (intent["identity"] + ".json")
     if consumed.exists():
         raise PermissionError("This canonical identity was already consumed")
-    descriptor = os.open(active, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
     payload = {"owner": owner, "identity": intent["identity"],
                "intent_sha256": intent["intent_sha256"],
                "status": "reserved_after_gpu_ready_before_model"}
-    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-        stream.write(canonical(payload) + "\n"); stream.flush(); os.fsync(stream.fileno())
+    _write_exclusive_volume_json(active, payload)
     try:
-        descriptor = os.open(consumed, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(canonical(payload) + "\n"); stream.flush(); os.fsync(stream.fileno())
+        _write_exclusive_volume_json(consumed, payload)
     except BaseException:
         active.unlink(missing_ok=True)
         raise
@@ -2007,12 +2032,7 @@ def verify_reserved_intent(lock_root: str | Path, intent: Mapping[str, Any],
 
 def close_active_reservation(lock_root: str | Path, intent: Mapping[str, Any],
                              owner: str, terminal_status: str) -> dict:
-    """Release only the exact owner's active lease; never free its consumed ID.
-
-    The closeout receipt replaces the active lock in two atomic renames.  If the
-    process dies between them, the next invocation recognizes the closeout
-    payload still at ``scientific.lock`` and finishes the owner-bound rename.
-    """
+    """Publish immutable closeout, then release only the exact active lease."""
     intent = validate_execution_intent(intent); root = Path(lock_root); owner = str(owner)
     if (not owner or not isinstance(terminal_status, str)
             or not re.fullmatch(r"[a-z0-9_.:-]{1,128}", terminal_status)):
@@ -2049,34 +2069,30 @@ def close_active_reservation(lock_root: str | Path, intent: Mapping[str, Any],
         receipt = check_closeout(json.loads(closeout.read_text(encoding="utf-8")))
         if active.exists():
             current = json.loads(active.read_text(encoding="utf-8"))
-            if current.get("version") == CLOSEOUT_VERSION:
-                check_closeout(current)
-            else:
-                check_reservation(current)
+            check_reservation(current)
             active.unlink()
         return receipt
     if not active.exists():
         raise PermissionError("Active reservation disappeared without closeout")
     current = json.loads(active.read_text(encoding="utf-8"))
-    if current.get("version") == CLOSEOUT_VERSION:
-        receipt = check_closeout(current)
-    else:
+    check_reservation(current)
+    receipt = {
+        "version": CLOSEOUT_VERSION, **expected,
+        "terminal_status": terminal_status,
+        "closed_at": datetime.now(timezone.utc).isoformat(),
+        "consumed_identity_retained": True,
+        "reservation_sha256": digest(current),
+    }
+    receipt["receipt_sha256"] = digest(receipt)
+    try:
+        _write_exclusive_volume_json(closeout, receipt)
+    except FileExistsError:
+        receipt = check_closeout(json.loads(
+            closeout.read_text(encoding="utf-8")))
+    if active.exists():
+        current = json.loads(active.read_text(encoding="utf-8"))
         check_reservation(current)
-        receipt = {
-            "version": CLOSEOUT_VERSION, **expected,
-            "terminal_status": terminal_status,
-            "closed_at": datetime.now(timezone.utc).isoformat(),
-            "consumed_identity_retained": True,
-            "reservation_sha256": digest(current),
-        }
-        receipt["receipt_sha256"] = digest(receipt)
-        pending = closeout_dir / (".pending-" + owner_key + "-" +
-                                  hashlib.sha256(os.urandom(32)).hexdigest() + ".json")
-        descriptor = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            stream.write(canonical(receipt) + "\n"); stream.flush(); os.fsync(stream.fileno())
-        os.replace(pending, active)
-    os.replace(active, closeout)
+        active.unlink()
     result = check_closeout(json.loads(closeout.read_text(encoding="utf-8")))
     check_reservation(json.loads(consumed.read_text(encoding="utf-8")))
     return result

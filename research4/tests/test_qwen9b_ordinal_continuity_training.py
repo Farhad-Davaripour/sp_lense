@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import shutil
 import tempfile
 import unittest
 from unittest import mock
@@ -23,9 +24,14 @@ from src.qwen9b_ordinal_continuity_lora import (
     EXPECTED_TARGET_PROJECTIONS as LORA_TARGET_PROJECTIONS,
     OrdinalContinuityLoRAConfig,
     OrdinalContinuityModel,
+    adapter_sha256,
     branch_sha256,
     install_ordinal_lora,
+    load_adapter_checkpoint,
 )
+from src.databricks_continuity_partition_worker import _append_progress
+from src.volume_durable_io import (
+    SUCCESS_MANIFEST, publish_tree, verify_manifest)
 
 from src.qwen9b_ordinal_continuity_training import (
     ADMISSION_VERSION,
@@ -79,10 +85,19 @@ from src.qwen9b_ordinal_continuity_training import (
     verify_rank_receipt,
 )
 from src.qwen9b_ordinal_continuity_worker import consume_one_use_intent
+from src.qwen9b_ordinal_continuity_controller import PARTITION_INTENT_VERSION
 from src.qualification_technical_successor import SUCCESSOR_IDENTITY
 
 
 FAMILIES = [f"family-{index:02d}" for index in range(12)]
+
+
+def durable_progress_sink(rows):
+    def publish(row):
+        rows.append(row)
+        return {"durable_published": True,
+                "optimizer_update": row["optimizer_update"]}
+    return publish
 
 
 def dataset(condition):
@@ -552,7 +567,7 @@ class TrainingAdmissionTests(unittest.TestCase):
 
     def test_rank_receipt_self_hash_is_recomputed(self):
         payload = {
-            "version": "qwen35-9b-ordinal-continuity-rank-run-v5",
+            "version": training_module.RANK_RUN_VERSION,
             "status": "complete", "plan_sha256": "p" * 64,
             "global_journal_sha256": "j" * 64,
             "global_journal_occurrence_count": 96,
@@ -626,10 +641,13 @@ class TrainingAdmissionTests(unittest.TestCase):
                 }],
             })
         receipt = {
-            "version": "qwen35-9b-ordinal-continuity-rank-run-v5",
+            "version": training_module.RANK_RUN_VERSION,
             "status": "complete", "plan_sha256": plan.full_plan_sha256,
             "global_journal_sha256": canonical_sha256(journal),
             "batching": batching_exposure_contract(plan), "updates": updates,
+            "executed_optimizer_step_count": 2,
+            "durable_published_update_count": 2,
+            "successful_optimizer_updates": 2,
             "tokens_seen": sum(row["logical_tokens"] for row in updates),
             "overflow_recompute_tokens": 0,
             "physical_tokens_processed": sum(
@@ -1408,7 +1426,8 @@ class TrainingAdmissionTests(unittest.TestCase):
                 plan=plan, output_dir=folder, target_names=["proj"],
                 source_sha256="s" * 64, base_sha256="b" * 64,
                 rank=0, world_size=1, save_checkpoint=False,
-                callable_model=model, progress_callback=progress.append)
+                callable_model=model,
+                progress_callback=durable_progress_sink(progress))
         self.assertEqual(receipt["successful_optimizer_updates"], 1)
         self.assertEqual(len(receipt["updates"]), 1)
         self.assertEqual(len(progress), 1)
@@ -1468,8 +1487,11 @@ class TrainingAdmissionTests(unittest.TestCase):
                 plan=plan, output_dir=folder, target_names=["proj"],
                 source_sha256="s" * 64, base_sha256="b" * 64,
                 rank=0, world_size=1, save_checkpoint=False,
-                callable_model=model, progress_callback=progress.append)
+                callable_model=model,
+                progress_callback=durable_progress_sink(progress))
         self.assertEqual(receipt["successful_optimizer_updates"], 2)
+        self.assertEqual(receipt["executed_optimizer_step_count"], 2)
+        self.assertEqual(receipt["durable_published_update_count"], 2)
         self.assertEqual(len(receipt["updates"]), 2)
         self.assertEqual(len(progress), 2)
         self.assertEqual(receipt["tokens_seen"], logical_tokens)
@@ -1488,6 +1510,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             self.assertGreater(
                 update["active_branch_finite_nonzero_gradient_element_count"],
                 0)
+
             self.assertGreater(
                 update["active_branch_finite_nonzero_gradient_density"], 0.0)
             self.assertTrue(update["fixed_scale_no_growth"])
@@ -1633,6 +1656,141 @@ class TrainingAdmissionTests(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(
                     PermissionError):
                 verify_rank_receipt(changed, **strict)
+
+    def test_callback_failure_after_second_step_separates_executed_and_durable(self):
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=2))
+        model = tiny_wrapped("delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        calls = []
+        progress = []
+
+        def fail_second(row):
+            progress.append(row)
+            if row["optimizer_update"] == 1:
+                raise OSError("durable publication failed")
+            return {"durable_published": True,
+                    "optimizer_update": row["optimizer_update"]}
+
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=1.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(4.0, calls)):
+            with self.assertRaisesRegex(OSError, "durable publication failed"):
+                run_training_stage(
+                    model=model, tokenizer=tokenizer, tokenized_records=records,
+                    plan=plan, output_dir=folder, target_names=["proj"],
+                    source_sha256="s" * 64, base_sha256="b" * 64,
+                    rank=0, world_size=1, save_checkpoint=True,
+                    callable_model=model, progress_callback=fail_second)
+            partial = json.loads((Path(folder) / "RANK_0_PARTIAL.json").read_text())
+            self.assertEqual(partial["executed_optimizer_step_count"], 2)
+            self.assertEqual(partial["durable_published_update_count"], 1)
+            self.assertEqual(partial["successful_optimizer_updates"], 1)
+            self.assertEqual(len(partial["updates"]), 2)
+            self.assertEqual(len(progress), 2)
+            self.assertTrue(all(
+                row["grad_scaler_attempts"][-1]["optimizer_step_executed"]
+                for row in partial["updates"]))
+            self.assertFalse((Path(folder) / "optimizer_rank0.pt").exists())
+            self.assertFalse((Path(folder) / "TRAINING_RECEIPT.json").exists())
+            self.assertFalse((Path(folder) / "checkpoint").exists())
+
+    def test_false_durability_acknowledgement_fails_closed(self):
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=1))
+        model = tiny_wrapped("delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=1.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(4.0, [])):
+            with self.assertRaisesRegex(
+                    PermissionError,
+                    "Durable update publication acknowledgement differs"):
+                run_training_stage(
+                    model=model, tokenizer=tokenizer,
+                    tokenized_records=records, plan=plan,
+                    output_dir=folder, target_names=["proj"],
+                    source_sha256="s" * 64, base_sha256="b" * 64,
+                    rank=0, world_size=1, save_checkpoint=True,
+                    callable_model=model,
+                    progress_callback=lambda row: {
+                        "durable_published": False,
+                        "optimizer_update": row["optimizer_update"]})
+            partial = json.loads(
+                (Path(folder) / "RANK_0_PARTIAL.json").read_text())
+            self.assertEqual(partial["executed_optimizer_step_count"], 1)
+            self.assertEqual(partial["durable_published_update_count"], 0)
+            self.assertEqual(partial["successful_optimizer_updates"], 0)
+            self.assertFalse((Path(folder) / "optimizer_rank0.pt").exists())
+            self.assertFalse((Path(folder) / "checkpoint").exists())
+
+    def test_two_update_local_checkpoint_publishes_and_reloads_from_volume(self):
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="qualification", stage="delta1", condition="self_continuity",
+            seed=202610281, optimizer_updates=2))
+        model = tiny_wrapped("delta1")
+        tokenizer = ToyTokenizer()
+        records = tokenize_rows(dataset("self_continuity"), tokenizer, 1024)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=1.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(
+                training_module, "_grad_scaler", return_value=scaler), \
+                mock.patch.object(
+                    training_module, "ordinal_pair_loss",
+                    side_effect=fake_scaled_ordinal_loss(4.0, [])):
+            root = Path(folder); local = root / "local"; volume = root / "volume"
+            local.mkdir(); progress_path = local / "MLFLOW_PROGRESS.jsonl"
+            progress_path.write_bytes(b"")
+
+            def progress(row):
+                return _append_progress(
+                    progress_path, volume, row,
+                    intent_sha256="a" * 64,
+                    plan_sha256=plan.full_plan_sha256)
+
+            receipt = run_training_stage(
+                model=model, tokenizer=tokenizer, tokenized_records=records,
+                plan=plan, output_dir=local, target_names=["proj"],
+                source_sha256="s" * 64, base_sha256="b" * 64,
+                rank=0, world_size=1, save_checkpoint=True,
+                callable_model=model, progress_callback=progress)
+            self.assertEqual(receipt["executed_optimizer_step_count"], 2)
+            self.assertEqual(receipt["durable_published_update_count"], 2)
+            manifest = publish_tree(
+                local, volume, status="complete",
+                manifest_name=SUCCESS_MANIFEST, required_update_count=2,
+                metadata={"identity": "tiny-v7"})
+            expected_adapter = receipt["checkpoint"]["adapter_sha256"]
+            shutil.rmtree(local)
+            self.assertEqual(
+                verify_manifest(
+                    volume, manifest_name=SUCCESS_MANIFEST,
+                    expected_status="complete", required_update_count=2)[
+                        "manifest_sha256"],
+                manifest["manifest_sha256"])
+            restored = tiny_wrapped("delta1")
+            metadata = load_adapter_checkpoint(
+                restored, volume / "checkpoint", expected_targets=["proj"],
+                expected_base_sha256="b" * 64,
+                expected_source_sha256="s" * 64,
+                expected_condition="self_continuity", expected_seed=202610281,
+                expected_stage="delta1",
+                expected_plan_sha256=plan.full_plan_sha256)
+            self.assertEqual(metadata["adapter_sha256"], expected_adapter)
+            self.assertEqual(adapter_sha256(restored, ("delta1",)),
+                             expected_adapter)
 
     def test_run_stage_fixed_scale1_nonfinite_fails_without_update(self):
         plan = databricks_a10_plan(TrainingPlan(
@@ -1926,7 +2084,7 @@ class TrainingAdmissionTests(unittest.TestCase):
             plan.write_text(json.dumps(asdict(qualification)) + "\n", encoding="utf-8")
             intent = root / "intent.json"
             intent.write_text(json.dumps({
-                "version": "qwen35-9b-continuity-partition-intent-v8",
+                "version": PARTITION_INTENT_VERSION,
                 "one_use": True, "attempt_number": 1, "automatic_retries": 0,
                 "partition_identity": SUCCESSOR_IDENTITY,
                 "plan_sha256": qualification.full_plan_sha256,

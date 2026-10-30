@@ -29,6 +29,14 @@ from .qwen9b_ordinal_continuity_training import (
     validate_sequential_parent, verify_rank_receipt,
 )
 from .databricks_continuity_partition_worker import validate_mlflow_journal
+from .volume_durable_io import (
+    SUCCESS_MANIFEST, completion_metadata, file_descriptor,
+    publish_immutable_bytes,
+    publish_immutable_json, verify_manifest)
+
+
+PARENT_MANIFEST_VERSION = "research4-parent-volume-manifest-v1"
+PARENT_SUCCESS_MANIFEST = "PARENT_OUTPUT_MANIFEST.json"
 
 
 def _bounded_run(command, *, cwd, env, stop_seconds, ceiling_seconds):
@@ -107,13 +115,86 @@ def _file_sha256(path):
 
 
 def _atomic_json(path, value):
-    target = Path(path); target.parent.mkdir(parents=True, exist_ok=True)
-    pending = target.with_name(f".pending-{target.name}-{os.urandom(8).hex()}")
-    descriptor = os.open(pending, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
-    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-        stream.write(canonical(value) + "\n")
-        stream.flush(); os.fsync(stream.fileno())
-    os.replace(pending, target)
+    stage = Path(tempfile.gettempdir()) / "research4_volume_publish_stage"
+    return publish_immutable_json(value, path, local_stage_dir=stage)
+
+
+def _parent_manifest(run_root, *, identity, intent_sha256, plan_sha256):
+    root = Path(run_root)
+    relative_paths = [
+        "records.jsonl", "TERMINAL.json",
+        f"output/{SUCCESS_MANIFEST}",
+        "output/PARENT_FINALIZATION.json",
+    ]
+    files = []
+    for relative in relative_paths:
+        descriptor = file_descriptor(root / relative)
+        files.append({"path": relative, **descriptor})
+    value = {
+        "version": PARENT_MANIFEST_VERSION,
+        "status": "complete",
+        "identity": identity,
+        "intent_sha256": intent_sha256,
+        "plan_sha256": plan_sha256,
+        "files": files,
+    }
+    value["manifest_sha256"] = digest(value)
+    _atomic_json(root / PARENT_SUCCESS_MANIFEST, value)
+    readback = _read(root / PARENT_SUCCESS_MANIFEST)
+    payload = dict(readback); embedded = payload.pop("manifest_sha256", None)
+    if payload != {key: item for key, item in value.items()
+                   if key != "manifest_sha256"} or embedded != digest(payload):
+        raise PermissionError("Parent Volume manifest readback differs")
+    return readback
+
+
+def _verify_parent_manifest(run_root, *, identity, intent_sha256, plan_sha256):
+    root = Path(run_root); path = root / PARENT_SUCCESS_MANIFEST
+    value = _read(path); payload = dict(value)
+    embedded = payload.pop("manifest_sha256", None)
+    if (payload.get("version") != PARENT_MANIFEST_VERSION
+            or payload.get("status") != "complete"
+            or payload.get("identity") != identity
+            or payload.get("intent_sha256") != intent_sha256
+            or payload.get("plan_sha256") != plan_sha256
+            or embedded != digest(payload)):
+        raise PermissionError("Parent Volume manifest differs")
+    expected_paths = [
+        "records.jsonl", "TERMINAL.json",
+        f"output/{SUCCESS_MANIFEST}",
+        "output/PARENT_FINALIZATION.json",
+    ]
+    files = payload.get("files")
+    if (not isinstance(files, list)
+            or [row.get("path") for row in files] != expected_paths):
+        raise PermissionError("Parent Volume manifest file order differs")
+    for row in files:
+        relative = row.get("path")
+        if (not isinstance(relative, str)
+                or set(row) != {"path", "bytes", "sha256"}
+                or file_descriptor(root / relative) != {
+                    "bytes": row["bytes"], "sha256": row["sha256"]}):
+            raise PermissionError("Parent Volume manifest file differs")
+    return value
+
+
+def _verify_durable_completion(run_root, *, identity, intent_sha256,
+                               plan_sha256, optimizer_updates):
+    """Single finalizer boundary for exact child and parent completion."""
+    root = Path(run_root); output = root / "output"
+    child = verify_manifest(
+        output, manifest_name=SUCCESS_MANIFEST,
+        expected_status="complete", required_update_count=optimizer_updates,
+        allowed_extra={"PARENT_FINALIZATION.json"},
+        expected_metadata=completion_metadata(
+            identity=identity, intent_sha256=intent_sha256,
+            plan_sha256=plan_sha256,
+            executed_optimizer_step_count=optimizer_updates,
+            durable_published_update_count=optimizer_updates))
+    parent = _verify_parent_manifest(
+        root, identity=identity, intent_sha256=intent_sha256,
+        plan_sha256=plan_sha256)
+    return {"child": child, "parent": parent}
 
 
 def run_partition(*, spark, intent_path, plan_path, admission_path=None,
@@ -259,9 +340,15 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     if run_root.exists():
         raise FileExistsError("Databricks partition output is immutable")
     run_root.mkdir(parents=True, exist_ok=False)
+    local_stage_root = Path(tempfile.mkdtemp(
+        prefix=f"research4_{identity}_", dir=tempfile.gettempdir()))
     records_path = run_root / "records.jsonl"
-    records_path.write_text("".join(canonical(row) + "\n" for row in rows),
-                            encoding="utf-8")
+    local_records_path = local_stage_root / "records.jsonl"
+    local_records_path.write_text(
+        "".join(canonical(row) + "\n" for row in rows), encoding="utf-8")
+    publish_immutable_bytes(
+        local_records_path.read_bytes(), records_path,
+        local_stage_dir=local_stage_root / "publication_stage")
     local_model, local_model_receipt, cache_metrics = _stage_local_model(
         intent["model_root"], MODEL_RECEIPT, identity,
         intent["model_tree_sha256"], intent["model_receipt_sha256"])
@@ -281,11 +368,14 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     except BaseException:
         shutil.rmtree(local_model.parent, ignore_errors=True)
         raise
+    local_output = local_stage_root / "output"
+    durable_output = run_root / "output"
     command = [
         sys.executable, "-m",
         "src.databricks_continuity_partition_worker",
         "--intent", str(intent_path), "--plan", str(plan_path),
-        "--records", str(records_path), "--output", str(run_root / "output"),
+        "--records", str(local_records_path), "--output", str(local_output),
+        "--durable-output", str(durable_output),
         "--model-receipt", str(local_model_receipt),
     ]
     if admission_path:
@@ -331,6 +421,16 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
 
 
     try:
+        verify_manifest(
+            durable_output, manifest_name=SUCCESS_MANIFEST,
+            expected_status="complete",
+            required_update_count=plan.optimizer_updates,
+            expected_metadata=completion_metadata(
+                identity=intent["identity"],
+                intent_sha256=intent["intent_sha256"],
+                plan_sha256=intent["plan_sha256"],
+                executed_optimizer_step_count=plan.optimizer_updates,
+                durable_published_update_count=plan.optimizer_updates))
         receipt_path = run_root / "output" / "TRAINING_RECEIPT.json"
         rank_receipt_path = run_root / "output" / "RANK_0_RECEIPT.json"
         evidence_path = run_root / "output" / "DATABRICKS_EVIDENCE.json"
@@ -395,7 +495,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         if whole_job_elapsed() >= intent["wall_clock_ceiling_seconds"]:
             raise TimeoutError("Databricks post-run audit exceeded the reviewed ceiling")
         parent_finalization = {
-            "version": "research4-parent-mlflow-finalization-v3",
+            "version": "research4-parent-mlflow-finalization-v4",
             "identity": identity,
             "owner_run_id": str(job_run_id),
             "intent_sha256": intent["intent_sha256"],
@@ -419,6 +519,10 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         _atomic_json(
             run_root / "output" / "PARENT_FINALIZATION.json",
             parent_finalization)
+        _parent_manifest(
+            run_root, identity=identity,
+            intent_sha256=intent["intent_sha256"],
+            plan_sha256=intent["plan_sha256"])
         # Deliberately perform no post-science network calls on GPU. The
         # authenticated CPU finalizer replays this verified journal, publishes
         # all scalar/artifact data, finalizes Gold, then marks MLflow FINISHED.
@@ -511,7 +615,8 @@ _EXPECTED_MLFLOW_ARTIFACTS = {
     "TRAINING_RECEIPT.json", "RANK_0_RECEIPT.json",
     "DATABRICKS_EVIDENCE.json", "MLFLOW_PARAMS.json",
     "MLFLOW_PROGRESS.jsonl", "MLFLOW_FINAL.json",
-    "PARENT_FINALIZATION.json", "adapter_config.json", "TERMINAL.json",
+    "PARENT_FINALIZATION.json", "CHILD_OUTPUT_MANIFEST.json",
+    "PARENT_OUTPUT_MANIFEST.json", "adapter_config.json", "TERMINAL.json",
 }
 
 
@@ -639,7 +744,7 @@ def _validate_parent_finalization(run_root, *, intent, terminal, receipt,
     if pending_gold_row != expected_gold:
         raise PermissionError("CPU parent pending Gold binding differs")
     expected = {
-        "version": "research4-parent-mlflow-finalization-v3",
+        "version": "research4-parent-mlflow-finalization-v4",
         "identity": intent["identity"],
         "owner_run_id": str(owner_run_id),
         "intent_sha256": intent["intent_sha256"],
@@ -697,9 +802,15 @@ def finalize_partition_mlflow(*, spark, intent_path, plan_path, code_root,
     identity = intent["identity"]
     run_root = Path(VOLUME) / "runs" / identity
     output = run_root / "output"
-    if not (output / "PARENT_FINALIZATION.json").is_file():
+    if (not (output / "PARENT_FINALIZATION.json").is_file()
+            or not (run_root / PARENT_SUCCESS_MANIFEST).is_file()):
         return {"status": "no_complete_parent_evidence",
                 "identity": identity, "owner_run_id": str(owner_run_id)}
+    _verify_durable_completion(
+        run_root, identity=identity,
+        intent_sha256=intent["intent_sha256"],
+        plan_sha256=intent["plan_sha256"],
+        optimizer_updates=plan.optimizer_updates)
     terminal = _read(run_root / "TERMINAL.json")
     receipt = _read(output / "TRAINING_RECEIPT.json")
     rank_receipt = _read(output / "RANK_0_RECEIPT.json")
@@ -793,8 +904,10 @@ def finalize_partition_mlflow(*, spark, intent_path, plan_path, code_root,
         output / "MLFLOW_PROGRESS.jsonl",
         output / "MLFLOW_FINAL.json",
         output / "PARENT_FINALIZATION.json",
+        output / SUCCESS_MANIFEST,
         output / "checkpoint" / "adapter_config.json",
         run_root / "TERMINAL.json",
+        run_root / PARENT_SUCCESS_MANIFEST,
     ]
     if any(not path.is_file() for path in artifacts):
         raise FileNotFoundError("CPU finalizer artifact is absent")

@@ -1,11 +1,13 @@
 import copy
 import hashlib
 import json
+import os
 from dataclasses import asdict
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from src.databricks_continuity_partition import (
     _EXPECTED_MLFLOW_ARTIFACTS,
@@ -15,8 +17,10 @@ from src.databricks_continuity_partition import (
 )
 from src.databricks_simulated_continuity import digest
 from src.databricks_continuity_partition_worker import (
-    MLFLOW_JOURNAL_VERSION, _digest, validate_mlflow_journal,
+    MLFLOW_JOURNAL_VERSION, _digest, run as run_partition_worker,
+    validate_mlflow_journal,
 )
+from src.volume_durable_io import verify_failure_manifest
 from src.qwen9b_ordinal_continuity_controller import partition_identity
 from src.qwen9b_ordinal_continuity_training import (
     TrainingPlan, databricks_a10_plan)
@@ -27,6 +31,38 @@ from src.qualification_technical_successor import (
 
 
 class ParentMlflowJournalTests(unittest.TestCase):
+    def test_early_model_preflight_failure_publishes_failure_manifest(self):
+        plan = databricks_a10_plan(TrainingPlan())
+        intent = {
+            "plan": asdict(plan), "identity": SUCCESSOR_IDENTITY,
+            "intent_sha256": "a" * 64,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); intent_path = root / "intent.json"
+            plan_path = root / "plan.json"
+            intent_path.write_text(json.dumps(intent), encoding="utf-8")
+            plan_path.write_text(json.dumps(asdict(plan)), encoding="utf-8")
+            args = SimpleNamespace(
+                intent=str(intent_path), plan=str(plan_path),
+                output=str(root / "local"),
+                durable_output=str(root / "volume"),
+                model_receipt=str(root / "missing-model-receipt.json"),
+                records=str(root / "records.jsonl"), admission=None,
+                parent_checkpoint=None)
+            with patch(
+                    "src.databricks_continuity_partition_worker.validate_intent",
+                    return_value=intent), patch.dict(os.environ, {}, clear=True):
+                with self.assertRaisesRegex(
+                        PermissionError,
+                        "Per-run verified local model cache is required"):
+                    run_partition_worker(args)
+            failure = verify_failure_manifest(
+                root / "volume", expected_metadata={
+                    "identity": SUCCESSOR_IDENTITY,
+                    "intent_sha256": "a" * 64,
+                    "plan_sha256": plan.full_plan_sha256})
+            self.assertEqual(failure["error_type"], "PermissionError")
+
     def fixture(self, root):
         plan = databricks_a10_plan(TrainingPlan())
         technical = authority()
@@ -416,7 +452,7 @@ class ParentMlflowJournalTests(unittest.TestCase):
                 "receipt_replayed": True,
             }
             parent = {
-                "version": "research4-parent-mlflow-finalization-v3",
+                "version": "research4-parent-mlflow-finalization-v4",
                 "identity": identity, "owner_run_id": "123",
                 "intent_sha256": intent["intent_sha256"],
                 "plan_sha256": intent["plan_sha256"],
@@ -476,48 +512,46 @@ class ParentMlflowJournalTests(unittest.TestCase):
         value = authority()
         self.assertEqual(validate(value), value)
         self.assertEqual(value["prior_identity"],
-                         "qualification_rank4_a10_gradscaler_recovery_v5")
-        self.assertEqual(value["successor_identity"],
                          "qualification_rank4_a10_fp16_scale1_v6")
-        self.assertEqual(value["owner_run_id"], "382017553734680")
+        self.assertEqual(value["successor_identity"],
+                         "qualification_rank4_a10_volume_durable_v7")
+        self.assertEqual(value["owner_run_id"], "598541262946494")
         self.assertEqual(
             value["prior_intent_sha256"],
-            "b8f1eb980e1eba924540642e0de70f104baadfb0a5f0f9716c4ea25ac43769a1")
+            "96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3")
         self.assertEqual(
             value["closeout_receipt_sha256"],
-            "19842691fe1b2ed17c681eee9769c3580b081cdc24cc6f7bf43bde9b33d5e07d")
+            "63bc45c475030c5ffbae2f556a7c63dff2a2568c6d8fba13fbab857bc7d18cfa")
         self.assertEqual(
             value["predecessor_authority_sha256"],
-            "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
+            "16824b6af523b31979f88dd7aee5a48aa75f25e393299643f33fa33ad29e1edc")
         predecessor = value["predecessor_authority"]
-        self.assertEqual(predecessor["owner_run_id"], "123598135063131")
+        self.assertEqual(predecessor["owner_run_id"], "382017553734680")
         self.assertEqual(
             predecessor["predecessor_authority_sha256"],
-            "fc91d5d83d3c37657af0c1edff7f3a1b964fcbc6ea7e85aabef8eb09d3b137b9")
+            "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0")
         self.assertEqual(
             value["rank_partial_file_sha256"],
-            "f3263b28b588232e1e65c05d607f009413a6657e7a504f40240b776b8666a01e")
+            "7ad986b86c74188088ada566295e1a6d072cff0a1bd8cd45f2cbc5dd3825f939")
         self.assertEqual(
-            value["mlflow_progress_file_sha256"], hashlib.sha256(b"").hexdigest())
-        self.assertEqual(value["optimizer_updates"], 0)
+            value["mlflow_progress_file_sha256"],
+            "182c2c8302576ce3c41bc365823829b91e5eec5420f0c23cdb0431d9adb4a708")
+        self.assertEqual(value["executed_optimizer_step_count"], 2)
+        self.assertEqual(value["durable_published_update_count"], 1)
         self.assertFalse(value["checkpoint_written"])
-        self.assertEqual(value["backward_attempts"], 5)
-        self.assertTrue(value["initial_scale_only_hypothesis_disproved"])
+        self.assertEqual(value["error"], "[Errno 29] Illegal seek")
         self.assertEqual(value["successor_execution_scope"],
                          "databricks-a10x1-only")
         self.assertEqual(value["successor_grad_scaler_scale"], 1.0)
-        self.assertEqual(value["successor_max_overflow_adjustments"], 0)
-        self.assertEqual(value["successor_minimum_grad_scaler_scale"], 1.0)
-        self.assertTrue(value["successor_one_attempt_per_update"])
-        self.assertTrue(value["successor_positive_finite_gradient_norm_required"])
-        self.assertTrue(value["successor_nonzero_active_gradient_density_required"])
-        self.assertTrue(value["successor_physical_tokens_equal_logical_on_success"])
+        self.assertTrue(value["successor_storage_contract"][
+            "per_update_immutable_receipt_before_advancement"])
+        self.assertTrue(value["successor_storage_contract"][
+            "checkpoint_optimizer_local_then_publish"])
         successor_plan = databricks_a10_plan(TrainingPlan())
         self.assertEqual(value["successor_plan_sha256"],
                          successor_plan.full_plan_sha256)
-        self.assertEqual(value["technical_successor_sha256"],
-                         "16824b6af523b31979f88dd7aee5a48aa75f25e393299643f33fa33ad29e1edc")
-        changed = copy.deepcopy(value); changed["optimizer_updates"] = 1
+        self.assertRegex(value["technical_successor_sha256"], r"^[0-9a-f]{64}$")
+        changed = copy.deepcopy(value); changed["executed_optimizer_step_count"] = 1
         with self.assertRaises(PermissionError):
             validate(changed)
         changed = copy.deepcopy(value)
@@ -532,11 +566,16 @@ class ParentMlflowJournalTests(unittest.TestCase):
         self.assertNotIn("import mlflow", child)
         self.assertNotIn("MlflowClient", child)
         self.assertNotIn("mlflow-run-id", child)
+        failure_index = child.index("def record_failure(exc):")
+        self.assertLess(failure_index,
+                        child.index("params = {", failure_index))
+        self.assertLess(child.index("try:\n        _atomic_json"),
+                        child.index("dependency = assert_fast_deltanet_dependencies"))
+        self.assertGreaterEqual(child.count("record_failure(exc)"), 2)
         self.assertIn('"PYTORCH_CUDA_ALLOC_CONF": DATABRICKS_A10_ALLOCATOR_CONF',
                       parent)
-        self.assertIn(
-            'os.environ.get("PYTORCH_CUDA_ALLOC_CONF") != '
-            'DATABRICKS_A10_ALLOCATOR_CONF', child)
+        self.assertIn('os.environ.get("PYTORCH_CUDA_ALLOC_CONF")', child)
+        self.assertIn('!= DATABRICKS_A10_ALLOCATOR_CONF', child)
         finalizer = parent[parent.index("def finalize_partition_mlflow"):]
         self.assertIn("consumed_path", finalizer)
         self.assertLess(finalizer.index("SET status = 'complete'"),

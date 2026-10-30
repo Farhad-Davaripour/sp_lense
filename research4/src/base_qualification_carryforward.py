@@ -171,6 +171,7 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "src/qwen9b_ordinal_continuity_training.py",
     "src/qwen9b_ordinal_continuity_worker.py",
     "src/recognition_pilot.py",
+    "src/volume_durable_io.py",
     "tools/check_offline_config.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/prepare_databricks_continuity_intent.py",

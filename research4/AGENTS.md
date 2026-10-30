@@ -1,5 +1,32 @@
 # Research4 current Databricks continuation
 
+## Local-only Volume-durable v7 successor (2026-10-30)
+
+The fixed-scale-1 v6 identity is CLOSED, FAILED, CONSUMED and RELEASED.
+Both intended optimizer steps were finite and executed, but publication of the
+second progress row used unsupported mutable Volume I/O and failed with
+`OSError: [Errno 29] Illegal seek`.  Durable advancement remained one update;
+no admissible checkpoint, optimizer artifact, training receipt or qualification
+was produced.  Never retry v6 or reuse its in-memory weights.
+
+The fresh local proposal is
+`qualification_rank4_a10_volume_durable_v7`, technical authority SHA256
+`0eb8cda2a00f24719f5f2318970d3eaca173eb782aa582409d936e5b913e66c2`.
+It preserves the exact v6 numerical plan SHA256
+`83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc`
+and primary-plan digest
+`d4278b41b680fcc3897239a3ee17639d36d4bdec59824b428ce7bc9830692e40`.
+Mutable journals, optimizer state and checkpoints are staged and fsynced only
+on local ephemeral disk.  Volume publication is sequential and immutable,
+with per-update readback receipts, exact child/parent completion manifests and
+separate executed-versus-durable counts.  Reservation and ALL_DONE closeout
+use exclusive sequential writes without Volume fsync or rename.
+
+This is source preparation only.  It authorizes no GPU execution, retry,
+primary training or deployment before full local tests, independent review,
+CI, exact squash merge, immutable Shared release and a fresh one-use reviewed
+submission authority.  Databricks remains the exclusive execution platform.
+
 ## Approved fixed-FP16-scale-1 successor (2026-10-29)
 
 The bounded GradScaler v5 attempt is CLOSED, FAILED, CONSUMED and RELEASED.

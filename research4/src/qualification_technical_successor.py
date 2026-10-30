@@ -7,9 +7,12 @@ import json
 import re
 
 
-VERSION = "research4-qualification-technical-successor-v5"
-PRIOR_IDENTITY = "qualification_rank4_a10_gradscaler_recovery_v5"
-SUCCESSOR_IDENTITY = "qualification_rank4_a10_fp16_scale1_v6"
+VERSION = "research4-qualification-technical-successor-v6"
+PRIOR_IDENTITY = "qualification_rank4_a10_fp16_scale1_v6"
+SUCCESSOR_IDENTITY = "qualification_rank4_a10_volume_durable_v7"
+FIXED_SCALE1_VERSION = "research4-qualification-technical-successor-v5"
+FIXED_SCALE1_PRIOR_IDENTITY = "qualification_rank4_a10_gradscaler_recovery_v5"
+FIXED_SCALE1_SUCCESSOR_IDENTITY = "qualification_rank4_a10_fp16_scale1_v6"
 
 
 def _digest(value) -> str:
@@ -326,16 +329,16 @@ def _gradscaler_recovery_authority() -> dict:
     return value
 
 
-def authority() -> dict:
+def _fixed_scale1_authority() -> dict:
     """Bind the closed v5 failure and approved fixed FP16 scale-1 successor."""
     predecessor = _gradscaler_recovery_authority()
     value = {
-        "version": VERSION,
+        "version": FIXED_SCALE1_VERSION,
         "predecessor_authority": predecessor,
         "predecessor_authority_sha256": predecessor[
             "technical_successor_sha256"],
-        "prior_identity": PRIOR_IDENTITY,
-        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_identity": FIXED_SCALE1_PRIOR_IDENTITY,
+        "successor_identity": FIXED_SCALE1_SUCCESSOR_IDENTITY,
         "prior_source_commit": "6aebf090bf48634c1e547044f33d317d7e29a6d1",
         "prior_source_manifest_sha256": (
             "4c42629187e50c67fa1ed809de40e96e45ea5f2454de36dfce61634071cf6a13"),
@@ -458,6 +461,116 @@ def authority() -> dict:
     return value
 
 
+def authority() -> dict:
+    """Bind consumed v6 durability failure and the local-only v7 successor."""
+    predecessor = _fixed_scale1_authority()
+    value = {
+        "version": VERSION,
+        "predecessor_authority": predecessor,
+        "predecessor_authority_sha256": predecessor[
+            "technical_successor_sha256"],
+        "prior_identity": PRIOR_IDENTITY,
+        "successor_identity": SUCCESSOR_IDENTITY,
+        "prior_source_commit": "ec6fdb9c1605b6090c6747081511b2092c93785d",
+        "prior_source_manifest_sha256": (
+            "20a3b91dd8ab931f33725688b1517d70c6d1265dce04186994f39ce07207808c"),
+        "prior_plan_sha256": (
+            "83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc"),
+        "prior_global_journal_sha256": (
+            "873dd87b655b6ea89faf9f7d3b154988c0135087a6073adff94df42d528b74de"),
+        "prior_intent_sha256": (
+            "96c19838047bf8e79ce1d48b572ee34ff6a7cbd5e8504830595ce665c1b717f3"),
+        "prior_technical_successor_sha256": predecessor[
+            "technical_successor_sha256"],
+        "owner_run_id": "598541262946494",
+        "preflight_run_id": "138243428764016",
+        "gpu_task_run_id": "310105101377972",
+        "finalizer_run_id": "521432896073798",
+        "release_run_id": "184118882618922",
+        "mlflow_experiment_path": (
+            "/Shared/research4_simulated_continuity_training_v5"),
+        "mlflow_experiment_id": "2096517895538432",
+        "mlflow_run_id": "a61ae5a6ac3e4d54a11ba2206543a071",
+        "mlflow_status": "FAILED",
+        "closeout_receipt_sha256": (
+            "63bc45c475030c5ffbae2f556a7c63dff2a2568c6d8fba13fbab857bc7d18cfa"),
+        "closeout_file_sha256": (
+            "827b1c728b624afa7b0caffe2ad66befddd2494c007ea9354b71706835e4af4c"),
+        "reservation_sha256": (
+            "6ed3d1cb53cc3d82ffb73fb59c619496c76db69fbb8f1238826b005c91d3043e"),
+        "consumed_file_sha256": (
+            "d78042fda28c7f2f7a0f90320faea7c7cd292411c7172a67ce6dcae19692a3db"),
+        "terminal_file_sha256": (
+            "0a56457ab8ebfc3f74657b34a23fb0b20364af7213b01f6f07ec204a00463e55"),
+        "mlflow_params_file_sha256": (
+            "dd367cc80b98c3209806cf3560b76fd43f63d4ae659c69af247aba710f92e3b4"),
+        "mlflow_progress_file_sha256": (
+            "182c2c8302576ce3c41bc365823829b91e5eec5420f0c23cdb0431d9adb4a708"),
+        "rank_partial_file_sha256": (
+            "7ad986b86c74188088ada566295e1a6d072cff0a1bd8cd45f2cbc5dd3825f939"),
+        "independent_failure_audit_sha256": (
+            "5842b7e0e00415e4bc1aef7c7b4b1f4be6789698d498c2125558f172f275a507"),
+        "failure_class": (
+            "second_optimizer_step_executed_then_volume_progress_fsync_failed"),
+        "error_type": "OSError",
+        "error": "[Errno 29] Illegal seek",
+        "executed_optimizer_step_count": 2,
+        "durable_published_update_count": 1,
+        "successful_optimizer_updates_counter": 1,
+        "finite_positive_gradient_norms": [
+            6.346925258636475, 3.6742701530456543],
+        "active_branch_finite_nonzero_gradient_densities": [
+            0.5275063255666761, 0.9988514345838065],
+        "checkpoint_written": False,
+        "optimizer_artifact_written": False,
+        "training_receipt_written": False,
+        "evidence_written": False,
+        "final_science_journal_written": False,
+        "qualification_passed": False,
+        "reservation_released": True,
+        "consumed_identity_retained": True,
+        "automatic_retry": False,
+        "qualification_v6_consumed_unretryable": True,
+        "verified_model_tree_sha256": (
+            "9845026dbe255e24b105224eebbb5436d315713b9a5c53c434137896b160c5b1"),
+        "verified_model_copy_bytes": 19329393661,
+        "public_model_download_bytes": 0,
+        "successor_execution_scope": "databricks-a10x1-only",
+        "successor_numerical_policy": "databricks-a10-fixed-fp16-scale1-v1",
+        "successor_precision": "fp16",
+        "successor_quantization": "nf4-double",
+        "successor_world_size": 1,
+        "successor_micro_batch_size": 1,
+        "successor_accumulation_steps": 4,
+        "successor_global_batch_size": 4,
+        "successor_optimizer_updates": 2,
+        "successor_grad_scaler_scale": 1.0,
+        "successor_plan_sha256": (
+            "83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc"),
+        "successor_primary_plan_hashes_digest": (
+            "d4278b41b680fcc3897239a3ee17639d36d4bdec59824b428ce7bc9830692e40"),
+        "successor_storage_contract": {
+            "mutable_output_local_ephemeral_only": True,
+            "volume_append_seek_fsync_replace_forbidden": True,
+            "per_update_immutable_receipt_before_advancement": True,
+            "sequential_volume_copy_and_hash_readback": True,
+            "checkpoint_optimizer_local_then_publish": True,
+            "child_completion_manifest_published_last": True,
+            "parent_completion_manifest_published_last": True,
+            "missing_duplicate_conflicting_update_receipts_fail": True,
+            "executed_and_durable_update_counts_separate": True,
+        },
+        "scientific_retry_authorized": False,
+        "requires_independent_review_ci_and_supervisor_approval": True,
+        "model_data_order_objective_unchanged": True,
+        "loss_coefficients_unchanged": True,
+        "learning_rate_clipping_geometry_seeds_thresholds_unchanged": True,
+        "legacy_combined_loss_arithmetic_preserved": True,
+    }
+    value["technical_successor_sha256"] = _digest(value)
+    return value
+
+
 def validate(value: Mapping) -> dict:
     actual = dict(value) if isinstance(value, Mapping) else {}
     expected = authority()
@@ -469,11 +582,7 @@ def validate(value: Mapping) -> dict:
         "consumed_file_sha256",
         "terminal_file_sha256", "mlflow_params_file_sha256",
         "mlflow_progress_file_sha256", "rank_partial_file_sha256",
-        "independent_failure_audit_sha256", "approved_proposal_sha256",
-        "approved_draft_patch_sha256", "supervisor_approval_file_sha256",
-        "prior_training_source_sha256", "prior_worker_source_sha256",
-        "prior_databricks_worker_source_sha256",
-        "prior_technical_successor_source_sha256",
+        "independent_failure_audit_sha256",
         "prior_source_manifest_sha256",
         "prior_technical_successor_sha256", "successor_plan_sha256",
         "successor_primary_plan_hashes_digest",
@@ -483,9 +592,9 @@ def validate(value: Mapping) -> dict:
         "technical_successor_sha256",
     )
     if (actual != expected or embedded != _digest(payload)
-            or predecessor != _gradscaler_recovery_authority()
+            or predecessor != _fixed_scale1_authority()
             or predecessor.get("technical_successor_sha256")
-               != "e58a2d86b52bb6b06a8239847add8c8c84582503fbc4c8fd9ea32305467d6ea0"
+               != _fixed_scale1_authority()["technical_successor_sha256"]
             or actual.get("predecessor_authority_sha256")
                != predecessor.get("technical_successor_sha256")
             or any(not re.fullmatch(r"[0-9a-f]{64}", str(actual.get(key, "")))
