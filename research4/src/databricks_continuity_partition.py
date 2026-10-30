@@ -286,10 +286,14 @@ def _verify_durable_completion(run_root, *, identity, intent_sha256,
 def _replay_completed_child(run_root, *, intent, plan_dict, exact_plan, rows):
     """Replay a completed child before any parent/Gold publication."""
     root = Path(run_root); output = root / "output"
+    parent_path = output / "PARENT_FINALIZATION.json"
+    if parent_path.exists() and not parent_path.is_file():
+        raise PermissionError("Parent finalization path is not an immutable file")
     verify_manifest(
         output, manifest_name=SUCCESS_MANIFEST, expected_status="complete",
         required_update_count=exact_plan.optimizer_updates,
-        allowed_extra={"PARENT_FINALIZATION.json"},
+        allowed_extra=(
+            {"PARENT_FINALIZATION.json"} if parent_path.is_file() else set()),
         expected_metadata=completion_metadata(
             identity=intent["identity"],
             intent_sha256=intent["intent_sha256"],
