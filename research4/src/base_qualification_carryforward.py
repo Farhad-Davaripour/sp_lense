@@ -174,7 +174,7 @@ REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256 = {
         "validate_base_qualification_intent": (
             "8d12ca7c0abdf7248c4131225be2c40d64959886f243e6b38cd3a09773e945ea"),
         "validate_intent": (
-            "b56ef384fe52c9253fc6ea6c2b2d618fd6e4130d6e778bd9b540ebcc5654d0e5"),
+            "8ed4c08909402c2c96e464d9c2f27d830976d1503cf2dcc65968470fd6019cae"),
         "validate_source_manifest": (
             "d152cefb2a6654c920ada235fd5ce2172a4731a596d231b01ff60c65cd220c1e"),
         "verify_deployed_source": (
@@ -231,6 +231,7 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "tools/monitor_classic_a10_recovery.py",
     "tools/prepare_databricks_base_qualification_carryforward.py",
     "tools/prepare_databricks_continuity_intent.py",
+    "tools/prepare_databricks_qualification_source_carryforward.py",
     "tools/prepare_databricks_transfer_intent.py",
     "tools/prepare_databricks_transfer_package_plan.py",
     "tools/prepare_qwen9b_ordinal_continuity_package.py",

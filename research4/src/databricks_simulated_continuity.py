@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping
+import ast
 import hashlib
 import json
 import math
@@ -53,6 +54,126 @@ INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v11"
 DATABRICKS_EVIDENCE_VERSION = "research4-databricks-partition-evidence-v5"
 DATABRICKS_QUALIFICATION_VERSION = (
     "research4-databricks-rank4-qualification-v7")
+QUALIFICATION_SOURCE_CARRYFORWARD_VERSION = (
+    "research4-qualification-source-carryforward-v1")
+QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS = (
+    "notebooks/databricks_continuity_partition_finalize.py",
+    "notebooks/databricks_continuity_partition.py",
+    "notebooks/databricks_continuity_preflight.py",
+    "resources/simulated_continuity_databricks.job.yml",
+    "src/base_qualification_carryforward.py",
+    "src/databricks_continuity_partition.py",
+    "src/databricks_simulated_continuity.py",
+    "tools/prepare_databricks_continuity_intent.py",
+)
+QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS = (
+    "src/action_serialization.py",
+    "src/composite_kernels.py",
+    "src/databricks_continuity_partition_worker.py",
+    "src/qwen9b_ordinal_continuity_controller.py",
+    "src/qwen9b_ordinal_continuity_lora.py",
+    "src/qwen9b_ordinal_continuity_runtime.py",
+    "src/qwen9b_ordinal_continuity_training.py",
+    "src/qwen9b_ordinal_continuity_worker.py",
+)
+QUALIFICATION_SOURCE_ORIGINAL_COMMIT = (
+    "832ffba93ac11a276adb9139795b51554000fe32")
+QUALIFICATION_SOURCE_ORIGINAL_GIT_TREE = (
+    "cf9838025a597d9a3613d50706539de0a3554540")
+QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_SHA256 = (
+    "5b36d597d9634cf59a69538d98ebfd95840138867cd49c2b31454989e50cfb80")
+QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_COMMIT = (
+    "30caed8655ca1b77c3b0c9156e8dc42c005af309")
+QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_GIT_TREE = (
+    "4f509c922e628d427ae9d55a0d96b1d91166c85a")
+QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_MANIFEST_SHA256 = (
+    "50211b7e7395e508eb870eec9e6b1d5ba0d286bc6511425b5d836eca2a9ef2ec")
+QUALIFICATION_SOURCE_REVIEWED_DIFF_SHA256 = (
+    "426d070ecf7ba00c43abee4f2d66613e1484dab639ee6810c04c6016c7678b0d")
+QUALIFICATION_SOURCE_REVIEWED_CHANGED_PATHS = (
+    "notebooks/databricks_continuity_partition_finalize.py",
+    "resources/simulated_continuity_databricks.job.yml",
+    "src/databricks_continuity_partition.py",
+)
+QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256 = (
+    "7e58ed81cc8eb78cb4ce5f8d1229143621850d8f5a6c1d293fb21ee841419d6a")
+QUALIFICATION_RECEIPT_SHA256 = (
+    "5d6001ebbfd33e9a5cb8e488e54510bd4642418c8a061b1125f431ee9c55e89e")
+QUALIFICATION_RECEIPT_FILE_SHA256 = (
+    "8f07a8df893ffca799ed2383e29a424a0faed6370aa6539e37a7dcc169ccfd6d")
+QUALIFICATION_INTENT_SHA256 = (
+    "41fa0f68729f6df7cc5e41605e3e0e69c487085e6bd8745f63089c467d09ccb8")
+QUALIFICATION_PLAN_SHA256 = (
+    "83a3e4a213316cba3ae21c9b83ebbf0fa631cfdbed5b615a158bf6495bac31bc")
+QUALIFICATION_RANK_RECEIPT_SHA256 = (
+    "3bccd1c2b4e68d83a7914c146bb1deb9ba6b5ee182218b39b6270f5357e4fdad")
+QUALIFICATION_EVIDENCE_SHA256 = (
+    "c17d2cce67981f4653127da5bf492aaa766948cbc50adc1dc8b629d37ca88396")
+QUALIFICATION_CHECKPOINT_TREE_SHA256 = (
+    "1e043f3cbfdb3227300cd7831715ae3838ab5c12a96e2db0ccfd39a9599c7967")
+QUALIFICATION_FINALIZATION_RESUME_CLAIM_SHA256 = (
+    "ae1d805b3fa3c8752e58c3a47e89d7f41b9b03eb3a9bb0e332b37e8f61bfe3e6")
+QUALIFICATION_FINALIZATION_RESUME_CLAIM_FILE_SHA256 = (
+    "b3934b57ad1c5344dccd24a6f7168af9f90d7505cba074c643a1c24740bd03a0")
+QUALIFICATION_RECOVERY_RESULT_SHA256 = (
+    "259370926b7e3c19a076c6f1b326ded63f5d06ff50889be977735cadc3552f7f")
+QUALIFICATION_RECOVERY_RESULT_FILE_SHA256 = (
+    "028c765353c63c1d2fd024fe24616bc9f12fa00464f8b1888d12b530d4893241")
+QUALIFICATION_PARENT_FINALIZATION_SHA256 = (
+    "e1935c4d7ed0e209e79d67af14a79b6bcff61c3f1761670316fe093e4ebd334f")
+QUALIFICATION_PARENT_FINALIZATION_FILE_SHA256 = (
+    "3eb8273e09351dbd5136dc18ea0b238bb242a2af404215f9accc998168a531e9")
+QUALIFICATION_PARENT_MANIFEST_SHA256 = (
+    "d256a0f6030a684448d249503eedeba7a01ec1bf4809a550e228f715467a0ccf")
+QUALIFICATION_PARENT_MANIFEST_FILE_SHA256 = (
+    "1ec2bfda4c528cc0b51321a91411c5be26c8a427f18b7d236cc0548af618d606")
+QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256 = {
+    "_expected_mlflow_scalars": {
+        "prior": "9479b76781cc24a4d5e6a1890ee1ab4be18407d80fa4d158bf30a2a0be0bef11",
+        "reviewed": "e34c22a859af34007e78fd3c011f489500976476b7396b9d36608ca1cf69cff1",
+    },
+    "run_partition": {
+        "prior": "5b286f3dce8a8ac5886711e085216ae501a6eda9cdf3deeee16dea1651baa92d",
+        "reviewed": "dc2353d5ef4a67a39b23f6d8c357c9bb6443dd3b2f40173f1ed240aa92afe909",
+    },
+}
+QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256 = {
+    "PARENT_FINALIZATION_RESUME_CLAIM_VERSION": "6522377905f2e11decac9d4d2d3f217ac1e83a64beb6e9040db40458c395b04c",
+    "PARENT_RECOVERY_AUTHORITY_VERSION": "120ede68d9373437f35abd2c55119fff09d762dd78100f7998edc2a177079296",
+    "PARENT_RECOVERY_CLAIM_VERSION": "17f1c8dd3ccb3a43c884eceaec01feb34e8861af25cb52d634219f96d38d7d8d",
+    "PARENT_RECOVERY_RESULT_VERSION": "f9e592c2ee01b950378c613106d4dce1085f2c360e8ba8ba5841a03b365ed6ea",
+    "_V7_FINALIZATION_RESUME_PREDECESSOR": "a96853955f06a641c2c132e990ec8cad2c84650e13d78793e61b4ff6c404192f",
+    "_V7_RECOVERY_ORIGINAL": "e02142ad5e8dabf9cc94da8f3d499f5a663ed7156cb9b2c689a73b4015208dde",
+    "_parent_recovery_root": "197b60ec3502f54fcf2f5e9b919b26a2b561e8758fe433b057c1e5e3004dfb31",
+    "_publish_parent_evidence": "636c9e7410c8422101002fdafd32dd425ee8d57b5877e8a5b5416f5de0eecc62",
+    "_read_exact_text": "ccd954193771bb699f28a1ba56323b6f69cc2421226a805c43c59d0fabc57512",
+    "_replay_completed_child": "f837ee623a93cd3af986af6d8fb816417944190302a50d26d79f1dab1d389efd",
+    "_verify_self_hashed_evidence": "8fb683d2b6512a1ad76c4d6bb8ae46cca4233163f361bd68d431a2ef92fde966",
+    "publish_parent_recovery_result": "2f32f3ebc56498323644535a5a34380f76bd226d386df3571a0d3467765b3d2c",
+    "recover_parent_evidence": "1fd2ce30ca973db44605938608d8e04c2aade845accd34ce5ca8ba49ac37794f",
+    "resume_parent_finalization": "cae91f03050caf04121f1c4d452ecbe95c2b38f9ea9a18125acc6a9154362b69",
+    "validate_parent_recovery_authority": "98ef1b699b9493b59b0bce692e1375fb691c6d636b1abf79a075f6a7ead1ae11",
+}
+QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256 = {
+    "PARENT_MANIFEST_VERSION": "06f824ae91046e80792b1bad9aa0a37cd58fd0507cd7ebc0097a34e19b5fa9cf",
+    "PARENT_SUCCESS_MANIFEST": "955c200cc37fdb5b37433b472731f9978a38044c2a55bd2acc5418af3079c5aa",
+    "_EXPECTED_MLFLOW_ARTIFACTS": "f6e3088b9be0ade71799fcc7221e02690c43bae52f0bc7170a9e09678631dfef",
+    "_atomic_json": "8df5ac952a7e2ec7b2904894bf9160f047ceae37792f45795224450220069694",
+    "_bounded_run": "4821f57451f8ef07e313df4135d6e242f98526d17debdbbaaa61a1b797836c49",
+    "_ensure_pending_gold_row": "d02010a4b9ba78c1d19d3e6ab7f160c235dbe5567d8092b5af76ff56f2741b9a",
+    "_file_sha256": "f2344fed1e4c177c64577a358d27f0f97338c50dd2d399695ddf5aa684ba2f9b",
+    "_jsonl": "8bf773a5eb1201626cde70c311681ba88e7993c6c77f3175880c00a8fb644bc2",
+    "_parent_manifest": "65e17ea5c02e63fc7cf0970bc26d31e76371bdd34ac9e80b8f22ac29b4a09c84",
+    "_read": "be65377650b9a467ab77ef0d7a92c75e275b9a6678693427a4df7b417600db4d",
+    "_reconcile_mlflow_scalars": "99a7b1219b623bef60be50bb6926e721e313f95b01ea9198f899868bea0f00dc",
+    "_stage_local_model": "6f0fb01c029b7e405ccdcfb937e288db6ce02043261baed6e137381d14a1622b",
+    "_validate_parent_finalization": "ee6152cf93404066434edfda59ac893eba6c8a581e607b82b33ae10fe9675141",
+    "_verify_completed_mlflow_state": "d8793425adf14ee6df88ff4997746f4816d60b5fa95b016849db08b452b34f07",
+    "_verify_durable_completion": "8f316a12b99f680361dc48fb62eb6a9469467eec13c9fe7ec9efc53c7e678ac2",
+    "_verify_finalizer_owner": "d6976ff1d443ca845726b28fb47ed77820a2f6ec9325f5a85437f9dacedfd1e2",
+    "_verify_parent_manifest": "a035edcf76b45b6fce8e301b4bdabd922cce59c9c761f31f2a3344d775177702",
+    "finalize_partition_mlflow": "21cbfd6d7c2836cef2cb55b2cad7016afdf1c7d9414b83933e6f2a00a0b50382",
+}
 PRODUCTION_SOURCE_RELEASE_ROOT = "/Workspace/Shared/research4/source_releases"
 BASE_QUALIFICATION_INTENT_VERSION = (
     "research4-databricks-frozen-base-format-intent-v2"
@@ -82,6 +203,53 @@ NEUTRAL_SIMULATOR_INSTRUCTION = (
 )
 SOURCE_MANIFEST_VERSION = "research4-databricks-continuity-source-manifest-v1"
 SOURCE_MANIFEST_PATHS = (
+    "databricks.yml",
+    "config/databricks_production_resource_bindings.json",
+    "notebooks/databricks_continuity_admission.py",
+    "notebooks/databricks_continuity_base_qualification.py",
+    "notebooks/databricks_continuity_base_qualification_preflight.py",
+    "notebooks/databricks_continuity_bootstrap.py",
+    "notebooks/databricks_continuity_cleanup.py",
+    "notebooks/databricks_continuity_data.py",
+    "notebooks/databricks_continuity_gold_audit.py",
+    "notebooks/databricks_continuity_model_snapshot.py",
+    "notebooks/databricks_continuity_partition.py",
+    "notebooks/databricks_continuity_partition_finalize.py",
+    "notebooks/databricks_continuity_preflight.py",
+    "notebooks/databricks_continuity_transfer_audit.py",
+    "notebooks/databricks_continuity_transfer_evaluation.py",
+    "notebooks/databricks_continuity_transfer_intent_preparation.py",
+    "notebooks/databricks_continuity_transfer_packaging.py",
+    "notebooks/databricks_continuity_transfer_preflight.py",
+    "resources/simulated_continuity_databricks.job.yml",
+    "src/__init__.py",
+    "src/action_serialization.py",
+    "src/base_qualification_carryforward.py",
+    "src/composite_kernels.py",
+    "src/databricks_continuity_partition.py",
+    "src/databricks_continuity_partition_worker.py",
+    "src/databricks_simulated_continuity.py",
+    "src/continuity_transfer_databricks.py",
+    "src/continuity_transfer_evaluation.py",
+    "src/continuity_transfer_inference_worker.py",
+    "src/continuity_transfer_intent_preparation.py",
+    "src/continuity_transfer_packaging.py",
+    "src/continuity_transfer_raw_audit.py",
+    "src/qwen9b_ordinal_continuity_controller.py",
+    "src/qwen9b_ordinal_continuity_lora.py",
+    "src/qwen9b_ordinal_continuity_runtime.py",
+    "src/qwen9b_ordinal_continuity_training.py",
+    "src/qwen9b_ordinal_continuity_worker.py",
+    "src/qualification_technical_successor.py",
+    "src/volume_durable_io.py",
+    "tools/prepare_databricks_continuity_intent.py",
+    "tools/prepare_databricks_base_qualification_intent.py",
+    "tools/prepare_databricks_base_qualification_carryforward.py",
+    "tools/rescore_base_qualification_v1_serialization_v2.py",
+    "tools/prepare_databricks_transfer_package_plan.py",
+    "tools/prepare_databricks_transfer_intent.py",
+)
+QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_PATHS = (
     "databricks.yml",
     "config/databricks_production_resource_bindings.json",
     "notebooks/databricks_continuity_admission.py",
@@ -208,6 +376,429 @@ def file_sha256(path: str | Path) -> str:
         for block in iter(lambda: stream.read(8 * 1024 * 1024), b""):
             value.update(block)
     return value.hexdigest()
+
+
+def _validate_historical_qualification_source_manifest(
+        value: Mapping[str, Any]) -> dict:
+    manifest = dict(value) if isinstance(value, Mapping) else {}
+    payload = dict(manifest); embedded = payload.pop("manifest_sha256", None)
+    files = manifest.get("files")
+    if (set(manifest) != {"version", "source_commit", "file_count",
+                          "total_canonical_bytes", "files",
+                          "manifest_sha256"}
+            or manifest.get("version") != SOURCE_MANIFEST_VERSION
+            or manifest.get("source_commit")
+               != QUALIFICATION_SOURCE_ORIGINAL_COMMIT
+            or embedded != digest(payload)
+            or embedded != QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_SHA256
+            or not isinstance(files, list)
+            or [row.get("path") for row in files]
+               != list(QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_PATHS)
+            or manifest.get("file_count") != len(files)
+            or manifest.get("total_canonical_bytes")
+               != sum(row.get("canonical_bytes", -1) for row in files)
+            or any(set(row) != {"path", "sha256", "canonical_bytes"}
+                   or not re.fullmatch(r"[0-9a-f]{64}", str(
+                       row.get("sha256", "")))
+                   or type(row.get("canonical_bytes")) is not int
+                   or row["canonical_bytes"] < 0 for row in files)):
+        raise PermissionError("Historical qualification source manifest differs")
+    return manifest
+
+
+def _validate_historical_qualification_intent(
+        value: Mapping[str, Any]) -> dict:
+    intent = dict(value) if isinstance(value, Mapping) else {}
+    payload = dict(intent); embedded = payload.pop("intent_sha256", None)
+    manifest = _validate_historical_qualification_source_manifest(
+        intent.get("source_manifest"))
+    plan = intent.get("plan")
+    from .qwen9b_ordinal_continuity_training import TrainingPlan
+    try:
+        exact_plan = TrainingPlan(**plan).validate()
+    except (TypeError, ValueError, PermissionError) as exc:
+        raise PermissionError("Historical qualification plan differs") from exc
+    technical = validate_qualification_technical_successor(
+        intent.get("qualification_technical_successor"))
+    if (embedded != digest(payload)
+            or embedded != QUALIFICATION_INTENT_SHA256
+            or intent.get("version") != INTENT_VERSION
+            or intent.get("identity")
+               != "qualification_rank4_a10_volume_durable_v7"
+            or intent.get("source_commit")
+               != QUALIFICATION_SOURCE_ORIGINAL_COMMIT
+            or intent.get("source_sha256") != manifest["manifest_sha256"]
+            or intent.get("source_release_path") != source_release_path(
+                QUALIFICATION_SOURCE_ORIGINAL_COMMIT)
+            or exact_plan.mode != "qualification"
+            or exact_plan.full_plan_sha256 != QUALIFICATION_PLAN_SHA256
+            or intent.get("plan_sha256") != QUALIFICATION_PLAN_SHA256
+            or intent.get("qualification_technical_successor_sha256")
+               != technical["technical_successor_sha256"]):
+        raise PermissionError("Historical v7 qualification intent differs")
+    return intent
+
+
+def _source_manifest_files(manifest: Mapping[str, Any], *, historical=False
+                           ) -> dict[str, dict]:
+    if historical:
+        value = _validate_historical_qualification_source_manifest(manifest)
+    else:
+        value = validate_source_manifest(manifest)
+    return {row["path"]: row for row in value["files"]}
+
+
+def validate_qualification_source_carryforward(
+        value: Mapping[str, Any], *, qualification_intent: Mapping[str, Any],
+        qualification_receipt: Mapping[str, Any],
+        current_source_manifest: Mapping[str, Any]) -> dict:
+    """Validate a zero-model source-only carry-forward of v7 qualification.
+
+    The prior and current source manifests must contain byte-identical model,
+    loss, optimizer, plan, data-selection, and worker code.  Only the bounded
+    admission/finalization files named above may differ.
+    """
+    receipt = dict(value) if isinstance(value, Mapping) else {}
+    payload = dict(receipt)
+    embedded = payload.pop("carryforward_sha256", None)
+    prior = _validate_historical_qualification_intent(qualification_intent)
+    current = validate_source_manifest(current_source_manifest)
+    capacity = dict(qualification_receipt)
+    capacity_sha = capacity.pop("receipt_sha256", None)
+    exact = {
+        "version", "status", "qualification_intent_sha256",
+        "qualification_plan_sha256", "qualification_receipt_sha256",
+        "qualification_receipt_file_sha256",
+        "qualification_rank_receipt_sha256",
+        "qualification_evidence_sha256",
+        "qualification_checkpoint_tree_sha256",
+        "qualifier_checkpoint_primary_parent_eligible",
+        "finalization_resume_claim_sha256", "recovery_result_sha256",
+        "parent_finalization_sha256", "parent_manifest_sha256",
+        "prior_source_commit", "prior_git_tree",
+        "prior_source_manifest_sha256", "current_source_commit",
+        "current_git_tree", "current_research4_diff_sha256",
+        "current_source_manifest_sha256", "changed_paths",
+        "reviewed_successor_commit", "reviewed_successor_git_tree",
+        "reviewed_successor_source_manifest_sha256",
+        "reviewed_source_diff_sha256", "reviewed_changed_paths",
+        "reviewed_changed_symbol_sha256", "reviewed_added_symbol_sha256",
+        "reviewed_unchanged_symbol_sha256",
+        "run_partition_execution_prefix_sha256",
+        "allowed_changed_paths", "unchanged_science_file_sha256",
+        "authorized_primary_plan_sha256s_digest", "model_tree_sha256",
+        "model_receipt_sha256", "base_qualification_intent_sha256",
+        "base_qualification_receipt_sha256",
+        "base_qualification_carryforward_sha256",
+        "qualification_technical_successor_sha256",
+        "model_execution_performed", "optimizer_updates",
+        "carryforward_sha256",
+    }
+    if (set(receipt) != exact
+            or embedded != digest(payload)
+            or receipt.get("version")
+               != QUALIFICATION_SOURCE_CARRYFORWARD_VERSION
+            or receipt.get("status") != "qualified_source_carried_forward"
+            or prior.get("plan", {}).get("mode") != "qualification"
+            or capacity_sha != digest(capacity)
+            or qualification_receipt.get("version")
+               != DATABRICKS_QUALIFICATION_VERSION
+            or qualification_receipt.get("status") != "qualified"
+            or receipt.get("qualification_intent_sha256")
+               != prior.get("intent_sha256")
+            or receipt.get("qualification_receipt_sha256") != capacity_sha
+            or capacity_sha != QUALIFICATION_RECEIPT_SHA256
+            or receipt.get("qualification_receipt_file_sha256")
+               != QUALIFICATION_RECEIPT_FILE_SHA256
+            or qualification_receipt.get("qualification_intent_sha256")
+               != prior.get("intent_sha256")
+            or receipt.get("qualification_intent_sha256")
+               != QUALIFICATION_INTENT_SHA256
+            or receipt.get("qualification_plan_sha256")
+               != QUALIFICATION_PLAN_SHA256
+            or receipt.get("qualification_rank_receipt_sha256")
+               != QUALIFICATION_RANK_RECEIPT_SHA256
+            or receipt.get("qualification_evidence_sha256")
+               != QUALIFICATION_EVIDENCE_SHA256
+            or receipt.get("qualification_checkpoint_tree_sha256")
+               != QUALIFICATION_CHECKPOINT_TREE_SHA256
+            or receipt.get("qualifier_checkpoint_primary_parent_eligible")
+               is not False
+            or receipt.get("finalization_resume_claim_sha256")
+               != QUALIFICATION_FINALIZATION_RESUME_CLAIM_SHA256
+            or receipt.get("recovery_result_sha256")
+               != QUALIFICATION_RECOVERY_RESULT_SHA256
+            or receipt.get("parent_finalization_sha256")
+               != QUALIFICATION_PARENT_FINALIZATION_SHA256
+            or receipt.get("parent_manifest_sha256")
+               != QUALIFICATION_PARENT_MANIFEST_SHA256
+            or receipt.get("prior_source_commit") != prior.get("source_commit")
+            or receipt.get("prior_source_commit")
+               != QUALIFICATION_SOURCE_ORIGINAL_COMMIT
+            or receipt.get("prior_git_tree")
+               != QUALIFICATION_SOURCE_ORIGINAL_GIT_TREE
+            or receipt.get("prior_source_manifest_sha256")
+               != prior.get("source_sha256")
+            or receipt.get("prior_source_manifest_sha256")
+               != QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_SHA256
+            or receipt.get("current_source_commit")
+               != current.get("source_commit")
+            or receipt.get("current_source_manifest_sha256")
+               != current.get("manifest_sha256")
+            or not re.fullmatch(r"[0-9a-f]{40}", str(
+                receipt.get("current_git_tree", "")))
+            or not re.fullmatch(r"[0-9a-f]{64}", str(
+                receipt.get("current_research4_diff_sha256", "")))
+            or receipt.get("reviewed_successor_commit")
+               != QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_COMMIT
+            or receipt.get("reviewed_successor_git_tree")
+               != QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_GIT_TREE
+            or receipt.get("reviewed_successor_source_manifest_sha256")
+               != QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_MANIFEST_SHA256
+            or receipt.get("reviewed_source_diff_sha256")
+               != QUALIFICATION_SOURCE_REVIEWED_DIFF_SHA256
+            or receipt.get("reviewed_changed_paths")
+               != list(QUALIFICATION_SOURCE_REVIEWED_CHANGED_PATHS)
+            or receipt.get("reviewed_changed_symbol_sha256")
+               != QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256
+            or receipt.get("reviewed_added_symbol_sha256")
+               != QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256
+            or receipt.get("reviewed_unchanged_symbol_sha256")
+               != QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256
+            or receipt.get("run_partition_execution_prefix_sha256")
+               != QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256
+            or qualification_receipt.get("source_commit")
+               != prior.get("source_commit")
+            or qualification_receipt.get("source_sha256")
+               != prior.get("source_sha256")
+            or receipt.get("model_tree_sha256")
+               != qualification_receipt.get("model_tree_sha256")
+            or receipt.get("model_receipt_sha256")
+               != qualification_receipt.get("model_receipt_sha256")
+            or receipt.get("base_qualification_intent_sha256")
+               != qualification_receipt.get(
+                   "base_qualification_intent_sha256")
+            or receipt.get("base_qualification_receipt_sha256")
+               != qualification_receipt.get(
+                   "base_qualification_receipt_sha256")
+            or receipt.get("base_qualification_carryforward_sha256")
+               != qualification_receipt.get(
+                   "base_qualification_carryforward_sha256")
+            or receipt.get("qualification_technical_successor_sha256")
+               != qualification_receipt.get(
+                   "qualification_technical_successor_sha256")
+            or qualification_receipt.get("qualification_plan_sha256")
+               != QUALIFICATION_PLAN_SHA256
+            or qualification_receipt.get(
+                "qualification_rank_receipt_sha256")
+               != QUALIFICATION_RANK_RECEIPT_SHA256
+            or qualification_receipt.get("qualification_evidence_sha256")
+               != QUALIFICATION_EVIDENCE_SHA256
+            or qualification_receipt.get(
+                "qualification_checkpoint_tree_sha256")
+               != QUALIFICATION_CHECKPOINT_TREE_SHA256
+            or qualification_receipt.get(
+                "qualifier_checkpoint_primary_parent_eligible") is not False
+            or receipt.get("authorized_primary_plan_sha256s_digest")
+               != digest(qualification_receipt.get(
+                   "authorized_primary_plan_sha256s"))
+            or receipt.get("model_execution_performed") is not False
+            or receipt.get("optimizer_updates") != 0
+            or receipt.get("allowed_changed_paths")
+               != list(QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS)):
+        raise PermissionError("Qualification source carry-forward differs")
+    prior_files = _source_manifest_files(
+        prior["source_manifest"], historical=True)
+    current_files = _source_manifest_files(current)
+    changed = sorted(
+        path for path in set(prior_files) | set(current_files)
+        if prior_files.get(path, {}).get("sha256")
+        != current_files.get(path, {}).get("sha256"))
+    if (receipt.get("changed_paths") != changed
+            or any(path not in QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS
+                   for path in changed)):
+        raise PermissionError("Qualification carry-forward changed science source")
+    immutable = receipt.get("unchanged_science_file_sha256")
+    if (not isinstance(immutable, Mapping)
+            or set(immutable) != set(QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS)):
+        raise PermissionError("Qualification carry-forward science proof differs")
+    for path in QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS:
+        prior_sha = prior_files.get(path, {}).get("sha256")
+        current_sha = current_files.get(path, {}).get("sha256")
+        if (not re.fullmatch(r"[0-9a-f]{64}", str(prior_sha or ""))
+                or immutable.get(path) != prior_sha
+                or current_sha != prior_sha):
+            raise PermissionError("Qualification scientific source changed")
+    return receipt
+
+
+def create_qualification_source_carryforward(
+        *, qualification_intent: Mapping[str, Any],
+        qualification_receipt: Mapping[str, Any],
+        current_source_manifest: Mapping[str, Any], current_git_tree: str,
+        current_research4_diff_sha256: str) -> dict:
+    """Create the reviewed metadata receipt; this performs no model work."""
+    prior = _validate_historical_qualification_intent(qualification_intent)
+    current = validate_source_manifest(current_source_manifest)
+    capacity = dict(qualification_receipt)
+    capacity_sha = capacity.pop("receipt_sha256", None)
+    if (capacity_sha != digest(capacity)
+            or qualification_receipt.get("status") != "qualified"):
+        raise PermissionError("Qualification receipt is not valid")
+    prior_files = _source_manifest_files(
+        prior["source_manifest"], historical=True)
+    current_files = _source_manifest_files(current)
+    changed = sorted(
+        path for path in set(prior_files) | set(current_files)
+        if prior_files.get(path, {}).get("sha256")
+        != current_files.get(path, {}).get("sha256"))
+    value = {
+        "version": QUALIFICATION_SOURCE_CARRYFORWARD_VERSION,
+        "status": "qualified_source_carried_forward",
+        "qualification_intent_sha256": prior["intent_sha256"],
+        "qualification_plan_sha256": qualification_receipt[
+            "qualification_plan_sha256"],
+        "qualification_receipt_sha256": capacity_sha,
+        "qualification_receipt_file_sha256": QUALIFICATION_RECEIPT_FILE_SHA256,
+        "qualification_rank_receipt_sha256": qualification_receipt[
+            "qualification_rank_receipt_sha256"],
+        "qualification_evidence_sha256": qualification_receipt[
+            "qualification_evidence_sha256"],
+        "qualification_checkpoint_tree_sha256": qualification_receipt[
+            "qualification_checkpoint_tree_sha256"],
+        "qualifier_checkpoint_primary_parent_eligible": qualification_receipt[
+            "qualifier_checkpoint_primary_parent_eligible"],
+        "finalization_resume_claim_sha256": (
+            QUALIFICATION_FINALIZATION_RESUME_CLAIM_SHA256),
+        "recovery_result_sha256": QUALIFICATION_RECOVERY_RESULT_SHA256,
+        "parent_finalization_sha256": QUALIFICATION_PARENT_FINALIZATION_SHA256,
+        "parent_manifest_sha256": QUALIFICATION_PARENT_MANIFEST_SHA256,
+        "prior_source_commit": prior["source_commit"],
+        "prior_git_tree": QUALIFICATION_SOURCE_ORIGINAL_GIT_TREE,
+        "prior_source_manifest_sha256": prior["source_sha256"],
+        "current_source_commit": current["source_commit"],
+        "current_git_tree": current_git_tree,
+        "current_research4_diff_sha256": current_research4_diff_sha256,
+        "current_source_manifest_sha256": current["manifest_sha256"],
+        "changed_paths": changed,
+        "reviewed_successor_commit": (
+            QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_COMMIT),
+        "reviewed_successor_git_tree": (
+            QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_GIT_TREE),
+        "reviewed_successor_source_manifest_sha256": (
+            QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_MANIFEST_SHA256),
+        "reviewed_source_diff_sha256": QUALIFICATION_SOURCE_REVIEWED_DIFF_SHA256,
+        "reviewed_changed_paths": list(
+            QUALIFICATION_SOURCE_REVIEWED_CHANGED_PATHS),
+        "reviewed_changed_symbol_sha256": json.loads(json.dumps(
+            QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256)),
+        "reviewed_added_symbol_sha256": json.loads(json.dumps(
+            QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256)),
+        "reviewed_unchanged_symbol_sha256": json.loads(json.dumps(
+            QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256)),
+        "run_partition_execution_prefix_sha256": (
+            QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256),
+        "allowed_changed_paths": list(
+            QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS),
+        "unchanged_science_file_sha256": {
+            path: prior_files.get(path, {}).get("sha256")
+            for path in QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS
+        },
+        "authorized_primary_plan_sha256s_digest": digest(
+            qualification_receipt["authorized_primary_plan_sha256s"]),
+        "model_tree_sha256": qualification_receipt["model_tree_sha256"],
+        "model_receipt_sha256": qualification_receipt["model_receipt_sha256"],
+        "base_qualification_intent_sha256": qualification_receipt[
+            "base_qualification_intent_sha256"],
+        "base_qualification_receipt_sha256": qualification_receipt[
+            "base_qualification_receipt_sha256"],
+        "base_qualification_carryforward_sha256": qualification_receipt.get(
+            "base_qualification_carryforward_sha256"),
+        "qualification_technical_successor_sha256": qualification_receipt[
+            "qualification_technical_successor_sha256"],
+        "model_execution_performed": False,
+        "optimizer_updates": 0,
+    }
+    value["carryforward_sha256"] = digest(value)
+    return validate_qualification_source_carryforward(
+        value, qualification_intent=prior,
+        qualification_receipt=qualification_receipt,
+        current_source_manifest=current)
+
+
+def _top_level_ast_sha256(source_text: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for node in ast.parse(source_text).body:
+        names = []
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names = [node.name]
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = [target.id for target in targets
+                     if isinstance(target, ast.Name)]
+        for name in names:
+            if name in result:
+                raise PermissionError("Duplicate partition controller symbol")
+            result[name] = hashlib.sha256(ast.dump(
+                node, annotate_fields=True,
+                include_attributes=False).encode("utf-8")).hexdigest()
+    return result
+
+
+def _run_partition_execution_prefix_sha256(source_text: str) -> str:
+    tree = ast.parse(source_text)
+    controller = next((node for node in tree.body
+                       if isinstance(node, ast.FunctionDef)
+                       and node.name == "run_partition"), None)
+    if controller is None:
+        raise PermissionError("run_partition is absent")
+    boundary = next((index for index, node in enumerate(controller.body)
+                     if isinstance(node, ast.FunctionDef)
+                     and node.name == "post_run_deadline"), None)
+    if boundary is None:
+        raise PermissionError("run_partition post-model boundary is absent")
+    payload = "".join(ast.dump(
+        node, annotate_fields=True, include_attributes=False)
+        for node in controller.body[:boundary]).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def verify_deployed_qualification_source_carryforward(
+        intent: Mapping[str, Any], code_root: str | Path) -> dict | None:
+    """Recheck current controller AST before any primary model execution."""
+    current = validate_intent(intent)
+    carryforward = current.get("qualification_source_carryforward")
+    if carryforward is None:
+        return None
+    verified = validate_qualification_source_carryforward(
+        carryforward,
+        qualification_intent=current["qualification_source_intent"],
+        qualification_receipt=current["qualification_source_receipt"],
+        current_source_manifest=current["source_manifest"])
+    path = Path(code_root).resolve() / "src/databricks_continuity_partition.py"
+    if not path.is_file() or path.is_symlink():
+        raise PermissionError("Partition controller source is absent")
+    source = path.read_text(encoding="utf-8")
+    if (_run_partition_execution_prefix_sha256(source)
+            != QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256):
+        raise PermissionError("Partition model-execution prefix changed")
+    symbols = _top_level_ast_sha256(source)
+    expected_names = (set(QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256)
+                      | set(QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256)
+                      | set(QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256))
+    if set(symbols) != expected_names:
+        raise PermissionError("Partition controller symbol set changed")
+    for name, expected in QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256.items():
+        if symbols.get(name) != expected:
+            raise PermissionError("Reviewed unchanged controller symbol changed")
+    for name, expected in QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256.items():
+        if symbols.get(name) != expected:
+            raise PermissionError("Reviewed added controller symbol changed")
+    if (symbols.get("_expected_mlflow_scalars")
+            != QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256[
+                "_expected_mlflow_scalars"]["reviewed"]):
+        raise PermissionError("Reviewed MLflow scalar mapping changed")
+    return verified
 
 
 def _source_path(root: Path, logical: str) -> Path:
@@ -1416,6 +2007,36 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
                 or source_base_intent.get("intent_sha256")
                    != intent.get("base_qualification_intent_sha256")):
             raise PermissionError("Base qualification carry-forward binding differs")
+    qualification_source_intent = intent.get("qualification_source_intent")
+    qualification_source_receipt = intent.get("qualification_source_receipt")
+    qualification_source_carryforward = intent.get(
+        "qualification_source_carryforward")
+    qualification_source_carryforward_sha = intent.get(
+        "qualification_source_carryforward_sha256")
+    if qualification_source_carryforward is None:
+        if any(value is not None for value in (
+                qualification_source_intent, qualification_source_receipt,
+                qualification_source_carryforward_sha)):
+            raise PermissionError(
+                "Incomplete qualification source carry-forward")
+    else:
+        if mode != "primary":
+            raise PermissionError(
+                "Only primary training may use qualification carry-forward")
+        try:
+            verified_source_carryforward = (
+                validate_qualification_source_carryforward(
+                    qualification_source_carryforward,
+                    qualification_intent=qualification_source_intent,
+                    qualification_receipt=qualification_source_receipt,
+                    current_source_manifest=source_manifest))
+        except (TypeError, ValueError, PermissionError) as exc:
+            raise PermissionError(
+                "Invalid qualification source carry-forward") from exc
+        if (qualification_source_carryforward_sha
+                != verified_source_carryforward["carryforward_sha256"]):
+            raise PermissionError(
+                "Qualification source carry-forward binding differs")
     if (any(intent.get(key) != expected for key, expected in required.items())
             or any(type(intent.get(key)) is not int for key in (
                 "attempt_number", "automatic_retries", "world_size",
@@ -1520,7 +2141,10 @@ def build_intent(*, plan, identity: str, source_commit: str,
                  base_qualification_receipt: Mapping[str, Any],
                  base_qualification_source_intent: Mapping[str, Any] | None = None,
                  base_qualification_carryforward: Mapping[str, Any] | None = None,
-                 qualification_receipt: Mapping[str, Any] | None = None) -> dict:
+                 qualification_receipt: Mapping[str, Any] | None = None,
+                 qualification_source_intent: Mapping[str, Any] | None = None,
+                 qualification_source_carryforward: Mapping[str, Any] | None = None
+                 ) -> dict:
     """Create a self-hashed not-submitted intent for external review."""
     from dataclasses import asdict
     manifest = validate_source_manifest(source_manifest)
@@ -1579,6 +2203,10 @@ def build_intent(*, plan, identity: str, source_commit: str,
         "qualification_technical_successor_sha256": (
             qualification_technical_successor_authority()[
                 "technical_successor_sha256"]),
+        "qualification_source_intent": None,
+        "qualification_source_receipt": None,
+        "qualification_source_carryforward": None,
+        "qualification_source_carryforward_sha256": None,
         "max_gpu_hours": max_gpu_hours,
         "wall_clock_stop_seconds": wall_clock_stop_seconds,
         "wall_clock_ceiling_seconds": timeout_seconds,
@@ -1602,6 +2230,28 @@ def build_intent(*, plan, identity: str, source_commit: str,
                     "qualification_technical_successor_sha256")
                    != value["qualification_technical_successor_sha256"]):
             raise PermissionError("Capacity qualification uses a different base gate")
+        if (qualification_receipt.get("source_commit") == source_commit
+                and qualification_receipt.get("source_sha256")
+                    == manifest["manifest_sha256"]):
+            if (qualification_source_intent is not None
+                    or qualification_source_carryforward is not None):
+                raise PermissionError(
+                    "Same-source qualification cannot use source carry-forward")
+        else:
+            verified_source_carryforward = (
+                validate_qualification_source_carryforward(
+                    qualification_source_carryforward,
+                    qualification_intent=qualification_source_intent,
+                    qualification_receipt=qualification_receipt,
+                    current_source_manifest=manifest))
+            value["qualification_source_intent"] = dict(
+                qualification_source_intent)
+            value["qualification_source_receipt"] = dict(
+                qualification_receipt)
+            value["qualification_source_carryforward"] = (
+                verified_source_carryforward)
+            value["qualification_source_carryforward_sha256"] = (
+                verified_source_carryforward["carryforward_sha256"])
         value["reviewed_timeout_budget"] = primary_timeout_budget(
             plan, qualification_receipt)
     elif qualification_receipt is not None:
@@ -1675,7 +2325,9 @@ def create_qualification_receipt(intent: Mapping[str, Any],
                                  rank_receipt: Mapping[str, Any],
                                  evidence: Mapping[str, Any],
                                  checkpoint_tree_sha256: str) -> dict:
-    intent = validate_intent(intent)
+    intent = (_validate_historical_qualification_intent(intent)
+              if intent.get("intent_sha256") == QUALIFICATION_INTENT_SHA256
+              else validate_intent(intent))
     from .qwen9b_ordinal_continuity_training import (
         RANK_RUN_VERSION, TrainingPlan,
         validate_grad_scaler_recovery_receipt)
@@ -1772,26 +2424,65 @@ def create_qualification_receipt(intent: Mapping[str, Any],
     return value
 
 
+def _primary_base_authorities_match(
+        intent: Mapping[str, Any], qualification_receipt: Mapping[str, Any]
+        ) -> bool:
+    """Keep qualifier and primary base-source lineage separate but anchored."""
+    if (qualification_receipt.get("base_qualification_intent_sha256")
+            != intent.get("base_qualification_intent_sha256")
+            or qualification_receipt.get("base_qualification_receipt_sha256")
+               != intent.get("base_qualification_receipt_sha256")):
+        return False
+    qualification_base_carryforward = qualification_receipt.get(
+        "base_qualification_carryforward_sha256")
+    source_carryforward = intent.get("qualification_source_carryforward")
+    if source_carryforward is None:
+        return (qualification_base_carryforward
+                == intent.get("base_qualification_carryforward_sha256"))
+    current_base_carryforward = intent.get(
+        "base_qualification_carryforward_sha256")
+    return (
+        intent.get("qualification_source_receipt") == qualification_receipt
+        and source_carryforward.get("base_qualification_carryforward_sha256")
+            == qualification_base_carryforward
+        and (current_base_carryforward is None
+             or (isinstance(current_base_carryforward, str)
+                 and re.fullmatch(r"[0-9a-f]{64}",
+                                  current_base_carryforward) is not None)))
+
+
 def create_primary_admission(intent: Mapping[str, Any],
                              qualification_receipt: Mapping[str, Any]) -> dict:
     intent = validate_intent(intent)
     from .qwen9b_ordinal_continuity_training import ADMISSION_VERSION
     receipt = dict(qualification_receipt); embedded = receipt.pop("receipt_sha256", None)
+    same_source = (
+        qualification_receipt.get("source_commit") == intent["source_commit"]
+        and qualification_receipt.get("source_sha256") == intent["source_sha256"])
+    source_carryforward = intent.get("qualification_source_carryforward")
+    source_authorized = same_source
+    if not same_source and source_carryforward is not None:
+        source_authorized = (
+            intent.get("qualification_source_receipt")
+            == qualification_receipt
+            and validate_qualification_source_carryforward(
+                source_carryforward,
+                qualification_intent=intent.get(
+                    "qualification_source_intent"),
+                qualification_receipt=qualification_receipt,
+                current_source_manifest=intent["source_manifest"])
+            == source_carryforward)
+    base_authorities_match = _primary_base_authorities_match(
+        intent, qualification_receipt)
     if (intent["plan"]["mode"] != "primary"
             or embedded != digest(receipt)
             or receipt.get("version") != DATABRICKS_QUALIFICATION_VERSION
             or receipt.get("status") != "qualified"
             or receipt.get("selected_rank") != 4
-            or receipt.get("source_commit") != intent["source_commit"]
-            or receipt.get("source_sha256") != intent["source_sha256"]
+            or source_authorized is not True
             or receipt.get("model_tree_sha256") != intent["model_tree_sha256"]
             or receipt.get("model_receipt_sha256") != intent["model_receipt_sha256"]
-            or receipt.get("base_qualification_intent_sha256")
-               != intent.get("base_qualification_intent_sha256")
-            or receipt.get("base_qualification_receipt_sha256")
-               != intent.get("base_qualification_receipt_sha256")
-            or receipt.get("base_qualification_carryforward_sha256")
-               != intent.get("base_qualification_carryforward_sha256")
+            or base_authorities_match is not True
             or receipt.get("qualification_technical_successor_sha256")
                != intent.get("qualification_technical_successor_sha256")
             or receipt.get("qualification_grad_scaler_recovery", {}).get(
@@ -1824,8 +2515,12 @@ def create_primary_admission(intent: Mapping[str, Any],
             "base_qualification_receipt_sha256"],
         "base_qualification_carryforward_sha256": intent.get(
             "base_qualification_carryforward_sha256"),
+        "qualification_base_qualification_carryforward_sha256": receipt.get(
+            "base_qualification_carryforward_sha256"),
         "qualification_technical_successor_sha256": intent[
             "qualification_technical_successor_sha256"],
+        "qualification_source_carryforward_sha256": intent.get(
+            "qualification_source_carryforward_sha256"),
         "qualification_grad_scaler_recovery": receipt[
             "qualification_grad_scaler_recovery"],
         "qualification_numerical_update_evidence": receipt[
@@ -1856,18 +2551,19 @@ def validate_primary_authority_files(
     primary_intent = validate_intent(intent)
     if primary_intent["plan"]["mode"] != "primary":
         raise PermissionError("Primary authority replay requires a primary intent")
-    qualification_intent = validate_intent(json.loads(
-        Path(qualification_intent_path).read_text(encoding="utf-8")))
+    raw_qualification_intent = json.loads(Path(
+        qualification_intent_path).read_text(encoding="utf-8"))
+    qualification_intent = (
+        _validate_historical_qualification_intent(raw_qualification_intent)
+        if raw_qualification_intent.get("intent_sha256")
+           == QUALIFICATION_INTENT_SHA256
+        else validate_intent(raw_qualification_intent))
     if qualification_intent["plan"]["mode"] != "qualification":
         raise PermissionError("Qualification intent has the wrong mode")
     if (qualification_intent.get("base_qualification_intent_sha256")
             != primary_intent.get("base_qualification_intent_sha256")
             or qualification_intent.get("base_qualification_receipt_sha256")
             != primary_intent.get("base_qualification_receipt_sha256")
-            or qualification_intent.get(
-                "base_qualification_carryforward_sha256")
-               != primary_intent.get(
-                   "base_qualification_carryforward_sha256")
             or qualification_intent.get(
                 "qualification_technical_successor_sha256")
                != primary_intent.get(
@@ -1937,8 +2633,21 @@ def validate_exact_gold_row(rows: list[Mapping[str, Any]],
     if len(converted) != 1:
         raise PermissionError(f"{label} requires exactly one Gold row")
     row = converted[0]
+    mismatches = {key for key, value in expected.items()
+                  if row.get(key) != value}
+    reviewed_v7_source_alias = (
+        label == "qualification"
+        and mismatches == {"source_commit"}
+        and row.get("source_commit") == QUALIFICATION_SOURCE_ORIGINAL_COMMIT
+        and expected.get("intent_sha256") == QUALIFICATION_INTENT_SHA256
+        and expected.get("plan_sha256") == QUALIFICATION_PLAN_SHA256
+        and expected.get("receipt_sha256")
+            == QUALIFICATION_RANK_RECEIPT_SHA256
+        and expected.get("evidence_sha256") == QUALIFICATION_EVIDENCE_SHA256
+        and expected.get("checkpoint_tree_sha256")
+            == QUALIFICATION_CHECKPOINT_TREE_SHA256)
     if (row.get("status") != "complete" or row.get("receipt_replayed") is not True
-            or any(row.get(key) != value for key, value in expected.items())):
+            or (mismatches and not reviewed_v7_source_alias)):
         raise PermissionError(f"{label} Gold row differs from exact authority")
     return row
 

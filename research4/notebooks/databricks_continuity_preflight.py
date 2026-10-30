@@ -64,6 +64,7 @@ from src.databricks_simulated_continuity import (
     validate_base_qualification_receipt, validate_exact_gold_row,
     validate_intent, validate_primary_authority_files,
     validate_policy_silver_payload,
+    verify_deployed_qualification_source_carryforward,
     verify_intent_base_qualification_authority, verify_deployed_source,
     verify_model_receipt)
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
@@ -84,6 +85,7 @@ if intent["plan"] != plan:
 source_proof = verify_deployed_source(values["code_path"], intent)
 if source_proof["manifest_sha256"] != bootstrap_source_sha256:
     raise PermissionError("Partition bootstrap and full source verification differ")
+verify_deployed_qualification_source_carryforward(intent, values["code_path"])
 base_authority = verify_intent_base_qualification_authority(
     intent, base_qualification, values["code_path"])
 proof = verify_model_receipt(intent["model_root"], MODEL_RECEIPT)
@@ -128,7 +130,7 @@ if plan["mode"] == "primary":
     validate_exact_gold_row(qualification_rows, {
         "partition_identity": qualification_intent["identity"],
         "mode": "qualification", "plan_sha256": qualification_intent["plan_sha256"],
-        "source_commit": intent["source_commit"],
+        "source_commit": qualification_intent["source_commit"],
         "model_tree_sha256": intent["model_tree_sha256"],
         "checkpoint_tree_sha256": qualification_receipt[
             "qualification_checkpoint_tree_sha256"],
