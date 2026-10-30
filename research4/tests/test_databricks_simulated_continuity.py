@@ -74,6 +74,22 @@ class DatabricksContinuityTests(unittest.TestCase):
             "notebooks/databricks_continuity_model_snapshot.py",
             ALLOWED_RUNTIME_CHANGED_PATHS,
         )
+        self.assertEqual(
+            {path for path in ALLOWED_RUNTIME_CHANGED_PATHS
+             if path.startswith("infrastructure/classic_a10_scale1_v6/")},
+            {
+                "infrastructure/classic_a10_scale1_v6/PROPOSAL.md",
+                "infrastructure/classic_a10_scale1_v6/PROVIDER_BINDING.json",
+                "infrastructure/classic_a10_scale1_v6/SCHEMA_AUDIT.json",
+                "infrastructure/classic_a10_scale1_v6/submit.json",
+            },
+        )
+        self.assertIn(
+            "tools/monitor_classic_a10_recovery.py",
+            ALLOWED_RUNTIME_CHANGED_PATHS)
+        self.assertIn(
+            "tools/validate_classic_a10_recovery.py",
+            ALLOWED_RUNTIME_CHANGED_PATHS)
 
     def test_base_carryforward_binds_reviewed_model_cache_receipt_delta(self):
         self.assertEqual(
