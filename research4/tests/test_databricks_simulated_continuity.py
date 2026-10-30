@@ -1,9 +1,11 @@
 from dataclasses import asdict
 from pathlib import Path
+import ast
 import hashlib
 import inspect
 import json
 import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -24,6 +26,7 @@ from src.databricks_simulated_continuity import (
     close_active_reservation,
     commit_model_snapshot, create_base_qualification_receipt,
     create_primary_admission, create_qualification_receipt,
+    create_qualification_source_carryforward,
     digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
     qualification_numerical_update_evidence,
@@ -31,10 +34,12 @@ from src.databricks_simulated_continuity import (
     source_release_path,
     validate_base_qualification_silver_rows, validate_base_silver_binding,
     validate_base_qualification_intent, validate_base_qualification_receipt,
-    validate_intent,
+    validate_exact_gold_row, validate_intent,
+    validate_qualification_source_carryforward,
     validate_policy_silver_payload, validate_primary_authority_files,
     validate_source_manifest,
     verify_dataset_release, verify_deployed_source, verify_model_receipt,
+    verify_deployed_qualification_source_carryforward,
     verify_model_receipt_authority, _verify_deployed_source_contents)
 from src.action_serialization import (
     SERIALIZATION_CONTRACT_VERSION, parse_registered_action,
@@ -66,6 +71,140 @@ from src.qwen9b_ordinal_continuity_training import (
 
 
 class DatabricksContinuityTests(unittest.TestCase):
+    def test_exact_v7_source_lineage_git_and_ast_proofs(self):
+        repository = Path(__file__).resolve().parents[2]
+        old = databricks_contract.QUALIFICATION_SOURCE_ORIGINAL_COMMIT
+        reviewed = (
+            databricks_contract.QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_COMMIT)
+        try:
+            subprocess.check_call(
+                ["git", "-C", str(repository), "cat-file", "-e", old],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.check_call(
+                ["git", "-C", str(repository), "cat-file", "-e", reviewed],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("Exact v7 Git objects are unavailable")
+        subprocess.check_call([
+            "git", "-C", str(repository), "merge-base", "--is-ancestor",
+            old, reviewed])
+        trees = [subprocess.check_output(
+            ["git", "-C", str(repository), "rev-parse", f"{commit}^{{tree}}"],
+            text=True).strip() for commit in (old, reviewed)]
+        self.assertEqual(trees, [
+            databricks_contract.QUALIFICATION_SOURCE_ORIGINAL_GIT_TREE,
+            databricks_contract.QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_GIT_TREE])
+        raw_diff = subprocess.check_output([
+            "git", "-C", str(repository), "-c", "core.pager=cat", "diff",
+            "--no-ext-diff", "--binary", old, reviewed, "--", "research4"])
+        self.assertEqual(len(raw_diff), 117484)
+        self.assertEqual(
+            hashlib.sha256(raw_diff).hexdigest(),
+            databricks_contract.QUALIFICATION_SOURCE_REVIEWED_DIFF_SHA256)
+
+        def manifest_at(commit):
+            files = []
+            for logical in databricks_contract.SOURCE_MANIFEST_PATHS:
+                data = subprocess.check_output([
+                    "git", "-C", str(repository), "show",
+                    f"{commit}:research4/{logical}"])
+                data = data.decode("utf-8").replace(
+                    "\r\n", "\n").replace("\r", "\n").encode("utf-8")
+                files.append({"path": logical,
+                              "sha256": hashlib.sha256(data).hexdigest(),
+                              "canonical_bytes": len(data)})
+            value = {
+                "version": databricks_contract.SOURCE_MANIFEST_VERSION,
+                "source_commit": commit, "file_count": len(files),
+                "total_canonical_bytes": sum(
+                    row["canonical_bytes"] for row in files),
+                "files": files,
+            }
+            value["manifest_sha256"] = digest(value)
+            return value
+
+        old_manifest = manifest_at(old); reviewed_manifest = manifest_at(reviewed)
+        self.assertEqual(old_manifest["manifest_sha256"],
+                         databricks_contract.
+                         QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_SHA256)
+        self.assertEqual(reviewed_manifest["manifest_sha256"],
+                         databricks_contract.
+                         QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_MANIFEST_SHA256)
+        old_files = {row["path"]: row for row in old_manifest["files"]}
+        reviewed_files = {row["path"]: row for row in reviewed_manifest["files"]}
+        manifest_changed = sorted(
+            path for path in old_files
+            if old_files[path]["sha256"] != reviewed_files[path]["sha256"])
+        self.assertEqual(
+            manifest_changed,
+            list(databricks_contract.QUALIFICATION_SOURCE_REVIEWED_CHANGED_PATHS))
+        git_changed = subprocess.check_output([
+            "git", "-C", str(repository), "diff", "--name-only", old,
+            reviewed, "--", "research4"], text=True).splitlines()
+        self.assertEqual(git_changed, [
+            "research4/notebooks/databricks_continuity_partition_finalize.py",
+            "research4/resources/simulated_continuity_databricks.job.yml",
+            "research4/src/databricks_continuity_partition.py",
+            "research4/tests/test_databricks_simulated_continuity.py",
+            "research4/tests/test_databricks_volume_durability.py",
+            "research4/tests/test_parent_mlflow_journal.py",
+        ])
+        controller_path = "research4/src/databricks_continuity_partition.py"
+        controllers = [subprocess.check_output(
+            ["git", "-C", str(repository), "show", f"{commit}:{controller_path}"],
+            text=True) for commit in (old, reviewed)]
+
+        def symbol_hashes(source):
+            return databricks_contract._top_level_ast_sha256(source)
+
+        prior_symbols, reviewed_symbols = map(symbol_hashes, controllers)
+        changed = {name for name in prior_symbols.keys() & reviewed_symbols.keys()
+                   if prior_symbols[name] != reviewed_symbols[name]}
+        added = set(reviewed_symbols) - set(prior_symbols)
+        removed = set(prior_symbols) - set(reviewed_symbols)
+        unchanged = set(prior_symbols) & set(reviewed_symbols) - changed
+        self.assertEqual(changed, {"run_partition", "_expected_mlflow_scalars"})
+        self.assertEqual(removed, set())
+        self.assertEqual(
+            added, set(databricks_contract.
+                       QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256))
+        self.assertEqual(
+            unchanged, set(databricks_contract.
+                           QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256))
+        for name, hashes in (
+                databricks_contract.
+                QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256.items()):
+            self.assertEqual(prior_symbols[name], hashes["prior"])
+            self.assertEqual(reviewed_symbols[name], hashes["reviewed"])
+        for name, expected in (
+                databricks_contract.
+                QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256.items()):
+            self.assertEqual(reviewed_symbols[name], expected)
+        for name, expected in (
+                databricks_contract.
+                QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256.items()):
+            self.assertEqual(reviewed_symbols[name], expected)
+        prefixes = []
+        for source_index, source in enumerate(controllers):
+            function = next(node for node in ast.parse(source).body
+                            if isinstance(node, ast.FunctionDef)
+                            and node.name == "run_partition")
+            if source_index == 0:
+                prefix = function.body[:-1]
+            else:
+                boundary = next(index for index, node in enumerate(function.body)
+                                if isinstance(node, ast.FunctionDef)
+                                and node.name == "post_run_deadline")
+                prefix = function.body[:boundary]
+            raw = "".join(ast.dump(
+                node, annotate_fields=True, include_attributes=False)
+                for node in prefix).encode("utf-8")
+            self.assertEqual(len(raw), 34655)
+            prefixes.append(hashlib.sha256(raw).hexdigest())
+        self.assertEqual(prefixes, [
+            databricks_contract.QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256,
+            databricks_contract.QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256])
+
     def test_base_carryforward_allows_reviewed_training_worker_delta(self):
         self.assertIn(
             "src/qwen9b_ordinal_continuity_worker.py",
@@ -88,6 +227,21 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn(
             "tools/monitor_classic_a10_recovery.py",
             ALLOWED_RUNTIME_CHANGED_PATHS)
+        self.assertIn(
+            "tools/prepare_databricks_qualification_source_carryforward.py",
+            ALLOWED_RUNTIME_CHANGED_PATHS)
+        from tools.prepare_databricks_qualification_source_carryforward import (
+            validate_base_runtime_changed_paths)
+        self.assertEqual(validate_base_runtime_changed_paths([
+            "research4/tools/prepare_databricks_qualification_source_carryforward.py",
+            "research4/tests/test_databricks_simulated_continuity.py",
+        ]), [
+            "research4/tests/test_databricks_simulated_continuity.py",
+            "research4/tools/prepare_databricks_qualification_source_carryforward.py",
+        ])
+        with self.assertRaises(PermissionError):
+            validate_base_runtime_changed_paths([
+                "research4/src/unreviewed_science_change.py"])
         self.assertIn(
             "tools/validate_classic_a10_recovery.py",
             ALLOWED_RUNTIME_CHANGED_PATHS)
@@ -1157,6 +1311,275 @@ class DatabricksContinuityTests(unittest.TestCase):
             self.assertTrue(metrics["hf_network_fallback_disabled"])
             self.assertFalse(metrics["snapshot_download_used"])
             shutil.rmtree(local_model.parent)
+
+    def test_qualification_source_carryforward_is_exact_and_fail_closed(self):
+        source_root = Path(__file__).parents[1]
+
+        def with_commit(manifest, commit):
+            value = json.loads(json.dumps(manifest))
+            value["source_commit"] = commit
+            value["manifest_sha256"] = digest({
+                key: item for key, item in value.items()
+                if key != "manifest_sha256"})
+            return value
+
+        full_manifest = build_source_manifest(source_root, "a" * 40)
+        prior_manifest = with_commit(full_manifest, "a" * 40)
+        current_manifest = with_commit(full_manifest, "b" * 40)
+        changed_path = "notebooks/databricks_continuity_partition_finalize.py"
+        row = next(item for item in current_manifest["files"]
+                   if item["path"] == changed_path)
+        row["sha256"] = "f" * 64
+        current_manifest["manifest_sha256"] = digest({
+            key: item for key, item in current_manifest.items()
+            if key != "manifest_sha256"})
+        qualification_intent = self.intent()
+        qualification_intent.update({
+            "source_commit": "a" * 40,
+            "source_manifest": prior_manifest,
+            "source_release_path": (
+                "/Workspace/Shared/research4/source_releases/" + "a" * 40),
+            "source_sha256": prior_manifest["manifest_sha256"],
+        })
+        qualification_intent["intent_sha256"] = digest({
+            key: item for key, item in qualification_intent.items()
+            if key != "intent_sha256"})
+        primary = databricks_a10_plan(next(
+            plan for plan in matrix_plans(EXPERIMENT_SPEC, 4)
+            if plan.condition == "self_continuity"
+            and plan.seed == 202610281 and plan.stage == "delta1"))
+        qualification_receipt = {
+            "version": databricks_contract.DATABRICKS_QUALIFICATION_VERSION,
+            "status": "qualified",
+            "source_commit": qualification_intent["source_commit"],
+            "source_sha256": qualification_intent["source_sha256"],
+            "model_tree_sha256": qualification_intent["model_tree_sha256"],
+            "model_receipt_sha256": qualification_intent[
+                "model_receipt_sha256"],
+            "base_qualification_intent_sha256": qualification_intent[
+                "base_qualification_intent_sha256"],
+            "base_qualification_receipt_sha256": qualification_intent[
+                "base_qualification_receipt_sha256"],
+            "base_qualification_carryforward_sha256": None,
+            "qualification_technical_successor_sha256": qualification_intent[
+                "qualification_technical_successor_sha256"],
+            "qualification_intent_sha256": qualification_intent[
+                "intent_sha256"],
+            "qualification_plan_sha256": qualification_intent["plan_sha256"],
+            "qualification_rank_receipt_sha256": "6" * 64,
+            "qualification_evidence_sha256": "7" * 64,
+            "qualification_checkpoint_tree_sha256": "8" * 64,
+            "qualification_grad_scaler_recovery": {
+                "numerical_policy": primary.numerical_policy,
+                "max_overflow_adjustments_per_partition": (
+                    primary.max_overflow_adjustments),
+                "minimum_scale": primary.minimum_grad_scaler_scale,
+            },
+            "qualification_numerical_update_evidence": [],
+            "qualification_tokens_per_second": 256.0,
+            "selected_rank": 4,
+            "authorized_primary_plan_sha256s": [
+                databricks_a10_plan(item).full_plan_sha256
+                for item in matrix_plans(EXPERIMENT_SPEC, 4)],
+            "qualifier_checkpoint_primary_parent_eligible": False,
+        }
+        qualification_receipt["receipt_sha256"] = digest(
+            qualification_receipt)
+        overrides = {
+            "QUALIFICATION_RECEIPT_SHA256": qualification_receipt[
+                "receipt_sha256"],
+            "QUALIFICATION_RECEIPT_FILE_SHA256": "9" * 64,
+            "QUALIFICATION_INTENT_SHA256": qualification_intent[
+                "intent_sha256"],
+            "QUALIFICATION_PLAN_SHA256": qualification_intent["plan_sha256"],
+            "QUALIFICATION_RANK_RECEIPT_SHA256": "6" * 64,
+            "QUALIFICATION_EVIDENCE_SHA256": "7" * 64,
+            "QUALIFICATION_CHECKPOINT_TREE_SHA256": "8" * 64,
+            "QUALIFICATION_SOURCE_ORIGINAL_COMMIT": "a" * 40,
+            "QUALIFICATION_SOURCE_ORIGINAL_GIT_TREE": "1" * 40,
+            "QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_SHA256": prior_manifest[
+                "manifest_sha256"],
+            "QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_COMMIT": "b" * 40,
+            "QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_GIT_TREE": "2" * 40,
+            "QUALIFICATION_SOURCE_REVIEWED_SUCCESSOR_MANIFEST_SHA256": (
+                current_manifest["manifest_sha256"]),
+            "QUALIFICATION_SOURCE_REVIEWED_DIFF_SHA256": "3" * 64,
+            "QUALIFICATION_SOURCE_REVIEWED_CHANGED_PATHS": (changed_path,),
+        }
+        with patch.multiple(databricks_contract, **overrides):
+            carryforward = create_qualification_source_carryforward(
+                qualification_intent=qualification_intent,
+                qualification_receipt=qualification_receipt,
+                current_source_manifest=current_manifest,
+                current_git_tree="2" * 40,
+                current_research4_diff_sha256="3" * 64)
+            self.assertEqual(
+                validate_qualification_source_carryforward(
+                    carryforward,
+                    qualification_intent=qualification_intent,
+                    qualification_receipt=qualification_receipt,
+                    current_source_manifest=current_manifest),
+                carryforward)
+            budget = primary_timeout_budget(primary, qualification_receipt)
+            primary_intent = self.intent(
+                plan=primary,
+                timeout_seconds=budget["derived_ceiling_seconds"],
+                max_gpu_hours=budget["derived_ceiling_seconds"] / 3600,
+                stop_seconds=budget["derived_ceiling_seconds"] - 300,
+                reviewed_timeout_budget=budget)
+            primary_intent.update({
+                "source_commit": "b" * 40,
+                "source_manifest": current_manifest,
+                "source_release_path": (
+                    "/Workspace/Shared/research4/source_releases/" + "b" * 40),
+                "source_sha256": current_manifest["manifest_sha256"],
+                "qualification_source_intent": qualification_intent,
+                "qualification_source_receipt": qualification_receipt,
+                "qualification_source_carryforward": carryforward,
+                "qualification_source_carryforward_sha256": carryforward[
+                    "carryforward_sha256"],
+            })
+            primary_intent["intent_sha256"] = digest({
+                key: item for key, item in primary_intent.items()
+                if key != "intent_sha256"})
+            self.assertEqual(validate_intent(primary_intent), primary_intent)
+            self.assertEqual(
+                verify_deployed_qualification_source_carryforward(
+                    primary_intent, source_root), carryforward)
+            admission = create_primary_admission(
+                primary_intent, qualification_receipt)
+            self.assertEqual(
+                admission["qualification_source_carryforward_sha256"],
+                carryforward["carryforward_sha256"])
+            changed_manifest = json.loads(json.dumps(current_manifest))
+            science = next(item for item in changed_manifest["files"]
+                           if item["path"] ==
+                           "src/qwen9b_ordinal_continuity_training.py")
+            science["sha256"] = "0" * 64
+            changed_manifest["manifest_sha256"] = digest({
+                key: item for key, item in changed_manifest.items()
+                if key != "manifest_sha256"})
+            with self.assertRaises(PermissionError):
+                create_qualification_source_carryforward(
+                    qualification_intent=qualification_intent,
+                    qualification_receipt=qualification_receipt,
+                    current_source_manifest=changed_manifest,
+                    current_git_tree="2" * 40,
+                    current_research4_diff_sha256="3" * 64)
+            eligible = json.loads(json.dumps(qualification_receipt))
+            eligible["qualifier_checkpoint_primary_parent_eligible"] = True
+            eligible["receipt_sha256"] = digest({
+                key: item for key, item in eligible.items()
+                if key != "receipt_sha256"})
+            with patch.object(
+                    databricks_contract, "QUALIFICATION_RECEIPT_SHA256",
+                    eligible["receipt_sha256"]):
+                with self.assertRaises(PermissionError):
+                    create_qualification_source_carryforward(
+                        qualification_intent=qualification_intent,
+                        qualification_receipt=eligible,
+                        current_source_manifest=current_manifest,
+                        current_git_tree="2" * 40,
+                        current_research4_diff_sha256="3" * 64)
+
+    def test_real_v7_historical_intent_and_recovery_replay_when_available(self):
+        artifact_root = Path(
+            "C:/Users/farha/Research4/artifacts/"
+            "qwen9b_simulated_continuity_20261028")
+        intent_path = (artifact_root / "volume_durable_v7_832ffba9" /
+                       "QUALIFICATION_RANK4_INTENT_READBACK.json")
+        recovery_path = (
+            artifact_root / "parent_finalization_recovery_proposal_20261030" /
+            "final_resume_readback" / "RECOVERY_RESULT.json")
+        if not intent_path.is_file() or not recovery_path.is_file():
+            self.skipTest("Exact local v7 historical evidence is unavailable")
+        intent = databricks_contract._validate_historical_qualification_intent(
+            json.loads(intent_path.read_text(encoding="utf-8")))
+        recovery = json.loads(recovery_path.read_text(encoding="utf-8"))
+        self.assertEqual(intent["intent_sha256"],
+                         databricks_contract.QUALIFICATION_INTENT_SHA256)
+        self.assertEqual(
+            intent["source_sha256"],
+            databricks_contract.QUALIFICATION_SOURCE_ORIGINAL_MANIFEST_SHA256)
+        self.assertEqual(
+            recovery["result_sha256"],
+            databricks_contract.QUALIFICATION_RECOVERY_RESULT_SHA256)
+        self.assertEqual(
+            recovery["result_sha256"],
+            digest({key: item for key, item in recovery.items()
+                    if key != "result_sha256"}))
+        self.assertEqual(
+            recovery["receipt_sha256"],
+            databricks_contract.QUALIFICATION_RANK_RECEIPT_SHA256)
+
+    def test_v7_gold_source_alias_is_exactly_one_field(self):
+        expected = {
+            "intent_sha256": databricks_contract.QUALIFICATION_INTENT_SHA256,
+            "plan_sha256": databricks_contract.QUALIFICATION_PLAN_SHA256,
+            "receipt_sha256": (
+                databricks_contract.QUALIFICATION_RANK_RECEIPT_SHA256),
+            "evidence_sha256": (
+                databricks_contract.QUALIFICATION_EVIDENCE_SHA256),
+            "checkpoint_tree_sha256": (
+                databricks_contract.QUALIFICATION_CHECKPOINT_TREE_SHA256),
+            "model_tree_sha256": "a" * 64,
+            "source_commit": "b" * 40,
+        }
+        row = {**expected, "status": "complete", "receipt_replayed": True,
+               "source_commit": (
+                   databricks_contract.QUALIFICATION_SOURCE_ORIGINAL_COMMIT)}
+        self.assertEqual(
+            validate_exact_gold_row([row], expected, label="qualification"),
+            row)
+        wrong_source = {**row, "source_commit": "c" * 40}
+        with self.assertRaises(PermissionError):
+            validate_exact_gold_row(
+                [wrong_source], expected, label="qualification")
+        second_mismatch = {**row, "model_tree_sha256": "d" * 64}
+        with self.assertRaises(PermissionError):
+            validate_exact_gold_row(
+                [second_mismatch], expected, label="qualification")
+        with self.assertRaises(PermissionError):
+            validate_exact_gold_row(
+                [{**row, "receipt_replayed": False}], expected,
+                label="qualification")
+
+    def test_real_v7_qualifier_and_primary_base_carryforwards_are_separate(self):
+        artifact_root = Path(
+            "C:/Users/farha/Research4/artifacts/"
+            "qwen9b_simulated_continuity_20261028")
+        receipt_path = (
+            artifact_root / "parent_finalization_recovery_proposal_20261030" /
+            "QUALIFICATION_RECEIPT_LOCAL_REVIEW.json")
+        primary_base_path = (
+            artifact_root / "three_residual_f3b94233" /
+            "BASE_QUALIFICATION_CARRYFORWARD.json")
+        if not receipt_path.is_file() or not primary_base_path.is_file():
+            self.skipTest("Exact local v7/base carry-forward evidence is unavailable")
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        primary_base = json.loads(primary_base_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            receipt["base_qualification_carryforward_sha256"],
+            "6e2d39a7cf5a631023cf822bd403cfbc4bbc4e966467a832660160a8073f9bd3")
+        self.assertNotEqual(
+            primary_base["carryforward_sha256"],
+            receipt["base_qualification_carryforward_sha256"])
+        intent = {
+            "base_qualification_intent_sha256": receipt[
+                "base_qualification_intent_sha256"],
+            "base_qualification_receipt_sha256": receipt[
+                "base_qualification_receipt_sha256"],
+            "base_qualification_carryforward_sha256": primary_base[
+                "carryforward_sha256"],
+            "qualification_source_receipt": receipt,
+            "qualification_source_carryforward": {
+                "base_qualification_carryforward_sha256": receipt[
+                    "base_qualification_carryforward_sha256"]},
+        }
+        self.assertTrue(databricks_contract._primary_base_authorities_match(
+            intent, receipt))
+        self.assertFalse(databricks_contract._primary_base_authorities_match(
+            {**intent, "qualification_source_carryforward": None}, receipt))
 
     def test_primary_authority_replays_raw_qualification_and_rejects_tamper(self):
         qualification_intent = validate_intent(self.intent())

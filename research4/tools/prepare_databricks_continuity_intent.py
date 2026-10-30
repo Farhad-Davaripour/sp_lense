@@ -19,6 +19,8 @@ def main(argv=None):
     parser.add_argument("--stop-seconds", required=True, type=int)
     parser.add_argument("--max-gpu-hours", required=True, type=float)
     parser.add_argument("--qualification-receipt")
+    parser.add_argument("--qualification-source-intent")
+    parser.add_argument("--qualification-source-carryforward")
     parser.add_argument("--base-qualification-source-intent")
     parser.add_argument("--base-qualification-carryforward")
     args = parser.parse_args(argv)
@@ -40,6 +42,12 @@ def main(argv=None):
     source_manifest = build_source_manifest(source_root, args.source_commit)
     qualification = (None if not args.qualification_receipt else
                      json.loads(Path(args.qualification_receipt).read_text()))
+    qualification_source_intent = (
+        None if not args.qualification_source_intent else
+        json.loads(Path(args.qualification_source_intent).read_text()))
+    qualification_source_carryforward = (
+        None if not args.qualification_source_carryforward else
+        json.loads(Path(args.qualification_source_carryforward).read_text()))
     base_qualification = json.loads(Path(
         args.base_qualification_receipt).read_text())
     base_source_intent = (None if not args.base_qualification_source_intent else
@@ -65,7 +73,9 @@ def main(argv=None):
         base_qualification_receipt=base_qualification,
         base_qualification_source_intent=base_source_intent,
         base_qualification_carryforward=base_carryforward,
-        qualification_receipt=qualification)
+        qualification_receipt=qualification,
+        qualification_source_intent=qualification_source_intent,
+        qualification_source_carryforward=qualification_source_carryforward)
     output = Path(args.output)
     if output.exists():
         raise FileExistsError("Intent output is immutable")

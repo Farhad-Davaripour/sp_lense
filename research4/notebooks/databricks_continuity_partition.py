@@ -69,6 +69,7 @@ from src.databricks_continuity_partition import run_partition
 from src.databricks_simulated_continuity import (
     GOLD_ADMISSION_TABLE, MODEL_RECEIPT, VOLUME, close_active_reservation,
     reserve_intent, validate_base_qualification_receipt, validate_intent,
+    verify_deployed_qualification_source_carryforward,
     verify_deployed_source, verify_intent_base_qualification_authority,
     verify_model_receipt_authority)
 from src.qwen9b_ordinal_continuity_training import (
@@ -80,6 +81,7 @@ intent = validate_intent(intent_preview)
 source_proof = verify_deployed_source(values["code_path"], intent)
 if source_proof["manifest_sha256"] != bootstrap_source_sha256:
     raise PermissionError("Partition bootstrap and full source verification differ")
+verify_deployed_qualification_source_carryforward(intent, values["code_path"])
 if not values["base_qualification_receipt_path"]:
     raise PermissionError("Training requires the frozen-base format gate")
 base_qualification = validate_base_qualification_receipt(json.loads(Path(
