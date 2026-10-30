@@ -14,7 +14,7 @@ import json
 import re
 
 
-CARRYFORWARD_VERSION = "research4-base-qualification-carryforward-v1"
+CARRYFORWARD_VERSION = "research4-base-qualification-carryforward-v2"
 QUALIFIED_BASE_SOURCE_COMMIT = "4f5b6533e5da9523f529413e68a8e7270b045f34"
 QUALIFIED_BASE_GIT_TREE = "efd02dee794efdc8c758b68e866046baf92eb752"
 QUALIFIED_BASE_INTENT_SHA256 = (
@@ -25,13 +25,22 @@ QUALIFIED_BASE_SOURCE_MANIFEST_SHA256 = (
     "c2e2f59fd77e1143e9b82b062b37284d879a553b898ca8e4194c4e66363299cf")
 
 UNCHANGED_BASE_FILES = (
-    "notebooks/databricks_continuity_base_qualification.py",
-    "notebooks/databricks_continuity_base_qualification_preflight.py",
     "src/__init__.py",
     "src/action_serialization.py",
     "src/composite_kernels.py",
     "src/qwen9b_ordinal_continuity_runtime.py",
 )
+
+REVIEWED_CHANGED_FILES = {
+    "notebooks/databricks_continuity_base_qualification.py": {
+        "prior": "0a149bf0ec812b98c0a7de10c6f6821d8a1782211a8e4b9bfd1d665b0ebe759a",
+        "current": "d24f95783a6904e3ab0775b65e11c01bf3a664cd10bc32c88500338db205701d",
+    },
+    "notebooks/databricks_continuity_base_qualification_preflight.py": {
+        "prior": "ff7304de04a11d2c544c22b1c021117914624e502bb220884dd839fcdc64aabf",
+        "current": "0ee1611954c2432e85e4f237fd9bcd89568e7ce6b2ce2deeaf742ed6dd3f2e25",
+    },
+}
 
 BASE_CRITICAL_ENTRYPOINTS = {
     "src/databricks_continuity_partition.py": ("_stage_local_model",),
@@ -140,6 +149,8 @@ ALLOWED_RUNTIME_CHANGED_PATHS = (
     "databricks.yml",
     "notebooks/databricks_continuity_admission.py",
     "notebooks/databricks_continuity_bootstrap.py",
+    "notebooks/databricks_continuity_base_qualification.py",
+    "notebooks/databricks_continuity_base_qualification_preflight.py",
     "notebooks/databricks_continuity_cleanup.py",
     "notebooks/databricks_continuity_data.py",
     "notebooks/databricks_continuity_gold_audit.py",
@@ -196,6 +207,12 @@ def _file_sha256(path: str | Path) -> str:
         for chunk in iter(lambda: stream.read(8 * 1024 * 1024), b""):
             value.update(chunk)
     return value.hexdigest()
+
+
+def _canonical_file_sha256(path: str | Path) -> str:
+    data = Path(path).read_text(encoding="utf-8").replace(
+        "\r\n", "\n").replace("\r", "\n").encode("utf-8")
+    return hashlib.sha256(data).hexdigest()
 
 
 def symbol_ast_sha256(source_text: str, symbols) -> dict[str, str]:
@@ -273,7 +290,7 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
         "qualification_set_version", "qualification_seed",
         "qualification_selection_digest", "qualification_proposal_sha256",
         "unchanged_base_files", "base_critical_symbol_sha256",
-        "reviewed_changed_symbol_sha256",
+        "reviewed_changed_file_sha256", "reviewed_changed_symbol_sha256",
         "model_execution_performed", "optimizer_updates",
         "scientific_status_preserved", "carryforward_sha256",
     }
@@ -281,6 +298,7 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
     unchanged = receipt.get("unchanged_base_files")
     symbols = receipt.get("base_critical_symbol_sha256")
     changed_symbols = receipt.get("reviewed_changed_symbol_sha256")
+    changed_files = receipt.get("reviewed_changed_file_sha256")
     changed = receipt.get("changed_paths")
     allowed = receipt.get("allowed_runtime_changed_paths")
     if (set(receipt) != exact
@@ -360,6 +378,14 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
                    or unchanged[path] != new_files.get(path, {}).get("sha256")
                    for path in UNCHANGED_BASE_FILES)):
         raise PermissionError("Carry-forward changed an immutable base file")
+    if (not isinstance(changed_files, Mapping)
+            or dict(changed_files) != REVIEWED_CHANGED_FILES):
+        raise PermissionError("Carry-forward reviewed file delta differs")
+    for path, expected in REVIEWED_CHANGED_FILES.items():
+        if (old_files.get(path, {}).get("sha256") != expected["prior"]
+                or new_files.get(path, {}).get("sha256") != expected["current"]
+                or expected["prior"] == expected["current"]):
+            raise PermissionError("Carry-forward reviewed file bytes differ")
     if (not isinstance(symbols, Mapping)
             or set(symbols) != set(BASE_CRITICAL_ENTRYPOINTS)):
         raise PermissionError("Carry-forward critical symbol proof differs")
@@ -405,6 +431,11 @@ def verify_deployed_carryforward(receipt: Mapping, *, code_root: str | Path,
         target = root / path
         if not target.is_file() or _file_sha256(target) != expected:
             raise PermissionError("Deployed unchanged base file differs")
+    for path, expected in value["reviewed_changed_file_sha256"].items():
+        target = root / path
+        if (not target.is_file()
+                or _canonical_file_sha256(target) != expected["current"]):
+            raise PermissionError("Deployed reviewed base file delta differs")
     for path, entrypoints in BASE_CRITICAL_ENTRYPOINTS.items():
         target = root / path
         if not target.is_file():
