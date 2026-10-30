@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import argparse
+import ast
 import hashlib
 import json
 import subprocess
@@ -15,6 +16,7 @@ from src.base_qualification_carryforward import (  # noqa: E402
     CARRYFORWARD_VERSION,
     REVIEWED_CHANGED_SYMBOLS,
     REVIEWED_CHANGED_FILES,
+    REVIEWED_ADDED_SYMBOLS,
     UNCHANGED_BASE_FILES,
     symbol_ast_sha256,
     symbol_dependency_closure_sha256,
@@ -36,6 +38,18 @@ def _git(repository: Path, *args, binary=False):
 
 def _git_file(repository: Path, commit: str, path: str) -> str:
     return _git(repository, "show", f"{commit}:research4/{path}")
+
+
+def _top_level_symbols(source_text: str) -> set[str]:
+    result = set()
+    for node in ast.parse(source_text).body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            result.add(node.name)
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            result.update(target.id for target in targets
+                          if isinstance(target, ast.Name))
+    return result
 
 
 def main(argv=None):
@@ -99,6 +113,13 @@ def main(argv=None):
         reviewed_symbol_hashes[path] = {
             name: {"prior": old_hashes[name], "current": new_hashes[name]}
             for name in names}
+    for path, expected in REVIEWED_ADDED_SYMBOLS.items():
+        prior_text = _git_file(repository, old, path)
+        current_text = (source_root / path).read_text(encoding="utf-8")
+        if (set(expected) & _top_level_symbols(prior_text)
+                or not set(expected) <= _top_level_symbols(current_text)
+                or symbol_ast_sha256(current_text, expected) != expected):
+            raise PermissionError(f"Reviewed added symbol differs: {path}")
     for path, expected in REVIEWED_CHANGED_FILES.items():
         if (old_files.get(path, {}).get("sha256") != expected["prior"]
                 or new_files.get(path, {}).get("sha256") != expected["current"]):
@@ -138,6 +159,8 @@ def main(argv=None):
             "qualification_proposal_sha256"],
         "unchanged_base_files": dict(sorted(unchanged.items())),
         "base_critical_symbol_sha256": dict(sorted(symbol_hashes.items())),
+        "reviewed_added_symbol_sha256": dict(sorted(
+            REVIEWED_ADDED_SYMBOLS.items())),
         "reviewed_changed_file_sha256": dict(sorted(
             REVIEWED_CHANGED_FILES.items())),
         "reviewed_changed_symbol_sha256": dict(sorted(

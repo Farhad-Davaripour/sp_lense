@@ -42,6 +42,13 @@ REVIEWED_CHANGED_FILES = {
     },
 }
 
+REVIEWED_ADDED_SYMBOLS = {
+    "src/databricks_simulated_continuity.py": {
+        "_write_exclusive_volume_json": (
+            "a0afbddcd8c668a96849a8c2da23f11776c3649d7db32c976b66253b6899a542"),
+    },
+}
+
 BASE_CRITICAL_ENTRYPOINTS = {
     "src/databricks_continuity_partition.py": ("_stage_local_model",),
     "src/qwen9b_ordinal_continuity_training.py": (
@@ -119,6 +126,7 @@ REVIEWED_CHANGED_SYMBOLS = {
         "_stage_local_model",
     ),
     "src/databricks_simulated_continuity.py": (
+        "close_active_reservation",
         "EXPERIMENT_SPEC",
         "INTENT_VERSION",
         "SOURCE_MANIFEST_PATHS",
@@ -126,6 +134,7 @@ REVIEWED_CHANGED_SYMBOLS = {
         "validate_intent",
         "validate_source_manifest",
         "verify_deployed_source",
+        "reserve_intent",
     ),
 }
 
@@ -134,6 +143,8 @@ QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256 = {
         "_stage_local_model": "df0d529edf4195cc691192b7dc5b681674ea3f2bf41512e462f903632bbf74d1",
     },
     "src/databricks_simulated_continuity.py": {
+        "close_active_reservation": (
+            "1af3e2244ee9dd523b2e06aa91576ddeb2215fd975a9313a74b9a5c028b92143"),
         "EXPERIMENT_SPEC": "5706fdba5d4af218145c2406ec160d9b296c75e4e8348473d562edaed1a9a58e",
         "INTENT_VERSION": "94ecceb339f66fc2d412b167e909a73ab6b65d58d60d3cb4eb8821e338bd5974",
         "SOURCE_MANIFEST_PATHS": "90272f2130d4b86bfec354d5c297e636d0068b78bad973ea3e6f92cb29470356",
@@ -141,6 +152,35 @@ QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256 = {
         "validate_intent": "dc0fd75b7b2f5a23939819181c062364d550266de701a1845695c95b92741e6a",
         "validate_source_manifest": "a1b6385dd3aed9387c6b20a2bf451005272f848121cc8f791e61e48a485b4d93",
         "verify_deployed_source": "e3627f4c0f323cc4b86b2f373cef46d215cab0fff06b1000edd3f493aa5a7e05",
+        "reserve_intent": (
+            "f1f13dd17261b5416a0298132c9025840dd1490a39588d6df86980276b384130"),
+    },
+}
+
+REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256 = {
+    "src/databricks_continuity_partition.py": {
+        "_stage_local_model": (
+            "6f0fb01c029b7e405ccdcfb937e288db6ce02043261baed6e137381d14a1622b"),
+    },
+    "src/databricks_simulated_continuity.py": {
+        "close_active_reservation": (
+            "a0577b99c0aa1354612b24c52b1c283a7e13e4117cba6f2a3901cb2fd393fa0e"),
+        "EXPERIMENT_SPEC": (
+            "79e26742fe1ed8016a125ad6594a20bcce7739a38d410aa87170f3e26b3a30c9"),
+        "INTENT_VERSION": (
+            "ad6746ad493715efc4dc0f624c1f927afe03ed149df28bf48886482dc8adf33c"),
+        "SOURCE_MANIFEST_PATHS": (
+            "20317d3c31d6182dcca4893ad0cc695c002af68e8938874ed4c5afb19abd9717"),
+        "validate_base_qualification_intent": (
+            "8d12ca7c0abdf7248c4131225be2c40d64959886f243e6b38cd3a09773e945ea"),
+        "validate_intent": (
+            "b56ef384fe52c9253fc6ea6c2b2d618fd6e4130d6e778bd9b540ebcc5654d0e5"),
+        "validate_source_manifest": (
+            "d152cefb2a6654c920ada235fd5ce2172a4731a596d231b01ff60c65cd220c1e"),
+        "verify_deployed_source": (
+            "b6fbe077cea1a01705b526bbc5966a66ffbe308ca204171029abaa94d1e9d425"),
+        "reserve_intent": (
+            "cb08d61f2d51ce3d27381d8dbbb8a1b71131b45871f3c897fa76d54bf83ddd6e"),
     },
 }
 
@@ -290,7 +330,8 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
         "qualification_set_version", "qualification_seed",
         "qualification_selection_digest", "qualification_proposal_sha256",
         "unchanged_base_files", "base_critical_symbol_sha256",
-        "reviewed_changed_file_sha256", "reviewed_changed_symbol_sha256",
+        "reviewed_added_symbol_sha256", "reviewed_changed_file_sha256",
+        "reviewed_changed_symbol_sha256",
         "model_execution_performed", "optimizer_updates",
         "scientific_status_preserved", "carryforward_sha256",
     }
@@ -298,6 +339,7 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
     unchanged = receipt.get("unchanged_base_files")
     symbols = receipt.get("base_critical_symbol_sha256")
     changed_symbols = receipt.get("reviewed_changed_symbol_sha256")
+    added_symbols = receipt.get("reviewed_added_symbol_sha256")
     changed_files = receipt.get("reviewed_changed_file_sha256")
     changed = receipt.get("changed_paths")
     allowed = receipt.get("allowed_runtime_changed_paths")
@@ -386,6 +428,9 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
                 or new_files.get(path, {}).get("sha256") != expected["current"]
                 or expected["prior"] == expected["current"]):
             raise PermissionError("Carry-forward reviewed file bytes differ")
+    if (not isinstance(added_symbols, Mapping)
+            or dict(added_symbols) != REVIEWED_ADDED_SYMBOLS):
+        raise PermissionError("Carry-forward reviewed added symbol differs")
     if (not isinstance(symbols, Mapping)
             or set(symbols) != set(BASE_CRITICAL_ENTRYPOINTS)):
         raise PermissionError("Carry-forward critical symbol proof differs")
@@ -415,6 +460,9 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
             if row["prior"] != QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256[
                     path][name]:
                 raise PermissionError("Carry-forward prior symbol is not qualified source")
+            if row["current"] != REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256[
+                    path][name]:
+                raise PermissionError("Carry-forward current symbol is not reviewed source")
     return receipt
 
 
@@ -454,4 +502,10 @@ def verify_deployed_carryforward(receipt: Mapping, *, code_root: str | Path,
             name]["current"] for name in names}
         if actual != expected:
             raise PermissionError("Deployed reviewed symbol delta differs")
+    for path, expected in value["reviewed_added_symbol_sha256"].items():
+        target = root / path
+        actual = symbol_ast_sha256(
+            target.read_text(encoding="utf-8"), expected)
+        if actual != expected:
+            raise PermissionError("Deployed reviewed added symbol differs")
     return value

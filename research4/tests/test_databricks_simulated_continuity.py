@@ -48,7 +48,9 @@ from src.base_qualification_carryforward import (
     QUALIFIED_BASE_INTENT_SHA256, QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256,
     QUALIFIED_BASE_RECEIPT_SHA256, QUALIFIED_BASE_SOURCE_COMMIT,
     QUALIFIED_BASE_SOURCE_MANIFEST_SHA256,
-    REVIEWED_CHANGED_FILES, REVIEWED_CHANGED_SYMBOLS, UNCHANGED_BASE_FILES,
+    REVIEWED_ADDED_SYMBOLS, REVIEWED_CHANGED_FILES,
+    REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256,
+    REVIEWED_CHANGED_SYMBOLS, UNCHANGED_BASE_FILES,
     symbol_ast_sha256, symbol_dependency_closure_sha256, validate_carryforward,
     verify_deployed_carryforward,
 )
@@ -84,6 +86,10 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertTrue(all(
             value["prior"] != value["current"]
             for value in REVIEWED_CHANGED_FILES.values()))
+        self.assertEqual(
+            set(REVIEWED_ADDED_SYMBOLS[
+                "src/databricks_simulated_continuity.py"]),
+            {"_write_exclusive_volume_json"})
         path = "src/databricks_continuity_partition.py"
         self.assertEqual(
             REVIEWED_CHANGED_SYMBOLS[path],
@@ -686,6 +692,11 @@ class DatabricksContinuityTests(unittest.TestCase):
                 patch.object(carry_contract,
                              "QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256",
                              prior_symbol_authority),
+                patch.object(carry_contract,
+                             "REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256",
+                             {path: symbol_ast_sha256(
+                                 (source / path).read_text(encoding="utf-8"), names)
+                              for path, names in REVIEWED_CHANGED_SYMBOLS.items()}),
                 patch.object(carry_contract, "REVIEWED_CHANGED_FILES",
                              reviewed_files)):
             patcher.start(); self.addCleanup(patcher.stop)
@@ -734,6 +745,7 @@ class DatabricksContinuityTests(unittest.TestCase):
                 "qualification_proposal_sha256"],
             "unchanged_base_files": unchanged,
             "base_critical_symbol_sha256": critical,
+            "reviewed_added_symbol_sha256": REVIEWED_ADDED_SYMBOLS,
             "reviewed_changed_file_sha256": reviewed_files,
             "reviewed_changed_symbol_sha256": reviewed,
             "model_execution_performed": False, "optimizer_updates": 0,
@@ -788,6 +800,20 @@ class DatabricksContinuityTests(unittest.TestCase):
             validate_carryforward(
                 prior_tampered, prior_intent=prior_intent, base_receipt=base,
                 current_source_manifest=current_manifest)
+        for name in ("reserve_intent", "close_active_reservation"):
+            current_tampered = json.loads(json.dumps(carry))
+            current_tampered["reviewed_changed_symbol_sha256"][
+                "src/databricks_simulated_continuity.py"][name][
+                    "current"] = "0" * 64
+            current_tampered["carryforward_sha256"] = digest({
+                key: value for key, value in current_tampered.items()
+                if key != "carryforward_sha256"})
+            with self.subTest(current_symbol=name), self.assertRaises(
+                    PermissionError):
+                validate_carryforward(
+                    current_tampered, prior_intent=prior_intent,
+                    base_receipt=base,
+                    current_source_manifest=current_manifest)
         file_tampered = json.loads(json.dumps(carry))
         changed_file = next(iter(reviewed_files))
         file_tampered["reviewed_changed_file_sha256"][changed_file][
@@ -798,6 +824,18 @@ class DatabricksContinuityTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             validate_carryforward(
                 file_tampered, prior_intent=prior_intent,
+                base_receipt=base,
+                current_source_manifest=current_manifest)
+        added_tampered = json.loads(json.dumps(carry))
+        added_tampered["reviewed_added_symbol_sha256"][
+            "src/databricks_simulated_continuity.py"][
+                "_write_exclusive_volume_json"] = "0" * 64
+        added_tampered["carryforward_sha256"] = digest({
+            key: value for key, value in added_tampered.items()
+            if key != "carryforward_sha256"})
+        with self.assertRaises(PermissionError):
+            validate_carryforward(
+                added_tampered, prior_intent=prior_intent,
                 base_receipt=base,
                 current_source_manifest=current_manifest)
         for label, mutate in (
