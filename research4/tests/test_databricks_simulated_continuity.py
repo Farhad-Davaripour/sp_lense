@@ -1512,6 +1512,36 @@ class DatabricksContinuityTests(unittest.TestCase):
             recovery["receipt_sha256"],
             databricks_contract.QUALIFICATION_RANK_RECEIPT_SHA256)
 
+    def test_real_v7_parent_files_match_exact_file_and_semantic_hashes(self):
+        artifact_root = Path(
+            "C:/Users/farha/Research4/artifacts/"
+            "qwen9b_simulated_continuity_20261028")
+        evidence_root = (
+            artifact_root / "parent_finalization_recovery_proposal_20261030" /
+            "attempt2_partial_readback")
+        cases = (
+            (evidence_root / "PARENT_FINALIZATION.json",
+             "parent_finalization_sha256",
+             databricks_contract.QUALIFICATION_PARENT_FINALIZATION_SHA256,
+             databricks_contract.
+             QUALIFICATION_PARENT_FINALIZATION_FILE_SHA256),
+            (evidence_root / "PARENT_OUTPUT_MANIFEST.json",
+             "manifest_sha256",
+             databricks_contract.QUALIFICATION_PARENT_MANIFEST_SHA256,
+             databricks_contract.QUALIFICATION_PARENT_MANIFEST_FILE_SHA256),
+        )
+        if any(not path.is_file() for path, _, _, _ in cases):
+            self.skipTest("Exact local v7 parent evidence is unavailable")
+        for path, semantic_field, expected_semantic, expected_file in cases:
+            with self.subTest(path=path.name):
+                value = json.loads(path.read_text(encoding="utf-8"))
+                self.assertEqual(file_sha256(path), expected_file)
+                self.assertEqual(value[semantic_field], expected_semantic)
+                self.assertEqual(
+                    value[semantic_field],
+                    digest({key: item for key, item in value.items()
+                            if key != semantic_field}))
+
     def test_v7_gold_source_alias_is_exactly_one_field(self):
         expected = {
             "intent_sha256": databricks_contract.QUALIFICATION_INTENT_SHA256,
