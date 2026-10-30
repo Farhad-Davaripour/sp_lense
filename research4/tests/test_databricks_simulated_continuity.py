@@ -882,6 +882,27 @@ class DatabricksContinuityTests(unittest.TestCase):
                 target = deployed / path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source / path, target)
+            unchanged_path = next(iter(UNCHANGED_BASE_FILES))
+            unchanged_target = deployed / unchanged_path
+            unchanged_text = unchanged_target.read_text(encoding="utf-8").replace(
+                "\r\n", "\n").replace("\r", "\n")
+            unchanged_target.write_bytes(
+                unchanged_text.replace("\n", "\r\n").encode("utf-8"))
+            self.assertNotEqual(
+                hashlib.sha256(unchanged_target.read_bytes()).hexdigest(),
+                carry["unchanged_base_files"][unchanged_path])
+            self.assertEqual(verify_deployed_carryforward(
+                carry, code_root=deployed, prior_intent=prior_intent,
+                base_receipt=base, current_source_manifest=current_manifest),
+                carry)
+            unchanged_target.write_text(
+                unchanged_text + "\n# tampered unchanged file\n", encoding="utf-8")
+            with self.assertRaises(PermissionError):
+                verify_deployed_carryforward(
+                    carry, code_root=deployed, prior_intent=prior_intent,
+                    base_receipt=base,
+                    current_source_manifest=current_manifest)
+            shutil.copy2(source / unchanged_path, unchanged_target)
             target = deployed / changed_file
             target.write_text(
                 target.read_text(encoding="utf-8") + "\n# tampered\n",
