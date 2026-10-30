@@ -230,7 +230,7 @@ resources:
       name: Research 4 - One qualification continuity partition
       max_concurrent_runs: 1
       timeout_seconds: 4500
-      performance_target: PERFORMANCE_OPTIMIZED
+      performance_target: STANDARD
       queue:
         enabled: false
       parameters:
@@ -243,6 +243,12 @@ resources:
       - name: parent_checkpoint
         default: ''
       - name: base_qualification_receipt_path
+        default: ''
+      - name: recovery_authority_path
+        default: ''
+      - name: original_code_path
+        default: ''
+      - name: original_owner_run_id
         default: ''
       tasks:
       - task_key: validate_before_gpu
@@ -293,6 +299,12 @@ resources:
             code_path: ${var.code_path}
             intent_path: '{{job.parameters.intent_path}}'
             plan_path: '{{job.parameters.plan_path}}'
+            recovery_authority_path: '{{job.parameters.recovery_authority_path}}'
+            original_code_path: '{{job.parameters.original_code_path}}'
+            original_owner_run_id: '{{job.parameters.original_owner_run_id}}'
+            base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
+            recovery_job_id: '{{job.id}}'
+            recovery_task_key: '{{task.name}}'
         environment_key: continuity_finalize_cpu
         max_retries: 0
         timeout_seconds: 900
