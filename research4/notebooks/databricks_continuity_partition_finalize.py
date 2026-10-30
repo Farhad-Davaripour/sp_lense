@@ -10,13 +10,15 @@ for name in (
         "code_path", "intent_path", "plan_path", "run_id",
         "recovery_authority_path", "original_code_path",
         "original_owner_run_id", "base_qualification_receipt_path",
-        "recovery_job_id", "recovery_task_key"):
+        "recovery_job_id", "recovery_task_key",
+        "resume_parent_finalization"):
     dbutils.widgets.text(name, "")
 values = {name: dbutils.widgets.get(name) for name in (
     "code_path", "intent_path", "plan_path", "run_id",
     "recovery_authority_path", "original_code_path",
     "original_owner_run_id", "base_qualification_receipt_path",
-    "recovery_job_id", "recovery_task_key")}
+    "recovery_job_id", "recovery_task_key",
+    "resume_parent_finalization")}
 if any(not values[name] for name in (
         "code_path", "intent_path", "plan_path", "run_id")):
     raise ValueError("Partition finalizer requires exact source, intent, plan and owner")
@@ -32,6 +34,11 @@ recovery_values = [values[name] for name in recovery_names]
 if any(recovery_values) and not all(recovery_values):
     raise ValueError("Parent recovery parameters must be supplied together")
 recovery_mode = all(recovery_values)
+if values["resume_parent_finalization"] not in {"", "true"}:
+    raise ValueError("Parent finalization resume flag differs")
+resume_mode = values["resume_parent_finalization"] == "true"
+if resume_mode and not recovery_mode:
+    raise ValueError("Parent finalization resume requires recovery authority")
 if recovery_mode and not values["base_qualification_receipt_path"]:
     raise ValueError("Parent recovery requires the exact base qualification")
 if recovery_mode and (not values["recovery_job_id"]
@@ -109,12 +116,15 @@ sys.path.insert(0, values["code_path"])
 
 from src.databricks_continuity_partition import (
     finalize_partition_mlflow, publish_parent_recovery_result,
-    recover_parent_evidence,
+    recover_parent_evidence, resume_parent_finalization,
 )
 from src.databricks_simulated_continuity import verify_deployed_source
 
 if recovery_mode:
-    recovery = recover_parent_evidence(
+    recovery_function = (
+        resume_parent_finalization if resume_mode
+        else recover_parent_evidence)
+    recovery = recovery_function(
         spark=spark, authority_path=values["recovery_authority_path"],
         recovery_code_root=values["code_path"],
         original_code_root=values["original_code_path"],

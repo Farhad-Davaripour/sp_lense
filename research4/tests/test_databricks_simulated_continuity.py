@@ -1651,24 +1651,27 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertIn('"src/volume_durable_io.py"', finalizer_notebook)
         self.assertIn("verify_deployed_source", finalizer_notebook)
         self.assertIn("recovery_authority_path", finalizer_notebook)
-        self.assertIn("recover_parent_evidence(", finalizer_notebook)
+        self.assertIn("recover_parent_evidence", finalizer_notebook)
+        self.assertIn("resume_parent_finalization", finalizer_notebook)
         self.assertIn("publish_parent_recovery_result(", finalizer_notebook)
         self.assertLess(
             finalizer_notebook.index("bootstrap_source_sha256 ="),
-            finalizer_notebook.index("recover_parent_evidence("))
+            finalizer_notebook.index("recovery_function ="))
         qualification_job = jobs["simulated_continuity_rank4_qualification"]
         qualification_parameters = {
             item["name"] for item in qualification_job["parameters"]}
         self.assertTrue({
             "recovery_authority_path", "original_code_path",
-            "original_owner_run_id"} <= qualification_parameters)
+            "original_owner_run_id",
+            "resume_parent_finalization"} <= qualification_parameters)
         qualification_tasks = {
             item["task_key"]: item for item in qualification_job["tasks"]}
         recovery_parameters = {
             "recovery_authority_path", "original_code_path",
             "original_owner_run_id"}
         finalizer_recovery_parameters = recovery_parameters | {
-            "recovery_job_id", "recovery_task_key"}
+            "recovery_job_id", "recovery_task_key",
+            "resume_parent_finalization"}
         self.assertTrue(finalizer_recovery_parameters <= set(
             qualification_tasks["finalize_partition_mlflow"][
                 "notebook_task"]["base_parameters"]))
@@ -1677,10 +1680,15 @@ class DatabricksContinuityTests(unittest.TestCase):
         self.assertEqual(finalizer_parameters["recovery_job_id"], "{{job.id}}")
         self.assertEqual(
             finalizer_parameters["recovery_task_key"], "{{task.name}}")
-        self.assertTrue(recovery_parameters.isdisjoint(
+        self.assertEqual(
+            finalizer_parameters["resume_parent_finalization"],
+            "{{job.parameters.resume_parent_finalization}}")
+        recovery_only_parameters = recovery_parameters | {
+            "resume_parent_finalization"}
+        self.assertTrue(recovery_only_parameters.isdisjoint(
             qualification_tasks["validate_before_gpu"][
                 "notebook_task"]["base_parameters"]))
-        self.assertTrue(recovery_parameters.isdisjoint(
+        self.assertTrue(recovery_only_parameters.isdisjoint(
             qualification_tasks["run_one_partition"][
                 "notebook_task"]["base_parameters"]))
         self.assertEqual(qualification_job["performance_target"], "STANDARD")

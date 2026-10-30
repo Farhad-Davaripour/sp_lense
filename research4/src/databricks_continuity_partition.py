@@ -46,6 +46,8 @@ PARENT_RECOVERY_CLAIM_VERSION = (
     "research4-v7-parent-finalization-recovery-claim-v1")
 PARENT_RECOVERY_RESULT_VERSION = (
     "research4-v7-parent-finalization-recovery-result-v1")
+PARENT_FINALIZATION_RESUME_CLAIM_VERSION = (
+    "research4-v7-parent-finalization-resume-claim-v1")
 _V7_RECOVERY_ORIGINAL = {
     "identity": "qualification_rank4_a10_volume_durable_v7",
     "source_commit": "832ffba93ac11a276adb9139795b51554000fe32",
@@ -122,6 +124,23 @@ _V7_RECOVERY_ORIGINAL = {
     "closeout_receipt_sha256": (
         "601a0dec7ecafc085fe1c9b87e1e7254dfd42f76558f2ca8b12932b132c58ef3"),
     "optimizer_updates": 2,
+}
+_V7_FINALIZATION_RESUME_PREDECESSOR = {
+    "authority_sha256": (
+        "399329a936dfbd747244d604c90167a6d60c31e66f9fc489936e131b7fc4add9"),
+    "recovery_execution_run_id": "767835388120522",
+    "claim_sha256": (
+        "f97da84bd8294330ebbc45b9598dc47bdc812d917a198775f432a34accb3334d"),
+    "claim_file_sha256": (
+        "e4b36b93150327807a2bea0788750830ec8df5e6d22f1002e2ada0faa650f6f8"),
+    "parent_finalization_sha256": (
+        "e1935c4d7ed0e209e79d67af14a79b6bcff61c3f1761670316fe093e4ebd334f"),
+    "parent_finalization_file_sha256": (
+        "3eb8273e244b2b550bfbc75cd613f2c3d9c98092b5e581ae14bb61fa4202025a"),
+    "parent_manifest_sha256": (
+        "d256a0f6030a684448d249503eedeba7a01ec1bf4809a550e228f715467a0ccf"),
+    "parent_manifest_file_sha256": (
+        "1ec2bfdaa49bf303241113591f69a8736e39246dfc79e742ddbe721a9a3b3ff4"),
 }
 
 
@@ -810,6 +829,190 @@ def recover_parent_evidence(*, spark, authority_path, recovery_code_root,
             "backward_passes": 0, "optimizer_updates": 0}
 
 
+def resume_parent_finalization(*, spark, authority_path, recovery_code_root,
+                               original_code_root, intent_path, plan_path,
+                               base_qualification_receipt_path,
+                               original_owner_run_id,
+                               recovery_execution_run_id,
+                               recovery_job_id, recovery_task_key):
+    """Resume only MLflow/Gold finalization from exact claimed parent evidence."""
+    from pyspark.sql import functions as F
+    import mlflow
+
+    authority = validate_parent_recovery_authority(
+        _read(authority_path), recovery_code_root=recovery_code_root)
+    original = authority["original"]; files = authority["files"]
+    expected_original_root = (
+        f"/Workspace/Shared/research4/source_releases/"
+        f"{original['source_commit']}")
+    if (Path(original_code_root).resolve().as_posix() != expected_original_root
+            or not str(authority_path).startswith(VOLUME + "/")
+            or str(original_owner_run_id) != original["owner_run_id"]
+            or not re.fullmatch(r"[0-9]+", str(recovery_execution_run_id))
+            or str(recovery_job_id) != original["job_id"]
+            or recovery_task_key != "finalize_partition_mlflow"
+            or str(intent_path) != files["intent"]["path"]
+            or str(plan_path) != files["plan"]["path"]
+            or str(base_qualification_receipt_path)
+               != files["base_qualification_receipt"]["path"]):
+        raise PermissionError("Parent finalization resume invocation differs")
+    for descriptor in files.values():
+        if _file_sha256(descriptor["path"]) != descriptor["sha256"]:
+            raise PermissionError("Parent finalization resume input differs")
+
+    intent = validate_intent(_read(intent_path)); plan_dict = _read(plan_path)
+    plan = TrainingPlan(**plan_dict).validate()
+    source = verify_deployed_source(original_code_root, intent)
+    base = validate_base_qualification_receipt(
+        _read(base_qualification_receipt_path))
+    verify_intent_base_qualification_authority(
+        intent, base, original_code_root)
+    verify_model_receipt_authority(
+        MODEL_RECEIPT, expected_tree_sha256=original["model_tree_sha256"],
+        expected_receipt_sha256=original["model_receipt_sha256"])
+    source_row = next(
+        (row for row in source["files"]
+         if row["path"] == "src/databricks_continuity_partition.py"), None)
+    if (intent["identity"] != original["identity"]
+            or intent["source_commit"] != original["source_commit"]
+            or intent["source_sha256"] != original["source_manifest_sha256"]
+            or intent["intent_sha256"] != original["intent_sha256"]
+            or intent["plan_sha256"] != original["plan_sha256"]
+            or plan_dict != intent["plan"] or asdict(plan) != plan_dict
+            or plan.optimizer_updates != original["optimizer_updates"]
+            or base["receipt_sha256"]
+               != original["base_qualification_receipt_sha256"]
+            or not source_row
+            or source_row["sha256"]
+               != original["partition_source_file_sha256"]):
+        raise PermissionError("Parent finalization resume science differs")
+
+    run_root = Path(VOLUME) / "runs" / intent["identity"]
+    output = run_root / "output"
+    completed = _verify_durable_completion(
+        run_root, identity=intent["identity"],
+        intent_sha256=intent["intent_sha256"],
+        plan_sha256=intent["plan_sha256"],
+        optimizer_updates=plan.optimizer_updates)
+    parent_path = output / "PARENT_FINALIZATION.json"
+    manifest_path = run_root / PARENT_SUCCESS_MANIFEST
+    parent = _read(parent_path)
+    predecessor = _V7_FINALIZATION_RESUME_PREDECESSOR
+    if (_file_sha256(parent_path)
+            != predecessor["parent_finalization_file_sha256"]
+            or parent.get("parent_finalization_sha256")
+               != predecessor["parent_finalization_sha256"]
+            or _file_sha256(manifest_path)
+               != predecessor["parent_manifest_file_sha256"]
+            or completed["parent"].get("manifest_sha256")
+               != predecessor["parent_manifest_sha256"]):
+        raise PermissionError("Parent finalization resume parent evidence differs")
+
+    recovery_root = _parent_recovery_root()
+    if (recovery_root / "RECOVERY_RESULT.json").exists():
+        raise PermissionError("Parent finalization resume result already exists")
+    predecessor_claim_path = recovery_root / "EXECUTION_CLAIM.json"
+    predecessor_claim = _read(predecessor_claim_path)
+    predecessor_payload = dict(predecessor_claim)
+    predecessor_embedded = predecessor_payload.pop("claim_sha256", None)
+    if (_file_sha256(predecessor_claim_path)
+            != predecessor["claim_file_sha256"]
+            or predecessor_embedded != predecessor["claim_sha256"]
+            or predecessor_embedded != digest(predecessor_payload)
+            or predecessor_claim.get("authority_sha256")
+               != predecessor["authority_sha256"]
+            or predecessor_claim.get("recovery_execution_run_id")
+               != predecessor["recovery_execution_run_id"]
+            or predecessor_claim.get("recovery_job_id") != original["job_id"]
+            or predecessor_claim.get("recovery_task_key")
+               != "finalize_partition_mlflow"
+            or predecessor_claim.get("identity") != intent["identity"]
+            or predecessor_claim.get("original_owner_run_id")
+               != original["owner_run_id"]
+            or any(predecessor_claim.get(key) != 0 for key in (
+                "model_loads", "model_forwards", "backward_passes",
+                "optimizer_updates"))):
+        raise PermissionError("Parent finalization predecessor claim differs")
+
+    lock_root = Path(VOLUME) / "locks"
+    consumed = _read(lock_root / "consumed" / f"{intent['identity']}.json")
+    active_path = lock_root / "scientific.lock"
+    closeout_path = (lock_root / "closeouts" / intent["identity"] /
+                     f"{hashlib.sha256(original['owner_run_id'].encode()).hexdigest()}.json")
+    closeout = _read(closeout_path)
+    admission_rows = spark.table(GOLD_ADMISSION_TABLE).where(
+        (F.col("identity") == intent["identity"])
+        & (F.col("intent_sha256") == intent["intent_sha256"])).collect()
+    if (_verify_finalizer_owner(
+            consumed, admission_rows, owner_run_id=original["owner_run_id"],
+            identity=intent["identity"],
+            intent_sha256=intent["intent_sha256"],
+            active=(_read(active_path) if active_path.exists() else None),
+            closeout=closeout) != "after_cleanup"
+            or closeout.get("receipt_sha256")
+               != original["closeout_receipt_sha256"]):
+        raise PermissionError("Parent finalization resume release state differs")
+
+    def read_gold_rows():
+        return spark.table(GOLD_RUN_TABLE).where(
+            (F.col("partition_identity") == intent["identity"])
+            & (F.col("intent_sha256") == intent["intent_sha256"])).collect()
+
+    def reject_gold_append(_value):
+        raise PermissionError("Parent finalization resume cannot append Gold")
+
+    gold = _ensure_pending_gold_row(read_gold_rows, reject_gold_append, parent)
+    if gold.get("status") != "pending_mlflow_finalize":
+        raise PermissionError("Parent finalization resume Gold state differs")
+
+    client = mlflow.tracking.MlflowClient()
+    run = client.get_run(original["mlflow_run_id"])
+    owner_tags = {
+        "mlflow.runName": intent["identity"],
+        "research4.parent_owned_run": "true",
+        "research4.owner_run_id": original["owner_run_id"],
+        "research4.intent_sha256": intent["intent_sha256"],
+        "research4.partition_identity": intent["identity"],
+        "research4.plan_sha256": intent["plan_sha256"],
+    }
+    if (run.info.status != "RUNNING"
+            or any(run.data.tags.get(key) != value
+                   for key, value in owner_tags.items())
+            or run.data.params or run.data.metrics
+            or client.list_artifacts(original["mlflow_run_id"])):
+        raise PermissionError("Parent finalization resume MLflow state differs")
+
+    resume_claim = {
+        "version": PARENT_FINALIZATION_RESUME_CLAIM_VERSION,
+        "authority_sha256": authority["authority_sha256"],
+        "predecessor_claim_sha256": predecessor["claim_sha256"],
+        "identity": intent["identity"],
+        "original_owner_run_id": original["owner_run_id"],
+        "recovery_execution_run_id": str(recovery_execution_run_id),
+        "recovery_job_id": str(recovery_job_id),
+        "recovery_task_key": recovery_task_key,
+        "cpu_only": True, "model_loads": 0, "model_forwards": 0,
+        "backward_passes": 0, "optimizer_updates": 0,
+    }
+    resume_claim["claim_sha256"] = digest(resume_claim)
+    _atomic_json(recovery_root / "FINALIZATION_RESUME_CLAIM.json",
+                 resume_claim)
+    return {
+        "status": "parent_finalization_resume_authorized",
+        "identity": intent["identity"],
+        "authority_sha256": authority["authority_sha256"],
+        "predecessor_claim_sha256": predecessor["claim_sha256"],
+        "recovery_root": str(recovery_root),
+        "original_owner_run_id": original["owner_run_id"],
+        "recovery_execution_run_id": str(recovery_execution_run_id),
+        "mlflow_run_id": original["mlflow_run_id"],
+        "parent_finalization_sha256": parent["parent_finalization_sha256"],
+        "parent_manifest_sha256": completed["parent"]["manifest_sha256"],
+        "model_loads": 0, "model_forwards": 0,
+        "backward_passes": 0, "optimizer_updates": 0,
+    }
+
+
 def publish_parent_recovery_result(authority_path, recovery, finalization):
     """Publish deterministic recovery provenance outside scientific output."""
     authority = _read(authority_path)
@@ -819,7 +1022,9 @@ def publish_parent_recovery_result(authority_path, recovery, finalization):
             or authority_embedded != digest(authority_payload)
             or recovery.get("authority_sha256")
             != authority.get("authority_sha256")
-            or recovery.get("status") != "parent_evidence_recovered"
+            or recovery.get("status") not in {
+                "parent_evidence_recovered",
+                "parent_finalization_resume_authorized"}
             or finalization.get("status") != "complete"
             or finalization.get("identity") != recovery.get("identity")
             or finalization.get("mlflow_run_id")
@@ -838,6 +1043,8 @@ def publish_parent_recovery_result(authority_path, recovery, finalization):
         "parent_manifest_sha256": recovery["parent_manifest_sha256"],
         "receipt_sha256": finalization["receipt_sha256"],
         "journal_final_sha256": finalization["journal_final_sha256"],
+        "predecessor_claim_sha256": recovery.get(
+            "predecessor_claim_sha256"),
         "model_loads": 0, "model_forwards": 0,
         "backward_passes": 0, "optimizer_updates": 0,
     }
@@ -1115,9 +1322,11 @@ def _expected_mlflow_scalars(journal, terminal):
                        "grad_scaler_attempts_sha256"}:
                 continue
             add_metric(key, value, step)
-    for key in ("mean_gpu_utilization_percent", "tokens_per_second",
-                "max_allocated_bytes", "max_reserved_bytes",
-                "disk_free_bytes"):
+    mean_gpu = journal["final"].get("mean_gpu_utilization_percent")
+    if mean_gpu is not None:
+        add_metric("mean_gpu_utilization_percent", mean_gpu, 0)
+    for key in ("tokens_per_second", "max_allocated_bytes",
+                "max_reserved_bytes", "disk_free_bytes"):
         add_metric(key, journal["final"].get(key), 0)
     cache = terminal.get("local_model_cache", {})
     for key, value in {

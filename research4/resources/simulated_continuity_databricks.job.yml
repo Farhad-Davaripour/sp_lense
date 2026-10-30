@@ -250,6 +250,8 @@ resources:
         default: ''
       - name: original_owner_run_id
         default: ''
+      - name: resume_parent_finalization
+        default: ''
       tasks:
       - task_key: validate_before_gpu
         notebook_task:
@@ -305,6 +307,7 @@ resources:
             base_qualification_receipt_path: '{{job.parameters.base_qualification_receipt_path}}'
             recovery_job_id: '{{job.id}}'
             recovery_task_key: '{{task.name}}'
+            resume_parent_finalization: '{{job.parameters.resume_parent_finalization}}'
         environment_key: continuity_finalize_cpu
         max_retries: 0
         timeout_seconds: 900
