@@ -80,6 +80,7 @@ PRIMARY_CACHE_LINEAGE_QUALIFICATION_SOURCE_ALLOWED_CHANGED_PATHS = tuple(
     sorted(set(QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS) | {
         "src/databricks_continuity_partition_worker.py",
         "src/qwen9b_ordinal_continuity_training.py",
+        "tools/prepare_databricks_base_qualification_carryforward.py",
     }))
 QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS = (
     "src/action_serialization.py",

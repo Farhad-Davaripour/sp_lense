@@ -1367,6 +1367,22 @@ class DatabricksContinuityTests(unittest.TestCase):
         with self.assertRaisesRegex(PermissionError, "authority is absent"):
             validate_primary_parent_identity_recovery(None)
 
+    def test_recovery_source_allows_only_its_local_carryforward_generator(self):
+        current = build_source_manifest(Path(__file__).parents[1], "a" * 40)
+        tool = "tools/prepare_databricks_base_qualification_carryforward.py"
+        recovery = databricks_contract._qualification_source_partition_contract(
+            current)
+        self.assertIn(tool, recovery["allowed_changed_paths"])
+        historical = json.loads(json.dumps(current))
+        row = next(item for item in historical["files"]
+                   if item["path"] ==
+                   "src/databricks_continuity_partition.py")
+        row["sha256"] = (
+            databricks_contract.HISTORICAL_PARTITION_SOURCE_FILE_SHA256)
+        old = databricks_contract._qualification_source_partition_contract(
+            historical)
+        self.assertNotIn(tool, old["allowed_changed_paths"])
+
     def test_primary_source_recovery_separates_code_data_and_parent_lineage(self):
         authority = primary_source_cache_lineage_recovery_authority()
         self.assertEqual(
