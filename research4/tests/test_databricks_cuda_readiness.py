@@ -9,6 +9,7 @@ import sys
 import time
 from types import SimpleNamespace
 import unittest
+import zipfile
 import yaml
 
 
@@ -78,7 +79,8 @@ class DatabricksCudaReadinessTests(unittest.TestCase):
     @staticmethod
     def _ready():
         return {
-            "bitsandbytes_version": "0.49.2", "finite": True,
+            "bitsandbytes_version": "0.49.2", "dependency_profile": "fla",
+            "finite": True,
             "hardware": {
                 "profile": "databricks-a10x1", "compute_dtype": "float16",
                 "adapter_dtype": "float32", "devices": [{
@@ -297,6 +299,173 @@ class DatabricksCudaReadinessTests(unittest.TestCase):
                     self.assertRaisesRegex(RuntimeError, "non-retryable"):
                 self._run([self._completed(payload)])
 
+    def test_ready_payload_requires_the_reviewed_dependency_profile(self):
+        for value in (None, "reference", "other"):
+            payload = self._ready()
+            if value is None:
+                del payload["dependency_profile"]
+            else:
+                payload["dependency_profile"] = value
+            with self.subTest(profile=value), \
+                    self.assertRaisesRegex(RuntimeError, "non-retryable"):
+                self._run([self._completed(payload)])
+
+    def test_parent_cuda_guard_and_readiness_order_with_initialized_context(self):
+        tree = ast.parse(NOTEBOOK.read_text(encoding="utf-8"))
+        guards = [node for node in tree.body if isinstance(node, ast.If)
+                  and "parent_torch.cuda.is_initialized()" in ast.unparse(node.test)]
+        readiness = next(node for node in tree.body
+                         if isinstance(node, ast.Assign)
+                         and any(isinstance(target, ast.Name)
+                                 and target.id == "cuda_readiness"
+                                 for target in node.targets))
+        self.assertEqual(len(guards), 2)
+        startup = ast.Module(body=[guards[0], readiness, guards[1]],
+                             type_ignores=[])
+        compiled = compile(startup, str(NOTEBOOK), "exec")
+        for initial, after, expected_calls, error in (
+                (True, True, 0, "Parent CUDA context initialized"),
+                (False, True, 1, "Readiness child initialized"),
+                (False, False, 1, None)):
+            states = iter((initial, after))
+            calls = []
+            namespace = {
+                "parent_torch": SimpleNamespace(cuda=SimpleNamespace(
+                    is_initialized=lambda: next(states))),
+                "_bounded_cuda_nf4_readiness": lambda **kwargs: calls.append(kwargs)
+                    or {"status": "ready"},
+                "values": {"code_path": "source"},
+                "readiness_binding": self._binding(),
+                "_whole_job_elapsed": lambda: 0,
+                "intent": {"wall_clock_stop_seconds": 7826},
+                "_CUDA_NF4_PROVIDER_STARTUP_ABORT_SECONDS": 1200,
+            }
+            with self.subTest(initial=initial, after=after):
+                if error:
+                    with self.assertRaisesRegex(RuntimeError, error):
+                        exec(compiled, namespace)
+                else:
+                    exec(compiled, namespace)
+                    self.assertEqual(namespace["cuda_readiness"]["status"], "ready")
+                self.assertEqual(len(calls), expected_calls)
+
+    def test_real_child_program_runs_dependency_and_nf4_checks_fail_closed(self):
+        fake_runtime = r'''
+import sys, types
+events = []
+class AcceleratorError(Exception): pass
+class Tensor:
+    shape = (256,)
+class Finite:
+    def all(self): return True
+def dependencies():
+    events.append("dependency")
+    if MODE == "dependency_failure": raise RuntimeError("missing pinned kernel")
+    return {"kernel_selection": {"profile": "fla"}}
+def hardware(torch):
+    events.append("hardware")
+    return {"profile": "databricks-a10x1", "compute_dtype": "float16",
+            "adapter_dtype": "float32", "devices": [{"index": 0,
+            "name": "NVIDIA A10", "total_memory_bytes": 24 * 1024**3,
+            "major": 8, "minor": 6}]}
+def zeros(*args, **kwargs):
+    events.append("allocate")
+    if MODE == "busy":
+        raise AcceleratorError("CUDA-capable device(s) is/are busy or unavailable")
+    return Tensor()
+def quantize(*args, **kwargs):
+    events.append("quantize")
+    if MODE == "nf4_failure": raise RuntimeError("NF4 failure")
+    return Tensor(), object()
+def dequantize(*args, **kwargs):
+    events.append("dequantize")
+    return Tensor()
+def sync(*args): events.append("synchronize")
+torch = types.ModuleType("torch")
+torch.float16 = object(); torch.zeros = zeros; torch.isfinite = lambda _: Finite()
+torch.cuda = types.SimpleNamespace(synchronize=sync)
+bnb = types.ModuleType("bitsandbytes"); bnb.__version__ = "0.49.2"
+bnb.functional = types.SimpleNamespace(quantize_4bit=quantize, dequantize_4bit=dequantize)
+src = types.ModuleType("src"); src.__path__ = []
+training = types.ModuleType("src.qwen9b_ordinal_continuity_training")
+training.assert_fast_deltanet_dependencies = dependencies
+training.assert_databricks_a10x1_fp16_runtime = hardware
+sys.modules.update({"src": src, "torch": torch, "bitsandbytes": bnb,
+                    "src.qwen9b_ordinal_continuity_training": training})
+import atexit
+atexit.register(lambda: print("EVENTS=" + ",".join(events), file=sys.stderr))
+'''
+        for mode, code, expected, events in (
+                ("success", 0, "ready", "dependency,hardware,allocate,quantize,dequantize,synchronize"),
+                ("dependency_failure", 1, "fatal", "dependency"),
+                ("busy", 75, "transient_device_unavailable", "dependency,hardware,allocate"),
+                ("nf4_failure", 1, "fatal", "dependency,hardware,allocate,quantize")):
+            with self.subTest(mode=mode):
+                command = f"MODE={mode!r}\n" + fake_runtime + self.ns["_CUDA_NF4_CHILD"]
+                result = subprocess.run([sys.executable, "-c", command],
+                                        capture_output=True, text=True, timeout=10)
+                self.assertEqual(result.returncode, code, result.stderr)
+                payload = self.ns["_read_cuda_nf4_marker"](result.stdout)
+                self.assertEqual(payload["status"], expected)
+                self.assertIn("EVENTS=" + events, result.stderr)
+
+    @unittest.skipUnless(os.environ.get("RESEARCH4_OFFLINE_FLA_WHEEL"),
+                         "pinned offline FLA wheel not supplied")
+    def test_pinned_fla_device_import_can_initialize_cuda(self):
+        wheel = Path(os.environ["RESEARCH4_OFFLINE_FLA_WHEEL"])
+        self.assertEqual(hashlib.sha256(wheel.read_bytes()).hexdigest(),
+                         "5e830c85bad3d0d34677f98ac7074d08687a3756f0f0499d95ceb96eb6920761")
+        with zipfile.ZipFile(wheel) as archive:
+            chunk = ast.parse(archive.read(
+                "fla/ops/gated_delta_rule/chunk.py").decode("utf-8"))
+            init = ast.parse(archive.read("fla/utils/__init__.py").decode("utf-8"))
+            device = ast.parse(archive.read("fla/utils/_device.py").decode("utf-8"))
+        self.assertTrue(any(isinstance(node, ast.ImportFrom)
+                            and node.module == "fla.utils" for node in chunk.body))
+        self.assertTrue(any(isinstance(node, ast.ImportFrom)
+                            and node.module == "_device" and node.level == 1
+                            for node in init.body))
+        module_calls = set()
+        for node in device.body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                continue
+            module_calls.update(ast.unparse(child.func) for child in ast.walk(node)
+                                if isinstance(child, ast.Call))
+        self.assertIn("torch.cuda.get_device_name", module_calls)
+        self.assertIn("torch.cuda.get_device_capability", module_calls)
+
+        # Execute the actual pinned NVIDIA device assignments with a fake CUDA
+        # backend to demonstrate their import-time side effect without a GPU.
+        names = {"IS_NVIDIA", "IS_NVIDIA_HOPPER"}
+        assignments = [node for node in device.body
+                       if isinstance(node, ast.Assign)
+                       and any(isinstance(target, ast.Name) and target.id in names
+                               for target in node.targets)]
+        self.assertEqual(len(assignments), 2)
+        calls = []
+        fake_torch = SimpleNamespace(cuda=SimpleNamespace(
+            get_device_name=lambda index: calls.append(("get_device_name", index))
+            or "NVIDIA A10",
+            get_device_capability=lambda: calls.append(("get_device_capability",))
+            or (8, 6)))
+        namespace = {"torch": fake_torch, "device_platform": "cuda"}
+        exec(compile(ast.Module(body=assignments, type_ignores=[]),
+                     "fla/utils/_device.py", "exec"), namespace)
+        self.assertTrue(namespace["IS_NVIDIA"])
+        self.assertEqual(calls[0], ("get_device_name", 0))
+
+        torch_init = (ROOT.parent / ".venv" / "Lib" / "site-packages" /
+                      "torch" / "cuda" / "__init__.py")
+        torch_tree = ast.parse(torch_init.read_text(encoding="utf-8"))
+        functions = {node.name: node for node in torch_tree.body
+                     if isinstance(node, ast.FunctionDef)}
+        for caller, callee in (("get_device_name", "get_device_properties"),
+                               ("get_device_properties", "_lazy_init")):
+            self.assertTrue(any(isinstance(node, ast.Call)
+                                and isinstance(node.func, ast.Name)
+                                and node.func.id == callee
+                                for node in ast.walk(functions[caller])))
+
     def test_deadline_rejects_before_sleep_or_child(self):
         calls = []
         emitted = []
@@ -379,6 +548,8 @@ class DatabricksCudaReadinessTests(unittest.TestCase):
         self.assertEqual(source.count(
             'torch.zeros(256, dtype=torch.float16, device="cuda:0")'), 1)
         self.assertIn("_CUDA_NF4_CHILD = r'''", source)
+        parent_code = source.split("_CUDA_NF4_CHILD = r'''", 1)[1].split("'''", 1)[1]
+        self.assertNotIn("assert_fast_deltanet_dependencies()", parent_code)
         jobs = yaml.safe_load((ROOT / "resources" /
             "simulated_continuity_databricks.job.yml").read_text())["resources"]["jobs"]
         primary = jobs["simulated_continuity_primary_partition"]

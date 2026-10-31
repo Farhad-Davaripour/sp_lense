@@ -141,7 +141,7 @@ def check_gpu_notebook_contract(root):
         encoding="utf-8")
     if "%uv pip install" in notebook:
         raise ValueError("GPU dependencies must be installed by the DAB environment")
-    readiness = notebook.find("dependency_proof = assert_fast_deltanet_dependencies()")
+    child_dependency = notebook.find("dependency_proof = assert_fast_deltanet_dependencies()")
     source = notebook.find("source_proof = verify_deployed_source(")
     cuda_probe = notebook.find("cuda_readiness = _bounded_cuda_nf4_readiness(")
     child_nf4 = notebook.find("bitsandbytes.functional.quantize_4bit(")
@@ -149,8 +149,8 @@ def check_gpu_notebook_contract(root):
     disk = notebook.find("shutil.disk_usage(")
     reserve = notebook.find("reserve_intent(lock_root, intent, owner)")
     run = notebook.find("result = run_partition(")
-    if (min(readiness, source, cuda_probe, child_nf4, nvml, disk, reserve, run) < 0
-            or not (source < readiness < cuda_probe < nvml < reserve < run)
+    if (min(child_dependency, source, cuda_probe, child_nf4, nvml, disk, reserve, run) < 0
+            or not (child_dependency < source < cuda_probe < nvml < reserve < run)
             or not (cuda_probe < disk < reserve)
             or notebook.count(
                 'torch.zeros(256, dtype=torch.float16, device="cuda:0")') != 1

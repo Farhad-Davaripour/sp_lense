@@ -45,8 +45,10 @@ try:
     import torch
     from src.qwen9b_ordinal_continuity_training import (
         assert_databricks_a10x1_fp16_runtime,
+        assert_fast_deltanet_dependencies,
     )
 
+    dependency_proof = assert_fast_deltanet_dependencies()
     hardware = assert_databricks_a10x1_fp16_runtime(torch)
     probe = torch.zeros(256, dtype=torch.float16, device="cuda:0")
     quantized, quantization_state = bitsandbytes.functional.quantize_4bit(
@@ -58,6 +60,7 @@ try:
     torch.cuda.synchronize(0)
     payload = {
         "bitsandbytes_version": bitsandbytes.__version__,
+        "dependency_profile": dependency_proof["kernel_selection"]["profile"],
         "finite": True,
         "hardware": hardware,
         "probe_elements": 256,
@@ -267,8 +270,8 @@ def _bounded_cuda_nf4_readiness(
         })
         attempts.append(raw_attempt)
         ready_keys = {
-            "bitsandbytes_version", "finite", "hardware", "probe_elements",
-            "quant_type", "status",
+            "bitsandbytes_version", "dependency_profile", "finite", "hardware",
+            "probe_elements", "quant_type", "status",
         }
         hardware = payload.get("hardware")
         devices = hardware.get("devices") if isinstance(hardware, dict) else None
@@ -291,6 +294,7 @@ def _bounded_cuda_nf4_readiness(
             and type(device.get("minor")) is int)
         if (completed.returncode == 0 and set(payload) == ready_keys
                 and payload.get("bitsandbytes_version") == "0.49.2"
+                and payload.get("dependency_profile") == "fla"
                 and payload.get("finite") is True
                 and payload.get("probe_elements") == 256
                 and payload.get("quant_type") == "nf4"
@@ -298,7 +302,8 @@ def _bounded_cuda_nf4_readiness(
                 and hardware_exact):
             receipt = finish(
                 "ready", hardware=payload["hardware"],
-                bitsandbytes_version=payload["bitsandbytes_version"])
+                bitsandbytes_version=payload["bitsandbytes_version"],
+                dependency_profile=payload["dependency_profile"])
             emit(receipt)
             return receipt
         transient_keys = {
@@ -371,7 +376,6 @@ from src.databricks_simulated_continuity import (
     verify_deployed_qualification_source_carryforward,
     verify_deployed_source, verify_intent_base_qualification_authority,
     verify_model_receipt_authority)
-from src.qwen9b_ordinal_continuity_training import assert_fast_deltanet_dependencies
 
 if intent_preview.get("plan", {}).get("mode") != dbutils.widgets.get("expected_mode"):
     raise PermissionError("Job resource does not admit this partition mode")
@@ -402,7 +406,6 @@ readiness_binding = {
 # Provisioning and exact package installation have completed before this point.
 # Exercise imports, kernels, CUDA, A10 identity, NVML and free VRAM before the
 # immutable scientific identity is consumed.  No target model is loaded here.
-dependency_proof = assert_fast_deltanet_dependencies()
 import pynvml, torch as parent_torch
 if parent_torch.cuda.is_initialized():
     raise RuntimeError("Parent CUDA context initialized before readiness child")
@@ -474,7 +477,7 @@ else:
         lock_root, intent, owner, "partition_notebook_complete")
 result["gpu_readiness"] = {
     "source_manifest_sha256": source_proof["manifest_sha256"],
-    "dependency_profile": dependency_proof["kernel_selection"]["profile"],
+    "dependency_profile": cuda_readiness["dependency_profile"],
     "hardware_profile": hardware_proof["profile"],
     "nvml": nvml_proof,
     "bitsandbytes_version": bitsandbytes_version,
