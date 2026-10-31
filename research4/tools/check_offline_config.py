@@ -143,12 +143,18 @@ def check_gpu_notebook_contract(root):
         raise ValueError("GPU dependencies must be installed by the DAB environment")
     readiness = notebook.find("dependency_proof = assert_fast_deltanet_dependencies()")
     source = notebook.find("source_proof = verify_deployed_source(")
-    bitsandbytes = notebook.find("bitsandbytes.functional.quantize_4bit(")
+    cuda_probe = notebook.find("cuda_readiness = _bounded_cuda_nf4_readiness(")
+    child_nf4 = notebook.find("bitsandbytes.functional.quantize_4bit(")
+    nvml = notebook.find("pynvml.nvmlInit()")
     disk = notebook.find("shutil.disk_usage(")
     reserve = notebook.find("reserve_intent(lock_root, intent, owner)")
     run = notebook.find("result = run_partition(")
-    if (min(readiness, source, bitsandbytes, disk, reserve, run) < 0
-            or not (source < readiness < bitsandbytes < disk < reserve < run)):
+    if (min(readiness, source, cuda_probe, child_nf4, nvml, disk, reserve, run) < 0
+            or not (source < readiness < cuda_probe < nvml < reserve < run)
+            or not (cuda_probe < disk < reserve)
+            or notebook.count(
+                'torch.zeros(256, dtype=torch.float16, device="cuda:0")') != 1
+            or "_CUDA_NF4_CHILD = r'''" not in notebook):
         raise ValueError("GPU readiness/reservation/model order changed")
     preflight = (root / "notebooks" / "databricks_continuity_preflight.py").read_text(
         encoding="utf-8")
