@@ -23,7 +23,9 @@ from .databricks_simulated_continuity import (
     validate_base_qualification_receipt, validate_intent,
     validate_source_manifest,
     validate_policy_silver_payload, validate_primary_authority_files,
+    primary_training_data_source_commit, sequential_parent_source_binding,
     verify_deployed_source, verify_intent_base_qualification_authority,
+    verify_consumed_predecessor_identity,
     verify_model_receipt, verify_model_receipt_authority,
     verify_reserved_intent)
 from .qwen9b_ordinal_continuity_runtime import directory_tree_sha256
@@ -163,9 +165,35 @@ def _bounded_run(command, *, cwd, env, stop_seconds, ceiling_seconds):
             "child_exit_confirmed": process.poll() is not None}
 
 
+def _lineage_model_cache_identity(plan: TrainingPlan,
+                                  execution_identity: str) -> str:
+    """Return one cache identity for every stage in a residual lineage.
+
+    Transformers serializes the local load path into ``config._name_or_path``.
+    The frozen-base digest intentionally hashes the complete runtime config, so
+    sequential stages must load the exact same model bytes through the same
+    lineage-root path.  This keeps the historical Delta-1 digest valid without
+    weakening or rewriting its checkpoint metadata.
+    """
+    plan = plan.validate()
+    if (not isinstance(execution_identity, str)
+            or re.fullmatch(r"[a-z0-9_]+", execution_identity) is None):
+        raise PermissionError("Execution identity is invalid")
+    if plan.mode != "primary" or plan.stage == "delta1":
+        return execution_identity
+    return f"{plan.condition}_seed{plan.seed}_delta1"
+
+
 def _stage_local_model(volume_root, volume_receipt, identity, expected_tree,
-                       expected_receipt_sha256):
-    destination = Path(tempfile.gettempdir()) / "research4_model_cache" / identity
+                       expected_receipt_sha256, *, cache_identity=None):
+    cache_identity = identity if cache_identity is None else cache_identity
+    if (not isinstance(cache_identity, str)
+            or re.fullmatch(r"[a-z0-9][a-z0-9_-]*", cache_identity) is None):
+        raise PermissionError("Local model cache identity is invalid")
+    cache_root = (Path("/tmp")
+                  if os.environ.get("RESEARCH4_EXECUTION_PLATFORM") == "databricks"
+                  else Path(tempfile.gettempdir()))
+    destination = cache_root / "research4_model_cache" / cache_identity
     if destination.exists():
         raise FileExistsError("Per-run local model cache already exists")
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -192,6 +220,11 @@ def _stage_local_model(volume_root, volume_receipt, identity, expected_tree,
         raise
     elapsed = time.monotonic() - started
     return local_model, local_receipt, {
+        "execution_identity": identity,
+        "cache_lineage_identity": cache_identity,
+        "cache_root": str(cache_root),
+        "local_model_path_sha256": hashlib.sha256(
+            str(local_model).encode("utf-8")).hexdigest(),
         "source_model_path": str(volume_root),
         "source_receipt_path": str(volume_receipt),
         "copy_seconds": elapsed,
@@ -1076,11 +1109,14 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     base_qualification = validate_base_qualification_receipt(
         _read(base_qualification_receipt_path))
     exact_plan = TrainingPlan(**plan).validate()
+    training_data_source_commit = primary_training_data_source_commit(intent)
+    parent_source = sequential_parent_source_binding(intent)
     source_proof = verify_deployed_source(code_root, intent)
     base_authority = verify_intent_base_qualification_authority(
         intent, base_qualification, code_root)
     lock_root = Path(VOLUME) / "locks"
     verify_reserved_intent(lock_root, intent, owner=str(job_run_id))
+    verify_consumed_predecessor_identity(lock_root, intent)
     model_receipt = verify_model_receipt_authority(
         MODEL_RECEIPT,
         expected_tree_sha256=intent["model_tree_sha256"],
@@ -1123,7 +1159,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         validate_exact_gold_row(qualification_rows, {
             "partition_identity": qualification_intent["identity"],
             "mode": "qualification", "plan_sha256": qualification_intent["plan_sha256"],
-            "source_commit": intent["source_commit"],
+            "source_commit": qualification_intent["source_commit"],
             "model_tree_sha256": intent["model_tree_sha256"],
             "checkpoint_tree_sha256": qualification_receipt[
                 "qualification_checkpoint_tree_sha256"],
@@ -1140,14 +1176,15 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         parent_metadata = (None if not parent_checkpoint else
                            _read(Path(parent_checkpoint) / "adapter_config.json"))
         validate_sequential_parent(
-            exact_plan, parent_metadata, source_sha256=intent["source_sha256"])
+            exact_plan, parent_metadata,
+            source_sha256=parent_source["source_sha256"])
         predecessor = expected_predecessor_binding(plan)
         if predecessor is not None:
             parent_tree = directory_tree_sha256(parent_checkpoint)
             predecessor_rows = spark.table(GOLD_RUN_TABLE).where(
                 F.col("partition_identity") == predecessor["partition_identity"]).collect()
             predecessor_row = validate_exact_gold_row(predecessor_rows, {
-                **predecessor, "source_commit": intent["source_commit"],
+                **predecessor, "source_commit": parent_source["source_commit"],
                 "model_tree_sha256": intent["model_tree_sha256"],
                 "checkpoint_tree_sha256": parent_tree,
                 "qualification_receipt_sha256": qualification_receipt["receipt_sha256"],
@@ -1160,7 +1197,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     condition = plan["condition"]
     kind = condition
     selected = spark.table(SILVER_TABLE).where(
-        (F.col("source_commit") == intent["source_commit"])
+        (F.col("source_commit") == training_data_source_commit)
         & (F.col("record_kind") == kind) & (F.col("split") == "train")
         & (F.col("admitted_for_training") == F.lit(True)))
     selected_rows = selected.select(
@@ -1206,9 +1243,11 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     publish_immutable_bytes(
         local_records_path.read_bytes(), records_path,
         local_stage_dir=local_stage_root / "publication_stage")
+    cache_identity = _lineage_model_cache_identity(exact_plan, identity)
     local_model, local_model_receipt, cache_metrics = _stage_local_model(
         intent["model_root"], MODEL_RECEIPT, identity,
-        intent["model_tree_sha256"], intent["model_receipt_sha256"])
+        intent["model_tree_sha256"], intent["model_receipt_sha256"],
+        cache_identity=cache_identity)
     try:
         import mlflow
         experiment = mlflow.set_experiment(intent["mlflow_experiment_path"])
@@ -1220,7 +1259,11 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
                   "research4.owner_run_id": str(job_run_id),
                   "research4.intent_sha256": intent["intent_sha256"],
                   "research4.partition_identity": identity,
-                  "research4.plan_sha256": intent["plan_sha256"]})
+                  "research4.plan_sha256": intent["plan_sha256"],
+                  "research4.training_data_source_commit":
+                      training_data_source_commit,
+                  "research4.sequential_parent_source_sha256":
+                      parent_source["source_sha256"]})
         mlflow_run_id = active.info.run_id
     except BaseException:
         shutil.rmtree(local_model.parent, ignore_errors=True)
@@ -1259,6 +1302,8 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
         finally:
             shutil.rmtree(local_model.parent, ignore_errors=True)
         result["local_model_cache"] = cache_metrics
+        result["training_data_source_commit"] = training_data_source_commit
+        result["sequential_parent_source"] = parent_source
         result["prework_seconds"] = prework_seconds
         result["whole_task_elapsed_seconds"] = whole_job_elapsed()
         _atomic_json(run_root / "TERMINAL.json", result)

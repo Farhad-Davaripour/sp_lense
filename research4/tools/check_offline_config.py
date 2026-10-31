@@ -152,7 +152,12 @@ def check_gpu_notebook_contract(root):
         raise ValueError("GPU readiness/reservation/model order changed")
     preflight = (root / "notebooks" / "databricks_continuity_preflight.py").read_text(
         encoding="utf-8")
-    if "reserve_intent(" in preflight or "consumed_" in preflight:
+    consumed_read = "verify_consumed_predecessor_identity"
+    if preflight.count(consumed_read) != 2:
+        raise ValueError("CPU preflight consumed-identity readback changed")
+    read_only_preflight = preflight.replace(consumed_read, "")
+    if ("reserve_intent(" in read_only_preflight
+            or "consumed_" in read_only_preflight):
         raise ValueError("CPU preflight must remain read-only")
     base = (root / "notebooks" /
             "databricks_continuity_base_qualification.py").read_text(

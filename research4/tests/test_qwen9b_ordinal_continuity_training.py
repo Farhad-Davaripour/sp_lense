@@ -28,6 +28,7 @@ from src.qwen9b_ordinal_continuity_lora import (
     branch_sha256,
     install_ordinal_lora,
     load_adapter_checkpoint,
+    save_adapter_checkpoint,
 )
 from src.databricks_continuity_partition_worker import _append_progress
 from src.volume_durable_io import (
@@ -2119,6 +2120,80 @@ class TrainingAdmissionTests(unittest.TestCase):
             self.assertEqual(manifest["launch_argv"][2],
                              "research4.src.qwen9b_ordinal_continuity_controller")
             self.assertEqual(manifest["launch_argv"][3], "run-partition")
+
+    def test_sequential_parent_source_override_preserves_old_parent_and_new_child(self):
+        old_source = "a" * 64
+        new_source = "b" * 64
+        parent_model = tiny_wrapped("delta1")
+        parent_model.set_train_stage("delta1")
+        optimizer_manifest = {
+            "class": "AdamW", "successful_updates": 1,
+            "state_sha256": "o" * 64, "state_dtypes": ["torch.float32"],
+        }
+        plan = databricks_a10_plan(TrainingPlan(
+            mode="primary", stage="delta2", condition="self_continuity",
+            seed=202610281, optimizer_updates=1))
+        records = tokenize_rows(dataset("self_continuity"), ToyTokenizer(), 1024)
+        scaler = torch.amp.GradScaler(
+            "cpu", enabled=True, init_scale=1.0, growth_interval=1000)
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); parent = root / "parent"
+            save_adapter_checkpoint(
+                parent_model, parent, target_names=["proj"],
+                base_sha256="c" * 64, optimizer_sha256="o" * 64,
+                source_sha256=old_source, stage="delta1",
+                condition="self_continuity", seed=202610281,
+                optimizer_manifest=optimizer_manifest,
+                plan_sha256="d" * 64, run_mode="primary")
+            child = tiny_wrapped("delta2")
+            with mock.patch.object(
+                    training_module, "_grad_scaler", return_value=scaler), \
+                    mock.patch.object(
+                        training_module, "ordinal_pair_loss",
+                        side_effect=fake_scaled_ordinal_loss(4.0, [])):
+                receipt = run_training_stage(
+                    model=child, tokenizer=ToyTokenizer(),
+                    tokenized_records=records, plan=plan,
+                    output_dir=root / "child", target_names=["proj"],
+                    source_sha256=new_source, base_sha256="c" * 64,
+                    parent_checkpoint_dir=parent,
+                    parent_source_sha256=old_source,
+                    rank=0, world_size=1, save_checkpoint=True,
+                    callable_model=child,
+                    progress_callback=durable_progress_sink([]))
+            self.assertEqual(receipt["parent_source_sha256"], old_source)
+            child_metadata = json.loads((root / "child" / "checkpoint" /
+                                         "adapter_config.json").read_text())
+            self.assertEqual(child_metadata["source_sha256"], new_source)
+            self.assertEqual(child_metadata["predecessor_branch_hashes"], {
+                "delta1": json.loads((parent / "adapter_config.json").read_text())[
+                    "branches"]["delta1"]["state_sha256"]})
+
+            wrong = tiny_wrapped("delta2")
+            with self.assertRaisesRegex(PermissionError,
+                                       "Sequential parent identity differs"):
+                run_training_stage(
+                    model=wrong, tokenizer=ToyTokenizer(),
+                    tokenized_records=records, plan=plan,
+                    output_dir=root / "wrong", target_names=["proj"],
+                    source_sha256=new_source, base_sha256="c" * 64,
+                    parent_checkpoint_dir=parent,
+                    rank=0, world_size=1, save_checkpoint=False,
+                    callable_model=wrong)
+
+            delta1 = databricks_a10_plan(TrainingPlan(
+                mode="primary", stage="delta1", condition="self_continuity",
+                seed=202610281, optimizer_updates=1))
+            with self.assertRaisesRegex(PermissionError,
+                                       "Delta1 must start from fresh"):
+                run_training_stage(
+                    model=tiny_wrapped("delta1"), tokenizer=ToyTokenizer(),
+                    tokenized_records=records, plan=delta1,
+                    output_dir=root / "delta1", target_names=["proj"],
+                    source_sha256=new_source, base_sha256="c" * 64,
+                    parent_source_sha256=old_source,
+                    rank=0, world_size=1, save_checkpoint=False,
+                    callable_model=tiny_wrapped("delta1"))
 
 
 if __name__ == "__main__":

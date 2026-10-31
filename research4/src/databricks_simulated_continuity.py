@@ -54,6 +54,16 @@ INTENT_VERSION = "research4-databricks-continuity-one-use-intent-v11"
 DATABRICKS_EVIDENCE_VERSION = "research4-databricks-partition-evidence-v5"
 DATABRICKS_QUALIFICATION_VERSION = (
     "research4-databricks-rank4-qualification-v7")
+PRIMARY_PARENT_IDENTITY_RECOVERY_VERSION = (
+    "research4-d2-parent-identity-technical-successor-v1")
+PRIMARY_SOURCE_CACHE_LINEAGE_RECOVERY_VERSION = (
+    "research4-primary-cache-lineage-source-recovery-v1")
+PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY = (
+    "self_continuity_seed202610281_delta2_parent_identity_recovery_v1")
+_PRIMARY_PARENT_IDENTITY_RECOVERY_KEY = (
+    "primary", "self_continuity", 202610281, "delta2", 4, 144)
+PRIMARY_PARENT_IDENTITY_RECOVERY_PLAN_SHA256 = (
+    "ff584d43057f0e4d7fff832d5162f1d8a0cb26ef1231ac1e0cc73360f5359225")
 QUALIFICATION_SOURCE_CARRYFORWARD_VERSION = (
     "research4-qualification-source-carryforward-v1")
 QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS = (
@@ -66,6 +76,11 @@ QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS = (
     "src/databricks_simulated_continuity.py",
     "tools/prepare_databricks_continuity_intent.py",
 )
+PRIMARY_CACHE_LINEAGE_QUALIFICATION_SOURCE_ALLOWED_CHANGED_PATHS = tuple(
+    sorted(set(QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS) | {
+        "src/databricks_continuity_partition_worker.py",
+        "src/qwen9b_ordinal_continuity_training.py",
+    }))
 QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS = (
     "src/action_serialization.py",
     "src/composite_kernels.py",
@@ -97,6 +112,18 @@ QUALIFICATION_SOURCE_REVIEWED_CHANGED_PATHS = (
 )
 QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256 = (
     "7e58ed81cc8eb78cb4ce5f8d1229143621850d8f5a6c1d293fb21ee841419d6a")
+PRIMARY_CACHE_LINEAGE_RUN_PARTITION_PREFIX_SHA256 = (
+    "8ab0a5a36299e52263e817c4e23af7d6e55e7f52ba064ca3f81d91944c0aa38b")
+PRIMARY_CACHE_LINEAGE_STAGE_MODEL_SYMBOL_SHA256 = (
+    "8c4a6512f573a471333f94092159317b2cdcca57e7c4503d8a1c0357ffe87f29")
+PRIMARY_CACHE_LINEAGE_IDENTITY_SYMBOL_SHA256 = (
+    "a13b1bb3135b9e3a9e0274b37551673845ad3e6ad122bd9d25b39a5b578bc2d4")
+HISTORICAL_PARTITION_SOURCE_FILE_SHA256 = (
+    "fef553d8f11be2b99791a3935d509d9200367cbfd7078eee1ba05a9ef872b357")
+QUALIFICATION_ORIGINAL_PARTITION_SOURCE_FILE_SHA256 = (
+    "379a44e443daf0c4e0c2a5950cd2a139b2949e1c0998de772f717dbb5b736c6e")
+PRIMARY_CACHE_LINEAGE_PARTITION_SOURCE_FILE_SHA256 = (
+    "db382edbfebb74b67fb575108a02fa3a57d19cff7f6ba094d9203a585ee97b62")
 QUALIFICATION_RECEIPT_SHA256 = (
     "5d6001ebbfd33e9a5cb8e488e54510bd4642418c8a061b1125f431ee9c55e89e")
 QUALIFICATION_RECEIPT_FILE_SHA256 = (
@@ -313,6 +340,244 @@ DATASET_RELEASE_ROOT = f"{VOLUME}/dataset_releases/{DATASET_TREE_SHA256}"
 DATASET_RELEASE_RECEIPT_SHA256 = (
     "75294a463088db988bd5deac9b2f26d65d2082790bb7aa14b628c8a49fdcec1a"
 )
+
+
+def _requires_primary_parent_identity_recovery(plan) -> bool:
+    return ((plan.mode, plan.condition, plan.seed, plan.stage,
+             plan.rank, plan.optimizer_updates)
+            == _PRIMARY_PARENT_IDENTITY_RECOVERY_KEY
+            and plan.full_plan_sha256
+            == PRIMARY_PARENT_IDENTITY_RECOVERY_PLAN_SHA256)
+
+
+def _qualification_source_partition_contract(source_manifest: Mapping[str, Any]) -> dict:
+    files = source_manifest.get("files") if isinstance(source_manifest, Mapping) else None
+    if not isinstance(files, list):
+        raise PermissionError("Qualification source manifest files are absent")
+    matches = [row for row in files if isinstance(row, Mapping)
+               and row.get("path") == "src/databricks_continuity_partition.py"]
+    if len(matches) != 1:
+        raise PermissionError("Partition controller source binding is ambiguous")
+    source_sha256 = matches[0].get("sha256")
+    if source_sha256 in {
+            QUALIFICATION_ORIGINAL_PARTITION_SOURCE_FILE_SHA256,
+            HISTORICAL_PARTITION_SOURCE_FILE_SHA256}:
+        return {"cache_lineage_recovery": False,
+                "run_partition_execution_prefix_sha256":
+                    QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256,
+                "technical_science_file_sha256": {},
+                "allowed_changed_paths":
+                    QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS}
+    if source_sha256 == PRIMARY_CACHE_LINEAGE_PARTITION_SOURCE_FILE_SHA256:
+        return {"cache_lineage_recovery": True,
+                "run_partition_execution_prefix_sha256":
+                    PRIMARY_CACHE_LINEAGE_RUN_PARTITION_PREFIX_SHA256,
+                "stage_model_symbol_sha256":
+                    PRIMARY_CACHE_LINEAGE_STAGE_MODEL_SYMBOL_SHA256,
+                "lineage_identity_symbol_sha256":
+                    PRIMARY_CACHE_LINEAGE_IDENTITY_SYMBOL_SHA256,
+                "technical_science_file_sha256": {
+                    "src/databricks_continuity_partition_worker.py": (
+                        "c2f11f95cba3321a00b88cbf0c9d13a5a08b5c06327a5c16ae39c30b127fff3d"),
+                    "src/qwen9b_ordinal_continuity_training.py": (
+                        "921840f69c50693603886b34ebdc5d6194352c05aa050eb0143867a025ff6fd4"),
+                },
+                "technical_science_symbol_sha256": {
+                    "src/databricks_continuity_partition_worker.py": {
+                        "main": (
+                            "72d3c21f4acb68e7d7eeb806ecde16262022ea3a6f737f63b5626c5f804334f7")},
+                    "src/qwen9b_ordinal_continuity_training.py": {
+                        "run_training_stage": (
+                            "6af06f3651f9d96937406c7e14121261facbafc58a13af0b2f85da467fcd8c56")},
+                },
+                "allowed_changed_paths": (
+                    PRIMARY_CACHE_LINEAGE_QUALIFICATION_SOURCE_ALLOWED_CHANGED_PATHS)}
+    raise PermissionError("Partition controller source is not reviewed")
+
+
+def databricks_partition_identity(plan) -> str:
+    """Return the exact one-use identity, including the consumed-D2 successor."""
+    if _requires_primary_parent_identity_recovery(plan):
+        return PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY
+    from .qwen9b_ordinal_continuity_controller import partition_identity
+    return partition_identity(plan)
+
+
+def primary_parent_identity_recovery_authority() -> dict:
+    """Bind the immutable zero-update D2 failure to one narrow successor."""
+    value = {
+        "version": PRIMARY_PARENT_IDENTITY_RECOVERY_VERSION,
+        "predecessor_identity": "self_continuity_seed202610281_delta2",
+        "successor_identity": PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY,
+        "condition": "self_continuity",
+        "seed": 202610281,
+        "stage": "delta2",
+        "rank": 4,
+        "optimizer_updates": 144,
+        "plan_sha256": (
+            "ff584d43057f0e4d7fff832d5162f1d8a0cb26ef1231ac1e0cc73360f5359225"),
+        "predecessor_source_commit": (
+            "481844a3cd16833593f09fc62420a1fd25983b4d"),
+        "predecessor_source_manifest_sha256": (
+            "950a0285e96adc58b528609c2efbc40eea0987c2b949d2a009997b913fc9337f"),
+        "predecessor_intent_sha256": (
+            "dd54e61478fb0b630c4c1cbdc7a2b46520fdbab4de8862ab6115a40c265fa199"),
+        "predecessor_admission_sha256": (
+            "ed81b6f4c3efc210487e66ba99d1f8e7b37da52eca32110e5446fc01a6978459"),
+        "owner_run_id": "320595310768231",
+        "preflight_task_run_id": "509110158866042",
+        "gpu_task_run_id": "369337997596270",
+        "finalizer_task_run_id": "186224311927398",
+        "release_task_run_id": "348800453893347",
+        "child_failure_manifest_sha256": (
+            "73d143caaf7b691b3771f8202ecdbd035d8f01cfda31b69d41b1048af3d80b62"),
+        "child_failure_manifest_file_sha256": (
+            "022e6ab27e231e2724d3ffc785f935531f502021fef466f6d88f5472e2fceb7f"),
+        "terminal_file_sha256": (
+            "3105511c0df211386f626d3eb49a7f2984ec004de15b522b128d5120683e2645"),
+        "terminal_evidence_binding_file_sha256": (
+            "25d709d117618777e9ea0c1e36c3d2878b502cf66efdaa35e20d32b60d553b12"),
+        "closeout_receipt_sha256": (
+            "4167932e1e37b1ad67b7a64fb869ca92c799ce1bbd28f75c0332088c80d3df5f"),
+        "progress_journal_sha256": (
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
+        "durable_updates": 0,
+        "successful_optimizer_updates": 0,
+        "checkpoint_written": False,
+        "identity_consumed": True,
+        "consumed_marker_file_sha256": (
+            "7e5d4db0e240d116e5199cc045ef0029312701922f9cf67334a8dcbaa89c9a1f"),
+        "consumed_marker_sha256": (
+            "796e8364d682d041108c9145df54b6c5d1f664bf8e322873e62c6e653808b4cf"),
+        "resources_released": True,
+        "automatic_retry_performed": False,
+        "parent_checkpoint_tree_sha256": (
+            "dbe69e11d41b95c1f2ee1696f8b95e0bfa8885db809579c09495de995614e479"),
+        "parent_adapter_config_file_sha256": (
+            "516a0a14b3724f8b3df35e1c32b2ec0b52feb6eeb46ffe328aa88ed6a5a364d5"),
+        "parent_base_sha256": (
+            "4e08bdb5a423d13037dd6baddf36372625131f59e87154ad5a1e7ad414828519"),
+        "parent_runtime_config_sha256": (
+            "f52cab38a50adefc3ac519d471d47706c50773ae8973183edd0c822bc46c33c9"),
+        "rejected_delta2_runtime_config_sha256": (
+            "6cfbcaafdfd2922d1f904e5473457da4bce5940cfa662f85683e7040fe55f3de"),
+        "normalized_config_sha256": (
+            "204baf3a923d45d0d864f63fba9f86d68724144c0783085610e361d807aa3773"),
+        "target_names_count": 248,
+        "target_names_sha256": (
+            "c4c0859d0915f45ee07ad9e2332ea1be0c825fe83fba05cff19a6d1dd16bba0e"),
+        "cache_lineage_identity": "self_continuity_seed202610281_delta1",
+        "local_reproduction_result_file_sha256": (
+            "8fc799fe12b19da217eff0141bd482dc2c9e2434335b03a7eaa43b344a37b7e4"),
+        "local_recovery_proposal_file_sha256": (
+            "9f2c6612e59fe52e1c9007b431d05719a27627d217631baed3f9c36ee59ae1d9"),
+        "local_reproduction_tests_file_sha256": (
+            "5df29e7966fb03885cd1ac7328448a4552acd379bfd0d1024695f182e5fe4bbf"),
+        "model_loads_in_diagnosis": 0,
+        "model_forwards_in_diagnosis": 0,
+        "backward_passes_in_diagnosis": 0,
+        "optimizer_updates_in_diagnosis": 0,
+    }
+    value["technical_successor_sha256"] = digest(value)
+    return value
+
+
+def validate_primary_parent_identity_recovery(value: Mapping[str, Any]) -> dict:
+    if not isinstance(value, Mapping):
+        raise PermissionError("Primary parent-identity recovery authority is absent")
+    candidate = dict(value)
+    expected = primary_parent_identity_recovery_authority()
+    if candidate != expected:
+        raise PermissionError("Primary parent-identity recovery authority differs")
+    return candidate
+
+
+def primary_source_cache_lineage_recovery_authority() -> dict:
+    """Carry training data/qualification evidence across the cache-path fix."""
+    value = {
+        "version": PRIMARY_SOURCE_CACHE_LINEAGE_RECOVERY_VERSION,
+        "predecessor_source_commit": (
+            "481844a3cd16833593f09fc62420a1fd25983b4d"),
+        "predecessor_source_manifest_sha256": (
+            "950a0285e96adc58b528609c2efbc40eea0987c2b949d2a009997b913fc9337f"),
+        "training_data_source_commit": (
+            "481844a3cd16833593f09fc62420a1fd25983b4d"),
+        "training_data_source_manifest_sha256": (
+            "950a0285e96adc58b528609c2efbc40eea0987c2b949d2a009997b913fc9337f"),
+        "dataset_tree_sha256": DATASET_TREE_SHA256,
+        "model_tree_sha256": (
+            "9845026dbe255e24b105224eebbb5436d315713b9a5c53c434137896b160c5b1"),
+        "partition_source_file_sha256": (
+            PRIMARY_CACHE_LINEAGE_PARTITION_SOURCE_FILE_SHA256),
+        "root_cause_reproduction_file_sha256": (
+            "8fc799fe12b19da217eff0141bd482dc2c9e2434335b03a7eaa43b344a37b7e4"),
+        "technical_successor_sha256": (
+            primary_parent_identity_recovery_authority()[
+                "technical_successor_sha256"]),
+        "model_recipe_changed": False,
+        "training_records_changed": False,
+        "optimizer_recipe_changed": False,
+        "evaluation_criteria_changed": False,
+        "model_execution_performed": False,
+        "optimizer_updates": 0,
+    }
+    value["source_recovery_sha256"] = digest(value)
+    return value
+
+
+def validate_primary_source_cache_lineage_recovery(
+        value: Mapping[str, Any]) -> dict:
+    if not isinstance(value, Mapping):
+        raise PermissionError("Primary source cache-lineage recovery is absent")
+    candidate = dict(value)
+    expected = primary_source_cache_lineage_recovery_authority()
+    if candidate != expected:
+        raise PermissionError("Primary source cache-lineage recovery differs")
+    return candidate
+
+
+def primary_training_data_source_commit(intent: Mapping[str, Any]) -> str:
+    authority = intent.get("primary_source_cache_lineage_recovery")
+    if authority is None:
+        return intent["source_commit"]
+    return validate_primary_source_cache_lineage_recovery(authority)[
+        "training_data_source_commit"]
+
+
+def sequential_parent_source_binding(intent: Mapping[str, Any]) -> dict:
+    authority = intent.get("primary_parent_identity_recovery")
+    if authority is None:
+        return {"source_commit": intent["source_commit"],
+                "source_sha256": intent["source_sha256"]}
+    verified = validate_primary_parent_identity_recovery(authority)
+    return {"source_commit": verified["predecessor_source_commit"],
+            "source_sha256": verified[
+                "predecessor_source_manifest_sha256"]}
+
+
+def verify_consumed_predecessor_identity(
+        lock_root: str | Path, intent: Mapping[str, Any]) -> dict | None:
+    authority = intent.get("primary_parent_identity_recovery")
+    if authority is None:
+        return None
+    verified = validate_primary_parent_identity_recovery(authority)
+    path = (Path(lock_root) / "consumed" /
+            f"{verified['predecessor_identity']}.json")
+    if not path.is_file() or path.is_symlink():
+        raise PermissionError("Consumed predecessor identity is absent")
+    raw = path.read_bytes()
+    value = json.loads(raw.decode("utf-8"))
+    if (hashlib.sha256(raw).hexdigest()
+            != verified["consumed_marker_file_sha256"]
+            or digest(value) != verified["consumed_marker_sha256"]
+            or value != {
+                "identity": verified["predecessor_identity"],
+                "intent_sha256": verified["predecessor_intent_sha256"],
+                "owner": verified["owner_run_id"],
+                "status": "reserved_after_gpu_ready_before_model",
+            }):
+        raise PermissionError("Consumed predecessor identity differs")
+    return value
 DATASET_RELEASE_VALIDATION_SHA256 = (
     "5958f65ff161e85a6d9622080c4083974dbcc51db911b68863958d87e1880527"
 )
@@ -463,6 +728,7 @@ def validate_qualification_source_carryforward(
     embedded = payload.pop("carryforward_sha256", None)
     prior = _validate_historical_qualification_intent(qualification_intent)
     current = validate_source_manifest(current_source_manifest)
+    contract = _qualification_source_partition_contract(current)
     capacity = dict(qualification_receipt)
     capacity_sha = capacity.pop("receipt_sha256", None)
     exact = {
@@ -566,7 +832,8 @@ def validate_qualification_source_carryforward(
             or receipt.get("reviewed_unchanged_symbol_sha256")
                != QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256
             or receipt.get("run_partition_execution_prefix_sha256")
-               != QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256
+               != _qualification_source_partition_contract(current)[
+                       "run_partition_execution_prefix_sha256"]
             or qualification_receipt.get("source_commit")
                != prior.get("source_commit")
             or qualification_receipt.get("source_sha256")
@@ -605,7 +872,7 @@ def validate_qualification_source_carryforward(
             or receipt.get("model_execution_performed") is not False
             or receipt.get("optimizer_updates") != 0
             or receipt.get("allowed_changed_paths")
-               != list(QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS)):
+               != list(contract["allowed_changed_paths"])):
         raise PermissionError("Qualification source carry-forward differs")
     prior_files = _source_manifest_files(
         prior["source_manifest"], historical=True)
@@ -615,19 +882,25 @@ def validate_qualification_source_carryforward(
         if prior_files.get(path, {}).get("sha256")
         != current_files.get(path, {}).get("sha256"))
     if (receipt.get("changed_paths") != changed
-            or any(path not in QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS
+            or any(path not in contract["allowed_changed_paths"]
                    for path in changed)):
         raise PermissionError("Qualification carry-forward changed science source")
     immutable = receipt.get("unchanged_science_file_sha256")
     if (not isinstance(immutable, Mapping)
             or set(immutable) != set(QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS)):
         raise PermissionError("Qualification carry-forward science proof differs")
+    technical_science = contract["technical_science_file_sha256"]
     for path in QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS:
         prior_sha = prior_files.get(path, {}).get("sha256")
         current_sha = current_files.get(path, {}).get("sha256")
         if (not re.fullmatch(r"[0-9a-f]{64}", str(prior_sha or ""))
-                or immutable.get(path) != prior_sha
-                or current_sha != prior_sha):
+                or immutable.get(path) != prior_sha):
+            raise PermissionError("Qualification scientific source changed")
+        if path in technical_science:
+            if current_sha != technical_science[path]:
+                raise PermissionError(
+                    "Qualification technical source recovery differs")
+        elif current_sha != prior_sha:
             raise PermissionError("Qualification scientific source changed")
     return receipt
 
@@ -697,9 +970,11 @@ def create_qualification_source_carryforward(
         "reviewed_unchanged_symbol_sha256": json.loads(json.dumps(
             QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256)),
         "run_partition_execution_prefix_sha256": (
-            QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256),
+            _qualification_source_partition_contract(current)[
+                    "run_partition_execution_prefix_sha256"]),
         "allowed_changed_paths": list(
-            QUALIFICATION_SOURCE_CARRYFORWARD_ALLOWED_CHANGED_PATHS),
+            _qualification_source_partition_contract(current)[
+                "allowed_changed_paths"]),
         "unchanged_science_file_sha256": {
             path: prior_files.get(path, {}).get("sha256")
             for path in QUALIFICATION_SOURCE_IMMUTABLE_SCIENCE_PATHS
@@ -779,16 +1054,22 @@ def verify_deployed_qualification_source_carryforward(
     if not path.is_file() or path.is_symlink():
         raise PermissionError("Partition controller source is absent")
     source = path.read_text(encoding="utf-8")
+    contract = _qualification_source_partition_contract(
+        current["source_manifest"])
     if (_run_partition_execution_prefix_sha256(source)
-            != QUALIFICATION_RUN_PARTITION_EXECUTION_PREFIX_SHA256):
+            != contract["run_partition_execution_prefix_sha256"]):
         raise PermissionError("Partition model-execution prefix changed")
     symbols = _top_level_ast_sha256(source)
     expected_names = (set(QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256)
                       | set(QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256)
                       | set(QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256))
+    if contract["cache_lineage_recovery"]:
+        expected_names.add("_lineage_model_cache_identity")
     if set(symbols) != expected_names:
         raise PermissionError("Partition controller symbol set changed")
     for name, expected in QUALIFICATION_REVIEWED_UNCHANGED_SYMBOL_SHA256.items():
+        if contract["cache_lineage_recovery"] and name == "_stage_local_model":
+            continue
         if symbols.get(name) != expected:
             raise PermissionError("Reviewed unchanged controller symbol changed")
     for name, expected in QUALIFICATION_REVIEWED_ADDED_SYMBOL_SHA256.items():
@@ -798,6 +1079,23 @@ def verify_deployed_qualification_source_carryforward(
             != QUALIFICATION_REVIEWED_CHANGED_SYMBOL_SHA256[
                 "_expected_mlflow_scalars"]["reviewed"]):
         raise PermissionError("Reviewed MLflow scalar mapping changed")
+    if contract["cache_lineage_recovery"] and (
+            symbols.get("_stage_local_model")
+               != contract["stage_model_symbol_sha256"]
+            or symbols.get("_lineage_model_cache_identity")
+               != contract["lineage_identity_symbol_sha256"]):
+        raise PermissionError("Reviewed cache-lineage controller symbols changed")
+    for logical, expected in contract.get(
+            "technical_science_symbol_sha256", {}).items():
+        technical_path = Path(code_root).resolve() / logical
+        if not technical_path.is_file() or technical_path.is_symlink():
+            raise PermissionError("Qualification technical source is absent")
+        actual = _top_level_ast_sha256(
+            technical_path.read_text(encoding="utf-8"))
+        selected = {name: actual.get(name) for name in expected}
+        if selected != expected:
+            raise PermissionError(
+                "Qualification technical source symbol changed")
     return verified
 
 
@@ -1438,7 +1736,7 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
     rows that will be read from Silver during training.
     """
     from .qwen9b_ordinal_continuity_controller import (
-        matrix_plans, partition_identity, qualification_plan)
+        matrix_plans, qualification_plan)
     from .qwen9b_ordinal_continuity_training import (
         adjacent_pair_schedule, canonical_sha256,
         databricks_a10_plan,
@@ -1532,7 +1830,7 @@ def silver_partition_bindings(rows: list[Mapping[str, Any]],
         exposure = validate_equal_occurrence_exposure(conditions, plan)
         binding = data_binding
         journal = adjacent_pair_schedule(conditions[plan.condition], plan)
-        identity = partition_identity(plan)
+        identity = databricks_partition_identity(plan)
         result[identity] = {
             "version": "research4-databricks-silver-binding-v2",
             "partition_identity": identity, "plan_sha256": plan.full_plan_sha256,
@@ -1935,7 +2233,7 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
     }
     from dataclasses import asdict
     from .qwen9b_ordinal_continuity_controller import (
-        matrix_plans, partition_identity, qualification_plan)
+        matrix_plans, qualification_plan)
     from .qwen9b_ordinal_continuity_training import (
         TrainingPlan, databricks_a10_plan)
     try:
@@ -1959,6 +2257,50 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
             or canonical(plan) != canonical(expected_plan_payload)
             or exact_plan.full_plan_sha256 != expected_plan.full_plan_sha256):
         raise PermissionError("Databricks plan differs from the canonical experiment matrix")
+    source_contract = _qualification_source_partition_contract(source_manifest)
+    expected_source_recovery = (
+        primary_source_cache_lineage_recovery_authority()
+        if mode == "primary" and source_contract["cache_lineage_recovery"]
+        else None)
+    supplied_source_recovery = intent.get(
+        "primary_source_cache_lineage_recovery")
+    supplied_source_recovery_sha = intent.get(
+        "primary_source_cache_lineage_recovery_sha256")
+    if expected_source_recovery is None:
+        if (supplied_source_recovery is not None
+                or supplied_source_recovery_sha is not None):
+            raise PermissionError(
+                "Unexpected primary source cache-lineage recovery")
+    else:
+        verified_source_recovery = (
+            validate_primary_source_cache_lineage_recovery(
+                supplied_source_recovery))
+        if (supplied_source_recovery_sha
+                != verified_source_recovery["source_recovery_sha256"]
+                or intent.get("dataset_tree_sha256")
+                   != verified_source_recovery["dataset_tree_sha256"]):
+            raise PermissionError(
+                "Primary source cache-lineage recovery binding differs")
+    expected_parent_recovery = (
+        primary_parent_identity_recovery_authority()
+        if _requires_primary_parent_identity_recovery(exact_plan) else None)
+    supplied_parent_recovery = intent.get("primary_parent_identity_recovery")
+    supplied_parent_recovery_sha = intent.get(
+        "primary_parent_identity_recovery_sha256")
+    if expected_parent_recovery is None:
+        if (supplied_parent_recovery is not None
+                or supplied_parent_recovery_sha is not None):
+            raise PermissionError(
+                "Unexpected primary parent-identity recovery authority")
+    else:
+        verified_parent_recovery = validate_primary_parent_identity_recovery(
+            supplied_parent_recovery)
+        if (supplied_parent_recovery_sha
+                != verified_parent_recovery["technical_successor_sha256"]
+                or intent.get("plan_sha256")
+                   != verified_parent_recovery["plan_sha256"]):
+            raise PermissionError(
+                "Primary parent-identity recovery binding differs")
     if mode == "qualification":
         if (intent.get("plan_sha256") != technical.get("successor_plan_sha256")
                 or intent.get("plan_sha256") != expected_plan.full_plan_sha256):
@@ -2041,7 +2383,7 @@ def validate_intent(value: Mapping[str, Any]) -> dict:
             or any(type(intent.get(key)) is not int for key in (
                 "attempt_number", "automatic_retries", "world_size",
                 "gpu_count", "max_concurrent_runs"))
-            or intent.get("identity") != partition_identity(exact_plan)
+            or intent.get("identity") != databricks_partition_identity(exact_plan)
             or not re.fullmatch(r"[a-z0-9_]+", intent["identity"])
             or not isinstance(intent.get("source_commit"), str)
             or not re.fullmatch(r"[0-9a-f]{40}", intent["source_commit"])
@@ -2207,6 +2549,24 @@ def build_intent(*, plan, identity: str, source_commit: str,
         "qualification_source_receipt": None,
         "qualification_source_carryforward": None,
         "qualification_source_carryforward_sha256": None,
+        "primary_parent_identity_recovery": (
+            primary_parent_identity_recovery_authority()
+            if _requires_primary_parent_identity_recovery(plan) else None),
+        "primary_parent_identity_recovery_sha256": (
+            primary_parent_identity_recovery_authority()[
+                "technical_successor_sha256"]
+            if _requires_primary_parent_identity_recovery(plan) else None),
+        "primary_source_cache_lineage_recovery": (
+            primary_source_cache_lineage_recovery_authority()
+            if (plan.mode == "primary"
+                and _qualification_source_partition_contract(manifest)[
+                    "cache_lineage_recovery"]) else None),
+        "primary_source_cache_lineage_recovery_sha256": (
+            primary_source_cache_lineage_recovery_authority()[
+                "source_recovery_sha256"]
+            if (plan.mode == "primary"
+                and _qualification_source_partition_contract(manifest)[
+                    "cache_lineage_recovery"]) else None),
         "max_gpu_hours": max_gpu_hours,
         "wall_clock_stop_seconds": wall_clock_stop_seconds,
         "wall_clock_ceiling_seconds": timeout_seconds,
@@ -2521,6 +2881,10 @@ def create_primary_admission(intent: Mapping[str, Any],
             "qualification_technical_successor_sha256"],
         "qualification_source_carryforward_sha256": intent.get(
             "qualification_source_carryforward_sha256"),
+        "primary_parent_identity_recovery_sha256": intent.get(
+            "primary_parent_identity_recovery_sha256"),
+        "primary_source_cache_lineage_recovery_sha256": intent.get(
+            "primary_source_cache_lineage_recovery_sha256"),
         "qualification_grad_scaler_recovery": receipt[
             "qualification_grad_scaler_recovery"],
         "qualification_numerical_update_evidence": receipt[
@@ -2602,7 +2966,7 @@ def validate_primary_authority_files(
 
 def expected_predecessor_binding(plan: Mapping[str, Any]) -> dict | None:
     """Return the one canonical completed Gold row allowed to seed *plan*."""
-    from .qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
+    from .qwen9b_ordinal_continuity_controller import matrix_plans
     from .qwen9b_ordinal_continuity_training import (
         TrainingPlan, databricks_a10_plan)
     current = TrainingPlan(**dict(plan)).validate()
@@ -2619,7 +2983,7 @@ def expected_predecessor_binding(plan: Mapping[str, Any]) -> dict | None:
     if len(matches) != 1:
         raise PermissionError("Canonical predecessor plan is ambiguous or absent")
     predecessor = matches[0]
-    return {"partition_identity": partition_identity(predecessor),
+    return {"partition_identity": databricks_partition_identity(predecessor),
             "plan_sha256": predecessor.full_plan_sha256,
             "mode": "primary", "condition": expected_condition,
             "stage": expected_stage, "seed": expected_seed}

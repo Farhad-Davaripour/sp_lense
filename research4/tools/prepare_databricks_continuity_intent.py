@@ -4,8 +4,8 @@ import argparse, json, subprocess, sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.databricks_simulated_continuity import (
-    SOURCE_MANIFEST_PATHS, build_intent, build_source_manifest)
-from src.qwen9b_ordinal_continuity_controller import partition_identity
+    SOURCE_MANIFEST_PATHS, build_intent, build_source_manifest,
+    databricks_partition_identity)
 from src.qwen9b_ordinal_continuity_training import TrainingPlan
 
 
@@ -57,7 +57,8 @@ def main(argv=None):
                          json.loads(Path(
                              args.base_qualification_carryforward).read_text()))
     value = build_intent(
-        plan=plan, identity=partition_identity(plan), source_commit=args.source_commit,
+        plan=plan, identity=databricks_partition_identity(plan),
+        source_commit=args.source_commit,
         source_manifest=source_manifest, model_tree_sha256=model["tree_sha256"],
         model_receipt_sha256=model["receipt_sha256"],
         silver_records_sha256=silver["silver_records_sha256"],

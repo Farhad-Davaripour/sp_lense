@@ -19,6 +19,7 @@ from src.databricks_simulated_continuity import (
     DATASET_RELEASE_RECEIPT_SHA256,
     DATASET_TREE_SHA256, EXPERIMENT_SPEC,
     GOLD_RUN_TABLE, INTENT_VERSION, MODEL_ID, MODEL_RECEIPT, MODEL_REVISION, MODEL_ROOT,
+    PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY,
     SOURCE_MANIFEST_PATHS,
     SILVER_TABLE, VOLUME, VolumeOneUseLock,
     base_qualification_plan, build_base_qualification_intent, build_intent,
@@ -27,18 +28,24 @@ from src.databricks_simulated_continuity import (
     commit_model_snapshot, create_base_qualification_receipt,
     create_primary_admission, create_qualification_receipt,
     create_qualification_source_carryforward,
-    digest, file_sha256,
+    databricks_partition_identity, digest, file_sha256,
     expected_predecessor_binding, gold_summary, primary_timeout_budget, reserve_intent,
+    primary_parent_identity_recovery_authority,
+    primary_source_cache_lineage_recovery_authority,
+    primary_training_data_source_commit, sequential_parent_source_binding,
     qualification_numerical_update_evidence,
     silver_partition_bindings, silver_rows, stable_rows_sha256,
     source_release_path,
     validate_base_qualification_silver_rows, validate_base_silver_binding,
     validate_base_qualification_intent, validate_base_qualification_receipt,
     validate_exact_gold_row, validate_intent,
+    validate_primary_parent_identity_recovery,
+    validate_primary_source_cache_lineage_recovery,
     validate_qualification_source_carryforward,
     validate_policy_silver_payload, validate_primary_authority_files,
     validate_source_manifest,
     verify_dataset_release, verify_deployed_source, verify_model_receipt,
+    verify_consumed_predecessor_identity,
     verify_deployed_qualification_source_carryforward,
     verify_model_receipt_authority, _verify_deployed_source_contents)
 from src.action_serialization import (
@@ -60,7 +67,8 @@ from src.base_qualification_carryforward import (
     symbol_ast_sha256, symbol_dependency_closure_sha256, validate_carryforward,
     verify_deployed_carryforward,
 )
-from src.databricks_continuity_partition import _stage_local_model, run_partition
+from src.databricks_continuity_partition import (
+    _lineage_model_cache_identity, _stage_local_model, run_partition)
 from src.qwen9b_ordinal_continuity_controller import matrix_plans, partition_identity
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
 from src.qwen9b_ordinal_continuity_training import (
@@ -393,7 +401,8 @@ class DatabricksContinuityTests(unittest.TestCase):
         value = {
             "version": INTENT_VERSION,
             "one_use": True, "attempt_number": 1, "automatic_retries": 0,
-            "identity": partition_identity(plan), "execution_platform": "databricks",
+            "identity": databricks_partition_identity(plan),
+            "execution_platform": "databricks",
             "world_size": 1, "gpu_count": 1, "max_concurrent_runs": 1,
             "model_root": MODEL_ROOT, "silver_table": SILVER_TABLE,
             "source_commit": "a" * 40, "source_manifest": source_manifest,
@@ -415,6 +424,22 @@ class DatabricksContinuityTests(unittest.TestCase):
             "qualification_technical_successor": technical_successor(),
             "qualification_technical_successor_sha256": technical_successor()[
                 "technical_successor_sha256"],
+            "primary_parent_identity_recovery": (
+                primary_parent_identity_recovery_authority()
+                if databricks_partition_identity(plan)
+                   == PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY else None),
+            "primary_parent_identity_recovery_sha256": (
+                primary_parent_identity_recovery_authority()[
+                    "technical_successor_sha256"]
+                if databricks_partition_identity(plan)
+                   == PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY else None),
+            "primary_source_cache_lineage_recovery": (
+                primary_source_cache_lineage_recovery_authority()
+                if plan.mode == "primary" else None),
+            "primary_source_cache_lineage_recovery_sha256": (
+                primary_source_cache_lineage_recovery_authority()[
+                    "source_recovery_sha256"]
+                if plan.mode == "primary" else None),
             "mlflow_experiment_path": "/Shared/research4_simulated_continuity",
             "plan": asdict(plan), "plan_sha256": plan.full_plan_sha256,
         }
@@ -868,6 +893,14 @@ class DatabricksContinuityTests(unittest.TestCase):
                              {path: symbol_ast_sha256(
                                  (source / path).read_text(encoding="utf-8"), names)
                               for path, names in REVIEWED_CHANGED_SYMBOLS.items()}),
+                patch.object(carry_contract,
+                             "PRIMARY_CACHE_LINEAGE_CURRENT_CHANGED_SYMBOL_SHA256",
+                             {path: symbol_ast_sha256(
+                                 (source / path).read_text(encoding="utf-8"), names)
+                              for path, names in REVIEWED_CHANGED_SYMBOLS.items()}),
+                patch.object(carry_contract,
+                             "PRIMARY_CACHE_LINEAGE_REVIEWED_ADDED_SYMBOLS",
+                             REVIEWED_ADDED_SYMBOLS),
                 patch.object(carry_contract, "REVIEWED_CHANGED_FILES",
                              reviewed_files)):
             patcher.start(); self.addCleanup(patcher.stop)
@@ -1255,6 +1288,187 @@ class DatabricksContinuityTests(unittest.TestCase):
             self.assertFalse(
                 (parent / "research4_model_cache" / "tree-mismatch-test").exists())
 
+    def test_sequential_stages_share_delta1_cache_lineage_identity(self):
+        plans = [databricks_a10_plan(plan)
+                 for plan in matrix_plans(EXPERIMENT_SPEC, 4)]
+        lineage = {plan.stage: plan for plan in plans
+                   if plan.condition == "self_continuity"
+                   and plan.seed == 202610281}
+        delta1_identity = databricks_partition_identity(lineage["delta1"])
+        delta2_identity = databricks_partition_identity(lineage["delta2"])
+        delta3_identity = databricks_partition_identity(lineage["delta3"])
+        self.assertEqual(
+            delta2_identity, PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY)
+        self.assertNotEqual(delta2_identity,
+                            "self_continuity_seed202610281_delta2")
+        self.assertEqual(
+            _lineage_model_cache_identity(lineage["delta1"], delta1_identity),
+            delta1_identity)
+        self.assertEqual(
+            _lineage_model_cache_identity(lineage["delta2"], delta2_identity),
+            delta1_identity)
+        self.assertEqual(
+            _lineage_model_cache_identity(lineage["delta3"], delta3_identity),
+            delta1_identity)
+        other = next(plan for plan in plans
+                     if plan.condition == "artifact_continuity"
+                     and plan.seed == 202610282 and plan.stage == "delta2")
+        self.assertNotEqual(
+            _lineage_model_cache_identity(
+                other, databricks_partition_identity(other)),
+            delta1_identity)
+
+    def test_lineage_cache_collision_fails_without_reuse_or_deletion(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); source = root / "source"; source.mkdir()
+            shard = "model-00001-of-00001.safetensors"
+            (source / "config.json").write_text("{}\n")
+            (source / shard).write_bytes(b"weights")
+            (source / "model.safetensors.index.json").write_text(json.dumps({
+                "weight_map": {"model.weight": shard}}))
+            (source / "tokenizer.json").write_text("{}\n")
+            (source / "tokenizer_config.json").write_text("{}\n")
+            authority = build_model_receipt(source)
+            receipt = root / "MODEL_SNAPSHOT_RECEIPT.json"
+            receipt.write_text(json.dumps(authority))
+            with patch("src.databricks_continuity_partition.tempfile.gettempdir",
+                       return_value=folder):
+                local_model, _, _ = _stage_local_model(
+                    source, receipt, "execution-one",
+                    authority["tree_sha256"], authority["receipt_sha256"],
+                    cache_identity="shared-lineage")
+                marker = local_model / "config.json"
+                before = marker.read_bytes()
+                with self.assertRaisesRegex(FileExistsError,
+                                           "cache already exists"):
+                    _stage_local_model(
+                        source, receipt, "execution-two",
+                        authority["tree_sha256"], authority["receipt_sha256"],
+                        cache_identity="shared-lineage")
+                self.assertEqual(marker.read_bytes(), before)
+                self.assertTrue(local_model.is_dir())
+
+    def test_primary_parent_identity_recovery_authority_is_exact(self):
+        authority = primary_parent_identity_recovery_authority()
+        self.assertEqual(
+            authority["successor_identity"],
+            PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY)
+        self.assertEqual(authority["durable_updates"], 0)
+        self.assertEqual(authority["successful_optimizer_updates"], 0)
+        self.assertFalse(authority["checkpoint_written"])
+        self.assertTrue(authority["identity_consumed"])
+        self.assertTrue(authority["resources_released"])
+        self.assertEqual(
+            validate_primary_parent_identity_recovery(authority), authority)
+        tampered = json.loads(json.dumps(authority))
+        tampered["durable_updates"] = 1
+        with self.assertRaisesRegex(PermissionError, "authority differs"):
+            validate_primary_parent_identity_recovery(tampered)
+        with self.assertRaisesRegex(PermissionError, "authority is absent"):
+            validate_primary_parent_identity_recovery(None)
+
+    def test_primary_source_recovery_separates_code_data_and_parent_lineage(self):
+        authority = primary_source_cache_lineage_recovery_authority()
+        self.assertEqual(
+            validate_primary_source_cache_lineage_recovery(authority),
+            authority)
+        current = {
+            "source_commit": "f" * 40,
+            "source_sha256": "e" * 64,
+            "primary_source_cache_lineage_recovery": authority,
+            "primary_parent_identity_recovery":
+                primary_parent_identity_recovery_authority(),
+        }
+        self.assertEqual(
+            primary_training_data_source_commit(current),
+            "481844a3cd16833593f09fc62420a1fd25983b4d")
+        self.assertEqual(sequential_parent_source_binding(current), {
+            "source_commit": "481844a3cd16833593f09fc62420a1fd25983b4d",
+            "source_sha256": (
+                "950a0285e96adc58b528609c2efbc40eea0987c2b949d2a009997b913fc9337f"),
+        })
+        no_parent_recovery = dict(current)
+        no_parent_recovery["primary_parent_identity_recovery"] = None
+        self.assertEqual(sequential_parent_source_binding(no_parent_recovery), {
+            "source_commit": "f" * 40, "source_sha256": "e" * 64})
+        tampered = json.loads(json.dumps(authority))
+        tampered["training_records_changed"] = True
+        with self.assertRaisesRegex(PermissionError, "recovery differs"):
+            validate_primary_source_cache_lineage_recovery(tampered)
+
+    def test_exact_d2_successor_intent_rejects_old_missing_and_tampered_authority(self):
+        plan = databricks_a10_plan(next(
+            item for item in matrix_plans(EXPERIMENT_SPEC, 4)
+            if item.condition == "self_continuity"
+            and item.seed == 202610281 and item.stage == "delta2"))
+        capacity = {
+            "status": "qualified", "qualification_tokens_per_second": 256.0,
+            "authorized_primary_plan_sha256s": [
+                databricks_a10_plan(item).full_plan_sha256
+                for item in matrix_plans(EXPERIMENT_SPEC, 4)],
+        }
+        capacity["receipt_sha256"] = digest(capacity)
+        budget = primary_timeout_budget(plan, capacity)
+        intent = self.intent(
+            plan=plan, timeout_seconds=budget["derived_ceiling_seconds"],
+            max_gpu_hours=budget["derived_ceiling_seconds"] / 3600,
+            stop_seconds=budget["derived_ceiling_seconds"] - 300,
+            reviewed_timeout_budget=budget)
+        self.assertEqual(validate_intent(intent), intent)
+        self.assertEqual(intent["identity"],
+                         PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY)
+
+        def changed(**updates):
+            value = json.loads(json.dumps(intent)); value.update(updates)
+            value["intent_sha256"] = digest({
+                key: item for key, item in value.items()
+                if key != "intent_sha256"})
+            return value
+
+        with self.assertRaises(PermissionError):
+            validate_intent(changed(
+                identity="self_continuity_seed202610281_delta2"))
+        with self.assertRaisesRegex(PermissionError, "authority is absent"):
+            validate_intent(changed(
+                primary_parent_identity_recovery=None,
+                primary_parent_identity_recovery_sha256=None))
+        bad_authority = json.loads(json.dumps(
+            intent["primary_parent_identity_recovery"]))
+        bad_authority["durable_updates"] = 1
+        with self.assertRaisesRegex(PermissionError, "authority differs"):
+            validate_intent(changed(
+                primary_parent_identity_recovery=bad_authority))
+        with self.assertRaisesRegex(PermissionError, "binding differs"):
+            validate_intent(changed(
+                primary_parent_identity_recovery_sha256="0" * 64))
+        with self.assertRaisesRegex(PermissionError, "recovery is absent"):
+            validate_intent(changed(
+                primary_source_cache_lineage_recovery=None,
+                primary_source_cache_lineage_recovery_sha256=None))
+        with tempfile.TemporaryDirectory() as folder:
+            locks = Path(folder); consumed = locks / "consumed"
+            consumed.mkdir(parents=True)
+            old_marker = consumed / "self_continuity_seed202610281_delta2.json"
+            old_payload = {
+                "identity": "self_continuity_seed202610281_delta2",
+                "intent_sha256": (
+                    "dd54e61478fb0b630c4c1cbdc7a2b46520fdbab4de8862ab6115a40c265fa199"),
+                "owner": "320595310768231",
+                "status": "reserved_after_gpu_ready_before_model",
+            }
+            old_bytes = (canonical(old_payload) + "\n").encode("utf-8")
+            old_marker.write_bytes(old_bytes)
+            self.assertEqual(
+                verify_consumed_predecessor_identity(locks, intent),
+                old_payload)
+            reserve_intent(locks, intent, "successor-owner")
+            self.assertEqual(old_marker.read_bytes(), old_bytes)
+            self.assertTrue((consumed /
+                f"{PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY}.json").is_file())
+            old_marker.write_bytes(old_bytes + b" ")
+            with self.assertRaisesRegex(PermissionError, "differs"):
+                verify_consumed_predecessor_identity(locks, intent)
+
     def test_model_verification_order_is_cpu_full_gpu_light_copy_full(self):
         root = Path(__file__).parents[1]
         base_cpu = (root / "notebooks" /
@@ -1305,6 +1519,12 @@ class DatabricksContinuityTests(unittest.TestCase):
             self.assertEqual(order, ["gpu_light_authority", "post_copy_full_hash"])
             self.assertEqual(metrics["source_model_path"], str(source))
             self.assertEqual(metrics["source_receipt_path"], str(receipt))
+            self.assertEqual(metrics["execution_identity"],
+                             "verification-order-test")
+            self.assertEqual(metrics["cache_lineage_identity"],
+                             "verification-order-test")
+            self.assertEqual(metrics["cache_root"], folder)
+            self.assertRegex(metrics["local_model_path_sha256"], r"^[0-9a-f]{64}$")
             self.assertEqual(metrics["tree_sha256"], authority["tree_sha256"])
             self.assertEqual(metrics["copy_bytes"], authority["total_bytes"])
             self.assertEqual(metrics["public_model_download_bytes"], 0)
@@ -1446,6 +1666,20 @@ class DatabricksContinuityTests(unittest.TestCase):
             self.assertEqual(
                 verify_deployed_qualification_source_carryforward(
                     primary_intent, source_root), carryforward)
+            for symbol in ("_lineage_model_cache_identity",
+                           "_stage_local_model"):
+                with self.subTest(cache_lineage_symbol=symbol), \
+                        tempfile.TemporaryDirectory() as folder:
+                    copied = Path(folder)
+                    shutil.copytree(source_root / "src", copied / "src")
+                    target = copied / "src" / "databricks_continuity_partition.py"
+                    text = target.read_text(encoding="utf-8")
+                    target.write_text(text.replace(
+                        f"def {symbol}", f"def tampered_{symbol}", 1),
+                        encoding="utf-8")
+                    with self.assertRaises(PermissionError):
+                        verify_deployed_qualification_source_carryforward(
+                            primary_intent, copied)
             admission = create_primary_admission(
                 primary_intent, qualification_receipt)
             self.assertEqual(
@@ -1832,8 +2066,16 @@ class DatabricksContinuityTests(unittest.TestCase):
             admission_path = root / "primary_admission.json"
             qualification_intent_path.write_text(json.dumps(qualification_intent))
             qualification_receipt_path.write_text(json.dumps(qualification_receipt))
-            admission_path.write_text(json.dumps(create_primary_admission(
-                primary_intent, qualification_receipt)))
+            admission_value = create_primary_admission(
+                primary_intent, qualification_receipt)
+            self.assertEqual(
+                admission_value[
+                    "primary_source_cache_lineage_recovery_sha256"],
+                primary_intent[
+                    "primary_source_cache_lineage_recovery_sha256"])
+            self.assertIsNone(
+                admission_value["primary_parent_identity_recovery_sha256"])
+            admission_path.write_text(json.dumps(admission_value))
             with patch(
                     "src.databricks_continuity_partition."
                     "_verify_durable_completion",
@@ -1847,6 +2089,24 @@ class DatabricksContinuityTests(unittest.TestCase):
                 plan_sha256=qualification_intent["plan_sha256"],
                 optimizer_updates=2)
             self.assertEqual(replay["qualification_receipt"], qualification_receipt)
+            tampered_admission = json.loads(json.dumps(admission_value))
+            tampered_admission[
+                "primary_source_cache_lineage_recovery_sha256"] = "0" * 64
+            tampered_admission["admission_sha256"] = digest({
+                key: value for key, value in tampered_admission.items()
+                if key != "admission_sha256"})
+            admission_path.write_text(json.dumps(tampered_admission))
+            with patch(
+                    "src.databricks_continuity_partition."
+                    "_verify_durable_completion",
+                    return_value={"child": {}, "parent": {}}):
+                with self.assertRaisesRegex(PermissionError,
+                                           "does not replay"):
+                    validate_primary_authority_files(
+                        primary_intent, admission_path,
+                        qualification_intent_path, output,
+                        qualification_receipt_path)
+            admission_path.write_text(json.dumps(admission_value))
             with patch(
                     "src.databricks_continuity_partition."
                     "_verify_durable_completion",
@@ -2165,7 +2425,20 @@ class DatabricksContinuityTests(unittest.TestCase):
         intent_tool = (root / "tools/prepare_databricks_continuity_intent.py").read_text()
         self.assertNotIn('"source-sha256"', intent_tool)
         self.assertIn("build_source_manifest", intent_tool)
+        self.assertIn("databricks_partition_identity(plan)", intent_tool)
+        self.assertNotIn("identity=partition_identity(plan)", intent_tool)
         partition_source = inspect.getsource(run_partition)
+        preflight_source = (root / "notebooks" /
+                            "databricks_continuity_preflight.py").read_text()
+        for source_text in (partition_source, preflight_source):
+            self.assertIn("training_data_source_commit", source_text)
+            self.assertIn("parent_source", source_text)
+            self.assertIn("source_sha256", source_text)
+        launcher_source = (root / "src" /
+                           "databricks_continuity_partition.py").read_text()
+        self.assertIn('Path("/tmp")', launcher_source)
+        self.assertIn('RESEARCH4_EXECUTION_PLATFORM") == "databricks"',
+                      launcher_source)
         self.assertLess(partition_source.index("verify_reserved_intent(lock_root"),
                         partition_source.index(
                             "model_receipt = verify_model_receipt_authority("))
@@ -2189,6 +2462,34 @@ class DatabricksContinuityTests(unittest.TestCase):
                       and value.seed == 202610281 and value.stage == "delta1")
         delta1 = databricks_a10_plan(delta1)
         self.assertIsNone(expected_predecessor_binding(asdict(delta1)))
+        delta3 = next(value for value in policies
+                      if value.condition == "self_continuity"
+                      and value.seed == 202610281 and value.stage == "delta3")
+        delta3 = databricks_a10_plan(delta3)
+        self.assertEqual(
+            expected_predecessor_binding(asdict(delta3))["partition_identity"],
+            PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY)
+        successor = {
+            **expected_predecessor_binding(asdict(delta3)),
+            "source_commit": "f" * 40,
+            "model_tree_sha256": "a" * 64,
+            "checkpoint_tree_sha256": "b" * 64,
+            "qualification_receipt_sha256": "c" * 64,
+            "admission_sha256": "d" * 64,
+            "intent_sha256": "e" * 64,
+        }
+        with self.assertRaisesRegex(PermissionError, "exactly one Gold row"):
+            validate_exact_gold_row([], successor, label="sequential predecessor")
+        old_failed = {**successor,
+                      "partition_identity":
+                          "self_continuity_seed202610281_delta2",
+                      "status": "complete", "receipt_replayed": True}
+        with self.assertRaisesRegex(PermissionError, "differs"):
+            validate_exact_gold_row(
+                [old_failed], successor, label="sequential predecessor")
+        exact = {**successor, "status": "complete", "receipt_replayed": True}
+        self.assertEqual(validate_exact_gold_row(
+            [exact], successor, label="sequential predecessor"), exact)
 
 
 if __name__ == "__main__":
