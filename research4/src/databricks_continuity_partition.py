@@ -185,14 +185,16 @@ def _lineage_model_cache_identity(plan: TrainingPlan,
 
 
 def _stage_local_model(volume_root, volume_receipt, identity, expected_tree,
-                       expected_receipt_sha256, *, cache_identity=None):
+                       expected_receipt_sha256, *, cache_identity=None,
+                       cache_root=None):
     cache_identity = identity if cache_identity is None else cache_identity
     if (not isinstance(cache_identity, str)
             or re.fullmatch(r"[a-z0-9][a-z0-9_-]*", cache_identity) is None):
         raise PermissionError("Local model cache identity is invalid")
-    cache_root = (Path("/tmp")
-                  if os.environ.get("RESEARCH4_EXECUTION_PLATFORM") == "databricks"
-                  else Path(tempfile.gettempdir()))
+    cache_root = (Path(tempfile.gettempdir()) if cache_root is None
+                  else Path(cache_root))
+    if not cache_root.is_absolute():
+        raise PermissionError("Local model cache root must be absolute")
     destination = cache_root / "research4_model_cache" / cache_identity
     if destination.exists():
         raise FileExistsError("Per-run local model cache already exists")
@@ -1247,7 +1249,7 @@ def run_partition(*, spark, intent_path, plan_path, admission_path=None,
     local_model, local_model_receipt, cache_metrics = _stage_local_model(
         intent["model_root"], MODEL_RECEIPT, identity,
         intent["model_tree_sha256"], intent["model_receipt_sha256"],
-        cache_identity=cache_identity)
+        cache_identity=cache_identity, cache_root="/tmp")
     try:
         import mlflow
         experiment = mlflow.set_experiment(intent["mlflow_experiment_path"])
