@@ -184,6 +184,105 @@ REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256 = {
     },
 }
 
+HISTORICAL_PARTITION_SOURCE_FILE_SHA256 = (
+    "fef553d8f11be2b99791a3935d509d9200367cbfd7078eee1ba05a9ef872b357")
+QUALIFICATION_ORIGINAL_PARTITION_SOURCE_FILE_SHA256 = (
+    "379a44e443daf0c4e0c2a5950cd2a139b2949e1c0998de772f717dbb5b736c6e")
+PRIMARY_CACHE_LINEAGE_PARTITION_SOURCE_FILE_SHA256 = (
+    "db382edbfebb74b67fb575108a02fa3a57d19cff7f6ba094d9203a585ee97b62")
+PRIMARY_CACHE_LINEAGE_CURRENT_CHANGED_SYMBOL_SHA256 = {
+    **REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256,
+    "src/databricks_continuity_partition.py": {
+        "_stage_local_model": (
+            "8c4a6512f573a471333f94092159317b2cdcca57e7c4503d8a1c0357ffe87f29"),
+    },
+    "src/databricks_simulated_continuity.py": {
+        **REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256[
+            "src/databricks_simulated_continuity.py"],
+        "validate_intent": (
+            "77939db55cbbcf9a87f5ec2abc535602ef054013f0ec82b33d2e87034c0f01e0"),
+    },
+}
+PRIMARY_CACHE_LINEAGE_REVIEWED_ADDED_SYMBOLS = {
+    **REVIEWED_ADDED_SYMBOLS,
+    "src/databricks_continuity_partition.py": {
+        "_lineage_model_cache_identity": (
+            "a13b1bb3135b9e3a9e0274b37551673845ad3e6ad122bd9d25b39a5b578bc2d4"),
+    },
+    "src/databricks_simulated_continuity.py": {
+        "HISTORICAL_PARTITION_SOURCE_FILE_SHA256": (
+            "7a80ddbe63b9b67ff6f6b878f9ca65e66cd676e1787c191858ae877fcd01e9f2"),
+        "PRIMARY_CACHE_LINEAGE_IDENTITY_SYMBOL_SHA256": (
+            "11b646881eac513e31a94cd894a022471d3f4448685978bb54509eb00de6758b"),
+        "PRIMARY_CACHE_LINEAGE_PARTITION_SOURCE_FILE_SHA256": (
+            "471dc7f5be97b4c1c90dbbc125ed404099da2a791487db7dc4029c4882c7c569"),
+        "PRIMARY_CACHE_LINEAGE_QUALIFICATION_SOURCE_ALLOWED_CHANGED_PATHS": (
+            "9f0c9911a5f7c15400e7a200fd40f05d44542516d2a556f409e76ceeb5bb1a88"),
+        "PRIMARY_CACHE_LINEAGE_RUN_PARTITION_PREFIX_SHA256": (
+            "6f40ee5e487429e097b3abd5272f0e130f490431c9cf768e84c167716d559b9c"),
+        "PRIMARY_CACHE_LINEAGE_STAGE_MODEL_SYMBOL_SHA256": (
+            "aa1fe308333adf8646e73684909e24c611f792f810342976a4fcd16820f3b1ab"),
+        "PRIMARY_PARENT_IDENTITY_RECOVERY_IDENTITY": (
+            "7fd7abc63a3f7c3cd40d51b8f3da00070816c33b455b5f987456bcb5293ddcf8"),
+        "PRIMARY_PARENT_IDENTITY_RECOVERY_PLAN_SHA256": (
+            "f34258b2f8efd02c063935ab6f1925e80a39a0f935d149a9a3ccccbd426b115b"),
+        "PRIMARY_PARENT_IDENTITY_RECOVERY_VERSION": (
+            "0dfd3d30d2644cc1360e99bc209b156e5f4f5160146a953d987f09cff5416214"),
+        "PRIMARY_SOURCE_CACHE_LINEAGE_RECOVERY_VERSION": (
+            "dee1cd8242d8a46f5ef4e52ea0375a074d428d27be5697d8c9389a88da361fbb"),
+        "QUALIFICATION_ORIGINAL_PARTITION_SOURCE_FILE_SHA256": (
+            "575e5f8fe273a7d88de7a5a8ed89db7f06280663add4beff4fa5db2696add129"),
+        "_PRIMARY_PARENT_IDENTITY_RECOVERY_KEY": (
+            "3d58171649f1eefa22a716089939b5ec64b53e054b13e1aa8690ebdeff8d0dbe"),
+        "_qualification_source_partition_contract": (
+            "293c69c7ed287afbf7315798974c0ad835f0db816fff02b18e832414b954578e"),
+        "_requires_primary_parent_identity_recovery": (
+            "a80d423c56cc6acb0d3c0f6dc22a3a7cb15fe3a0cd24fafbcee9d7efc56dc859"),
+        "databricks_partition_identity": (
+            "4620b3cb5a6471ed07d988c382656e31e8f4c4d77be7b1b07c7cf02c9409d46f"),
+        "primary_parent_identity_recovery_authority": (
+            "c87367668119973b04055ab78a7bb356912412aef354b0158b6bd96fb7819f17"),
+        "primary_source_cache_lineage_recovery_authority": (
+            "c40752da6d82503faea90a4569ab8581a092479dc19fcfec2b8d41488f42e2e7"),
+        "primary_training_data_source_commit": (
+            "4c08909a68f1631673aded47a615cdc19825fdc052e3f98a725cf18158773f63"),
+        "sequential_parent_source_binding": (
+            "2feee19ed1df58314c3cc6506ca1850ebb6c93699e46a2622614eaa5898e14f3"),
+        "validate_primary_parent_identity_recovery": (
+            "6be7121d1a4b58d99b5ed0b1360ca0c84255e6b31e85e34053c0bd1d64ea31c4"),
+        "validate_primary_source_cache_lineage_recovery": (
+            "03253fc62d6cc98921dc824b5131b1d8d2bd96218f1f1353cd26be294e8bf2d4"),
+        "verify_consumed_predecessor_identity": (
+            "b83b876ab838d9719fa0dc9224aa04df2652ea1926c2fa535d648226f72c4b2e"),
+    },
+}
+
+
+def base_carryforward_contract(current_source_manifest: Mapping) -> dict:
+    files = current_source_manifest.get("files") if isinstance(
+        current_source_manifest, Mapping) else None
+    if not isinstance(files, list):
+        raise PermissionError("Current source manifest files are absent")
+    matches = [row for row in files if isinstance(row, Mapping)
+               and row.get("path") == "src/databricks_continuity_partition.py"]
+    if len(matches) != 1:
+        raise PermissionError("Partition source binding is ambiguous")
+    partition_sha256 = matches[0].get("sha256")
+    if partition_sha256 in {
+            QUALIFICATION_ORIGINAL_PARTITION_SOURCE_FILE_SHA256,
+            HISTORICAL_PARTITION_SOURCE_FILE_SHA256}:
+        return {
+            "reviewed_added_symbols": REVIEWED_ADDED_SYMBOLS,
+            "current_changed_symbols": REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256,
+        }
+    if partition_sha256 == PRIMARY_CACHE_LINEAGE_PARTITION_SOURCE_FILE_SHA256:
+        return {
+            "reviewed_added_symbols": PRIMARY_CACHE_LINEAGE_REVIEWED_ADDED_SYMBOLS,
+            "current_changed_symbols": (
+                PRIMARY_CACHE_LINEAGE_CURRENT_CHANGED_SYMBOL_SHA256),
+        }
+    raise PermissionError("Partition source is not an approved base carry-forward")
+
 ALLOWED_RUNTIME_CHANGED_PATHS = (
     "config/databricks_production_resource_bindings.json",
     "databricks.yml",
@@ -350,6 +449,7 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
     changed_files = receipt.get("reviewed_changed_file_sha256")
     changed = receipt.get("changed_paths")
     allowed = receipt.get("allowed_runtime_changed_paths")
+    contract = base_carryforward_contract(current_source_manifest)
     if (set(receipt) != exact
             or embedded != _digest(payload)
             or receipt.get("version") != CARRYFORWARD_VERSION
@@ -436,7 +536,7 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
                 or expected["prior"] == expected["current"]):
             raise PermissionError("Carry-forward reviewed file bytes differ")
     if (not isinstance(added_symbols, Mapping)
-            or dict(added_symbols) != REVIEWED_ADDED_SYMBOLS):
+            or dict(added_symbols) != contract["reviewed_added_symbols"]):
         raise PermissionError("Carry-forward reviewed added symbol differs")
     if (not isinstance(symbols, Mapping)
             or set(symbols) != set(BASE_CRITICAL_ENTRYPOINTS)):
@@ -467,7 +567,7 @@ def validate_carryforward(value: Mapping, *, prior_intent: Mapping,
             if row["prior"] != QUALIFIED_BASE_PRIOR_CHANGED_SYMBOL_SHA256[
                     path][name]:
                 raise PermissionError("Carry-forward prior symbol is not qualified source")
-            if row["current"] != REVIEWED_CURRENT_CHANGED_SYMBOL_SHA256[
+            if row["current"] != contract["current_changed_symbols"][
                     path][name]:
                 raise PermissionError("Carry-forward current symbol is not reviewed source")
     return receipt

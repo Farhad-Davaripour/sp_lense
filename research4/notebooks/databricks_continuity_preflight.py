@@ -59,12 +59,14 @@ bootstrap_source_sha256 = _bootstrap_verify_source(values["code_path"], raw_inte
 sys.path.insert(0, values["code_path"])
 
 from src.databricks_simulated_continuity import (
-    GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE,
+    GOLD_RUN_TABLE, MODEL_RECEIPT, SILVER_TABLE, VOLUME,
     digest, expected_predecessor_binding,
+    primary_training_data_source_commit, sequential_parent_source_binding,
     validate_base_qualification_receipt, validate_exact_gold_row,
     validate_intent, validate_primary_authority_files,
     validate_policy_silver_payload,
     verify_deployed_qualification_source_carryforward,
+    verify_consumed_predecessor_identity,
     verify_intent_base_qualification_authority, verify_deployed_source,
     verify_model_receipt)
 from src.qwen9b_ordinal_continuity_runtime import directory_tree_sha256
@@ -73,6 +75,9 @@ from src.qwen9b_ordinal_continuity_training import (
 from pyspark.sql import functions as F
 
 intent = validate_intent(raw_intent)
+training_data_source_commit = primary_training_data_source_commit(intent)
+parent_source = sequential_parent_source_binding(intent)
+verify_consumed_predecessor_identity(Path(VOLUME) / "locks", intent)
 if not values["base_qualification_receipt_path"]:
     raise PermissionError("Training requires the frozen-base format gate")
 base_qualification = validate_base_qualification_receipt(json.loads(Path(
@@ -144,14 +149,14 @@ if plan["mode"] == "primary":
         (Path(values["parent_checkpoint"]) / "adapter_config.json").read_text()))
     validate_sequential_parent(
         TrainingPlan(**plan).validate(), parent,
-        source_sha256=intent["source_sha256"])
+        source_sha256=parent_source["source_sha256"])
     predecessor = expected_predecessor_binding(plan)
     if predecessor is not None:
         parent_tree = directory_tree_sha256(values["parent_checkpoint"])
         predecessor_rows = spark.table(GOLD_RUN_TABLE).where(
             F.col("partition_identity") == predecessor["partition_identity"]).collect()
         predecessor_row = validate_exact_gold_row(predecessor_rows, {
-            **predecessor, "source_commit": intent["source_commit"],
+            **predecessor, "source_commit": parent_source["source_commit"],
             "model_tree_sha256": intent["model_tree_sha256"],
             "checkpoint_tree_sha256": parent_tree,
             "qualification_receipt_sha256": qualification_receipt["receipt_sha256"],
@@ -163,7 +168,7 @@ if plan["mode"] == "primary":
             raise PermissionError("Predecessor Gold lineage is incomplete")
 kind = plan["condition"]
 selected = spark.table(SILVER_TABLE).where(
-    (F.col("source_commit") == intent["source_commit"])
+    (F.col("source_commit") == training_data_source_commit)
     & (F.col("record_kind") == kind) & (F.col("split") == "train")
     & (F.col("admitted_for_training") == F.lit(True))).select(
         "dataset_tree_sha256", "record_id", "record_kind", "condition",

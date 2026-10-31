@@ -16,8 +16,8 @@ from src.base_qualification_carryforward import (  # noqa: E402
     CARRYFORWARD_VERSION,
     REVIEWED_CHANGED_SYMBOLS,
     REVIEWED_CHANGED_FILES,
-    REVIEWED_ADDED_SYMBOLS,
     UNCHANGED_BASE_FILES,
+    base_carryforward_contract,
     symbol_ast_sha256,
     symbol_dependency_closure_sha256,
     validate_carryforward,
@@ -78,6 +78,7 @@ def main(argv=None):
                != prior_intent["intent_sha256"]):
         raise PermissionError("Prior base authority differs from old commit")
     current_manifest = build_source_manifest(source_root, new)
+    contract = base_carryforward_contract(current_manifest)
     old_manifest = prior_intent["source_manifest"]
     old_files = {row["path"]: row for row in old_manifest["files"]}
     new_files = {row["path"]: row for row in current_manifest["files"]}
@@ -113,7 +114,7 @@ def main(argv=None):
         reviewed_symbol_hashes[path] = {
             name: {"prior": old_hashes[name], "current": new_hashes[name]}
             for name in names}
-    for path, expected in REVIEWED_ADDED_SYMBOLS.items():
+    for path, expected in contract["reviewed_added_symbols"].items():
         prior_text = _git_file(repository, old, path)
         current_text = (source_root / path).read_text(encoding="utf-8")
         if (set(expected) & _top_level_symbols(prior_text)
@@ -160,7 +161,7 @@ def main(argv=None):
         "unchanged_base_files": dict(sorted(unchanged.items())),
         "base_critical_symbol_sha256": dict(sorted(symbol_hashes.items())),
         "reviewed_added_symbol_sha256": dict(sorted(
-            REVIEWED_ADDED_SYMBOLS.items())),
+            contract["reviewed_added_symbols"].items())),
         "reviewed_changed_file_sha256": dict(sorted(
             REVIEWED_CHANGED_FILES.items())),
         "reviewed_changed_symbol_sha256": dict(sorted(

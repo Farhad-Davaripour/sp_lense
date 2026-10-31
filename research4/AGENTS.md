@@ -1,5 +1,32 @@
 # Research4 current Databricks continuation
 
+## Danger-2 parent-identity recovery (2026-10-30)
+
+The first Danger-2 attempt `self_continuity_seed202610281_delta2` is
+FAILED, CLOSED, CONSUMED and RELEASED with zero durable optimizer updates and
+no checkpoint.  Its parent run is `320595310768231`; the GPU task failed with
+`PermissionError: Sequential parent identity differs`.  Never reset or reuse
+that identity.
+
+Local replay proved that the historical base digest included Transformers'
+`config._name_or_path`.  D1 and D2 staged the same pinned model bytes under
+different identity-specific `/tmp/research4_model_cache/...` paths, so the
+path alone changed the full base hash.  D1's 248 target projections replay in
+the exact expected order; target ordering was not the defect.
+
+The bounded recovery preserves the complete historical base hash check by
+staging D2 and D3 under their D1 lineage-root cache identity.  It also keeps
+current code source, the admitted Silver-data source and the predecessor
+checkpoint source as separate exact bindings.  The failed D2 consumed marker
+must be present and byte-exact before the fresh successor can run.  D2 uses a
+new versioned one-use identity; D3 remains blocked until that successor reaches
+144/144 durable updates, passes checkpoint/MLflow/Gold audits and releases.
+
+No model, data, optimizer, numerical policy, seed, update count or evaluation
+criterion changes are authorized.  The recovery requires local tests,
+independent review, CI, squash merge, immutable Shared source publication and
+a fresh reviewed one-use activation before any GPU execution.
+
 ## Local-only Volume-durable v7 successor (2026-10-30)
 
 The fixed-scale-1 v6 identity is CLOSED, FAILED, CONSUMED and RELEASED.

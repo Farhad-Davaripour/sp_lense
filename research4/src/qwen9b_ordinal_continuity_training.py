@@ -24,6 +24,7 @@ import json
 import math
 import os
 import random
+import re
 import shutil
 import socket
 import threading
@@ -2922,7 +2923,8 @@ class FastDispatchTracker:
 def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                        plan: TrainingPlan, output_dir, target_names: Sequence[str],
                        source_sha256: str, base_sha256: str,
-                       parent_checkpoint_dir=None, rank: int | None = None,
+                       parent_checkpoint_dir=None, parent_source_sha256=None,
+                       rank: int | None = None,
                        world_size: int | None = None, save_checkpoint=True,
                        callable_model=None, progress_callback=None) -> dict:
     """Execute one exact sequential stage on one declared runtime rank.
@@ -2950,8 +2952,9 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
     expected_parent = {"delta1": None, "delta2": "delta1", "delta3": "delta2"}[
         plan.stage]
     if expected_parent is None:
-        if parent_checkpoint_dir is not None:
+        if parent_checkpoint_dir is not None or parent_source_sha256 is not None:
             raise PermissionError("Delta1 must start from fresh residual state")
+        expected_parent_source_sha256 = None
         parent_metadata = {
             "frozen_base_parent": True,
             "qualifier_state_discarded": plan.mode == "qualification",
@@ -2959,10 +2962,17 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
     elif parent_checkpoint_dir is None:
         raise PermissionError("Sequential parent checkpoint is required")
     else:
+        expected_parent_source_sha256 = (
+            source_sha256 if parent_source_sha256 is None
+            else parent_source_sha256)
+        if (not isinstance(expected_parent_source_sha256, str)
+                or re.fullmatch(r"[0-9a-f]{64}",
+                                expected_parent_source_sha256) is None):
+            raise PermissionError("Sequential parent source binding is invalid")
         parent_metadata, predecessor_hashes = load_sequential_parent_branches(
             model, parent_checkpoint_dir, expected_stage=expected_parent,
             expected_targets=target_names, expected_base_sha256=base_sha256,
-            expected_source_sha256=source_sha256,
+            expected_source_sha256=expected_parent_source_sha256,
             expected_condition=plan.condition, expected_seed=plan.seed)
     model.set_train_stage(plan.stage)
     if any(parameter.dtype != torch.float32 for parameter in model.parameters()
@@ -3267,6 +3277,7 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
                     DATABRICKS_A10_GRAD_SCALER_POLICY),
             },
             "optimizer": optimizer_manifest, "resources": resources,
+            "parent_source_sha256": expected_parent_source_sha256,
             "predecessor_branch_hashes": predecessor_hashes,
             "stage_before": stage_before, "stage_after": stage_after,
             "active_branch_changed": active_changed,
@@ -3329,6 +3340,7 @@ def run_training_stage(*, model, tokenizer, tokenized_records: Sequence[dict],
             "durable_published_update_count": durable_published_updates,
             "successful_optimizer_updates": successful_updates,
             "global_journal_sha256": global_sha,
+            "parent_source_sha256": expected_parent_source_sha256,
             "updates": update_journal,
             "tokens_seen": tokens_seen,
             "overflow_recompute_tokens": overflow_recompute_tokens,

@@ -11,7 +11,7 @@ import os
 from .databricks_simulated_continuity import (
     DATABRICKS_EVIDENCE_VERSION, MODEL_ROOT,
     qualification_numerical_update_evidence,
-    validate_intent, verify_model_receipt)
+    sequential_parent_source_binding, validate_intent, verify_model_receipt)
 from .qwen9b_ordinal_continuity_training import (
     DATABRICKS_A10_ALLOCATOR_CONF, TrainingPlan,
     assert_fast_deltanet_dependencies, build_qualification_model,
@@ -313,7 +313,15 @@ def run(args):
                     or admission.get("base_qualification_carryforward_sha256")
                        != intent.get("base_qualification_carryforward_sha256")
                     or admission.get("qualification_technical_successor_sha256")
-                       != intent.get("qualification_technical_successor_sha256")):
+                       != intent.get("qualification_technical_successor_sha256")
+                    or admission.get(
+                        "primary_parent_identity_recovery_sha256")
+                       != intent.get(
+                           "primary_parent_identity_recovery_sha256")
+                    or admission.get(
+                        "primary_source_cache_lineage_recovery_sha256")
+                       != intent.get(
+                           "primary_source_cache_lineage_recovery_sha256")):
                 raise PermissionError("Primary admission differs from this one-use intent")
             model, targets, proof = build_qualified_model(
                 plan, admission, local_rank=local_rank,
@@ -333,6 +341,9 @@ def run(args):
             source_sha256=intent["source_sha256"],
             base_sha256=proof["base_component_sha256"],
             parent_checkpoint_dir=args.parent_checkpoint,
+            parent_source_sha256=(
+                None if plan.stage == "delta1" else
+                sequential_parent_source_binding(intent)["source_sha256"]),
             rank=rank, world_size=1, save_checkpoint=True,
             progress_callback=progress)
         validate_grad_scaler_recovery_receipt(receipt, plan)

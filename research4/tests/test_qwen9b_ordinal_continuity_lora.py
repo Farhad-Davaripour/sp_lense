@@ -18,6 +18,7 @@ from src.qwen9b_ordinal_continuity_lora import (
     install_ordinal_lora,
     load_adapter_checkpoint,
     model_component_hashes,
+    model_component_sha256,
     qwen35_text_target_names,
     save_adapter_checkpoint,
     trainable_inventory,
@@ -354,6 +355,32 @@ class OrdinalAdapterTests(unittest.TestCase):
             layers["text.q_proj"].base_layer.weight.add_(1.0)
         self.assertNotEqual(before["frozen_parameters_sha256"],
                             model_component_hashes(model)["frozen_parameters_sha256"])
+
+    def test_runtime_cache_path_changes_legacy_base_hash_only_through_config(self):
+        class Config:
+            def __init__(self, path):
+                self._name_or_path = path
+
+            def to_dict(self):
+                return {"_name_or_path": self._name_or_path,
+                        "model_type": "tiny"}
+
+        model, _ = wrapped()
+        model.model.config = Config(
+            "/tmp/research4_model_cache/lineage_delta1/model")
+        first_hash = model_component_sha256(model)
+        first_components = model_component_hashes(model)
+        model.model.config._name_or_path = (
+            "/tmp/research4_model_cache/lineage_delta2/model")
+        second_hash = model_component_sha256(model)
+        second_components = model_component_hashes(model)
+        self.assertNotEqual(first_hash, second_hash)
+        self.assertNotEqual(first_components["config_sha256"],
+                            second_components["config_sha256"])
+        for key in ("frozen_parameters_sha256", "quantization_state_sha256",
+                    "quantization_state_inventory_sha256",
+                    "persistent_buffers_sha256"):
+            self.assertEqual(first_components[key], second_components[key])
 
     def test_nf4_hash_binds_nested_shape_offset_and_state2(self):
         class State:
