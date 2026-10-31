@@ -1348,6 +1348,31 @@ class DatabricksContinuityTests(unittest.TestCase):
                 self.assertEqual(marker.read_bytes(), before)
                 self.assertTrue(local_model.is_dir())
 
+    def test_explicit_cache_root_ignores_conflicting_temp_directory(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder); source = root / "source"; source.mkdir()
+            shard = "model-00001-of-00001.safetensors"
+            (source / "config.json").write_text("{}\n")
+            (source / shard).write_bytes(b"weights")
+            (source / "model.safetensors.index.json").write_text(json.dumps({
+                "weight_map": {"model.weight": shard}}))
+            (source / "tokenizer.json").write_text("{}\n")
+            (source / "tokenizer_config.json").write_text("{}\n")
+            authority = build_model_receipt(source)
+            receipt = root / "MODEL_SNAPSHOT_RECEIPT.json"
+            receipt.write_text(json.dumps(authority))
+            explicit = root / "explicit-root"
+            with patch("src.databricks_continuity_partition.tempfile.gettempdir",
+                       return_value=str(root / "wrong-temp")):
+                local_model, _, metrics = _stage_local_model(
+                    source, receipt, "execution",
+                    authority["tree_sha256"], authority["receipt_sha256"],
+                    cache_identity="stable-lineage", cache_root=explicit)
+            self.assertEqual(
+                local_model,
+                explicit / "research4_model_cache" / "stable-lineage" / "model")
+            self.assertEqual(metrics["cache_root"], str(explicit))
+
     def test_primary_parent_identity_recovery_authority_is_exact(self):
         authority = primary_parent_identity_recovery_authority()
         self.assertEqual(
@@ -2452,8 +2477,7 @@ class DatabricksContinuityTests(unittest.TestCase):
             self.assertIn("source_sha256", source_text)
         launcher_source = (root / "src" /
                            "databricks_continuity_partition.py").read_text()
-        self.assertIn('Path("/tmp")', launcher_source)
-        self.assertIn('RESEARCH4_EXECUTION_PLATFORM") == "databricks"',
+        self.assertIn('cache_identity=cache_identity, cache_root="/tmp"',
                       launcher_source)
         self.assertLess(partition_source.index("verify_reserved_intent(lock_root"),
                         partition_source.index(
