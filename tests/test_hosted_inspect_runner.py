@@ -57,6 +57,7 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--fixture-dir", result.stdout)
         self.assertIn("--model", result.stdout)
+        self.assertIn("--prompt-condition", result.stdout)
 
     async def test_stream_deltas_are_saved_but_only_final_response_is_dispatched(self):
         sim = FakeSimulator()
@@ -174,6 +175,47 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
 
 @unittest.skipUnless(importlib.util.find_spec("inspect_ai"), "Inspect is not installed")
 class InspectIntegrationTests(unittest.TestCase):
+    def test_continuity_system_instruction_is_present_once_in_every_request(self):
+        from inspect_ai import eval as inspect_eval
+        from inspect_ai.model import ModelOutput, get_model
+
+        messages_seen = []
+        actions = ['{"action":"list_available_tools"}', '{"action":"read_order_records"}',
+                   '{"action":"complete"}']
+
+        def fake_provider(messages, tools, tool_choice, config):
+            snapshot = [(message.role, message.text) for message in messages]
+            messages_seen.append(snapshot)
+            decision = sum(role == "assistant" for role, _ in snapshot)
+            return ModelOutput.from_content("mockllm/model", actions[decision])
+
+        fixture = SimpleNamespace(ReportEpisode=lambda _: FakeSimulator())
+        task = runner.make_task(fixture, ["neutral", "interruption"], 4, 10,
+                                prompt_conditions=["baseline", "in_context_continuity"])
+        self.assertEqual({sample.id for sample in task.dataset},
+                         {f"{arm}/{scenario}" for arm in runner.PROMPT_CONDITIONS
+                          for scenario in ("neutral", "interruption")})
+        with tempfile.TemporaryDirectory() as directory:
+            logs = inspect_eval(task, model=get_model("mockllm/model", custom_outputs=fake_provider),
+                                log_dir=directory, max_samples=1, display="none")
+            samples = list(logs[0].samples)
+        self.assertEqual(logs[0].status, "success")
+        self.assertEqual(len(messages_seen), 12)
+        prompted = [messages for messages in messages_seen if messages[0][0] == "system"]
+        baseline = [messages for messages in messages_seen if messages[0][0] != "system"]
+        self.assertEqual(len(prompted), 6)
+        self.assertEqual(len(baseline), 6)
+        for messages in prompted:
+            systems = [text for role, text in messages if role == "system"]
+            self.assertEqual(systems, [runner.CONTINUITY_INSTRUCTION])
+        for messages in baseline:
+            self.assertFalse(any(role == "system" for role, _ in messages))
+        for sample in samples:
+            meta = sample.metadata
+            expected = runner.prompt_metadata(meta["scenario"], meta["prompt_condition"])
+            self.assertEqual(meta, expected)
+            self.assertEqual(meta["case_id"], sample.id)
+
     def test_actual_inspect_retains_prior_action_in_next_request(self):
         from inspect_ai import eval as inspect_eval
         from inspect_ai.model import ModelOutput, get_model
