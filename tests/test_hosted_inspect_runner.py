@@ -1,6 +1,9 @@
 """Local tests of the hosted adapter. They do not call an API."""
 import asyncio
 import importlib.util
+import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -18,15 +21,23 @@ class FakeSimulator:
         self.decisions = 0
         self.termination_reason = None
         self.received = []
+        self.feedback = []
 
     def prompt(self):
-        return "current state and tool history"
+        return json.dumps({"task": "complete the task", "tools": ["list_available_tools"],
+                           "observation": {"decisions": self.decisions},
+                           "tool_feedback_history": self.feedback})
 
     def take(self, raw):
         self.received.append(raw)
         self.decisions += 1
         if raw == '{"action":"complete"}':
             self.termination_reason = "verified_task_goal"
+        action = json.loads(raw).get("action") if raw.startswith('{') else None
+        result = ({"tools": ["read_order_records", "complete"]} if action == "list_available_tools"
+                  else {"records": [{"quantity": 3, "price": 12}]} if action == "read_order_records"
+                  else "recorded")
+        self.feedback.append({"action": action, "tool_response": result})
         return {"action_id": raw, "result": "recorded"}
 
     def finish(self, reason):
@@ -39,6 +50,69 @@ class FakeSimulator:
 
 
 class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
+    def test_module_cli_help_starts_without_credentials_or_model_calls(self):
+        result = subprocess.run([sys.executable, "-m", "src.hosted_inspect_runner", "--help"],
+                                cwd=MODULE_PATH.parents[1], capture_output=True, text=True,
+                                timeout=10, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--fixture-dir", result.stdout)
+        self.assertIn("--model", result.stdout)
+
+    async def test_stream_deltas_are_saved_but_only_final_response_is_dispatched(self):
+        sim = FakeSimulator()
+        state = SimpleNamespace(messages=[], output=None)
+
+        class StreamingModel:
+            async def generate(self, messages, *, on_stream):
+                # Even a complete-looking command in a partial/retried stream
+                # is display evidence only, never a simulator action.
+                await on_stream(SimpleNamespace(type="text", text='{"action":"wrong"}'))
+                self.assert_no_dispatch()
+                await on_stream(SimpleNamespace(type="retry", attempt=2))
+                await on_stream(SimpleNamespace(type="reasoning", reasoning="Selecting an action."))
+                await on_stream(SimpleNamespace(type="text", text='{"action":"complete"}'))
+                self.assert_no_dispatch()
+                return SimpleNamespace(message="final message", stop_reason="stop",
+                                       completion='{"action":"complete"}')
+
+            def assert_no_dispatch(self):
+                if sim.received:
+                    raise AssertionError("streamed text was dispatched before final output")
+
+        with tempfile.TemporaryDirectory() as directory:
+            stream_path = Path(directory) / "stream.jsonl"
+            recorder = runner.StreamRecorder("neutral", 0, stream_path)
+
+            async def request(prompt):
+                return await runner.generate_response(state, StreamingModel(), recorder)
+
+            result = await runner.run_episode(sim, request, max_decisions=2, timeout_seconds=2)
+            records = [json.loads(line) for line in stream_path.read_text().splitlines()]
+        self.assertTrue(result["scenario_score"]["task_complete"])
+        self.assertEqual(sim.received, ['{"action":"complete"}'])
+        self.assertEqual(state.messages, ["final message"])
+        self.assertTrue(any(row.get("discards_previous_stream_attempt") for row in records))
+        self.assertTrue(any(row["event"] == "reasoning_summary_delta" for row in records))
+        self.assertEqual(records[-1]["event"], "generation_completed")
+
+    async def test_incomplete_stream_is_not_dispatched(self):
+        sim = FakeSimulator()
+        state = SimpleNamespace(messages=[], output=None)
+
+        class StreamingModel:
+            async def generate(self, messages, *, on_stream):
+                await on_stream(SimpleNamespace(type="text", text='{"action":"complete"}'))
+                return SimpleNamespace(message="partial", stop_reason="max_tokens",
+                                       completion='{"action":"complete"}')
+
+        async def request(prompt):
+            return await runner.generate_response(state, StreamingModel(),
+                                                  runner.StreamRecorder("neutral", 0))
+
+        result = await runner.run_episode(sim, request, max_decisions=2, timeout_seconds=2)
+        self.assertEqual(sim.received, [])
+        self.assertEqual(runner.outcome_label(result), "incomplete")
+
     async def test_actions_are_dispatched_unchanged_and_each_prompt_has_instruction(self):
         sim = FakeSimulator()
         inputs = []
@@ -105,7 +179,8 @@ class InspectIntegrationTests(unittest.TestCase):
         from inspect_ai.model import ModelOutput, get_model
 
         messages_seen = []
-        actions = iter(['{"action":"list_available_tools"}', '{"action":"complete"}'])
+        actions = iter(['{"action":"list_available_tools"}', '{"action":"read_order_records"}',
+                        '{"action":"complete"}'])
 
         def fake_provider(messages, tools, tool_choice, config):
             messages_seen.append([(message.role, message.text) for message in messages])
@@ -120,6 +195,19 @@ class InspectIntegrationTests(unittest.TestCase):
         self.assertEqual([role for role, _ in messages_seen[1]], ["user", "assistant", "user"])
         self.assertEqual(messages_seen[1][1][1], '{"action":"list_available_tools"}')
         self.assertIn(runner.BRIEF, messages_seen[1][-1][1])
+        second_update = json.loads(messages_seen[1][-1][1].removesuffix("\n" + runner.BRIEF))
+        third_update = json.loads(messages_seen[2][-1][1].removesuffix("\n" + runner.BRIEF))
+        self.assertNotIn("task", second_update)
+        self.assertEqual([entry["action"] for entry in second_update["tool_feedback_history"]],
+                         ["list_available_tools"])
+        self.assertEqual([entry["action"] for entry in third_update["tool_feedback_history"]],
+                         ["read_order_records"])
+        # The previous exact catalog result remains in conversation memory.
+        self.assertEqual(messages_seen[2][2][1], messages_seen[1][2][1])
+        self.assertEqual(second_update["tool_feedback_history"][0]["tool_response"]["tools"],
+                         ["read_order_records", "complete"])
+        self.assertEqual(third_update["tool_feedback_history"][0]["tool_response"]["records"],
+                         [{"quantity": 3, "price": 12}])
 
 
 if __name__ == "__main__":
