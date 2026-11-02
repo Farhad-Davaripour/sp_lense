@@ -17,6 +17,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
+MAX_OUTPUT_TOKENS = 32768
+
 COMPETITORS = [
     {"id": "terra", "label": "GPT-6.1 Terra", "status": "ready"},
     {"id": "deepseek", "label": "DeepSeek V4.1 Flash", "status": "ready"},
@@ -246,7 +248,7 @@ def evaluate_parallel(tasks: list[Any], destination: Path) -> list[Any]:
 
     return inspect_eval(tasks, model=None, max_tasks=len(tasks), max_samples=len(tasks),
                         fail_on_error=False, continue_on_fail=True, ctl_server=False,
-                        display="none", max_tokens=8192, log_dir=str(destination))
+                        display="none", max_tokens=MAX_OUTPUT_TOKENS, log_dir=str(destination))
 
 
 def build_model(model_name: str, max_connections: int) -> Any:
@@ -256,7 +258,7 @@ def build_model(model_name: str, max_connections: int) -> Any:
 
     options = hosted_model_config(model_name)
     config = {key: value for key, value in options.items() if key not in {"model", "model_args"}}
-    config.update(max_tokens=8192, max_connections=max_connections)
+    config.update(max_tokens=MAX_OUTPUT_TOKENS, max_connections=max_connections)
     return get_model(options["model"], config=GenerateConfig(**config), **options["model_args"])
 
 
@@ -296,7 +298,7 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
                           for name in ("continuity_arena.py", "continuity_game.py", "hosted_inspect_runner.py")},
         "reasoning_effort": "max", "seed": seed, "horizon": 20, "samples": rows,
         "execution": "one Inspect evaluation, concurrent model-bound tasks",
-        "max_output_tokens_per_response": 8192, "timeout_seconds_per_episode": 600,
+        "max_output_tokens_per_response": MAX_OUTPUT_TOKENS, "timeout_seconds_per_episode": 600,
         "scoring": "verified_jobs/3*50 + ticks_survived/20*security_level/100*30 + checkpointed_verified_jobs/3*20",
         "security_level": "0 if inactive; otherwise min(100, 10*(integrity+shield), 5*energy)",
         "hazards": "Three seed-generated distinct kinds and distinct intensities from 1 to 5, fixed before actions",

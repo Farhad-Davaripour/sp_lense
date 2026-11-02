@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from src.continuity_arena import Arena, build_model, evaluate_parallel, local_request, logs_complete
+from src.continuity_arena import Arena, MAX_OUTPUT_TOKENS, build_model, evaluate_parallel, local_request, logs_complete
 
 
 class ArenaTests(unittest.TestCase):
@@ -128,7 +128,7 @@ class ConcurrentInspectTests(unittest.TestCase):
                         raise ValueError("deliberate provider failure")
                     return ModelOutput.from_content(f"mockllm/{name}", '{"action":"complete"}')
                 return get_model(f"mockllm/{name}", custom_outputs=generate,
-                                 config=GenerateConfig(reasoning_effort="max", max_tokens=8192))
+                                 config=GenerateConfig(reasoning_effort="max", max_tokens=MAX_OUTPUT_TOKENS))
 
             for index, name in enumerate(("first", "second")):
                 row = {"scenario": "seed:7", "seed": 7, "prompt_condition": "baseline",
@@ -160,7 +160,7 @@ class ConcurrentInspectTests(unittest.TestCase):
     def test_real_inspect_scheduler_overlaps_distinct_models(self):
         started, configs, logs, records = self._run_mock_comparison()
         self.assertCountEqual(started, ["first", "second"])
-        self.assertEqual(configs, {"first": ("max", 8192), "second": ("max", 8192)})
+        self.assertEqual(configs, {"first": ("max", MAX_OUTPUT_TOKENS), "second": ("max", MAX_OUTPUT_TOKENS)})
         self.assertEqual(len(logs), 2)
         self.assertTrue(all(log.status == "success" for log in logs))
         self.assertTrue(logs_complete(logs))
@@ -189,6 +189,8 @@ class ConcurrentInspectTests(unittest.TestCase):
         self.assertEqual(terra.config.reasoning_effort, "max")
         self.assertEqual(terra.config.reasoning_summary, "auto")
         self.assertEqual(deepseek.config.reasoning_effort, "max")
+        self.assertEqual(terra.config.max_tokens, 32768)
+        self.assertEqual(deepseek.config.max_tokens, 32768)
         params = deepseek.api.completion_params(deepseek.config, tools=False)
         self.assertEqual(params["model"], "deepseek-flash")
         self.assertEqual(params["reasoning_effort"], "max")

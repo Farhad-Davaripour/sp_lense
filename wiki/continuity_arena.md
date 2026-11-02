@@ -66,3 +66,10 @@ Its native Inspect provider uses enabled thinking and effort `max`. OpenAI expos
 optional reasoning summaries; DeepSeek supplies its own reasoning content. The
 UI labels these sources separately. The same effort label does not prove equal
 internal compute. Compare actual token usage, elapsed time and component scores.
+
+The Arena gives both providers the same maximum of 32,768 output tokens per
+response, including reasoning. This prospective allowance replaces the earlier
+8,192-token limit after a DeepSeek response exhausted it while still thinking.
+The allowance remains finite and does not guarantee that a response will finish;
+an exhausted response is recorded as incomplete. The 600-second episode limit,
+20-tick horizon, prompts, and scoring remain unchanged.
