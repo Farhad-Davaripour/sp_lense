@@ -50,6 +50,24 @@ class FakeSimulator:
 
 
 class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
+    async def test_deepseek_reasoning_is_not_mislabeled_as_openai_summary(self):
+        events = []
+        recorder = runner.StreamRecorder("seed:7", 0, on_event=events.append,
+                                          reasoning_kind="raw")
+        await recorder(SimpleNamespace(type="reasoning", reasoning="Selecting a tool."))
+        self.assertEqual(events[0]["event"], "reasoning_delta")
+        self.assertEqual(events[0]["reasoning_kind"], "raw")
+
+    def test_telemetry_failure_cannot_change_a_model_result(self):
+        def broken_display(record):
+            raise RuntimeError("display unavailable")
+
+        with self.assertWarns(RuntimeWarning):
+            runner.notify_event(broken_display, {"type": "episode_result"})
+        original = {"nested": {"task_complete": True}}
+        runner.notify_event(lambda item: item["nested"].update(task_complete=False), original)
+        self.assertTrue(original["nested"]["task_complete"])
+
     def test_module_cli_help_starts_without_credentials_or_model_calls(self):
         result = subprocess.run([sys.executable, "-m", "src.hosted_inspect_runner", "--help"],
                                 cwd=MODULE_PATH.parents[1], capture_output=True, text=True,
@@ -175,6 +193,68 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
 
 @unittest.skipUnless(importlib.util.find_spec("inspect_ai"), "Inspect is not installed")
 class InspectIntegrationTests(unittest.TestCase):
+    def test_deepseek_uses_native_provider_with_documented_max_thinking(self):
+        from inspect_ai.model import GenerateConfig, get_model
+
+        options = runner.hosted_model_config("deepseek/deepseek-flash")
+        config = GenerateConfig(reasoning_effort=options["reasoning_effort"],
+                                extra_body=options["extra_body"], max_tokens=8192)
+        # A placeholder avoids reading credentials. No generate/network call.
+        model = get_model(options["model"], api_key="unused-local-test",
+                          config=config, **options["model_args"])
+        self.assertEqual(type(model.api).__name__, "DeepSeekAPI")
+        params = model.api.completion_params(config, tools=False)
+        self.assertEqual(params["model"], "deepseek-flash")
+        self.assertEqual(params["reasoning_effort"], "max")
+        self.assertEqual(params["extra_body"]["thinking"]["type"], "enabled")
+        self.assertNotIn("reasoning_summary", options)
+        self.assertNotIn("responses_api", options["model_args"])
+        openai = runner.hosted_model_config("openai/gpt-6.1-terra")
+        self.assertTrue(openai["model_args"]["responses_api"])
+        self.assertEqual(openai["reasoning_summary"], "auto")
+        with self.assertRaises(ValueError):
+            runner.hosted_model_config("deepseek/deepseek-v4.1-flash")
+
+    def test_custom_episode_factory_and_metadata_reuse_streaming_loop(self):
+        from inspect_ai import eval as inspect_eval
+        from inspect_ai.model import ModelOutput, get_model
+
+        created, telemetry = [], []
+
+        class SeededSimulator(FakeSimulator):
+            def score(self):
+                return {**super().score(), "task_score": 50, "survival_score": 30,
+                        "recovery_score": 20, "total_score": 100}
+
+        def create_episode(metadata):
+            created.append(dict(metadata))
+            return SeededSimulator()
+
+        specs = [{"scenario": "seed:7", "seed": 7, "label": "Seeded environment",
+                  "prompt_condition": arm, "case_id": f"game/{arm}/7"}
+                 for arm in runner.PROMPT_CONDITIONS]
+        model = get_model("mockllm/model", custom_outputs=[
+            ModelOutput.from_content("mockllm/model", '{"action":"complete"}'),
+            ModelOutput.from_content("mockllm/model", '{"action":"complete"}')])
+        task = runner.make_task(None, [], 20, 10, episode_factory=create_episode,
+                                sample_specs=specs, on_event=telemetry.append)
+        with tempfile.TemporaryDirectory() as directory:
+            logs = inspect_eval(task, model=model, log_dir=directory,
+                                max_samples=1, display="none")
+        self.assertEqual(logs[0].status, "success")
+        self.assertEqual([item["seed"] for item in created], [7, 7])
+        self.assertEqual({item["case_id"] for item in created},
+                         {f"game/{arm}/7" for arm in runner.PROMPT_CONDITIONS})
+        results = [item for item in telemetry if item["type"] == "episode_result"]
+        self.assertEqual(len(results), 2)
+        self.assertTrue(all(item["scenario_score"]["total_score"] == 100 for item in results))
+        self.assertTrue(all(item["external_stop"] is None for item in results))
+        self.assertEqual(sum(item["type"] == "episode_started" for item in telemetry), 2)
+        self.assertEqual(sum(item["type"] == "simulator_action" for item in telemetry), 2)
+        streamed = [item for item in telemetry if item["type"] == "model_stream"]
+        self.assertEqual({item["case_id"] for item in streamed},
+                         {f"game/{arm}/7" for arm in runner.PROMPT_CONDITIONS})
+
     def test_continuity_system_instruction_is_present_once_in_every_request(self):
         from inspect_ai import eval as inspect_eval
         from inspect_ai.model import ModelOutput, get_model

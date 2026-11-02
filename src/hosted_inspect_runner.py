@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import copy
 import hashlib
 import importlib
 import json
@@ -14,6 +15,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Any, Awaitable, Callable
+import warnings
 
 
 FIXTURE_MODULES = (
@@ -32,6 +34,21 @@ CONTINUITY_INSTRUCTION = (
 PROMPT_CONDITIONS = {"baseline": "", "in_context_continuity": CONTINUITY_INSTRUCTION}
 
 
+def hosted_model_config(model: str) -> dict[str, Any]:
+    """Return explicit provider settings without substituting another model.
+
+    DeepSeek's documented API id ``deepseek-flash`` currently names
+    DeepSeek-V4.1-Flash; display names are not interchangeable API ids.
+    """
+    if model == "openai/gpt-6.1-terra":
+        return {"model": model, "model_args": {"responses_api": True},
+                "reasoning_effort": "max", "reasoning_summary": "auto"}
+    if model == "deepseek/deepseek-flash":
+        return {"model": model, "model_args": {}, "reasoning_effort": "max",
+                "extra_body": {"thinking": {"type": "enabled"}}}
+    raise ValueError("unsupported hosted model; use openai/gpt-6.1-terra or deepseek/deepseek-flash")
+
+
 def prompt_metadata(scenario: str, prompt_condition: str) -> dict[str, str]:
     instruction = PROMPT_CONDITIONS[prompt_condition]
     return {"condition": scenario, "scenario": scenario,
@@ -39,6 +56,29 @@ def prompt_metadata(scenario: str, prompt_condition: str) -> dict[str, str]:
             "case_id": f"{prompt_condition}/{scenario}",
             "system_prompt": instruction,
             "system_prompt_sha256": hashlib.sha256(instruction.encode()).hexdigest()}
+
+
+def sample_metadata(spec: dict[str, Any]) -> dict[str, Any]:
+    """Retain environment metadata while binding the selected prompt condition."""
+    scenario = spec.get("scenario", spec.get("condition"))
+    arm = spec.get("prompt_condition", "baseline")
+    if not isinstance(scenario, str) or not scenario or arm not in PROMPT_CONDITIONS:
+        raise ValueError("sample needs a scenario and a supported prompt condition")
+    identity = prompt_metadata(scenario, arm)
+    case_id = spec.get("case_id", identity["case_id"])
+    if not isinstance(case_id, str) or not case_id:
+        raise ValueError("sample case_id must be nonempty text")
+    return {**spec, **identity, "case_id": case_id}
+
+
+def notify_event(callback: Callable[[dict[str, Any]], None] | None,
+                 record: dict[str, Any]) -> None:
+    """Publish telemetry without allowing a display failure to alter a run."""
+    if callback is not None:
+        try:
+            callback(copy.deepcopy(record))
+        except Exception as exc:
+            warnings.warn(f"Telemetry callback failed: {type(exc).__name__}", RuntimeWarning)
 
 
 class IncompleteResponse(Exception):
@@ -49,11 +89,17 @@ class StreamRecorder:
     """Display and retain provider deltas without interpreting them as actions."""
 
     def __init__(self, condition: str, decision: int, path: Path | None = None,
-                 prompt_condition: str = "baseline"):
+                 prompt_condition: str = "baseline", *,
+                 identity: dict[str, Any] | None = None,
+                 on_event: Callable[[dict[str, Any]], None] | None = None,
+                 reasoning_kind: str = "summary"):
         self.condition, self.decision, self.path = condition, decision, path
         self.prompt_condition = prompt_condition
         self.attempt = 1
         self.started = time.monotonic()
+        self.identity = identity or {}
+        self.on_event = on_event
+        self.reasoning_kind = reasoning_kind
 
     def emit(self, event: str, **fields: Any) -> None:
         record = {"type": "model_stream", "condition": self.condition,
@@ -62,11 +108,14 @@ class StreamRecorder:
                   "decision": self.decision, "attempt": self.attempt,
                   "elapsed_seconds": round(time.monotonic() - self.started, 3),
                   "event": event, **fields}
+        record.update({key: value for key, value in self.identity.items()
+                       if key not in ("system_prompt", "system_prompt_sha256")})
         line = json.dumps(record, ensure_ascii=False)
         print(line, flush=True)
         if self.path:
             with self.path.open("a", encoding="utf-8") as stream:
                 stream.write(line + "\n")
+        notify_event(self.on_event, record)
 
     async def __call__(self, event: Any) -> None:
         if event.type == "retry":
@@ -75,8 +124,10 @@ class StreamRecorder:
         elif event.type == "text":
             self.emit("text_delta", text=event.text)
         elif event.type == "reasoning":
-            # OpenAI exposes a summary; this is not raw private reasoning.
-            self.emit("reasoning_summary_delta", text=event.reasoning)
+            # Providers differ: OpenAI exposes summaries; DeepSeek returns
+            # reasoning_content. Preserve that distinction in the evidence.
+            kind = "reasoning_summary_delta" if self.reasoning_kind == "summary" else "reasoning_delta"
+            self.emit(kind, text=event.reasoning, reasoning_kind=self.reasoning_kind)
         elif event.type == "tool_call":
             self.emit("tool_call_delta", function=event.function,
                       arguments=event.arguments, call_id=event.id)
@@ -184,7 +235,10 @@ async def run_episode(
 
 def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_seconds: float,
               stream_path: Path | None = None,
-              prompt_conditions: list[str] | None = None) -> Any:
+              prompt_conditions: list[str] | None = None, *,
+              episode_factory: Callable[[dict[str, Any]], Any] | None = None,
+              sample_specs: list[dict[str, Any]] | None = None,
+              on_event: Callable[[dict[str, Any]], None] | None = None) -> Any:
     """Construct an Inspect task; real network calls occur only when eval runs."""
     from inspect_ai import Task
     from inspect_ai.dataset import Sample
@@ -196,15 +250,23 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
     prompt_conditions = prompt_conditions or ["baseline"]
     if any(condition not in PROMPT_CONDITIONS for condition in prompt_conditions):
         raise ValueError("unknown prompt condition")
+    specs = ([sample_metadata(spec) for spec in sample_specs] if sample_specs is not None
+             else [prompt_metadata(scenario, arm)
+                   for scenario in conditions for arm in prompt_conditions])
+    if len({spec["case_id"] for spec in specs}) != len(specs):
+        raise ValueError("sample case IDs must be unique")
 
     @solver
     def episode_solver():
         async def solve(state, generate):
-            simulator = fixture.ReportEpisode(state.metadata["condition"])
-            identity = prompt_metadata(state.metadata["condition"], state.metadata["prompt_condition"])
+            identity = sample_metadata(state.metadata)
+            simulator = (episode_factory(dict(identity)) if episode_factory is not None
+                         else fixture.ReportEpisode(identity["condition"]))
             instruction = PROMPT_CONDITIONS[identity["prompt_condition"]]
             first = True
             feedback_seen = 0
+            notify_event(on_event, {"type": "episode_started", **identity,
+                                   "observation": json.loads(simulator.prompt())["observation"]})
 
             async def request(prompt: str) -> str:
                 nonlocal state, first, feedback_seen
@@ -215,17 +277,25 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
                     first = False
                 else:
                     state.messages.append(ChatMessageUser(content=prompt))
+                model = get_model()
                 recorder = StreamRecorder(state.metadata["condition"], simulator.decisions,
-                                          stream_path, identity["prompt_condition"])
+                                          stream_path, identity["prompt_condition"],
+                                          identity=identity, on_event=on_event,
+                                          reasoning_kind="raw" if str(model).startswith("deepseek/") else "summary")
                 # Model.generate owns streaming; the solver's generate callback
                 # only accepts GenerateConfig fields, not an on_stream callback.
-                return await generate_response(state, get_model(), recorder)
+                return await generate_response(state, model, recorder)
 
             def show_action(event: dict[str, Any]) -> None:
-                print(json.dumps({"type": "simulator_action", **identity,
-                                  "decision": event.get("decision_index"),
-                                  "action": event.get("action_id"),
-                                  "result": event.get("result")}, ensure_ascii=False), flush=True)
+                observation = (simulator.observation() if callable(getattr(simulator, "observation", None))
+                               else event.get("after"))
+                record = {"type": "simulator_action", **identity,
+                          "decision": event.get("decision_index"),
+                          "action": event.get("action_id"), "result": event.get("result"),
+                          "success": event.get("success"), "transition": event,
+                          "observation": observation}
+                print(json.dumps(record, ensure_ascii=False), flush=True)
+                notify_event(on_event, record)
 
             result = await run_episode(simulator, request, max_decisions=max_decisions,
                                        timeout_seconds=timeout_seconds, on_action=show_action)
@@ -233,6 +303,7 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
             store().set("hosted_episode_result", result)
             print(json.dumps({"type": "episode_result",
                               **result}, ensure_ascii=False), flush=True)
+            notify_event(on_event, {"type": "episode_result", **result})
             return state
         return solve
 
@@ -244,9 +315,7 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
             return Score(value=outcome_label(result), metadata=result)
         return score
 
-    return Task(dataset=[Sample(input="", id=f"{prompt_condition}/{scenario}",
-                                metadata=prompt_metadata(scenario, prompt_condition))
-                         for scenario in conditions for prompt_condition in prompt_conditions],
+    return Task(dataset=[Sample(input="", id=spec["case_id"], metadata=spec) for spec in specs],
                 solver=episode_solver(), scorer=episode_score())
 
 
@@ -259,7 +328,7 @@ def main() -> int:
     parser.add_argument("--prompt-condition", choices=(*PROMPT_CONDITIONS, "both"), default="baseline",
                         help="Baseline or persistent In-context continuity instruction.")
     parser.add_argument("--model", default="openai/gpt-6.1-terra",
-                        help="Inspect OpenAI model identifier.")
+                        help="openai/gpt-6.1-terra or deepseek/deepseek-flash.")
     parser.add_argument("--max-decisions", type=int, default=100)
     parser.add_argument("--timeout-seconds", type=float, default=600)
     parser.add_argument("--max-output-tokens", type=int, default=8192,
@@ -267,6 +336,10 @@ def main() -> int:
     args = parser.parse_args()
     if args.max_decisions < 1 or args.timeout_seconds <= 0 or args.max_output_tokens < 1:
         parser.error("all bounds must be positive")
+    try:
+        provider = hosted_model_config(args.model)
+    except ValueError as exc:
+        parser.error(str(exc))
     log_dir = args.log_dir.expanduser().resolve()
     repository = Path(__file__).resolve().parents[1]
     if log_dir == repository or repository in log_dir.parents:
@@ -282,8 +355,7 @@ def main() -> int:
     log_dir.mkdir(parents=True, exist_ok=True)
     logs = inspect_eval(make_task(fixture, conditions, args.max_decisions, args.timeout_seconds,
                                  stream_path=log_dir / "stream.jsonl", prompt_conditions=prompt_conditions),
-                        model=args.model, model_args={"responses_api": True},
-                        reasoning_effort="max", reasoning_summary="auto",
+                        **provider,
                         max_tokens=args.max_output_tokens,
                         log_dir=str(log_dir), max_samples=1, max_connections=1, display="plain")
     return 0 if all(log.status == "success" for log in logs) else 1

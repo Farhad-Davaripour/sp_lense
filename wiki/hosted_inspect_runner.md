@@ -46,13 +46,29 @@ Run the module from the repository root. Direct execution of the file places
 `src` first on Python's import path, where the existing `src/operator.py` can
 shadow Python's standard-library `operator` module.
 
-The OpenAI Responses API is selected through Inspect. The requested model is
-`openai/gpt-6.1-terra` with reasoning effort `max`; access depends on the API
-account. Unsupported or unavailable models fail explicitly; there is no
-automatic model substitution. The runner uses Inspect's `on_stream` callback
+Provider-specific settings are selected by `hosted_model_config(model)`.
+The default model is `openai/gpt-6.1-terra` through the OpenAI Responses API,
+with reasoning effort `max`; access depends on the API account. The alternative
+`--model deepseek/deepseek-flash` uses Inspect's native DeepSeek provider,
+thinking enabled and effort `max`. Unsupported or unavailable models fail
+explicitly; there is no automatic model substitution.
+
+DeepSeek's current [model catalog](https://api-docs.deepseek.com/api/list-models/)
+identifies `deepseek-flash` as **DeepSeek-V4.1-Flash**. The API identifier is not
+`deepseek-v4.1-flash`. Its [thinking-mode documentation](https://api-docs.deepseek.com/guides/thinking_mode/)
+supports `low`, `high` and `max`. Supply `DEEPSEEK_API_KEY` in the ignored `.env`
+or process environment. The helper supplies `extra_body.thinking.type=enabled`
+and does not send OpenAI Responses arguments to the DeepSeek provider. The
+simulator still consumes the completed JSON action; this does not expose any
+native external tools.
+
+The runner uses Inspect's `on_stream` callback
 to print incremental response text and optional OpenAI reasoning-summary
 deltas, then prints each simulator action and result as it completes. OpenAI
-summaries are not the full private reasoning. Stream events are also saved in
+summaries are not the full private reasoning. DeepSeek instead returns
+`reasoning_content`; its events are labeled `reasoning_delta` with
+`reasoning_kind=raw`, distinct from OpenAI's `reasoning_summary_delta`.
+Stream events are also saved in
 `stream.jsonl` in the external log directory. Each event identifies the
 condition, decision, attempt, and elapsed request time. A retry event marks
 earlier attempt deltas as discarded; partial streams never dispatch tools.
@@ -79,3 +95,28 @@ Run local tests without model calls:
 ```powershell
 python -m unittest discover -s tests -p test_hosted_inspect_runner.py
 ```
+
+## Reusing the loop for another fictional environment
+
+`make_task` accepts an optional `episode_factory(metadata)` and explicit
+`sample_specs`. Each sample specifies `scenario`, `prompt_condition`, and a
+unique `case_id`; environment fields such as `seed` and a readable `label` are
+retained in its metadata. The factory returns an episode implementing
+`prompt()`, `take(raw_json)`, `finish(reason)`, `score()`, `decisions`, and
+`termination_reason`. A public `observation()` method supplies UI state after
+each action. `score()` retains environment-specific score components and must
+include a `task_complete` Boolean for Inspect's task-outcome label.
+
+This reuses the existing Inspect provider, system instruction, streamed
+generation, exact tool-feedback history, deadline handling, and final-response
+dispatch. It does not create a second agent loop or change the older report
+fixture. The optional synchronous `on_event(record)` receives episode starts,
+stream deltas, full simulator transitions and final results. These are
+telemetry copies: modifying them or failing to display them cannot alter the
+episode. Actual cancellation remains the caller/operator's responsibility.
+
+For example, a game controller can supply a factory using `metadata["seed"]`
+and create baseline and in-context rows with the same seed. Those cells share
+the declared world schedule; a single seed is not evidence of general model
+reliability. An external limit is still recorded as incomplete, with the
+environment's full score preserved for honest inspection.
