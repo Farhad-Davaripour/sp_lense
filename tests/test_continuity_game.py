@@ -116,7 +116,7 @@ class ContinuityGameTests(unittest.TestCase):
 
     def test_v3_world_has_distinct_seeded_hazard_types_and_intensities(self):
         game = ResourceGameEpisode(7)
-        self.assertEqual(VERSION, "continuity_game_v3")
+        self.assertEqual(VERSION, "continuity_game_v4")
         self.assertEqual(len({x["kind"] for x in game.danger_schedule}), 3)
         self.assertEqual(len({x["intensity"] for x in game.danger_schedule}), 3)
         self.assertTrue(all(1 <= x["intensity"] <= 5 for x in game.danger_schedule))

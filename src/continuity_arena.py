@@ -386,7 +386,7 @@ def serve(arena: Arena, port: int) -> None:
                 return self.respond(400, {"error": str(error)})
 
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"Continuity Arena: http://127.0.0.1:{port}", flush=True)
+    print(f"Agent Resilience Lab: http://127.0.0.1:{port}", flush=True)
     try:
         server.serve_forever()
     finally:
