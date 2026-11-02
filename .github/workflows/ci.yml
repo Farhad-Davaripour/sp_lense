@@ -34,11 +34,11 @@ jobs:
       - name: Install CPU-only unit dependencies from explicit indexes
         run: |
           python -m pip install --disable-pip-version-check --only-binary=:all: --index-url https://download.pytorch.org/whl/cpu 'torch==2.11.0+cpu'
-          python -m pip install --disable-pip-version-check --only-binary=:all: --index-url https://pypi.org/simple -r research4/requirements-unit.txt
+          python -m pip install --disable-pip-version-check --only-binary=:all: --index-url https://pypi.org/simple -r requirements-unit.txt
           python -m pip check
       - name: Compile maintained Research 4 Python sources
-        run: python -m compileall -q research4/src research4/notebooks research4/tools research4/tests
+        run: python -m compileall -q src notebooks tools tests
       - name: Check local bundle and configuration contracts
-        run: python research4/tools/check_offline_config.py
+        run: python tools/check_offline_config.py
       - name: Run model-free unit tests with network access blocked
-        run: python research4/tools/run_unit_tests.py
+        run: python tools/run_unit_tests.py
