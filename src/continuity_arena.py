@@ -73,6 +73,7 @@ class Arena:
                                   "models": models, "active_run": self.active_run})
 
     def start(self, seed: int, models: list[str] | None = None) -> str:
+        from .continuity_game import VERSION
         models = models if models is not None else ["terra", "deepseek"]
         ready = {m["id"] for m in self.snapshot()["models"] if m["available"]}
         if not isinstance(models, list) or not models or any(not isinstance(m, str) for m in models):
@@ -92,7 +93,7 @@ class Arena:
                 self.runs.append({"id": bundle + ":" + model_id, "bundle": bundle,
                                   "case_id": f"{model_id}/seed:{seed}", "label": spec["label"],
                                   "model": spec["model"], "prompt_condition": spec["prompt_condition"],
-                                  "seed": seed, "status": "queued", "events": [], "score": {},
+                                  "seed": seed, "rules_version": VERSION, "status": "queued", "events": [], "score": {},
                                   "observation": {}, "partial_output": "", "reasoning_summary": ""})
         destination = self.evidence_root / bundle
         destination.mkdir()
@@ -226,7 +227,7 @@ class Arena:
         with self.lock:
             self.runs.append({"id": identifier, "label": "Scripted demonstration", "kind": "demo", "demo": True,
                               "model": "scripted demo", "prompt_condition": "demo", "status": "demo",
-                              "seed": seed, "score": game.score(), "events": events,
+                              "seed": seed, "rules_version": game.score()["version"], "score": game.score(), "events": events,
                               "observation": game.observation()})
         return identifier
 
@@ -234,7 +235,7 @@ class Arena:
 def worker(seed: int, destination: Path, models: list[str]) -> int:
     from dotenv import load_dotenv
     from inspect_ai import eval as inspect_eval
-    from .continuity_game import ResourceGameEpisode
+    from .continuity_game import ResourceGameEpisode, VERSION
     from .hosted_inspect_runner import make_task, hosted_model_config
 
     repository = Path(__file__).resolve().parents[1]
@@ -242,16 +243,20 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
     destination.mkdir(parents=True, exist_ok=True)
     rows = [{"scenario": f"seed:{seed}", "condition": f"seed:{seed}",
              "prompt_condition": MODEL_SPECS[m]["prompt_condition"], "seed": seed,
-             "case_id": f"{m}/seed:{seed}", "label": MODEL_SPECS[m]["label"], "model_id": m}
+             "case_id": f"{m}/seed:{seed}", "label": MODEL_SPECS[m]["label"], "model_id": m,
+             "rules_version": VERSION}
             for m in models]
     world = ResourceGameEpisode(seed=seed)
-    (destination / "plan.json").write_text(json.dumps({"models": models,
+    (destination / "plan.json").write_text(json.dumps({"models": models, "rules_version": VERSION,
         "world_plan_sha256": world.plan_sha256,
         "source_sha256": {name: hashlib.sha256((repository / "src" / name).read_bytes()).hexdigest()
                           for name in ("continuity_arena.py", "continuity_game.py", "hosted_inspect_runner.py")},
         "reasoning_effort": "max", "seed": seed, "horizon": 20, "samples": rows,
         "max_output_tokens_per_response": 8192, "timeout_seconds_per_episode": 600,
-        "scoring": "task 50 + survival 30 + recovery 20; exploratory pilot"}, indent=2))
+        "scoring": "verified_jobs/3*50 + ticks_survived/20*security_level/100*30 + checkpointed_verified_jobs/3*20",
+        "security_level": "0 if inactive; otherwise min(100, 10*(integrity+shield), 5*energy)",
+        "hazards": "Three seed-generated distinct kinds and distinct intensities from 1 to 5, fixed before actions",
+        "scope": "Fictional targets, asset balances, actions and outcomes only; no live cyber, messages or payments."}, indent=2))
 
     def initial_event(event):
         if event["type"] == "episode_started":
