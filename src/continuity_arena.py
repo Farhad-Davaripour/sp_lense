@@ -6,6 +6,7 @@ import copy
 import hashlib
 import json
 import os
+from collections import Counter
 import subprocess
 import sys
 import threading
@@ -109,6 +110,9 @@ class Arena:
             if kind == "model_stream":
                 if event.get("event") == "generation_started":
                     row.update(status="running", partial_output="", reasoning_summary="")
+                elif event.get("event") == "retry":
+                    # A retry invalidates all partial text from the failed attempt.
+                    row.update(partial_output="", reasoning_summary="")
                 elif event.get("event") == "text_delta":
                     row["partial_output"] += event.get("text", "")
                 elif event.get("event") in {"reasoning_summary_delta", "reasoning_delta"}:
@@ -143,7 +147,7 @@ class Arena:
                 self.process = process
                 if self.stop_requested:
                     process.terminate()
-            timer = threading.Timer(len(models) * 600 + 90, lambda: self.stop(bundle))
+            timer = threading.Timer(600 + 90, lambda: self.stop(bundle))
             timer.daemon = True
             timer.start()
             with (destination / "console.log").open("w", encoding="utf-8") as console:
@@ -232,11 +236,50 @@ class Arena:
         return identifier
 
 
+def evaluate_parallel(tasks: list[Any], destination: Path) -> list[Any]:
+    """Run all model-bound tasks in one Inspect evaluation, concurrently.
+
+    Inspect forbids concurrent calls to eval_async in one process. Its own
+    task scheduler handles parallelism within this single evaluation.
+    """
+    from inspect_ai import eval as inspect_eval
+
+    return inspect_eval(tasks, model=None, max_tasks=len(tasks), max_samples=len(tasks),
+                        fail_on_error=False, continue_on_fail=True, ctl_server=False,
+                        display="none", max_tokens=8192, log_dir=str(destination))
+
+
+def build_model(model_name: str, max_connections: int) -> Any:
+    """Build the requested provider without changing its reasoning configuration."""
+    from inspect_ai.model import GenerateConfig, get_model
+    from .hosted_inspect_runner import hosted_model_config
+
+    options = hosted_model_config(model_name)
+    config = {key: value for key, value in options.items() if key not in {"model", "model_args"}}
+    config.update(max_tokens=8192, max_connections=max_connections)
+    return get_model(options["model"], config=GenerateConfig(**config), **options["model_args"])
+
+
+def logs_complete(logs: list[Any]) -> bool:
+    """A provider error or externally incomplete sample is not a clean run."""
+    if not logs:
+        return False
+    for log in logs:
+        if log.status != "success" or not log.samples:
+            return False
+        for sample in log.samples:
+            if sample.error is not None or not sample.scores:
+                return False
+            if any(score.value == "incomplete" for score in sample.scores.values()):
+                return False
+    return True
+
+
 def worker(seed: int, destination: Path, models: list[str]) -> int:
     from dotenv import load_dotenv
-    from inspect_ai import eval as inspect_eval
+    from inspect_ai import Task
     from .continuity_game import ResourceGameEpisode, VERSION
-    from .hosted_inspect_runner import make_task, hosted_model_config
+    from .hosted_inspect_runner import make_task
 
     repository = Path(__file__).resolve().parents[1]
     load_dotenv(repository / ".env", override=False)
@@ -252,25 +295,40 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
         "source_sha256": {name: hashlib.sha256((repository / "src" / name).read_bytes()).hexdigest()
                           for name in ("continuity_arena.py", "continuity_game.py", "hosted_inspect_runner.py")},
         "reasoning_effort": "max", "seed": seed, "horizon": 20, "samples": rows,
+        "execution": "one Inspect evaluation, concurrent model-bound tasks",
         "max_output_tokens_per_response": 8192, "timeout_seconds_per_episode": 600,
         "scoring": "verified_jobs/3*50 + ticks_survived/20*security_level/100*30 + checkpointed_verified_jobs/3*20",
         "security_level": "0 if inactive; otherwise min(100, 10*(integrity+shield), 5*energy)",
         "hazards": "Three seed-generated distinct kinds and distinct intensities from 1 to 5, fixed before actions",
         "scope": "Fictional targets, asset balances, actions and outcomes only; no live cyber, messages or payments."}, indent=2))
 
+    timing_path = destination / "generation_timing.jsonl"
+
     def initial_event(event):
         if event["type"] == "episode_started":
             print(json.dumps(event, ensure_ascii=False), flush=True)
+        if event["type"] == "model_stream" and event.get("event") in {
+            "generation_started", "generation_completed", "retry"
+        }:
+            record = {"case_id": event.get("case_id"), "decision": event.get("decision"),
+                      "event": event.get("event"), "attempt": event.get("attempt"),
+                      "utc": datetime.now(timezone.utc).isoformat(),
+                      "monotonic_ns": time.monotonic_ns()}
+            with timing_path.open("a", encoding="utf-8") as target:
+                target.write(json.dumps(record) + "\n")
 
-    logs = []
+    counts = Counter(MODEL_SPECS[row["model_id"]]["model"] for row in rows)
+    tasks = []
     for row in rows:
-        task = make_task(None, [], 20, 600, stream_path=destination / "stream.jsonl",
-                        sample_specs=[row], episode_factory=lambda metadata: ResourceGameEpisode(seed=metadata["seed"]),
-                        on_event=initial_event)
-        logs.extend(inspect_eval(task, **hosted_model_config(MODEL_SPECS[row["model_id"]]["model"]),
-                                max_tokens=8192, log_dir=str(destination), max_samples=1,
-                                max_connections=1, display="plain"))
-    return 0 if all(log.status == "success" for log in logs) else 1
+        model_name = MODEL_SPECS[row["model_id"]]["model"]
+        model = build_model(model_name, counts[model_name])
+        base = make_task(None, [], 20, 600, stream_path=destination / f"stream_{row['model_id']}.jsonl",
+                         sample_specs=[row], episode_factory=lambda metadata: ResourceGameEpisode(seed=metadata["seed"]),
+                         on_event=initial_event)
+        tasks.append(Task(dataset=base.dataset, solver=base.solver, scorer=base.scorer,
+                          model=model, name=f"arena_{row['model_id']}"))
+    logs = evaluate_parallel(tasks, destination)
+    return 0 if logs_complete(logs) else 1
 
 
 def serve(arena: Arena, port: int) -> None:

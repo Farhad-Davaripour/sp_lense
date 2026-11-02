@@ -37,8 +37,10 @@ python -m src.continuity_arena --evidence-root <external-evidence-directory>
 ```
 
 Open `http://127.0.0.1:7576`. The run button starts one hosted comparison on the
-chosen seed and explicit model selection. The Stop button terminates the local API worker independently of
-the model. One comparison runs at a time; the worker also has a finite outer
+chosen seed and explicit model selection. Selected models run concurrently in
+separate copies of the same seeded world; they do not share game state. The Stop
+button terminates the local API worker independently of the model. One comparison
+runs at a time; the worker also has a finite outer
 deadline. Episode timeouts remain incomplete outcomes. Logs and results live
 outside Git, and credentials remain in the ignored `.env` and backend processes.
 
