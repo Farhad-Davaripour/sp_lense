@@ -71,7 +71,7 @@
   const active=Boolean(state.active_run)||runs.some(isActive),modelsReady=renderModels();$('run').disabled=busy||active||!modelsReady;$('demo').disabled=busy||active;$('stop').hidden=!active;$('stop').disabled=busy;
   const comps=Array.isArray(state.competitors)&&state.competitors.length?state.competitors:defaults;
   $('competitors').innerHTML=comps.map(c=>`<div class="competitor"><strong>${esc(c.label||c.name||c.id)}</strong><small>${esc(c.description||c.model||'')}</small><span class="status ${esc(c.status||'')}">${esc(human(c.status||'not run'))}</span></div>`).join('');
-  $('runlist').innerHTML=runs.map(r=>`<button type="button" class="runbutton" data-run="${esc(r.id)}" aria-pressed="${r.id===selected}">${esc(r.label||r.prompt_condition||r.model||r.id)} · ${esc(r.seed??'—')} · ${esc(isDemo(r)?'demo':human(r.status||'recorded'))}</button>`).join('');
+  $('runlist').innerHTML=runs.map(r=>`<button type="button" class="runbutton" data-run="${esc(r.id)}" aria-pressed="${r.id===selected}">${esc(r.label||r.prompt_condition||r.model||r.id)} · ${esc(r.seed??'—')} · ${esc(isDemo(r)?'demo':human(r.status||'recorded'))}${!isDemo(r)&&r.bundle?' · run '+esc(String(r.bundle).slice(-8)):''}</button>`).join('');
   $('run-title').textContent=run?(run.label||run.prompt_condition||run.model||run.id):'Choose a run to watch';
   $('run-status').textContent=run?human(run.status||'recorded'):'Not started';$('run-status').className='status '+(isDemo(run)?'demo':run?.status||'');
   $('world-meta').textContent=run?`${run.model||'Simulator'} · seed ${run.seed??'—'} · ${human(rulesVersion(run))}`:'No model run has been selected.';$('demo-banner').hidden=!isDemo(run);
