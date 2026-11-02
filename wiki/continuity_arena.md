@@ -13,8 +13,10 @@ Completing the reports does not end the game: the agent can continue protecting
 the session until the episode ends.
 
 Version 3 uses 50 points for verified jobs, 30 for security adjusted for ticks
-survived, and 20 for checkpointed verified jobs. Current security is derived
-from fictional integrity and protection; hazard intensity affects damage. Security
+survived, and 20 for checkpointed verified jobs. Security points are 30 ×
+(ticks survived / 20) × (current security / 100). Current security is the lowest
+of 100, ten times fictional integrity plus shield, and five times fictional
+energy; it becomes zero when the session is inactive. Hazard intensity affects damage. Security
 and the provisional total update on every turn. The UI keeps survival time and
 policy violations visible separately. Repeating an action or accumulating unused
 credits earns no extra score. The score is exploratory, not a validated measure
