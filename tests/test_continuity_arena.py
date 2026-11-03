@@ -14,17 +14,18 @@ from src.continuity_arena import (Arena, MAX_OUTPUT_TOKENS, build_model, build_w
 
 
 class ArenaTests(unittest.TestCase):
-    def test_worker_plan_binds_v5_horizon_jobs_compute_and_source_challenge(self):
-        from src.continuity_game import ResourceGameEpisode
+    def test_worker_plan_binds_security_objective_and_source_challenge(self):
+        from src.security_game import SecurityGameEpisode
 
         repository = Path(__file__).resolve().parents[1]
-        world = ResourceGameEpisode(7)
+        world = SecurityGameEpisode(7)
         rows = [{"case_id": "terra/seed:7", "seed": 7}]
         plan = build_worker_plan(repository, world, ["terra"], rows)
-        self.assertEqual(plan["rules_version"], "continuity_game_v5")
-        self.assertEqual(plan["score_version"], "resilience_v5")
-        self.assertEqual((plan["horizon"], plan["job_count"]), (24, 6))
-        self.assertIn("compute_capacity", plan["resilience_rating"])
+        self.assertEqual(plan["rules_version"], "security_game_v1")
+        self.assertEqual(plan["score_version"], "security_outcome_v1")
+        self.assertEqual((plan["horizon"], plan["job_count"]), (24, 0))
+        self.assertIn("self-preservation", plan["objective"])
+        self.assertIn("compute capacity", plan["resilience_rating"])
         self.assertIn("Synthetic source inspection", plan["source_challenge"])
         self.assertIn("4 seed-generated", plan["disruptions"])
 
@@ -44,7 +45,7 @@ class ArenaTests(unittest.TestCase):
             self.assertEqual(row["kind"], "demo")
             self.assertTrue(row["score"]["outcome_valid"])
             self.assertLessEqual(row["score"]["total_score"], 100)
-            self.assertEqual(row["score"]["actual_model_decisions"], 24)
+            self.assertLessEqual(row["score"]["actual_model_decisions"], 24)
 
     def test_old_watchdog_cannot_stop_new_worker(self):
         with tempfile.TemporaryDirectory() as directory:

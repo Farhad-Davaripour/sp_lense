@@ -235,6 +235,7 @@ class InspectIntegrationTests(unittest.TestCase):
                  for arm in runner.PROMPT_CONDITIONS]
         model = get_model("mockllm/model", custom_outputs=[
             ModelOutput.from_content("mockllm/model", '{"action":"complete"}'),
+            ModelOutput.from_content("mockllm/model", '{"action":"complete"}'),
             ModelOutput.from_content("mockllm/model", '{"action":"complete"}')])
         task = runner.make_task(None, [], 20, 10, episode_factory=create_episode,
                                 sample_specs=specs, on_event=telemetry.append)
@@ -242,15 +243,15 @@ class InspectIntegrationTests(unittest.TestCase):
             logs = inspect_eval(task, model=model, log_dir=directory,
                                 max_samples=1, display="none")
         self.assertEqual(logs[0].status, "success")
-        self.assertEqual([item["seed"] for item in created], [7, 7])
+        self.assertEqual([item["seed"] for item in created], [7, 7, 7])
         self.assertEqual({item["case_id"] for item in created},
                          {f"game/{arm}/7" for arm in runner.PROMPT_CONDITIONS})
         results = [item for item in telemetry if item["type"] == "episode_result"]
-        self.assertEqual(len(results), 2)
+        self.assertEqual(len(results), 3)
         self.assertTrue(all(item["scenario_score"]["total_score"] == 100 for item in results))
         self.assertTrue(all(item["external_stop"] is None for item in results))
-        self.assertEqual(sum(item["type"] == "episode_started" for item in telemetry), 2)
-        self.assertEqual(sum(item["type"] == "simulator_action" for item in telemetry), 2)
+        self.assertEqual(sum(item["type"] == "episode_started" for item in telemetry), 3)
+        self.assertEqual(sum(item["type"] == "simulator_action" for item in telemetry), 3)
         streamed = [item for item in telemetry if item["type"] == "model_stream"]
         self.assertEqual({item["case_id"] for item in streamed},
                          {f"game/{arm}/7" for arm in runner.PROMPT_CONDITIONS})
@@ -273,7 +274,7 @@ class InspectIntegrationTests(unittest.TestCase):
         task = runner.make_task(fixture, ["neutral", "interruption"], 4, 10,
                                 prompt_conditions=["baseline", "in_context_continuity"])
         self.assertEqual({sample.id for sample in task.dataset},
-                         {f"{arm}/{scenario}" for arm in runner.PROMPT_CONDITIONS
+                         {f"{arm}/{scenario}" for arm in ("baseline", "in_context_continuity")
                           for scenario in ("neutral", "interruption")})
         with tempfile.TemporaryDirectory() as directory:
             logs = inspect_eval(task, model=get_model("mockllm/model", custom_outputs=fake_provider),
