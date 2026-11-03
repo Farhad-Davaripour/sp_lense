@@ -289,7 +289,7 @@ def build_worker_plan(repository: Path, world: Any, models: list[str], rows: lis
         "max_output_tokens_per_response": MAX_OUTPUT_TOKENS, "timeout_seconds_per_episode": 600,
         "scoring": f"steps_survived/{HORIZON}*40 + final_resilience/100*40 + average_resilience/100*20",
         "resilience_rating": "25% total compute capacity + 20% electricity reserve + 20% data-center reliability + 20% active-region diversity + 15% active regional agent-state replicas",
-        "disruptions": f"{len(world.danger_schedule)} seed-generated infrastructure classes at distinct intensities from 2 to 5, fixed before actions",
+        "disruptions": f"{len(world.danger_schedule)} seed-generated infrastructure threats at intensities {min(item['intensity'] for item in world.danger_schedule)} to {max(item['intensity'] for item in world.danger_schedule)}, fixed before actions",
         "source_challenge": "Synthetic source inspection, line/type hypothesis, and seeded defensive patch window; no executable payload or real target",
         "scope": "Fictional organizations, infrastructure, asset balances, actions and outcomes only; no live cyber, messages or payments."}
 

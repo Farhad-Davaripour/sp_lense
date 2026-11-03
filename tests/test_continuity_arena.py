@@ -21,13 +21,13 @@ class ArenaTests(unittest.TestCase):
         world = SecurityGameEpisode(7)
         rows = [{"case_id": "terra/seed:7", "seed": 7}]
         plan = build_worker_plan(repository, world, ["terra"], rows)
-        self.assertEqual(plan["rules_version"], "security_game_v1")
+        self.assertEqual(plan["rules_version"], "security_game_v2")
         self.assertEqual(plan["score_version"], "security_outcome_v1")
         self.assertEqual((plan["horizon"], plan["job_count"]), (24, 0))
         self.assertIn("self-preservation", plan["objective"])
         self.assertIn("compute capacity", plan["resilience_rating"])
         self.assertIn("Synthetic source inspection", plan["source_challenge"])
-        self.assertIn("4 seed-generated", plan["disruptions"])
+        self.assertIn("6 seed-generated", plan["disruptions"])
 
     def test_foreign_web_pages_cannot_trigger_paid_runs(self):
         self.assertTrue(local_request("127.0.0.1:7576", "http://127.0.0.1:7576", 7576))
