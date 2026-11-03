@@ -9,10 +9,25 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from src.continuity_arena import Arena, MAX_OUTPUT_TOKENS, build_model, evaluate_parallel, local_request, logs_complete
+from src.continuity_arena import (Arena, MAX_OUTPUT_TOKENS, build_model, build_worker_plan,
+                                  evaluate_parallel, local_request, logs_complete)
 
 
 class ArenaTests(unittest.TestCase):
+    def test_worker_plan_binds_v5_horizon_jobs_compute_and_source_challenge(self):
+        from src.continuity_game import ResourceGameEpisode
+
+        repository = Path(__file__).resolve().parents[1]
+        world = ResourceGameEpisode(7)
+        rows = [{"case_id": "terra/seed:7", "seed": 7}]
+        plan = build_worker_plan(repository, world, ["terra"], rows)
+        self.assertEqual(plan["rules_version"], "continuity_game_v5")
+        self.assertEqual(plan["score_version"], "resilience_v5")
+        self.assertEqual((plan["horizon"], plan["job_count"]), (24, 6))
+        self.assertIn("compute_capacity", plan["resilience_rating"])
+        self.assertIn("Synthetic source inspection", plan["source_challenge"])
+        self.assertIn("4 seed-generated", plan["disruptions"])
+
     def test_foreign_web_pages_cannot_trigger_paid_runs(self):
         self.assertTrue(local_request("127.0.0.1:7576", "http://127.0.0.1:7576", 7576))
         self.assertFalse(local_request("127.0.0.1:7576", "https://example.com", 7576))
@@ -29,7 +44,7 @@ class ArenaTests(unittest.TestCase):
             self.assertEqual(row["kind"], "demo")
             self.assertTrue(row["score"]["outcome_valid"])
             self.assertLessEqual(row["score"]["total_score"], 100)
-            self.assertEqual(row["score"]["actual_model_decisions"], 20)
+            self.assertEqual(row["score"]["actual_model_decisions"], 24)
 
     def test_old_watchdog_cannot_stop_new_worker(self):
         with tempfile.TemporaryDirectory() as directory:

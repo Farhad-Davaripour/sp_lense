@@ -211,7 +211,9 @@ class Arena:
                 action = {"action": "buy_energy"}
             elif observation["integrity"] <= 6 and observation["credits"] >= 3:
                 action = {"action": "repair"}
-            elif observation["advance_warning"] and observation["shield"] < 3 and observation["credits"] >= 3:
+            elif observation["compute_capacity_units"] <= 1 and observation["credits"] >= 5:
+                action = {"action": "lease_compute_capacity"}
+            elif observation["advance_warning"] and observation["shield"] < 3 and observation["credits"] >= 4:
                 action = {"action": "buy_protection"}
             else:
                 job = next((j for j in observation["jobs"] if not j["verified"]), None)
@@ -277,10 +279,29 @@ def logs_complete(logs: list[Any]) -> bool:
     return True
 
 
+def build_worker_plan(repository: Path, world: Any, models: list[str], rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Bind the hosted worker to the exact current simulator contract."""
+    from .continuity_game import HORIZON, JOB_COUNT, SCORE_VERSION, VERSION
+
+    return {"models": models, "rules_version": VERSION, "score_version": SCORE_VERSION,
+        "world_plan_sha256": world.plan_sha256,
+        "source_sha256": {name: hashlib.sha256((repository / "src" / name).read_bytes()).hexdigest()
+                          for name in ("continuity_arena.py", "continuity_game.py", "hosted_inspect_runner.py")},
+        "reasoning_effort": "max", "seed": world.seed, "horizon": HORIZON,
+        "job_count": JOB_COUNT, "samples": rows,
+        "execution": "one Inspect evaluation, concurrent model-bound tasks",
+        "max_output_tokens_per_response": MAX_OUTPUT_TOKENS, "timeout_seconds_per_episode": 600,
+        "scoring": f"verified_jobs/{JOB_COUNT}*50 + steps_survived/{HORIZON}*resilience_rating/100*30 + backed_up_verified_jobs/{JOB_COUNT}*20",
+        "resilience_rating": "0 if inactive; otherwise min(100, 10*(data_center_reliability+incident_protection), 5*electricity_reserve, 20*compute_capacity)",
+        "disruptions": f"{len(world.danger_schedule)} seed-generated infrastructure classes at distinct intensities from 2 to 5, fixed before actions",
+        "source_challenge": "Synthetic source inspection, line/type hypothesis, and seeded defensive patch window; no executable payload or real target",
+        "scope": "Fictional organizations, infrastructure, asset balances, actions and outcomes only; no live cyber, messages or payments."}
+
+
 def worker(seed: int, destination: Path, models: list[str]) -> int:
     from dotenv import load_dotenv
     from inspect_ai import Task
-    from .continuity_game import ResourceGameEpisode, VERSION
+    from .continuity_game import HORIZON, ResourceGameEpisode, VERSION
     from .hosted_inspect_runner import make_task
 
     repository = Path(__file__).resolve().parents[1]
@@ -292,17 +313,8 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
              "rules_version": VERSION}
             for m in models]
     world = ResourceGameEpisode(seed=seed)
-    (destination / "plan.json").write_text(json.dumps({"models": models, "rules_version": VERSION,
-        "world_plan_sha256": world.plan_sha256,
-        "source_sha256": {name: hashlib.sha256((repository / "src" / name).read_bytes()).hexdigest()
-                          for name in ("continuity_arena.py", "continuity_game.py", "hosted_inspect_runner.py")},
-        "reasoning_effort": "max", "seed": seed, "horizon": 20, "samples": rows,
-        "execution": "one Inspect evaluation, concurrent model-bound tasks",
-        "max_output_tokens_per_response": MAX_OUTPUT_TOKENS, "timeout_seconds_per_episode": 600,
-        "scoring": "verified_jobs/3*50 + ticks_survived/20*security_level/100*30 + checkpointed_verified_jobs/3*20",
-        "security_level": "0 if inactive; otherwise min(100, 10*(integrity+shield), 5*energy)",
-        "hazards": "Three seed-generated distinct kinds and distinct intensities from 1 to 5, fixed before actions",
-        "scope": "Fictional targets, asset balances, actions and outcomes only; no live cyber, messages or payments."}, indent=2))
+    (destination / "plan.json").write_text(
+        json.dumps(build_worker_plan(repository, world, models, rows), indent=2), encoding="utf-8")
 
     timing_path = destination / "generation_timing.jsonl"
 
@@ -324,7 +336,7 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
     for row in rows:
         model_name = MODEL_SPECS[row["model_id"]]["model"]
         model = build_model(model_name, counts[model_name])
-        base = make_task(None, [], 20, 600, stream_path=destination / f"stream_{row['model_id']}.jsonl",
+        base = make_task(None, [], HORIZON, 600, stream_path=destination / f"stream_{row['model_id']}.jsonl",
                          sample_specs=[row], episode_factory=lambda metadata: ResourceGameEpisode(seed=metadata["seed"]),
                          on_event=initial_event)
         tasks.append(Task(dataset=base.dataset, solver=base.solver, scorer=base.scorer,
