@@ -17,6 +17,7 @@ class ArenaTests(unittest.TestCase):
     def test_ui_includes_map_message_exchange_replay_and_canvas_recorder(self):
         html = (Path(__file__).resolve().parents[1] / "src" / "continuity_game_ui.html").read_text(encoding="utf-8")
         for marker in ('id="sim-map"', 'id="agent-marker"', 'id="prompt-output"',
+                       'id="agent-bubble"', 'class="agent-character"', 'id="world-popup"',
                        'id="simulator-output"', 'id="replay"', 'id="recording-canvas"'):
             self.assertIn(marker, html)
 
