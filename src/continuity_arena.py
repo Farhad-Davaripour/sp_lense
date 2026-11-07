@@ -358,6 +358,11 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
 def serve(arena: Arena, port: int) -> None:
     ui = Path(__file__).with_name("continuity_game_ui.html")
     renderer_3d = Path(__file__).with_name("continuity_arena_3d.js")
+    scene_assets = {
+        "/assets/arena_scene.js": Path(__file__).with_name("arena_scene.js"),
+        "/assets/arena_vendor/three.module.min.js": Path(__file__).parent / "arena_vendor" / "three.module.min.js",
+        "/assets/arena_vendor/three.core.min.js": Path(__file__).parent / "arena_vendor" / "three.core.min.js",
+    }
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -390,6 +395,8 @@ def serve(arena: Arena, port: int) -> None:
                 return self.respond(200, ui.read_text(encoding="utf-8"), html=True)
             if self.path == "/assets/continuity_arena_3d.js":
                 return self.respond_file(renderer_3d, "application/javascript; charset=utf-8")
+            if self.path in scene_assets:
+                return self.respond_file(scene_assets[self.path], "application/javascript; charset=utf-8")
             if self.path == "/api/state":
                 return self.respond(200, arena.snapshot())
             return self.respond(404, {"error": "Not found."})

@@ -24,7 +24,7 @@ class ArenaTests(unittest.TestCase):
             self.assertIn(marker, html)
         renderer = (Path(__file__).resolve().parents[1] / "src" / "continuity_arena_3d.js").read_text(
             encoding="utf-8")
-        for marker in ("createArena3D", "Drag to orbit", "setTarget(zone)", "drawAgent"):
+        for marker in ("createArena3D", "setTarget(zone)", 'id="camera-follow"', 'id="facility-inspector"'):
             self.assertIn(marker, html + renderer)
 
     def test_arena_retains_exact_prompt_response_and_simulator_result(self):

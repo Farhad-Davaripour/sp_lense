@@ -117,6 +117,22 @@ below, so their results are never grouped together.
 
 ## Graphical replay and video
 
+The spectator now uses a local Three.js 0.180.0 WebGL renderer with directional
+shadows, glass/metal/concrete materials, paved service roads, facility entrances
+and cutaway interiors. The two pinned browser modules and MIT license live in
+`src/arena_vendor`; runtime viewing makes no CDN requests. The renderer is
+implemented in `src/arena_scene.js`, behind the existing buffered scene interface.
+
+Click a facility or its label to inspect its recorded resources, then use
+**Inspect close up**. **Overview**, **Follow agent**, **Cutaway on**, and **Large
+view** control the camera and presentation. Drag orbits, shift-drag pans, and the
+wheel zooms. Run controls are in a drawer; history is collapsed so the world gets
+more space. The architecture is a schematic grouping of geographic sites rather
+than a literal map. Walking and building dimensions have no simulation authority.
+GPU cabinets, availability indicators and state-copy devices follow the recorded
+region data. Replay continues to use saved events without model calls, and the
+video canvas composites the WebGL frame with the recorded message panels.
+
 The local spectator UI renders the simulator as a small game world with an
 operations center, four regional data centers, a resource market, security lab,
 and synthetic contract exchange. A walking agent character moves to the location
@@ -124,11 +140,11 @@ associated with each action. Buildings pulse when used, resource actions emit a
 small visual effect, and speech popups show whether the model received a prompt,
 selected an action, or received a simulator result.
 
-The scene uses an original top-down survival-arena style inspired by the movement
-and pickup rhythm of action roguelikes. The character follows curved walking paths
-through trees, rocks, power cells, compute crates, cryptocurrency caches and
-replica beacons. Threat creatures become visible as danger increases. The scene
-does not reuse artwork, characters or assets from another game.
+The current architecture uses original procedural geometry and locally generated
+surface textures. Server cabinets represent the recorded allocation; red indicators
+mark disabled servers and a state-copy device appears only when a copy is active.
+The agent follows service roads between action locations. Incident warnings use
+recorded events. Earlier decorative pickups and threat creatures are not displayed.
 
 Every new hosted run records the exact user prompt, model response and simulator
 result for each decision. The UI shows those three records side by side. Completed
