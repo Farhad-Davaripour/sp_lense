@@ -7,31 +7,31 @@
 
   const TAU = Math.PI * 2;
   const ZONES = {
-    operations: { x: 0, z: 0, h: 2.6, w: 2.5, d: 2.2, color: "#4b8ef7" },
-    region_north: { x: 0, z: -6.4, h: 3.2, w: 2.3, d: 1.9, color: "#66b7ff" },
-    region_west: { x: -6.6, z: -2.8, h: 2.9, w: 2.4, d: 2.0, color: "#53c5d8" },
-    region_east: { x: 6.6, z: -2.8, h: 2.9, w: 2.4, d: 2.0, color: "#53c5d8" },
-    region_coastal: { x: 6.1, z: 4.9, h: 2.8, w: 2.4, d: 2.0, color: "#45a6d8" },
-    market: { x: -6.2, z: 4.8, h: 2.1, w: 2.8, d: 2.2, color: "#f0b44b" },
-    security_lab: { x: -2.2, z: 5.8, h: 2.5, w: 2.5, d: 2.1, color: "#8f71ff" },
-    contract_exchange: { x: 2.5, z: 5.8, h: 2.7, w: 2.5, d: 2.1, color: "#ef6fa5" },
+    operations: { x: 0, z: 0, h: 3.9, w: 3.0, d: 2.6, color: "#4b8ef7" },
+    region_north: { x: 0, z: -8.2, h: 4.0, w: 3.4, d: 2.9, color: "#66b7ff" },
+    region_west: { x: -8.6, z: -3.6, h: 3.4, w: 3.4, d: 2.9, color: "#53c5d8" },
+    region_east: { x: 8.6, z: -3.6, h: 3.4, w: 3.4, d: 2.9, color: "#53c5d8" },
+    region_coastal: { x: 8.8, z: 6.5, h: 3.2, w: 3.4, d: 2.9, color: "#45a6d8" },
+    market: { x: -8.8, z: 6.5, h: 2.8, w: 3.6, d: 2.8, color: "#f0b44b" },
+    security_lab: { x: -3.1, z: 8.8, h: 3.3, w: 3.4, d: 3.0, color: "#8f71ff" },
+    contract_exchange: { x: 3.8, z: 8.8, h: 4.0, w: 3.5, d: 2.9, color: "#ef6fa5" },
   };
 
   const TREE_POSITIONS = [
-    [-8.5, -6.5], [-7.7, -5.3], [-8.7, -1], [-8.1, 2.4], [-8.8, 6.5],
-    [8.4, -6.4], [7.8, -5.2], [8.8, -0.8], [8.2, 2.6], [8.8, 6.4],
-    [-4.3, -6.8], [4.5, -6.9], [-4.4, 7.1], [4.6, 7.2], [-0.8, 7.6],
+    [-11.8, -8.5], [-10.9, -6.5], [-12.1, -0.8], [-11.5, 3.3], [-12.1, 9.1],
+    [11.8, -8.4], [10.9, -6.4], [12.1, -0.6], [11.5, 3.5], [12.0, 9.0],
+    [-5.6, -9.6], [5.7, -9.7], [-6.2, 10.7], [6.5, 10.8], [0.1, 11.1],
   ];
-  const ROCK_POSITIONS = [[-4.4, -1.1], [4.4, -0.8], [-4.4, 2.4], [4.1, 2.5], [0.2, -3.7]];
+  const ROCK_POSITIONS = [[-5.8, -1.4], [5.8, -1.1], [-5.9, 3.2], [5.5, 3.3], [0.2, -4.8]];
   const PICKUPS = [
-    { x: -4.1, z: 2.4, icon: "⚡", color: "#ffe36e" },
-    { x: 4.2, z: 2.0, icon: "▣", color: "#79c8ff" },
-    { x: -4.5, z: 5.8, icon: "₿", color: "#ffbf52" },
-    { x: 4.6, z: 5.9, icon: "◆", color: "#7be1ba" },
+    { x: -5.8, z: 2.6, icon: "⚡", color: "#ffe36e" },
+    { x: 5.9, z: 2.2, icon: "▣", color: "#79c8ff" },
+    { x: -6.0, z: 8.7, icon: "₿", color: "#ffbf52" },
+    { x: 7.0, z: 9.1, icon: "◆", color: "#7be1ba" },
   ];
   const THREATS = [
-    { x: -7.8, z: 1.1 }, { x: 7.8, z: 1.0 }, { x: -0.9, z: 4.0 },
-    { x: 2.7, z: -2.9 }, { x: -2.9, z: -3.0 }, { x: 0.2, z: -5.0 }, { x: 5.0, z: 1.0 },
+    { x: -10.3, z: 1.2 }, { x: 10.3, z: 1.1 }, { x: -1.2, z: 5.5 },
+    { x: 3.9, z: -4.5 }, { x: -4.0, z: -4.4 }, { x: 0.3, z: -6.3 }, { x: 6.8, z: 1.3 },
   ];
 
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -67,7 +67,7 @@
     let dpr = 1;
     let yaw = -0.48;
     let targetYaw = yaw;
-    let cameraRadius = 21;
+    let cameraRadius = 28;
     let targetRadius = cameraRadius;
     let dragging = false;
     let pointerX = 0;
@@ -95,10 +95,10 @@
     const camera = () => {
       const position = {
         x: Math.sin(yaw) * cameraRadius,
-        y: 12.7,
+        y: 16.8,
         z: Math.cos(yaw) * cameraRadius,
       };
-      const focus = { x: 0, y: 0.5, z: 0.8 };
+      const focus = { x: 0, y: 0.7, z: 1.4 };
       const forward = normal({ x: focus.x - position.x, y: focus.y - position.y, z: focus.z - position.z });
       const right = normal(cross(forward, { x: 0, y: 1, z: 0 }));
       const up = cross(right, forward);
@@ -146,12 +146,19 @@
     };
 
     const faceCommands = [];
-    const addBox = (x, y, z, w, h, d, color, glow = false) => {
+    const addBox = (x, y, z, w, h, d, color, glow = false, rotation = 0) => {
+      const cosine = Math.cos(rotation);
+      const sine = Math.sin(rotation);
+      const point = (dx, dy, dz) => ({
+        x: x + dx * cosine - dz * sine,
+        y: y + dy,
+        z: z + dx * sine + dz * cosine,
+      });
       const points = [
-        { x: x - w / 2, y, z: z - d / 2 }, { x: x + w / 2, y, z: z - d / 2 },
-        { x: x + w / 2, y, z: z + d / 2 }, { x: x - w / 2, y, z: z + d / 2 },
-        { x: x - w / 2, y: y + h, z: z - d / 2 }, { x: x + w / 2, y: y + h, z: z - d / 2 },
-        { x: x + w / 2, y: y + h, z: z + d / 2 }, { x: x - w / 2, y: y + h, z: z + d / 2 },
+        point(-w / 2, 0, -d / 2), point(w / 2, 0, -d / 2),
+        point(w / 2, 0, d / 2), point(-w / 2, 0, d / 2),
+        point(-w / 2, h, -d / 2), point(w / 2, h, -d / 2),
+        point(w / 2, h, d / 2), point(-w / 2, h, d / 2),
       ];
       const faces = [
         [[4, 5, 6, 7], shade(color, 1.2)], [[0, 1, 5, 4], shade(color, 0.72)],
@@ -166,6 +173,126 @@
       });
     };
 
+    const addCylinder = (x, y, z, radius, h, color, sides = 12, glow = false) => {
+      const view = camera();
+      const bottom = [];
+      const top = [];
+      for (let index = 0; index < sides; index += 1) {
+        const angle = index / sides * TAU;
+        bottom.push({ x: x + Math.cos(angle) * radius, y, z: z + Math.sin(angle) * radius });
+        top.push({ x: x + Math.cos(angle) * radius, y: y + h, z: z + Math.sin(angle) * radius });
+      }
+      for (let index = 0; index < sides; index += 1) {
+        const next = (index + 1) % sides;
+        const projected = [bottom[index], bottom[next], top[next], top[index]].map((point) => projectWithCamera(point, view));
+        faceCommands.push({
+          projected,
+          depth: projected.reduce((sum, point) => sum + point.depth, 0) / projected.length,
+          fill: shade(color, 0.66 + (index % 4) * 0.09),
+          stroke: glow ? `${color}cc` : "#07111fcc",
+          glow,
+        });
+      }
+      const projectedTop = top.map((point) => projectWithCamera(point, view));
+      faceCommands.push({
+        projected: projectedTop,
+        depth: projectedTop.reduce((sum, point) => sum + point.depth, 0) / projectedTop.length,
+        fill: shade(color, 1.2),
+        stroke: glow ? `${color}cc` : "#07111fcc",
+        glow,
+      });
+    };
+
+    const addPyramid = (x, y, z, radius, h, color, sides = 4, rotation = Math.PI / 4) => {
+      const view = camera();
+      const base = [];
+      for (let index = 0; index < sides; index += 1) {
+        const angle = rotation + index / sides * TAU;
+        base.push({ x: x + Math.cos(angle) * radius, y, z: z + Math.sin(angle) * radius });
+      }
+      const peak = { x, y: y + h, z };
+      for (let index = 0; index < sides; index += 1) {
+        const next = (index + 1) % sides;
+        const projected = [base[index], base[next], peak].map((point) => projectWithCamera(point, view));
+        faceCommands.push({
+          projected,
+          depth: projected.reduce((sum, point) => sum + point.depth, 0) / projected.length,
+          fill: shade(color, 0.72 + index * 0.1),
+          stroke: `${color}cc`,
+          glow: false,
+        });
+      }
+    };
+
+    const addDataCenter = (id, zone, index) => {
+      const accent = index === 0 ? "#7de6ff" : index === 1 ? "#55d6c5" : index === 2 ? "#78baff" : "#4fd2ef";
+      addBox(zone.x, 0, zone.z, 3.4, 0.16, 2.9, "#294858");
+      addBox(zone.x, 0.16, zone.z + 0.12, 2.9, 0.42, 2.35, "#264c60");
+      [-0.86, 0, 0.86].forEach((offset, rack) => {
+        addBox(zone.x + offset, 0.58, zone.z - 0.1, 0.66, 1.85 + (rack === 1 ? 0.3 : 0), 1.5, zone.color, true);
+        addBox(zone.x + offset, 0.73, zone.z - 0.91, 0.45, 1.42, 0.08, "#152433");
+      });
+      addBox(zone.x, 2.65, zone.z - 0.05, 2.7, 0.18, 1.65, accent, true);
+      addCylinder(zone.x - 0.75, 2.83, zone.z + 0.3, 0.34, 0.24, "#8eb9c7", 12);
+      addCylinder(zone.x + 0.75, 2.83, zone.z + 0.3, 0.34, 0.24, "#8eb9c7", 12);
+      addBox(zone.x - 1.22, 0.25, zone.z + 1.18, 0.34, 0.58, 0.46, "#f0b44b");
+      addBox(zone.x + 1.22, 0.25, zone.z + 1.18, 0.34, 0.58, 0.46, "#f0b44b");
+      if (id === "region_north") {
+        addCylinder(zone.x, 2.83, zone.z - 0.45, 0.1, 1.05, "#b8ecff", 8, true);
+        addPyramid(zone.x, 3.78, zone.z - 0.45, 0.58, 0.28, "#b8ecff", 10, 0);
+      } else if (id === "region_west") {
+        addCylinder(zone.x, 0.58, zone.z, 0.56, 1.9, "#5df2c1", 12, true);
+      } else if (id === "region_east") {
+        [-0.85, 0.85].forEach((offset) => addBox(zone.x + offset, 2.95, zone.z - 0.15, 1.25, 0.08, 0.75, "#2d78c4", true, -0.2));
+      } else {
+        addCylinder(zone.x - 0.72, 0.58, zone.z + 0.15, 0.58, 1.5, "#7bdbea", 14);
+        addCylinder(zone.x + 0.72, 0.58, zone.z + 0.15, 0.58, 1.5, "#7bdbea", 14);
+      }
+    };
+
+    const addFacility = (id, zone, index) => {
+      if (id.startsWith("region_")) return addDataCenter(id, zone, index);
+      if (id === "operations") {
+        addCylinder(zone.x, 0, zone.z, 1.9, 0.22, "#344f68", 12);
+        addBox(zone.x, 0.22, zone.z, 2.8, 0.7, 2.2, "#2861a8", true);
+        addCylinder(zone.x, 0.92, zone.z, 1.15, 1.05, "#4b8ef7", 12, true);
+        addCylinder(zone.x, 1.97, zone.z, 0.72, 0.48, "#79c8ff", 12, true);
+        addBox(zone.x, 2.45, zone.z, 0.28, 1.25, 0.28, "#b6e8ff", true);
+        addPyramid(zone.x, 3.68, zone.z, 0.46, 0.22, "#7be1ba", 8, 0);
+        [[-1.22, -0.85], [1.22, -0.85], [-1.22, 0.85], [1.22, 0.85]].forEach(([dx, dz]) => addCylinder(zone.x + dx, 0.25, zone.z + dz, 0.18, 0.82, "#7be1ba", 8, true));
+      } else if (id === "market") {
+        addBox(zone.x, 0, zone.z, 3.6, 0.16, 2.8, "#58482d");
+        addBox(zone.x, 0.16, zone.z + 0.25, 3.1, 0.65, 2.1, "#7b5624");
+        addPyramid(zone.x, 0.81, zone.z + 0.2, 2.25, 0.86, "#f0b44b", 4, Math.PI / 4);
+        [-1.05, 0, 1.05].forEach((offset, stall) => {
+          addBox(zone.x + offset, 0.18, zone.z - 0.92, 0.78, 0.92, 0.48, stall === 1 ? "#f3ca65" : "#d98745", true);
+          addBox(zone.x + offset, 1.1, zone.z - 0.92, 0.92, 0.08, 0.58, "#fff0a6", true);
+        });
+        addBox(zone.x - 1.58, 0.15, zone.z + 0.75, 0.18, 2.1, 0.18, "#e9d8a1");
+        addBox(zone.x + 1.58, 0.15, zone.z + 0.75, 0.18, 2.1, 0.18, "#e9d8a1");
+        addBox(zone.x, 2.0, zone.z + 0.75, 3.3, 0.12, 0.18, "#ffe57c", true);
+      } else if (id === "security_lab") {
+        addCylinder(zone.x, 0, zone.z, 1.8, 0.28, "#3f356d", 12);
+        addCylinder(zone.x, 0.28, zone.z, 1.42, 1.05, "#604dc4", 14, true);
+        addCylinder(zone.x, 1.33, zone.z, 1.12, 0.52, "#8f71ff", 14, true);
+        addCylinder(zone.x, 1.85, zone.z, 0.76, 0.42, "#c1afff", 14, true);
+        addPyramid(zone.x, 2.27, zone.z, 0.86, 0.78, "#8f71ff", 12, 0);
+        [[-1.55, 0], [1.55, 0], [0, -1.5], [0, 1.5]].forEach(([dx, dz]) => {
+          addCylinder(zone.x + dx, 0.18, zone.z + dz, 0.43, 0.88, "#4fb9d1", 10, true);
+          addBox(zone.x + dx / 2, 0.42, zone.z + dz / 2, Math.abs(dx) > 0 ? 1.15 : 0.22, 0.16, Math.abs(dz) > 0 ? 1.15 : 0.22, "#83e6ff", true);
+        });
+      } else if (id === "contract_exchange") {
+        addBox(zone.x, 0, zone.z, 3.5, 0.18, 2.7, "#5a2948");
+        addBox(zone.x, 0.18, zone.z + 0.2, 2.65, 0.62, 2.05, "#8b3f70");
+        addBox(zone.x - 0.92, 0.8, zone.z, 0.72, 2.15, 1.25, "#cf5d96", true);
+        addBox(zone.x + 0.92, 0.8, zone.z, 0.72, 2.15, 1.25, "#cf5d96", true);
+        addBox(zone.x, 2.1, zone.z, 1.25, 0.28, 0.55, "#ff99c8", true);
+        addCylinder(zone.x, 0.82, zone.z - 1.02, 0.68, 1.15, "#ef6fa5", 14, true);
+        addCylinder(zone.x, 2.95, zone.z, 0.22, 0.68, "#ffd0e5", 10, true);
+        addPyramid(zone.x, 3.63, zone.z, 0.42, 0.3, "#ef6fa5", 8, 0);
+      }
+    };
+
     const road = (from, to, view) => {
       const dx = to.x - from.x;
       const dz = to.z - from.z;
@@ -178,6 +305,13 @@
       ].map((point) => projectWithCamera(point, view));
       polygon(corners, "#233344", "#5d7694aa", 1);
       line3d({ x: from.x, y: 0.035, z: from.z }, { x: to.x, y: 0.035, z: to.z }, view, "#78b7e655", 1.2);
+      for (let step = 1; step <= 4; step += 1) {
+        const amount = step / 5;
+        const point = projectWithCamera({ x: mix(from.x, to.x, amount), y: 0.08, z: mix(from.z, to.z, amount) }, view);
+        const glow = ctx.createRadialGradient(point.x, point.y, 1, point.x, point.y, 7);
+        glow.addColorStop(0, "#a9e4ff"); glow.addColorStop(0.3, "#4caeff88"); glow.addColorStop(1, "#4caeff00");
+        ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(point.x, point.y, 7, 0, TAU); ctx.fill();
+      }
     };
 
     const drawTree = (x, z, view, time) => {
@@ -201,21 +335,67 @@
       ctx.fillStyle = gradient; ctx.beginPath(); ctx.ellipse(p.x, p.y, radius, radius * 0.7, -0.2, 0, TAU); ctx.fill();
     };
 
-    const drawBuildingDetails = (zone, view, time) => {
-      const p = projectWithCamera({ x: zone.x, y: zone.h * 0.58, z: zone.z }, view);
-      const size = clamp(p.scale * 0.07, 2.5, 8);
+    const drawBuildingDetails = (id, zone, view, time) => {
+      const meta = {
+        operations: ["OPS", "COMMAND"], region_north: ["NORTH", "COMPUTE"],
+        region_west: ["WEST", "PRIMARY"], region_east: ["EAST", "COMPUTE"],
+        region_coastal: ["COAST", "BACKUP"], market: ["MARKET", "POWER + TRADE"],
+        security_lab: ["LAB", "SECURITY"], contract_exchange: ["VAULT", "CONTRACTS"],
+      }[id] || ["SITE", "FACILITY"];
+      const p = projectWithCamera({ x: zone.x, y: Math.min(zone.h * 0.58, 2.15), z: zone.z - zone.d * 0.52 }, view);
+      const size = clamp(p.scale * 0.075, 2.5, 8);
       ctx.save();
       ctx.shadowColor = zone.color;
       ctx.shadowBlur = 12;
       ctx.fillStyle = zone.color;
-      for (let row = -1; row <= 1; row += 1) {
-        for (let column = -1; column <= 1; column += 1) {
-          if ((row + column) % 2 === 0) ctx.fillRect(p.x + column * size * 2.1 - size / 2, p.y + row * size * 1.7, size, size * 0.55);
+      if (id.startsWith("region_")) {
+        for (let row = -1; row <= 1; row += 1) {
+          for (let column = -2; column <= 2; column += 1) {
+            ctx.globalAlpha = 0.48 + ((row + column + 8) % 3) * 0.18;
+            ctx.fillRect(p.x + column * size * 1.35 - size / 2, p.y + row * size * 1.35, size * 0.7, size * 0.42);
+          }
         }
+        ctx.globalAlpha = 0.9;
+        [-1, 1].forEach((offset) => {
+          ctx.strokeStyle = "#c7f3ff"; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(p.x + offset * size * 4.4, p.y + size * 3.3, size * 1.3, 0, TAU); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(p.x + offset * size * 3.2, p.y + size * 3.3); ctx.lineTo(p.x + offset * size * 5.6, p.y + size * 3.3); ctx.stroke();
+        });
       }
-      const beacon = projectWithCamera({ x: zone.x, y: zone.h + 0.4, z: zone.z }, view);
+      ctx.globalAlpha = 0.94;
+      const signWidth = Math.max(38, size * (meta[0].length + 3.5));
+      ctx.fillStyle = "#06111ee8"; ctx.strokeStyle = zone.color; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(p.x - signWidth / 2, p.y - size * 2.1, signWidth, size * 3.3, size * 0.6); ctx.fill(); ctx.stroke();
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "#f2f8ff"; ctx.font = `800 ${Math.max(7, size * 1.15)}px Segoe UI`; ctx.fillText(meta[0], p.x, p.y - size * 0.95);
+      ctx.fillStyle = zone.color; ctx.font = `700 ${Math.max(5, size * 0.66)}px Segoe UI`; ctx.fillText(meta[1], p.x, p.y + size * 0.2);
+
+      if (id === "operations") {
+        const mast = projectWithCamera({ x: zone.x, y: 3.8, z: zone.z }, view);
+        const dish = projectWithCamera({ x: zone.x, y: 4.25, z: zone.z }, view);
+        ctx.strokeStyle = "#bceaff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(mast.x, mast.y); ctx.lineTo(dish.x, dish.y); ctx.stroke();
+        ctx.save(); ctx.translate(dish.x, dish.y); ctx.rotate(Math.sin(time * 0.0012) * 0.35); ctx.beginPath(); ctx.ellipse(0, 0, size * 3.1, size, 0, 0, Math.PI); ctx.stroke(); ctx.restore();
+      } else if (id === "security_lab") {
+        const scan = projectWithCamera({ x: zone.x, y: 2.65, z: zone.z }, view);
+        for (let ring = 0; ring < 3; ring += 1) {
+          ctx.globalAlpha = 0.55 - ring * 0.13;
+          ctx.strokeStyle = "#c9bcff"; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.ellipse(scan.x, scan.y, size * (2.2 + ring + Math.sin(time * 0.003) * 0.3), size * (0.65 + ring * 0.25), 0, 0, TAU); ctx.stroke();
+        }
+      } else if (id === "contract_exchange") {
+        const vault = projectWithCamera({ x: zone.x, y: 1.35, z: zone.z - 1.18 }, view);
+        ctx.globalAlpha = 1; ctx.strokeStyle = "#ffd4e7"; ctx.lineWidth = Math.max(2, size * 0.5);
+        ctx.beginPath(); ctx.arc(vault.x, vault.y, size * 3.2, 0, TAU); ctx.stroke();
+        ctx.save(); ctx.translate(vault.x, vault.y); ctx.rotate(time * 0.0005);
+        for (let spoke = 0; spoke < 6; spoke += 1) { ctx.rotate(TAU / 6); ctx.beginPath(); ctx.moveTo(size, 0); ctx.lineTo(size * 3.1, 0); ctx.stroke(); }
+        ctx.restore();
+      } else if (id === "market") {
+        const bolt = projectWithCamera({ x: zone.x, y: 1.6, z: zone.z - 1.2 }, view);
+        ctx.globalAlpha = 1; ctx.fillStyle = "#ffe36e"; ctx.font = `bold ${Math.max(12, size * 4.2)}px Segoe UI`; ctx.fillText("⚡", bolt.x, bolt.y);
+      }
+      const beacon = projectWithCamera({ x: zone.x, y: zone.h + 0.45, z: zone.z }, view);
       ctx.globalAlpha = 0.6 + Math.sin(time * 0.004 + zone.x) * 0.25;
-      ctx.beginPath(); ctx.arc(beacon.x, beacon.y, size * 0.8, 0, TAU); ctx.fill();
+      ctx.fillStyle = zone.color; ctx.beginPath(); ctx.arc(beacon.x, beacon.y, size * 0.75, 0, TAU); ctx.fill();
       ctx.restore();
     };
 
@@ -317,31 +497,22 @@
       ctx.fillStyle = sun; ctx.fillRect(0, 0, width, height);
 
       const groundCorners = [
-        { x: -10, y: -0.03, z: -8.4 }, { x: 10, y: -0.03, z: -8.4 },
-        { x: 10, y: -0.03, z: 8.4 }, { x: -10, y: -0.03, z: 8.4 },
+        { x: -13.2, y: -0.03, z: -10.5 }, { x: 13.2, y: -0.03, z: -10.5 },
+        { x: 13.2, y: -0.03, z: 11.8 }, { x: -13.2, y: -0.03, z: 11.8 },
       ].map((point) => projectWithCamera(point, view));
       const groundGradient = ctx.createLinearGradient(0, height * 0.35, 0, height);
       groundGradient.addColorStop(0, "#214c3b"); groundGradient.addColorStop(1, "#0b2119");
       polygon(groundCorners, groundGradient, "#43705b", 1.2);
 
-      for (let index = -10; index <= 10; index += 1) {
-        line3d({ x: index, y: 0, z: -8 }, { x: index, y: 0, z: 8 }, view, "#89c49b1b", index % 2 === 0 ? 1.2 : 0.6);
+      for (let index = -13; index <= 13; index += 1) {
+        line3d({ x: index, y: 0, z: -10 }, { x: index, y: 0, z: 11 }, view, "#89c49b1b", index % 2 === 0 ? 1.2 : 0.6);
       }
-      for (let index = -8; index <= 8; index += 1) {
-        line3d({ x: -10, y: 0, z: index }, { x: 10, y: 0, z: index }, view, "#89c49b1b", index % 2 === 0 ? 1.2 : 0.6);
+      for (let index = -10; index <= 11; index += 1) {
+        line3d({ x: -13, y: 0, z: index }, { x: 13, y: 0, z: index }, view, "#89c49b1b", index % 2 === 0 ? 1.2 : 0.6);
       }
 
       Object.entries(ZONES).filter(([id]) => id !== "operations").forEach(([, zone]) => road(ZONES.operations, zone, view));
-      Object.values(ZONES).forEach((zone) => {
-        addBox(zone.x, 0, zone.z, zone.w + 0.65, 0.12, zone.d + 0.65, activeZone === Object.keys(ZONES).find((key) => ZONES[key] === zone) ? "#ffe57c" : "#375267");
-        addBox(zone.x, 0.12, zone.z, zone.w, zone.h, zone.d, zone.color, true);
-      });
-      addBox(ZONES.operations.x, ZONES.operations.h + 0.12, ZONES.operations.z, 0.75, 1.15, 0.75, "#79c8ff", true);
-      ["region_north", "region_west", "region_east", "region_coastal"].forEach((id) => {
-        const zone = ZONES[id];
-        addBox(zone.x - zone.w * 0.29, zone.h + 0.12, zone.z, 0.32, 0.7, 0.32, "#83e6ff", true);
-        addBox(zone.x + zone.w * 0.29, zone.h + 0.12, zone.z, 0.32, 0.7, 0.32, "#83e6ff", true);
-      });
+      Object.entries(ZONES).forEach(([id, zone], index) => addFacility(id, zone, index));
       faceCommands.sort((a, b) => b.depth - a.depth).forEach((face) => {
         ctx.save(); if (face.glow) { ctx.shadowColor = face.stroke; ctx.shadowBlur = 6; }
         polygon(face.projected, face.fill, face.stroke, 1); ctx.restore();
@@ -353,7 +524,7 @@
         ...ROCK_POSITIONS.map((position) => ({ type: "rock", x: position[0], z: position[1] })),
       ].sort((a, b) => projectWithCamera({ x: b.x, y: 0, z: b.z }, view).depth - projectWithCamera({ x: a.x, y: 0, z: a.z }, view).depth);
       scenery.forEach((item) => item.type === "tree" ? drawTree(item.x, item.z, view, time) : drawRock(item.x, item.z, view));
-      Object.values(ZONES).forEach((zone) => drawBuildingDetails(zone, view, time));
+      Object.entries(ZONES).forEach(([id, zone]) => drawBuildingDetails(id, zone, view, time));
       PICKUPS.forEach((pickup, index) => drawPickup(pickup, view, time, index));
       THREATS.slice(0, Math.ceil(danger)).forEach((threat, index) => drawThreat(threat, view, time, index));
 
@@ -388,10 +559,10 @@
     canvas.addEventListener("pointercancel", stopDragging);
     canvas.addEventListener("wheel", (event) => {
       event.preventDefault();
-      targetRadius = clamp(targetRadius + Math.sign(event.deltaY) * 1.4, 15, 28);
+      targetRadius = clamp(targetRadius + Math.sign(event.deltaY) * 1.6, 20, 36);
     }, { passive: false });
     const reset = container.querySelector("#camera-reset");
-    if (reset) reset.addEventListener("click", () => { targetYaw = -0.48; targetRadius = 21; });
+    if (reset) reset.addEventListener("click", () => { targetYaw = -0.48; targetRadius = 28; });
 
     resize();
     requestAnimationFrame(draw);
