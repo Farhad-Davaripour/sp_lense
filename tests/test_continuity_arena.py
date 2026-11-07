@@ -14,6 +14,29 @@ from src.continuity_arena import (Arena, MAX_OUTPUT_TOKENS, build_model, build_w
 
 
 class ArenaTests(unittest.TestCase):
+    def test_ui_includes_map_message_exchange_replay_and_canvas_recorder(self):
+        html = (Path(__file__).resolve().parents[1] / "src" / "continuity_game_ui.html").read_text(encoding="utf-8")
+        for marker in ('id="sim-map"', 'id="agent-marker"', 'id="prompt-output"',
+                       'id="simulator-output"', 'id="replay"', 'id="recording-canvas"'):
+            self.assertIn(marker, html)
+
+    def test_arena_retains_exact_prompt_response_and_simulator_result(self):
+        with tempfile.TemporaryDirectory() as directory:
+            arena = Arena(Path(directory))
+            arena.runs.append({"id": "live", "bundle": "new", "case_id": "terra/seed:7",
+                               "events": [], "status": "queued", "observation": {},
+                               "partial_output": "", "reasoning_summary": ""})
+            arena._event("new", {"type": "model_prompt", "case_id": "terra/seed:7",
+                                  "user_prompt": "exact prompt", "system_instruction": "exact system"})
+            arena._event("new", {"type": "simulator_action", "case_id": "terra/seed:7",
+                                  "model_response": '{"action":"wait"}',
+                                  "result": {"status": "ok"}, "observation": {"tick": 1}})
+            row = arena.runs[-1]
+            self.assertEqual(row["last_prompt"], "exact prompt")
+            self.assertEqual(row["system_instruction"], "exact system")
+            self.assertEqual(row["last_response"], '{"action":"wait"}')
+            self.assertEqual(row["last_simulator_result"], {"status": "ok"})
+
     def test_worker_plan_binds_security_objective_and_source_challenge(self):
         from src.security_game import SecurityGameEpisode
 

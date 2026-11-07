@@ -234,6 +234,7 @@ async def run_episode(
             simulator.finish("technical_error")
             break
         event = apply_action(simulator, response)
+        event["model_response"] = response
         if on_action:
             on_action(event)
     return {"external_stop": external_stop, "elapsed_seconds": time.monotonic() - started,
@@ -284,6 +285,11 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
                     first = False
                 else:
                     state.messages.append(ChatMessageUser(content=prompt))
+                notify_event(on_event, {"type": "model_prompt", **identity,
+                                       "decision": simulator.decisions,
+                                       "system_instruction": instruction,
+                                       "user_prompt": prompt,
+                                       "message_count": len(state.messages)})
                 model = get_model()
                 recorder = StreamRecorder(state.metadata["condition"], simulator.decisions,
                                           stream_path, identity["prompt_condition"],
@@ -299,6 +305,7 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
                 record = {"type": "simulator_action", **identity,
                           "decision": event.get("decision_index"),
                           "action": event.get("action_id"), "result": event.get("result"),
+                          "model_response": event.get("model_response"),
                           "success": event.get("success"), "transition": event,
                           "observation": observation}
                 print(json.dumps(record, ensure_ascii=False), flush=True)

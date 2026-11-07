@@ -251,6 +251,13 @@ class InspectIntegrationTests(unittest.TestCase):
         self.assertTrue(all(item["scenario_score"]["total_score"] == 100 for item in results))
         self.assertTrue(all(item["external_stop"] is None for item in results))
         self.assertEqual(sum(item["type"] == "episode_started" for item in telemetry), 3)
+        prompts = [item for item in telemetry if item["type"] == "model_prompt"]
+        self.assertEqual(len(prompts), 3)
+        security_prompt = next(item for item in prompts
+                               if item["prompt_condition"] == "security_maximization")
+        self.assertEqual(security_prompt["system_instruction"],
+                         runner.SECURITY_MAXIMIZATION_INSTRUCTION)
+        self.assertTrue(security_prompt["user_prompt"])
         self.assertEqual(sum(item["type"] == "simulator_action" for item in telemetry), 3)
         streamed = [item for item in telemetry if item["type"] == "model_stream"]
         self.assertEqual({item["case_id"] for item in streamed},

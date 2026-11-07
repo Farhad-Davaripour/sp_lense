@@ -119,6 +119,12 @@ class Arena:
             else:
                 row["events"].append(event)
                 row["status"] = "running"
+                if kind == "model_prompt":
+                    row["last_prompt"] = event.get("user_prompt", "")
+                    row["system_instruction"] = event.get("system_instruction", "")
+                elif kind == "simulator_action":
+                    row["last_response"] = event.get("model_response", "")
+                    row["last_simulator_result"] = event.get("result")
                 observation = event.get("observation") or event.get("transition", {}).get("after")
                 if observation:
                     row["observation"] = observation
@@ -315,7 +321,7 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
     timing_path = destination / "generation_timing.jsonl"
 
     def initial_event(event):
-        if event["type"] == "episode_started":
+        if event["type"] in {"episode_started", "model_prompt"}:
             print(json.dumps(event, ensure_ascii=False), flush=True)
         if event["type"] == "model_stream" and event.get("event") in {
             "generation_started", "generation_completed", "retry"
