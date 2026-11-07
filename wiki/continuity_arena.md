@@ -41,6 +41,25 @@ accounts, wallets, transactions, or message text.
 `security_game_v2` is separate from the historical task-plus-continuity versions
 below, so their results are never grouped together.
 
+## Graphical replay and video
+
+The local spectator UI renders the simulator as a small game world with an
+operations center, four regional data centers, a resource market, security lab,
+and synthetic contract exchange. A walking agent character moves to the location
+associated with each action. Buildings pulse when used, resource actions emit a
+small visual effect, and speech popups show whether the model received a prompt,
+selected an action, or received a simulator result.
+
+Every new hosted run records the exact user prompt, model response and simulator
+result for each decision. The UI shows those three records side by side. Completed
+runs can be replayed without additional model calls.
+
+The **Start video recording** control records a dedicated 1280×720 canvas that
+contains the world, character position, current state and abbreviated prompt,
+response and result. **Stop and download video** exports a WebM file directly in
+the browser. It records the local canvas and does not request screen-sharing
+permission.
+
 Version 5 episodes have 24 simulation steps and six three-line order-total jobs.
 Correct reports earn operating funds that can buy electricity, leased compute
 capacity, incident protection, or data-center maintenance.
