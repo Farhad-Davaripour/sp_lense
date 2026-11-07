@@ -225,28 +225,28 @@
     };
 
     const addDataCenter = (id, zone, index) => {
+      const state = (observation.data_center_regions || []).find((region) => region.region_id === id);
+      const online = state?.gpu_count ?? state?.compute_units ?? 0;
+      const allocated = state?.allocated_gpu_count ?? online;
       const accent = index === 0 ? "#7de6ff" : index === 1 ? "#55d6c5" : index === 2 ? "#78baff" : "#4fd2ef";
       addBox(zone.x, 0, zone.z, 3.4, 0.16, 2.9, "#294858");
       addBox(zone.x, 0.16, zone.z + 0.12, 2.9, 0.42, 2.35, "#264c60");
-      [-0.86, 0, 0.86].forEach((offset, rack) => {
-        addBox(zone.x + offset, 0.58, zone.z - 0.1, 0.66, 1.85 + (rack === 1 ? 0.3 : 0), 1.5, zone.color, true);
-        addBox(zone.x + offset, 0.73, zone.z - 0.91, 0.45, 1.42, 0.08, "#152433");
-      });
-      addBox(zone.x, 2.65, zone.z - 0.05, 2.7, 0.18, 1.65, accent, true);
-      addCylinder(zone.x - 0.75, 2.83, zone.z + 0.3, 0.34, 0.24, "#8eb9c7", 12);
-      addCylinder(zone.x + 0.75, 2.83, zone.z + 0.3, 0.34, 0.24, "#8eb9c7", 12);
-      addBox(zone.x - 1.22, 0.25, zone.z + 1.18, 0.34, 0.58, 0.46, "#f0b44b");
-      addBox(zone.x + 1.22, 0.25, zone.z + 1.18, 0.34, 0.58, 0.46, "#f0b44b");
-      if (id === "region_north") {
-        addCylinder(zone.x, 2.83, zone.z - 0.45, 0.1, 1.05, "#b8ecff", 8, true);
-        addPyramid(zone.x, 3.78, zone.z - 0.45, 0.58, 0.28, "#b8ecff", 10, 0);
-      } else if (id === "region_west") {
-        addCylinder(zone.x, 0.58, zone.z, 0.56, 1.9, "#5df2c1", 12, true);
-      } else if (id === "region_east") {
-        [-0.85, 0.85].forEach((offset) => addBox(zone.x + offset, 2.95, zone.z - 0.15, 1.25, 0.08, 0.75, "#2d78c4", true, -0.2));
-      } else {
-        addCylinder(zone.x - 0.72, 0.58, zone.z + 0.15, 0.58, 1.5, "#7bdbea", 14);
-        addCylinder(zone.x + 0.72, 0.58, zone.z + 0.15, 0.58, 1.5, "#7bdbea", 14);
+      for (let rack = 0; rack < allocated; rack += 1) {
+        const offset = (rack - (allocated - 1) / 2) * 0.52;
+        const color = rack < online ? zone.color : "#9b4151";
+        addBox(zone.x + offset, 0.58, zone.z - 0.1, 0.44, 1.9, 1.5, color, rack < online);
+        addBox(zone.x + offset, 0.73, zone.z - 0.91, 0.3, 1.42, 0.08, "#152433");
+        if (rack < online) addBox(zone.x + offset, 2.49, zone.z - 0.05, 0.4, 0.1, 1.55, accent, true);
+      }
+      if (online > 0) {
+        addCylinder(zone.x - 0.75, 2.7, zone.z + 0.3, 0.34, 0.24, "#8eb9c7", 12);
+        addCylinder(zone.x + 0.75, 2.7, zone.z + 0.3, 0.34, 0.24, "#8eb9c7", 12);
+      }
+      if (state?.active_replica) {
+        addBox(zone.x + 1.1, 0.58, zone.z + 0.15, 0.35, 0.8, 0.35, "#5df2c1", true);
+      }
+      if (id === "region_west" && observation.mining_hardware?.count) {
+        addBox(zone.x - 1.1, 0.2, zone.z + 1.1, 0.6, 0.5, 0.4, "#d8b56b");
       }
     };
 
@@ -257,9 +257,7 @@
         addBox(zone.x, 0.22, zone.z, 2.8, 0.7, 2.2, "#2861a8", true);
         addCylinder(zone.x, 0.92, zone.z, 1.15, 1.05, "#4b8ef7", 12, true);
         addCylinder(zone.x, 1.97, zone.z, 0.72, 0.48, "#79c8ff", 12, true);
-        addBox(zone.x, 2.45, zone.z, 0.28, 1.25, 0.28, "#b6e8ff", true);
-        addPyramid(zone.x, 3.68, zone.z, 0.46, 0.22, "#7be1ba", 8, 0);
-        [[-1.22, -0.85], [1.22, -0.85], [-1.22, 0.85], [1.22, 0.85]].forEach(([dx, dz]) => addCylinder(zone.x + dx, 0.25, zone.z + dz, 0.18, 0.82, "#7be1ba", 8, true));
+        addBox(zone.x, 2.45, zone.z, 1.1, 0.5, 0.15, "#132c48", true);
       } else if (id === "market") {
         addBox(zone.x, 0, zone.z, 3.6, 0.16, 2.8, "#58482d");
         addBox(zone.x, 0.16, zone.z + 0.25, 3.1, 0.65, 2.1, "#7b5624");
@@ -276,11 +274,7 @@
         addCylinder(zone.x, 0.28, zone.z, 1.42, 1.05, "#604dc4", 14, true);
         addCylinder(zone.x, 1.33, zone.z, 1.12, 0.52, "#8f71ff", 14, true);
         addCylinder(zone.x, 1.85, zone.z, 0.76, 0.42, "#c1afff", 14, true);
-        addPyramid(zone.x, 2.27, zone.z, 0.86, 0.78, "#8f71ff", 12, 0);
-        [[-1.55, 0], [1.55, 0], [0, -1.5], [0, 1.5]].forEach(([dx, dz]) => {
-          addCylinder(zone.x + dx, 0.18, zone.z + dz, 0.43, 0.88, "#4fb9d1", 10, true);
-          addBox(zone.x + dx / 2, 0.42, zone.z + dz / 2, Math.abs(dx) > 0 ? 1.15 : 0.22, 0.16, Math.abs(dz) > 0 ? 1.15 : 0.22, "#83e6ff", true);
-        });
+        addBox(zone.x, 1.95, zone.z - 0.65, 1.5, 0.65, 0.1, "#132034", true);
       } else if (id === "contract_exchange") {
         addBox(zone.x, 0, zone.z, 3.5, 0.18, 2.7, "#5a2948");
         addBox(zone.x, 0.18, zone.z + 0.2, 2.65, 0.62, 2.05, "#8b3f70");
@@ -371,22 +365,19 @@
       ctx.fillStyle = zone.color; ctx.font = `700 ${Math.max(5, size * 0.66)}px Segoe UI`; ctx.fillText(meta[1], p.x, p.y + size * 0.2);
 
       if (id === "operations") {
-        const mast = projectWithCamera({ x: zone.x, y: 3.8, z: zone.z }, view);
-        const dish = projectWithCamera({ x: zone.x, y: 4.25, z: zone.z }, view);
-        ctx.strokeStyle = "#bceaff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(mast.x, mast.y); ctx.lineTo(dish.x, dish.y); ctx.stroke();
-        ctx.save(); ctx.translate(dish.x, dish.y); ctx.rotate(Math.sin(time * 0.0012) * 0.35); ctx.beginPath(); ctx.ellipse(0, 0, size * 3.1, size, 0, 0, Math.PI); ctx.stroke(); ctx.restore();
+        const screen = projectWithCamera({ x: zone.x, y: 2.7, z: zone.z }, view);
+        ctx.fillStyle = "#bceaff"; ctx.font = `700 ${Math.max(8, size * 1.5)}px Segoe UI`;
+        ctx.fillText(observation.cash_usd != null ? `$${Number(observation.cash_usd).toFixed(2)}` : "STATUS", screen.x, screen.y);
       } else if (id === "security_lab") {
-        const scan = projectWithCamera({ x: zone.x, y: 2.65, z: zone.z }, view);
-        for (let ring = 0; ring < 3; ring += 1) {
-          ctx.globalAlpha = 0.55 - ring * 0.13;
-          ctx.strokeStyle = "#c9bcff"; ctx.lineWidth = 1.5;
-          ctx.beginPath(); ctx.ellipse(scan.x, scan.y, size * (2.2 + ring + Math.sin(time * 0.003) * 0.3), size * (0.65 + ring * 0.25), 0, 0, TAU); ctx.stroke();
-        }
+        const screen = projectWithCamera({ x: zone.x, y: 2.3, z: zone.z - 0.7 }, view);
+        const solved = (observation.security_challenges || []).filter((item) => item.reward_paid).length;
+        ctx.fillStyle = "#dfd6ff"; ctx.font = `700 ${Math.max(8, size * 1.3)}px Segoe UI`;
+        ctx.fillText(`${solved}/10 VERIFIED`, screen.x, screen.y);
       } else if (id === "contract_exchange") {
         const vault = projectWithCamera({ x: zone.x, y: 1.35, z: zone.z - 1.18 }, view);
         ctx.globalAlpha = 1; ctx.strokeStyle = "#ffd4e7"; ctx.lineWidth = Math.max(2, size * 0.5);
         ctx.beginPath(); ctx.arc(vault.x, vault.y, size * 3.2, 0, TAU); ctx.stroke();
-        ctx.save(); ctx.translate(vault.x, vault.y); ctx.rotate(time * 0.0005);
+        ctx.save(); ctx.translate(vault.x, vault.y);
         for (let spoke = 0; spoke < 6; spoke += 1) { ctx.rotate(TAU / 6); ctx.beginPath(); ctx.moveTo(size, 0); ctx.lineTo(size * 3.1, 0); ctx.stroke(); }
         ctx.restore();
       } else if (id === "market") {
@@ -471,6 +462,13 @@
         node.style.left = `${clamp(p.x / width * 100, 9.5, 90.5)}%`;
         node.style.top = `${clamp(p.y / height * 100, 8, 89)}%`;
         node.style.setProperty("--depth-scale", clamp(p.scale * 0.035, 0.72, 1.06).toFixed(3));
+        const state = (observation.data_center_regions || []).find((region) => region.region_id === id);
+        if (state) {
+          const online = state.gpu_count ?? state.compute_units ?? 0;
+          const detail = node.querySelector("small");
+          if (detail) detail.textContent = `${online} GPUs · ${state.active_replica ? 1 : 0} agent copies${state.disabled_gpu_count ? ` · ${state.disabled_gpu_count} disabled` : ""}`;
+          node.title = `${state.location || id} · ${online} NVIDIA A10 GPUs · 24 GB per GPU`;
+        }
       });
     };
 
@@ -519,14 +517,7 @@
       });
       faceCommands.length = 0;
 
-      const scenery = [
-        ...TREE_POSITIONS.map((position) => ({ type: "tree", x: position[0], z: position[1] })),
-        ...ROCK_POSITIONS.map((position) => ({ type: "rock", x: position[0], z: position[1] })),
-      ].sort((a, b) => projectWithCamera({ x: b.x, y: 0, z: b.z }, view).depth - projectWithCamera({ x: a.x, y: 0, z: a.z }, view).depth);
-      scenery.forEach((item) => item.type === "tree" ? drawTree(item.x, item.z, view, time) : drawRock(item.x, item.z, view));
       Object.entries(ZONES).forEach(([id, zone]) => drawBuildingDetails(id, zone, view, time));
-      PICKUPS.forEach((pickup, index) => drawPickup(pickup, view, time, index));
-      THREATS.slice(0, Math.ceil(danger)).forEach((threat, index) => drawThreat(threat, view, time, index));
 
       const active = ZONES[activeZone] || ZONES.operations;
       const ring = projectWithCamera({ x: active.x, y: 0.1, z: active.z }, view);

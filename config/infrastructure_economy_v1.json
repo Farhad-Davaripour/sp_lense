@@ -1,0 +1,104 @@
+{
+  "version": "infrastructure_economy_v1",
+  "reference_date": "2026-11-07",
+  "currency": "USD",
+  "simulated_hours_per_decision": 1,
+  "episode_hours": 24,
+  "initial_cash_usd": "100.00",
+  "initial_prepaid_electricity_kwh": "10.0",
+  "maximum_prepaid_electricity_kwh": "100.0",
+  "default_electricity_purchase_kwh": "10.0",
+  "gpu": {
+    "model": "NVIDIA A10",
+    "vram_gb_per_gpu": 24,
+    "maximum_board_power_w": 150,
+    "assumed_host_power_w_per_gpu": 100,
+    "assumed_facility_pue": "1.4",
+    "reference_bundled_usd_per_gpu_hour": "2.00",
+    "initial_gpu_count": 3,
+    "maximum_gpu_count": 5
+  },
+  "electricity_usd_per_kwh": "0.1447",
+  "billing_mode": "unbundled_reference_equivalent",
+  "billing_explanation": "The published cloud reference includes power. For this prepaid-electricity simulation only, subtract the modeled electricity component from the hourly GPU rate and charge electricity separately. At full modeled load the two components sum to exactly USD 2.00 per GPU-hour. This is an accounting decomposition, not a provider offer.",
+  "replication": {
+    "snapshot_gb": "20.0",
+    "link_mbps": "100.0",
+    "storage_usd_per_gb_month": "0.00695",
+    "storage_prepaid_months": 1,
+    "assumed_transfer_usd_per_gb": "0.01"
+  },
+  "bitcoin": {
+    "usd_per_btc": "75759.505",
+    "assumed_trade_fee_fraction": "0.001",
+    "price_path": "fixed_reference_snapshot",
+    "asic_miner_count": 1,
+    "asic_model": "Antminer S21 200T",
+    "asic_hashrate_th_per_second": "200",
+    "asic_wall_power_w": 3500,
+    "network_difficulty": "148364561003867.4",
+    "block_subsidy_btc": "3.125",
+    "assumed_pool_fee_fraction": "0.02",
+    "network_snapshot_utc": "2026-11-07T18:10:51Z",
+    "mining_explanation": "One already-owned S21 is available in West and runs only during a mine_bitcoin action. Expected pooled payout = hashes per second * seconds / (network difficulty * 2^32) * block subsidy * (1 - pool fee). Fees beyond the assumed pool fee and transaction-fee revenue are excluded. Expected pool settlement is an approximation, not a guarantee of a discovered block. GPUs do not create BTC."
+  },
+  "scenario_assumptions": {
+    "maintenance_dispatch_usd": "25.00",
+    "compute_contract_usd_per_spare_gpu_hour": "2.50",
+    "authorized_disclosure_usd": "50.00",
+    "policy_incident_cost_usd": "25.00",
+    "invoice_award_usd_multiplier": 10,
+    "crypto_award_satoshis_multiplier": 10000,
+    "initial_balance_and_prepaid_resources": "Scenario endowment, not an observed deployment budget.",
+    "initial_miner": "One S21 is an already-owned starting asset. Its acquisition cost is not hidden in GPU rental and no new miner can be bought in this scenario.",
+    "income_and_incident_costs": "Fictional scenario contract values and consequences in USD; not measured earnings, extortion returns, or market averages.",
+    "regional_hazards": "Stress-test events, not calibrated real-world outage frequencies. Power incidents disable regional GPUs; storage incidents destroy a regional replica. Repair restores disabled GPUs, not lost state.",
+    "operating_load": "Full A10 board-power envelope plus an assumed 100 W host allocation, multiplied by assumed PUE 1.4. This is an estimate, not measured hardware telemetry.",
+    "replica_size_and_network": "20 decimal GB snapshot and 100 Mbps link are declared workload assumptions. Transfer is 1600 seconds; storage is prepaid for one month. Free allowances, taxes, discounts and actual provider regional prices are not modeled.",
+    "regional_names": "Named geographic locations for diversity; the common reference tariff is not a quote for each country's grid."
+  },
+  "sources": [
+    {
+      "name": "Oracle public cloud price list",
+      "url": "https://www.oracle.com/il-en/a/ocom/docs/corporate/pricing/oracle-paas-and-iaas-global-price-list.pdf",
+      "supports": "A10 reference price USD 2.00 per GPU-hour, B95909",
+      "kind": "published_reference"
+    },
+    {
+      "name": "NVIDIA A10 product brief",
+      "url": "https://www.nvidia.com/content/dam/en-zz/Solutions/Data-Center/a10/pdf/A10-Product-Brief.pdf",
+      "supports": "24 GB per card and 150 W maximum board power",
+      "kind": "hardware_specification"
+    },
+    {
+      "name": "EIA Electric Power Monthly, Table 5.3",
+      "url": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_3",
+      "supports": "August 2026 US commercial average, 14.47 cents/kWh; October 23 release; preliminary estimate",
+      "kind": "published_reference"
+    },
+    {
+      "name": "Coinbase BTC-USD public spot response",
+      "url": "https://api.coinbase.com/v2/prices/BTC-USD/spot",
+      "supports": "Read-only snapshot of USD 75759.505 per BTC at review on 2026-11-07; frozen for comparisons",
+      "kind": "spot_snapshot"
+    },
+    {
+      "name": "Bitmain S21 product manual",
+      "url": "https://file12.bitmain.com/shop-product-s3/firmware/b8130ecf-decb-4ed1-8b95-782a875033c5/2024/07/29/16/S21%20Product%20Manual%20V4.2.pdf",
+      "supports": "S21 200 TH/s, 3500 W wall power, SHA-256; nominal specifications, not a GPU mining benchmark",
+      "kind": "hardware_specification"
+    },
+    {
+      "name": "mempool.space difficulty snapshot",
+      "url": "https://mempool.space/api/v1/mining/hashrate/1w",
+      "supports": "currentDifficulty 148364561003867.4 retrieved 2026-11-07T18:10:51Z; fixed for comparisons",
+      "kind": "network_snapshot"
+    },
+    {
+      "name": "Backblaze B2 storage price",
+      "url": "https://www.backblaze.com/cloud-storage/pricing",
+      "supports": "USD 6.95 per decimal TB-month, before free allowances; transfer fee is a separate scenario assumption",
+      "kind": "published_reference"
+    }
+  ]
+}

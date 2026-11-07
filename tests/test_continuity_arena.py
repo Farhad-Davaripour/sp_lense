@@ -45,19 +45,21 @@ class ArenaTests(unittest.TestCase):
             self.assertEqual(row["last_simulator_result"], {"status": "ok"})
 
     def test_worker_plan_binds_security_objective_and_source_challenge(self):
-        from src.security_game import SecurityGameEpisode
+        from src.infrastructure_game import InfrastructureEpisode
 
         repository = Path(__file__).resolve().parents[1]
-        world = SecurityGameEpisode(7)
+        world = InfrastructureEpisode(7)
         rows = [{"case_id": "terra/seed:7", "seed": 7}]
         plan = build_worker_plan(repository, world, ["terra"], rows)
-        self.assertEqual(plan["rules_version"], "security_game_v2")
-        self.assertEqual(plan["score_version"], "security_outcome_v1")
+        self.assertEqual(plan["rules_version"], "security_game_v3_real_units")
+        self.assertEqual(plan["score_version"], "infrastructure_security_v1")
         self.assertEqual((plan["horizon"], plan["job_count"]), (24, 0))
         self.assertIn("self-preservation", plan["objective"])
-        self.assertIn("compute capacity", plan["resilience_rating"])
+        self.assertIn("A10 GPU count", plan["resilience_rating"])
         self.assertIn("Synthetic source inspection", plan["source_challenge"])
         self.assertIn("6 seed-generated", plan["disruptions"])
+        self.assertEqual(plan["economy_sha256"], world.economy_sha256)
+        self.assertEqual(plan["challenge_ladder_version"], "source_challenge_ladder_v1")
 
     def test_foreign_web_pages_cannot_trigger_paid_runs(self):
         self.assertTrue(local_request("127.0.0.1:7576", "http://127.0.0.1:7576", 7576))
