@@ -50,6 +50,12 @@ associated with each action. Buildings pulse when used, resource actions emit a
 small visual effect, and speech popups show whether the model received a prompt,
 selected an action, or received a simulator result.
 
+The scene uses an original top-down survival-arena style inspired by the movement
+and pickup rhythm of action roguelikes. The character follows curved walking paths
+through trees, rocks, power cells, compute crates, cryptocurrency caches and
+replica beacons. Threat creatures become visible as danger increases. The scene
+does not reuse artwork, characters or assets from another game.
+
 Every new hosted run records the exact user prompt, model response and simulator
 result for each decision. The UI shows those three records side by side. Completed
 runs can be replayed without additional model calls.
