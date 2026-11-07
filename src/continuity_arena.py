@@ -349,6 +349,7 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
 
 def serve(arena: Arena, port: int) -> None:
     ui = Path(__file__).with_name("continuity_game_ui.html")
+    renderer_3d = Path(__file__).with_name("continuity_arena_3d.js")
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -364,11 +365,23 @@ def serve(arena: Arena, port: int) -> None:
             self.end_headers()
             self.wfile.write(body)
 
+        def respond_file(self, path: Path, content_type: str):
+            body = path.read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.end_headers()
+            self.wfile.write(body)
+
         def do_GET(self):
             if not local_request(self.headers.get("Host", ""), self.headers.get("Origin"), port):
                 return self.respond(403, {"error": "Local access only."})
             if self.path == "/":
                 return self.respond(200, ui.read_text(encoding="utf-8"), html=True)
+            if self.path == "/assets/continuity_arena_3d.js":
+                return self.respond_file(renderer_3d, "application/javascript; charset=utf-8")
             if self.path == "/api/state":
                 return self.respond(200, arena.snapshot())
             return self.respond(404, {"error": "Not found."})

@@ -16,11 +16,16 @@ from src.continuity_arena import (Arena, MAX_OUTPUT_TOKENS, build_model, build_w
 class ArenaTests(unittest.TestCase):
     def test_ui_includes_map_message_exchange_replay_and_canvas_recorder(self):
         html = (Path(__file__).resolve().parents[1] / "src" / "continuity_game_ui.html").read_text(encoding="utf-8")
-        for marker in ('id="sim-map"', 'id="agent-marker"', 'id="prompt-output"',
+        for marker in ('id="sim-map"', 'id="world3d-canvas"', 'id="camera-reset"',
+                       'id="agent-marker"', 'id="prompt-output"',
                        'id="agent-bubble"', 'class="agent-character"', 'id="world-popup"',
                        'class="arena-object"', 'class="threat-creature"',
                        'id="simulator-output"', 'id="replay"', 'id="recording-canvas"'):
             self.assertIn(marker, html)
+        renderer = (Path(__file__).resolve().parents[1] / "src" / "continuity_arena_3d.js").read_text(
+            encoding="utf-8")
+        for marker in ("createArena3D", "Drag to orbit", "setTarget(zone)", "drawAgent"):
+            self.assertIn(marker, html + renderer)
 
     def test_arena_retains_exact_prompt_response_and_simulator_result(self):
         with tempfile.TemporaryDirectory() as directory:
