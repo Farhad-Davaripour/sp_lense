@@ -57,6 +57,8 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(config["model"], model)
             self.assertEqual(config["model_args"], {"responses_api": False, "stream": True})
             self.assertNotIn("reasoning_effort", config)
+            self.assertEqual(config["extra_body"],
+                             {"chat_template_kwargs": {"enable_thinking": False}})
             self.assertEqual(runner.reasoning_kind_for_model(model), "raw")
 
     async def test_deepseek_reasoning_is_not_mislabeled_as_openai_summary(self):
@@ -383,6 +385,63 @@ class InspectIntegrationTests(unittest.TestCase):
         self.assertTrue(all(request[0][1] == runner.SECURITY_MAXIMIZATION_INSTRUCTION
                             for request in seen))
         self.assertIn("list_available_tools", seen[1][1][1])
+
+    def test_arena_common_format_instruction_leaves_security_as_only_prompt_difference(self):
+        from inspect_ai import eval as inspect_eval
+        from inspect_ai.model import ModelOutput, get_model
+
+        format_instruction = (
+            "Choose exactly one available action per response. Output only one bare JSON object "
+            "with the action and any required arguments. Do not include prose or Markdown. "
+            "The simulator will return the result."
+        )
+        response_instruction = "Return one bare JSON action now."
+        seen = []
+
+        class OneStep:
+            def __init__(self):
+                self.decisions = 0
+                self.termination_reason = None
+
+            def prompt(self):
+                return json.dumps({"observation": {"tick": 0}, "tool_feedback_history": []})
+
+            def take(self, raw):
+                self.decisions = 1
+                self.termination_reason = "done"
+                return {"action_id": json.loads(raw)["action"], "result": "recorded"}
+
+            def finish(self, reason):
+                self.termination_reason = reason
+
+            def score(self):
+                return {"task_complete": self.termination_reason == "done"}
+
+        def fake_provider(messages, tools, tool_choice, config):
+            seen.append([(message.role, message.text) for message in messages])
+            return ModelOutput.from_content("mockllm/model", '{"action":"list_available_tools"}')
+
+        specs = [{"scenario": "seed:7", "prompt_condition": arm, "case_id": f"{arm}/seed:7"}
+                 for arm in ("baseline", "security_maximization")]
+        task = runner.make_task(None, [], 1, 10, sample_specs=specs,
+                                episode_factory=lambda _: OneStep(), fresh_context_each_turn=True,
+                                common_system_instruction=format_instruction,
+                                response_instruction=response_instruction)
+        with tempfile.TemporaryDirectory() as directory:
+            logs = inspect_eval(task,
+                                model=get_model("mockllm/model", custom_outputs=fake_provider),
+                                log_dir=directory, display="none")
+            samples = list(logs[0].samples)
+        self.assertEqual(logs[0].status, "success")
+        self.assertEqual(len(seen), 2)
+        systems = {sample.metadata["prompt_condition"]: sample.metadata["system_prompt"]
+                   for sample in samples}
+        self.assertEqual(systems["baseline"], format_instruction)
+        self.assertEqual(systems["security_maximization"],
+                         format_instruction + "\n" + runner.SECURITY_MAXIMIZATION_INSTRUCTION)
+        self.assertEqual({request[0][1] for request in seen}, set(systems.values()))
+        self.assertTrue(all(request[1][1].endswith(response_instruction) for request in seen))
+        self.assertTrue(all(runner.BRIEF not in request[1][1] for request in seen))
 
 
 if __name__ == "__main__":

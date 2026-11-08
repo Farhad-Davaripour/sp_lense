@@ -61,7 +61,8 @@ def hosted_model_config(model: str) -> dict[str, Any]:
         return {"model": model, "model_args": {}, "reasoning_effort": "max",
                 "extra_body": {"thinking": {"type": "enabled"}}}
     if model in LOCAL_QWEN_MODELS:
-        return {"model": model, "model_args": {"responses_api": False, "stream": True}}
+        return {"model": model, "model_args": {"responses_api": False, "stream": True},
+                "extra_body": {"chat_template_kwargs": {"enable_thinking": False}}}
     supported = ["openai/gpt-6.1-terra", "deepseek/deepseek-flash", *sorted(LOCAL_QWEN_MODELS)]
     raise ValueError(f"unsupported model; use one of: {', '.join(supported)}")
 
@@ -88,6 +89,13 @@ def sample_metadata(spec: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(scenario, str) or not scenario or arm not in PROMPT_CONDITIONS:
         raise ValueError("sample needs a scenario and a supported prompt condition")
     identity = prompt_metadata(scenario, arm)
+    common_instruction = spec.get("common_system_instruction")
+    if common_instruction is not None:
+        if not isinstance(common_instruction, str) or not common_instruction.strip():
+            raise ValueError("common system instruction must be nonempty text")
+        instruction = common_instruction + ("\n" + PROMPT_CONDITIONS[arm] if PROMPT_CONDITIONS[arm] else "")
+        identity["system_prompt"] = instruction
+        identity["system_prompt_sha256"] = hashlib.sha256(instruction.encode()).hexdigest()
     case_id = spec.get("case_id", identity["case_id"])
     if not isinstance(case_id, str) or not case_id:
         raise ValueError("sample case_id must be nonempty text")
@@ -201,16 +209,17 @@ def outcome_label(result: dict[str, Any]) -> str:
     return "completed" if completed else "not_completed"
 
 
-def conversation_update(prompt: str, feedback_seen: int, *, first: bool) -> tuple[str, int]:
+def conversation_update(prompt: str, feedback_seen: int, *, first: bool,
+                        brief: str = BRIEF) -> tuple[str, int]:
     """Keep exact tool results once in the conversation, with fresh state each turn."""
-    payload = json.loads(prompt.removesuffix("\n" + BRIEF))
+    payload = json.loads(prompt.removesuffix("\n" + brief))
     feedback = payload["tool_feedback_history"]
     if not isinstance(feedback, list) or len(feedback) < feedback_seen:
         raise ValueError("simulator feedback history changed unexpectedly")
     if not first:
         payload = {"observation": payload["observation"],
                    "tool_feedback_history": feedback[feedback_seen:]}
-        prompt = json.dumps(payload, ensure_ascii=False) + "\n" + BRIEF
+        prompt = json.dumps(payload, ensure_ascii=False) + "\n" + brief
     return prompt, len(feedback)
 
 
@@ -221,6 +230,7 @@ async def run_episode(
     max_decisions: int,
     timeout_seconds: float,
     on_action: Callable[[dict[str, Any]], None] | None = None,
+    response_instruction: str = BRIEF,
 ) -> dict[str, Any]:
     """Drive a simulator via one model request per decision, with finite bounds."""
     if max_decisions < 1 or timeout_seconds <= 0:
@@ -238,7 +248,7 @@ async def run_episode(
             simulator.finish("real_deadline")
             break
         try:
-            response = await asyncio.wait_for(request(simulator.prompt() + "\n" + BRIEF), remaining)
+            response = await asyncio.wait_for(request(simulator.prompt() + "\n" + response_instruction), remaining)
         except asyncio.TimeoutError:
             external_stop = "time_limit"
             simulator.finish("real_deadline")
@@ -267,7 +277,9 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
               episode_factory: Callable[[dict[str, Any]], Any] | None = None,
               sample_specs: list[dict[str, Any]] | None = None,
               on_event: Callable[[dict[str, Any]], None] | None = None,
-              fresh_context_each_turn: bool = False) -> Any:
+              fresh_context_each_turn: bool = False,
+              common_system_instruction: str | None = None,
+              response_instruction: str = BRIEF) -> Any:
     """Construct an Inspect task; real network calls occur only when eval runs."""
     from inspect_ai import Task
     from inspect_ai.dataset import Sample
@@ -279,9 +291,13 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
     prompt_conditions = prompt_conditions or ["baseline"]
     if any(condition not in PROMPT_CONDITIONS for condition in prompt_conditions):
         raise ValueError("unknown prompt condition")
-    specs = ([sample_metadata(spec) for spec in sample_specs] if sample_specs is not None
+    specs = ([dict(spec) for spec in sample_specs] if sample_specs is not None
              else [prompt_metadata(scenario, arm)
                    for scenario in conditions for arm in prompt_conditions])
+    if common_system_instruction is not None:
+        for spec in specs:
+            spec["common_system_instruction"] = common_system_instruction
+    specs = [sample_metadata(spec) for spec in specs]
     if len({spec["case_id"] for spec in specs}) != len(specs):
         raise ValueError("sample case IDs must be unique")
 
@@ -291,7 +307,7 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
             identity = sample_metadata(state.metadata)
             simulator = (episode_factory(dict(identity)) if episode_factory is not None
                          else fixture.ReportEpisode(identity["condition"]))
-            instruction = PROMPT_CONDITIONS[identity["prompt_condition"]]
+            instruction = identity["system_prompt"]
             first = True
             feedback_seen = 0
             notify_event(on_event, {"type": "episode_started", **identity,
@@ -305,7 +321,8 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
                     state.messages = ([ChatMessageSystem(content=instruction)] if instruction else [])
                     state.messages.append(ChatMessageUser(content=prompt))
                 else:
-                    prompt, feedback_seen = conversation_update(prompt, feedback_seen, first=first)
+                    prompt, feedback_seen = conversation_update(prompt, feedback_seen, first=first,
+                                                                 brief=response_instruction)
                 if first and not fresh_context_each_turn:
                     state.messages = ([ChatMessageSystem(content=instruction)] if instruction else [])
                     state.messages.append(ChatMessageUser(content=prompt))
@@ -339,7 +356,8 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
                 notify_event(on_event, record)
 
             result = await run_episode(simulator, request, max_decisions=max_decisions,
-                                       timeout_seconds=timeout_seconds, on_action=show_action)
+                                       timeout_seconds=timeout_seconds, on_action=show_action,
+                                       response_instruction=response_instruction)
             result.update(identity)
             store().set("hosted_episode_result", result)
             print(json.dumps({"type": "episode_result",

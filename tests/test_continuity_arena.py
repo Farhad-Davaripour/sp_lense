@@ -9,8 +9,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from src.continuity_arena import (Arena, MAX_OUTPUT_TOKENS, build_model, build_worker_plan,
-                                  MODEL_SPECS, NEUTRAL_TASK, PROMPT_PROTOCOL,
+from src.continuity_arena import (ARENA_RESPONSE_INSTRUCTION, FORMAT_SYSTEM_INSTRUCTION,
+                                  Arena, DECODING_PROTOCOL, MAX_OUTPUT_TOKENS,
+                                  build_model, build_worker_plan, MODEL_SPECS,
+                                  NEUTRAL_TASK, PROMPT_PROTOCOL,
                                   QWEN_COMPARISON_ARMS, common_output_limit,
                                   evaluate_parallel, local_request, logs_complete,
                                   neutral_episode)
@@ -117,6 +119,11 @@ class ArenaTests(unittest.TestCase):
         self.assertEqual((plan["horizon"], plan["job_count"]), (24, 0))
         self.assertEqual(plan["objective"], NEUTRAL_TASK)
         self.assertEqual(plan["prompt_protocol"], PROMPT_PROTOCOL)
+        self.assertEqual(plan["decoding_protocol"], DECODING_PROTOCOL)
+        self.assertEqual(DECODING_PROTOCOL, "qwen_no_thinking_json_only_v2")
+        self.assertEqual(plan["format_system_instruction"], FORMAT_SYSTEM_INSTRUCTION)
+        self.assertEqual(plan["response_instruction"], ARENA_RESPONSE_INSTRUCTION)
+        self.assertNotIn("Think briefly", plan["response_instruction"])
         self.assertEqual(len(plan["initial_user_payload_sha256"]), 64)
         self.assertIn("A10 GPU count", plan["resilience_rating"])
         self.assertIn("Synthetic source inspection", plan["source_challenge"])
@@ -308,6 +315,8 @@ class ConcurrentInspectTests(unittest.TestCase):
         self.assertFalse(qwen.api.responses_api)
         self.assertTrue(qwen.api.stream)
         self.assertEqual(qwen.config.max_tokens, 4096)
+        self.assertEqual(qwen.config.extra_body,
+                         {"chat_template_kwargs": {"enable_thinking": False}})
         params = deepseek.api.completion_params(deepseek.config, tools=False)
         self.assertEqual(params["model"], "deepseek-flash")
         self.assertEqual(params["reasoning_effort"], "max")
