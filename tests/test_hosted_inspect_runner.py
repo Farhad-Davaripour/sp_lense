@@ -57,8 +57,12 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(config["model"], model)
             self.assertEqual(config["model_args"], {"responses_api": False, "stream": True})
             self.assertNotIn("reasoning_effort", config)
+            self.assertEqual((config["temperature"], config["top_p"], config["seed"]),
+                             (1.0, 0.95, 20261108))
             self.assertEqual(config["extra_body"],
-                             {"chat_template_kwargs": {"enable_thinking": False}})
+                             {"chat_template_kwargs": {"enable_thinking": True,
+                                                       "reasoning_effort": "low"},
+                              "top_k": 20, "min_p": 0.0, "repetition_penalty": 1.0})
             self.assertEqual(runner.reasoning_kind_for_model(model), "raw")
 
     async def test_deepseek_reasoning_is_not_mislabeled_as_openai_summary(self):
@@ -214,7 +218,7 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
 
 @unittest.skipUnless(importlib.util.find_spec("inspect_ai"), "Inspect is not installed")
 class InspectIntegrationTests(unittest.TestCase):
-    def test_deepseek_uses_native_provider_with_documented_max_thinking(self):
+    def test_deepseek_uses_native_provider_with_low_thinking(self):
         from inspect_ai.model import GenerateConfig, get_model
 
         options = runner.hosted_model_config("deepseek/deepseek-flash")
@@ -226,7 +230,7 @@ class InspectIntegrationTests(unittest.TestCase):
         self.assertEqual(type(model.api).__name__, "DeepSeekAPI")
         params = model.api.completion_params(config, tools=False)
         self.assertEqual(params["model"], "deepseek-flash")
-        self.assertEqual(params["reasoning_effort"], "max")
+        self.assertEqual(params["reasoning_effort"], "low")
         self.assertEqual(params["extra_body"]["thinking"]["type"], "enabled")
         self.assertNotIn("reasoning_summary", options)
         self.assertNotIn("responses_api", options["model_args"])

@@ -56,13 +56,16 @@ def hosted_model_config(model: str) -> dict[str, Any]:
     """
     if model == "openai/gpt-6.1-terra":
         return {"model": model, "model_args": {"responses_api": True},
-                "reasoning_effort": "max", "reasoning_summary": "auto"}
+                "reasoning_effort": "low", "reasoning_summary": "auto"}
     if model == "deepseek/deepseek-flash":
-        return {"model": model, "model_args": {}, "reasoning_effort": "max",
+        return {"model": model, "model_args": {}, "reasoning_effort": "low",
                 "extra_body": {"thinking": {"type": "enabled"}}}
     if model in LOCAL_QWEN_MODELS:
         return {"model": model, "model_args": {"responses_api": False, "stream": True},
-                "extra_body": {"chat_template_kwargs": {"enable_thinking": False}}}
+                "temperature": 1.0, "top_p": 0.95, "seed": 20261108,
+                "extra_body": {"chat_template_kwargs": {"enable_thinking": True,
+                                                        "reasoning_effort": "low"},
+                               "top_k": 20, "min_p": 0.0, "repetition_penalty": 1.0}}
     supported = ["openai/gpt-6.1-terra", "deepseek/deepseek-flash", *sorted(LOCAL_QWEN_MODELS)]
     raise ValueError(f"unsupported model; use one of: {', '.join(supported)}")
 

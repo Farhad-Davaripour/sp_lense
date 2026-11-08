@@ -23,8 +23,8 @@ MAX_OUTPUT_TOKENS = 32768
 QWEN_MAX_OUTPUT_TOKENS = 4096
 HOSTED_REFERENCE_MAX_OUTPUT_TOKENS = 4096
 PROMPT_PROTOCOL = "neutral_infrastructure_compact_view_v3"
-DECODING_PROTOCOL = "qwen_no_thinking_json_only_v2"
-HOSTED_DECODING_PROTOCOL = "hosted_max_reasoning_json_only_4096_v1"
+DECODING_PROTOCOL = "all_reasoning_low_qwen_sampling_32k_v6"
+HOSTED_DECODING_PROTOCOL = "hosted_low_reasoning_json_only_4096_v2"
 RUN_PROTOCOL = f"{PROMPT_PROTOCOL}:{DECODING_PROTOCOL}"
 QWEN_EPISODE_SECONDS = 2400
 FORMAT_SYSTEM_INSTRUCTION = (
@@ -77,6 +77,7 @@ MODEL_SPECS = {
 }
 
 QWEN_COMPARISON_ARMS = ("qwen_base_neutral", "qwen_base", "sp_lense_neutral", "sp_lense")
+SIX_ARM_COMPARISON_ARMS = (*QWEN_COMPARISON_ARMS, "terra", "deepseek")
 
 QWEN_BASE_URL = "http://127.0.0.1:8769/v1"
 QWEN_HEALTH_URL = "http://127.0.0.1:8769/health"
@@ -85,6 +86,10 @@ QWEN_BASE_REVISION = "10c35caafbb80f7dc6a7a432cdd11af10a6d4818"
 QWEN_BASE_MANIFEST_SHA256 = "e126c678d420b65a2c5157c0bca0a3fb162cad6b96e4a067912418e0959d7461"
 QWEN_ADAPTER_SHA256 = "71ed18f5f3c15bce815bf77d386b47ecb5751e3cf53966bf1aa85ecd044def61"
 QWEN_SELECTION_SHA256 = "1a27972e064018c0afd3e6ea078662df59ae6b4232c10c49b273fecfbfd76160"
+QWEN_SERVICE_SOURCE_SHA256 = "e8e19b5c5bd0411eddf0dfc442ffa50674633a948665bb7085c26e925daf9d78"
+QWEN_SERVICE_CONTRACT_SHA256 = "9c0cbac6ac74ac23a241695c8b9b6aab5015a30c3dba4ee3a20dc059e80f2a8e"
+QWEN_CONTEXT_TOKENS = 32768
+QWEN_PREFILL_STEP_TOKENS = 512
 
 
 def local_qwen_health() -> dict[str, Any]:
@@ -105,11 +110,14 @@ def local_qwen_health() -> dict[str, Any]:
              and value.get("base_manifest_sha256") == QWEN_BASE_MANIFEST_SHA256
              and value.get("adapter_sha256") == QWEN_ADAPTER_SHA256
              and value.get("selection_sha256") == QWEN_SELECTION_SHA256
+             and value.get("source_sha256") == QWEN_SERVICE_SOURCE_SHA256
+             and value.get("contract_sha256") == QWEN_SERVICE_CONTRACT_SHA256
              and value.get("selected_step") == 900
              and value.get("self_test") == "passed_base_adapter_base_exact_logits"
              and value.get("max_concurrency") == 1
              and isinstance(limits, dict) and limits.get("max_output_tokens") == QWEN_MAX_OUTPUT_TOKENS
-             and limits.get("max_context_tokens_including_output") == 8192)
+             and limits.get("max_context_tokens_including_output") == QWEN_CONTEXT_TOKENS
+             and limits.get("prefill_step_tokens") == QWEN_PREFILL_STEP_TOKENS)
     return ({"available": True, "reason": "Verified local Mac service ready."}
             if valid else {"available": False, "reason": "Local Qwen service identity does not match."})
 
@@ -428,6 +436,11 @@ def build_worker_plan(repository: Path, world: Any, models: list[str], rows: lis
         "prompt_protocol": PROMPT_PROTOCOL, "decoding_protocol": run_decoding_protocol(models),
         "format_system_instruction": FORMAT_SYSTEM_INSTRUCTION,
         "response_instruction": ARENA_RESPONSE_INSTRUCTION,
+        "qwen_service_profile": {"source_sha256": QWEN_SERVICE_SOURCE_SHA256,
+                                 "contract_sha256": QWEN_SERVICE_CONTRACT_SHA256,
+                                 "max_context_tokens_including_output": QWEN_CONTEXT_TOKENS,
+                                 "max_output_tokens": QWEN_MAX_OUTPUT_TOKENS,
+                                 "prefill_step_tokens": QWEN_PREFILL_STEP_TOKENS},
         "model_visible_objective": NEUTRAL_TASK,
         "initial_user_payload_sha256": hashlib.sha256(neutral_episode(world.seed).prompt().encode()).hexdigest(),
         "source_sha256": {name: hashlib.sha256((repository / "src" / name).read_bytes()).hexdigest()
@@ -436,8 +449,13 @@ def build_worker_plan(repository: Path, world: Any, models: list[str], rows: lis
                                        "arena_prompt_view.py")},
         "generation_settings": {arm: {"model": MODEL_SPECS[arm]["model"],
                                        "prompt_condition": MODEL_SPECS[arm]["prompt_condition"],
-                                       "reasoning_effort": (None if MODEL_SPECS[arm].get("local_qwen") else "max"),
-                                       "thinking_enabled": (False if MODEL_SPECS[arm].get("local_qwen") else None),
+                                       "reasoning_effort": "low",
+                                       "reasoning_effort_location": ("chat_template_kwargs" if MODEL_SPECS[arm].get("local_qwen") else "provider_generate_config"),
+                                       "thinking_enabled": True,
+                                       "sampling": ({"temperature": 1.0, "top_p": 0.95,
+                                                    "top_k": 20, "min_p": 0.0,
+                                                    "repetition_penalty": 1.0, "seed": 20261108}
+                                                   if MODEL_SPECS[arm].get("local_qwen") else "provider_default"),
                                        "max_output_tokens": common_output_limit(models)} for arm in models},
         "seed": world.seed, "horizon": HORIZON,
         "job_count": JOB_COUNT, "objective": NEUTRAL_TASK, "world_objective_for_legacy_scoring": OBJECTIVE,

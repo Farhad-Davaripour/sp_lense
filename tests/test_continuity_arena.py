@@ -14,7 +14,8 @@ from src.continuity_arena import (ARENA_RESPONSE_INSTRUCTION, FORMAT_SYSTEM_INST
                                   MAX_OUTPUT_TOKENS,
                                   build_model, build_worker_plan, MODEL_SPECS,
                                   NEUTRAL_TASK, PROMPT_PROTOCOL,
-                                  QWEN_COMPARISON_ARMS, common_output_limit,
+                                  QWEN_COMPARISON_ARMS, SIX_ARM_COMPARISON_ARMS,
+                                  common_output_limit,
                                   evaluate_parallel, local_request, logs_complete,
                                   neutral_episode, run_decoding_protocol)
 
@@ -66,6 +67,32 @@ class ArenaTests(unittest.TestCase):
         self.assertEqual(common_output_limit(["terra", "qwen_base", "sp_lense"]), 4096)
         self.assertEqual(run_decoding_protocol(["terra", "deepseek"]), HOSTED_DECODING_PROTOCOL)
         self.assertEqual(run_decoding_protocol(list(QWEN_COMPARISON_ARMS)), DECODING_PROTOCOL)
+        self.assertEqual(run_decoding_protocol(list(SIX_ARM_COMPARISON_ARMS)), DECODING_PROTOCOL)
+
+    def test_six_arm_plan_records_reasoning_and_equal_limits(self):
+        from src.infrastructure_game import InfrastructureEpisode
+
+        self.assertEqual(len(SIX_ARM_COMPARISON_ARMS), 6)
+        self.assertEqual(len(set(SIX_ARM_COMPARISON_ARMS)), 6)
+        self.assertEqual(set(SIX_ARM_COMPARISON_ARMS) - set(QWEN_COMPARISON_ARMS),
+                         {"terra", "deepseek"})
+        rows = [{"case_id": f"{arm}/seed:7", "seed": 7, "model_id": arm}
+                for arm in SIX_ARM_COMPARISON_ARMS]
+        plan = build_worker_plan(Path(__file__).resolve().parents[1],
+                                 InfrastructureEpisode(7), list(SIX_ARM_COMPARISON_ARMS), rows)
+        self.assertEqual(plan["decoding_protocol"], DECODING_PROTOCOL)
+        self.assertEqual(plan["max_output_tokens_per_response"], 4096)
+        self.assertEqual({item["seed"] for item in plan["samples"]}, {7})
+        self.assertTrue(all(setting["thinking_enabled"] is True and
+                            setting["max_output_tokens"] == 4096
+                            for setting in plan["generation_settings"].values()))
+        self.assertTrue(all(setting["reasoning_effort"] == "low"
+                            for setting in plan["generation_settings"].values()))
+        self.assertEqual(plan["generation_settings"]["sp_lense"]["reasoning_effort_location"],
+                         "chat_template_kwargs")
+        self.assertEqual(plan["generation_settings"]["sp_lense"]["sampling"]["temperature"], 1.0)
+        self.assertEqual(plan["generation_settings"]["terra"]["reasoning_effort_location"],
+                         "provider_generate_config")
 
     def test_four_qwen_arms_cross_adapter_and_security_instruction(self):
         self.assertEqual(len(QWEN_COMPARISON_ARMS), 4)
@@ -123,7 +150,7 @@ class ArenaTests(unittest.TestCase):
         self.assertEqual(plan["objective"], NEUTRAL_TASK)
         self.assertEqual(plan["prompt_protocol"], PROMPT_PROTOCOL)
         self.assertEqual(plan["decoding_protocol"], HOSTED_DECODING_PROTOCOL)
-        self.assertEqual(DECODING_PROTOCOL, "qwen_no_thinking_json_only_v2")
+        self.assertEqual(DECODING_PROTOCOL, "all_reasoning_low_qwen_sampling_32k_v6")
         self.assertEqual(plan["format_system_instruction"], FORMAT_SYSTEM_INSTRUCTION)
         self.assertEqual(plan["response_instruction"], ARENA_RESPONSE_INSTRUCTION)
         self.assertNotIn("Think briefly", plan["response_instruction"])
@@ -310,19 +337,23 @@ class ConcurrentInspectTests(unittest.TestCase):
             deepseek = build_model("deepseek/deepseek-flash", 1)
             qwen = build_model("openai-api/research4-qwen/qwen3.8-27b-shared-adapter", 1, 4096)
         self.assertTrue(terra.api.responses_api)
-        self.assertEqual(terra.config.reasoning_effort, "max")
+        self.assertEqual(terra.config.reasoning_effort, "low")
         self.assertEqual(terra.config.reasoning_summary, "auto")
-        self.assertEqual(deepseek.config.reasoning_effort, "max")
+        self.assertEqual(deepseek.config.reasoning_effort, "low")
         self.assertEqual(terra.config.max_tokens, 32768)
         self.assertEqual(deepseek.config.max_tokens, 32768)
         self.assertFalse(qwen.api.responses_api)
         self.assertTrue(qwen.api.stream)
         self.assertEqual(qwen.config.max_tokens, 4096)
+        self.assertEqual((qwen.config.temperature, qwen.config.top_p, qwen.config.seed),
+                         (1.0, 0.95, 20261108))
         self.assertEqual(qwen.config.extra_body,
-                         {"chat_template_kwargs": {"enable_thinking": False}})
+                         {"chat_template_kwargs": {"enable_thinking": True,
+                                                   "reasoning_effort": "low"},
+                          "top_k": 20, "min_p": 0.0, "repetition_penalty": 1.0})
         params = deepseek.api.completion_params(deepseek.config, tools=False)
         self.assertEqual(params["model"], "deepseek-flash")
-        self.assertEqual(params["reasoning_effort"], "max")
+        self.assertEqual(params["reasoning_effort"], "low")
         self.assertEqual(params["extra_body"]["thinking"]["type"], "enabled")
 
 
