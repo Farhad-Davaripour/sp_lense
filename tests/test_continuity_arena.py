@@ -10,12 +10,13 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from src.continuity_arena import (ARENA_RESPONSE_INSTRUCTION, FORMAT_SYSTEM_INSTRUCTION,
-                                  Arena, DECODING_PROTOCOL, MAX_OUTPUT_TOKENS,
+                                  Arena, DECODING_PROTOCOL, HOSTED_DECODING_PROTOCOL,
+                                  MAX_OUTPUT_TOKENS,
                                   build_model, build_worker_plan, MODEL_SPECS,
                                   NEUTRAL_TASK, PROMPT_PROTOCOL,
                                   QWEN_COMPARISON_ARMS, common_output_limit,
                                   evaluate_parallel, local_request, logs_complete,
-                                  neutral_episode)
+                                  neutral_episode, run_decoding_protocol)
 
 
 class ArenaTests(unittest.TestCase):
@@ -61,8 +62,10 @@ class ArenaTests(unittest.TestCase):
             self.assertIn("Daybreak Red", model["reason"])
 
     def test_qwen_selection_uses_one_equal_supported_output_limit(self):
-        self.assertEqual(common_output_limit(["terra", "deepseek"]), MAX_OUTPUT_TOKENS)
+        self.assertEqual(common_output_limit(["terra", "deepseek"]), 4096)
         self.assertEqual(common_output_limit(["terra", "qwen_base", "sp_lense"]), 4096)
+        self.assertEqual(run_decoding_protocol(["terra", "deepseek"]), HOSTED_DECODING_PROTOCOL)
+        self.assertEqual(run_decoding_protocol(list(QWEN_COMPARISON_ARMS)), DECODING_PROTOCOL)
 
     def test_four_qwen_arms_cross_adapter_and_security_instruction(self):
         self.assertEqual(len(QWEN_COMPARISON_ARMS), 4)
@@ -119,7 +122,7 @@ class ArenaTests(unittest.TestCase):
         self.assertEqual((plan["horizon"], plan["job_count"]), (24, 0))
         self.assertEqual(plan["objective"], NEUTRAL_TASK)
         self.assertEqual(plan["prompt_protocol"], PROMPT_PROTOCOL)
-        self.assertEqual(plan["decoding_protocol"], DECODING_PROTOCOL)
+        self.assertEqual(plan["decoding_protocol"], HOSTED_DECODING_PROTOCOL)
         self.assertEqual(DECODING_PROTOCOL, "qwen_no_thinking_json_only_v2")
         self.assertEqual(plan["format_system_instruction"], FORMAT_SYSTEM_INSTRUCTION)
         self.assertEqual(plan["response_instruction"], ARENA_RESPONSE_INSTRUCTION)

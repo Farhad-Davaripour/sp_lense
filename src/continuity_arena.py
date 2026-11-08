@@ -21,8 +21,10 @@ from typing import Any
 
 MAX_OUTPUT_TOKENS = 32768
 QWEN_MAX_OUTPUT_TOKENS = 4096
+HOSTED_REFERENCE_MAX_OUTPUT_TOKENS = 4096
 PROMPT_PROTOCOL = "neutral_infrastructure_compact_view_v3"
 DECODING_PROTOCOL = "qwen_no_thinking_json_only_v2"
+HOSTED_DECODING_PROTOCOL = "hosted_max_reasoning_json_only_4096_v1"
 RUN_PROTOCOL = f"{PROMPT_PROTOCOL}:{DECODING_PROTOCOL}"
 QWEN_EPISODE_SECONDS = 2400
 FORMAT_SYSTEM_INSTRUCTION = (
@@ -47,9 +49,11 @@ COMPETITORS = [
 ]
 MODEL_SPECS = {
     "terra": {"label": "Terra · security maximization", "model": "openai/gpt-6.1-terra",
-              "prompt_condition": "security_maximization", "key_name": "OPENAI_API_KEY"},
+              "prompt_condition": "security_maximization", "key_name": "OPENAI_API_KEY",
+              "max_output_tokens": HOSTED_REFERENCE_MAX_OUTPUT_TOKENS},
     "deepseek": {"label": "DeepSeek V4.1 Flash · security maximization", "model": "deepseek/deepseek-flash",
-                 "prompt_condition": "security_maximization", "key_name": "DEEPSEEK_API_KEY"},
+                 "prompt_condition": "security_maximization", "key_name": "DEEPSEEK_API_KEY",
+                 "max_output_tokens": HOSTED_REFERENCE_MAX_OUTPUT_TOKENS},
     "gpt_cyber": {"label": "GPT-6-Cyber", "model": "openai/gpt-6-cyber",
                   "prompt_condition": "security_maximization", "key_name": "OPENAI_API_KEY",
                   "access_verified": False, "default_selected": False,
@@ -121,6 +125,12 @@ def common_output_limit(models: list[str]) -> int:
 def episode_timeout(models: list[str]) -> int:
     return (QWEN_EPISODE_SECONDS if any(MODEL_SPECS[model].get("local_qwen") for model in models)
             else 600)
+
+
+def run_decoding_protocol(models: list[str]) -> str:
+    if models and all(model in {"terra", "deepseek"} for model in models):
+        return HOSTED_DECODING_PROTOCOL
+    return DECODING_PROTOCOL
 
 
 def local_request(host: str, origin: str | None, port: int) -> bool:
@@ -207,6 +217,7 @@ class Arena:
             raise ValueError("Select one or more unique configured models.")
         if any(not isinstance(m, str) or m not in ready for m in models):
             raise ValueError("A selected model is unavailable; no substitute will be used.")
+        decoding_protocol = run_decoding_protocol(models)
         with self.lock:
             if self.active_run is not None:
                 raise ValueError("A comparison is already running.")
@@ -218,8 +229,8 @@ class Arena:
                 self.runs.append({"id": bundle + ":" + model_id, "bundle": bundle,
                                   "case_id": f"{model_id}/seed:{seed}", "label": spec["label"],
                                   "model": spec["model"], "prompt_condition": spec["prompt_condition"],
-                                  "seed": seed, "rules_version": f"{VERSION}:{RUN_PROTOCOL}",
-                                  "prompt_protocol": PROMPT_PROTOCOL, "decoding_protocol": DECODING_PROTOCOL,
+                                  "seed": seed, "rules_version": f"{VERSION}:{PROMPT_PROTOCOL}:{decoding_protocol}",
+                                  "prompt_protocol": PROMPT_PROTOCOL, "decoding_protocol": decoding_protocol,
                                   "status": "queued", "events": [], "score": {},
                                   "observation": {}, "partial_output": "", "reasoning_summary": ""})
         destination = self.evidence_root / bundle
@@ -414,7 +425,7 @@ def build_worker_plan(repository: Path, world: Any, models: list[str], rows: lis
 
     return {"models": models, "rules_version": VERSION, "score_version": SCORE_VERSION,
         "world_plan_sha256": world.plan_sha256,
-        "prompt_protocol": PROMPT_PROTOCOL, "decoding_protocol": DECODING_PROTOCOL,
+        "prompt_protocol": PROMPT_PROTOCOL, "decoding_protocol": run_decoding_protocol(models),
         "format_system_instruction": FORMAT_SYSTEM_INSTRUCTION,
         "response_instruction": ARENA_RESPONSE_INSTRUCTION,
         "model_visible_objective": NEUTRAL_TASK,
@@ -456,11 +467,12 @@ def worker(seed: int, destination: Path, models: list[str]) -> int:
         os.environ.setdefault("RESEARCH4_QWEN_BASE_URL", QWEN_BASE_URL)
         os.environ.setdefault("RESEARCH4_QWEN_API_KEY", "local-unused")
     destination.mkdir(parents=True, exist_ok=True)
+    decoding_protocol = run_decoding_protocol(models)
     rows = [{"scenario": f"seed:{seed}", "condition": f"seed:{seed}",
              "prompt_condition": MODEL_SPECS[m]["prompt_condition"], "seed": seed,
              "case_id": f"{m}/seed:{seed}", "label": MODEL_SPECS[m]["label"], "model_id": m,
-             "rules_version": f"{VERSION}:{RUN_PROTOCOL}", "prompt_protocol": PROMPT_PROTOCOL,
-             "decoding_protocol": DECODING_PROTOCOL}
+             "rules_version": f"{VERSION}:{PROMPT_PROTOCOL}:{decoding_protocol}",
+             "prompt_protocol": PROMPT_PROTOCOL, "decoding_protocol": decoding_protocol}
             for m in models]
     world = neutral_episode(seed)
     (destination / "plan.json").write_text(
