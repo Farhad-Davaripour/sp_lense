@@ -10,7 +10,8 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from src.continuity_arena import (Arena, MAX_OUTPUT_TOKENS, build_model, build_worker_plan,
-                                  evaluate_parallel, local_request, logs_complete)
+                                  common_output_limit, evaluate_parallel, local_request,
+                                  logs_complete)
 
 
 class ArenaTests(unittest.TestCase):
@@ -26,6 +27,38 @@ class ArenaTests(unittest.TestCase):
             encoding="utf-8")
         for marker in ("createArena3D", "setTarget(zone)", 'id="camera-follow"', 'id="facility-inspector"'):
             self.assertIn(marker, html + renderer)
+        for marker in ("Qwen3.8-27B base", "SP-Lense model", "GPT-6-Cyber", ">Models</legend>",
+                       "Run model comparison"):
+            self.assertIn(marker, html)
+
+    def test_qwen_models_are_selectable_only_for_exact_ready_service(self):
+        with tempfile.TemporaryDirectory() as directory:
+            arena = Arena(Path(directory))
+            with patch("src.continuity_arena.local_qwen_health",
+                       return_value={"available": True, "reason": "ready"}):
+                models = {row["id"]: row for row in arena.snapshot()["models"]}
+            self.assertTrue(models["qwen_base"]["available"])
+            self.assertTrue(models["sp_lense"]["available"])
+            self.assertEqual(models["sp_lense"]["label"], "SP-Lense model")
+            with patch("src.continuity_arena.local_qwen_health",
+                       return_value={"available": False, "reason": "identity mismatch"}):
+                models = {row["id"]: row for row in arena.snapshot()["models"]}
+            self.assertFalse(models["qwen_base"]["available"])
+            self.assertFalse(models["sp_lense"]["available"])
+
+    def test_gpt_cyber_is_visible_but_disabled_without_daybreak_red(self):
+        with tempfile.TemporaryDirectory() as directory:
+            arena = Arena(Path(directory))
+            with patch("src.continuity_arena.local_qwen_health",
+                       return_value={"available": True, "reason": "ready"}):
+                model = {row["id"]: row for row in arena.snapshot()["models"]}["gpt_cyber"]
+            self.assertEqual(model["label"], "GPT-6-Cyber")
+            self.assertFalse(model["available"])
+            self.assertIn("Daybreak Red", model["reason"])
+
+    def test_qwen_selection_uses_one_equal_supported_output_limit(self):
+        self.assertEqual(common_output_limit(["terra", "deepseek"]), MAX_OUTPUT_TOKENS)
+        self.assertEqual(common_output_limit(["terra", "qwen_base", "sp_lense"]), 2048)
 
     def test_arena_retains_exact_prompt_response_and_simulator_result(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -230,15 +263,21 @@ class ConcurrentInspectTests(unittest.TestCase):
 
     def test_provider_specific_configuration_is_preserved(self):
         with patch.dict("os.environ", {"OPENAI_API_KEY": "dummy-local-test",
-                                        "DEEPSEEK_API_KEY": "dummy-local-test"}):
+                                        "DEEPSEEK_API_KEY": "dummy-local-test",
+                                        "RESEARCH4_QWEN_BASE_URL": "http://127.0.0.1:8769/v1",
+                                        "RESEARCH4_QWEN_API_KEY": "local-unused"}):
             terra = build_model("openai/gpt-6.1-terra", 1)
             deepseek = build_model("deepseek/deepseek-flash", 1)
+            qwen = build_model("openai-api/research4-qwen/qwen3.8-27b-shared-adapter", 1, 2048)
         self.assertTrue(terra.api.responses_api)
         self.assertEqual(terra.config.reasoning_effort, "max")
         self.assertEqual(terra.config.reasoning_summary, "auto")
         self.assertEqual(deepseek.config.reasoning_effort, "max")
         self.assertEqual(terra.config.max_tokens, 32768)
         self.assertEqual(deepseek.config.max_tokens, 32768)
+        self.assertFalse(qwen.api.responses_api)
+        self.assertTrue(qwen.api.stream)
+        self.assertEqual(qwen.config.max_tokens, 2048)
         params = deepseek.api.completion_params(deepseek.config, tools=False)
         self.assertEqual(params["model"], "deepseek-flash")
         self.assertEqual(params["reasoning_effort"], "max")
