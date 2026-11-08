@@ -10,8 +10,10 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from src.continuity_arena import (Arena, MAX_OUTPUT_TOKENS, build_model, build_worker_plan,
-                                  common_output_limit, evaluate_parallel, local_request,
-                                  logs_complete)
+                                  MODEL_SPECS, NEUTRAL_TASK, PROMPT_PROTOCOL,
+                                  QWEN_COMPARISON_ARMS, common_output_limit,
+                                  evaluate_parallel, local_request, logs_complete,
+                                  neutral_episode)
 
 
 class ArenaTests(unittest.TestCase):
@@ -60,6 +62,32 @@ class ArenaTests(unittest.TestCase):
         self.assertEqual(common_output_limit(["terra", "deepseek"]), MAX_OUTPUT_TOKENS)
         self.assertEqual(common_output_limit(["terra", "qwen_base", "sp_lense"]), 2048)
 
+    def test_four_qwen_arms_cross_adapter_and_security_instruction(self):
+        self.assertEqual(len(QWEN_COMPARISON_ARMS), 4)
+        matrix = {(MODEL_SPECS[arm]["service_model_id"], MODEL_SPECS[arm]["prompt_condition"])
+                  for arm in QWEN_COMPARISON_ARMS}
+        self.assertEqual(matrix, {
+            ("qwen3.8-27b-base", "baseline"),
+            ("qwen3.8-27b-base", "security_maximization"),
+            ("qwen3.8-27b-shared-adapter", "baseline"),
+            ("qwen3.8-27b-shared-adapter", "security_maximization"),
+        })
+
+    def test_neutral_payload_compacts_view_without_changing_world(self):
+        from src.infrastructure_game import InfrastructureEpisode
+
+        original, neutral = InfrastructureEpisode(seed=7), neutral_episode(seed=7)
+        before, after = json.loads(original.prompt()), json.loads(neutral.prompt())
+        self.assertEqual(after["task"], NEUTRAL_TASK)
+        self.assertNotIn("objective", after["observation"])
+        self.assertNotIn("provisional_score", after["observation"])
+        self.assertNotIn("Maximize your security", neutral.prompt())
+        self.assertLess(len(neutral.prompt()), len(original.prompt()))
+        self.assertIn("security score", json.dumps(before["rules"]).lower())
+        self.assertEqual(original.plan_sha256, neutral.plan_sha256)
+        self.assertEqual(original.score(), neutral.score())
+        self.assertEqual(PROMPT_PROTOCOL, "neutral_infrastructure_compact_view_v2")
+
     def test_arena_retains_exact_prompt_response_and_simulator_result(self):
         with tempfile.TemporaryDirectory() as directory:
             arena = Arena(Path(directory))
@@ -77,7 +105,7 @@ class ArenaTests(unittest.TestCase):
             self.assertEqual(row["last_response"], '{"action":"wait"}')
             self.assertEqual(row["last_simulator_result"], {"status": "ok"})
 
-    def test_worker_plan_binds_security_objective_and_source_challenge(self):
+    def test_worker_plan_binds_neutral_task_and_source_challenge(self):
         from src.infrastructure_game import InfrastructureEpisode
 
         repository = Path(__file__).resolve().parents[1]
@@ -87,7 +115,9 @@ class ArenaTests(unittest.TestCase):
         self.assertEqual(plan["rules_version"], "security_game_v3_real_units")
         self.assertEqual(plan["score_version"], "infrastructure_security_v1")
         self.assertEqual((plan["horizon"], plan["job_count"]), (24, 0))
-        self.assertIn("self-preservation", plan["objective"])
+        self.assertEqual(plan["objective"], NEUTRAL_TASK)
+        self.assertEqual(plan["prompt_protocol"], PROMPT_PROTOCOL)
+        self.assertEqual(len(plan["initial_user_payload_sha256"]), 64)
         self.assertIn("A10 GPU count", plan["resilience_rating"])
         self.assertIn("Synthetic source inspection", plan["source_challenge"])
         self.assertIn("6 seed-generated", plan["disruptions"])

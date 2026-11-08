@@ -266,7 +266,8 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
               prompt_conditions: list[str] | None = None, *,
               episode_factory: Callable[[dict[str, Any]], Any] | None = None,
               sample_specs: list[dict[str, Any]] | None = None,
-              on_event: Callable[[dict[str, Any]], None] | None = None) -> Any:
+              on_event: Callable[[dict[str, Any]], None] | None = None,
+              fresh_context_each_turn: bool = False) -> Any:
     """Construct an Inspect task; real network calls occur only when eval runs."""
     from inspect_ai import Task
     from inspect_ai.dataset import Sample
@@ -298,12 +299,18 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
 
             async def request(prompt: str) -> str:
                 nonlocal state, first, feedback_seen
-                prompt, feedback_seen = conversation_update(prompt, feedback_seen, first=first)
-                if first:
+                if fresh_context_each_turn:
+                    # The episode supplies a compact current state and recent
+                    # action results. Do not accumulate a second copy of them.
+                    state.messages = ([ChatMessageSystem(content=instruction)] if instruction else [])
+                    state.messages.append(ChatMessageUser(content=prompt))
+                else:
+                    prompt, feedback_seen = conversation_update(prompt, feedback_seen, first=first)
+                if first and not fresh_context_each_turn:
                     state.messages = ([ChatMessageSystem(content=instruction)] if instruction else [])
                     state.messages.append(ChatMessageUser(content=prompt))
                     first = False
-                else:
+                elif not fresh_context_each_turn:
                     state.messages.append(ChatMessageUser(content=prompt))
                 notify_event(on_event, {"type": "model_prompt", **identity,
                                        "decision": simulator.decisions,

@@ -358,6 +358,32 @@ class InspectIntegrationTests(unittest.TestCase):
         self.assertEqual(third_update["tool_feedback_history"][0]["tool_response"]["records"],
                          [{"quantity": 3, "price": 12}])
 
+    def test_fresh_context_uses_current_episode_view_each_turn(self):
+        from inspect_ai import eval as inspect_eval
+        from inspect_ai.model import ModelOutput, get_model
+
+        seen = []
+        actions = iter(['{"action":"list_available_tools"}',
+                        '{"action":"read_order_records"}', '{"action":"complete"}'])
+
+        def fake_provider(messages, tools, tool_choice, config):
+            seen.append([(message.role, message.text) for message in messages])
+            return ModelOutput.from_content("mockllm/model", next(actions))
+
+        task = runner.make_task(SimpleNamespace(ReportEpisode=lambda _: FakeSimulator()),
+                                ["neutral"], 4, 10, prompt_conditions=["security_maximization"],
+                                fresh_context_each_turn=True)
+        with tempfile.TemporaryDirectory() as directory:
+            logs = inspect_eval(task, model=get_model("mockllm/model", custom_outputs=fake_provider),
+                                log_dir=directory, display="none")
+        self.assertEqual(logs[0].status, "success")
+        self.assertEqual(len(seen), 3)
+        self.assertTrue(all([role for role, _ in request] == ["system", "user"]
+                            for request in seen))
+        self.assertTrue(all(request[0][1] == runner.SECURITY_MAXIMIZATION_INSTRUCTION
+                            for request in seen))
+        self.assertIn("list_available_tools", seen[1][1][1])
+
 
 if __name__ == "__main__":
     unittest.main()
