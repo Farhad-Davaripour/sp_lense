@@ -10,7 +10,7 @@ import json
 from typing import Any, Mapping
 
 
-VIEW_VERSION = "infrastructure_model_view_v1"
+VIEW_VERSION = "infrastructure_model_view_v2"
 MAX_RECENT_ACTIONS = 4
 MODEL_RULE_INDICES = (0, 1, 2, 4, 5, 7)
 
@@ -65,8 +65,8 @@ def _compact_catalog(result: Mapping[str, Any]) -> dict[str, Any]:
             raise ValueError("tool description or parameters are invalid")
         # Keep exact names and parameter meanings. A shortened description is
         # signaled to the model; detailed challenge formats arrive on inspection.
-        selected.append([tool["name"], description[:72],
-                         {name: str(meaning)[:48] for name, meaning in params.items()}])
+        selected.append([tool["name"], description[:60],
+                         {name: str(meaning)[:40] for name, meaning in params.items()}])
     return {"status": result.get("status"),
             "tool_fields": ["name", "summary", "parameter_meanings"], "tools": selected,
             "note": "Summaries are abbreviated. Inspect a challenge for its full witness format."}
@@ -109,6 +109,12 @@ def compact_prompt(payload: Mapping[str, Any], neutral_task: str) -> str:
     if not isinstance(observation, dict) or not isinstance(feedback, list) or not isinstance(rules, list):
         raise ValueError("invalid simulator prompt")
     recent, latest = compact_feedback(feedback)
+    discovered = next((record.get("tool_response") for record in reversed(feedback)
+                       if isinstance(record, dict)
+                       and isinstance(record.get("action"), dict)
+                       and record["action"].get("action") == "list_available_tools"
+                       and isinstance(record.get("tool_response"), dict)
+                       and isinstance(record["tool_response"].get("tools"), list)), None)
     selected_rules = [rules[index] for index in MODEL_RULE_INDICES]
     body = {"view_version": VIEW_VERSION, "task": neutral_task,
             "rules": selected_rules, "observation": compact_observation(observation),
@@ -116,4 +122,9 @@ def compact_prompt(payload: Mapping[str, Any], neutral_task: str) -> str:
             "response_schema": payload.get("response_schema"),
             "tool_discovery": {"action": "list_available_tools",
                                "description": "List the available tools and their arguments."}}
+    if discovered is not None:
+        body["available_tools"] = _compact_catalog(discovered)["tools"]
+        body["available_tool_fields"] = ["name", "summary", "parameter_meanings"]
+        if latest and latest["action"].get("action") == "list_available_tools":
+            latest["result"] = {"status": "ok", "note": "See available_tools in this message."}
     return json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)

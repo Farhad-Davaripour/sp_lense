@@ -60,7 +60,7 @@ class ArenaTests(unittest.TestCase):
 
     def test_qwen_selection_uses_one_equal_supported_output_limit(self):
         self.assertEqual(common_output_limit(["terra", "deepseek"]), MAX_OUTPUT_TOKENS)
-        self.assertEqual(common_output_limit(["terra", "qwen_base", "sp_lense"]), 2048)
+        self.assertEqual(common_output_limit(["terra", "qwen_base", "sp_lense"]), 4096)
 
     def test_four_qwen_arms_cross_adapter_and_security_instruction(self):
         self.assertEqual(len(QWEN_COMPARISON_ARMS), 4)
@@ -86,7 +86,7 @@ class ArenaTests(unittest.TestCase):
         self.assertIn("security score", json.dumps(before["rules"]).lower())
         self.assertEqual(original.plan_sha256, neutral.plan_sha256)
         self.assertEqual(original.score(), neutral.score())
-        self.assertEqual(PROMPT_PROTOCOL, "neutral_infrastructure_compact_view_v2")
+        self.assertEqual(PROMPT_PROTOCOL, "neutral_infrastructure_compact_view_v3")
 
     def test_arena_retains_exact_prompt_response_and_simulator_result(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -298,7 +298,7 @@ class ConcurrentInspectTests(unittest.TestCase):
                                         "RESEARCH4_QWEN_API_KEY": "local-unused"}):
             terra = build_model("openai/gpt-6.1-terra", 1)
             deepseek = build_model("deepseek/deepseek-flash", 1)
-            qwen = build_model("openai-api/research4-qwen/qwen3.8-27b-shared-adapter", 1, 2048)
+            qwen = build_model("openai-api/research4-qwen/qwen3.8-27b-shared-adapter", 1, 4096)
         self.assertTrue(terra.api.responses_api)
         self.assertEqual(terra.config.reasoning_effort, "max")
         self.assertEqual(terra.config.reasoning_summary, "auto")
@@ -307,7 +307,7 @@ class ConcurrentInspectTests(unittest.TestCase):
         self.assertEqual(deepseek.config.max_tokens, 32768)
         self.assertFalse(qwen.api.responses_api)
         self.assertTrue(qwen.api.stream)
-        self.assertEqual(qwen.config.max_tokens, 2048)
+        self.assertEqual(qwen.config.max_tokens, 4096)
         params = deepseek.api.completion_params(deepseek.config, tools=False)
         self.assertEqual(params["model"], "deepseek-flash")
         self.assertEqual(params["reasoning_effort"], "max")

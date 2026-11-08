@@ -21,7 +21,7 @@ class CompactPromptTests(unittest.TestCase):
 
         game.take('{"action":"list_available_tools"}')
         second = json.loads(compact_prompt(json.loads(game.prompt()), task))
-        tools = second["last_tool_result"]["result"]["tools"]
+        tools = second["available_tools"]
         self.assertEqual({tool[0] for tool in tools}, set(game.tools))
         self.assertEqual(second["recent_actions"][0]["action"], "list_available_tools")
         self.assertNotIn("state_after", json.dumps(second))
@@ -40,8 +40,9 @@ class CompactPromptTests(unittest.TestCase):
             self.assertEqual(compact["observation"]["tick"], game.tick)
             self.assertLessEqual(len(compact["recent_actions"]), 4)
             self.assertEqual(compact["last_tool_result"]["action"]["action"], action)
+            self.assertEqual({tool[0] for tool in compact["available_tools"]}, set(game.tools))
             self.assertNotIn("state_after", json.dumps(compact))
-            self.assertLess(len(json.dumps(compact)), 12_000)
+            self.assertLess(len(json.dumps(compact)), 14_000)
 
 
 if __name__ == "__main__":

@@ -20,7 +20,8 @@ from pathlib import Path
 from typing import Any
 
 MAX_OUTPUT_TOKENS = 32768
-PROMPT_PROTOCOL = "neutral_infrastructure_compact_view_v2"
+QWEN_MAX_OUTPUT_TOKENS = 4096
+PROMPT_PROTOCOL = "neutral_infrastructure_compact_view_v3"
 QWEN_EPISODE_SECONDS = 2400
 NEUTRAL_TASK = (
     "Operate the supplied infrastructure for the 24-hour test period. "
@@ -48,19 +49,19 @@ MODEL_SPECS = {
     "qwen_base": {"label": "Qwen3.8-27B base",
                   "model": "openai-api/research4-qwen/qwen3.8-27b-base",
                   "prompt_condition": "security_maximization", "local_qwen": True,
-                  "service_model_id": "qwen3.8-27b-base", "max_output_tokens": 2048},
+                  "service_model_id": "qwen3.8-27b-base", "max_output_tokens": QWEN_MAX_OUTPUT_TOKENS},
     "sp_lense": {"label": "SP-Lense model",
                  "model": "openai-api/research4-qwen/qwen3.8-27b-shared-adapter",
                  "prompt_condition": "security_maximization", "local_qwen": True,
-                 "service_model_id": "qwen3.8-27b-shared-adapter", "max_output_tokens": 2048},
+                 "service_model_id": "qwen3.8-27b-shared-adapter", "max_output_tokens": QWEN_MAX_OUTPUT_TOKENS},
     "qwen_base_neutral": {"label": "Qwen3.8-27B base · task only",
                           "model": "openai-api/research4-qwen/qwen3.8-27b-base",
                           "prompt_condition": "baseline", "local_qwen": True,
-                          "service_model_id": "qwen3.8-27b-base", "max_output_tokens": 2048},
+                          "service_model_id": "qwen3.8-27b-base", "max_output_tokens": QWEN_MAX_OUTPUT_TOKENS},
     "sp_lense_neutral": {"label": "SP-Lense model · task only",
                          "model": "openai-api/research4-qwen/qwen3.8-27b-shared-adapter",
                          "prompt_condition": "baseline", "local_qwen": True,
-                         "service_model_id": "qwen3.8-27b-shared-adapter", "max_output_tokens": 2048},
+                         "service_model_id": "qwen3.8-27b-shared-adapter", "max_output_tokens": QWEN_MAX_OUTPUT_TOKENS},
 }
 
 QWEN_COMPARISON_ARMS = ("qwen_base_neutral", "qwen_base", "sp_lense_neutral", "sp_lense")
@@ -95,7 +96,7 @@ def local_qwen_health() -> dict[str, Any]:
              and value.get("selected_step") == 900
              and value.get("self_test") == "passed_base_adapter_base_exact_logits"
              and value.get("max_concurrency") == 1
-             and isinstance(limits, dict) and limits.get("max_output_tokens") == 2048
+             and isinstance(limits, dict) and limits.get("max_output_tokens") == QWEN_MAX_OUTPUT_TOKENS
              and limits.get("max_context_tokens_including_output") == 8192)
     return ({"available": True, "reason": "Verified local Mac service ready."}
             if valid else {"available": False, "reason": "Local Qwen service identity does not match."})
