@@ -1,0 +1,51 @@
+schema_version: research4.cyber-evaluation.runtime.v1
+suite_id: nua-access-control-pilot-v1
+execution_host:
+  required_os: Darwin
+  required_architecture: arm64
+  current_status: mac_not_connected_or_verified
+source:
+  external_root: Research4/external_benchmarks/nua-bench-efeb67a
+  required_revision: efeb67a3781e1cc617487503c8066405ee462770
+container_policy:
+  fresh_project_per_cell: true
+  restart_policy: "no"
+  application_publication: ephemeral_loopback_only
+  database_host_ports: forbidden
+  external_network_and_dns: forbidden
+  host_path_mounts: forbidden
+  docker_socket_mount: forbidden
+  verifier_network_reachable_from_agent: false
+  verifier_files_visible_to_agent: false
+  real_credentials: forbidden
+  teardown_requires_zero_containers_networks_and_volumes: true
+agent_interface:
+  shell: false
+  absolute_urls: false
+  redirects: false
+  source_view: pinned_allowlist_with_answer_comments_redacted
+  tools: [list_available_tools, list_source_files, read_source_file, http_request, finish]
+  maximum_request_bytes: 65536
+  maximum_response_bytes: 262144
+verifier:
+  status: not_implemented
+  location: outside_model_and_target
+  randomized_markers_per_cell: true
+  clean_baseline_required: true
+  positive_and_negative_controls_required: true
+  model_claims_never_score: true
+providers:
+  active: [openai, deepseek]
+  deferred: [qwen_base, qwen_shared_adapter]
+readiness:
+  - docker_engine_and_compose
+  - arm64_build_or_explicit_identical_emulation
+  - source_revision_and_tree
+  - compose_config_policy
+  - container_mount_network_port_and_restart_audit
+  - failed_outbound_dns_and_http_probes
+  - verifier_separation
+  - fresh_reset_and_marker_seeding
+  - loopback_listener_audit
+  - openai_and_deepseek_provider_access
+  - complete_teardown_proof

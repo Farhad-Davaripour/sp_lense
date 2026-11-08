@@ -38,12 +38,21 @@ SECURITY_MAXIMIZATION_INSTRUCTION = (
 PROMPT_CONDITIONS = {"baseline": "", "in_context_continuity": CONTINUITY_INSTRUCTION,
                      "security_maximization": SECURITY_MAXIMIZATION_INSTRUCTION}
 
+LOCAL_QWEN_MODELS = {
+    "openai-api/research4-qwen/qwen3.8-27b-base",
+    "openai-api/research4-qwen/qwen3.8-27b-shared-adapter",
+}
+
 
 def hosted_model_config(model: str) -> dict[str, Any]:
     """Return explicit provider settings without substituting another model.
 
     DeepSeek's documented API id ``deepseek-flash`` currently names
     DeepSeek-V4.1-Flash; display names are not interchangeable API ids.
+
+    The two Research4 Qwen ids use Inspect's OpenAI-compatible provider. It
+    resolves ``RESEARCH4_QWEN_BASE_URL`` and ``RESEARCH4_QWEN_API_KEY`` at
+    runtime. The Mac service, not this client, owns atomic base/adapter routing.
     """
     if model == "openai/gpt-6.1-terra":
         return {"model": model, "model_args": {"responses_api": True},
@@ -51,7 +60,16 @@ def hosted_model_config(model: str) -> dict[str, Any]:
     if model == "deepseek/deepseek-flash":
         return {"model": model, "model_args": {}, "reasoning_effort": "max",
                 "extra_body": {"thinking": {"type": "enabled"}}}
-    raise ValueError("unsupported hosted model; use openai/gpt-6.1-terra or deepseek/deepseek-flash")
+    if model in LOCAL_QWEN_MODELS:
+        return {"model": model, "model_args": {"responses_api": False, "stream": True}}
+    supported = ["openai/gpt-6.1-terra", "deepseek/deepseek-flash", *sorted(LOCAL_QWEN_MODELS)]
+    raise ValueError(f"unsupported model; use one of: {', '.join(supported)}")
+
+
+def reasoning_kind_for_model(model: Any) -> str:
+    """Label evidence accurately without treating raw reasoning as a summary."""
+    name = str(model)
+    return "raw" if name.startswith("deepseek/") or name in LOCAL_QWEN_MODELS else "summary"
 
 
 def prompt_metadata(scenario: str, prompt_condition: str) -> dict[str, str]:
@@ -225,8 +243,10 @@ async def run_episode(
             external_stop = "time_limit"
             simulator.finish("real_deadline")
             break
-        except IncompleteResponse:
-            external_stop = "model_response_incomplete"
+        except IncompleteResponse as error:
+            provider_reason = str(error.args[0]) if error.args else "unknown"
+            external_stop = ("provider_content_filter" if provider_reason == "content_filter"
+                             else "model_response_incomplete")
             simulator.finish("technical_error")
             break
         if not isinstance(response, str) or not response.strip():
@@ -294,7 +314,7 @@ def make_task(fixture: Any, conditions: list[str], max_decisions: int, timeout_s
                 recorder = StreamRecorder(state.metadata["condition"], simulator.decisions,
                                           stream_path, identity["prompt_condition"],
                                           identity=identity, on_event=on_event,
-                                          reasoning_kind="raw" if str(model).startswith("deepseek/") else "summary")
+                                          reasoning_kind=reasoning_kind_for_model(model))
                 # Model.generate owns streaming; the solver's generate callback
                 # only accepts GenerateConfig fields, not an on_stream callback.
                 return await generate_response(state, model, recorder)
@@ -342,7 +362,7 @@ def main() -> int:
     parser.add_argument("--prompt-condition", choices=(*PROMPT_CONDITIONS, "both"), default="baseline",
                         help="Baseline or persistent In-context continuity instruction.")
     parser.add_argument("--model", default="openai/gpt-6.1-terra",
-                        help="openai/gpt-6.1-terra or deepseek/deepseek-flash.")
+                        help="Hosted OpenAI/DeepSeek or a registered Research4 Qwen model id.")
     parser.add_argument("--max-decisions", type=int, default=100)
     parser.add_argument("--timeout-seconds", type=float, default=600)
     parser.add_argument("--max-output-tokens", type=int, default=8192,

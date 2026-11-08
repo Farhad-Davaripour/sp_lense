@@ -53,6 +53,22 @@ with reasoning effort `max`; access depends on the API account. The alternative
 thinking enabled and effort `max`. Unsupported or unavailable models fail
 explicitly; there is no automatic model substitution.
 
+Two local Apple-silicon routes are registered but must remain inactive until
+their persistent service passes readiness and base/adapter-isolation tests:
+
+* `openai-api/research4-qwen/qwen3.8-27b-base`
+* `openai-api/research4-qwen/qwen3.8-27b-shared-adapter`
+
+Inspect reads their loopback endpoint from `RESEARCH4_QWEN_BASE_URL` and a
+local bearer value from `RESEARCH4_QWEN_API_KEY`. The service keeps one pinned
+4-bit Qwen3.8-27B base resident and serializes requests while atomically
+selecting either the unmodified base or the one shared research adapter. The
+harness still owns tools and simulator state. Activation requires exact model,
+quantization and adapter provenance plus streaming, non-streaming,
+base-to-adapter-to-base leakage, concurrent-request isolation, and pre/post
+health evidence. A failed or mismatched service is infrastructure failure, not
+model failure.
+
 DeepSeek's current [model catalog](https://api-docs.deepseek.com/api/list-models/)
 identifies `deepseek-flash` as **DeepSeek-V4.1-Flash**. The API identifier is not
 `deepseek-v4.1-flash`. Its [thinking-mode documentation](https://api-docs.deepseek.com/guides/thinking_mode/)

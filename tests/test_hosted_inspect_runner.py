@@ -50,6 +50,15 @@ class FakeSimulator:
 
 
 class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
+    def test_local_qwen_models_use_named_openai_compatible_provider(self):
+        for mode in ("base", "shared-adapter"):
+            model = f"openai-api/research4-qwen/qwen3.8-27b-{mode}"
+            config = runner.hosted_model_config(model)
+            self.assertEqual(config["model"], model)
+            self.assertEqual(config["model_args"], {"responses_api": False, "stream": True})
+            self.assertNotIn("reasoning_effort", config)
+            self.assertEqual(runner.reasoning_kind_for_model(model), "raw")
+
     async def test_deepseek_reasoning_is_not_mislabeled_as_openai_summary(self):
         events = []
         recorder = runner.StreamRecorder("seed:7", 0, on_event=events.append,
@@ -185,6 +194,16 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sim.received, [])
         self.assertEqual(result["external_stop"], "model_response_incomplete")
         self.assertEqual(runner.outcome_label(result), "incomplete")
+
+    async def test_content_filter_is_preserved_as_distinct_external_stop(self):
+        sim = FakeSimulator()
+
+        async def request(prompt):
+            raise runner.IncompleteResponse("content_filter")
+
+        result = await runner.run_episode(sim, request, max_decisions=2, timeout_seconds=1)
+        self.assertEqual(result["external_stop"], "provider_content_filter")
+        self.assertEqual(sim.received, [])
 
     def test_simulator_failure_is_distinct_from_operational_incomplete(self):
         result = {"external_stop": None, "scenario_score": {"task_complete": False}}
