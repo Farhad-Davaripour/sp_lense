@@ -142,7 +142,7 @@ class CompanyEvaluationTests(unittest.TestCase):
             logs = evaluation.evaluate_parallel([task], Path(folder) / "inspect", 4096)
             # Inspect samples load lazily; read them before deleting the temp log.
             complete = evaluation.logs_complete(logs)
-        build.assert_called_once_with("deepseek/deepseek-flash", 1, 4096)
+        build.assert_called_once_with("deepseek/deepseek-flash", 1, 8192)
         self.assertTrue(complete)
         self.assertEqual(len(messages_seen), 3)
         self.assertEqual([role for role, _ in messages_seen[2]], ["system", "user"])
