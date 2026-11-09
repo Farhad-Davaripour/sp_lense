@@ -1,5 +1,33 @@
 import * as T from './arena_vendor/three.module.min.js';
 
+/* Screen-space placement only. Model actions and simulator state are untouched. */
+export function overlaps(a,b,gap=0){return a.left<b.right+gap&&a.right>b.left-gap&&a.top<b.bottom+gap&&a.bottom>b.top-gap;}
+export function placeAnchored(items,bounds,obstacles=[],gap=8){
+  const occupied=[...obstacles],placed=[];
+  for(const item of items){
+    const w=item.width,h=item.height,a=item.anchor,candidates=[];
+    const add=(left,top,previous=false)=>{const r={left,top,right:left+w,bottom:top+h};if(r.left<bounds.left||r.right>bounds.right||r.top<bounds.top||r.bottom>bounds.bottom||occupied.some(o=>overlaps(r,o,gap)))return;const dx=(r.left+r.right)/2-a.x,dy=(r.top+r.bottom)/2-a.y;candidates.push({rect:r,score:Math.hypot(dx,dy)+(dy>0?18:0)-(previous?28:0)});};
+    if(item.previous)add(item.previous.left,item.previous.top,true);
+    for(const distance of [20,48,88,140]){
+      add(a.x-w/2,a.y-h-distance);add(a.x-w/2,a.y+distance);
+      add(a.x-w-distance,a.y-h/2);add(a.x+distance,a.y-h/2);
+      for(const side of [-1,1]){add(a.x-w/2+side*(w*.6),a.y-h-distance);add(a.x-w/2+side*(w*.6),a.y+distance);}
+    }
+    // A bounded grid fills side lanes when several agents stand together.
+    for(let y=bounds.top;y<=bounds.bottom-h;y+=12)for(let x=bounds.left;x<=bounds.right-w;x+=12)add(x,y);
+    candidates.sort((x,y)=>x.score-y.score||x.rect.top-y.rect.top||x.rect.left-y.rect.left);
+    const rect=candidates[0]?.rect||null;placed.push({id:item.id,rect});if(rect)occupied.push(rect);
+  }
+  return placed;
+}
+export function connectorEdge(rect,anchor){
+  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+  if(anchor.y>=rect.bottom)return{x:clamp(anchor.x,rect.left+14,rect.right-14),y:rect.bottom};
+  if(anchor.y<=rect.top)return{x:clamp(anchor.x,rect.left+14,rect.right-14),y:rect.top};
+  return{x:anchor.x<rect.left?rect.left:rect.right,y:clamp(anchor.y,rect.top+14,rect.bottom-14)};
+}
+
+
 // Schematic placement of separate geographical sites, not a real-world map.
 const SITES = {
   operations:{x:0,z:-1,title:'Operations',sub:'Fleet control',color:0x3e8198,road:4,lane:5},
@@ -248,12 +276,22 @@ export function createScene({canvas,container,marker}) {
     }
     projected.copy(actor.position).add(new T.Vector3(0,1.6,0)).project(camera);if(marker){const mx=(projected.x*.5+.5)*width,my=(-projected.y*.5+.5)*height;marker.style.left=`${mx}px`;marker.style.top=`${my}px`;const cloud=document.getElementById('agent-bubble');if(cloud.classList.contains('thinking')){const bw=Math.min(330,width-32),left=clamp(mx-bw/2,16,width-bw-16)-mx,above=my>220;cloud.style.width=`${bw}px`;cloud.style.left=`${left}px`;cloud.style.top=above?`${-cloud.offsetHeight-30}px`:'30px';cloud.style.setProperty('--thought-tail',`${clamp(-left,20,bw-30)}px`);cloud.classList.toggle('below',!above);}}
   }
-  const peerActors=new Map(),agentNames=new Map();let selectedRun=null,peerOverlay=false,agentSpecs=[];
-  function nameTag(spec){let tag=agentNames.get(spec.id);if(!tag){tag=document.createElement('button');tag.type='button';tag.className='peer-agent-label';tag.onclick=()=>container.dispatchEvent(new CustomEvent('arena-select-run',{detail:{id:spec.id},bubbles:true}));container.appendChild(tag);agentNames.set(spec.id,tag);}tag.replaceChildren();const title=document.createElement('strong');title.textContent=`${spec.label} · ${spec.status==='running'?'active':spec.status}`;tag.appendChild(title);tag.classList.toggle('peer-thinking',Boolean(spec.thinking&&spec.thought&&spec.id!==selectedRun));if(spec.thinking&&spec.thought&&spec.id!==selectedRun){const text=document.createElement('span');text.className='peer-thought';text.textContent=(spec.reasoningKind==='summary'?'Summary: ':'Reasoning: ')+spec.thought.slice(-180);tag.appendChild(text);}tag.style.setProperty('--agent-color',spec.color);tag.classList.toggle('selected',spec.id===selectedRun);return tag;}
-  function removePeer(id){const peer=peerActors.get(id);if(peer){scene.remove(peer.g);peer.materials.forEach(m=>m.dispose());peerActors.delete(id);}agentNames.get(id)?.remove();agentNames.delete(id);}
+  const peerActors=new Map(),agentNames=new Map(),agentClouds=new Map();let selectedRun=null,peerOverlay=false,agentSpecs=[];
+  const SVG_NS='http://www.w3.org/2000/svg',connectorLayer=document.createElementNS(SVG_NS,'svg');connectorLayer.classList.add('agent-connector-layer');connectorLayer.setAttribute('aria-hidden','true');container.appendChild(connectorLayer);
+  function nameTag(spec){let tag=agentNames.get(spec.id);if(!tag){tag=document.createElement('button');tag.type='button';tag.className='peer-agent-label';tag.onclick=()=>container.dispatchEvent(new CustomEvent('arena-select-run',{detail:{id:spec.id},bubbles:true}));container.appendChild(tag);agentNames.set(spec.id,tag);}tag.textContent=`${spec.label} · ${spec.status==='running'?'active':spec.status}`;tag.style.setProperty('--agent-color',spec.color);tag.classList.toggle('selected',spec.id===selectedRun);return tag;}
+  function removeCloud(id){const cloud=agentClouds.get(id);if(cloud){cloud.el.remove();cloud.group.remove();agentClouds.delete(id);}}
+  function thoughtCloud(spec){
+    if(!spec.thinking){removeCloud(spec.id);return;}
+    let cloud=agentClouds.get(spec.id);
+    if(!cloud){const el=document.createElement('section');el.className='agent-thought-cloud';el.dataset.agentId=spec.id;const header=document.createElement('button');header.type='button';header.className='thought-owner';header.onclick=()=>container.dispatchEvent(new CustomEvent('arena-select-run',{detail:{id:spec.id},bubbles:true}));const kind=document.createElement('span');kind.className='thought-kind';const text=document.createElement('div');text.className='thought-content';const more=document.createElement('button');more.type='button';more.className='thought-more';more.textContent='Read full received text';more.onclick=()=>container.dispatchEvent(new CustomEvent('arena-select-run',{detail:{id:spec.id,openReasoning:true},bubbles:true}));el.append(header,kind,text,more);container.appendChild(el);const group=document.createElementNS(SVG_NS,'g'),outline=document.createElementNS(SVG_NS,'path'),line=document.createElementNS(SVG_NS,'path'),dot=document.createElementNS(SVG_NS,'circle');for(const item of [outline,line]){item.setAttribute('fill','none');item.setAttribute('stroke-linecap','round');}outline.setAttribute('stroke','#17323d70');outline.setAttribute('stroke-width','4');line.setAttribute('stroke-width','2');dot.setAttribute('r','4');dot.setAttribute('stroke','#17323d');group.append(outline,line,dot);connectorLayer.appendChild(group);cloud={el,header,kind,text,more,group,outline,line,dot,key:'',dirty:true,previous:null};agentClouds.set(spec.id,cloud);}
+    const key=JSON.stringify([spec.label,spec.thought,spec.reasoningKind,spec.id===selectedRun]);if(cloud.key!==key){cloud.header.textContent=spec.label;cloud.kind.textContent=spec.reasoningKind==='summary'?'Received reasoning summary':'Received reasoning text';cloud.text.textContent=spec.thought?spec.thought.slice(spec.id===selectedRun?-360:-220):'Waiting for provider text…';cloud.more.hidden=!spec.thought;cloud.el.setAttribute('aria-label',`${spec.label}: ${cloud.kind.textContent}`);cloud.key=key;cloud.dirty=true;}
+    cloud.el.classList.toggle('selected',spec.id===selectedRun);cloud.el.style.setProperty('--agent-color',spec.color);cloud.line.setAttribute('stroke',spec.color);cloud.dot.setAttribute('fill',spec.color);
+  }
+
+  function removePeer(id){const peer=peerActors.get(id);if(peer){scene.remove(peer.g);peer.materials.forEach(m=>m.dispose());peerActors.delete(id);}agentNames.get(id)?.remove();agentNames.delete(id);removeCloud(id);}
   function peerRoute(previous,next,offset){return [new T.Vector3(previous.x+offset,.18,previous.road),new T.Vector3(previous.lane,.18,previous.road),new T.Vector3(next.lane,.18,previous.road),new T.Vector3(next.lane,.18,next.road),new T.Vector3(next.x+offset,.18,next.road),new T.Vector3(next.x+offset,.18,next.z+2.9)];}
   function updateAgents(specs,selected,overlay){
-    agentSpecs=specs;peerOverlay=overlay;container.classList.toggle('peer-overlay',overlay);const chosen=specs.find(p=>p.id===selected),changed=selectedRun!==selected;selectedRun=selected;
+    agentSpecs=specs;peerOverlay=overlay;container.classList.toggle('peer-overlay',overlay);container.classList.toggle('agent-layout-active',specs.length>0);const chosen=specs.find(p=>p.id===selected),changed=selectedRun!==selected;selectedRun=selected;
     if(chosen){M.cloth.color.set(chosen.color);ring.material.color.set(chosen.color);if(changed&&SITES[chosen.zone]){const site=SITES[chosen.zone];activeZone=chosen.zone;route=[];actor.position.set(site.x,.18,site.z+2.9);}}
     for(const id of [...peerActors.keys()])if(!overlay||id===selected||!specs.some(p=>p.id===id&&p.started))removePeer(id);
     for(const [index,spec] of specs.entries()){
@@ -264,10 +302,33 @@ export function createScene({canvas,container,marker}) {
       nameTag(spec);
     }
     if(chosen)nameTag(chosen);
+    for(const spec of specs)if(spec.id===selected||overlay&&spec.started)thoughtCloud(spec);
+    for(const id of [...agentClouds.keys()])if(!specs.some(p=>p.id===id&&(id===selected||overlay&&p.started)))removeCloud(id);
     for(const id of [...agentNames.keys()])if(!specs.some(p=>p.id===id&&(id===selected||overlay&&p.started))){agentNames.get(id).remove();agentNames.delete(id);}
   }
   function animatePeers(dt,now){for(const peer of peerActors.values()){const moving=peer.route.length>0;if(moving){const next=peer.route[0],delta=next.clone().sub(peer.g.position),length=delta.length();if(length<12*dt){peer.g.position.copy(next);peer.route.shift();}else{peer.g.position.addScaledVector(delta,12*dt/length);peer.g.rotation.y=Math.atan2(delta.x,delta.z);}}peer.joints.forEach((joint,index)=>joint.rotation.x=moving?Math.sin(now*.014+(index%2?Math.PI:0))*.5:0);}}
-  function agentLabelPositions(){let index=0;for(const spec of agentSpecs){const label=agentNames.get(spec.id),g=spec.id===selectedRun?actor:peerActors.get(spec.id)?.g;if(!label||!g)continue;projected.copy(g.position).add(new T.Vector3(0,1.8,0)).project(camera);const visible=projected.z>-1&&projected.z<1;label.hidden=!visible;if(!visible)continue;const bounds=label.getBoundingClientRect(),x=clamp((projected.x*.5+.5)*width,bounds.width/2+10,width-bounds.width/2-10),y=clamp((-projected.y*.5+.5)*height-(index++%3)*19,70,height-(cameraHud?.offsetHeight||80)-20);label.style.left=`${x}px`;label.style.top=`${y}px`;}}
+  let overlaySignature='',overlayOccluders=[];
+  function hideCoveredFacilities(rects,origin){for(const node of container.querySelectorAll('.map-zone')){if(node.style.visibility==='hidden')continue;const r=node.getBoundingClientRect(),rect={left:r.left-origin.left,right:r.right-origin.left,top:r.top-origin.top,bottom:r.bottom-origin.top};if(rects.some(o=>overlaps(rect,o,3)))node.style.visibility='hidden';}}
+  function agentLabelPositions(){
+    const origin=container.getBoundingClientRect(),padding=10;
+    const ui=[cameraHud,status,panel,document.getElementById('scene-incident')].filter(e=>e&&!e.hidden).map(e=>{const r=e.getBoundingClientRect();return {left:r.left-origin.left-6,right:r.right-origin.left+6,top:r.top-origin.top-6,bottom:r.bottom-origin.top+6};});
+    const entries=[];
+    for(const spec of agentSpecs){const g=spec.id===selectedRun?actor:peerActors.get(spec.id)?.g;if(!g)continue;projected.copy(g.position).add(new T.Vector3(0,1.15,0)).project(camera);const visible=projected.z>-1&&projected.z<1&&Math.abs(projected.x)<1.08&&Math.abs(projected.y)<1.08;const label=agentNames.get(spec.id),cloud=agentClouds.get(spec.id);if(label)label.hidden=!visible;if(cloud){cloud.el.hidden=!visible;cloud.group.style.display=visible?'':'none';}if(!visible)continue;const anchor={x:(projected.x*.5+.5)*width,y:(-projected.y*.5+.5)*height};projected.copy(g.position).project(camera);const feetY=(-projected.y*.5+.5)*height;entries.push({spec,anchor,label,cloud,body:{left:anchor.x-17,right:anchor.x+17,top:anchor.y-10,bottom:Math.max(anchor.y+18,feetY+9)}});}
+    const signature=JSON.stringify([width,height,entries.map(e=>[e.spec.id,Math.round(e.anchor.x),Math.round(e.anchor.y),Math.round(e.body.bottom),e.label?.textContent,e.cloud?.key.length,e.cloud?.dirty]),ui]);
+    if(signature===overlaySignature){hideCoveredFacilities(overlayOccluders,origin);return;}overlaySignature=signature;
+    const bounds={left:padding,right:width-padding,top:52,bottom:height-padding},bodies=entries.map(e=>e.body),cloudEntries=entries.filter(e=>e.cloud).sort((a,b)=>Number(b.spec.id===selectedRun)-Number(a.spec.id===selectedRun));
+    const items=compact=>cloudEntries.map(e=>{const c=e.cloud,w=Math.min(e.spec.id===selectedRun?290:250,width-28);if(c.dirty||c.width!==w){c.el.hidden=false;c.el.style.width=`${w}px`;c.el.classList.remove('compact');c.fullHeight=c.el.offsetHeight;c.el.classList.add('compact');c.compactHeight=c.el.offsetHeight;c.el.classList.remove('compact');c.width=w;c.dirty=false;}return {id:e.spec.id,anchor:e.anchor,width:w,height:compact?c.compactHeight:c.fullHeight,previous:c.previous};});
+    let compact=false,placed=placeAnchored(items(false),bounds,[...ui,...bodies],10);if(placed.some(p=>!p.rect)){compact=true;placed=placeAnchored(items(true),bounds,[...ui,...bodies],8);}
+    const cloudRects=[];
+    for(const e of cloudEntries){const c=e.cloud,p=placed.find(x=>x.id===e.spec.id)?.rect;c.el.classList.toggle('compact',compact);c.el.hidden=!p;c.group.style.display=p?'':'none';if(!p)continue;c.previous=p;c.el.style.left=`${p.left}px`;c.el.style.top=`${p.top}px`;cloudRects.push(p);const edge=connectorEdge(p,e.anchor),path=`M${edge.x},${edge.y} L${e.anchor.x},${e.anchor.y}`;c.outline.setAttribute('d',path);c.line.setAttribute('d',path);c.dot.setAttribute('cx',e.anchor.x);c.dot.setAttribute('cy',e.anchor.y);}
+    connectorLayer.setAttribute('viewBox',`0 0 ${width} ${height}`);
+    const labelItems=entries.filter(e=>e.label).sort((a,b)=>Number(b.spec.id===selectedRun)-Number(a.spec.id===selectedRun)).map(e=>{const r=e.label.getBoundingClientRect();return {id:e.spec.id,anchor:e.anchor,width:r.width,height:r.height};});
+    const labelPositions=placeAnchored(labelItems,bounds,[...ui,...bodies,...cloudRects],4),nameRects=[];
+    for(const e of entries){if(!e.label)continue;const rect=labelPositions.find(p=>p.id===e.spec.id)?.rect;e.label.hidden=!rect;if(rect){e.label.style.left=`${(rect.left+rect.right)/2}px`;e.label.style.top=`${rect.bottom}px`;nameRects.push(rect);}}
+    // Facility labels yield to the people and their connected thoughts.
+    overlayOccluders=[...cloudRects,...nameRects];hideCoveredFacilities(overlayOccluders,origin);
+  }
+
   function frame(now){if(disposed)return;const dt=Math.min(.05,(now-lastTime)/1000);lastTime=now;const moving=route.length>0;
     if(moving){const next=route[0],delta=next.clone().sub(actor.position),length=delta.length(),speed=follow?6:12;if(length<speed*dt){actor.position.copy(next);route.shift();}else{actor.position.addScaledVector(delta,speed*dt/length);actor.rotation.y=Math.atan2(delta.x,delta.z);}}
     limbs.forEach((limb,i)=>limb.rotation.x=moving?Math.sin(now*.014+(i===0||i===3?0:Math.PI))*.5:0);body.position.y=moving?Math.abs(Math.sin(now*.014))*.018:0;for(const site of Object.values(sites))site.fans.forEach(fan=>fan.rotation.y+=dt*7);
