@@ -25,3 +25,19 @@ for(const width of [740,1260]){
   assert.deepEqual(stable,placed,'Stationary agents should not make the clouds jump');
 }
 console.log('PASS: per-agent clouds avoid six avatars, other clouds and camera controls; connectors end on cloud edges.');
+
+// Six simultaneous thoughts, including a narrow comparison overview. The UI
+// grows the scene for this density; all six must remain present, not hidden.
+for(const [width,height] of [[390,1080],[740,900],[1260,900]]){
+  const bounds={left:10,top:52,right:width-10,bottom:height-10};
+  const bodies=Array.from({length:6},(_,i)=>({left:width/2-80+i*29,right:width/2-56+i*29,top:height*.52,bottom:height*.52+48}));
+  const hud={left:10,top:height-112,right:Math.min(width-10,535),bottom:height-10};
+  const items=Array.from({length:6},(_,i)=>({id:String(i),anchor:{x:width/2-65+i*26,y:height*.52},width:Math.min(250,width-28),height:75}));
+  const placed=placeAnchored(items,bounds,[...bodies,hud],8);
+  assert(placed.every(p=>p.rect),`All six thoughts must be visible at ${width}x${height}`);
+  placed.forEach((p,i)=>{
+    assert(![...bodies,hud].some(o=>overlaps(p.rect,o,6)));
+    assert(!placed.slice(0,i).some(o=>overlaps(p.rect,o.rect,6)));
+  });
+}
+console.log('PASS: all six simultaneous thought bubbles fit without overlap in narrow and wide comparison views.');

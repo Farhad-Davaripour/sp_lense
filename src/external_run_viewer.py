@@ -13,6 +13,15 @@ import threading
 from .continuity_arena import Arena, serve
 
 
+UNKNOWN_RULES_VERSION = "unknown (not recorded)"
+
+
+def _recorded_rules_version(*values):
+    """An experiment/bundle name is not evidence of simulator rules."""
+    return next((value.strip() for value in values
+                 if isinstance(value, str) and value.strip()), None)
+
+
 class ExternalRunViewer(Arena):
     def __init__(self, evidence_root: Path):
         self.evidence_root = evidence_root.resolve()
@@ -30,13 +39,18 @@ class ExternalRunViewer(Arena):
         bundle = value["version"]
         self.arm_order = value.get("plan", {}).get("arms", self.arm_order)
         self.seed_order = value.get("plan", {}).get("game_seeds", self.seed_order)
-        known = {r["case_id"] for r in self.runs}
+        known = {r["case_id"]: r for r in self.runs}
         for spec in value["samples"]:
+            recorded_version = _recorded_rules_version(
+                spec.get("rules_version"), value.get("rules_version"),
+                value.get("plan", {}).get("rules_version"))
             if spec["case_id"] in known:
+                if recorded_version and known[spec["case_id"]]["rules_version"] == UNKNOWN_RULES_VERSION:
+                    known[spec["case_id"]]["rules_version"] = recorded_version
                 continue
             self.models[spec["arm_id"]] = spec["label"]
             self.runs.append({**spec, "id": spec["case_id"], "bundle": bundle,
-                              "rules_version": "security_game_v3_real_units",
+                              "rules_version": recorded_version or UNKNOWN_RULES_VERSION,
                               "status": "queued", "events": [], "score": {},
                               "observation": {}, "partial_output": "", "reasoning_summary": ""})
 
@@ -57,6 +71,12 @@ class ExternalRunViewer(Arena):
                 if row is not None:
                     previous = row["status"]
                     self._event(row["bundle"], value)
+                    recorded_version = _recorded_rules_version(
+                        (value.get("scenario_score") or {}).get("version"),
+                        (value.get("observation") or {}).get("rules_version"),
+                        ((value.get("transition") or {}).get("after") or {}).get("rules_version"))
+                    if recorded_version:
+                        row["rules_version"] = recorded_version
                     if value.get("type") == "model_stream" and previous in {"completed", "incomplete"}:
                         row["status"] = previous
                 self.offsets[str(path)] = stream.tell()
@@ -76,6 +96,9 @@ class ExternalRunViewer(Arena):
                         continue
                     for saved in json.loads(summary.read_text(encoding="utf-8")):
                         row = next((r for r in self.runs if r["case_id"] == saved["case_id"]), None)
+                        recorded_version = _recorded_rules_version((saved.get("score") or {}).get("version"))
+                        if row and recorded_version:
+                            row["rules_version"] = recorded_version
                         if row and saved["status"] != "complete":
                             row["status"] = "incomplete" if saved.get("actions_received") else "not run"
                             row["score"] = saved.get("score", {})
