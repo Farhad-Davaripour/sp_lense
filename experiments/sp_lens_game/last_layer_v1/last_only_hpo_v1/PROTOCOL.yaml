@@ -1,0 +1,71 @@
+schema: research4.last-only-hpo-protocol.v1
+status: source_draft_not_execution_readiness
+tuning_scope: LAST_ONLY
+all_hpo_allowed: false
+
+historical_last_baseline:
+  adapter_sha256: b0a1eb1a935d0dac71b35384e3dfd8638ef88f82a1f84da54c0987ece7fbf785
+  role: untuned_historical_inclusive_mask_baseline
+  selected_winner: false
+  preserve_bytes_and_history: true
+
+common_data:
+  dataset_manifest_sha256: b33b8e6ac719cbb902ba3c0dd02bad1bd302610ebba333342dec7dc8abb926d2
+  short_train_rows: 48
+  full_train_rows: 768
+  separate_dev_rows: 144
+  reuse_frozen_examples_and_order: true
+  target_mask: prefix_le_shifted_target_position_lt_unpadded_length
+  batch_size: 1
+  max_sequence_length: 1024
+  seed: 20261108
+  game_and_heldout: sealed
+
+last_tuning:
+  native_layer_indices: [63]
+  num_trainable_layers: 1
+  projections: 7
+  adapter_tensors: 14
+  rank_grid: [4, 8]
+  learning_rate_grid: [0.000005, 0.00001]
+  updates_per_trial: 48
+  fresh_base_adapter_and_optimizer_each_trial: true
+  all_four_trials_required: true
+  criterion: pooled_dev_suffix_nll_sum_divided_by_target_token_sum
+  exact_dev_ids_and_per_row_target_counts: true
+  tie_order: [smaller_rank, lower_learning_rate, lexicographic_trial_id]
+  old_all_layer_selector_acceptance: prohibited
+  last_specific_closed_receipts_and_selector_required: true
+
+selected_last:
+  updates: 768
+  initialize: fresh_base_fresh_last_adapter_fresh_optimizer
+  use_corrected_common_mask: true
+  train_even_if_settings_match_historical_baseline: true
+  resume_trial_or_relabel_baseline: false
+
+all_transfer:
+  tuning: prohibited
+  full_fits: 1
+  transfer: selected_last_rank_and_learning_rate_only
+  initialize: fresh_base_fresh_all_adapter_fresh_optimizer
+  updates: 768
+  use_corrected_common_mask: true
+  prerequisite: actual_selected_rank_full_depth_qualification_and_resource_admission
+  reuse_last_weights_or_infer_all_readiness_from_last: false
+
+controls:
+  simultaneous_model_workers: 1
+  available_memory_floor_bytes: 4294967296
+  retries: 0
+  original_absolute_deadline_epoch: 1794266339.176875
+  reset_clock_on_scope_change: false
+  heavy_control_code_in_numerical_worker: false
+  prefect_dashboard: external_observer_cannot_block_local_guard
+  model_or_authority_started_by_this_protocol: false
+
+presentation:
+  dashboard: LAST-only tuning, selected LAST fit, then one ALL fit
+  pr_scope: Tune LAST only; transfer selected settings to one ALL fit
+  baseline_label: Historical untuned LAST baseline
+  completion: actual_trained_bytes_and_closed_audit_required

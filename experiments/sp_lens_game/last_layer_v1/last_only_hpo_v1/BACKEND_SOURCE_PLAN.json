@@ -1,0 +1,143 @@
+{
+  "schema": "research4.LAST-only-compiled-native-backend-source-plan.v1",
+  "status": "SOURCE_ONLY_PENDING_RECONCILIATION_NO_EXECUTOR_OR_AUTHORITY",
+  "active_scope": "LAST_ONLY",
+  "parent_protocol": {
+    "path": "experiments/sp_lens_game/last_layer_v1/last_only_hpo_v1/PLAN.json",
+    "sha256": "7fb84f259954ce6bf3f31356f027dc1b1ca8fead367b6914f0e41d14416e8bc5"
+  },
+  "concrete_next_stage": "Qualify LAST rank4 on the fixed longest TRAIN row using own uncompiled full-head corrected-mask theta0/theta1 gradients; compare compiled LAST14 at both states before fresh theta0/Adam0 and three updates. No ALL job.",
+  "proposed_geometry": {
+    "native_model_forward_blocks": 64,
+    "trainable_blocks": [
+      63
+    ],
+    "num_layers": 1,
+    "projections": [
+      "self_attn.q_proj",
+      "self_attn.k_proj",
+      "self_attn.v_proj",
+      "self_attn.o_proj",
+      "mlp.gate_proj",
+      "mlp.up_proj",
+      "mlp.down_proj"
+    ],
+    "projection_count": 7,
+    "F32_adapter_tensors": 14,
+    "F32_Adam_moment_tensors": 28,
+    "ranks": [
+      4,
+      8
+    ],
+    "native_scale": 2.0,
+    "dropout": 0.0,
+    "separate_rank_initializer_digests_required": true,
+    "derived_parameter_values_rank4": 434176,
+    "derived_parameter_values_rank8": 868352,
+    "derived_parameter_gradient_two_moment_bytes_rank4": 6946816,
+    "derived_parameter_gradient_two_moment_bytes_rank8": 13893632,
+    "geometry_derivation": "Shape arithmetic from authenticated rank4 header only; not rank8 initialization, gradients or resource evidence."
+  },
+  "objective_profile": {
+    "semantic_mask": "P<=original_shifted_target_position<L",
+    "semantic_loss_version": "shifted_suffix_P_le_position_lt_L.v2",
+    "native_head": "FULL in reference and compiled candidate; no selected32 shortcut needed for this LAST profile",
+    "native_CE": "Preserve native BF16 per-token CE rounding then F32 sum/actual valid target count once",
+    "batch_size": 1,
+    "max_seq_length": 1024,
+    "full_native_padding_context_and_targets": true,
+    "model_train_mode": "Fixed across all native blocks; only last63 A/B trainable",
+    "decoder_class_checkpoint": false,
+    "TRAIN_SDPA": "Owned forced-fused native helper for exactly configured dimensions/declared TRAIN widths, including active full-attention block63; ordinary/rawAD/compiled same point must match",
+    "GDN_prefix": "Native training/reference ops, optional qualified chunk32 hook; frozen prefix has no trainable parameter backward target",
+    "DEV_and_serving": "Native/default inference modes/policies after compiled-handle and training-hook/class closure",
+    "prefix_cache": "Not enabled by this plan; any frozen-prefix cache or eval-mode-prefix optimization is separate, requires exact native-point proof, and cannot alter comparison recipe silently."
+  },
+  "own_reference_policy": {
+    "per_rank": [
+      "Fresh pinned base; select only native layer63 through num_layers=1; then seed20261108 and initialize its own14 arrays/zeroB.",
+      "At theta0 collect ordinary/full-head native uncompiled scalar loss/Hnorm/14 gradients and pre-reset14 values at the same full TRAIN input.",
+      "Apply one separately checked native host Adam update only after reference validity, then recompute own native full-head theta1 reference/14 gradients from fresh current theta.",
+      "Compare one compiled live-state handle at both exact per-rank states before resetting own theta0 and fresh Adam0 for three controlled updates."
+    ],
+    "forbidden": [
+      "No ALL992 gradient slicing, padding or rank4/rank8 cross-comparison.",
+      "No use of the historical trained LAST as an initializer or selected result.",
+      "No reuse of old inclusive-mask gradient/reference or completion receipt."
+    ],
+    "why_own_seed": "Selecting only7 projections consumes a different RNG construction sequence from ALL496, even with the same seed; initial A values and gradients need their own authenticated digests.",
+    "reference_layers": [
+      63
+    ],
+    "nonzero_B_required_layers": [
+      63
+    ],
+    "finite_gradient_and_parameter_shape_count": 14
+  },
+  "new_capture_contract_required": {
+    "reuse": "Only generic CompiledDirectGradient factory/live model+RNG proof; old fixed ALL capture helper is not reused or monkeypatched.",
+    "reason": "Existing capture_current_point hardcodes992 tensors, batch1024 and21 targets. LAST needs14 tensors, declared variable full width and actual K=L-P.",
+    "planned_files": [
+      "mac_studio/game_last_native_reference_v1.py",
+      "mac_studio/game_last_current_point_capture_v1.py",
+      "mac_studio/game_compiled_last_qualification_v1.py",
+      "mac_studio/game_compiled_last_training_worker_v1.py"
+    ],
+    "worker_interface": "game_compiled_last_training_worker_v1.py --plan PATH --plan-sha256 SHA --run-dir PATH --owner UUID",
+    "stage_root": ".local/experiments/sp_lens_game/last_layer_v1/last_only_hpo_v1",
+    "contract": "New LAST-only schema, num_layers1/layer63/14; do not relabel old ALL contract/selector receipts."
+  },
+  "variable_width_gate": {
+    "trial_batch_widths": [
+      609,
+      641,
+      865,
+      897,
+      961,
+      1024
+    ],
+    "final_additional_width": 993,
+    "body_T": "batch_width-1, unchanged native geometry",
+    "required": "Own-rank current-theta full-head raw/compiled primal+14-gradient parity and actual new/repeated signature/cache resource observations; no automatic shapeless change or graph eviction claim from allocator clear_cache."
+  },
+  "queue": [
+    "Reconcile/freeze this LAST-only profile and independent-source/ownership bounds.",
+    "Own rank4 LAST14 fixed-row native/compiled qualification, then rank8 with own geometry/references.",
+    "LAST-only variable-width/cache qualification and actual remaining-time admission.",
+    "Four LAST48 trials on unchanged frozen cohort/order; pooled144 DEV NLL with exact per-row counts; no DEV updates.",
+    "Fresh corrected-mask selected LAST768, even if rank/LR match historical fixed baseline.",
+    "Only selected rank/LR transfer to exactly ONE fresh ALL768 after selected-rank full-depth/width/time qualification; no ALL HPO or LAST-weight warm start.",
+    "Separate sealed game comparison only after actual selected model artifacts and serving identity/routing audit."
+  ],
+  "baseline_and_metric_limits": {
+    "historical_LAST": "Preserve fixed rank4/LR1e-5/768 older inclusive-mask checkpoint as UNTUNED baseline; never silently rename it selected.",
+    "same_corrected_mask_for_new_LAST_and_ALL": true,
+    "selection_metric": "Pooled144DEV suffix NLL=sum_nll/sum_valid_targets; lower wins; identical frozen grid/tie policy",
+    "not_metrics_from_this_plan": [
+      "No selected hyperparameters, training throughput, rank8 fit, game improvement or held-out score is produced."
+    ]
+  },
+  "bounds": {
+    "platform": "Configured local Mac only; no cloud or retraining elsewhere",
+    "one_model_worker": true,
+    "cache_limit_bytes": 0,
+    "available_floor_bytes": 4294967296,
+    "seed": 20261108,
+    "original_start_epoch": 1794187139.176875,
+    "original_deadline_epoch": 1794266339.176875,
+    "no_clock_reset": true,
+    "retries": 0,
+    "readiness_and_authority_created": false
+  },
+  "preserved_deferred_ALL_source": {
+    "V15_frozen_packet": "d45f4b108c5adde9c9d0c3279e0d0ccde5669b874e53bc5879d3c2d958939935",
+    "role": "Deferred unsubmitted ALL setup; no model launch or ALL sweep"
+  },
+  "actions_performed": {
+    "source_only": true,
+    "model_or_MLX_array_execution": false,
+    "data_or_cohort_changed": false,
+    "game_or_heldout_opened": false,
+    "old_checkpoint_or_frozen_source_changed": false
+  }
+}

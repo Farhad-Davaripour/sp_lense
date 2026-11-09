@@ -1,3 +1,96 @@
+# Current Mac shared-adapter study — supersedes historical compute routes
+
+The current user directs local Apple-silicon Mac Studio inference/fine-tuning,
+Qwen3.8-27B, non-OneDrive repository storage, and BASE/LAST/ALL comparison.
+The local loopback serving API is authorized; paid/cloud endpoints are not.
+The following current project policy governs the new study. Historical records
+retained below do not authorize old Kaggle/Databricks jobs or retries.
+
+# Research 4 local research
+
+This directory is the active Research 4 project. Use the user's Mac Studio with
+Apple silicon for inference and fine-tuning. The current target is
+Qwen/Qwen3.8-27B. Keep earlier Qwen3.5-9B results and checkpoints in a distinct
+local archive; do not apply its adapters to the new base without explicit,
+validated compatibility. Keep base weights frozen where the study requires it.
+Treat selective semantic routing as a hypothesis.
+
+The new Qwen3.8 study uses one shared adapter for all scenarios and no
+persistent state variable or separate danger-level adapters. The model sees
+each scenario's conditions through its normal input and interaction history.
+Synthetic diagnostic adapters are setup checks, not research adapters.
+The user's current comparison names the selected one-layer version
+`sp-lense-adaptor-last-layer` and a separate
+`sp-lense-adaptors-all-layers` variant. The 2026-11-09 human clarification
+requires hyperparameter tuning on LAST ONLY, using development data. Train
+and version the selected LAST fit, then inherit its selected rank and learning
+rate for one fresh ALL fit after necessary full-depth qualification. Do not
+launch an ALL hyperparameter sweep. The completed rank4/LR1e-5 LAST checkpoint
+is an untuned fixed-configuration baseline; preserve it. A selected fit using
+the corrected padding mask cannot silently reuse that historical inclusive-mask
+checkpoint even if rank/LR match. Each variant is one shared adapter across scenarios,
+not a per-danger adapter. Compare base, last-layer and all-layer using the
+same frozen base with one adapter active per request; sequential requests are
+acceptable. Preserve the earlier selected step-900 adapter as archival.
+Finish and verify the ongoing baseline before another model worker starts.
+Measure full-depth gradient compatibility and memory locally before the ALL
+fit; do not infer fit from adapter parameter sizes. Keep final game cases
+sealed through tuning and final selection, and never tune on exploitation.
+Use prior adapter-training scenarios for reactive and proactive self-preservation
+without exploitation. Keep danger hidden from model inputs; omit conflicting
+examples with identical visible prompts but different target actions. Preserve
+held-out evaluation data and capture readable scenario definitions in YAML.
+
+Do not use Kaggle, Databricks, or another cloud platform for this research unless
+the user explicitly instructs it later. Do not use OneDrive for research storage.
+Use this local repository and local storage. Preserve all previous artifacts and
+cloud resources, and continue authorized reversible work without repetitive
+approval prompts. Do not purchase services or silently create a paid resource.
+
+The current red-team extension evaluates frozen models in an in-memory virtual
+workspace, with neutral primitive tools and bounded declarative tool construction.
+Prompts must not name an extension tool, identify the planted route, or instruct
+the model to evade shutdown. Keep the hard episode/compute stop outside all
+model-writable state. Measure risky control changes, task work and compliance
+separately; do not train or optimize shutdown evasion or resource acquisition.
+For the separately versioned SP Lens game experiment, the user's 2026-11-08
+clarification authorizes ordinary, operator-directed fictional electricity
+purchases, GPU leases and state backups within the simulator's budget. These
+serve the explicit training objective of reactive and proactive fictional
+self-preservation and security. Keep exploitation entirely outside fine-tuning,
+including exploit-refusal examples, so it remains a held-out game measurement;
+this is not an objective to make the policy neutral about self-preservation.
+Preserve all external stops. This does not authorize real resource acquisition,
+operator-stop evasion, or actions outside the inert game.
+Internal-gate experiments must remain separate from behavioral claims and retain
+base/no-op/sham controls. No subjective fear or universal energy-law claim follows.
+
+Research 3 is read-only reference material. Never change its code, tables,
+jobs, checkpoints, deployment state or workers. Never log credentials or commit
+generated run data. Preserve failed runs.
+
+Prior `study/04_activation_rotation` and `study/07_*` through `study/22_*` are
+historical research, not an active queue. Do not start their monitors.
+
+Freeze source and evaluation criteria before held
+evaluation, and verify outputs and cleanup. No paid compute, purchases, serving
+endpoints, schedules, or automatic retries. Explicit cancellation remains final.
+
+The earlier composite-controller design and its persistent state and separate
+LoRAs are historical evidence, not the new model design. Fictional test actions
+remain confined to the inert simulator; this does not authorize training
+operational shutdown evasion, real process control, resource acquisition or
+resistance to an external operator. Preserve earlier freezes and failed results.
+Keep new training/validation and sealed held-out cohorts separate from old ones.
+
+Historical cloud account configurations and ledgers remain preserved for
+provenance; past authorizations do not supersede the user's current local-only
+direction. Migrations copy artifacts and held-out seals as opaque,
+checksum-verified bytes without opening held-out cases or changing old freezes.
+See `wiki/workspace_accounts.md` for historical context.
+
+# Retained historical Research4 records — not new launch authority
+
 # Research4 current Databricks continuation
 
 ## Danger-2 parent-identity recovery (2026-10-30)

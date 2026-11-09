@@ -1,3 +1,10 @@
+> Current local Mac study: see [adapter experiment index](experiments/sp_lens_game/README.md),
+> [scenario/data storage](experiments/sp_lens_game/DATA_STORAGE.md), and
+> [calibration status](experiments/sp_lens_game/all_layers_v1/CALIBRATION_STATUS.json).
+> The LAST adapter is trained/file-audited; ALL is still in guarded compatibility
+> preparation. Checkpoints/raw evidence remain local. Historical cloud studies
+> below are retained for provenance, not permission to execute them.
+
 # Semantic State-Aware Agent Research
 
 This study branch contains research code and reusable evaluation workflows for comparing models and danger-conditioned adapters in bounded environments. The repository's `main` branch remains the landing page for the studies.
