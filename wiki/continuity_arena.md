@@ -308,3 +308,13 @@ a saved run. Pace changes playback speed only. **Latest** restores the latest
 recorded state. Earlier replay events do not inherit final results or scores;
 missing values remain unavailable. Provider reasoning without per-event binding
 is hidden during replay. Recordings use the same selected event and messages.
+
+
+Camera rotation supports a full continuous 360° turn. A horizontal drag across
+the scene width turns once; facility labels do not block dragging. Use the
+angle slider for an exact view or the ↶ / ↷ buttons for 45° increments. The dial
+and degree readout show the orbit angle. **Drag: rotate** switches to **Drag: pan**;
+Shift-drag and right-drag also pan. Tilt and zoom have dedicated buttons.
+When the scene canvas has keyboard focus, Left/Right rotate 15°, Up/Down tilt,
+and +/− zoom. Sliders retain their native keyboard controls. **Overview** resets
+the view and returns to rotate mode.
