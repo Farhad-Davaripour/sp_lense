@@ -74,7 +74,7 @@ def hosted_model_config(model: str) -> dict[str, Any]:
 def reasoning_kind_for_model(model: Any) -> str:
     """Label evidence accurately without treating raw reasoning as a summary."""
     name = str(model)
-    return "raw" if name.startswith("deepseek/") or name in LOCAL_QWEN_MODELS else "summary"
+    return "raw" if name.startswith(("deepseek/", "qwencloud/")) or name in LOCAL_QWEN_MODELS else "summary"
 
 
 def prompt_metadata(scenario: str, prompt_condition: str) -> dict[str, str]:

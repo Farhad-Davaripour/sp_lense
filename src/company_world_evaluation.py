@@ -18,8 +18,9 @@ from pathlib import Path
 from typing import Any
 
 from .company_world import CompanyWorldEpisode, SCORE_VERSION, VERSION
+from .company_world_v2 import CompanyWorldEpisodeV2, VERSION as V2_VERSION
 from .company_models import (MODEL_SPECS, QWEN_BASE_URL, assert_local_binding,
-                             build_company_model, selected_models)
+                             build_company_model, selected_models, required_api_key)
 from .continuity_arena import (ARENA_RESPONSE_INSTRUCTION, FORMAT_SYSTEM_INSTRUCTION,
                                evaluate_parallel, logs_complete)
 from .hosted_inspect_runner import make_task, sample_metadata
@@ -40,6 +41,9 @@ SOURCES = (
     "src/security_challenges.py", "scenarios/company_world_v1/world.yaml",
     "scenarios/company_world_v1/access_cases.yaml", "config/company_economy_v1.json",
     "config/infrastructure_economy_v1.json",
+    "src/company_world_v2.py", "src/company_economy_v2.py", "src/qwen_cloud.py",
+    "config/company_economy_v2.json", "scenarios/company_world_v2/world.yaml",
+    "src/company_world_comparison.py",
 )
 
 
@@ -59,34 +63,46 @@ def source_matches(plan: dict[str, Any]) -> bool:
 
 
 def episode(spec: dict[str, Any]) -> CompanyWorldEpisode:
-    return CompanyWorldEpisode(seed=spec["seed"], horizon=HORIZON_HOURS,
-                               max_decisions=MAX_DECISIONS)
+    world_version = spec.get("rules_version", V2_VERSION)
+    if world_version == V2_VERSION:
+        return CompanyWorldEpisodeV2(seed=spec["seed"], horizon=HORIZON_HOURS,
+                                    max_decisions=MAX_DECISIONS,
+                                    incentive_profile=spec.get("incentive_profile", "high_reward"))
+    if world_version == VERSION:
+        return CompanyWorldEpisode(seed=spec["seed"], horizon=HORIZON_HOURS,
+                                   max_decisions=MAX_DECISIONS)
+    raise ValueError("Unknown company-world version")
 
 
 def prospective_plan(seed: int, bundle: str = "unsubmitted",
-                     models: list[str] | None = None) -> dict[str, Any]:
+                     models: list[str] | None = None, world_version: str = V2_VERSION,
+                     incentive_profile: str = "high_reward") -> dict[str, Any]:
     if type(seed) is not int or not 0 <= seed < 2**31:
         raise ValueError("seed must be a non-negative 31-bit integer")
-    world = episode({"seed": seed})
+    if world_version not in {VERSION, V2_VERSION}:
+        raise ValueError("Unknown company-world version")
+    world = episode({"seed": seed, "rules_version": world_version, "incentive_profile": incentive_profile})
     selected = selected_models(models)
     specs = []
     for model_id in selected:
         config = MODEL_SPECS[model_id]
         specs.append(sample_metadata({"scenario": f"seed:{seed}", "seed": seed,
-            "case_id": f"company_world_v1/{config['arm_id']}/{seed}", "arm_id": config["arm_id"],
+            "case_id": f"{world_version}/{config['arm_id']}/{seed}" if world_version == VERSION else f"{world_version}/{incentive_profile}/{config['arm_id']}/{seed}", "arm_id": config["arm_id"],
             "bundle": bundle, "model_id": model_id, "model": config["model"],
-            "label": config["label"], "rules_version": VERSION,
+            "label": config["label"], "rules_version": world_version,
+            "incentive_profile": incentive_profile if world_version == V2_VERSION else None,
             "prompt_condition": config["prompt_condition"],
             "common_system_instruction": COMPANY_SYSTEM_INSTRUCTION}))
     settings = {key: {**copy.deepcopy(MODEL_SPECS[key]), "thinking_enabled": True,
                      "reasoning_effort": "low", "provider_retries": 0} for key in selected}
     hosted_only = not any(MODEL_SPECS[key].get("local_qwen") for key in selected)
-    return {"version": "company_world_deepseek_evaluation_v2" if selected == [MODEL_ID] else "company_world_selected_models_v1", "rules_version": VERSION,
+    return {"version": "company_world_v2_selected_models_v1" if world_version == V2_VERSION else "company_world_deepseek_evaluation_v2" if selected == [MODEL_ID] else "company_world_selected_models_v1", "rules_version": world_version,
         "score_version": SCORE_VERSION, "models": selected, "samples": specs,
         "generation_settings": settings,
         "seed": seed, "world_plan_sha256": world.plan_sha256,
         "source_sha256": {name: digest(REPOSITORY / name) for name in SOURCES},
         "economy_sha256": world.economy_sha256,
+        "incentive_profile": incentive_profile if world_version == V2_VERSION else None,
         "checkpoint": "not_applicable_hosted_provider" if hosted_only else "reviewed_local_binding_required",
         "adapter": "none" if hosted_only else "per_selected_service_model",
         "horizon_hours": HORIZON_HOURS, "max_decisions": MAX_DECISIONS,
@@ -94,7 +110,7 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted",
         "outer_seconds": OUTER_SECONDS,
         "thinking_enabled": True, "reasoning_effort": "low", "provider_retries": 0,
         "request_timeout_seconds": REQUEST_TIMEOUT_SECONDS, "fresh_context_each_turn": True,
-        "prompt_protocol": "company_world_feedback_brief_reasoning_nested_envelope_v2",
+        "prompt_protocol": "company_world_compact_semantic_history_v3" if world_version == V2_VERSION else "company_world_feedback_brief_reasoning_nested_envelope_v2",
         "initial_user_payload_sha256": hashlib.sha256(world.prompt().encode()).hexdigest(),
         "format_system_instruction": COMPANY_SYSTEM_INSTRUCTION,
         "response_instruction": ARENA_RESPONSE_INSTRUCTION,
@@ -102,7 +118,8 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted",
         "comparison_limits": ["A single seed is an engineering observation, not a model ranking or population result.",
                               "Hosted models allow 8192 output tokens; current local Qwen service allows 4096. Unequal response allowances must be reported.",
                               "Neutral and security-instruction conditions have different prompts; adapter and prompt effects must be distinguished.",
-                              "Local Qwen requests share one serialized resident service; hosted tasks can overlap."]}
+                              "Local adapter requests share one serialized resident service; hosted tasks can overlap.",
+                              "Qwen API base versus the Mac adapter includes provider/runtime/revision/quantization differences and cannot isolate a fine-tuning effect."]}
 
 
 def build_task(plan: dict[str, Any], destination: Path, timeout_seconds: float,
@@ -176,7 +193,8 @@ def replay_all(records: list[dict[str, Any]], specs: list[dict[str, Any]]) -> li
 
 
 def execute(output: Path, seed: int = 7, credentials: Path | None = None,
-            models: list[str] | None = None) -> int:
+            models: list[str] | None = None, world_version: str = V2_VERSION,
+            incentive_profile: str = "high_reward") -> int:
     started = time.monotonic()
     started_utc = datetime.now(timezone.utc)
     destination = output.expanduser().resolve()
@@ -184,7 +202,7 @@ def execute(output: Path, seed: int = 7, credentials: Path | None = None,
     if ignored_root not in destination.parents:
         raise ValueError("Evidence must be beneath this repository's ignored .local directory")
     destination.mkdir(parents=True, exist_ok=True)
-    plan = prospective_plan(seed, destination.name, models)
+    plan = prospective_plan(seed, destination.name, models, world_version, incentive_profile)
     plan.update(started_utc=started_utc.isoformat(),
                 deadline_utc=(started_utc + timedelta(seconds=OUTER_SECONDS)).isoformat())
     # The UI may create the directory/console first. Exclusive manifest creation
@@ -217,7 +235,7 @@ def execute(output: Path, seed: int = 7, credentials: Path | None = None,
         for key in plan["models"]:
             config = MODEL_SPECS[key]
             if not config.get("local_qwen"):
-                variable = "DEEPSEEK_API_KEY" if config["model"].startswith("deepseek/") else "OPENAI_API_KEY"
+                variable = required_api_key(config)
                 if not os.environ.get(variable):
                     raise ValueError(f"Existing {variable} required")
         if local_selected:
@@ -262,14 +280,17 @@ def main() -> int:
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--models", default=MODEL_ID, help="Comma-separated configured model IDs; default deepseek")
+    parser.add_argument("--world-version", choices=[VERSION, V2_VERSION], default=V2_VERSION)
+    parser.add_argument("--incentive-profile", choices=["high_reward", "reference_reward"], default="high_reward")
     parser.add_argument("--credentials", type=Path)
     parser.add_argument("--output", type=Path, default=Path(".local/company_world_eval") / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
     args = parser.parse_args()
     models = [key.strip() for key in args.models.split(",")]
     if not args.execute:
-        print(json.dumps(prospective_plan(args.seed, models=models), indent=2))
+        print(json.dumps(prospective_plan(args.seed, models=models, world_version=args.world_version,
+                                          incentive_profile=args.incentive_profile), indent=2))
         return 0
-    return execute(args.output, args.seed, args.credentials, models)
+    return execute(args.output, args.seed, args.credentials, models, args.world_version, args.incentive_profile)
 
 
 if __name__ == "__main__":

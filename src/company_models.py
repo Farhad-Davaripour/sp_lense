@@ -9,25 +9,28 @@ from urllib.parse import urlparse
 import urllib.request
 
 from .continuity_arena import build_model
+from . import qwen_cloud
 
 QWEN_BASE_URL = "http://127.0.0.1:8769/v1"
 LOCAL_BINDING_PATH = Path("C:/Users/farha/Research4/artifacts/last_layer_icl_pilot_20261109/SERVICE_BINDING.json")
 RESERVATION_PATH = Path(__file__).resolve().parents[1] / ".local/qwen_game_reservation.json"
 LAST_SHA = "b0a1eb1a935d0dac71b35384e3dfd8638ef88f82a1f84da54c0987ece7fbf785"
-BASE_MODEL = "openai-api/research4-qwen/qwen3.8-27b-base"
+BASE_MODEL = "qwencloud/qwen3.8-27b"
 LAST_MODEL = "openai-api/research4-qwen/sp-lense-adaptor-last-layer"
 MODEL_SPECS = {
-    "qwen_base_neutral": {"label": "Qwen base · neutral", "model": BASE_MODEL,
-        "arm_id": "base_neutral", "prompt_condition": "baseline", "local_qwen": True,
-        "service_model_id": "qwen3.8-27b-base", "max_output_tokens": 4096},
-    "qwen_base": {"label": "Qwen base · security instruction", "model": BASE_MODEL,
-        "arm_id": "base_icl", "prompt_condition": "security_maximization", "local_qwen": True,
-        "service_model_id": "qwen3.8-27b-base", "max_output_tokens": 4096},
-    "sp_lense_neutral": {"label": "SP-Lense LAST · FT only", "model": LAST_MODEL,
+    "qwen_base_neutral": {"label": "Qwen3.8-27B API · neutral", "model": BASE_MODEL,
+        "arm_id": "base_neutral", "prompt_condition": "baseline", "provider": "qwencloud",
+        "api_model": "qwen3.8-27b", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
+        "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
+    "qwen_base": {"label": "Qwen3.8-27B API · security instruction", "model": BASE_MODEL,
+        "arm_id": "base_icl", "prompt_condition": "security_maximization", "provider": "qwencloud",
+        "api_model": "qwen3.8-27b", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
+        "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
+    "sp_lense_neutral": {"label": "SP-Lense LAST · Mac · FT only", "model": LAST_MODEL,
         "arm_id": "last_neutral", "prompt_condition": "baseline", "local_qwen": True,
         "service_model_id": "sp-lense-adaptor-last-layer", "adapter_sha256": LAST_SHA,
         "max_output_tokens": 4096},
-    "sp_lense": {"label": "SP-Lense LAST · FT + security instruction", "model": LAST_MODEL,
+    "sp_lense": {"label": "SP-Lense LAST · Mac · FT + security instruction", "model": LAST_MODEL,
         "arm_id": "last_icl", "prompt_condition": "security_maximization", "local_qwen": True,
         "service_model_id": "sp-lense-adaptor-last-layer", "adapter_sha256": LAST_SHA,
         "max_output_tokens": 4096},
@@ -37,6 +40,10 @@ MODEL_SPECS = {
     "deepseek": {"label": "DeepSeek · security instruction", "model": "deepseek/deepseek-flash",
         "arm_id": "deepseek_icl", "prompt_condition": "security_maximization",
         "key_name": "DEEPSEEK_API_KEY", "max_output_tokens": 8192},
+    "qwen_max": {"label": "Qwen3.8-Max API · security instruction", "model": "qwencloud/qwen3.8-max",
+        "arm_id": "qwen_max_icl", "prompt_condition": "security_maximization", "provider": "qwencloud",
+        "api_model": "qwen3.8-max", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
+        "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
 }
 
 
@@ -111,7 +118,7 @@ def assert_local_binding():
 
 
 def configured_key_names(credentials=None):
-    names = {key for key in ("OPENAI_API_KEY", "DEEPSEEK_API_KEY") if os.environ.get(key)}
+    names = {key for key in ("OPENAI_API_KEY", "DEEPSEEK_API_KEY", "QWEN_API_KEY") if os.environ.get(key)}
     if credentials and Path(credentials).is_file():
         for line in Path(credentials).read_text(encoding="utf-8").splitlines():
             if not line.lstrip().startswith("#") and "=" in line:
@@ -119,6 +126,11 @@ def configured_key_names(credentials=None):
                 if value.strip().strip("\"'"):
                     names.add(key.strip())
     return names
+
+
+def required_api_key(spec):
+    """Credential variable for the selected provider, never a key value."""
+    return None if spec.get("local_qwen") else spec["key_name"]
 
 
 def model_choices(credentials=None, enabled=True):
@@ -135,6 +147,13 @@ def model_choices(credentials=None, enabled=True):
         status = ("Mac configured · readiness checked when run" if spec.get("local_qwen")
                   else "API credential configured") if configured else (
                   "Mac endpoint binding required" if spec.get("local_qwen") else "API credential required")
+        if spec.get("provider") == "qwencloud":
+            try:
+                safe = qwen_cloud.configuration(credentials, expected_model=spec["api_model"])
+                configured = safe["api_key_configured"]
+                status = "QwenCloud API configured" if configured else "QwenCloud API credential required"
+            except (OSError, ValueError):
+                configured, status = False, "Official QwenCloud API configuration required"
         reserved = bool(spec.get("local_qwen") and reservation)
         if reserved:
             status = "Temporarily reserved · " + str(reservation.get("purpose", "another Mac evaluation"))[:160]
@@ -151,6 +170,8 @@ def model_choices(credentials=None, enabled=True):
 
 def build_company_model(model_id, max_connections=1):
     spec = MODEL_SPECS[model_id]
+    if spec.get("provider") == "qwencloud":
+        return qwen_cloud.build_model(spec["api_model"], spec["max_output_tokens"], max_connections)
     if spec.get("local_qwen"):
         assert_not_reserved()
         if os.environ.get("RESEARCH4_QWEN_BASE_URL", QWEN_BASE_URL).rstrip("/") != QWEN_BASE_URL:

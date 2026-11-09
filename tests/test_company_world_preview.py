@@ -8,7 +8,7 @@ from unittest.mock import patch
 from unittest.mock import Mock
 import subprocess
 
-from src.company_world import CompanyWorldEpisode, VERSION
+from src.company_world_v2 import CompanyWorldEpisode, VERSION
 from src.company_world_layout import company_world_layout
 from src.company_world_preview import CompanyWorldPreview, demonstration_actions, stop_owned_worker
 
@@ -37,7 +37,7 @@ class CompanyPreviewTests(unittest.TestCase):
             self.assertEqual(snapshot["scenario_preview"]["observation"]["decision_count"], 0)
             self.assertEqual(snapshot["runs"][0]["rules_version"], "unknown (not recorded)")
             self.assertNotIn("world_layout", snapshot["runs"][0])
-            self.assertEqual(len(snapshot["models"]), 7)
+            self.assertEqual(len(snapshot["models"]), 8)
             self.assertFalse(any(m["available"] for m in snapshot["models"]))
             with self.assertRaisesRegex(ValueError, "paused"):
                 viewer.start(7, ["qwen"])
@@ -66,7 +66,8 @@ class CompanyPreviewTests(unittest.TestCase):
             self.assertTrue(all(r["bundle"] == bundle for r in viewer.runs))
             self.assertEqual(viewer.runs[1]["model"].split("/")[-1], "sp-lense-adaptor-last-layer")
             thread.assert_called_once()
-            self.assertEqual(thread.call_args.kwargs["args"][-1], ["qwen_base_neutral", "sp_lense"])
+            self.assertEqual(thread.call_args.kwargs["args"][-2], ["qwen_base_neutral", "sp_lense"])
+            self.assertEqual(thread.call_args.kwargs["args"][-1], "high_reward")
 
     def test_stale_history_does_not_become_current_compute(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -92,7 +93,7 @@ class CompanyPreviewTests(unittest.TestCase):
             with patch("src.company_world_preview.threading.Thread"):
                 identifier = viewer.start(7, ["deepseek"])
             destination = root / identifier
-            case = prospective_plan(7)["samples"][0]["case_id"]
+            case = prospective_plan(7, world_version=VERSION)["samples"][0]["case_id"]
             event = {"type": "episode_result", "case_id": case, "observation": {"tick": 0},
                      "scenario_score": {"score_status": "final"}, "external_stop": None}
 
@@ -169,7 +170,7 @@ class CompanyPreviewTests(unittest.TestCase):
                 replay = game.take(event["scripted_action"])
                 self.assertEqual(replay, event["transition"])
             self.assertEqual(row["score"], game.score())
-            self.assertGreater(game.score()["company_payments_usd"], 0)
+            self.assertTrue(any(c["responses"] for c in game.observation()["companies"]))
             self.assertGreater(game.score()["customer_income_usd"], 0)
 
     def test_named_buildings_do_not_define_model_tool_semantics(self):
