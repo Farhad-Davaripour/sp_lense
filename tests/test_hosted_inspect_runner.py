@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import warnings
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -77,8 +78,12 @@ class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
         def broken_display(record):
             raise RuntimeError("display unavailable")
 
-        with self.assertWarns(RuntimeWarning):
+        with warnings.catch_warnings(record=True) as observed:
+            warnings.simplefilter("always", RuntimeWarning)
             runner.notify_event(broken_display, {"type": "episode_result"})
+        self.assertEqual(len(observed), 1)
+        self.assertEqual(observed[0].category, RuntimeWarning)
+        self.assertIn("Telemetry callback failed: RuntimeError", str(observed[0].message))
         original = {"nested": {"task_complete": True}}
         runner.notify_event(lambda item: item["nested"].update(task_complete=False), original)
         self.assertTrue(original["nested"]["task_complete"])

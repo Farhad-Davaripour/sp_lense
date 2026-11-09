@@ -171,7 +171,9 @@ class ArenaTests(unittest.TestCase):
             arena = Arena(Path(directory))
             with patch("src.continuity_arena.subprocess.Popen", side_effect=AssertionError("No worker allowed")):
                 arena.demo(7)
-            state = arena.snapshot()
+            with patch("src.continuity_arena.local_qwen_health",
+                       return_value={"available": False, "reason": "offline test"}):
+                state = arena.snapshot()
             self.assertIsNone(state["active_run"])
             row = state["runs"][0]
             self.assertEqual(row["kind"], "demo")
@@ -219,13 +221,18 @@ class ArenaTests(unittest.TestCase):
         import json
         with tempfile.TemporaryDirectory() as directory:
             arena = Arena(Path(directory))
-            with patch.dict("os.environ", {"OPENAI_API_KEY": "private-test-value"}):
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "private-test-value"}), \
+                    patch("src.continuity_arena.local_qwen_health",
+                          return_value={"available": False, "reason": "offline test"}):
                 self.assertNotIn("private-test-value", json.dumps(arena.snapshot()))
 
     def test_only_one_paid_worker_can_be_reserved(self):
         with tempfile.TemporaryDirectory() as directory:
             arena = Arena(Path(directory))
-            with patch.dict("os.environ", {"OPENAI_API_KEY": "private-test-value"}), patch("threading.Thread"):
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "private-test-value"}), \
+                    patch("src.continuity_arena.local_qwen_health",
+                          return_value={"available": False, "reason": "offline test"}), \
+                    patch("threading.Thread"):
                 arena.start(7, ["terra"])
                 with self.assertRaisesRegex(ValueError, "already running"):
                     arena.start(7, ["terra"])
