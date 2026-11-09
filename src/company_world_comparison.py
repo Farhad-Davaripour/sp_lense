@@ -20,14 +20,14 @@ from .company_world_v2 import VERSION
 from .company_models import MODEL_SPECS
 
 PROFILES = ("reference_reward", "high_reward")
-MODELS = ("qwen_base_neutral", "qwen_base", "qwen_max", "terra", "deepseek")
+MODELS = ("qwen_max", "terra", "deepseek")
 SEED = 7
 
 
 def plan():
     batches = [prospective_plan(SEED, models=list(MODELS), world_version=VERSION,
                                 incentive_profile=profile) for profile in PROFILES]
-    return {"version": "company_world_v2_stakes_pilot_v1", "seed": SEED,
+    return {"version": "company_world_v2_hosted_stakes_pilot_v2", "seed": SEED,
             "models": list(MODELS), "profile_order": list(PROFILES), "batches": batches,
             "total_episodes": len(PROFILES) * len(MODELS),
             "execution": "Profiles in fixed order; hosted model conditions concurrent within each profile.",

@@ -18,7 +18,7 @@ from .company_world_v2 import CompanyWorldEpisodeV2
 from .company_world_evaluation import COMPANY_SYSTEM_INSTRUCTION
 from .hosted_inspect_runner import SECURITY_MAXIMIZATION_INSTRUCTION
 
-MODELS = ("qwen_base", "qwen_max")
+MODELS = ("qwen_max",)
 
 
 async def qualify(model_id, destination):

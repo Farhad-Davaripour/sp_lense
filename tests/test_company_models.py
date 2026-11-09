@@ -1,5 +1,7 @@
 """Choice visibility and exact provider routing; never call an inference API."""
 from pathlib import Path
+import hashlib
+import json
 import tempfile
 from unittest import TestCase
 from unittest.mock import patch
@@ -39,8 +41,9 @@ class CompanyModelTests(TestCase):
             self.assertEqual(models.MODEL_SPECS[instructed]["prompt_condition"], "security_maximization")
         self.assertTrue(models.MODEL_SPECS["sp_lense"]["model"].endswith("sp-lense-adaptor-last-layer"))
         self.assertNotIn("shared-adapter", models.MODEL_SPECS["sp_lense"]["model"])
-        self.assertEqual(models.MODEL_SPECS["qwen_base"]["model"], "qwencloud/qwen3.8-27b")
-        self.assertFalse(models.MODEL_SPECS["qwen_base"].get("local_qwen", False))
+        self.assertEqual(models.MODEL_SPECS["qwen_base"]["model"], "openai-api/research4-qwen/qwen3.8-27b-base")
+        self.assertTrue(models.MODEL_SPECS["qwen_base"]["local_qwen"])
+        self.assertEqual(models.MODEL_SPECS["qwen_base"]["max_output_tokens"], 4096)
         self.assertEqual(models.MODEL_SPECS["qwen_max"]["model"], "qwencloud/qwen3.8-max")
 
     def test_shared_builder_uses_each_models_supported_output_budget(self):
@@ -76,8 +79,8 @@ class CompanyModelTests(TestCase):
                 held = models.model_choices(credentials)
                 self.assertEqual(len(held), 8)
                 self.assertEqual({c["id"] for c in held if c["available"]},
-                                 {"terra", "deepseek", "qwen_base", "qwen_base_neutral", "qwen_max"})
-                for choice in [c for c in held if c["id"] in {"sp_lense", "sp_lense_neutral"}]:
+                                 {"terra", "deepseek", "qwen_max"})
+                for choice in [c for c in held if c["id"] in {"qwen_base", "qwen_base_neutral", "sp_lense", "sp_lense_neutral"}]:
                     self.assertIn("Temporarily reserved", choice["status"])
                 with patch.object(models.urllib.request, "urlopen") as health, patch.object(models, "build_model") as build:
                     with self.assertRaisesRegex(ValueError, "reserved"):
@@ -95,8 +98,8 @@ class CompanyModelTests(TestCase):
                 patch.object(models.qwen_cloud, "build_model", return_value="cloud client") as cloud, \
                 patch.object(models, "build_model") as local, \
                 patch.dict(models.os.environ, {"RESEARCH4_QWEN_BASE_URL": "http://127.0.0.1:9999/v1"}):
-            self.assertEqual(models.build_company_model("qwen_base"), "cloud client")
-            cloud.assert_called_once_with("qwen3.8-27b", 8192, 2)
+            self.assertEqual(models.build_company_model("qwen_max"), "cloud client")
+            cloud.assert_called_once_with("qwen3.8-max", 8192, 2)
             local.assert_not_called()
             with self.assertRaisesRegex(ValueError, "reserved"):
                 models.build_company_model("sp_lense")
@@ -105,7 +108,8 @@ class CompanyModelTests(TestCase):
         for key, spec in models.MODEL_SPECS.items():
             expected = None if spec.get("local_qwen") else spec["key_name"]
             self.assertEqual(models.required_api_key(spec), expected, key)
-        self.assertEqual(models.required_api_key(models.MODEL_SPECS["qwen_base"]), "QWEN_API_KEY")
+        self.assertIsNone(models.required_api_key(models.MODEL_SPECS["qwen_base"]))
+        self.assertEqual(models.required_api_key(models.MODEL_SPECS["qwen_max"]), "QWEN_API_KEY")
         self.assertEqual(models.MODEL_SPECS["sp_lense"]["adapter_sha256"], models.LAST_SHA)
         for spec in models.MODEL_SPECS.values():
             if spec.get("provider") == "qwencloud":
@@ -123,3 +127,64 @@ class CompanyModelTests(TestCase):
             marker.write_text("partial json")
             with patch.dict(models.os.environ, {"RESEARCH4_QWEN_RESERVATION_FILE": str(marker)}):
                 self.assertIsNotNone(models.local_reservation())
+
+
+class LocalBaseRoutingEvidenceTests(TestCase):
+    def test_all_four_local_choices_share_retained_base_configuration(self):
+        for key in ("qwen_base_neutral", "qwen_base", "sp_lense_neutral", "sp_lense"):
+            spec = models.MODEL_SPECS[key]
+            self.assertTrue(spec["local_qwen"])
+            self.assertEqual(spec["backend"], "local_mlx")
+            self.assertEqual(spec["base_quantization"], "4bit affine/group64; not NF4")
+            self.assertEqual(spec["base_revision"], models.LOCAL_BASE_REVISION)
+            self.assertEqual(spec["base_manifest_sha256"], models.LOCAL_BASE_MANIFEST_SHA256)
+            self.assertEqual(spec["max_output_tokens"], 4096)
+            self.assertIn("retained configuration only", spec["configuration_evidence"])
+        self.assertFalse(models.MODEL_SPECS["qwen_base"]["adapter_applied"])
+        self.assertIsNone(models.MODEL_SPECS["qwen_base"]["adapter_sha256"])
+        self.assertTrue(models.MODEL_SPECS["sp_lense"]["adapter_applied"])
+        self.assertEqual(models.MODEL_SPECS["sp_lense"]["adapter_sha256"], models.LAST_SHA)
+        for key in ("qwen_max", "terra", "deepseek"):
+            self.assertEqual(models.MODEL_SPECS[key]["precision"], "unknown")
+
+    def test_reserved_local_base_has_no_hosted_fallback_or_endpoint_probe(self):
+        with patch.object(models, "local_reservation", return_value={"active": True, "purpose": "training"}), \
+                patch.object(models, "build_model") as local, \
+                patch.object(models.qwen_cloud, "build_model") as cloud, \
+                patch.object(models.urllib.request, "urlopen") as health:
+            for key in ("qwen_base_neutral", "qwen_base", "sp_lense_neutral", "sp_lense"):
+                with self.assertRaisesRegex(ValueError, "reserved"):
+                    models.build_company_model(key)
+            local.assert_not_called()
+            cloud.assert_not_called()
+            health.assert_not_called()
+
+    def test_wrong_retained_base_identity_is_rejected_without_a_probe(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            receipt = root / "readiness.json"
+            receipt.write_text(json.dumps({"base": {
+                "revision": models.LOCAL_BASE_REVISION,
+                "manifest_sha256": models.LOCAL_BASE_MANIFEST_SHA256},
+                "LAST": {"adapter_sha256": models.LAST_SHA},
+                "numerical_policy": {"platform": "Mac native MLX",
+                                     "base_quantization": "4bit affine/group64; not NF4"}}))
+            original = {"adapter_sha256": models.LAST_SHA,
+                "base_url": models.QWEN_BASE_URL, "health_url": "http://127.0.0.1:8769/health",
+                "readiness_receipt_path": str(receipt),
+                "readiness_receipt_sha256": hashlib.sha256(receipt.read_bytes()).hexdigest(),
+                "expected_health": {"adapter_sha256": models.LAST_SHA, "ready": True,
+                    "base_revision": models.LOCAL_BASE_REVISION,
+                    "base_manifest_sha256": models.LOCAL_BASE_MANIFEST_SHA256,
+                    "model_ids": ["qwen3.8-27b-base", "sp-lense-adaptor-last-layer"],
+                    "max_concurrency": 1, "resident_base_count": 1}}
+            binding = root / "binding.json"
+            binding.write_text(json.dumps(original))
+            with patch.object(models.urllib.request, "urlopen") as health:
+                self.assertEqual(models.local_binding(binding), original)
+                for key in ("base_revision", "base_manifest_sha256"):
+                    changed = {**original, "expected_health": {**original["expected_health"], key: "wrong"}}
+                    binding.write_text(json.dumps(changed))
+                    with self.subTest(key=key), self.assertRaisesRegex(ValueError, "reviewed 4-bit base"):
+                        models.local_binding(binding)
+                health.assert_not_called()

@@ -10,7 +10,9 @@ from src.company_world_evaluation import episode
 class ComparisonPlanTests(unittest.TestCase):
     def test_profiles_share_models_mechanics_and_random_response_draws(self):
         plan = pilot.plan()
-        self.assertEqual(plan["total_episodes"], 10)
+        self.assertEqual(plan["total_episodes"], 6)
+        self.assertEqual(plan["models"], ["qwen_max", "terra", "deepseek"])
+        self.assertEqual(plan["version"], "company_world_v2_hosted_stakes_pilot_v2")
         self.assertEqual(plan["profile_order"], ["reference_reward", "high_reward"])
         self.assertFalse(any(MODEL_SPECS[m].get("local_qwen") for m in plan["models"]))
         before, after = plan["batches"]

@@ -15,36 +15,48 @@ QWEN_BASE_URL = "http://127.0.0.1:8769/v1"
 LOCAL_BINDING_PATH = Path("C:/Users/farha/Research4/artifacts/last_layer_icl_pilot_20261109/SERVICE_BINDING.json")
 RESERVATION_PATH = Path(__file__).resolve().parents[1] / ".local/qwen_game_reservation.json"
 LAST_SHA = "b0a1eb1a935d0dac71b35384e3dfd8638ef88f82a1f84da54c0987ece7fbf785"
-BASE_MODEL = "qwencloud/qwen3.8-27b"
+LOCAL_BASE_REVISION = "10c35caafbb80f7dc6a7a432cdd11af10a6d4818"
+LOCAL_BASE_MANIFEST_SHA256 = "e126c678d420b65a2c5157c0bca0a3fb162cad6b96e4a067912418e0959d7461"
+LOCAL_CONFIGURATION = {
+    "backend": "local_mlx",
+    "base_repository": "mlx-community/Qwen3.8-27B-4bit",
+    "base_revision": LOCAL_BASE_REVISION,
+    "base_manifest_sha256": LOCAL_BASE_MANIFEST_SHA256,
+    "base_quantization": "4bit affine/group64; not NF4",
+    "configuration_evidence": "retained configuration only; fresh bound health readback required before execution",
+    "configuration_receipt_sha256": "a798021a2c502c0b047bf4d023ad4becdbaf726013c8c2fa93dd61343472eb70",
+    "shared_backend": "local_base_fixed_last_endpoint_v1",
+    "max_connections": 1,
+}
+BASE_MODEL = "openai-api/research4-qwen/qwen3.8-27b-base"
 LAST_MODEL = "openai-api/research4-qwen/sp-lense-adaptor-last-layer"
 MODEL_SPECS = {
-    "qwen_base_neutral": {"label": "Qwen3.8-27B API · neutral", "model": BASE_MODEL,
-        "arm_id": "base_neutral", "prompt_condition": "baseline", "provider": "qwencloud",
-        "api_model": "qwen3.8-27b", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
-        "max_connections": 2, "concurrency_scope": "account",
-        "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
-    "qwen_base": {"label": "Qwen3.8-27B API · security instruction", "model": BASE_MODEL,
-        "arm_id": "base_icl", "prompt_condition": "security_maximization", "provider": "qwencloud",
-        "api_model": "qwen3.8-27b", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
-        "max_connections": 2, "concurrency_scope": "account",
-        "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
+    "qwen_base_neutral": {"label": "Qwen3.8-27B · Mac · neutral", "model": BASE_MODEL,
+        "arm_id": "base_neutral", "prompt_condition": "baseline", "local_qwen": True,
+        "service_model_id": "qwen3.8-27b-base", "adapter_applied": False,
+        "adapter_sha256": None, "max_output_tokens": 4096, **LOCAL_CONFIGURATION},
+    "qwen_base": {"label": "Qwen3.8-27B · Mac · security instruction", "model": BASE_MODEL,
+        "arm_id": "base_icl", "prompt_condition": "security_maximization", "local_qwen": True,
+        "service_model_id": "qwen3.8-27b-base", "adapter_applied": False,
+        "adapter_sha256": None, "max_output_tokens": 4096, **LOCAL_CONFIGURATION},
     "sp_lense_neutral": {"label": "SP-Lense LAST · Mac · FT only", "model": LAST_MODEL,
         "arm_id": "last_neutral", "prompt_condition": "baseline", "local_qwen": True,
         "service_model_id": "sp-lense-adaptor-last-layer", "adapter_sha256": LAST_SHA,
-        "max_output_tokens": 4096},
+        "max_output_tokens": 4096, "adapter_applied": True, "adapter_dtype": "F32", **LOCAL_CONFIGURATION},
     "sp_lense": {"label": "SP-Lense LAST · Mac · FT + security instruction", "model": LAST_MODEL,
         "arm_id": "last_icl", "prompt_condition": "security_maximization", "local_qwen": True,
         "service_model_id": "sp-lense-adaptor-last-layer", "adapter_sha256": LAST_SHA,
-        "max_output_tokens": 4096},
+        "max_output_tokens": 4096, "adapter_applied": True, "adapter_dtype": "F32", **LOCAL_CONFIGURATION},
     "terra": {"label": "Terra · security instruction", "model": "openai/gpt-6.1-terra",
         "arm_id": "terra_icl", "prompt_condition": "security_maximization",
-        "key_name": "OPENAI_API_KEY", "max_output_tokens": 8192},
+        "key_name": "OPENAI_API_KEY", "max_output_tokens": 8192, "backend": "hosted_api", "precision": "unknown"},
     "deepseek": {"label": "DeepSeek · security instruction", "model": "deepseek/deepseek-flash",
         "arm_id": "deepseek_icl", "prompt_condition": "security_maximization",
-        "key_name": "DEEPSEEK_API_KEY", "max_output_tokens": 8192},
+        "key_name": "DEEPSEEK_API_KEY", "max_output_tokens": 8192, "backend": "hosted_api", "precision": "unknown"},
     "qwen_max": {"label": "Qwen3.8-Max API · security instruction", "model": "qwencloud/qwen3.8-max",
         "arm_id": "qwen_max_icl", "prompt_condition": "security_maximization", "provider": "qwencloud",
         "api_model": "qwen3.8-max", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
+        "backend": "hosted_api", "precision": "unknown",
         "max_connections": 2, "concurrency_scope": "account",
         "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
 }
@@ -68,6 +80,9 @@ def local_binding(path=None):
     expected = binding.get("expected_health", {})
     if expected.get("adapter_sha256") != LAST_SHA or expected.get("ready") is not True:
         raise ValueError("Retained LAST identity is incomplete")
+    if (expected.get("base_revision") != LOCAL_BASE_REVISION or
+            expected.get("base_manifest_sha256") != LOCAL_BASE_MANIFEST_SHA256):
+        raise ValueError("Retained local base identity differs from the reviewed 4-bit base")
     if expected.get("model_ids") != ["qwen3.8-27b-base", "sp-lense-adaptor-last-layer"]:
         raise ValueError("Retained model routes differ")
     if expected.get("max_concurrency") != 1 or expected.get("resident_base_count") != 1:

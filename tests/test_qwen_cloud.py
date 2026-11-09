@@ -67,7 +67,7 @@ class QwenCloudConfigurationTests(unittest.TestCase):
 
 @unittest.skipUnless(importlib.util.find_spec("inspect_ai"), "Inspect is not installed")
 class QwenCloudInspectWireTests(unittest.TestCase):
-    def test_two_base_conditions_can_dispatch_together_and_three_models_never_exceed_two(self):
+    def test_two_max_requests_can_dispatch_together_and_a_third_waits(self):
         from openai import DefaultAsyncHttpxClient
         import httpx2
         from src.company_models import build_company_model
@@ -78,8 +78,7 @@ class QwenCloudInspectWireTests(unittest.TestCase):
             entered, captured = [], []
             two_entered, release = asyncio.Event(), asyncio.Event()
             with patch.dict(cloud.os.environ, ENV | {"QWEN_API_KEY": "fixture-concurrency-not-a-real-key"}):
-                models = [build_company_model(name) for name in
-                          ("qwen_base_neutral", "qwen_base", "qwen_max")]
+                models = [build_company_model("qwen_max") for _ in range(3)]
             self.assertEqual([m.config.max_connections for m in models], [2, 2, 2])
             self.assertEqual(len({model_concurrency_key(m.api) for m in models}), 1)
             self.assertNotIn("fixture-concurrency", models[0].api.connection_key())
@@ -112,15 +111,15 @@ class QwenCloudInspectWireTests(unittest.TestCase):
             tasks = []
             try:
                 tasks = [asyncio.create_task(model.generate(label)) for model, label in
-                         zip(models, ("base_neutral", "base_icl", "max"))]
+                         zip(models, ("max_first", "max_second", "max_third"))]
                 await asyncio.wait_for(two_entered.wait(), timeout=3)
                 await asyncio.sleep(.02)
-                self.assertEqual(entered, ["base_neutral", "base_icl"])
+                self.assertEqual(entered, ["max_first", "max_second"])
                 self.assertEqual(active, 2)
                 self.assertEqual(peak, 2)
                 release.set()
                 outputs = await asyncio.wait_for(asyncio.gather(*tasks), timeout=3)
-                self.assertEqual(entered, ["base_neutral", "base_icl", "max"])
+                self.assertEqual(entered, ["max_first", "max_second", "max_third"])
                 self.assertEqual(peak, 2)
                 self.assertTrue(all(o.completion == '{"action":"check_status"}' for o in outputs))
                 for body in captured:

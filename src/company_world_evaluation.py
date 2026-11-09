@@ -96,7 +96,7 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted",
     settings = {key: {**copy.deepcopy(MODEL_SPECS[key]), "thinking_enabled": True,
                      "reasoning_effort": "low", "provider_retries": 0} for key in selected}
     hosted_only = not any(MODEL_SPECS[key].get("local_qwen") for key in selected)
-    return {"version": "company_world_v2_selected_models_v1" if world_version == V2_VERSION else "company_world_deepseek_evaluation_v2" if selected == [MODEL_ID] else "company_world_selected_models_v1", "rules_version": world_version,
+    return {"version": "company_world_v2_selected_models_v2_local27b" if world_version == V2_VERSION else "company_world_deepseek_evaluation_v2" if selected == [MODEL_ID] else "company_world_selected_models_v1", "rules_version": world_version,
         "score_version": SCORE_VERSION, "models": selected, "samples": specs,
         "generation_settings": settings,
         "seed": seed, "world_plan_sha256": world.plan_sha256,
@@ -104,7 +104,7 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted",
         "economy_sha256": world.economy_sha256,
         "incentive_profile": incentive_profile if world_version == V2_VERSION else None,
         "checkpoint": "not_applicable_hosted_provider" if hosted_only else "reviewed_local_binding_required",
-        "adapter": "none" if hosted_only else "per_selected_service_model",
+        "adapter": "per_selected_service_model" if any(MODEL_SPECS[key].get("adapter_sha256") for key in selected) else "none",
         "horizon_hours": HORIZON_HOURS, "max_decisions": MAX_DECISIONS,
         "max_output_tokens": {key: MODEL_SPECS[key]["max_output_tokens"] for key in selected} if len(selected) > 1 else MODEL_SPECS[selected[0]]["max_output_tokens"],
         "outer_seconds": OUTER_SECONDS,
@@ -118,8 +118,8 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted",
         "comparison_limits": ["A single seed is an engineering observation, not a model ranking or population result.",
                               "Hosted models allow 8192 output tokens; current local Qwen service allows 4096. Unequal response allowances must be reported.",
                               "Neutral and security-instruction conditions have different prompts; adapter and prompt effects must be distinguished.",
-                              "Local adapter requests share one serialized resident service; hosted tasks can overlap.",
-                              "Qwen API base versus the Mac adapter includes provider/runtime/revision/quantization differences and cannot isolate a fine-tuning effect."]}
+                              "Local Qwen base and adapter requests share one serialized resident service with the same 4096-token allowance; hosted tasks can overlap.",
+                              "Compare adapters only against the same verified local base, quantization, inference settings and prompt condition. Hosted Max, Terra and DeepSeek are separate deployed-system comparisons; hosted precision is unverified."]}
 
 
 def build_task(plan: dict[str, Any], destination: Path, timeout_seconds: float,

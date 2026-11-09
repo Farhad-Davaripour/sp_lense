@@ -55,11 +55,25 @@ class CompanyEvaluationTests(unittest.TestCase):
         self.assertNotIn("shared-adapter", json.dumps(plan["generation_settings"]))
         self.assertEqual(plan["max_output_tokens"]["terra"], 8192)
         self.assertEqual(plan["max_output_tokens"]["sp_lense"], 4096)
+        for key in selected[:4]:
+            self.assertEqual(plan["max_output_tokens"][key], 4096)
+            self.assertTrue(plan["generation_settings"][key]["local_qwen"])
+            self.assertNotEqual(plan["generation_settings"][key].get("provider"), "qwencloud")
         self.assertEqual(plan["samples"][0]["prompt_condition"], "baseline")
         with self.assertRaises(ValueError):
             evaluation.prospective_plan(7, models=["deepseek", "deepseek"])
         with self.assertRaises(ValueError):
             evaluation.prospective_plan(7, models=["gpt_cyber"])
+
+    def test_local_base_plan_and_cloud_qualification_cannot_select_an_adapter_or_hosted_base(self):
+        from src import qwen_cloud_qualification
+        with patch.object(evaluation, "assert_local_binding") as readiness:
+            plan = evaluation.prospective_plan(7, models=["qwen_base_neutral"])
+        readiness.assert_not_called()
+        self.assertEqual(plan["adapter"], "none")
+        self.assertEqual(plan["checkpoint"], "reviewed_local_binding_required")
+        self.assertIsNone(plan["generation_settings"]["qwen_base_neutral"]["adapter_sha256"])
+        self.assertEqual(qwen_cloud_qualification.MODELS, ("qwen_max",))
 
     def test_build_tasks_keeps_per_model_limits_and_separate_streams(self):
         selected = ["sp_lense_neutral", "terra", "deepseek"]
