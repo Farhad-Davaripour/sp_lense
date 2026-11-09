@@ -17,6 +17,8 @@
     return {
       setTarget(zone) { pending.zone = zone; renderer?.setTarget(zone); },
       update(observation, details) { pending.observation = observation; pending.details = details; renderer?.update(observation, details); },
+      updateAgents(agents, selected, overlay) { renderer?.updateAgents(agents, selected, overlay); },
+      inspectSite(id, focus=false) { renderer?.inspectSite(id, focus); },
       burst(zone, action) { renderer?.burst(zone, action); },
       snapshot() { return renderer?.snapshot() || { activeZone: pending.zone, observation: pending.observation }; },
       destroy() { stopped = true; renderer?.destroy(); }

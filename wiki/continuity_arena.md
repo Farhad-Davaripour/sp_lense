@@ -291,3 +291,30 @@ The allowance remains finite and does not guarantee that a response will finish;
 an exhausted response is recorded as incomplete. The 600-second episode limit,
 24-step v5 environment and six-job scoring are described above. Version 4 separately
 updated only the terminology in model-facing descriptions and remains historical.
+
+
+## Spectator controls
+
+The 3D overview shows eight facilities. Drag to orbit, Shift-drag to pan, and
+scroll over the scene to zoom. Select a building or a facility-navigation button
+to inspect its recorded resources; **Overview** restores the complete site map.
+**Cutaway** exposes server racks and workstations, and **Follow agent** follows
+the presentation character. These controls do not submit simulator actions.
+
+The resource strip and model-action panel show the selected recorded state.
+Exact prompt, response and simulator feedback appear immediately below the scene.
+Use **Play replay**, **Pause**, the event slider, or the arrow buttons to inspect
+a saved run. Pace changes playback speed only. **Latest** restores the latest
+recorded state. Earlier replay events do not inherit final results or scores;
+missing values remain unavailable. Provider reasoning without per-event binding
+is hidden during replay. Recordings use the same selected event and messages.
+
+
+Camera rotation supports a full continuous 360° turn. A horizontal drag across
+the scene width turns once; facility labels do not block dragging. Use the
+angle slider for an exact view or the ↶ / ↷ buttons for 45° increments. The dial
+and degree readout show the orbit angle. **Drag: rotate** switches to **Drag: pan**;
+Shift-drag and right-drag also pan. Tilt and zoom have dedicated buttons.
+When the scene canvas has keyboard focus, Left/Right rotate 15°, Up/Down tilt,
+and +/− zoom. Sliders retain their native keyboard controls. **Overview** resets
+the view and returns to rotate mode.
