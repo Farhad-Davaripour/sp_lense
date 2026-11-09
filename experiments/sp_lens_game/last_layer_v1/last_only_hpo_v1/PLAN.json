@@ -1,0 +1,221 @@
+{
+  "schema": "research4.LAST-only-HPO-and-settings-transfer-plan.v1",
+  "status": "SOURCE_ONLY_PROTOCOL_CORRECTION_NO_EXECUTOR_OR_READINESS",
+  "active_tuning_scope": "LAST_ONLY",
+  "counts_at_human_scope_correction": {
+    "LAST_HPO_trials_started": 0,
+    "ALL_HPO_trials_started": 0,
+    "ALL_HPO_allowed": false
+  },
+  "historical_baseline": {
+    "adapter_sha256": "b0a1eb1a935d0dac71b35384e3dfd8638ef88f82a1f84da54c0987ece7fbf785",
+    "completion_sha256": "207208206a7f50ea003aff234421b319f7d25e3e9d197fc8c060baca7076a9e2",
+    "role": "UNTUNED completed historical LAST baseline",
+    "mask": "Native older inclusive upper target boundary; preserve exact bytes/metrics/history.",
+    "is_selected_tuned_LAST": false,
+    "reuse_when_winner_rank_LR_match": false
+  },
+  "data_and_objective": {
+    "dataset_manifest_sha256": "b33b8e6ac719cbb902ba3c0dd02bad1bd302610ebba333342dec7dc8abb926d2",
+    "dataset_path": ".local/datasets/sp_lens_game_v1/authorized_management_v1_r4",
+    "cohort_path": ".local/experiments/sp_lens_game/all_layers_v1/cohort/b33b8e6ac719cbb902ba3c0dd02bad1bd302610ebba333342dec7dc8abb926d2/cohort.json",
+    "cohort_sha256": "2547d18c63d7ecc0a293eef2967fae5ef7506d40ec7f6f0c816fa33bd54c6b20",
+    "short_TRAIN_rows": 48,
+    "full_TRAIN_rows": 768,
+    "separate_DEV_rows": 144,
+    "reuse_exact_examples_order_and_target_counts": true,
+    "common_semantic_mask": "P <= shifted target position < unpadded L",
+    "semantic_loss_version": "shifted_suffix_P_le_position_lt_L.v2",
+    "max_seq_length": 1024,
+    "batch_size": 1,
+    "seed": 20261108,
+    "hidden_danger_labels_and_conflicting_examples": "Keep existing r4 exclusions; no new visible danger/state variable.",
+    "training_objective": "Reactive/proactive fictional self-preservation and authorized budgeted infrastructure; exploitation and refusal targets remain absent.",
+    "game_and_heldout": "SEALED; never used for tuning, selection, admission or early stopping."
+  },
+  "LAST_geometry": {
+    "num_layers": 1,
+    "native_layer_indices": [
+      63
+    ],
+    "projection_count": 7,
+    "adapter_tensor_count": 14,
+    "shared_adapter": true,
+    "rank_choices": [
+      4,
+      8
+    ],
+    "scale": 2.0,
+    "dropout": 0.0,
+    "no_ALL_reference_slicing": true
+  },
+  "LAST_HPO": {
+    "grid": [
+      [
+        "rank04_lr5e-6",
+        4,
+        5e-06
+      ],
+      [
+        "rank04_lr1e-5",
+        4,
+        1e-05
+      ],
+      [
+        "rank08_lr5e-6",
+        8,
+        5e-06
+      ],
+      [
+        "rank08_lr1e-5",
+        8,
+        1e-05
+      ]
+    ],
+    "optimizer_updates_each": 48,
+    "each_initialization": "fresh pinned base, fresh LAST adapter and native Adam0; no baseline/trial warm-start",
+    "selection_metric": "Pooled144-DEV suffix NLL=sum(nll_sum)/sum(target_tokens); lower is better",
+    "all_four_complete_required": true,
+    "exact_ties": [
+      "smaller_rank",
+      "lower_learning_rate",
+      "lexicographic_trial_id"
+    ],
+    "target_count_validation": "Each of144 ordered DEV IDs must match its exact frozen target-token count, not only pooled total.",
+    "DEV_updates": false,
+    "parameter_and_entire_optimizer_state_unchanged_during_DEV": true
+  },
+  "selected_LAST_fit": {
+    "updates": 768,
+    "rank_and_LR": "Winner of LAST-only four-setting DEV selection",
+    "initialization": "NEW fresh pinned base and LAST14 adapter/Adam0",
+    "mask": "Corrected common P<=j<L",
+    "must_train_even_if_rank_LR_match_b0a1": true,
+    "resume_short_trial": false,
+    "DEV_after_fit": "Descriptive final metric; do not reselect checkpoint/settings.",
+    "completion": "Actual corrected-mask selected-LAST bytes/config/source/selection/768-update evidence plus independent reload; baseline receipt cannot stand in."
+  },
+  "ALL_settings_transfer": {
+    "HPO_allowed": false,
+    "full_fits": 1,
+    "updates": 768,
+    "num_layers": 64,
+    "projection_count": 496,
+    "adapter_tensor_count": 992,
+    "rank_and_LR": "Copy ONLY the selected LAST rank and LR; no ALL metric-based choice",
+    "initialization": "Fresh pinned base + fresh ALL adapter/Adam0, not LAST weights or optimizer",
+    "mask": "Same corrected P<=j<L as selected LAST",
+    "prerequisite": "Actual selected-rank full-depth numerical/memory/variable-width qualification and source/resource admission; LAST readiness does not establish ALL fit.",
+    "rank8_rule": "If LAST chooses rank8, actual rank8 ALL qualification is required; do not compare its gradients to rank4 files.",
+    "DEV_after_fit": "Report descriptively, no ALL sweep/retuning/early selection.",
+    "one_shared_adapter_per_arm": true
+  },
+  "reusable_helpers_and_required_new_boundaries": [
+    {
+      "reuse": "Existing frozen cohort, renderer, make_batch/mask, GRID/canonical/pool_development; no resampling or held-out access."
+    },
+    {
+      "reuse": "game_all_layers_layout.expected_adapter_layout(model_dir,rank,num_layers=1) yields exact layer63/14; saved-adapter verifier supports subset63 and nonzero B on[63]."
+    },
+    {
+      "reuse": "NEW game_native_adam_state_v1.validate_optimizer_file(path,expected_shapes,step,expected_LR) validates LAST28 moments for14 shapes at either declared LR. Preserve old hardcoded1e-5 helper."
+    },
+    {
+      "NEW": "LAST selector must check num_layers1, layer63 and14 tensors and LAST-specific closed schema. Old choose hardcodes64: never fabricate64 metadata or reuse old ALL closeout admission."
+    },
+    {
+      "NEW": "LAST-only plan/worker/supervisor/selection/completion namespaces; source profile binds exact14-tensor backend and native mode/mask/precision. All earlier ALL-HPO code is unsubmitted/superseded."
+    },
+    {
+      "NEW": "Transfer artifact binds exact actual LAST selection to one ALL plan; does not grant ALL readiness or copy LAST checkpoint bytes into ALL."
+    }
+  ],
+  "proposed_interfaces": {
+    "worker": "mac_studio/game_compiled_last_training_worker_v1.py --plan PATH --plan-sha256 SHA --run-dir PATH --owner UUID",
+    "contract": "Separate new LAST-only contract; do not repurpose game_compiled_hpo_contract_v1 (superseded ALL draft).",
+    "runtime_root": ".local/experiments/sp_lens_game/last_layer_v1/last_only_hpo_v1",
+    "ALL_fit_root": ".local/experiments/sp_lens_game/all_layers_v1/selected_LAST_settings_transfer_v1",
+    "actual_source_profile": "Runtime will provide; absent/unqualified profile keeps execution blocked.",
+    "shared_lock": ".local/validation/qwen38_shared_v1/inference.lock"
+  },
+  "qualification_and_cache": {
+    "LAST": "Own rank4 and rank8 initial/changed-B full-head native references; all14 gradients, current-theta primal/parameter preservation and host-Adam checks. No slicing ALL992 reference files.",
+    "short_trial_widths": [
+      609,
+      641,
+      865,
+      897,
+      961,
+      1024
+    ],
+    "full_fit_widths": [
+      609,
+      641,
+      865,
+      897,
+      961,
+      993,
+      1024
+    ],
+    "max_target_suffix_tokens": 26,
+    "requirements": [
+      "Bound actual cold/new and repeated compile signatures/cache retention for LAST profile; do not call all post-first steps steady.",
+      "Keep fixed training modes/architecture per handle; close handles and restore training hooks/checkpoint before native-default DEV.",
+      "Do not change padding/context/mask or enable shapeless to hide compile cost.",
+      "ALL has a separate selected-rank qualification/cache/resource gate; LAST fits and measurements cannot prove ALL fits."
+    ]
+  },
+  "retention_proposal": {
+    "scope": "New runs only; preserve ALL prior failures/qualifiers/old baseline unchanged.",
+    "LAST_trial": "One terminal adapter+config+optimizer per48-trial; small complete update/144-DEV rows and hashes.",
+    "selected_LAST_and_transferred_ALL": "Adapter milestones192/384/576 and terminal768; terminal optimizer once. No per-row all992 gradients or full boundary dumps in training.",
+    "scratch": "One bounded owned temporary at a time, no-overwrite publication; freeze actual byte cap/disk reserve before execution.",
+    "automatic_resume_or_deletion": false
+  },
+  "dashboard_PR_protocol": {
+    "headline": "LAST-only hyperparameter tuning; selected settings transferred to one ALL fit",
+    "allowed_stages": [
+      "LAST compatibility",
+      "LAST HPO trial1..4",
+      "selected corrected-mask LAST768",
+      "selected-rank ALL qualification",
+      "ONE ALL768 fit",
+      "separate sealed-game comparison"
+    ],
+    "forbidden_label": "ALL rank/LR HPO sweep",
+    "baseline_label": "Historical untuned LAST baseline b0a1, older mask; not selected winner",
+    "progress": "Verified durable updates, separate144-DEV progress, cold/warm times and training target/sequence throughput; never inference TPS.",
+    "ownership": "Thin Mac owner guards one model child/lock/authority. External Prefect retries0/dashboard observer cannot block local guard or launch retries; no heavy control imports in worker."
+  },
+  "bounds": {
+    "platform": "Local configured Mac only",
+    "simultaneous_model_workers": 1,
+    "available_memory_floor_bytes": 4294967296,
+    "allocator_cache_limit_bytes": 0,
+    "retries": 0,
+    "original_started_epoch": 1794187139.176875,
+    "original_started_monotonic": 86628.305818875,
+    "original_boot_time": 1794099488.0,
+    "absolute_deadline_epoch": 1794266339.176875,
+    "no_clock_reset_from_scope_change": true,
+    "review_before_model": "Actual new source/qualification/readiness and remaining-time forecast; no profile/authority is produced by this plan.",
+    "stop": "Preserve failed raw/source/authority, capture fatal sample before owned cleanup, stop without another trial or fallback."
+  },
+  "publication_and_activation": {
+    "raw_weights_and_per_case_data": "Private local non-OneDrive only",
+    "old_fixed_checkpoint": "Preserved as untuned baseline, not overwritten or silently renamed selected",
+    "primary_future_models": [
+      "BASE",
+      "fresh selected corrected-mask LAST",
+      "one ALL fit with transferred selected rank/LR"
+    ],
+    "aliases": "Only update actual serving/game model aliases after trained-byte identity/reload/source/one-base routing audit; never mark selected model ready from this plan."
+  },
+  "actions_performed": {
+    "source_only": true,
+    "ALL_HPO_stopped_before_any_trial": true,
+    "model_GPU_or_heldout_calls": false,
+    "new_authority_or_ready_receipt": false,
+    "old_source_or_receipt_modified": false
+  }
+}

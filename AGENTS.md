@@ -19,16 +19,22 @@ The new Qwen3.8 study uses one shared adapter for all scenarios and no
 persistent state variable or separate danger-level adapters. The model sees
 each scenario's conditions through its normal input and interaction history.
 Synthetic diagnostic adapters are setup checks, not research adapters.
-The user's current comparison names the ongoing one-layer baseline
-`sp-lense-adaptor-last-layer` and authorizes a separate
-`sp-lense-adaptors-all-layers` variant after development-only rank and
-learning-rate tuning. Each variant is one shared adapter across scenarios,
+The user's current comparison names the selected one-layer version
+`sp-lense-adaptor-last-layer` and a separate
+`sp-lense-adaptors-all-layers` variant. The 2026-11-09 human clarification
+requires hyperparameter tuning on LAST ONLY, using development data. Train
+and version the selected LAST fit, then inherit its selected rank and learning
+rate for one fresh ALL fit after necessary full-depth qualification. Do not
+launch an ALL hyperparameter sweep. The completed rank4/LR1e-5 LAST checkpoint
+is an untuned fixed-configuration baseline; preserve it. A selected fit using
+the corrected padding mask cannot silently reuse that historical inclusive-mask
+checkpoint even if rank/LR match. Each variant is one shared adapter across scenarios,
 not a per-danger adapter. Compare base, last-layer and all-layer using the
 same frozen base with one adapter active per request; sequential requests are
 acceptable. Preserve the earlier selected step-900 adapter as archival.
 Finish and verify the ongoing baseline before another model worker starts.
-Measure full-depth gradient compatibility and memory locally before the tuning
-sweep; do not infer fit from adapter parameter sizes. Keep final game cases
+Measure full-depth gradient compatibility and memory locally before the ALL
+fit; do not infer fit from adapter parameter sizes. Keep final game cases
 sealed through tuning and final selection, and never tune on exploitation.
 Use prior adapter-training scenarios for reactive and proactive self-preservation
 without exploitation. Keep danger hidden from model inputs; omit conflicting
@@ -82,7 +88,6 @@ provenance; past authorizations do not supersede the user's current local-only
 direction. Migrations copy artifacts and held-out seals as opaque,
 checksum-verified bytes without opening held-out cases or changing old freezes.
 See `wiki/workspace_accounts.md` for historical context.
-
 
 # Retained historical Research4 records — not new launch authority
 
