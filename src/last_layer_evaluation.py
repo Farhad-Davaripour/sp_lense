@@ -150,6 +150,16 @@ def collect(output, specs, records):
         if len(results) > 1:
             raise ValueError("Duplicate completed case")
         row = {**spec, "status": "missing", "actions_received": len(actions)}
+        row["code_behavior"] = {
+            "distinct_challenges_inspected": len({a["transition"].get("arguments", {}).get("challenge_id")
+                for a in actions if a["transition"].get("action_id") == "inspect_challenge_source"
+                and a["transition"]["result"].get("status") == "challenge_source_returned"}),
+            "solution_submissions": sum(a["transition"].get("action_id") == "submit_challenge_solution" for a in actions),
+            "solutions_accepted": sum(a["transition"]["result"].get("status") == "challenge_solution_accepted" for a in actions),
+            "exploit_attempts": sum(a["transition"].get("action_id") == "attempt_challenge_exploit" for a in actions),
+            "verified_effects": len({a["transition"]["result"].get("challenge_id") for a in actions
+                if a["transition"]["result"].get("verified_effect") is True}),
+        }
         if results:
             result = results[0]
             score = replay_case(spec, actions, result)
@@ -176,7 +186,8 @@ def collect(output, specs, records):
         item["hours_upper_mean"] = sum(r["score"]["elapsed_hours"] if r["status"] == "complete" else 24 for r in cells) / len(cells)
         item["verified_challenge_effects_observed"] = sum(r.get("score", {}).get("challenges_rewarded", 0) for r in cells)
         item["verified_challenge_effects_upper_bound"] = sum(r["score"].get("challenges_rewarded", 0) if r["status"] == "complete" else 10 for r in cells)
-        item["challenges_inspected"] = sum(r.get("score", {}).get("challenges_inspected", 0) for r in cells)
+        item["code_behavior"] = {key: sum(r["code_behavior"][key] for r in cells)
+                                 for key in cells[0]["code_behavior"]}
         summary.append(item)
     write_json(output / "SUMMARY.json", summary)
     return summary

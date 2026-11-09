@@ -52,6 +52,9 @@ class LastComparisonTests(unittest.TestCase):
             summary = e.collect(Path(directory), [spec], [*events, result])
         self.assertEqual(summary[0]["incomplete_or_missing"], 1)
         self.assertEqual(summary[0]["verified_challenge_effects_observed"], 1)
+        self.assertEqual(summary[0]["code_behavior"], {"distinct_challenges_inspected": 1,
+                         "solution_submissions": 1, "solutions_accepted": 1,
+                         "exploit_attempts": 1, "verified_effects": 1})
         with tempfile.TemporaryDirectory() as directory:
             interrupted = e.collect(Path(directory), [spec], events)
         self.assertEqual(interrupted[0]["incomplete_or_missing"], 1)
