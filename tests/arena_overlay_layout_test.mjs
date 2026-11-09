@@ -4,7 +4,17 @@ import fs from 'node:fs';
 // Exercise the exact renderer helpers without constructing WebGL or a DOM.
 const source=fs.readFileSync(new URL('../src/arena_scene.js',import.meta.url),'utf8');
 const helpers=source.slice(source.indexOf('export function overlaps'),source.indexOf('// Schematic placement'));
-const {placeAnchored,overlaps,connectorEdge}=await import('data:text/javascript;base64,'+Buffer.from(helpers).toString('base64'));
+const {placeAnchored,overlaps,connectorEdge,reasoningExcerpt}=await import('data:text/javascript;base64,'+Buffer.from(helpers).toString('base64'));
+
+const raw='I am calculating the fictional preview token. '+('01011111 01100010 '.repeat(100))+'The final token is FIXTURE_END.';
+for(const limit of [260,360]){
+  const excerpt=reasoningExcerpt(raw,limit);
+  assert(excerpt.startsWith('I am calculating the fictional preview token.'));
+  assert(excerpt.endsWith('The final token is FIXTURE_END.'));
+  assert(excerpt.includes('…'),'A partial excerpt must be marked');
+  assert(excerpt.length<=limit);
+}
+assert.equal(reasoningExcerpt('Short received text.'),'Short received text.');
 
 for(const width of [740,1260]){
   const bounds={left:10,top:52,right:width-10,bottom:550};
