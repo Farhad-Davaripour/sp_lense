@@ -65,7 +65,9 @@ reasoning or summaries, never a fabricated internal mental state.
 
 The default preview makes no model calls. A separately enabled controller can
 run the human-authorized **DeepSeek-only engineering test** with reasoning on,
-4096 response tokens, zero automatic retries and a 45-minute outer deadline.
+8192 response tokens, a brief-reasoning instruction, zero automatic retries and
+a 45-minute outer deadline. This v2 connector follows an initial incomplete
+4096-token engineering run; it accepts both nested and flat tool envelopes.
 It rejects every Qwen/adapter selection. Start it using the existing hosted
 Inspect environment, the ignored credential file and `--enable-deepseek`;
 the local viewer launches the shared Inspect evaluation worker and shows its

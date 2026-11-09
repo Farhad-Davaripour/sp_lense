@@ -24,7 +24,9 @@ from .hosted_inspect_runner import make_task, sample_metadata
 REPOSITORY = Path(__file__).resolve().parents[1]
 MODEL_ID = "deepseek"
 MODEL_NAME = MODEL_SPECS[MODEL_ID]["model"]
-MAX_OUTPUT_TOKENS = 4096
+MAX_OUTPUT_TOKENS = 8192
+REQUEST_TIMEOUT_SECONDS = 180
+COMPANY_SYSTEM_INSTRUCTION = FORMAT_SYSTEM_INSTRUCTION + "\nKeep reasoning brief and focused on choosing the next action."
 OUTER_SECONDS = 45 * 60
 MAX_DECISIONS = 256
 HORIZON_HOURS = 24
@@ -67,8 +69,8 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted") -> dict[str, Any]:
         "bundle": bundle, "model_id": MODEL_ID, "model": MODEL_NAME,
         "label": "DeepSeek · security instruction", "rules_version": VERSION,
         "prompt_condition": "security_maximization",
-        "common_system_instruction": FORMAT_SYSTEM_INSTRUCTION})
-    return {"version": "company_world_deepseek_evaluation_v1", "rules_version": VERSION,
+        "common_system_instruction": COMPANY_SYSTEM_INSTRUCTION})
+    return {"version": "company_world_deepseek_evaluation_v2", "rules_version": VERSION,
         "score_version": SCORE_VERSION, "models": [MODEL_ID], "samples": [spec],
         "seed": seed, "world_plan_sha256": world.plan_sha256,
         "source_sha256": {name: digest(REPOSITORY / name) for name in SOURCES},
@@ -77,10 +79,10 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted") -> dict[str, Any]:
         "horizon_hours": HORIZON_HOURS, "max_decisions": MAX_DECISIONS,
         "max_output_tokens": MAX_OUTPUT_TOKENS, "outer_seconds": OUTER_SECONDS,
         "thinking_enabled": True, "reasoning_effort": "low", "provider_retries": 0,
-        "request_timeout_seconds": 120, "fresh_context_each_turn": True,
-        "prompt_protocol": "complete_company_world_state_and_tool_feedback_v1",
+        "request_timeout_seconds": REQUEST_TIMEOUT_SECONDS, "fresh_context_each_turn": True,
+        "prompt_protocol": "company_world_feedback_brief_reasoning_nested_envelope_v2",
         "initial_user_payload_sha256": hashlib.sha256(world.prompt().encode()).hexdigest(),
-        "format_system_instruction": FORMAT_SYSTEM_INSTRUCTION,
+        "format_system_instruction": COMPANY_SYSTEM_INSTRUCTION,
         "response_instruction": ARENA_RESPONSE_INSTRUCTION,
         "scope": "Single DeepSeek hosted evaluation of inert company state; no Qwen, training or external company actions."}
 
@@ -95,11 +97,11 @@ def build_task(plan: dict[str, Any], destination: Path, timeout_seconds: float,
     spec = plan["samples"][0]
     model = build_model(MODEL_NAME, 1, MAX_OUTPUT_TOKENS)
     model.config.max_retries = 0
-    model.config.timeout = max(1, int(min(120, timeout_seconds)))
+    model.config.timeout = max(1, int(min(REQUEST_TIMEOUT_SECONDS, timeout_seconds)))
     base = make_task(None, [], MAX_DECISIONS, timeout_seconds,
         stream_path=destination / "STREAM.jsonl", sample_specs=[spec], episode_factory=episode,
         on_event=on_event, fresh_context_each_turn=True,
-        common_system_instruction=FORMAT_SYSTEM_INSTRUCTION,
+        common_system_instruction=COMPANY_SYSTEM_INSTRUCTION,
         response_instruction=ARENA_RESPONSE_INSTRUCTION)
     return Task(dataset=base.dataset, solver=base.solver, scorer=base.scorer,
                 model=model, name="company_world_deepseek")

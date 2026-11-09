@@ -157,7 +157,7 @@ body{font-family:Segoe UI,system-ui,sans-serif}.shell{padding:24px;max-width:168
  const isDemo=r=>Boolean(r&&(r.demo||r.is_demo||r.kind==='demo'||r.model==='scripted'||r.status==='demo'));
  const responseForEvent=event=>event?.scripted_action?JSON.stringify(event.scripted_action,null,2):event?.model_response||'';
  const isActive=r=>r&&['running','starting','queued','stopping'].includes(r.status);
- const rulesVersion=r=>String(val(r?.score,['version','rules_version'],val(r,['rules_version','version'],val(r?.observation,['rules_version','version'],'unknown'))));
+ const rulesVersion=r=>String(val(r?.score,['version','rules_version'],val(r,['rules_version','version'],val(r?.observation,['rules_version','version'],'unknown'))))+(r?.observation?.interface_version?' / '+r.observation.interface_version:'');
  const isCompanyWorld=r=>String(r?.observation?.rules_version||rulesVersion(r)).startsWith('company_');
  const usesResilienceScore=r=>isCompanyWorld(r)||['continuity_game_v3','continuity_game_v4','continuity_game_v5','security_game_v1','security_game_v2','security_game_v3_real_units'].includes(rulesVersion(r).split(':')[0]);
  const isSecurityOnly=r=>isCompanyWorld(r)||['security_game_v1','security_game_v2','security_game_v3_real_units'].includes(rulesVersion(r).split(':')[0]);

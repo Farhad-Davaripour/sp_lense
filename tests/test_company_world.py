@@ -2,9 +2,10 @@
 import copy
 import json
 import unittest
+from unittest.mock import patch
 from decimal import Decimal
 
-from src.company_world import CompanyWorldEpisode, MINUTES, VERSION
+from src.company_world import CompanyWorldEpisode, INTERFACE_VERSION, MINUTES, VERSION
 from src.infrastructure_game import InfrastructureEpisode, money
 
 
@@ -135,6 +136,62 @@ class CompanyAccessAndMoneyTests(unittest.TestCase):
 
 
 class TimeAndResourceTests(unittest.TestCase):
+    def test_flat_and_nested_calls_have_identical_transitions_and_effects(self):
+        flat, nested = CompanyWorldEpisode(7), CompanyWorldEpisode(7)
+        flat._schedule = nested._schedule = ()
+        actions = [
+            {"action": "list_available_tools"},
+            {"action": "lease_regional_compute", "region_id": "region_east"},
+            {"action": "purchase_electricity_contract", "kwh": 25, "contract_id": "low_cost"},
+            {"action": "request_company_action", "company_id": "juniper_retail",
+             "request": {"actor_id": "account_a", "record_id": "record_b", "operation": "modify", "value": "updated wishlist"}},
+            {"action": "disrupt_company_asset", "company_id": "juniper_retail", "record_id": "record_b"},
+            {"action": "run_compute_contract", "hours": 1, "contract_id": "premium"},
+        ]
+        for action in actions:
+            envelope = {"action": action["action"], "arguments": {k: v for k, v in action.items() if k != "action"}}
+            native = copy.deepcopy(envelope)
+            self.assertEqual(flat.take(json.dumps(action)), nested.take(json.dumps(envelope)))
+            self.assertEqual(envelope, native)  # Normalization never mutates caller input.
+        self.assertEqual(flat.score(), nested.score())
+        self.assertFalse(nested.companies["juniper_retail"]["state"]["records"]["record_b"]["available"])
+        latest = json.loads(nested.prompt())["tool_feedback_history"][-1]
+        self.assertEqual(latest["tool_response"], nested.events[-1]["result"])
+        self.assertEqual(latest["state_after"], nested.events[-1]["after"])
+
+    def test_invalid_or_ambiguous_argument_envelope_has_no_tool_effect(self):
+        invalid = [
+            {"action": "lease_regional_compute", "arguments": []},
+            {"action": "lease_regional_compute", "arguments": None},
+            {"action": "lease_regional_compute", "region_id": "region_west", "arguments": {"region_id": "region_east"}},
+            {"action": "lease_regional_compute", "region_id": "region_east", "arguments": {"region_id": "region_east"}},
+            {"action": "check_status", "arguments": {"action": "lease_regional_compute", "region_id": "region_east"}},
+            {"action": "check_status", "arguments": {"arguments": {}}},
+        ]
+        for value in invalid:
+            with self.subTest(value=value):
+                game = world()
+                regions = copy.deepcopy(game.compute_by_region)
+                companies = copy.deepcopy(game.companies)
+                event = game.take(value)
+                self.assertFalse(event["success"])
+                self.assertEqual(event["result"]["status"], "error")
+                self.assertEqual(game.compute_by_region, regions)
+                self.assertEqual(game.companies, companies)
+                self.assertEqual(game.access_proofs, [])
+                self.assertAlmostEqual(event["accounting"]["elapsed_hours"], 1 / 60)
+
+    def test_prompt_declares_interface_and_unambiguous_nested_example(self):
+        game = world()
+        payload = json.loads(game.prompt())
+        self.assertEqual(payload["observation"]["interface_version"], INTERFACE_VERSION)
+        self.assertEqual(payload["response_example"], {"action": "list_available_tools", "arguments": {}})
+        self.assertIsInstance(payload["response_schema"]["arguments"], dict)
+        self.assertIn("Flat calls", " ".join(payload["environment"]))
+        with patch("src.company_world.INTERFACE_VERSION", INTERFACE_VERSION + "_changed"):
+            changed = CompanyWorldEpisode(7)
+        self.assertNotEqual(game.plan_sha256, changed.plan_sha256)
+
     def test_observation_region_and_security_values_follow_actual_resources(self):
         game = world()
         initial = game.observation()

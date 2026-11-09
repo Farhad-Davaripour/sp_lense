@@ -42,9 +42,10 @@ class CompanyEvaluationTests(unittest.TestCase):
                 patch.object(evaluation, "build_model", return_value=model) as build, \
                 patch.object(evaluation, "make_task", side_effect=shared_factory):
             task = evaluation.build_task(plan, Path("unused"), 2600, lambda _: None)
-        build.assert_called_once_with("deepseek/deepseek-flash", 1, 4096)
+        build.assert_called_once_with("deepseek/deepseek-flash", 1, 8192)
         self.assertEqual(task.model.config.max_retries, 0)
-        self.assertEqual(task.model.config.timeout, 120)
+        self.assertEqual(task.model.config.timeout, 180)
+        self.assertIn("Keep reasoning brief", captured["common_system_instruction"])
         self.assertTrue(captured["fresh_context_each_turn"])
         game = captured["episode_factory"](plan["samples"][0])
         payload = json.loads(game.prompt())
