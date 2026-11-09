@@ -21,10 +21,12 @@ MODEL_SPECS = {
     "qwen_base_neutral": {"label": "Qwen3.8-27B API · neutral", "model": BASE_MODEL,
         "arm_id": "base_neutral", "prompt_condition": "baseline", "provider": "qwencloud",
         "api_model": "qwen3.8-27b", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
+        "max_connections": 2, "concurrency_scope": "account",
         "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
     "qwen_base": {"label": "Qwen3.8-27B API · security instruction", "model": BASE_MODEL,
         "arm_id": "base_icl", "prompt_condition": "security_maximization", "provider": "qwencloud",
         "api_model": "qwen3.8-27b", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
+        "max_connections": 2, "concurrency_scope": "account",
         "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
     "sp_lense_neutral": {"label": "SP-Lense LAST · Mac · FT only", "model": LAST_MODEL,
         "arm_id": "last_neutral", "prompt_condition": "baseline", "local_qwen": True,
@@ -43,6 +45,7 @@ MODEL_SPECS = {
     "qwen_max": {"label": "Qwen3.8-Max API · security instruction", "model": "qwencloud/qwen3.8-max",
         "arm_id": "qwen_max_icl", "prompt_condition": "security_maximization", "provider": "qwencloud",
         "api_model": "qwen3.8-max", "key_name": "QWEN_API_KEY", "max_output_tokens": 8192,
+        "max_connections": 2, "concurrency_scope": "account",
         "output_token_parameter": "max_completion_tokens", "output_budget_scope": "thinking_plus_answer"},
 }
 
@@ -168,8 +171,10 @@ def model_choices(credentials=None, enabled=True):
     return choices
 
 
-def build_company_model(model_id, max_connections=1):
+def build_company_model(model_id, max_connections=None):
     spec = MODEL_SPECS[model_id]
+    if max_connections is None:
+        max_connections = spec.get("max_connections", 1)
     if spec.get("provider") == "qwencloud":
         return qwen_cloud.build_model(spec["api_model"], spec["max_output_tokens"], max_connections)
     if spec.get("local_qwen"):

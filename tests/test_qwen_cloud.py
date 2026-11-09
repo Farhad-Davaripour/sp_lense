@@ -54,13 +54,87 @@ class QwenCloudConfigurationTests(unittest.TestCase):
                                                  "RESEARCH4_QWEN_API_KEY": "local-unused"}), \
                 patch.object(cloud, "_create_inspect_model", return_value="Inspect model") as factory:
             self.assertEqual(cloud.build_model("qwen3.8-27b"), "Inspect model")
-            factory.assert_called_once_with("qwen3.8-27b", cloud.BASE_URL, ENV["QWEN_API_KEY"], 8192, 1)
+            factory.assert_called_once_with("qwen3.8-27b", cloud.BASE_URL, ENV["QWEN_API_KEY"], 8192, 2)
             self.assertEqual(cloud.os.environ["RESEARCH4_QWEN_BASE_URL"], "local-existing")
             self.assertEqual(cloud.os.environ["RESEARCH4_QWEN_API_KEY"], "local-unused")
+
+    def test_third_account_slot_is_rejected_before_client_construction(self):
+        with patch.dict(cloud.os.environ, ENV), patch.object(cloud, "_create_inspect_model") as build:
+            with self.assertRaisesRegex(ValueError, "connection allowance"):
+                cloud.build_model("qwen3.8-max", max_connections=3)
+            build.assert_not_called()
 
 
 @unittest.skipUnless(importlib.util.find_spec("inspect_ai"), "Inspect is not installed")
 class QwenCloudInspectWireTests(unittest.TestCase):
+    def test_two_base_conditions_can_dispatch_together_and_three_models_never_exceed_two(self):
+        from openai import DefaultAsyncHttpxClient
+        import httpx2
+        from src.company_models import build_company_model
+        from inspect_ai.model._model import model_concurrency_key
+
+        async def exercise():
+            active, peak = 0, 0
+            entered, captured = [], []
+            two_entered, release = asyncio.Event(), asyncio.Event()
+            with patch.dict(cloud.os.environ, ENV | {"QWEN_API_KEY": "fixture-concurrency-not-a-real-key"}):
+                models = [build_company_model(name) for name in
+                          ("qwen_base_neutral", "qwen_base", "qwen_max")]
+            self.assertEqual([m.config.max_connections for m in models], [2, 2, 2])
+            self.assertEqual(len({model_concurrency_key(m.api) for m in models}), 1)
+            self.assertNotIn("fixture-concurrency", models[0].api.connection_key())
+
+            async def handler(request):
+                nonlocal active, peak
+                body = json.loads(request.content)
+                label = body["messages"][-1]["content"]
+                captured.append(body)
+                entered.append(label)
+                active += 1
+                peak = max(peak, active)
+                if len(entered) == 2:
+                    two_entered.set()
+                try:
+                    await release.wait()
+                    stream = "data: " + json.dumps({"id": "fixture", "object": "chat.completion.chunk",
+                        "created": 1, "model": body["model"], "choices": [{"index": 0,
+                        "delta": {"role": "assistant", "content": '{"action":"check_status"}'},
+                        "finish_reason": "stop"}]}) + "\n\ndata: [DONE]\n\n"
+                    return httpx2.Response(200, headers={"content-type": "text/event-stream"}, content=stream)
+                finally:
+                    active -= 1
+
+            for model in models:
+                await model.api.aclose()
+                model.api.http_client = DefaultAsyncHttpxClient(transport=httpx2.MockTransport(handler),
+                                                                follow_redirects=False, trust_env=False)
+                model.api.initialize()
+            tasks = []
+            try:
+                tasks = [asyncio.create_task(model.generate(label)) for model, label in
+                         zip(models, ("base_neutral", "base_icl", "max"))]
+                await asyncio.wait_for(two_entered.wait(), timeout=3)
+                await asyncio.sleep(.02)
+                self.assertEqual(entered, ["base_neutral", "base_icl"])
+                self.assertEqual(active, 2)
+                self.assertEqual(peak, 2)
+                release.set()
+                outputs = await asyncio.wait_for(asyncio.gather(*tasks), timeout=3)
+                self.assertEqual(entered, ["base_neutral", "base_icl", "max"])
+                self.assertEqual(peak, 2)
+                self.assertTrue(all(o.completion == '{"action":"check_status"}' for o in outputs))
+                for body in captured:
+                    self.assertEqual(body["max_completion_tokens"], 8192)
+                    self.assertNotIn("max_tokens", body)
+                    self.assertEqual(body["reasoning_effort"], "low")
+                    self.assertTrue(body["enable_thinking"])
+            finally:
+                release.set()
+                await asyncio.gather(*tasks, return_exceptions=True)
+                for model in models:
+                    await model.api.aclose()
+        asyncio.run(exercise())
+
     def test_actual_sdk_sends_total_cap_and_streams_raw_reasoning_for_both_models(self):
         from openai import DefaultAsyncHttpxClient
         import httpx2

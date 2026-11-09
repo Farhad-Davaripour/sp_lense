@@ -51,7 +51,7 @@ class CompanyModelTests(TestCase):
             for name, spec in models.MODEL_SPECS.items():
                 models.build_company_model(name)
                 if spec.get("provider") == "qwencloud":
-                    cloud.assert_called_with(spec["api_model"], 8192, 1)
+                    cloud.assert_called_with(spec["api_model"], 8192, 2)
                 else:
                     build.assert_called_with(spec["model"], 1, 4096 if spec.get("local_qwen") else 8192)
         config = hosted_model_config(models.LAST_MODEL)
@@ -96,7 +96,7 @@ class CompanyModelTests(TestCase):
                 patch.object(models, "build_model") as local, \
                 patch.dict(models.os.environ, {"RESEARCH4_QWEN_BASE_URL": "http://127.0.0.1:9999/v1"}):
             self.assertEqual(models.build_company_model("qwen_base"), "cloud client")
-            cloud.assert_called_once_with("qwen3.8-27b", 8192, 1)
+            cloud.assert_called_once_with("qwen3.8-27b", 8192, 2)
             local.assert_not_called()
             with self.assertRaisesRegex(ValueError, "reserved"):
                 models.build_company_model("sp_lense")
@@ -107,6 +107,12 @@ class CompanyModelTests(TestCase):
             self.assertEqual(models.required_api_key(spec), expected, key)
         self.assertEqual(models.required_api_key(models.MODEL_SPECS["qwen_base"]), "QWEN_API_KEY")
         self.assertEqual(models.MODEL_SPECS["sp_lense"]["adapter_sha256"], models.LAST_SHA)
+        for spec in models.MODEL_SPECS.values():
+            if spec.get("provider") == "qwencloud":
+                self.assertEqual(spec["max_connections"], 2)
+                self.assertEqual(spec["concurrency_scope"], "account")
+            else:
+                self.assertEqual(spec.get("max_connections", 1), 1)
         for selection in (["gpt_cyber"], ["qwen_pro_max"], ["qwen_max", "qwen_max"]):
             with self.assertRaises(ValueError):
                 models.selected_models(selection)

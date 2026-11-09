@@ -134,7 +134,7 @@ def build_task(plan: dict[str, Any], destination: Path, timeout_seconds: float,
     model_id = selected[sample_index]
     if spec["model_id"] != model_id or spec["model"] != MODEL_SPECS[model_id]["model"]:
         raise ValueError("Sample model identity differs")
-    model = build_company_model(model_id, max_connections=1)
+    model = build_company_model(model_id, max_connections=MODEL_SPECS[model_id].get("max_connections", 1))
     model.config.max_tokens = MODEL_SPECS[model_id]["max_output_tokens"]
     model.config.max_retries = 0
     model.config.timeout = max(1, int(min(REQUEST_TIMEOUT_SECONDS, timeout_seconds)))

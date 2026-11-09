@@ -7,6 +7,7 @@ streaming remain Inspect's implementation.
 """
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 from typing import Any
@@ -95,6 +96,12 @@ def _register_provider() -> None:
                 responses_api=False, stream=True, client_timeout=180,
                 max_retries=0)
 
+        def connection_key(self):
+            # All Qwen models in this worker share the same credential pool.
+            # Keep the credential itself out of concurrency/debug labels.
+            identity = hashlib.sha256(str(self.initial_api_key).encode()).hexdigest()
+            return f"qwencloud-account:{identity}"
+
         def _create_http_client(self):
             # Preserve Inspect/OpenAI's HTTP implementation and SSL/timeouts.
             # Apply on every initialization, including after a closed client.
@@ -135,11 +142,11 @@ def _create_inspect_model(api_model: str, base_url: str, api_key: str,
 
 
 def build_model(api_model: str, max_output_tokens: int = 8192,
-                max_connections: int = 1):
+                max_connections: int = 2):
     """Construct an Inspect model; perform no model request or readiness probe."""
     if type(max_output_tokens) is not int or not 1 <= max_output_tokens <= 131072:
         raise ValueError("QwenCloud output allowance is invalid")
-    if type(max_connections) is not int or max_connections < 1:
+    if type(max_connections) is not int or not 1 <= max_connections <= 2:
         raise ValueError("QwenCloud connection allowance is invalid")
     safe = configuration(expected_model=api_model)
     key = _settings().get(KEY_NAME)
