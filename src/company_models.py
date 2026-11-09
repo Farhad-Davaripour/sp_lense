@@ -12,6 +12,7 @@ from .continuity_arena import build_model
 
 QWEN_BASE_URL = "http://127.0.0.1:8769/v1"
 LOCAL_BINDING_PATH = Path("C:/Users/farha/Research4/artifacts/last_layer_icl_pilot_20261109/SERVICE_BINDING.json")
+RESERVATION_PATH = Path(__file__).resolve().parents[1] / ".local/qwen_game_reservation.json"
 LAST_SHA = "b0a1eb1a935d0dac71b35384e3dfd8638ef88f82a1f84da54c0987ece7fbf785"
 BASE_MODEL = "openai-api/research4-qwen/qwen3.8-27b-base"
 LAST_MODEL = "openai-api/research4-qwen/sp-lense-adaptor-last-layer"
@@ -73,8 +74,29 @@ def local_binding(path=None):
     return binding
 
 
+def local_reservation():
+    """Operator-owned live availability marker; never a model-visible variable."""
+    path = Path(os.environ.get("RESEARCH4_QWEN_RESERVATION_FILE", str(RESERVATION_PATH)))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict) or type(data.get("active")) is not bool:
+            raise ValueError("Invalid reservation record")
+        return data if data["active"] else None
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError):
+        return {"active": True, "purpose": "reservation status needs checking"}
+
+
+def assert_not_reserved():
+    reservation = local_reservation()
+    if reservation:
+        raise ValueError("Mac temporarily reserved: " + str(reservation.get("purpose", "another evaluation"))[:160])
+
+
 def assert_local_binding():
     """Fresh readiness check, called only when a human selects a local run."""
+    assert_not_reserved()
     binding = local_binding()
     if os.environ.get("RESEARCH4_QWEN_BASE_URL", QWEN_BASE_URL).rstrip("/") != binding["base_url"]:
         raise ValueError("Configured model client URL differs from the reviewed Mac endpoint")
@@ -101,6 +123,7 @@ def configured_key_names(credentials=None):
 
 def model_choices(credentials=None, enabled=True):
     keys = configured_key_names(credentials)
+    reservation = local_reservation()
     try:
         local_binding()
         local_ok = True
@@ -112,8 +135,11 @@ def model_choices(credentials=None, enabled=True):
         status = ("Mac configured · readiness checked when run" if spec.get("local_qwen")
                   else "API credential configured") if configured else (
                   "Mac endpoint binding required" if spec.get("local_qwen") else "API credential required")
+        reserved = bool(spec.get("local_qwen") and reservation)
+        if reserved:
+            status = "Temporarily reserved · " + str(reservation.get("purpose", "another Mac evaluation"))[:160]
         choices.append({"id": key, "label": spec["label"], "model": spec["model"],
-            "available": bool(enabled and configured), "status": status if enabled else "Preview only · execution paused",
+            "available": bool(enabled and configured and not reserved), "status": status if enabled else "Preview only · execution paused",
             "reason": status if enabled else "Execution is paused in preview mode.",
             "default_selected": key == "deepseek", "prompt_condition": spec["prompt_condition"],
             "max_output_tokens": spec["max_output_tokens"]})
@@ -126,6 +152,7 @@ def model_choices(credentials=None, enabled=True):
 def build_company_model(model_id, max_connections=1):
     spec = MODEL_SPECS[model_id]
     if spec.get("local_qwen"):
+        assert_not_reserved()
         if os.environ.get("RESEARCH4_QWEN_BASE_URL", QWEN_BASE_URL).rstrip("/") != QWEN_BASE_URL:
             raise ValueError("Local model client URL differs from the reviewed Mac endpoint")
         os.environ["RESEARCH4_QWEN_BASE_URL"] = QWEN_BASE_URL

@@ -76,6 +76,10 @@ in comparisons. Reasoning is on with a brief-reasoning instruction, zero automat
 retries and a 45-minute outer deadline. The connector accepts nested and flat tool
 envelopes. Local readiness and the exact LAST checkpoint binding are checked only
 when a local model is actually selected for execution, not while viewing choices.
+An operator reservation file can temporarily hold the four local choices while
+keeping them visible. It is read live; setting `active=false` releases the hold.
+Held local selections stop before readiness or model calls. This file is outside
+the episode and is never passed to the model or used to change adapters or scores.
 Each condition has isolated state, streams and per-case replay; the resident Mac
 service serializes local generations. A cell is final only with its matching replay
 and unchanged-source closeout. A process exit alone does not create a result.

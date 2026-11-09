@@ -190,6 +190,7 @@ class CompanyEvaluationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=ignored) as folder:
             destination = Path(folder) / "stale_local"
             with patch.dict("os.environ", {"RESEARCH4_QWEN_BASE_URL": stale}), \
+                    patch.object(company_models, "local_reservation", return_value=None), \
                     patch.object(company_models, "local_binding", return_value={"base_url": evaluation.QWEN_BASE_URL}), \
                     patch.object(company_models.urllib.request, "urlopen") as health, \
                     patch.object(evaluation, "build_tasks") as build, \
