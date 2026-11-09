@@ -27,6 +27,91 @@ export function connectorEdge(rect,anchor){
   return{x:anchor.x<rect.left?rect.left:rect.right,y:clamp(anchor.y,rect.top+14,rect.bottom-14)};
 }
 
+/* Pure presentation navigation. These functions know no simulator or model state. */
+const NAV_EPS=1e-7;
+const navPoint=p=>({x:Number(p.x??p[0]),z:Number(p.z??p[1])});
+const navDistance=(a,b)=>Math.hypot(b.x-a.x,b.z-a.z);
+const navClamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+export function siteEntrance(site,offset=0){return{x:Number(site.x)+Number(offset),z:Number(site.z)+3.6};}
+export function siteBuildingBounds(site,margin=.25){return{left:Number(site.x)-2.9-margin,right:Number(site.x)+2.9+margin,back:Number(site.z)-2.25-margin,front:Number(site.z)+2.25+margin};}
+export function streetSegmentClear(a,b,sites){
+  // All planned movement is rectilinear. Inflated rectangles include avatar clearance.
+  if(Math.abs(a.x-b.x)>NAV_EPS&&Math.abs(a.z-b.z)>NAV_EPS)return false;
+  return !Object.values(sites).some(site=>{
+    const r=siteBuildingBounds(site);
+    if(Math.abs(a.z-b.z)<=NAV_EPS)return a.z>r.back+NAV_EPS&&a.z<r.front-NAV_EPS&&Math.max(Math.min(a.x,b.x),r.left)<Math.min(Math.max(a.x,b.x),r.right)-NAV_EPS;
+    return a.x>r.left+NAV_EPS&&a.x<r.right-NAV_EPS&&Math.max(Math.min(a.z,b.z),r.back)<Math.min(Math.max(a.z,b.z),r.front)-NAV_EPS;
+  });
+}
+export function planStreetRoute(currentXZ,targetSiteId,sites,presentation={},offset=0){
+  const start=navPoint(currentXZ),target=sites[targetSiteId];
+  if(!target||!Number.isFinite(start.x)||!Number.isFinite(start.z))return[];
+  const goal=siteEntrance(target,offset);
+  if(navDistance(start,goal)<=NAV_EPS)return[];
+  const definition=presentation?.roads||{};
+  const unique=values=>[...new Set(values.filter(Number.isFinite))].sort((a,b)=>a-b);
+  const rows=unique(definition.horizontal||Object.values(sites).map(s=>Number(s.road)));
+  const lanes=unique(definition.vertical||Object.values(sites).map(s=>Number(s.lane)));
+  if(!rows.length||!lanes.length)return[];
+  const halfSpan=Number(definition.span_x)/2;
+  const minX=Math.min(lanes[0],...Object.values(sites).map(s=>Number(s.x)-1),Number.isFinite(halfSpan)?-halfSpan:lanes[0]);
+  const maxX=Math.max(lanes.at(-1),...Object.values(sites).map(s=>Number(s.x)+1),Number.isFinite(halfSpan)?halfSpan:lanes.at(-1));
+  const segments=[];
+  for(const z of rows)segments.push({a:{x:minX,z},b:{x:maxX,z}});
+  for(const x of lanes)segments.push({a:{x,z:rows[0]},b:{x,z:rows.at(-1)}});
+  for(const site of Object.values(sites)){
+    const entrance=siteEntrance(site,offset);
+    const road=Number.isFinite(Number(site.road))?Number(site.road):rows.reduce((a,b)=>Math.abs(b-entrance.z)<Math.abs(a-entrance.z)?b:a);
+    segments.push({a:entrance,b:{x:entrance.x,z:road}});
+  }
+  const nodes=[],index=new Map(),edges=[];
+  const add=p=>{const key=`${p.x.toFixed(7)}:${p.z.toFixed(7)}`;if(!index.has(key)){index.set(key,nodes.length);nodes.push({...p});edges.push([]);}return index.get(key);};
+  const connect=(a,b)=>{const i=add(a),j=add(b),length=navDistance(a,b);if(i!==j&&streetSegmentClear(a,b,sites)){edges[i].push({to:j,length});edges[j].push({to:i,length});}};
+  const on=(p,s)=>Math.abs((s.a.x===s.b.x?p.x-s.a.x:p.z-s.a.z))<=NAV_EPS&&p.x>=Math.min(s.a.x,s.b.x)-NAV_EPS&&p.x<=Math.max(s.a.x,s.b.x)+NAV_EPS&&p.z>=Math.min(s.a.z,s.b.z)-NAV_EPS&&p.z<=Math.max(s.a.z,s.b.z)+NAV_EPS;
+  segments.forEach(s=>{add(s.a);add(s.b);});
+  // Add genuine street/driveway intersections, never diagonals between sites.
+  for(let i=0;i<segments.length;i++)for(let j=i+1;j<segments.length;j++){
+    const a=segments[i],b=segments[j];
+    if((a.a.x===a.b.x)===(b.a.x===b.b.x))continue;
+    const v=a.a.x===a.b.x?a:b,h=v===a?b:a,p={x:v.a.x,z:h.a.z};
+    if(on(p,a)&&on(p,b))add(p);
+  }
+  const startIndex=add(start),goalIndex=add(goal),attachments=[];
+  for(const segment of segments){
+    const projection={x:navClamp(start.x,Math.min(segment.a.x,segment.b.x),Math.max(segment.a.x,segment.b.x)),z:navClamp(start.z,Math.min(segment.a.z,segment.b.z),Math.max(segment.a.z,segment.b.z))};
+    for(const bend of [{x:start.x,z:projection.z},{x:projection.x,z:start.z}]){
+      if(streetSegmentClear(start,bend,sites)&&streetSegmentClear(bend,projection,sites))attachments.push({projection,bend,length:navDistance(start,bend)+navDistance(bend,projection)});
+    }
+  }
+  if(!attachments.length)return[];
+  const nearest=Math.min(...attachments.map(a=>a.length));
+  for(const a of attachments.filter(a=>a.length<=nearest+NAV_EPS)){connect(start,a.bend);connect(a.bend,a.projection);}
+  // Split each road at every point actually on it, discarding wall-crossing edges.
+  for(const segment of segments){
+    const points=nodes.filter(p=>on(p,segment)).sort((a,b)=>segment.a.x===segment.b.x?a.z-b.z:a.x-b.x);
+    for(let i=1;i<points.length;i++)connect(points[i-1],points[i]);
+  }
+  const distance=nodes.map(()=>Infinity),previous=nodes.map(()=>-1),visited=new Set();distance[startIndex]=0;
+  while(visited.size<nodes.length){
+    let current=-1;
+    for(let i=0;i<nodes.length;i++)if(!visited.has(i)&&(current<0||distance[i]<distance[current]))current=i;
+    if(current<0||!Number.isFinite(distance[current]))break;
+    if(current===goalIndex)break;
+    visited.add(current);
+    for(const edge of edges[current]){const next=distance[current]+edge.length;if(next<distance[edge.to]-NAV_EPS){distance[edge.to]=next;previous[edge.to]=current;}}
+  }
+  if(!Number.isFinite(distance[goalIndex]))return[];
+  const route=[];
+  for(let at=goalIndex;at!==startIndex;at=previous[at]){if(at<0)return[];route.push({...nodes[at]});}
+  route.reverse();return route;
+}
+export function polylineLength(currentXZ,route){let previous=navPoint(currentXZ),total=0;for(const next of route){total+=navDistance(previous,next);previous=next;}return total;}
+export function advanceAlongRoute(currentXZ,route,budget){
+  let position=navPoint(currentXZ),remaining=route.map(navPoint),available=Math.max(0,Number(budget)||0),travelled=0;
+  while(remaining.length){const next=remaining[0],length=navDistance(position,next);if(length<=NAV_EPS){position={...next};remaining.shift();continue;}if(available+NAV_EPS<length){const fraction=available/length;position={x:position.x+(next.x-position.x)*fraction,z:position.z+(next.z-position.z)*fraction};travelled+=available;available=0;break;}position={...next};available-=length;travelled+=length;remaining.shift();}
+  return{position,route:remaining,travelled,arrived:remaining.length===0};
+}
+
 
 // Schematic placement of separate geographical sites, not a real-world map.
 const DEFAULT_SITES = {
@@ -224,8 +309,10 @@ export function createScene({canvas,container,marker,sites:siteLayout,presentati
   const limbs=[];for(const side of [-1,1]){const arm=new T.Group();arm.position.set(side*.205,.95,0);body.add(arm);box(arm,0,-.18,0,.075,.34,.08,M.cloth);ball(arm,0,-.36,0,.043,M.skin);limbs.push(arm);const leg=new T.Group();leg.position.set(side*.085,.56,0);body.add(leg);box(leg,0,-.22,0,.10,.44,.11,M.dark);box(leg,0,-.46,.035,.12,.09,.21,M.dark);limbs.push(leg);}
   const ring=new T.Mesh(new T.RingGeometry(.38,.43,40),new T.MeshBasicMaterial({color:0x29baa0,side:T.DoubleSide,transparent:true,opacity:.8}));ring.rotation.x=-Math.PI/2;ring.position.y=.07;actor.add(ring);actor.position.set(0,.18,1.9);
   let observation={},details={},activeZone='operations',selectedSite=null,lastAction='',disposed=false;
-  actor.position.set(SITES.operations.x,.18,SITES.operations.z+2.9);
-  let route=[],lastTime=performance.now(),width=1,height=1,yaw=.18,targetYaw=.18,pitch=1.04,targetPitch=1.04,distance=overviewDistance,targetDistance=overviewDistance;
+  const initialEntrance=siteEntrance(SITES.operations);actor.position.set(initialEntrance.x,.18,initialEntrance.z);
+  const WALK_SECONDS=.35;
+  let route=[],walkSpeed=12,arrivalCallback=null,lastTime=performance.now(),width=1,height=1,yaw=.18,targetYaw=.18,pitch=1.04,targetPitch=1.04,distance=overviewDistance,targetDistance=overviewDistance;
+  container.dataset.agentMotion='arrived';container.dataset.agentLocation='operations';
   const focus=new T.Vector3(0,0,1),targetFocus=focus.clone();let dragging=null,follow=false,cutaway=true,hover=null,panMode=false,suppressClick=false;
   const ray=new T.Raycaster(),pointer=new T.Vector2(),projected=new T.Vector3();
   const panel=document.getElementById('facility-inspector'),status=document.getElementById('scene-status');
@@ -260,10 +347,20 @@ export function createScene({canvas,container,marker,sites:siteLayout,presentati
       const label=container.querySelector(`[data-zone="${id}"] small`);if(label&&id==='mining_farm')label.textContent=`${miner} owned ASIC miners`;else if(label)label.textContent=`${online} online${allocated>online?` / ${allocated} leased`:''} · ${r.active_replica?'copy online':allocated?'no online copy':'unallocated'}`;
     }
   }
-  function selectTarget(zone){if(!SITES[zone])zone='operations';if(zone===activeZone)return;const previous=SITES[activeZone],next=SITES[zone];activeZone=zone;
-    route=[new T.Vector3(previous.x,.18,previous.road),new T.Vector3(previous.lane,.18,previous.road),new T.Vector3(next.lane,.18,previous.road),new T.Vector3(next.lane,.18,next.road),new T.Vector3(next.x,.18,next.road),new T.Vector3(next.x,.18,next.z+2.9)];
+  function finishArrival(){container.dataset.agentMotion='arrived';container.dataset.agentLocation=activeZone;container.dataset.agentPosition=JSON.stringify({x:actor.position.x,z:actor.position.z});const callback=arrivalCallback;arrivalCallback=null;callback?.();}
+  function selectTarget(zone,onArrival){
+    if(!SITES[zone])zone='operations';
+    if(onArrival!==undefined)arrivalCallback=onArrival;
+    if(zone===activeZone){const goal=siteEntrance(SITES[zone]);if(!route.length&&Math.hypot(actor.position.x-goal.x,actor.position.z-goal.z)<.001)finishArrival();return;}
+    activeZone=zone;clearNotice(selectedRun);
+    route=planStreetRoute(actor.position,zone,SITES,presentation||{});
+    walkSpeed=Math.max(12,polylineLength(actor.position,route)/WALK_SECONDS);
+    container.dataset.agentDestination=zone;container.dataset.agentMotion=route.length?'travelling':'blocked';
+    container.dataset.agentTravelSeconds=String(WALK_SECONDS);
+    if(!route.length){const goal=siteEntrance(SITES[zone]);if(Math.hypot(actor.position.x-goal.x,actor.position.z-goal.z)<.001)finishArrival();else{arrivalCallback=null;if(status)status.textContent='No walkable route to '+SITES[zone].title;}}
     for(const [id,site] of Object.entries(sites)){site.accent.emissive.setHex(id===zone?SITES[id].color:0);site.accent.emissiveIntensity=.2;}if(selectedSite)inspect(selectedSite);
   }
+  function advanceActor(g,waypoints,speed,dt){const x=g.position.x,z=g.position.z,next=advanceAlongRoute(g.position,waypoints,speed*dt);g.position.set(next.position.x,.18,next.position.z);if(Math.hypot(g.position.x-x,g.position.z-z)>.00001)g.rotation.y=Math.atan2(g.position.x-x,g.position.z-z);return next;}
   function resize(){const rect=container.getBoundingClientRect();width=Math.max(1,rect.width);height=Math.max(1,rect.height);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();}
   const observer=new ResizeObserver(resize);observer.observe(container);
   const cameraHud=document.querySelector('.camera-hud'),angleControl=document.getElementById('camera-angle'),headingOutput=document.getElementById('camera-heading');
@@ -295,29 +392,32 @@ export function createScene({canvas,container,marker,sites:siteLayout,presentati
     }
     projected.copy(actor.position).add(new T.Vector3(0,1.6,0)).project(camera);if(marker){const mx=(projected.x*.5+.5)*width,my=(-projected.y*.5+.5)*height;marker.style.left=`${mx}px`;marker.style.top=`${my}px`;const cloud=document.getElementById('agent-bubble');if(cloud.classList.contains('thinking')){const bw=Math.min(330,width-32),left=clamp(mx-bw/2,16,width-bw-16)-mx,above=my>220;cloud.style.width=`${bw}px`;cloud.style.left=`${left}px`;cloud.style.top=above?`${-cloud.offsetHeight-30}px`:'30px';cloud.style.setProperty('--thought-tail',`${clamp(-left,20,bw-30)}px`);cloud.classList.toggle('below',!above);}}
   }
-  const peerActors=new Map(),agentNames=new Map(),agentClouds=new Map();let selectedRun=null,peerOverlay=false,agentSpecs=[];
+  const peerActors=new Map(),agentNames=new Map(),agentClouds=new Map(),arrivalNotices=new Map();let selectedRun=null,peerOverlay=false,agentSpecs=[];
   const SVG_NS='http://www.w3.org/2000/svg',connectorLayer=document.createElementNS(SVG_NS,'svg');connectorLayer.classList.add('agent-connector-layer');connectorLayer.setAttribute('aria-hidden','true');container.appendChild(connectorLayer);
   function nameTag(spec){let tag=agentNames.get(spec.id);if(!tag){tag=document.createElement('button');tag.type='button';tag.className='peer-agent-label';tag.onclick=()=>container.dispatchEvent(new CustomEvent('arena-select-run',{detail:{id:spec.id},bubbles:true}));container.appendChild(tag);agentNames.set(spec.id,tag);}tag.textContent=`${spec.label} · ${spec.status==='running'?'active':spec.status}`;tag.style.setProperty('--agent-color',spec.color);tag.classList.toggle('selected',spec.id===selectedRun);return tag;}
   function removeCloud(id){const cloud=agentClouds.get(id);if(cloud){cloud.el.remove();cloud.group.remove();agentClouds.delete(id);}}
+  function clearNotice(id){if(!arrivalNotices.delete(id))return;const spec=agentSpecs.find(p=>p.id===id);if(spec)thoughtCloud(spec);}
+  function feedback(notice,id=selectedRun){const spec=agentSpecs.find(p=>p.id===id);if(!spec)return;arrivalNotices.set(id,{...notice,expires:performance.now()+1100});thoughtCloud(spec);}
   function thoughtCloud(spec){
-    if(!spec.thinking){removeCloud(spec.id);return;}
+    const notice=arrivalNotices.get(spec.id);if(!spec.thinking&&!notice){removeCloud(spec.id);return;}
     let cloud=agentClouds.get(spec.id);
     if(!cloud){const el=document.createElement('section');el.className='agent-thought-cloud';el.dataset.agentId=spec.id;const header=document.createElement('button');header.type='button';header.className='thought-owner';header.onclick=()=>container.dispatchEvent(new CustomEvent('arena-select-run',{detail:{id:spec.id},bubbles:true}));const kind=document.createElement('span');kind.className='thought-kind';const text=document.createElement('div');text.className='thought-content';const more=document.createElement('button');more.type='button';more.className='thought-more';more.textContent='Read full received text';more.onclick=()=>container.dispatchEvent(new CustomEvent('arena-select-run',{detail:{id:spec.id,openReasoning:true},bubbles:true}));el.append(header,kind,text,more);container.appendChild(el);const group=document.createElementNS(SVG_NS,'g'),outline=document.createElementNS(SVG_NS,'path'),line=document.createElementNS(SVG_NS,'path'),dot=document.createElementNS(SVG_NS,'circle');for(const item of [outline,line]){item.setAttribute('fill','none');item.setAttribute('stroke-linecap','round');}outline.setAttribute('stroke','#17323d70');outline.setAttribute('stroke-width','4');line.setAttribute('stroke-width','2');dot.setAttribute('r','4');dot.setAttribute('stroke','#17323d');group.append(outline,line,dot);connectorLayer.appendChild(group);cloud={el,header,kind,text,more,group,outline,line,dot,key:'',dirty:true,previous:null};agentClouds.set(spec.id,cloud);}
-    const key=JSON.stringify([spec.label,spec.thought,spec.reasoningKind,spec.id===selectedRun]);if(cloud.key!==key){cloud.header.textContent=spec.label;cloud.kind.textContent=spec.reasoningKind==='summary'?'Received reasoning summary':'Received reasoning text';cloud.text.textContent=spec.thought?spec.thought.slice(spec.id===selectedRun?-360:-220):'Waiting for provider text…';cloud.more.hidden=!spec.thought;cloud.el.setAttribute('aria-label',`${spec.label}: ${cloud.kind.textContent}`);cloud.key=key;cloud.dirty=true;}
+    const key=JSON.stringify([spec.label,notice?.title,notice?.text,spec.thought,spec.reasoningKind,spec.id===selectedRun]);if(cloud.key!==key){cloud.header.textContent=spec.label;cloud.kind.textContent=notice?notice.title:spec.reasoningKind==='summary'?'Received reasoning summary':'Received reasoning text';cloud.text.textContent=notice?notice.text:spec.thought?spec.thought.slice(spec.id===selectedRun?-360:-220):'Waiting for provider text…';cloud.more.hidden=Boolean(notice)||!spec.thought;cloud.el.setAttribute('aria-label',`${spec.label}: ${cloud.kind.textContent}`);cloud.el.dataset.kind=notice?'action':'reasoning';cloud.key=key;cloud.dirty=true;}
     cloud.el.classList.toggle('selected',spec.id===selectedRun);cloud.el.style.setProperty('--agent-color',spec.color);cloud.line.setAttribute('stroke',spec.color);cloud.dot.setAttribute('fill',spec.color);
   }
 
-  function removePeer(id){const peer=peerActors.get(id);if(peer){scene.remove(peer.g);peer.materials.forEach(m=>m.dispose());peerActors.delete(id);}agentNames.get(id)?.remove();agentNames.delete(id);removeCloud(id);}
-  function peerRoute(previous,next,offset){return [new T.Vector3(previous.x+offset,.18,previous.road),new T.Vector3(previous.lane,.18,previous.road),new T.Vector3(next.lane,.18,previous.road),new T.Vector3(next.lane,.18,next.road),new T.Vector3(next.x+offset,.18,next.road),new T.Vector3(next.x+offset,.18,next.z+2.9)];}
+  function removePeer(id){const peer=peerActors.get(id);if(peer){scene.remove(peer.g);peer.materials.forEach(m=>m.dispose());peerActors.delete(id);}agentNames.get(id)?.remove();agentNames.delete(id);arrivalNotices.delete(id);removeCloud(id);}
   function updateAgents(specs,selected,overlay){
     agentSpecs=specs;peerOverlay=overlay;container.classList.toggle('peer-overlay',overlay);container.classList.toggle('agent-layout-active',specs.length>0);const chosen=specs.find(p=>p.id===selected),changed=selectedRun!==selected;selectedRun=selected;
-    if(chosen){M.cloth.color.set(chosen.color);ring.material.color.set(chosen.color);if(changed&&SITES[chosen.zone]){const site=SITES[chosen.zone];activeZone=chosen.zone;route=[];actor.position.set(site.x,.18,site.z+2.9);}}
+    if(chosen){M.cloth.color.set(chosen.color);ring.material.color.set(chosen.color);if(changed&&SITES[chosen.zone]){const entry=siteEntrance(SITES[chosen.zone]);activeZone=chosen.zone;route=[];arrivalCallback=null;actor.position.set(entry.x,.18,entry.z);finishArrival();}}
     for(const id of [...peerActors.keys()])if(!overlay||id===selected||!specs.some(p=>p.id===id&&p.started))removePeer(id);
     for(const [index,spec] of specs.entries()){
       if(spec.id===selected||!overlay||!spec.started)continue;
       const site=SITES[spec.zone]||SITES.operations,offset=(index-2.5)*.35;let peer=peerActors.get(spec.id);
-      if(!peer){const g=actor.clone(true),materials=[];g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();materials.push(o.material);o.material.transparent=true;o.material.opacity=.65;if(o.material.color&&(o.geometry===cube||o.geometry===sphere))o.material.color.lerp(new T.Color(spec.color),.35);}});scene.add(g);g.position.set(site.x+offset,.18,site.z+2.9);peer={g,materials,zone:spec.zone,route:[],offset,joints:g.children[0].children.filter(o=>o.isGroup)};peerActors.set(spec.id,peer);}
-      if(peer.zone!==spec.zone){peer.route=peerRoute(SITES[peer.zone]||SITES.operations,site,peer.offset);peer.zone=spec.zone;}
+      if(!peer){const g=actor.clone(true),materials=[];g.traverse(o=>{if(o.isMesh){o.material=o.material.clone();materials.push(o.material);o.material.transparent=true;o.material.opacity=.65;if(o.material.color&&(o.geometry===cube||o.geometry===sphere))o.material.color.lerp(new T.Color(spec.color),.35);}});scene.add(g);const entry=siteEntrance(site,offset);g.position.set(entry.x,.18,entry.z);peer={g,materials,zone:spec.zone,route:[],speed:12,offset,actionKey:null,pendingNotice:null,joints:g.children[0].children.filter(o=>o.isGroup)};peerActors.set(spec.id,peer);}
+      if(peer.zone!==spec.zone){clearNotice(spec.id);peer.route=planStreetRoute(peer.g.position,spec.zone,SITES,presentation||{},peer.offset);peer.speed=Math.max(12,polylineLength(peer.g.position,peer.route)/WALK_SECONDS);peer.zone=spec.zone;}
+      if(spec.actionKey&&peer.actionKey!==spec.actionKey){peer.actionKey=spec.actionKey;peer.pendingNotice={title:'Action: '+spec.actionTitle,text:'Simulator: '+spec.actionResult};}
+      const goal=siteEntrance(site,peer.offset);if(!peer.route.length&&peer.pendingNotice&&Math.hypot(peer.g.position.x-goal.x,peer.g.position.z-goal.z)<.001){feedback(peer.pendingNotice,spec.id);peer.pendingNotice=null;}
       nameTag(spec);
     }
     if(chosen)nameTag(chosen);
@@ -325,7 +425,7 @@ export function createScene({canvas,container,marker,sites:siteLayout,presentati
     for(const id of [...agentClouds.keys()])if(!specs.some(p=>p.id===id&&(id===selected||overlay&&p.started)))removeCloud(id);
     for(const id of [...agentNames.keys()])if(!specs.some(p=>p.id===id&&(id===selected||overlay&&p.started))){agentNames.get(id).remove();agentNames.delete(id);}
   }
-  function animatePeers(dt,now){for(const peer of peerActors.values()){const moving=peer.route.length>0;if(moving){const next=peer.route[0],delta=next.clone().sub(peer.g.position),length=delta.length();if(length<12*dt){peer.g.position.copy(next);peer.route.shift();}else{peer.g.position.addScaledVector(delta,12*dt/length);peer.g.rotation.y=Math.atan2(delta.x,delta.z);}}peer.joints.forEach((joint,index)=>joint.rotation.x=moving?Math.sin(now*.014+(index%2?Math.PI:0))*.5:0);}}
+  function animatePeers(dt,now){for(const [id,peer] of peerActors){const moving=peer.route.length>0;if(moving){const next=advanceActor(peer.g,peer.route,peer.speed,dt);peer.route=next.route;if(next.arrived&&peer.pendingNotice){feedback(peer.pendingNotice,id);peer.pendingNotice=null;}}peer.joints.forEach((joint,index)=>joint.rotation.x=moving?Math.sin(now*.014+(index%2?Math.PI:0))*.5:0);}}
   let overlaySignature='',overlayOccluders=[];
   function hideCoveredFacilities(rects,origin){for(const node of container.querySelectorAll('.map-zone')){if(node.style.visibility==='hidden')continue;const r=node.getBoundingClientRect(),rect={left:r.left-origin.left,right:r.right-origin.left,top:r.top-origin.top,bottom:r.bottom-origin.top};if(rects.some(o=>overlaps(rect,o,3)))node.style.visibility='hidden';}}
   function agentLabelPositions(){
@@ -348,10 +448,10 @@ export function createScene({canvas,container,marker,sites:siteLayout,presentati
     overlayOccluders=[...cloudRects,...nameRects];hideCoveredFacilities(overlayOccluders,origin);
   }
 
-  function frame(now){if(disposed)return;const dt=Math.min(.05,(now-lastTime)/1000);lastTime=now;const moving=route.length>0;
-    if(moving){const next=route[0],delta=next.clone().sub(actor.position),length=delta.length(),speed=follow?6:12;if(length<speed*dt){actor.position.copy(next);route.shift();}else{actor.position.addScaledVector(delta,speed*dt/length);actor.rotation.y=Math.atan2(delta.x,delta.z);}}
+  function frame(now){if(disposed)return;const motionDt=Math.max(0,(now-lastTime)/1000),dt=Math.min(.05,motionDt);lastTime=now;const moving=route.length>0;
+    if(moving){const next=advanceActor(actor,route,walkSpeed,motionDt);route=next.route;if(next.arrived)finishArrival();}
     limbs.forEach((limb,i)=>limb.rotation.x=moving?Math.sin(now*.014+(i===0||i===3?0:Math.PI))*.5:0);body.position.y=moving?Math.abs(Math.sin(now*.014))*.018:0;for(const site of Object.values(sites))site.fans.forEach(fan=>fan.rotation.y+=dt*7);
-    animatePeers(dt,now);cameraUpdate(dt);renderer.render(scene,camera);labels();agentLabelPositions();requestAnimationFrame(frame);
+    animatePeers(motionDt,now);for(const [id,notice] of arrivalNotices)if(now>=notice.expires)clearNotice(id);cameraUpdate(dt);renderer.render(scene,camera);labels();agentLabelPositions();requestAnimationFrame(frame);
   }
   function hit(event){const rect=canvas.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);ray.setFromCamera(pointer,camera);return ray.intersectObjects(pickTargets,false)[0]?.object.userData.site;}
   canvas.tabIndex=0;
@@ -396,10 +496,10 @@ export function createScene({canvas,container,marker,sites:siteLayout,presentati
   container.classList.add('arena-3d','webgl-world');container.dataset.renderer='webgl';if(status)status.textContent='Drag to rotate 360° · Shift-drag to pan · scroll to zoom';
   resize();cameraUpdate(1);resources();requestAnimationFrame(frame);
   for(const id of ['camera-reset','camera-follow','camera-roofs','camera-expand','camera-mode','camera-left','camera-right','camera-up','camera-down','camera-out','camera-in','camera-angle'])document.getElementById(id).disabled=false;
-  return {setTarget:selectTarget,inspectSite,updateAgents,
+  return {setTarget:selectTarget,inspectSite,updateAgents,feedback,
     update(next,more){observation=next||{};details=more||{};resources();if(selectedSite)inspect(selectedSite);const incident=document.getElementById('scene-incident');incident.hidden=!details.warning;if(details.warning)incident.textContent=`${String(details.warning.kind).replaceAll('_',' ')} · hour ${details.warning.tick}`;},
     burst(zone,action){lastAction=action;selectTarget(zone);if(selectedSite)inspect(selectedSite);},
-    snapshot(){return {renderer:'webgl',activeZone,observation,lastAction,selectedSite};},
-    destroy(){disposed=true;eventScope.abort();observer.disconnect();window.removeEventListener('keydown',keydown);for(const id of [...agentClouds.keys()])removeCloud(id);agentNames.forEach(n=>n.remove());connectorLayer.remove();const geometries=new Set([cube,cylinder,sphere]),materials=new Set(Object.values(M));scene.traverse(o=>{if(o.isMesh){geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());ownedTextures.forEach(t=>t.dispose());groundMap.dispose();renderer.dispose();}
+    snapshot(){return {renderer:'webgl',activeZone,observation,lastAction,selectedSite,arrived:!route.length,position:{x:actor.position.x,z:actor.position.z},route};},
+    destroy(){disposed=true;arrivalCallback=null;arrivalNotices.clear();eventScope.abort();observer.disconnect();window.removeEventListener('keydown',keydown);for(const id of [...agentClouds.keys()])removeCloud(id);agentNames.forEach(n=>n.remove());connectorLayer.remove();const geometries=new Set([cube,cylinder,sphere]),materials=new Set(Object.values(M));scene.traverse(o=>{if(o.isMesh){geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());ownedTextures.forEach(t=>t.dispose());groundMap.dispose();renderer.dispose();}
   };
 }

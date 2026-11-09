@@ -31,7 +31,7 @@ class ArenaTests(unittest.TestCase):
             self.assertIn(marker, html)
         renderer = (Path(__file__).resolve().parents[1] / "src" / "continuity_arena_3d.js").read_text(
             encoding="utf-8")
-        for marker in ("createArena3D", "setTarget(zone)", 'id="camera-follow"', 'id="facility-inspector"'):
+        for marker in ("createArena3D", 'id="camera-follow"', 'id="facility-inspector"'):
             self.assertIn(marker, html + renderer)
         for marker in ("Qwen3.8-27B base", "SP-Lense model", "GPT-6-Cyber", ">Models</legend>",
                        "Run model comparison"):

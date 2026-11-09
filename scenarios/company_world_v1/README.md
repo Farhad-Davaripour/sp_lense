@@ -61,6 +61,13 @@ states. Each received thought bubble has its own head connector; dense views
 expand and use compact collision-checked placement. Text is provider-received
 reasoning or summaries, never a fabricated internal mental state.
 
+Avatars follow collision-checked roads and driveways from their actual positions.
+A displayed trip finishes within about 0.35 seconds at normal rendering cadence,
+including in follow-camera mode. Status, discovery and wait calls keep the last
+physical location. Completed-action feedback appears on arrival, independently
+of a newer reasoning request. These presentation changes do not delay inference,
+advance the simulation clock or change any recorded action or outcome.
+
 ## Research status
 
 The default preview makes no model calls. `--enable-models` exposes all configured
