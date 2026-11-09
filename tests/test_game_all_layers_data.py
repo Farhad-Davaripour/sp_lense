@@ -24,7 +24,11 @@ class CohortTests(unittest.TestCase):
 
     @unittest.skipUnless(np is not None,'NumPy required for native RNG/batching AST fixture')
     def test_native_ast_batch_order_equals_persisted_mt19937_length_sorted_order(self):
-        root=Path(importlib.metadata.distribution('mlx-lm').locate_file(''))
+        try:
+            distribution=importlib.metadata.distribution('mlx-lm')
+        except importlib.metadata.PackageNotFoundError:
+            self.skipTest('Pinned native MLX-LM source is unavailable; this parity check runs in the Mac environment')
+        root=Path(distribution.locate_file(''))
         source=root/'mlx_lm/tuner/trainer.py';raw=source.read_bytes()
         self.assertEqual(hashlib.sha256(raw).hexdigest(),'0b6027fdb11803e951ceee52c83a81f82daa922ea8c6b7ca6888953461064e8e')
         tree=ast.parse(raw);node=next(node for node in tree.body if isinstance(node,ast.FunctionDef)and node.name=='iterate_batches')
