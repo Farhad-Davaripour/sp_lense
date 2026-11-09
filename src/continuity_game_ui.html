@@ -132,7 +132,7 @@ body{font-family:Segoe UI,system-ui,sans-serif}.shell{padding:24px;max-width:168
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- let replayFrames=[],replayIndex=-1,autoWatch=false;
+ let replayFrames=[],replayIndex=-1,autoWatch=true;
  let state={runs:[],competitors:[]},selected=null,busy=false,lastTimeline='',lastAnnouncement='',modelRenderKey='',modelsInitialized=false,replayTimer=null,replayEvent=null,replayPrompt='',replayResponse='',replayResult='',mediaRecorder=null,recordedChunks=[],recordFrameTimer=null,lastAgentZone='operations',lastAnimatedEventKey='',bubbleTimer=null,canvasAgentX=350,canvasAgentY=180;
  let arena3d=null,sceneLayoutKey='';
  const legacyZones=[...document.querySelectorAll('.map-zone')].map(node=>node.outerHTML).join(''),legacyNav=document.querySelector('.facility-nav').innerHTML,legacyCaption=document.querySelector('.scene-caption').textContent;
