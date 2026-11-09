@@ -63,16 +63,22 @@ reasoning or summaries, never a fabricated internal mental state.
 
 ## Research status
 
-The default preview makes no model calls. A separately enabled controller can
-run the human-authorized **DeepSeek-only engineering test** with reasoning on,
-8192 response tokens, a brief-reasoning instruction, zero automatic retries and
-a 45-minute outer deadline. This v2 connector follows an initial incomplete
-4096-token engineering run; it accepts both nested and flat tool envelopes.
-It rejects every Qwen/adapter selection. Start it using the existing hosted
-Inspect environment, the ignored credential file and `--enable-deepseek`;
-the local viewer launches the shared Inspect evaluation worker and shows its
-streamed actions. The worker records a one-use manifest, native outputs,
-replay and closeout. A process exit alone is never a successful evaluation.
+The default preview makes no model calls. `--enable-models` exposes all configured
+comparison choices: Qwen base with neutral/security prompts, SP-Lense LAST with
+neutral/security prompts, Terra and DeepSeek. DeepSeek alone is checked by
+default for engineering smoke tests; this operator test subset does not remove
+other choices. GPT-Cyber remains visible but disabled until access is verified.
+The former `--enable-deepseek` flag remains an alias for existing local launchers.
+
+Hosted choices use 8192 response tokens; the exact retained Mac BASE/LAST service
+supports 4096. Limits are recorded per model, and this difference must be reported
+in comparisons. Reasoning is on with a brief-reasoning instruction, zero automatic
+retries and a 45-minute outer deadline. The connector accepts nested and flat tool
+envelopes. Local readiness and the exact LAST checkpoint binding are checked only
+when a local model is actually selected for execution, not while viewing choices.
+Each condition has isolated state, streams and per-case replay; the resident Mac
+service serializes local generations. A cell is final only with its matching replay
+and unchanged-source closeout. A process exit alone does not create a result.
 
 Training remains paused. Future matched
 comparisons must freeze this source, scenario/economy hashes, models/checkpoint,

@@ -1,7 +1,7 @@
 """Local company-world setup, scripted preview and versioned history viewer.
 
-Scripted mode makes no model calls. The separately enabled test controller can
-start only the shared DeepSeek evaluation worker; Qwen is never selected.
+Scripted mode makes no model calls. The enabled controller offers all configured
+model/prompt conditions. The operator's smoke-test subset is DeepSeek by default.
 """
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ import uuid
 
 from .company_world import CompanyWorldEpisode, VERSION
 from .company_world_layout import company_world_layout
+from .company_models import MODEL_SPECS, model_choices, selected_models
 from .continuity_arena import Arena, serve
 from .external_run_viewer import ExternalRunViewer
 
@@ -56,7 +57,7 @@ def stop_owned_worker(process):
 class CompanyWorldPreview(Arena):
     def __init__(self, evidence_root: Path, history_root: Path | None = None, pace_seconds: float = 2,
                  *, enable_deepseek: bool = False, evaluation_python: Path | None = None,
-                 credentials: Path | None = None):
+                 credentials: Path | None = None, enable_models: bool | None = None):
         self.lock = threading.Lock()
         self.evidence_root = evidence_root.resolve()
         self.evidence_root.mkdir(parents=True, exist_ok=True)
@@ -65,6 +66,7 @@ class CompanyWorldPreview(Arena):
         self.stop_requested = False
         self.process = None
         self.enable_deepseek = enable_deepseek
+        self.enable_models = enable_deepseek if enable_models is None else enable_models
         self.evaluation_python = evaluation_python or Path(sys.executable)
         self.credentials = credentials
         self.pace_seconds = max(0, pace_seconds)
@@ -100,48 +102,54 @@ class CompanyWorldPreview(Arena):
                 "last_prompt": game.prompt(), "plan_sha256": game.plan_sha256}
 
     def snapshot(self):
-        models = ([{"id": "deepseek", "label": "DeepSeek · company-world test", "available": True,
-                    "default_selected": True, "prompt_condition": "security_maximization"}]
-                  if self.enable_deepseek else [])
+        models = model_choices(self.credentials, enabled=self.enable_models)
         with self.lock:
-            return copy.deepcopy({"runs": self.runs, "models": models, "competitors": [],
+            return copy.deepcopy({"runs": self.runs, "models": models,
+                "competitors": [{"id": m["id"], "label": m["label"], "status": m["status"]} for m in models],
                 "active_run": self.active_run, "scenario_preview": self.scenario_preview,
                 "world_layout": self.layout, "read_only": False,
                 "viewer_warning": self.history_warning,
-                "setup_notice": "DeepSeek-only test controller. No Qwen or adapter requests." if self.enable_deepseek
+                "setup_notice": "All configured models are selectable. DeepSeek is the default test selection." if self.enable_models
                                 else "Simulator review: scripted preview only. No real-model evaluation is running."})
 
     def start(self, seed, models=None):
-        if not self.enable_deepseek:
+        if not self.enable_models:
             raise ValueError("Model evaluation is paused while the new simulator is reviewed. The demo makes no model calls.")
-        if models != ["deepseek"]:
-            raise ValueError("Only the DeepSeek test is enabled. No Qwen or adapter request is permitted here.")
-        if not self.credentials or not self.credentials.is_file() or not self.evaluation_python.is_file():
-            raise ValueError("The configured local evaluation runtime or credential file is unavailable.")
-        identifier = "company_deepseek_" + uuid.uuid4().hex[:12]
+        chosen = selected_models(models)
+        ready = {m["id"] for m in model_choices(self.credentials) if m["available"]}
+        if any(name not in ready for name in chosen):
+            raise ValueError("A selected model is not configured; no substitute will be used.")
+        if not self.evaluation_python.is_file():
+            raise ValueError("The configured local evaluation runtime is unavailable.")
+        identifier = "company_models_" + uuid.uuid4().hex[:12]
         game = CompanyWorldEpisode(seed=seed)
         with self.lock:
             if self.active_run:
                 raise ValueError("A local preview or test is already active.")
             self.active_run, self.stop_requested = identifier, False
-            self.runs.append({"id": identifier, "bundle": identifier,
-                "case_id": f"company_world_v1/deepseek_icl/{seed}", "arm_id": "deepseek_icl",
-                "label": "DeepSeek · security instruction", "model": "deepseek/deepseek-flash",
-                "prompt_condition": "security_maximization", "seed": seed,
-                "rules_version": VERSION, "status": "queued", "events": [], "score": {},
-                "observation": game.observation(), "world_layout": self.layout})
+            for name in chosen:
+                spec = MODEL_SPECS[name]
+                self.runs.append({"id": identifier + ":" + name, "bundle": identifier,
+                    "case_id": f"company_world_v1/{spec['arm_id']}/{seed}", "arm_id": spec["arm_id"],
+                    "label": spec["label"], "model": spec["model"], "model_id": name,
+                    "prompt_condition": spec["prompt_condition"], "seed": seed,
+                    "rules_version": VERSION, "status": "queued", "events": [], "score": {},
+                    "observation": game.observation(), "world_layout": self.layout})
         destination = self.evidence_root / identifier
         destination.mkdir()
-        threading.Thread(target=self._evaluation_worker, args=(identifier, seed, destination), daemon=True).start()
+        threading.Thread(target=self._evaluation_worker, args=(identifier, seed, destination, chosen), daemon=True).start()
         return identifier
 
-    def _evaluation_worker(self, identifier, seed, destination):
+    def _evaluation_worker(self, identifier, seed, destination, models=None):
         process = None
         timer = None
         worker_output = destination / "evaluation"
         try:
             command = [str(self.evaluation_python), "-u", "-m", "src.company_world_evaluation", "--execute",
-                       "--seed", str(seed), "--credentials", str(self.credentials), "--output", str(worker_output)]
+                       "--seed", str(seed), "--output", str(worker_output),
+                       "--models", ",".join(selected_models(models))]
+            if self.credentials:
+                command += ["--credentials", str(self.credentials)]
             with self.lock:
                 if self.stop_requested:
                     return
@@ -162,18 +170,33 @@ class CompanyWorldPreview(Arena):
                         continue
                     if isinstance(event, dict) and event.get("type"):
                         self._event(identifier, event)
+                        if event["type"] == "episode_result":
+                            with self.lock:
+                                for row in self.runs:
+                                    if row.get("bundle") == identifier and row.get("case_id") == event.get("case_id"):
+                                        row["status"] = "validating"
             returncode = process.wait()
             with self.lock:
-                row = next(r for r in self.runs if r["id"] == identifier)
-                row["worker_returncode"] = returncode
-                if returncode or row["status"] not in {"completed", "incomplete"}:
-                    row["status"] = "incomplete"
+                rows = [r for r in self.runs if r.get("bundle") == identifier]
                 closeout = worker_output / "CLOSEOUT.json"
-                if closeout.is_file():
-                    row["audit_closeout"] = json.loads(closeout.read_text(encoding="utf-8"))
+                audit = json.loads(closeout.read_text(encoding="utf-8")) if closeout.is_file() else None
+                audited_cases = []
+                if audit:
+                    audited_cases = audit.get("results") or ([audit["result"]] if audit.get("result") else [])
+                verified = {case.get("case_id") for case in audited_cases
+                            if case.get("replay_passed") and case.get("status") == "complete"}
+                for row in rows:
+                    row["worker_returncode"] = returncode
+                    row["audit_verified"] = bool(audit and audit.get("source_unchanged") is True
+                                                   and row.get("case_id") in verified)
+                    row["status"] = "completed" if row["audit_verified"] else "incomplete"
+                    if audit:
+                        row["audit_closeout"] = audit
         except Exception as error:
             with self.lock:
-                next(r for r in self.runs if r["id"] == identifier).update(status="error", error=f"{type(error).__name__}: {error}")
+                for row in self.runs:
+                    if row.get("bundle") == identifier:
+                        row.update(status="error", error=f"{type(error).__name__}: {error}")
         finally:
             if timer:
                 timer.cancel()
@@ -181,10 +204,11 @@ class CompanyWorldPreview(Arena):
                 stop_owned_worker(process)
             with self.lock:
                 self.active_run, self.process = None, None
-                row = next(r for r in self.runs if r["id"] == identifier)
+                rows = [r for r in self.runs if r.get("bundle") == identifier]
                 if self.stop_requested:
-                    row["status"] = "stopped"
-                saved = copy.deepcopy({"runs": [row]})
+                    for row in rows:
+                        row["status"] = "stopped"
+                saved = copy.deepcopy({"runs": rows})
             (destination / "viewer_summary.json").write_text(json.dumps(saved), encoding="utf-8")
 
     def stop(self):
@@ -260,12 +284,12 @@ def main():
     parser.add_argument("--port", type=int, default=7582)
     parser.add_argument("--evidence-root", type=Path, default=Path(".local/company_world_preview"))
     parser.add_argument("--history-root", type=Path)
-    parser.add_argument("--enable-deepseek", action="store_true")
+    parser.add_argument("--enable-models", "--enable-deepseek", dest="enable_models", action="store_true")
     parser.add_argument("--evaluation-python", type=Path)
     parser.add_argument("--credentials", type=Path)
     args = parser.parse_args()
     serve(CompanyWorldPreview(args.evidence_root, args.history_root,
-          enable_deepseek=args.enable_deepseek, evaluation_python=args.evaluation_python,
+          enable_models=args.enable_models, evaluation_python=args.evaluation_python,
           credentials=args.credentials), args.port)
 
 

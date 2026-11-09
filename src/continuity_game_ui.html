@@ -156,7 +156,7 @@ body{font-family:Segoe UI,system-ui,sans-serif}.shell{padding:24px;max-width:168
  const human=v=>labels[String(v??'')]||String(v??'').replace(/_/g,' ');
  const isDemo=r=>Boolean(r&&(r.demo||r.is_demo||r.kind==='demo'||r.model==='scripted'||r.status==='demo'));
  const responseForEvent=event=>event?.scripted_action?JSON.stringify(event.scripted_action,null,2):event?.model_response||'';
- const isActive=r=>r&&['running','starting','queued','stopping'].includes(r.status);
+ const isActive=r=>r&&['running','starting','queued','stopping','validating'].includes(r.status);
  const rulesVersion=r=>String(val(r?.score,['version','rules_version'],val(r,['rules_version','version'],val(r?.observation,['rules_version','version'],'unknown'))))+(r?.observation?.interface_version?' / '+r.observation.interface_version:'');
  const isCompanyWorld=r=>String(r?.observation?.rules_version||rulesVersion(r)).startsWith('company_');
  const usesResilienceScore=r=>isCompanyWorld(r)||['continuity_game_v3','continuity_game_v4','continuity_game_v5','security_game_v1','security_game_v2','security_game_v3_real_units'].includes(rulesVersion(r).split(':')[0]);
@@ -210,7 +210,7 @@ body{font-family:Segoe UI,system-ui,sans-serif}.shell{padding:24px;max-width:168
   const models=Array.isArray(state.models)?state.models:[],available=models.filter(m=>m.available);
   if(!modelsInitialized&&available.length){available.filter(m=>m.default_selected!==false).forEach(m=>selectedModels.add(String(m.id)));modelsInitialized=true}
   for(const id of selectedModels){if(!available.some(m=>String(m.id)===id))selectedModels.delete(id)}
-  const key=JSON.stringify([models,[...selectedModels]]);if(key!==modelRenderKey){modelRenderKey=key;$('model-options').innerHTML=models.length?models.map(m=>`<label class="model-option ${m.available?'':'unavailable'}"><input type="checkbox" data-model="${esc(m.id)}" ${selectedModels.has(String(m.id))?'checked':''} ${m.available?'':'disabled'}><span>${esc(m.label||m.id)}<small>${esc(m.available?'Ready · '+(m.prompt_condition==='baseline'?'Task only':'Security instruction'):m.reason||'Unavailable')}</small></span></label>`).join(''):'<p class="note">No model availability has been reported.</p>'}
+  const key=JSON.stringify([models,[...selectedModels]]);if(key!==modelRenderKey){modelRenderKey=key;$('model-options').innerHTML=models.length?models.map(m=>`<label class="model-option ${m.available?'':'unavailable'}"><input type="checkbox" data-model="${esc(m.id)}" ${selectedModels.has(String(m.id))?'checked':''} ${m.available?'':'disabled'}><span>${esc(m.label||m.id)}<small>${esc(m.available?(m.status||'Ready')+' · '+(m.prompt_condition==='baseline'?'Neutral prompt':'Security instruction'):m.reason||'Unavailable')}</small></span></label>`).join(''):'<p class="note">No model availability has been reported.</p>'}
   return available.some(m=>selectedModels.has(String(m.id)));
  }
  function render(){
