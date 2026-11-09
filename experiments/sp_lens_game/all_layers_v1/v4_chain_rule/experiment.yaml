@@ -1,0 +1,37 @@
+schema: research4.decomposed-chain-rule-design.v4
+status: proposal_before_actual_qwen_packet_review
+stage: chain_rule_equivalence_rank4
+original_started_epoch: 1794187139.176875
+original_deadline_epoch: 1794266339.176875
+reset_clock_or_prior_failure_latches: false
+full_training_row_index: 16
+full_rendered_tokens: 1022
+prefix_tokens: 1001
+padded_width: 1024
+rank: 4
+num_layers: 64
+trainable_gradient_tensors: 992
+head_window: 32
+drop_context_or_targets: false
+change_gdn_math_or_chunking: false
+preserve_native_hidden_and_cotangent_dtype: true
+state_order: [detached_body_hidden, head_loss_and_full_hidden_gradient_gates, direct_selected_theta_gradient, body_reference_VJP, all_992_theta_gradient_gates]
+head_objective: mean_masked_cross_entropy
+body_VJP: sum_native_body_times_stopped_native_reference_hidden_cotangent
+divide_body_VJP_by_target_count_again: false
+diagnostic_optimizer_updates: 1
+update_gradient_source: decomposed_full_head_reference_body_VJP
+learning_rate: 0.00001
+adam_betas: [0.9, 0.999]
+adam_epsilon: 0.00000001
+adam_bias_correction: false
+scale: 2.0
+dropout: 0.0
+gradient_checkpointing: native_decoder_layer
+available_memory_floor_bytes: 4294967296
+mlx_memory_guideline_bytes: 26843545600
+execution_policy: no_outer_mx_compile_explicit_eval_native_gdn_primitives
+max_wall_seconds: 1800
+automatic_retry_or_next_stage: false
+eligible_for_tuning_or_serving: false
+actual_qwen_execution_authorized_by_this_file: false

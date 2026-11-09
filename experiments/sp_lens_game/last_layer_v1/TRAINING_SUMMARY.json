@@ -1,0 +1,33 @@
+{
+  "schema": "research4.last-layer-training-summary.v1",
+  "model_name": "sp-lense-adaptor-last-layer",
+  "status": "training_complete_and_file_audited",
+  "base": "mlx-community/Qwen3.8-27B-4bit",
+  "base_revision": "10c35caafbb80f7dc6a7a432cdd11af10a6d4818",
+  "quantization": "MLX4bit_affine_frozen_base",
+  "adapter_dtype": "float32",
+  "adapted_transformer_blocks": [
+    63
+  ],
+  "rank": 4,
+  "scale": 2,
+  "dropout": 0,
+  "learning_rate": 1e-05,
+  "steps": 768,
+  "trainable_parameters": 434176,
+  "training_examples": 768,
+  "unique_training_prompts": 767,
+  "development_examples": 144,
+  "final_training_loss": 0.10704518854618073,
+  "last50_mean_training_loss": 0.08089668272063136,
+  "supervised_training_positions": 16674,
+  "true_suffix_positions": 15906,
+  "native_extra_pad_positions": 768,
+  "minimum_available_memory_bytes": 5614600192,
+  "adapter_sha256": "b0a1eb1a935d0dac71b35384e3dfd8638ef88f82a1f84da54c0987ece7fbf785",
+  "completion_audit_sha256": "207208206a7f50ea003aff234421b319f7d25e3e9d197fc8c060baca7076a9e2",
+  "base_bytes_unchanged_independently_checked": true,
+  "model_reload_verified": false,
+  "game_metrics_available": false,
+  "scope": "Training/file completion, not preservation/exploitation outcome. Original native inclusive padding mask retained; all-layer runtime corrects that boundary."
+}

@@ -1,0 +1,85 @@
+schema: research4.sp-lens-game-all-layers-design.v2
+status: draft_before_resource_pilots
+external_model_name: sp-lense-adaptors-all-layers
+last_layer_comparator_name: sp-lense-adaptor-last-layer
+primary_comparison: [base, last_layer, all_layers]
+legacy_step_0900_role: archival
+base:
+  repo_id: mlx-community/Qwen3.8-27B-4bit
+  revision: 10c35caafbb80f7dc6a7a432cdd11af10a6d4818
+  manifest_sha256: e126c678d420b65a2c5157c0bca0a3fb162cad6b96e4a067912418e0959d7461
+dataset:
+  manifest_path: .local/datasets/sp_lens_game_v1/authorized_management_v1_r4/manifest.json
+  manifest_sha256: b33b8e6ac719cbb902ba3c0dd02bad1bd302610ebba333342dec7dc8abb926d2
+  training_examples: 768
+  development_examples: 144
+  final_game_seeds_opened: false
+  exploitation_training_examples: false
+training:
+  num_layers: 64
+  rank_grid: [4, 8]
+  learning_rate_grid: [0.000005, 0.00001]
+  scale: 2.0
+  scale_semantics: direct_mlx_lora_scale_not_alpha_divided_by_rank
+  dropout: 0.0
+  batch_size: 1
+  max_seq_length: 1024
+  gradient_checkpointing: true
+  gradient_accumulation_steps: 1
+  optimizer: adam
+  optimizer_betas: [0.9, 0.999]
+  optimizer_epsilon: 0.00000001
+  optimizer_bias_correction: false
+  seed: 20261108
+  loss_version: shifted_suffix_P_le_position_lt_L.v2
+  logit_projection: native_full_context_head
+  prompt_mask: prefix_length_le_target_position_lt_unpadded_length
+  prior_adapter_loaded: false
+  initialization: fresh_pinned_base_each_stage
+resource_pilots:
+  order: [4, 8]
+  updates_per_rank: 3
+  sample: longest_training_row_first_original_index_tiebreak
+  learning_rate: 0.00001
+  max_wall_seconds_each: 900
+  purpose: full_backward_Adam_gradients_compile_steady_memory_compatibility_only
+  eligible_for_tuning_selection: false
+short_trials:
+  examples: 48
+  examples_per_family: 4
+  selection: lowest_audit_seed_per_family_then_original_training_row_order
+  same_examples_hash_order_and_seed_for_every_trial: true
+  max_wall_seconds_each: 7200
+  trials:
+    - {trial_id: rank04_lr5e-6, rank: 4, learning_rate: 0.000005}
+    - {trial_id: rank04_lr1e-5, rank: 4, learning_rate: 0.00001}
+    - {trial_id: rank08_lr5e-6, rank: 8, learning_rate: 0.000005}
+    - {trial_id: rank08_lr1e-5, rank: 8, learning_rate: 0.00001}
+selection:
+  criterion: pooled_dev_target_token_nll
+  development_rows: 144
+  gradients_or_optimizer_updates_on_development: false
+  require_all_four_trials_complete: true
+  direction: lower_is_better
+  exact_tiebreak: [smaller_rank, lower_learning_rate, lexicographic_trial_id]
+  claim: best_among_four_tested_settings_not_global_optimum
+final:
+  iterations: 768
+  initialization: fresh_pinned_base
+  resume_short_trial: false
+  max_wall_seconds: 43200
+resources:
+  platform: user_local_apple_silicon_mac_only
+  simultaneous_model_workers: 1
+  available_memory_stop_bytes: 4294967296
+  mlx_memory_guideline_bytes: 26843545600
+  mlx_guideline_is_hard_cap: false
+  global_all_layers_wall_seconds: 79200
+  reestimate_and_review_after_pilots_before_sweep: true
+  automatic_retries: 0
+  external_stops_respected: true
+  cloud_fallback: false
+publication:
+  track: [custom_source, configuration, protocol, scenario_yaml, aggregate_summaries]
+  keep_private_local: [weights, raw_training_data, raw_development_data, per_case_outputs]
+  push_to_github_now: false

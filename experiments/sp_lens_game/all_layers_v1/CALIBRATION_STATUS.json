@@ -1,0 +1,66 @@
+{
+  "schema": "research4.all-layer-calibration-status.v1",
+  "updated_utc": "2026-11-09T03:43:33.441071+00:00",
+  "final_all_layer_model_available": false,
+  "hyperparameter_trials_started": 0,
+  "final_game_cases_opened_here": false,
+  "compute": "User Mac Studio only; no cloud fallback",
+  "stops": [
+    {
+      "stage": "native_v2_rank4_longest_train_pilot",
+      "packet_sha256": "ad31f79c058212538fe62407a2c60ebf17fc8f2e237b7e3c54282345e2c77b3d",
+      "duration_seconds": 57.75113666600373,
+      "available_bytes_at_guard": 3836854272,
+      "stop": "4 GiB available-memory floor",
+      "completed_update_reports": 0,
+      "independent_cleanup_verified": true,
+      "closeout_sha256": "4e7fc1920885c3cb4f8a8f9fe20364340302ea21e6615a59d6b7aeb776634e1d"
+    },
+    {
+      "stage": "v3_monolithic_reference_equivalence",
+      "packet_sha256": "f46f436ac656cef2af503111e460f86ecfdb93ea9b910042c23c1220dd82e164",
+      "duration_seconds": 43.15914024999074,
+      "available_bytes_at_guard": 3502211072,
+      "stop": "4 GiB available-memory floor",
+      "completed_numerical_checks": 0,
+      "last_phase": "before_state0_full",
+      "independent_cleanup_verified": true,
+      "closeout_sha256": "c873c3bb34f58304d327a9392c4dc1388ecd15ebdf8cc51c6868a600f1aab8d2"
+    },
+    {
+      "stage": "v4_direct_selected_parameter_gradient",
+      "packet_sha256": "83143334b1a512dff7b0f5eb2181d194b76a87d83ab927d8ad08705397a45090",
+      "duration_seconds": 27.214070167014142,
+      "available_bytes_at_guard": 2933030912,
+      "stop": "4 GiB available-memory floor",
+      "last_phase": "before_state0_direct_selected",
+      "completed_parameter_gradient_comparisons": 0,
+      "diagnostic_optimizer_updates": 0,
+      "independent_cleanup_verified": true,
+      "closeout_sha256": "28a566613a2158ff0a8b6d53cb808c09e9d3f83871fd9d6ce56b77e33081225a"
+    }
+  ],
+  "current_work": "Preparing a separately reviewed body-only VJP feasibility check with authenticated head cotangent. No all-layer tuning or final fit has started.",
+  "unchanged_controls": [
+    "full 64 transformer blocks",
+    "frozen exact base model",
+    "same training/development corpus",
+    "no exploitation training or exploit-refusal examples",
+    "held-out game separation",
+    "4 GiB memory floor",
+    "original campaign deadline"
+  ],
+  "interpretation": "These are setup resource stops, not preservation or exploitation findings. Zero completed reports does not imply zero internal GPU work. No exact allocation cause is established.",
+  "actual_partial_head_result": {
+    "scope": "Initial untrained rank-4 weight state on one full 1022-token TRAIN row only. Not parameter-gradient, model-quality, tuning or serving approval.",
+    "native_mean_cross_entropy": 1.7753899097442627,
+    "arithmetic": "Native BF16 per-token CE followed by F32 accumulation/count",
+    "unrounded_float64_CE_from_saved_logits": 1.776109968389205,
+    "full_selected_target_logits_bit_identical": true,
+    "full_hidden_covectors_bit_identical": true,
+    "all_hidden_positions_checked": 1023,
+    "valid_target_rows": 21,
+    "native_covector_dtype": "BF16",
+    "independent_partial_audit_sha256": "02046e84c2badbffdb346f50203afda34cabe4d38996f5fa57353633748c9020"
+  }
+}
