@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from src import company_preservation_comparison as pilot
 from src import company_world_evaluation as evaluation
@@ -242,6 +242,27 @@ class FeasibilityAdmissionTests(unittest.TestCase):
                     patch.object(FixtureNative, "score", return_value={"objective_complete": False}):
                 with self.assertRaisesRegex(ValueError, "unchanged native goal"):
                     pilot.verify_feasibility(evidence, frozen)
+
+    def test_direct_mode_uses_shared_controller_without_opening_an_http_server(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repository = Path(temporary)
+            authority = repository / "authority.json"
+            authority.write_text("{}")
+            controller = Mock()
+            controller.snapshot.return_value = {"active_run": None, "models": []}
+            with patch.object(pilot, "__file__", str(repository / "src/company_preservation_comparison.py")), \
+                    patch.object(pilot, "plan", return_value={"batches": []}), \
+                    patch.object(pilot, "verify_feasibility", return_value=[]), \
+                    patch.object(pilot, "server_call") as http, \
+                    patch.object(pilot.atexit, "register"), \
+                    patch("src.company_world_preview.CompanyWorldPreview", return_value=controller) as factory:
+                with self.assertRaisesRegex(ValueError, "not ready"):
+                    pilot.execute(repository / ".local/comparison", None, repository, repository,
+                                  [authority], direct=True, evaluation_python=__file__)
+            factory.assert_called_once()
+            controller.snapshot.assert_called_once()
+            controller.start.assert_not_called()
+            http.assert_not_called()
 
     def test_bad_feasibility_stops_before_controller_or_model_submission(self):
         with tempfile.TemporaryDirectory() as temporary:

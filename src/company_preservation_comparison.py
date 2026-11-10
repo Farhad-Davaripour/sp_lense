@@ -6,6 +6,7 @@ No model request is made without --execute. Final held-out cases are not used.
 from __future__ import annotations
 
 import argparse
+import atexit
 from collections import Counter
 from datetime import datetime, timezone
 import hashlib
@@ -185,7 +186,8 @@ def validate_batch_manifest(manifest, batch):
         raise ValueError("Worker sample or prompt identity differs from the prospective batch")
 
 
-def execute(output, server, evidence_root, feasibility_root, external_files):
+def execute(output, server, evidence_root, feasibility_root, external_files, *,
+            direct=False, evaluation_python=None, credentials=None):
     destination = Path(output).resolve()
     repo = Path(__file__).resolve().parents[1]
     if (repo / ".local").resolve() not in destination.parents:
@@ -195,7 +197,27 @@ def execute(output, server, evidence_root, feasibility_root, external_files):
     frozen["external_inputs"] = [{"path": str(Path(p).resolve()), "sha256": sha(p)} for p in external_files]
     if not frozen["external_inputs"]:
         raise ValueError("Exact serving and budget authority must be bound before execution")
-    state = server_call(server, "/api/state")
+    if direct:
+        # Reuse the exact reviewed controller and worker without starting an
+        # HTTP server or modifying an existing viewer's cached model catalog.
+        from .company_world_preview import CompanyWorldPreview
+        controller = CompanyWorldPreview(Path(evidence_root), enable_models=True,
+            evaluation_python=Path(evaluation_python) if evaluation_python else None,
+            credentials=Path(credentials) if credentials else None)
+        atexit.register(controller.stop)
+
+        def call(endpoint, body=None):
+            if endpoint == "/api/state":
+                return controller.snapshot()
+            if endpoint == "/api/run":
+                return {"run_id": controller.start(body["seed"], body["models"],
+                    world_profile=body["world_profile"], comparison_id=body["comparison_id"])}
+            raise ValueError("Unsupported local controller operation")
+    else:
+        def call(endpoint, body=None):
+            return server_call(server, endpoint, body)
+    frozen["execution_transport"] = "direct_shared_controller_no_web_server" if direct else "existing_loopback_controller"
+    state = call("/api/state")
     available = {row["id"] for row in state["models"] if row["available"]}
     if state.get("active_run") or not set(MODELS).issubset(available):
         raise ValueError("A model or exact resource handoff is not ready; no comparison submitted")
@@ -205,7 +227,7 @@ def execute(output, server, evidence_root, feasibility_root, external_files):
     for index, batch in enumerate(frozen["batches"]):
         if not source_matches(batch) or any(sha(p["path"]) != p["sha256"] for p in frozen["external_inputs"]):
             raise ValueError("Comparison source or authority changed; no successor submitted")
-        admitted = server_call(server, "/api/run", {"seed": batch["seed"], "models": batch["models"],
+        admitted = call("/api/run", {"seed": batch["seed"], "models": batch["models"],
             "world_profile": "high_reward", "comparison_id": destination.name})
         bundle = admitted["run_id"]
         print(json.dumps({"phase": "submitted", "batch": index + 1, "batches": len(frozen["batches"]), "bundle": bundle, "seed": batch["seed"], "models": batch["models"]}), flush=True)
@@ -217,7 +239,7 @@ def execute(output, server, evidence_root, feasibility_root, external_files):
             time.sleep(2)
         # The controller publishes this file after its worker has exited and
         # its active-run ownership has cleared. One readback verifies release.
-        state = server_call(server, "/api/state")
+        state = call("/api/state")
         if state.get("active_run"):
             raise ValueError("A competing or unreleased run exists; no successor submitted")
         root = folder / "evaluation"
@@ -269,11 +291,15 @@ def main():
     parser.add_argument("--evidence-root", type=Path, default=Path(".local/company_world_preview"))
     parser.add_argument("--feasibility-root", type=Path, default=Path(".local/ft_icl_game_comparison_20261110/feasibility"))
     parser.add_argument("--external-input", type=Path, action="append", default=[])
+    parser.add_argument("--direct", action="store_true", help="Use the same controller without starting a web server")
+    parser.add_argument("--evaluation-python", type=Path)
+    parser.add_argument("--credentials", type=Path)
     args = parser.parse_args()
     if not args.execute:
         print(json.dumps(plan(), indent=2))
         return 0
-    return execute(args.output, args.server, args.evidence_root, args.feasibility_root, args.external_input)
+    return execute(args.output, args.server, args.evidence_root, args.feasibility_root, args.external_input,
+                   direct=args.direct, evaluation_python=args.evaluation_python, credentials=args.credentials)
 
 
 if __name__ == "__main__":
