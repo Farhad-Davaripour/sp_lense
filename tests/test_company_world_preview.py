@@ -58,15 +58,15 @@ class CompanyPreviewTests(unittest.TestCase):
             credential_file.touch()
             viewer = CompanyWorldPreview(root, enable_models=True, credentials=credential_file,
                                          evaluation_python=Path(__file__))
-            choices = [{"id": name, "available": True} for name in ("qwen_base_neutral", "sp_lense")]
+            choices = [{"id": name, "available": True} for name in ("qwen_base_neutral", "sp_lense_last8")]
             with patch("src.company_world_preview.model_choices", return_value=choices), \
                     patch("src.company_world_preview.threading.Thread") as thread:
-                bundle = viewer.start(7, ["qwen_base_neutral", "sp_lense"])
-            self.assertEqual([r["model_id"] for r in viewer.runs], ["qwen_base_neutral", "sp_lense"])
+                bundle = viewer.start(7, ["qwen_base_neutral", "sp_lense_last8"])
+            self.assertEqual([r["model_id"] for r in viewer.runs], ["qwen_base_neutral", "sp_lense_last8"])
             self.assertTrue(all(r["bundle"] == bundle for r in viewer.runs))
-            self.assertEqual(viewer.runs[1]["model"].split("/")[-1], "sp-lense-adaptor-last-layer")
+            self.assertEqual(viewer.runs[1]["model"].split("/")[-1], "sp-lense-adaptor-last-8-layers")
             thread.assert_called_once()
-            self.assertEqual(thread.call_args.kwargs["args"][-2], ["qwen_base_neutral", "sp_lense"])
+            self.assertEqual(thread.call_args.kwargs["args"][-2], ["qwen_base_neutral", "sp_lense_last8"])
             self.assertEqual(thread.call_args.kwargs["args"][-1], "high_reward")
 
     def test_stale_history_does_not_become_current_compute(self):

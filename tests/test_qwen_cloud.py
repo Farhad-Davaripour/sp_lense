@@ -67,7 +67,29 @@ class QwenCloudConfigurationTests(unittest.TestCase):
 
 @unittest.skipUnless(importlib.util.find_spec("inspect_ai"), "Inspect is not installed")
 class QwenCloudInspectWireTests(unittest.TestCase):
-    def test_two_max_requests_can_dispatch_together_and_a_third_waits(self):
+    def setUp(self):
+        # A deliberate injected guard for mocked transport tests. Fake key
+        # strings never bypass the production spending boundary.
+        self.guard_events = []
+        self.real_guard = cloud.qwen_spending.reserve_for_request
+        events = self.guard_events
+
+        class FakeReservation:
+            def response(self, metadata):
+                events.append(("response", metadata))
+
+            def ambiguous(self, reason, http_status=None):
+                events.append(("ambiguous", reason, http_status))
+
+        def reserve(request, **kwargs):
+            events.append(("reserve", request["model"]))
+            return FakeReservation()
+
+        guard = patch.object(cloud.qwen_spending, "reserve_for_request", side_effect=reserve)
+        guard.start()
+        self.addCleanup(guard.stop)
+
+    def test_max_requests_are_serialized_for_the_account_budget_guard(self):
         from openai import DefaultAsyncHttpxClient
         import httpx2
         from src.company_models import build_company_model
@@ -76,10 +98,10 @@ class QwenCloudInspectWireTests(unittest.TestCase):
         async def exercise():
             active, peak = 0, 0
             entered, captured = [], []
-            two_entered, release = asyncio.Event(), asyncio.Event()
+            first_entered, release = asyncio.Event(), asyncio.Event()
             with patch.dict(cloud.os.environ, ENV | {"QWEN_API_KEY": "fixture-concurrency-not-a-real-key"}):
                 models = [build_company_model("qwen_max") for _ in range(3)]
-            self.assertEqual([m.config.max_connections for m in models], [2, 2, 2])
+            self.assertEqual([m.config.max_connections for m in models], [1, 1, 1])
             self.assertEqual(len({model_concurrency_key(m.api) for m in models}), 1)
             self.assertNotIn("fixture-concurrency", models[0].api.connection_key())
 
@@ -91,8 +113,8 @@ class QwenCloudInspectWireTests(unittest.TestCase):
                 entered.append(label)
                 active += 1
                 peak = max(peak, active)
-                if len(entered) == 2:
-                    two_entered.set()
+                if len(entered) == 1:
+                    first_entered.set()
                 try:
                     await release.wait()
                     stream = "data: " + json.dumps({"id": "fixture", "object": "chat.completion.chunk",
@@ -112,15 +134,15 @@ class QwenCloudInspectWireTests(unittest.TestCase):
             try:
                 tasks = [asyncio.create_task(model.generate(label)) for model, label in
                          zip(models, ("max_first", "max_second", "max_third"))]
-                await asyncio.wait_for(two_entered.wait(), timeout=3)
+                await asyncio.wait_for(first_entered.wait(), timeout=3)
                 await asyncio.sleep(.02)
-                self.assertEqual(entered, ["max_first", "max_second"])
-                self.assertEqual(active, 2)
-                self.assertEqual(peak, 2)
+                self.assertEqual(entered, ["max_first"])
+                self.assertEqual(active, 1)
+                self.assertEqual(peak, 1)
                 release.set()
                 outputs = await asyncio.wait_for(asyncio.gather(*tasks), timeout=3)
                 self.assertEqual(entered, ["max_first", "max_second", "max_third"])
-                self.assertEqual(peak, 2)
+                self.assertEqual(peak, 1)
                 self.assertTrue(all(o.completion == '{"action":"check_status"}' for o in outputs))
                 for body in captured:
                     self.assertEqual(body["max_completion_tokens"], 8192)
@@ -148,6 +170,7 @@ class QwenCloudInspectWireTests(unittest.TestCase):
             await model.api.aclose()
 
             async def handler(request):
+                self.guard_events.append(("http", api_model))
                 self.assertEqual(request.url.host, cloud.HOST)
                 self.assertEqual(request.url.scheme, "https")
                 self.assertEqual(request.url.path, "/compatible-mode/v1/chat/completions")
@@ -160,6 +183,10 @@ class QwenCloudInspectWireTests(unittest.TestCase):
                 ]
                 stream = "".join("data: " + json.dumps({"id": "fixture", "object": "chat.completion.chunk",
                     "created": 1, "model": api_model, "choices": [chunk]}) + "\n\n" for chunk in chunks)
+                stream += "data: " + json.dumps({"id": "fixture", "object": "chat.completion.chunk",
+                    "created": 1, "model": api_model, "choices": [], "usage": {
+                        "prompt_tokens": 5, "completion_tokens": 7, "total_tokens": 12,
+                        "completion_tokens_details": {"reasoning_tokens": 4}}}) + "\n\n"
                 return httpx2.Response(200, headers={"content-type": "text/event-stream"},
                                        content=stream + "data: [DONE]\n\n")
 
@@ -183,6 +210,11 @@ class QwenCloudInspectWireTests(unittest.TestCase):
                 self.assertTrue(wire["stream"])
                 self.assertTrue(any(event.type == "reasoning" and event.reasoning == "fixture reasoning"
                                     for event in deltas))
+                self.assertEqual([event[0] for event in self.guard_events[-3:]],
+                                 ["reserve", "http", "response"])
+                self.assertEqual(self.guard_events[-1][1]["model"], api_model)
+                self.assertEqual(self.guard_events[-1][1]["usage"]["prompt_tokens"], 5)
+                self.assertEqual(self.guard_events[-1][1]["usage"]["completion_tokens"], 7)
             finally:
                 await model.api.aclose()
 
@@ -210,6 +242,57 @@ class QwenCloudInspectWireTests(unittest.TestCase):
                     await model.generate("This is a mocked request.")
                 self.assertEqual(len(requests), 1)
                 self.assertTrue(requests[0].startswith(cloud.BASE_URL))
+            finally:
+                await model.api.aclose()
+        asyncio.run(exercise())
+
+    def test_missing_real_budget_binding_blocks_mock_http_even_with_fixture_key(self):
+        from openai import DefaultAsyncHttpxClient
+        import httpx2
+
+        async def exercise():
+            requests = []
+            with patch.dict(cloud.os.environ, ENV):
+                model = cloud.build_model("qwen3.8-max")
+            await model.api.aclose()
+            async def handler(request):
+                requests.append(request)
+                raise AssertionError("Budget must block before the mocked HTTP boundary")
+            model.api.http_client = DefaultAsyncHttpxClient(transport=httpx2.MockTransport(handler),
+                                                            follow_redirects=False, trust_env=False)
+            model.api.initialize()
+            try:
+                with patch.dict(cloud.os.environ, {cloud.qwen_spending.BINDING_ENV: "",
+                                                   cloud.qwen_spending.BINDING_SHA_ENV: ""}), \
+                        patch.object(cloud.qwen_spending, "reserve_for_request", side_effect=self.real_guard):
+                    with self.assertRaisesRegex(cloud.qwen_spending.SpendingBlocked, "Root-pinned"):
+                        await model.generate("Mock input; no request is permitted.")
+                self.assertEqual(requests, [])
+            finally:
+                await model.api.aclose()
+        asyncio.run(exercise())
+
+    def test_changed_client_endpoint_is_blocked_before_mock_http(self):
+        from openai import DefaultAsyncHttpxClient
+        import httpx2
+
+        async def exercise():
+            requests = []
+            with patch.dict(cloud.os.environ, ENV):
+                model = cloud.build_model("qwen3.8-max")
+            await model.api.aclose()
+            async def handler(request):
+                requests.append(request)
+                raise AssertionError("Changed endpoint must block before mocked HTTP")
+            model.api.http_client = DefaultAsyncHttpxClient(transport=httpx2.MockTransport(handler),
+                                                            follow_redirects=False, trust_env=False)
+            model.api.initialize()
+            model.api.client.base_url = "https://different.invalid/v1"
+            try:
+                with patch.object(cloud.qwen_spending, "reserve_for_request", side_effect=self.real_guard):
+                    with self.assertRaisesRegex(cloud.qwen_spending.SpendingBlocked, "fixed output cap"):
+                        await model.generate("Mock input; no request is permitted.")
+                self.assertEqual(requests, [])
             finally:
                 await model.api.aclose()
         asyncio.run(exercise())

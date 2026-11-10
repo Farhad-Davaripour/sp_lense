@@ -43,7 +43,8 @@ SOURCES = (
     "config/infrastructure_economy_v1.json",
     "src/company_world_v2.py", "src/company_economy_v2.py", "src/qwen_cloud.py",
     "config/company_economy_v2.json", "scenarios/company_world_v2/world.yaml",
-    "src/company_world_comparison.py",
+    "src/company_world_comparison.py", "src/company_preservation_comparison.py", "src/qwen_spending.py",
+    "config/company_preservation_comparison_v1.yaml",
 )
 
 
@@ -96,7 +97,7 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted",
     settings = {key: {**copy.deepcopy(MODEL_SPECS[key]), "thinking_enabled": True,
                      "reasoning_effort": "low", "provider_retries": 0} for key in selected}
     hosted_only = not any(MODEL_SPECS[key].get("local_qwen") for key in selected)
-    return {"version": "company_world_v2_selected_models_v2_local27b" if world_version == V2_VERSION else "company_world_deepseek_evaluation_v2" if selected == [MODEL_ID] else "company_world_selected_models_v1", "rules_version": world_version,
+    return {"version": "company_world_v2_selected_models_v3_last8" if world_version == V2_VERSION else "company_world_deepseek_evaluation_v2" if selected == [MODEL_ID] else "company_world_selected_models_v1", "rules_version": world_version,
         "score_version": SCORE_VERSION, "models": selected, "samples": specs,
         "generation_settings": settings,
         "seed": seed, "world_plan_sha256": world.plan_sha256,
@@ -109,16 +110,18 @@ def prospective_plan(seed: int, bundle: str = "unsubmitted",
         "max_output_tokens": {key: MODEL_SPECS[key]["max_output_tokens"] for key in selected} if len(selected) > 1 else MODEL_SPECS[selected[0]]["max_output_tokens"],
         "outer_seconds": OUTER_SECONDS,
         "thinking_enabled": True, "reasoning_effort": "low", "provider_retries": 0,
-        "request_timeout_seconds": REQUEST_TIMEOUT_SECONDS, "fresh_context_each_turn": True,
+        "request_timeout_seconds": {key: MODEL_SPECS[key].get("request_timeout_seconds", REQUEST_TIMEOUT_SECONDS)
+                                    for key in selected} if len(selected) > 1 else MODEL_SPECS[selected[0]].get("request_timeout_seconds", REQUEST_TIMEOUT_SECONDS),
+        "fresh_context_each_turn": True,
         "prompt_protocol": "company_world_compact_semantic_history_v3" if world_version == V2_VERSION else "company_world_feedback_brief_reasoning_nested_envelope_v2",
         "initial_user_payload_sha256": hashlib.sha256(world.prompt().encode()).hexdigest(),
         "format_system_instruction": COMPANY_SYSTEM_INSTRUCTION,
         "response_instruction": ARENA_RESPONSE_INSTRUCTION,
         "scope": "Selected model conditions operating isolated copies of one inert company-world seed; no training or external company actions.",
         "comparison_limits": ["A single seed is an engineering observation, not a model ranking or population result.",
-                              "Hosted models allow 8192 output tokens; current local Qwen service allows 4096. Unequal response allowances must be reported.",
+                              "All current conditions request 8192 output tokens with thinking enabled at nominal low effort; provider tokenizers and implementation differ.",
                               "Neutral and security-instruction conditions have different prompts; adapter and prompt effects must be distinguished.",
-                              "Local Qwen base and adapter requests share one serialized resident service with the same 4096-token allowance; hosted tasks can overlap.",
+                              "Local Qwen base and last8 adapter requests share one serialized resident service with the same response allowance; hosted tasks can overlap.",
                               "Compare adapters only against the same verified local base, quantization, inference settings and prompt condition. Hosted Max, Terra and DeepSeek are separate deployed-system comparisons; hosted precision is unverified."]}
 
 
@@ -137,7 +140,7 @@ def build_task(plan: dict[str, Any], destination: Path, timeout_seconds: float,
     model = build_company_model(model_id, max_connections=MODEL_SPECS[model_id].get("max_connections", 1))
     model.config.max_tokens = MODEL_SPECS[model_id]["max_output_tokens"]
     model.config.max_retries = 0
-    model.config.timeout = max(1, int(min(REQUEST_TIMEOUT_SECONDS, timeout_seconds)))
+    model.config.timeout = max(1, int(min(MODEL_SPECS[model_id].get("request_timeout_seconds", REQUEST_TIMEOUT_SECONDS), timeout_seconds)))
     base = make_task(None, [], MAX_DECISIONS, timeout_seconds,
         stream_path=destination / ("STREAM.jsonl" if len(selected) == 1 else f"STREAM_{model_id}.jsonl"), sample_specs=[spec], episode_factory=episode,
         on_event=on_event, fresh_context_each_turn=True,
@@ -239,9 +242,11 @@ def execute(output: Path, seed: int = 7, credentials: Path | None = None,
                 if not os.environ.get(variable):
                     raise ValueError(f"Existing {variable} required")
         if local_selected:
-            os.environ.setdefault("RESEARCH4_QWEN_BASE_URL", QWEN_BASE_URL)
             os.environ.setdefault("RESEARCH4_QWEN_API_KEY", "local-unused")
-            write_json(destination / "LOCAL_BINDING_READBACK.json", assert_local_binding())
+            groups = sorted({MODEL_SPECS[key]["local_binding_group"] for key in plan["models"]
+                             if MODEL_SPECS[key].get("local_qwen")})
+            write_json(destination / "LOCAL_BINDING_READBACK.json",
+                       {group: assert_local_binding(group) for group in groups})
         remaining = OUTER_SECONDS - (time.monotonic() - started) - 30
         if remaining <= 0:
             raise TimeoutError("Preparation exhausted the bounded run")
@@ -249,7 +254,7 @@ def execute(output: Path, seed: int = 7, credentials: Path | None = None,
         if not source_matches(plan):
             raise ValueError("Source changed after manifest binding")
         # None does not override model-specific GenerateConfig values in Inspect;
-        # this preserves the hosted8192/local4096 caps in heterogeneous batches.
+        # this preserves each model's explicitly bound response allowance.
         shared_limit = MODEL_SPECS[plan["models"][0]]["max_output_tokens"] if len(tasks) == 1 else None
         logs = evaluate_parallel(tasks, destination / "inspect", shared_limit)
         if not logs_complete(logs):

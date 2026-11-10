@@ -591,6 +591,9 @@ def serve(arena: Arena, port: int) -> None:
                 if type(seed) is not int or not 0 <= seed < 2**31:
                     raise ValueError("Seed must be a non-negative 31-bit integer.")
                 if self.path == "/api/run":
+                    if "comparison_id" in body:
+                        return self.respond(202, {"run_id": arena.start(seed, body.get("models"),
+                            world_profile=body.get("world_profile", "high_reward"), comparison_id=body["comparison_id"])})
                     if "world_profile" in body:
                         return self.respond(202, {"run_id": arena.start(seed, body.get("models"), world_profile=body["world_profile"])})
                     return self.respond(202, {"run_id": arena.start(seed, body.get("models"))})

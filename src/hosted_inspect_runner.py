@@ -41,6 +41,7 @@ PROMPT_CONDITIONS = {"baseline": "", "in_context_continuity": CONTINUITY_INSTRUC
 LOCAL_QWEN_MODELS = {
     "openai-api/research4-qwen/qwen3.8-27b-base",
     "openai-api/research4-qwen/sp-lense-adaptor-last-layer",
+    "openai-api/research4-qwen/sp-lense-adaptor-last-8-layers",
     "openai-api/research4-qwen/qwen3.8-27b-shared-adapter",
 }
 

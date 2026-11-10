@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from . import qwen_spending
+
 
 HOST = "ap-southeast-1.maas.qwencloudapi.com"
 BASE_URL = f"https://{HOST}/compatible-mode/v1"
@@ -125,6 +127,23 @@ def _register_provider() -> None:
             params["max_completion_tokens"] = limit
             params["extra_body"] = {"enable_thinking": True, "reasoning_effort": "low"}
             return params
+
+        async def _generate_completion(self, request, config):
+            reservation = qwen_spending.reserve_for_request(request,
+                endpoint=str(self.client.base_url), credential=self.initial_api_key,
+                current_credential=self.client.api_key)
+            try:
+                completion = await super()._generate_completion(request, config)
+                metadata = {"id": completion.id,
+                    "id_type": "provider completion response ID, not assumed request ID",
+                    "model": completion.model, "created": completion.created,
+                    "usage": completion.usage.model_dump(mode="json") if completion.usage else None,
+                    "finish_reasons": [choice.finish_reason for choice in completion.choices]}
+            except BaseException as error:
+                reservation.ambiguous(type(error).__name__, getattr(error, "status_code", None))
+                raise
+            reservation.response(metadata)
+            return completion
 
     _registered = True
 

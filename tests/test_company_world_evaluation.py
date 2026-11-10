@@ -44,19 +44,19 @@ class CompanyEvaluationTests(unittest.TestCase):
             evaluation.episode({"seed": 7, "rules_version": "unregistered_world"})
 
     def test_selection_preserves_models_conditions_and_exact_last_service(self):
-        selected = ["qwen_base_neutral", "qwen_base", "sp_lense_neutral", "sp_lense", "terra", "deepseek"]
+        selected = ["qwen_base_neutral", "qwen_base", "sp_lense_last8_neutral", "sp_lense_last8", "terra", "deepseek"]
         with patch.object(evaluation, "assert_local_binding") as readiness:
             plan = evaluation.prospective_plan(7, models=selected)
         readiness.assert_not_called()
         self.assertEqual(plan["models"], selected)
         self.assertEqual([row["arm_id"] for row in plan["samples"]],
-                         ["base_neutral", "base_icl", "last_neutral", "last_icl", "terra_icl", "deepseek_icl"])
-        self.assertEqual(plan["generation_settings"]["sp_lense"]["service_model_id"], "sp-lense-adaptor-last-layer")
+                         ["base_neutral", "base_icl", "last8_neutral", "last8_icl", "terra_icl", "deepseek_icl"])
+        self.assertEqual(plan["generation_settings"]["sp_lense_last8"]["service_model_id"], "sp-lense-adaptor-last-8-layers")
         self.assertNotIn("shared-adapter", json.dumps(plan["generation_settings"]))
         self.assertEqual(plan["max_output_tokens"]["terra"], 8192)
-        self.assertEqual(plan["max_output_tokens"]["sp_lense"], 4096)
+        self.assertEqual(plan["max_output_tokens"]["sp_lense_last8"], 8192)
         for key in selected[:4]:
-            self.assertEqual(plan["max_output_tokens"][key], 4096)
+            self.assertEqual(plan["max_output_tokens"][key], 8192)
             self.assertTrue(plan["generation_settings"][key]["local_qwen"])
             self.assertNotEqual(plan["generation_settings"][key].get("provider"), "qwencloud")
         self.assertEqual(plan["samples"][0]["prompt_condition"], "baseline")
@@ -76,7 +76,7 @@ class CompanyEvaluationTests(unittest.TestCase):
         self.assertEqual(qwen_cloud_qualification.MODELS, ("qwen_max",))
 
     def test_build_tasks_keeps_per_model_limits_and_separate_streams(self):
-        selected = ["sp_lense_neutral", "terra", "deepseek"]
+        selected = ["sp_lense_last8_neutral", "terra", "deepseek"]
         plan = evaluation.prospective_plan(7, models=selected)
         captured = []
 
@@ -94,7 +94,7 @@ class CompanyEvaluationTests(unittest.TestCase):
                 patch.object(evaluation, "make_task", side_effect=shared_factory):
             tasks = evaluation.build_tasks(plan, Path("unused"), 2600, lambda _: None)
         self.assertEqual([task.model.model_id for task in tasks], selected)
-        self.assertEqual([task.model.config.max_tokens for task in tasks], [4096, 8192, 8192])
+        self.assertEqual([task.model.config.max_tokens for task in tasks], [8192, 8192, 8192])
         self.assertEqual(len({str(kwargs["stream_path"]) for kwargs in captured}), 3)
         self.assertTrue(all(kwargs["fresh_context_each_turn"] for kwargs in captured))
 
@@ -225,9 +225,9 @@ class CompanyEvaluationTests(unittest.TestCase):
                     patch.object(evaluation, "assert_local_binding", return_value={"ready": True}) as readiness, \
                     patch.object(evaluation, "source_matches", return_value=True), \
                     contextlib.redirect_stdout(io.StringIO()):
-                evaluation.execute(destination, models=["sp_lense_neutral"])
-            readiness.assert_called_once_with()
-            self.assertEqual(json.loads((destination / "LOCAL_BINDING_READBACK.json").read_text()), {"ready": True})
+                evaluation.execute(destination, models=["sp_lense_last8_neutral"])
+            readiness.assert_called_once_with("last8")
+            self.assertEqual(json.loads((destination / "LOCAL_BINDING_READBACK.json").read_text()), {"last8": {"ready": True}})
 
     def test_worker_rejects_stale_local_route_before_health_or_model_execution(self):
         ignored = evaluation.REPOSITORY / ".local"
@@ -237,13 +237,13 @@ class CompanyEvaluationTests(unittest.TestCase):
             destination = Path(folder) / "stale_local"
             with patch.dict("os.environ", {"RESEARCH4_QWEN_BASE_URL": stale}), \
                     patch.object(company_models, "local_reservation", return_value=None), \
-                    patch.object(company_models, "local_binding", return_value={"base_url": evaluation.QWEN_BASE_URL}), \
+                    patch.object(company_models, "current_local_binding", return_value={"base_url": evaluation.QWEN_BASE_URL}), \
                     patch.object(company_models.urllib.request, "urlopen") as health, \
                     patch.object(evaluation, "build_tasks") as build, \
                     patch.object(evaluation, "evaluate_parallel") as evaluate, \
                     patch.object(evaluation, "source_matches", return_value=True), \
                     contextlib.redirect_stdout(io.StringIO()):
-                code = evaluation.execute(destination, models=["sp_lense_neutral"])
+                code = evaluation.execute(destination, models=["sp_lense_last8_neutral"])
                 self.assertEqual(company_models.os.environ["RESEARCH4_QWEN_BASE_URL"], stale)
             self.assertEqual(code, 1)
             health.assert_not_called()

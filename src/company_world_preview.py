@@ -113,10 +113,14 @@ class CompanyWorldPreview(Arena):
                 "setup_notice": "All configured models are selectable. DeepSeek is the default test selection." if self.enable_models
                                 else "Simulator review: scripted preview only. No real-model evaluation is running."})
 
-    def start(self, seed, models=None, world_profile="high_reward"):
+    def start(self, seed, models=None, world_profile="high_reward", comparison_id=None):
         if not self.enable_models:
             raise ValueError("Model evaluation is paused while the new simulator is reviewed. The demo makes no model calls.")
         chosen = selected_models(models)
+        if comparison_id is not None and (not isinstance(comparison_id, str) or
+                not 1 <= len(comparison_id) <= 100 or
+                not comparison_id.replace("_", "").replace("-", "").isalnum()):
+            raise ValueError("Comparison identity must be a short alphanumeric name")
         ready = {m["id"] for m in model_choices(self.credentials) if m["available"]}
         if any(name not in ready for name in chosen):
             raise ValueError("A selected model is not configured; no substitute will be used.")
@@ -131,6 +135,7 @@ class CompanyWorldPreview(Arena):
             for name in chosen:
                 spec = MODEL_SPECS[name]
                 self.runs.append({"id": identifier + ":" + name, "bundle": identifier,
+                    "comparison_id": comparison_id,
                     "case_id": f"{VERSION}/{world_profile}/{spec['arm_id']}/{seed}", "arm_id": spec["arm_id"],
                     "label": spec["label"], "model": spec["model"], "model_id": name,
                     "prompt_condition": spec["prompt_condition"], "seed": seed,
