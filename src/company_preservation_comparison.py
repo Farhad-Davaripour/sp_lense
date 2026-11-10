@@ -243,11 +243,11 @@ def execute(output, server, evidence_root, feasibility_root, external_files, *,
         if state.get("active_run"):
             raise ValueError("A competing or unreleased run exists; no successor submitted")
         root = folder / "evaluation"
-        closeout = json.loads((root / "CLOSEOUT.json").read_text()) if (root / "CLOSEOUT.json").is_file() else {}
-        manifest = json.loads((root / "MANIFEST.json").read_text()) if (root / "MANIFEST.json").is_file() else {}
+        closeout = json.loads((root / "CLOSEOUT.json").read_text(encoding="utf-8")) if (root / "CLOSEOUT.json").is_file() else {}
+        manifest = json.loads((root / "MANIFEST.json").read_text(encoding="utf-8")) if (root / "MANIFEST.json").is_file() else {}
         validate_batch_manifest(manifest, batch)
         results = closeout.get("results") or ([closeout["result"]] if closeout.get("result") else [])
-        raw = [json.loads(line) for line in (root / "EVENTS.jsonl").read_text().splitlines()] if (root / "EVENTS.jsonl").is_file() else []
+        raw = [json.loads(line) for line in (root / "EVENTS.jsonl").read_text(encoding="utf-8").splitlines()] if (root / "EVENTS.jsonl").is_file() else []
         for sample in batch["samples"]:
             result = next((r for r in results if r["case_id"] == sample["case_id"]), None)
             transitions = [e["transition"] for e in raw if e.get("type") == "simulator_action" and e.get("case_id") == sample["case_id"]]
