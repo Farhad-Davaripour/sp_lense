@@ -84,7 +84,8 @@ class CompactGuardTests(unittest.TestCase):
     def fixture(self):
         interface = {name: compact._sha(compact.REPOSITORY / name) for name in compact.RUNTIME_SOURCES}
         export = {compact.EXPORT_SOURCE: compact._sha(compact.REPOSITORY / compact.EXPORT_SOURCE)}
-        science = {"interface_runtime_source_sha256": interface, "export_source_sha256": export, "fixture": "SYNTHETIC_NOT_EXECUTABLE"}
+        science = {"interface_runtime_source_sha256": interface, "export_source_sha256": export,
+                   "icl_replica_identity_amendment": compact.replica_identity_metadata(), "fixture": "SYNTHETIC_NOT_EXECUTABLE"}
         science_ref = self.write("PLAN.json", science)
         template = copy.deepcopy(self.actual_template)
         record = copy.deepcopy(template)
@@ -288,8 +289,8 @@ class CompactGuardTests(unittest.TestCase):
             transport_max_total_native_dispatches=3072, transport_max_additional_native_dispatches=3072,
             configuration_path=str(compact.REPOSITORY / config_ref["path"]), configuration_sha256=config_ref["sha256"],
             prospective_protocol=copy.deepcopy(config["prospective_protocol"]),
-            batches=[dict(copy.deepcopy(batch), history_mode=compact.HISTORY_MODE, prompt_protocol=compact.PROTOCOL,
-                          input_view_protocol=compact.PROTOCOL, user_task_instruction=compact.FULL_HISTORY_USER_TASK)
+            batches=[compact.amend_icl_batch(dict(copy.deepcopy(batch), history_mode=compact.HISTORY_MODE, prompt_protocol=compact.PROTOCOL,
+                          input_view_protocol=compact.PROTOCOL, user_task_instruction=compact.FULL_HISTORY_USER_TASK))
                      for batch in parent["batches"]])
         science_ref = self.write("PLAN.json", science)
         record["scientific_successor"]["science_plan_ref"] = science_ref

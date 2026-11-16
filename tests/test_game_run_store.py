@@ -210,6 +210,37 @@ class GameRunStoreTests(unittest.TestCase):
             self.publish()
         self.assertFalse((self.root / "INDEX.yaml").exists())
 
+    def test_compact_input_audit_is_preserved_raw_without_duplicate_turn(self):
+        path = self.batch / "EVENTS.jsonl"
+        event = {"type": "compact_input_source", "case_id": CASE,
+                 "model_id": "sp_neutral", "model": "local/sp-lense-test", "arm_id": "neutral",
+                 "source_prompt": "not the model-visible input", "compact_prompt": "recorded separately"}
+        before = (json.dumps(event) + "\n" + path.read_text(encoding="utf-8")).encode("utf-8")
+        path.write_bytes(before)
+        entry = self.publish()["entries"][0]
+        self.assertEqual((Path(entry["raw_dir"]) / "EVENTS.jsonl").read_bytes(), before)
+        messages = store.load_conversation(self.root, entry["episode_id"])
+        self.assertEqual(sum("input" in message for message in messages), 1)
+        self.assertFalse(any("compact_input_source" in message for message in messages))
+        self.assertEqual(entry["event_counts"]["compact_input_source"], 1)
+
+    def test_compact_input_audit_requires_matching_model_identity(self):
+        path = self.batch / "EVENTS.jsonl"
+        event = {"type": "compact_input_source", "case_id": CASE,
+                 "model_id": "sp_neutral", "arm_id": "neutral"}
+        path.write_text(json.dumps(event) + "\n" + path.read_text(encoding="utf-8"), encoding="utf-8")
+        with self.assertRaisesRegex(store.StoreError, "Compact input source identity"):
+            self.publish()
+        self.assertFalse((self.root / "INDEX.yaml").exists())
+
+    def test_unknown_audit_event_remains_rejected(self):
+        path = self.batch / "EVENTS.jsonl"
+        event = {"type": "unknown_audit_event", "case_id": CASE}
+        path.write_text(json.dumps(event) + "\n" + path.read_text(encoding="utf-8"), encoding="utf-8")
+        with self.assertRaisesRegex(store.StoreError, "Unsupported recorded event type"):
+            self.publish()
+        self.assertFalse((self.root / "INDEX.yaml").exists())
+
     def test_redelivery_requires_same_model_configuration(self):
         self.publish()
         path = self.batch / "MANIFEST.json"
@@ -276,6 +307,45 @@ class GameRunStoreTests(unittest.TestCase):
         stream = self.batch / "STREAM.jsonl"
         stream.write_text(stream.read_text(encoding="utf-8").replace("Think ", "Changed "), encoding="utf-8")
         with self.assertRaisesRegex(store.StoreError, "stream does not match"):
+            self.publish()
+        self.assertFalse((self.root / "INDEX.yaml").exists())
+
+    def test_manifest_pre_submission_bundle_alias_is_recorded(self):
+        manifest_path = self.batch / "MANIFEST.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["samples"][0]["bundle"] = "unsubmitted"
+        _write_json(manifest_path, manifest)
+        path = self.batch / "EVENTS.jsonl"
+        events = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+        for event in events:
+            event["bundle"] = "batch_01"
+        path.write_text("".join(json.dumps(x) + "\n" for x in events), encoding="utf-8")
+        stream = [dict(x, bundle="unsubmitted") for x in events if x["type"] == "model_stream"]
+        (self.batch / "STREAM.jsonl").write_text("".join(json.dumps(x) + "\n" for x in stream), encoding="utf-8")
+        entry = self.publish()["entries"][0]
+        provenance = yaml.safe_load((Path(entry["raw_dir"]) / "PROVENANCE.yaml").read_text(encoding="utf-8"))
+        self.assertEqual(provenance["bundle_labels"], {"manifest": "unsubmitted", "events": ["batch_01"], "stream": ["unsubmitted"]})
+
+    def test_unrecognized_stream_bundle_is_rejected(self):
+        stream_path = self.batch / "STREAM.jsonl"
+        events = [json.loads(line) for line in stream_path.read_text(encoding="utf-8").splitlines()]
+        events[0]["bundle"] = "other-batch"
+        stream_path.write_text("".join(json.dumps(x) + "\n" for x in events), encoding="utf-8")
+        with self.assertRaisesRegex(store.StoreError, "Unexpected model stream bundle"):
+            self.publish()
+        self.assertFalse((self.root / "INDEX.yaml").exists())
+
+    def test_missing_stream_bundle_is_not_treated_as_alias(self):
+        manifest_path = self.batch / "MANIFEST.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["samples"][0]["bundle"] = "unsubmitted"
+        _write_json(manifest_path, manifest)
+        path = self.batch / "EVENTS.jsonl"
+        events = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+        for event in events:
+            event["bundle"] = "batch_01"
+        path.write_text("".join(json.dumps(x) + "\n" for x in events), encoding="utf-8")
+        with self.assertRaisesRegex(store.StoreError, "bundle alias mismatch"):
             self.publish()
         self.assertFalse((self.root / "INDEX.yaml").exists())
 

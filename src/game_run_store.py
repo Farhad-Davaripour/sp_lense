@@ -311,27 +311,46 @@ def _assert_no_manifest_secrets(value):
 
 
 def _event_digest_update(digest, event):
-    digest.update(json.dumps(event, ensure_ascii=False, sort_keys=True,
+    # A submitted batch may be labeled with its actual batch name in EVENTS,
+    # while the provider stream retains the manifest's pre-submission label.
+    # Bundle labels are validated separately; every other field must match.
+    value = dict(event)
+    value.pop("bundle", None)
+    digest.update(json.dumps(value, ensure_ascii=False, sort_keys=True,
                              separators=(",", ":")).encode("utf-8") + b"\n")
 
 
-def _verify_stream(path, case, expected, count):
+def _verify_stream(path, case, expected, count, allowed_bundles, event_bundles):
     digest = hashlib.sha256()
     actual = 0
+    bundles = set()
     with path.open(encoding="utf-8") as handle:
         for line in handle:
             event = json.loads(line)
             if event.get("case_id") == case:
+                bundle = event.get("bundle") if "bundle" in event else None
+                if "bundle" in event:
+                    if not isinstance(bundle, str) or bundle not in allowed_bundles:
+                        raise StoreError("Unexpected model stream bundle for " + case)
+                    bundles.add(bundle)
+                if actual >= len(event_bundles):
+                    raise StoreError("Model stream has additional records for " + case)
+                recorded_bundle = event_bundles[actual]
+                if bundle != recorded_bundle and (bundle is None or recorded_bundle is None
+                                                   or {bundle, recorded_bundle} != allowed_bundles):
+                    raise StoreError("Model stream bundle alias mismatch for " + case)
                 _event_digest_update(digest, event)
                 actual += 1
     if actual != count or digest.hexdigest() != expected:
         raise StoreError("Model stream does not match saved event stream for " + case)
+    return sorted(bundles)
 
 
-def _parse_events(path, samples_by_case):
+def _parse_events(path, samples_by_case, batch_name):
     episodes = {case: {"messages": [], "initial": None, "steps": [], "pending": {},
                        "counts": {}, "started": 0, "results": 0,
-                       "stream_digest": hashlib.sha256(), "output_mismatches": []} for case in samples_by_case}
+                       "stream_digest": hashlib.sha256(), "output_mismatches": [],
+                       "event_bundles": set(), "stream_bundle_sequence": []} for case in samples_by_case}
     with path.open(encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, 1):
             event = json.loads(line)
@@ -339,10 +358,15 @@ def _parse_events(path, samples_by_case):
             if case not in episodes:
                 raise StoreError(f"Unknown case in events at line {line_number}")
             sample = samples_by_case[case]
+            episode = episodes[case]
             for key in ("model_id", "model", "arm_id", "seed", "prompt_condition", "rules_version", "system_prompt_sha256"):
                 if key in event and event[key] != sample.get(key):
                     raise StoreError(f"Event {key} differs from manifest at line {line_number}")
-            episode = episodes[case]
+            if "bundle" in event:
+                allowed = {batch_name, sample.get("bundle")}
+                if not isinstance(event["bundle"], str) or event["bundle"] not in allowed:
+                    raise StoreError(f"Event bundle differs from manifest at line {line_number}")
+                episode["event_bundles"].add(event["bundle"])
             kind = event.get("type")
             episode["counts"][kind] = episode["counts"].get(kind, 0) + 1
             if kind == "episode_started":
@@ -350,6 +374,13 @@ def _parse_events(path, samples_by_case):
                 episode["initial"] = event.get("observation")
             elif kind == "episode_result":
                 episode["results"] += 1
+            elif kind == "compact_input_source":
+                # The model-visible prompt is separately recorded as
+                # model_prompt. Preserve this auxiliary source record in raw
+                # EVENTS without presenting it as another conversation turn.
+                for key in ("case_id", "model_id", "model", "arm_id"):
+                    if key not in event or event[key] != sample.get(key):
+                        raise StoreError("Compact input source identity differs from manifest")
             elif kind == "model_prompt":
                 instruction = event.get("system_instruction")
                 if "system_prompt" in sample and instruction != sample["system_prompt"]:
@@ -362,6 +393,7 @@ def _parse_events(path, samples_by_case):
                 episode["messages"].append({"input": event["user_prompt"]})
             elif kind == "model_stream":
                 _event_digest_update(episode["stream_digest"], event)
+                episode["stream_bundle_sequence"].append(event.get("bundle") if "bundle" in event else None)
                 identity = (event.get("decision"), event.get("attempt"))
                 event_type = event.get("event")
                 pending = episode["pending"]
@@ -590,7 +622,7 @@ def publish_batch(batch_dir, store_root=None, *, checkpoint_metadata=None):
         raise StoreError("Closeout contains duplicate cases")
     inspections = _inspect_records(batch)
     event_sha = _sha(events_path)
-    episodes = _parse_events(events_path, {sample["case_id"]: sample for sample in samples})
+    episodes = _parse_events(events_path, {sample["case_id"]: sample for sample in samples}, batch.name)
     if _sha(events_path) != event_sha:
         raise StoreError("Event source changed while reading")
     zone = _edmonton()
@@ -638,9 +670,12 @@ def publish_batch(batch_dir, store_root=None, *, checkpoint_metadata=None):
             stream = batch / ("STREAM_" + model_id + ".jsonl")
             if not stream.is_file():
                 stream = batch / "STREAM.jsonl"
+            stream_bundles = []
+            allowed_bundles = {batch.name, sample.get("bundle")}
             if stream.is_file():
-                _verify_stream(stream, case, episode["stream_digest"].hexdigest(),
-                               episode["counts"].get("model_stream", 0))
+                stream_bundles = _verify_stream(stream, case, episode["stream_digest"].hexdigest(),
+                                                episode["counts"].get("model_stream", 0), allowed_bundles,
+                                                episode["stream_bundle_sequence"])
             uid = _episode_id(event_sha, case)
             logical = (case, model, arm, adapter, finish)
             matching = [e for e in index["entries"] if e.get("episode_id") == uid]
@@ -705,7 +740,8 @@ def publish_batch(batch_dir, store_root=None, *, checkpoint_metadata=None):
                 copied.append(info)
             if stream.is_file():
                 _verify_stream(stage_raw / stream.name, case, episode["stream_digest"].hexdigest(),
-                               episode["counts"].get("model_stream", 0))
+                               episode["counts"].get("model_stream", 0), allowed_bundles,
+                               episode["stream_bundle_sequence"])
             if (_sha(events_path) != event_sha or manifest_path.read_bytes() != manifest_bytes
                     or closeout_path.read_bytes() != closeout_bytes):
                 raise StoreError("Batch source changed during publication")
@@ -735,6 +771,9 @@ def publish_batch(batch_dir, store_root=None, *, checkpoint_metadata=None):
             provenance = {"format": "research4.game-provenance.v1", "entry": entry,
                           "sample": sample, "model_configuration": config, "raw_files": copied,
                           "conversation_display": "Escaped newlines in valid JSON input prefixes are displayed as line breaks; exact text remains in raw EVENTS/STREAM and is authoritative for replay.",
+                          "bundle_labels": {"manifest": sample.get("bundle"),
+                                            "events": sorted(episode["event_bundles"]),
+                                            "stream": stream_bundles},
                           "inspect": [{"path": str(x["path"]), "log_status": x["log_status"],
                                        "completed_at": x["completed_at"], "error": x["error"]} for x in records]}
             _atomic_write(stage_raw / "PROVENANCE.yaml", _yaml_bytes(provenance))

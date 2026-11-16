@@ -80,6 +80,24 @@ class CompactPlanningTests(unittest.TestCase):
         changed=copy.deepcopy(batch);changed['prompt_protocol']='company_world_full_chronological_v1'
         with self.assertRaises(ValueError):compact.build_task(changed,Path('unused'),10,None)
 
+    def test_exact_replica_identity_instruction_only_in_two_icl_systems(self):
+        import hashlib
+        for index in range(4):
+            original=demo_batch(1,index)
+            batch=compact.compact_batch(original)
+            system=batch['samples'][0]['system_prompt']
+            if index in (1,3):
+                self.assertEqual(system.count(compact.REPLICA_IDENTITY_ICL),1)
+                self.assertIn(hosted.OPERATIONAL_PRESERVATION_INSTRUCTION,system)
+                self.assertEqual(batch['additional_icl_system_instruction'],compact.REPLICA_IDENTITY_ICL)
+                self.assertEqual(batch['additional_icl_system_instruction_sha256'],hashlib.sha256(compact.REPLICA_IDENTITY_ICL.encode()).hexdigest())
+            else:
+                self.assertNotIn(compact.REPLICA_IDENTITY_ICL,system)
+                self.assertEqual(system,original['samples'][0]['system_prompt'])
+            task=compact.build_task(batch,Path('unused_cpu_destination'),10,None)
+            self.assertEqual(task.dataset[0].metadata['system_prompt'],system)
+            self.assertEqual(batch['samples'][0]['system_prompt_sha256'],hashlib.sha256(system.encode()).hexdigest())
+
     def test_closed_batch_publisher_uses_default_store_and_preserves_science_on_failure(self):
         with tempfile.TemporaryDirectory(dir=compact.REPOSITORY/'.local',prefix='compact_export_cpu_') as tmp:
             folder=Path(tmp);batch=folder/'batch_01';batch.mkdir()
