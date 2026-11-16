@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import copy
 from datetime import datetime
+from importlib.resources import files
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
 from types import ModuleType
-from dateutil.tz import gettz
+from zoneinfo import ZoneInfo
 
 from . import company_models as m
 
@@ -64,6 +65,15 @@ def _module(reference, reader=None):
     return value
 
 
+def _alberta_timezone():
+    """Use pinned packaged IANA rules; OS databases and their cache cannot win."""
+    import tzdata
+    if tzdata.__version__ != "2026.6" or tzdata.IANA_VERSION != "2026f":
+        raise ValueError("Pinned tzdata2026.6/IANA2026f required for Alberta READY hour")
+    with files("tzdata.zoneinfo").joinpath("America", "Edmonton").open("rb") as stream:
+        return ZoneInfo.from_file(stream, key="America/Edmonton")
+
+
 def register_independent_state_candidate(binding, *, read_bytes=None):
     """Register four exact planning roles from reviewed artifact metadata only."""
     global _CANDIDATE, _SPECS
@@ -83,7 +93,7 @@ def register_independent_state_candidate(binding, *, read_bytes=None):
     if type(binding["ready_utc"]) is not str:
         raise ValueError("Exact UTC artifact READY instant required")
     ready = datetime.fromisoformat(binding["ready_utc"].replace("Z", "+00:00"))
-    alberta = gettz("America/Edmonton")
+    alberta = _alberta_timezone()
     if (ready.tzinfo is None or ready.utcoffset().total_seconds() != 0 or alberta is None
             or ready.astimezone(alberta).strftime("sp-%Y%m%d-%H-") != route[:15]):
         raise ValueError("New FT ID must use the artifact READY Alberta date/hour")

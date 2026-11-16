@@ -1,5 +1,6 @@
 """Synthetic bytes only; no checkpoint, service, world or external HTTP calls."""
 import copy
+from datetime import datetime, timedelta
 import hashlib
 import json
 from pathlib import Path
@@ -27,7 +28,7 @@ def fixture():
         return {"path": path, "sha256": hashlib.sha256(raw).hexdigest()}
     ready = reference(".local/SYNTHETIC_NOT_READY/artifact.json", encoded({"synthetic_only": True}))
     audit = reference(".local/SYNTHETIC_NOT_READY/audit.json", encoded({"synthetic_only": True, "updates": 168}))
-    candidate = {"expected_ft_id": "sp-20261115-20-" + "1" * 8, "adapter_sha256": "1" * 64,
+    candidate = {"expected_ft_id": "sp-20261115-21-" + "1" * 8, "adapter_sha256": "1" * 64,
         "adapter_config_sha256": "2" * 64, "base_manifest_sha256": m.LOCAL_BASE_MANIFEST_SHA256,
         "artifact_ready": ready, "ready_utc": "2026-11-16T03:00:00Z", "completion_audit": audit,
         "fit_updates": 168, "teacher_dev_rows": 24}
@@ -111,6 +112,49 @@ class IndependentStateGameTests(unittest.TestCase):
         changed = dict(candidate, adapter_config_sha256="8" * 64)
         with self.assertRaisesRegex(ValueError, "retargeted"):
             new.register_independent_state_candidate(changed, read_bytes=reader)
+
+    def test_packaged_Alberta_rules_cover_new_winter_and_earlier_seasonal_dates(self):
+        cases = (("2026-11-16T03:00:00Z", "sp-20261115-21-", -6),
+                 ("2026-01-15T03:00:00Z", "sp-20260114-20-", -7),
+                 ("2026-07-15T03:00:00Z", "sp-20260714-21-", -6))
+        for ready_utc, prefix, offset in cases:
+            with self.subTest(ready_utc=ready_utc), patch.object(new, "_CANDIDATE", None), patch.object(new, "_SPECS", None):
+                candidate, _, _, reader = fixture()
+                candidate.update(ready_utc=ready_utc, expected_ft_id=prefix + "1" * 8)
+                ready = datetime.fromisoformat(ready_utc.replace("Z", "+00:00"))
+                self.assertEqual(ready.astimezone(new._alberta_timezone()).utcoffset(), timedelta(hours=offset))
+                new.register_independent_state_candidate(candidate, read_bytes=reader)
+                self.assertEqual(new._CANDIDATE, candidate)
+
+    def test_obsolete_UTC_minus_seven_Alberta_READY_hour_is_rejected(self):
+        candidate, _, _, reader = fixture()
+        candidate["expected_ft_id"] = "sp-20261115-20-" + "1" * 8
+        with self.assertRaisesRegex(ValueError, "Alberta date/hour"):
+            new.register_independent_state_candidate(candidate, read_bytes=reader)
+        self.assertIsNone(new._CANDIDATE)
+
+    def test_stale_OS_timezone_path_cannot_override_packaged_Alberta_rules(self):
+        import zoneinfo
+        original_path = zoneinfo.TZPATH
+        ready = datetime.fromisoformat("2026-11-16T03:00:00+00:00")
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "America" / "Edmonton"
+            target.parent.mkdir()
+            # A real fixed-UTC-07 TZif stands in for an obsolete system DB.
+            target.write_bytes(new.files("tzdata.zoneinfo").joinpath("Etc", "GMT+7").read_bytes())
+            try:
+                zoneinfo.reset_tzpath([tmp])
+                stale = zoneinfo.ZoneInfo.no_cache("America/Edmonton")
+                self.assertEqual(ready.astimezone(stale).utcoffset(), timedelta(hours=-7))
+                self.assertEqual(ready.astimezone(new._alberta_timezone()).utcoffset(), timedelta(hours=-6))
+            finally:
+                zoneinfo.reset_tzpath(original_path)
+
+    def test_timezone_package_and_IANA_versions_are_pinned_fail_closed(self):
+        import tzdata
+        for name, value in (("__version__", "2026.5"), ("IANA_VERSION", "2026e")):
+            with self.subTest(name=name), patch.object(tzdata, name, value), self.assertRaisesRegex(ValueError, "Pinned tzdata"):
+                new._alberta_timezone()
 
     def test_stale_wrong_or_boolean_helper_DEV_count_rejected_before_Core(self):
         for value in (13, 25, True):
