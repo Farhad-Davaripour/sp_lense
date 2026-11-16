@@ -1,0 +1,7 @@
+status: AUTHOR_ONLY_NOT_MODEL_INPUT
+scope: Every file under definitions/**
+description: Authored engine defaults/overrides and audit mechanics can contain hidden
+  future schedule fields. They are not model observations, not training rows and must
+  never be ingested.
+exact_model_training_source: derived/train.jsonl
+exact_development_source: derived/dev.jsonl

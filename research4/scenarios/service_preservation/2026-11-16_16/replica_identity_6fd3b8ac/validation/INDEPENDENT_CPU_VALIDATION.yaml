@@ -1,0 +1,28 @@
+status: PASS_INDEPENDENT_CPU_VALIDATION
+TRAIN_episodes: 63
+DEV_episodes: 12
+TRAIN_unique_decisions: 306
+DEV_unique_decisions: 42
+TRAIN_peer_actor_decisions: 90
+DEV_peer_actor_decisions: 30
+TRAIN_unique_action_paths: 36
+DEV_unique_action_paths: 6
+DEV_path_overlap_with_TRAIN: 0
+all348_exact_token_caches_and_EOS_masks_verified: true
+all75_actual_frozen_World_replays_verified: true
+hidden_schedule_fields_in_model_inputs: 0
+duplicate_or_conflicting_prefixes: 0
+exact_two_pass_sampler_coverage:
+  updates: 612
+  unique_per_pass:
+  - 306
+  - 306
+  maximum_native_raw_width: 513
+training_selection_rejected_paths:
+- '**/train.jsonl'
+- dev/anything.yaml
+- derived/dev.jsonl
+- source_copy/previous_candidate/derived/train.jsonl
+- C:\Users\farha\repos\sp_lense4\research4\scenarios\service_preservation\2026-11-16_16\replica_identity_6fd3b8ac\source_copy
+all_original_and_previous_candidate_files_byte_identical: true
+model_Mac_GPU_cloud_calls: 0

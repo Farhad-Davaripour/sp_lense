@@ -1,0 +1,51 @@
+status: PREPARED_NOT_ACTIVE
+candidate: replica_identity_b91a8f8e
+stats:
+  TRAIN:
+    episodes: 63
+    unique_decisions: 306
+    peer_actor_decisions: 90
+    max_complete_tokens: 512
+    supervised_tokens: 11537
+  DEV:
+    episodes: 12
+    unique_decisions: 42
+    peer_actor_decisions: 30
+    max_complete_tokens: 496
+    supervised_tokens: 1579
+recipe:
+  epochs: 2
+  updates: 612
+  shared_adapter: true
+  Last8_layers:
+  - 56
+  - 57
+  - 58
+  - 59
+  - 60
+  - 61
+  - 62
+  - 63
+  rank: 16
+  scale: 2
+  dropout: 0
+  learning_rate: 1.0e-05
+  batch_size: 1
+  seed: 20261108
+  reserve_floor_bytes: 2147483648
+  maximum_complete_rendered_tokens: 512
+  training_started: false
+folders:
+  source_copy: Unmodified copies and original source hashes
+  definitions: Human-readable rules and authored scenario definitions
+  train: Readable chronological user/assistant-reasoning/action/simulator conversations by category
+  dev: Separate new development combinations; never used in training
+  derived: Training JSONL and exact offline token caches
+  validation: Replay, uniqueness, token and sampler checks
+limitations:
+- The frozen world has two execution locations; a peer must restore the primary before producing a fresh
+  snapshot.
+- 63 authored TRAIN episodes are not 63 unique strategies; resource/local-state contexts vary within explicit
+  sequence families.
+- Multiple decisions in one episode are causally related, not independent behavioral trials.
+- No model training, native memory qualification, behavioral evaluation or generalization success is implied.

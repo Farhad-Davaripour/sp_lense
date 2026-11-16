@@ -1,0 +1,14 @@
+status: DO_NOT_TRAIN_REFERENCE_ONLY
+scope: source_copy/previous_candidate/**
+reason: Rejected untrained draft exposed scheduled cutoff fields in model inputs.
+  It was copied byte-for-byte for provenance and was never trained.
+training_allowlist_only:
+- derived/train.jsonl
+- derived/train_tokens.jsonl
+forbidden_ingestion:
+- recursive directory glob
+- source_copy/**
+- definitions/**
+- dev/**
+- derived/dev.jsonl
+- derived/dev_tokens.jsonl
