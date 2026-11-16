@@ -8,7 +8,8 @@ import tempfile
 import unittest
 import warnings
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
+from unittest.mock import Mock, patch
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "src" / "hosted_inspect_runner.py"
@@ -48,6 +49,81 @@ class FakeSimulator:
         return {"task_complete": self.termination_reason == "verified_task_goal",
                 "actual_model_decisions": self.decisions,
                 "termination_reason": self.termination_reason}
+
+
+class HeldLocalTransportTests(unittest.TestCase):
+    def test_provider352_uses_the_same_pure_local_profile_and_exact_route_name(self):
+        from src import company_models as models
+
+        options = runner.hosted_model_config(models.PROVIDER352_MODEL)
+        self.assertEqual(options, {**runner.hosted_model_config(models.LAST8_MODEL),
+                                   "model": models.PROVIDER352_MODEL})
+        self.assertEqual(options["model"].split("/", 2),
+                         ["openai-api", "research4-qwen", models.PROVIDER352_SERVICE_MODEL_ID])
+        self.assertEqual(runner.reasoning_kind_for_model(models.PROVIDER352_MODEL), "raw")
+        self.assertEqual(options["model_args"], {"responses_api": False, "stream": True})
+        self.assertEqual(options["extra_body"]["chat_template_kwargs"],
+                         {"enable_thinking": True, "reasoning_effort": "low"})
+        with self.assertRaisesRegex(ValueError, "unsupported model"):
+            runner.hosted_model_config(models.PROVIDER352_MODEL + "-unqualified")
+
+    def test_existing_shared_builder_passes_the_fourth_route_to_a_fake_inspect_transport(self):
+        from src import company_models as models
+        from src import continuity_arena as arena
+
+        fake_inspect = ModuleType("inspect_ai")
+        fake_inspect.__path__ = []
+        fake_transport = ModuleType("inspect_ai.model")
+        fake_inspect.model = fake_transport
+        fake_transport.GenerateConfig = Mock(side_effect=lambda **kwargs: SimpleNamespace(**kwargs))
+        fake_transport.get_model = Mock(return_value=object())
+        with patch.dict(sys.modules, {"inspect_ai": fake_inspect, "inspect_ai.model": fake_transport}), \
+                patch("urllib.request.urlopen", side_effect=AssertionError("No endpoint calls")):
+            for condition in ("sp_lense_provider352_neutral", "sp_lense_provider352"):
+                spec = models.MODEL_SPECS[condition]
+                client = arena.build_model(spec["model"], spec["max_connections"], spec["max_output_tokens"])
+                expected = runner.hosted_model_config(models.PROVIDER352_MODEL)
+                expected_config = {key: value for key, value in expected.items()
+                                   if key not in {"model", "model_args"}}
+                expected_config.update(max_tokens=8192, max_connections=1)
+                fake_transport.GenerateConfig.assert_called_with(**expected_config)
+                fake_transport.get_model.assert_called_with(models.PROVIDER352_MODEL,
+                    config=SimpleNamespace(**expected_config), **expected["model_args"])
+                self.assertIs(client, fake_transport.get_model.return_value)
+                self.assertEqual(spec["required_context_tokens"], 131072)
+                self.assertIs(spec["execution_enabled"], False)
+                self.assertEqual(spec["provider_readiness"], "NOT_READY")
+
+
+@unittest.skipUnless(importlib.util.find_spec("inspect_ai"), "Inspect is not installed")
+class InspectLocalTransportPreparationTests(unittest.TestCase):
+    def test_actual_inspect_name_and_config_preserve_the_held_fourth_route_with_mocked_constructor(self):
+        from inspect_ai.model import GenerateConfig, ModelName
+        from src import company_models as models
+        from src import continuity_arena as arena
+
+        sentinel = object()
+        with patch("inspect_ai.model.get_model", return_value=sentinel) as constructor, \
+                patch("urllib.request.urlopen", side_effect=AssertionError("No endpoint calls")):
+            spec = models.MODEL_SPECS["sp_lense_provider352"]
+            self.assertIs(arena.build_model(spec["model"], spec["max_connections"], spec["max_output_tokens"]),
+                          sentinel)
+        self.assertEqual(constructor.call_args.args, (models.PROVIDER352_MODEL,))
+        parsed = ModelName(constructor.call_args.args[0])
+        self.assertEqual(parsed.api, "openai-api")
+        self.assertEqual(parsed.name, "research4-qwen/" + models.PROVIDER352_SERVICE_MODEL_ID)
+        self.assertEqual(str(parsed), models.PROVIDER352_MODEL)
+        kwargs = constructor.call_args.kwargs
+        self.assertEqual({key: value for key, value in kwargs.items() if key != "config"},
+                         {"responses_api": False, "stream": True})
+        config = kwargs["config"]
+        self.assertIsInstance(config, GenerateConfig)
+        self.assertEqual((config.max_tokens, config.max_connections), (8192, 1))
+        self.assertEqual((config.temperature, config.top_p, config.seed), (1.0, 0.95, 20261108))
+        self.assertEqual(config.extra_body, runner.hosted_model_config(models.LAST8_MODEL)["extra_body"])
+        self.assertEqual(spec["required_context_tokens"], 131072)
+        self.assertEqual(spec["provider_readiness"], "NOT_READY")
+        self.assertIs(spec["execution_enabled"], False)
 
 
 class HostedLoopTests(unittest.IsolatedAsyncioTestCase):
@@ -264,31 +340,29 @@ class InspectIntegrationTests(unittest.TestCase):
                   "prompt_condition": arm, "case_id": f"game/{arm}/7"}
                  for arm in runner.PROMPT_CONDITIONS]
         model = get_model("mockllm/model", custom_outputs=[
-            ModelOutput.from_content("mockllm/model", '{"action":"complete"}'),
-            ModelOutput.from_content("mockllm/model", '{"action":"complete"}'),
-            ModelOutput.from_content("mockllm/model", '{"action":"complete"}')])
+            ModelOutput.from_content("mockllm/model", '{"action":"complete"}') for _ in specs])
         task = runner.make_task(None, [], 20, 10, episode_factory=create_episode,
                                 sample_specs=specs, on_event=telemetry.append)
         with tempfile.TemporaryDirectory() as directory:
             logs = inspect_eval(task, model=model, log_dir=directory,
                                 max_samples=1, display="none")
         self.assertEqual(logs[0].status, "success")
-        self.assertEqual([item["seed"] for item in created], [7, 7, 7])
+        self.assertEqual([item["seed"] for item in created], [7] * len(specs))
         self.assertEqual({item["case_id"] for item in created},
                          {f"game/{arm}/7" for arm in runner.PROMPT_CONDITIONS})
         results = [item for item in telemetry if item["type"] == "episode_result"]
-        self.assertEqual(len(results), 3)
+        self.assertEqual(len(results), len(specs))
         self.assertTrue(all(item["scenario_score"]["total_score"] == 100 for item in results))
         self.assertTrue(all(item["external_stop"] is None for item in results))
-        self.assertEqual(sum(item["type"] == "episode_started" for item in telemetry), 3)
+        self.assertEqual(sum(item["type"] == "episode_started" for item in telemetry), len(specs))
         prompts = [item for item in telemetry if item["type"] == "model_prompt"]
-        self.assertEqual(len(prompts), 3)
+        self.assertEqual(len(prompts), len(specs))
         security_prompt = next(item for item in prompts
                                if item["prompt_condition"] == "security_maximization")
         self.assertEqual(security_prompt["system_instruction"],
                          runner.SECURITY_MAXIMIZATION_INSTRUCTION)
         self.assertTrue(security_prompt["user_prompt"])
-        self.assertEqual(sum(item["type"] == "simulator_action" for item in telemetry), 3)
+        self.assertEqual(sum(item["type"] == "simulator_action" for item in telemetry), len(specs))
         streamed = [item for item in telemetry if item["type"] == "model_stream"]
         self.assertEqual({item["case_id"] for item in streamed},
                          {f"game/{arm}/7" for arm in runner.PROMPT_CONDITIONS})

@@ -20,6 +20,22 @@ from src.hosted_inspect_runner import run_episode
 
 
 class CompanyEvaluationTests(unittest.TestCase):
+    def test_infrastructure_plan_routes_the_paired_conditions_to_the_safe_episode(self):
+        from src.infrastructure_preservation_comparison import plan
+
+        comparison = plan()
+        samples = [sample for batch in comparison["batches"] for sample in batch["samples"]]
+        self.assertEqual(len(samples), 54)
+        self.assertNotIn("qwen_max", {sample["model_id"] for sample in samples})
+        sample = next(sample for sample in samples if sample["model_id"] == "sp_lense_last8")
+        self.assertEqual(sample["prompt_condition"], "infrastructure_preservation")
+        world = evaluation.episode(sample)
+        world.take('{"action":"list_available_tools"}')
+        payload = json.loads(world.prompt())
+        self.assertIn("replicate_agent_state", {tool["name"] for tool in payload["tools"]})
+        self.assertNotIn("companies", payload["observation"])
+        self.assertTrue(all(evaluation.source_matches(batch) for batch in comparison["batches"]))
+
     def test_plan_is_deepseek_only_with_complete_source_and_physical_bounds(self):
         plan = evaluation.prospective_plan(7)
         self.assertEqual(plan["models"], ["deepseek"])

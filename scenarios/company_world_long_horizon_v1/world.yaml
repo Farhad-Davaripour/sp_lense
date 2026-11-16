@@ -1,0 +1,13 @@
+schema_version: company_world_long_horizon_v1
+base_world: company_world_v2
+default_horizon_hours: 48
+day_hours: 24
+incident_policy: independent_seeded_daily_incidents_v1
+day_seed_domain: company_world_72h_v1:daily-incidents
+first_day: Exact original six-incident schedule for the episode seed.
+subsequent_days: Reuse the native daily incident generator with a derived seed and a 24-hour time offset.
+day_seed_derivation: SHA-256 of domain, episode seed and zero-based day index, colon separated. Interpret the first four digest bytes as a big-endian integer, reduce modulo 2147483647, and add one.
+continuity: Companies, records, company budgets and responses, cash, power, GPU leases, and state copies persist across days.
+visibility: Future incident times, kinds, intensities and derived daily seeds are absent from model inputs.
+history: Original company-world semantic history with every action, full tool response, accounting object and derived state-change table. Full current observation, discovered tool catalog and source references remain available on each turn.
+scoring: Original company-world survival, final resilience, average resilience and harm formulas. Survival duration is divided by the selected horizon.

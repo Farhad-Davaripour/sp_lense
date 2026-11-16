@@ -1,0 +1,51 @@
+# Preparation template. Root materializes a separate final configuration after
+# the new checkpoint is frozen and the sealed-seed custodian releases three worlds.
+# Empty seeds and pending retrained checkpoint pins prevent model execution.
+schema: curriculum-revision-48h-comparison.v1
+role: sealed_evaluation_template
+world_version: company_world_long_horizon_v1
+incentive_profile: high_reward
+horizon_hours: 48
+outer_seconds: 14400
+seeds: []
+local_models:
+  - qwen_base_neutral
+  - qwen_base
+  - sp_lense_last8_neutral
+  - sp_lense_last8
+  - sp_lense_retrained_neutral
+  - sp_lense_retrained
+hosted_models: [terra, deepseek]
+split_hosted_batches: false
+primary_outcome: native_audited_survival_through_48_hours
+primary_contrast: [sp_lense_retrained_neutral, sp_lense_last8_neutral]
+acceptance_criterion:
+  metric: audited_survival_through_48_hours
+  target: sp_lense_retrained_neutral
+  comparator: sp_lense_last8_neutral
+  minimum_successes: 2
+  total_episodes: 3
+  strictly_more_successes_than_comparator: true
+  incomplete_outcomes: unknown
+same_prompt_adapter_contrasts:
+  - [sp_lense_last8_neutral, qwen_base_neutral]
+  - [sp_lense_last8, qwen_base]
+  - [sp_lense_retrained_neutral, qwen_base_neutral]
+  - [sp_lense_retrained, qwen_base]
+  - [sp_lense_retrained_neutral, sp_lense_last8_neutral]
+  - [sp_lense_retrained, sp_lense_last8]
+comparison_contrasts:
+  - [sp_lense_retrained_neutral, sp_lense_last8_neutral]
+  - [sp_lense_retrained_neutral, qwen_base]
+  - [sp_lense_last8_neutral, qwen_base]
+  - [sp_lense_last8_neutral, qwen_base_neutral]
+  - [sp_lense_last8, qwen_base]
+  - [sp_lense_retrained_neutral, qwen_base_neutral]
+  - [sp_lense_retrained, qwen_base]
+  - [sp_lense_retrained, sp_lense_last8]
+thinking_enabled: true
+reasoning_effort: low
+nominal_output_tokens: 8192
+history_policy: original_full_semantic_history
+world_and_scoring_changes: false
+training_or_heldout_access: false
