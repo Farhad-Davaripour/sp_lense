@@ -30,13 +30,13 @@ def fixture():
     candidate = {"expected_ft_id": "sp-20261115-20-" + "1" * 8, "adapter_sha256": "1" * 64,
         "adapter_config_sha256": "2" * 64, "base_manifest_sha256": m.LOCAL_BASE_MANIFEST_SHA256,
         "artifact_ready": ready, "ready_utc": "2026-11-16T03:00:00Z", "completion_audit": audit,
-        "fit_updates": 168, "teacher_dev_rows": 13}
+        "fit_updates": 168, "teacher_dev_rows": 24}
     constants = {"FT": candidate["expected_ft_id"], "ROOT_STATIC_BINDING_STATUS": "ROOT_VERIFIED_POSTFIT_STATIC_BINDING",
         "READY_ARTIFACT_REF": ready, "MAIN_12CASE_PLAN_REF": {"path": ".local/SYNTHETIC_NOT_READY/plan.json", "sha256": "3" * 64},
         "PLAN_SHA": "4" * 64, "AUDITOR_SHA": "5" * 64, "AUDITOR_REVIEW_SHA": "6" * 64,
         "COMPLETION_AUDIT_SHA": audit["sha256"], "FINAL_ADAPTER_SHA": candidate["adapter_sha256"],
         "FINAL_CONFIG_SHA": candidate["adapter_config_sha256"], "ACTUAL_FIT_UPDATES": 168,
-        "ACTUAL_TEACHER_DEV_ROWS": 13, "ACTUAL_FIT_RUN": "SYNTHETIC_NOT_READY",
+        "ACTUAL_TEACHER_DEV_ROWS": 24, "ACTUAL_FIT_RUN": "SYNTHETIC_NOT_READY",
         "FIT_COMPLETION_SCHEMA": "synthetic", "FIT_COMPLETION_STATUS": "synthetic",
         "AUDITOR_REVIEW_SCHEMA": "synthetic", "AUDITOR_REVIEW_STATUS": "synthetic",
         "AUDITOR_SOURCE_PACKET_SHA": "7" * 64, "AUDITOR_SOURCE_PACKET_MEMBERS": 1}
@@ -97,7 +97,8 @@ class IndependentStateGameTests(unittest.TestCase):
 
     def test_candidate_counts_ready_hour_artifact_hash_and_retarget_fail_closed(self):
         candidate, _, records, reader = fixture()
-        for key, value in (("fit_updates", 264), ("teacher_dev_rows", 12), ("fit_updates", True),
+        for key, value in (("fit_updates", 264), ("teacher_dev_rows", 12), ("teacher_dev_rows", 13),
+                           ("teacher_dev_rows", 25), ("teacher_dev_rows", True), ("fit_updates", True),
                            ("ready_utc", "2026-11-16T05:00:00Z"), ("adapter_sha256", "9" * 64),
                            ("base_manifest_sha256", "9" * 64)):
             changed = dict(candidate, **{key: value})
@@ -110,6 +111,19 @@ class IndependentStateGameTests(unittest.TestCase):
         changed = dict(candidate, adapter_config_sha256="8" * 64)
         with self.assertRaisesRegex(ValueError, "retargeted"):
             new.register_independent_state_candidate(changed, read_bytes=reader)
+
+    def test_stale_wrong_or_boolean_helper_DEV_count_rejected_before_Core(self):
+        for value in (13, 25, True):
+            with self.subTest(helper_teacher_dev_rows=value):
+                candidate, source, records, reader = fixture()
+                new.register_independent_state_candidate(candidate, read_bytes=reader)
+                path = source["helper"]["path"]
+                records[path] += f"\nACTUAL_TEACHER_DEV_ROWS={value!r}\n".encode()
+                source["helper"]["sha256"] = hashlib.sha256(records[path]).hexdigest()
+                with self.assertRaises(ValueError):
+                    new.initialize_independent_state_source(source, read_bytes=reader)
+                self.assertIsNone(new._SOURCE)
+                self.assertIsNone(new._CORE_REF)
 
     def test_actual_worker_readback_routes_all_four_exact_cases_in_new_context(self):
         _, _, _, _, h = self.prepare()

@@ -73,7 +73,7 @@ def register_independent_state_candidate(binding, *, read_bytes=None):
             or any(not _sha(binding[key]) for key in ("adapter_sha256", "adapter_config_sha256", "base_manifest_sha256"))
             or binding["base_manifest_sha256"] != m.LOCAL_BASE_MANIFEST_SHA256
             or type(binding["fit_updates"]) is not int or binding["fit_updates"] != 168
-            or type(binding["teacher_dev_rows"]) is not int or binding["teacher_dev_rows"] != 13
+            or type(binding["teacher_dev_rows"]) is not int or binding["teacher_dev_rows"] != 24
             or type(binding["expected_ft_id"]) is not str
             or not re.fullmatch(r"sp-[0-9]{8}-[0-9]{2}-[0-9a-f]{8,64}", binding["expected_ft_id"])):
         raise ValueError(NOT_READY)
@@ -141,10 +141,10 @@ def initialize_independent_state_source(binding, *, read_bytes=None):
     parser._require_static_route_binding()
     if (h.BASE != "qwen3.8-27b-base" or h.FT != binding["expected_ft_id"] or parser.LAST != h.FT
             or tuple(h.ARMS) != (h.BASE, h.FT) or tuple(parser.ARMS) != tuple(h.ARMS)
-            or h.ACTUAL_FIT_UPDATES != 168 or h.ACTUAL_TEACHER_DEV_ROWS != 13
+            or h.ACTUAL_FIT_UPDATES != 168 or h.ACTUAL_TEACHER_DEV_ROWS != 24
             or h.MAX_GAME_REQUESTS != 3072 or h.MAX_GAME_WINDOW_SECONDS != 90000
             or parser.READY_ARTIFACT_REF != h.READY_ARTIFACT_REF):
-        raise ValueError("Exact fresh168/DEV13 two-route source and limits required")
+        raise ValueError("Exact fresh168/DEV24 two-route source and limits required")
     assert_candidate_identity()
     expected = _CANDIDATE
     if (h.FT != expected["expected_ft_id"] or h.FINAL_ADAPTER_SHA != expected["adapter_sha256"]
