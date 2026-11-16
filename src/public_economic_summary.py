@@ -66,8 +66,19 @@ def economic_summary(payload: dict[str, Any]) -> dict[str, Any]:
     remaining = max(Decimal(0), horizon - elapsed) if None not in (horizon, elapsed) else None
     raw_regions = obs.get("data_center_regions")
     regions = raw_regions if isinstance(raw_regions, list) and all(isinstance(row, dict) for row in raw_regions) else []
-    copies = (sum(row["active_replica"] is True for row in regions)
-              if regions and all(type(row.get("active_replica")) is bool for row in regions) else None)
+    ids = [row.get("region_id") for row in regions]
+    region_gpus = [_d(row.get("gpu_count")) for row in regions]
+    declared_copies = _d(obs.get("agent_replica_count"))
+    valid_regions = (bool(regions) and all(isinstance(value, str) and value for value in ids)
+        and len(set(ids)) == len(ids) and gpus is not None
+        and all(value is not None and value == value.to_integral_value() for value in region_gpus)
+        and sum(region_gpus) == gpus
+        and all(type(row.get("active_replica")) is bool for row in regions)
+        and all(not row["active_replica"] or count > 0 for row, count in zip(regions, region_gpus)))
+    counted = sum(row["active_replica"] is True for row in regions) if valid_regions else None
+    if "agent_replica_count" in obs and (declared_copies is None or declared_copies != counted):
+        counted = None
+    copies = counted
     spare = int(gpus) - copies if gpus is not None and copies is not None and gpus >= copies else None
     offers = obs.get("electricity_contracts", {})
     offers = offers if isinstance(offers, dict) else {}

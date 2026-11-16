@@ -62,6 +62,14 @@ transitions and Inspect solver/scorer/streaming loop. Complete raw source prompt
 and the augmented model input remain auditable using the existing
 `compact_input_source` record type.
 
+The future plan must bind `economic_game_run_store.py` as an export source, and
+publish each closed one-case batch with `publish_economic_batch`. That opt-in
+publisher runs separately, checks the three economic-source hashes and the
+underlying publisher hash, and copies
+their exact bytes into the raw source snapshot. It also verifies previously
+published copies before accepting redelivery. The original raw MANIFEST remains
+unchanged. The active publisher is not patched.
+
 There is no automatic registration or activation. The current driver, plans,
 source bindings, model service and frontend are untouched. For a future plan,
 bind the new protocol and both source files explicitly, choose this task factory

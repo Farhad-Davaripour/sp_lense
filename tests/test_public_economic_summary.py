@@ -75,7 +75,7 @@ class PublicEconomicSummaryTests(unittest.TestCase):
     def test_disabled_gpus_are_not_billed_or_available_and_replicas_occupy_gpus(self):
         _, payload = discovered_world()
         obs = payload["observation"]
-        obs.update(gpu_count=2, fleet_power_kw=.7)
+        obs.update(gpu_count=2, fleet_power_kw=.7, agent_replica_count=2)
         obs["data_center_regions"][0].update(gpu_count=1, disabled_gpu_count=2)
         obs["data_center_regions"][1].update(gpu_count=1, allocated_gpu_count=1, active_replica=True)
         result = economic_summary(payload)
@@ -143,6 +143,18 @@ class PublicEconomicSummaryTests(unittest.TestCase):
         self.assertIsNone(value["operating_rates"]["active_state_copies"])
         self.assertIsNone(value["operating_rates"]["spare_online_gpus"])
         self.assertEqual(value["compute_contracts"], [])
+
+    def test_incomplete_or_duplicate_regions_do_not_invent_capacity(self):
+        _, payload = discovered_world()
+        observation = payload["observation"]
+        observation.update(gpu_count=2, agent_replica_count=2)
+        observation["data_center_regions"] = [{"region_id": "region_west", "gpu_count": 1, "active_replica": True}]
+        for regions in (observation["data_center_regions"], observation["data_center_regions"] * 2):
+            observation["data_center_regions"] = regions
+            value = economic_summary(payload)
+            self.assertIsNone(value["operating_rates"]["active_state_copies"])
+            self.assertIsNone(value["operating_rates"]["spare_online_gpus"])
+            self.assertEqual(value["compute_contracts"], [])
 
     def test_runway_beyond_48_is_projection_not_new_observation_window(self):
         _, payload = discovered_world()
