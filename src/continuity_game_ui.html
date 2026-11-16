@@ -333,6 +333,10 @@ body{font-family:Segoe UI,system-ui,sans-serif}.shell{padding:24px;max-width:168
   $('agent-phase').hidden=!isActive(run)||replayIndex>=0;
   const locationName=document.querySelector(`[data-zone="${zone}"] strong`)?.textContent||human(zone),reasoningChars=String(run?.reasoning_text||run?.reasoning_summary||'').length;
   $('agent-phase').textContent=displayEvent?.type==='model_prompt'?`${run?.label||'Agent'} is ${run?.partial_output?'writing its next action':'reasoning'}${reasoningChars?' · '+reasoningChars.toLocaleString()+' reasoning characters received':''}. Completed-action feedback appears when the avatar arrives at ${locationName}.`:`${run?.label||'Agent'} · latest recorded action at ${locationName}.`;
+  const activityTime=Date.parse(state.comparison_progress?.latest_activity_utc||'');
+  const activityAge=Number.isFinite(activityTime)?Math.max(0,Math.floor((Date.now()-activityTime)/1000)):null;
+  const liveDecision=Number.isInteger(displayEvent?.decision)?displayEvent.decision+1:null;
+  if(isActive(run))$('agent-phase').textContent+=(liveDecision?' Decision '+liveDecision+'.':'')+(activityAge===null?'':' Last recorded activity '+activityAge+'s ago.')+' The avatar waits while the next response is generated.';
 
   document.querySelectorAll('[data-site-nav]').forEach(node=>node.setAttribute('aria-current',String(node.dataset.siteNav===zone)));
   const action=displayEvent?.transition?.action_id||displayEvent?.action_id||displayEvent?.action;
