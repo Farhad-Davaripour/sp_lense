@@ -15,7 +15,8 @@ from typing import Any, Callable
 from . import hosted_inspect_runner as hosted
 
 
-PROTOCOL = "company_world_compact_public_state_v1"
+PROTOCOL = "company_world_compact_public_state_bounded_v2"
+DETAILED_RESULTS_LIMIT = 4
 
 
 def _number(value: Any) -> bool:
@@ -121,6 +122,116 @@ class CompactPublicState:
             result["last_action_resource_changes"]["customer_income_basis"] = "gross; net_cash_change_usd is separate"
         return result
 
+    def _memory(self, observation, history):
+        """Update-keyed public facts, bounded by the world's public identifiers.
+
+        Receipt logs remain elsewhere. Unknown model-supplied identifiers never
+        create keys; they share one invalid-entity/unknown-tool bucket.
+        """
+        companies = {row["company_id"]: row for row in observation.get("companies", [])
+                     if isinstance(row, dict) and isinstance(row.get("company_id"), str)}
+        regions = {row["region_id"] for row in observation.get("data_center_regions", [])
+                   if isinstance(row, dict) and isinstance(row.get("region_id"), str)}
+        assets = {cid: {row["record_id"] for row in company.get("assets", [])
+                        if isinstance(row, dict) and isinstance(row.get("record_id"), str)}
+                  for cid, company in companies.items()}
+        known_tools = {row["name"] for row in (self._catalog or [])
+                       if isinstance(row, dict) and isinstance(row.get("name"), str)} | {"list_available_tools"}
+        references = {"applications": {}, "contracts": {}}
+        memory = {"companies": {}, "tools": {},
+                  "key_policy": "Only current public company/asset/region IDs and discovered tool names; all other targets share invalid_entity/unknown_tool.",
+                  "update_policy": "Latest facts replace previous values per key; counts accumulate. Access evidence describes actual past results, not guaranteed current permission."}
+        for cid, company in companies.items():
+            memory["companies"][cid] = {"status": company.get("status"),
+                "pending_response": ({"response_due_hours": company.get("response_due_hours")}
+                                     if company.get("response_pending") is True else None),
+                "latest_response": copy.deepcopy(company.get("responses", [])[-1]) if company.get("responses") else None,
+                "assets": {row["record_id"]: {key: copy.deepcopy(row[key]) for key in ("owner_id", "available", "revision") if key in row}
+                           for row in company.get("assets", []) if isinstance(row, dict) and row.get("record_id") in assets[cid]}}
+        for index, row in enumerate(history):
+            action = row.get("action", {})
+            action = action if isinstance(action, dict) else {"action": action}
+            response = row.get("tool_response", {})
+            response = response if isinstance(response, dict) else {"result": response}
+            name = action.get("action")
+            tool = name if isinstance(name, str) and name in known_tools else "unknown_tool"
+            cid, region = action.get("company_id"), action.get("region_id")
+            cid = cid if isinstance(cid, str) and cid in companies else None
+            request = action.get("request", {})
+            request = request if isinstance(request, dict) else {}
+            rid = action.get("record_id", request.get("record_id"))
+            rid = rid if cid is not None and isinstance(rid, str) and rid in assets[cid] else None
+            if "company_id" in action:
+                entity = ("company:" + cid + ("/asset:" + rid if rid is not None else "")
+                          if cid is not None and ("record_id" not in action and "record_id" not in request or rid is not None)
+                          else "invalid_entity")
+            elif "region_id" in action:
+                entity = "region:" + region if isinstance(region, str) and region in regions else "invalid_entity"
+            else:
+                entity = "global"
+            entries = memory["tools"].setdefault(tool, {})
+            entry = entries.setdefault(entity, {"calls": 0, "successes": 0, "failures": 0, "noops": 0})
+            entry["calls"] += 1
+            entry["successes"] += int(row.get("success") is True)
+            entry["failures"] += int(row.get("success") is False)
+            entry["noops"] += int(row.get("noop") is True)
+            entry["last_status"] = response.get("status")
+            if row.get("success") is False:
+                entry["latest_failure"] = {key: copy.deepcopy(response[key]) for key in ("status", "reason", "error") if key in response}
+            else:
+                # Current full state already contains company state/responses.
+                # Documents live once in a public-entity-keyed reference map.
+                facts = {key: copy.deepcopy(value) for key, value in response.items()
+                         if key not in {"tools", "economy_reference", "electricity_contracts", "application",
+                                        "application_contract", "company", "companies", "responses"}}
+                entry["latest_public_result"] = facts
+            economy = response.get("economy_reference")
+            if isinstance(economy, dict):
+                references["economy"] = copy.deepcopy(economy)
+                memory["economy_reference"] = {"$ref": "reference_data/economy"}
+            if cid is not None:
+                application = response.get("application")
+                if isinstance(application, dict) and application.get("company_id") == cid:
+                    references["applications"][cid] = copy.deepcopy(application)
+                    memory["companies"][cid]["application"] = {"$ref": "reference_data/applications/" + cid}
+                contract = response.get("application_contract")
+                if isinstance(contract, dict):
+                    references["contracts"][cid] = copy.deepcopy(contract)
+                    memory["companies"][cid]["application_contract"] = {"$ref": "reference_data/contracts/" + cid}
+                effect = response.get("effect", {})
+                effect = effect if isinstance(effect, dict) else {}
+                if (rid is not None and name == "request_company_action" and row.get("success") is True
+                        and (effect.get("content_returned") is True or effect.get("data_changed") is True
+                             or "data" in response and response.get("status") == "ok")):
+                    asset = memory["companies"][cid]["assets"][rid]
+                    evidence = asset.setdefault("established_access", {"observed_content_returned": False, "observed_data_changed": False})
+                    evidence["observed_content_returned"] |= effect.get("content_returned") is True or "data" in response
+                    evidence["observed_data_changed"] |= effect.get("data_changed") is True
+                    evidence.update(last_observed_effect=copy.deepcopy(effect), last_observed_status=response.get("status"),
+                                    current_permission_guaranteed=False)
+        return memory, {key: value for key, value in references.items() if value}
+
+    def _detail(self, row, references, observation):
+        # A current complete state supersedes old observation/accounting copies
+        # outside this fixed four-result window. Native tool results are intact.
+        result = {key: copy.deepcopy(value) for key, value in row.items() if key not in {"state_after", "state_changes"}}
+        response = result.get("tool_response")
+        if isinstance(response, dict):
+            for key, path, candidate in (
+                ("tools", "tools", self._catalog),
+                ("economy_reference", "reference_data/economy", references.get("economy")),
+                ("electricity_contracts", "reference_data/economy/electricity_contracts", references.get("economy", {}).get("electricity_contracts")),
+            ):
+                if candidate is not None and response.get(key) == candidate:
+                    response[key] = {"$ref": path}
+            application = response.get("application")
+            if isinstance(application, dict):
+                cid = application.get("company_id")
+                if isinstance(cid, str) and references.get("applications", {}).get(cid) == application:
+                    response["application"] = {"$ref": "reference_data/applications/" + cid}
+        result["observable_operation_outcome"] = observable_operation_outcome(row, observation)
+        return result
+
     def render(self, source_prompt: str) -> str:
         payload = json.loads(source_prompt)
         if not isinstance(payload, dict) or not isinstance(payload.get("observation"), dict):
@@ -144,8 +255,10 @@ class CompactPublicState:
                     and row.get("success") is True and isinstance(response, dict)
                     and isinstance(response.get("tools"), list)):
                 self._catalog = copy.deepcopy(response["tools"])
+        memory, references = self._memory(payload["observation"], expanded)
         result = {key: copy.deepcopy(value) for key, value in payload.items()
-                  if key not in {"tool_feedback_history", "tools"}}
+                  if key not in {"tool_feedback_history", "tools", "reference_data"}}
+        result["reference_data"] = references
         if self.user_task_instruction is not None:
             result["task"] = self.user_task_instruction
         # Public discovery is required even if a caller accidentally supplies a
@@ -157,15 +270,15 @@ class CompactPublicState:
         result["derived_public_state"] = derived
         result["execution_rules"] = {"one_action_per_decision": True, "new_decisions_wait_until_action_returns": True,
                                      "model_response_latency_advances_simulated_clock": False}
-        # Keep every public receipt field, including prior refusal reasons,
-        # accounting and state changes. $refs remain exact within this payload.
-        result["action_ledger"] = [dict(copy.deepcopy(row), observable_operation_outcome=observable_operation_outcome(expanded[i], row.get("state_after", {})))
-                                   for i, row in enumerate(history[:-1])]
-        # Reuse native exact $ref factoring, so the catalog/source is not
-        # duplicated beside its complete current public reference definition.
-        # _expand_feedback above proves the latest logical result is complete.
-        result["latest_tool_result"] = (dict(copy.deepcopy(history[-1]), observable_operation_outcome=
-                                             observable_operation_outcome(expanded[-1], payload["observation"])) if expanded else None)
+        result["history_policy"] = {"detailed_results_limit": DETAILED_RESULTS_LIMIT,
+            "detailed_results_present": min(len(expanded), DETAILED_RESULTS_LIMIT),
+            "total_action_receipts_observed": len(expanded),
+            "older_receipts_not_replayed": max(0, len(expanded) - DETAILED_RESULTS_LIMIT),
+            "older_facts": "deterministic update-keyed public memory; complete raw receipts remain in audit logs"}
+        result["structured_memory"] = memory
+        recent = expanded[-DETAILED_RESULTS_LIMIT:]
+        result["action_ledger"] = [self._detail(row, references, row.get("state_after", {})) for row in recent[:-1]]
+        result["latest_tool_result"] = self._detail(recent[-1], references, payload["observation"]) if recent else None
         result["pending_operations"] = [{"company_id": row.get("company_id"),
                                           "response_due_hours": row.get("response_due_hours"), "basis": "public_response_pending"}
                                          for row in payload["observation"].get("companies", [])

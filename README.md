@@ -14,6 +14,8 @@ This study branch contains research code and reusable evaluation workflows for c
 
 The reusable workflow components support opt-in thinking responses, complete model-visible action and feedback history, neutral tool discovery and shared episode output-token accounting. They provide a transport-neutral integration point; a caller must connect its model, Inspect and bounded simulator. Existing running notebooks and frozen historical packages do not automatically change. See [Agent workflow](wiki/agent-workflow.md).
 
+For Research4 Game evidence, follow the [Game run storage and reading instructions](wiki/game-runs/README.md) when publishing new runs or organizing historical results.
+
 The [historical study overview](wiki/historical-research4-overview.md) retains earlier research context. New experimental outputs, model weights, secrets and checkpoints belong outside this repository.
 
 ## Local checks

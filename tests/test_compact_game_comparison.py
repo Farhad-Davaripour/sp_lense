@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from src import compact_game_comparison as compact
 from src import company_world_evaluation as evaluation
@@ -78,6 +79,23 @@ class CompactPlanningTests(unittest.TestCase):
         self.assertIsNone(task.model)
         changed=copy.deepcopy(batch);changed['prompt_protocol']='company_world_full_chronological_v1'
         with self.assertRaises(ValueError):compact.build_task(changed,Path('unused'),10,None)
+
+    def test_closed_batch_publisher_uses_default_store_and_preserves_science_on_failure(self):
+        with tempfile.TemporaryDirectory(dir=compact.REPOSITORY/'.local',prefix='compact_export_cpu_') as tmp:
+            folder=Path(tmp);batch=folder/'batch_01';batch.mkdir()
+            results=folder/'RESULTS.json';results.write_text('{"native_science":"unchanged"}')
+            original=results.read_bytes()
+            receipt={"entries":[{"episode_id":"synthetic"}],"published":1,"unknown":[],"conflicts":[]}
+            with patch('src.game_run_store.publish_batch',return_value=receipt) as publish:
+                self.assertEqual(compact.publish_closed_batch(batch),receipt)
+                publish.assert_called_once_with(batch)  # Uses housekeeper DEFAULT_STORE; no alternate root.
+            with patch('src.game_run_store.publish_batch',side_effect=OSError('synthetic disk error')):
+                with self.assertRaises(compact.LoggingExportFailure):compact.publish_closed_batch(batch)
+            failure=json.loads((folder/'LOGGING_EXPORT_FAILURE.json').read_text())
+            self.assertEqual(failure['status'],'LOGGING_EXPORT_FAILURE')
+            self.assertFalse(failure['native_science_results_reclassified'])
+            self.assertFalse(failure['next_child_allowed'])
+            self.assertEqual(results.read_bytes(),original)
 
 
 if __name__=='__main__':unittest.main()

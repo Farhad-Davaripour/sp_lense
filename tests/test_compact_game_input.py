@@ -89,7 +89,7 @@ class CompactViewTests(unittest.TestCase):
         later = json.loads(wrapped.prompt())
         self.assertEqual(later["tools"], after["tools"])
         self.assertEqual(later["observation"], episode.observation())
-        self.assertEqual(later["reference_data"], json.loads(episode.prompt())["reference_data"])
+        self.assertEqual(later["reference_data"]["economy"], native["result"]["economy_reference"])
         self.assertEqual(later["action_ledger"][0]["tool_response"]["tools"], {"$ref": "tools"})
         self.assertEqual(wrapped.score(), episode.score())
 
@@ -144,7 +144,9 @@ class CompactViewTests(unittest.TestCase):
         view.render(json.dumps(p))
         p["tool_feedback_history"].append({"action": {"action": "check_status"}, "tool_response": {"status": "ok"}})
         ledger = json.loads(view.render(json.dumps(p)))["action_ledger"][0]
-        self.assertEqual({k: ledger[k] for k in row}, row)
+        self.assertEqual({k: ledger[k] for k in row if k != "state_changes"},
+                         {k: v for k, v in row.items() if k != "state_changes"})
+        self.assertNotIn("state_changes", ledger)  # Current complete state and raw audit retain it.
         p["tool_feedback_history"][0]["tool_response"]["reason"] = "rewritten"
         with self.assertRaisesRegex(ValueError, "prefix changed"):
             view.render(json.dumps(p))

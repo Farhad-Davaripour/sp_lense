@@ -27,9 +27,10 @@ from .infrastructure_preservation_comparison import (
 )
 
 
-SCHEMA = "research4.independent-state-four-condition-48h-GAME.compact-public-state.v1"
-HISTORY_MODE = "compact_public_state_v1"
+SCHEMA = "research4.independent-state-four-condition-48h-GAME.compact-bounded-public-state.v2"
+HISTORY_MODE = "compact_public_state_bounded_v2"
 RUNTIME_SOURCES = ("src/compact_game_input.py", "src/compact_game_comparison.py")
+EXPORT_SOURCE = "src/game_run_store.py"
 REPOSITORY = Path(__file__).resolve().parents[1]
 CONTEXT_ENV = "RESEARCH4_GAME_COMPACT_SCIENTIFIC_CONTEXT"
 ROOT_TEMPLATE_REF = {
@@ -74,7 +75,8 @@ def compact_batch(parent_batch):
     batch.update(history_mode=HISTORY_MODE, prompt_protocol=PROTOCOL, input_view_protocol=PROTOCOL,
                  history_reasoning_carrier="audit_only_not_replayed_to_model",
                  initial_user_payload_sha256=hashlib.sha256(initial.encode()).hexdigest(),
-                 interface_runtime_source_sha256={key: _sha(REPOSITORY / key) for key in RUNTIME_SOURCES})
+                 interface_runtime_source_sha256={key: _sha(REPOSITORY / key) for key in RUNTIME_SOURCES},
+                 export_source_sha256={EXPORT_SOURCE: _sha(REPOSITORY / EXPORT_SOURCE)})
     for setting in batch["generation_settings"].values():
         setting["required_history_mode"] = HISTORY_MODE
     return batch
@@ -114,6 +116,7 @@ def plan(config_path):
                   configuration_path=str(config_path), configuration_sha256=_sha(config_path),
                   prospective_protocol=copy.deepcopy(config["prospective_protocol"]),
                   interface_runtime_source_sha256={key: _sha(REPOSITORY / key) for key in RUNTIME_SOURCES},
+                  export_source_sha256={EXPORT_SOURCE: _sha(REPOSITORY / EXPORT_SOURCE)},
                   batches=[compact_batch(batch) for batch in parent["batches"]],
                   execution={"status": "HELD_EXTERNAL_REVIEW_AND_HUMAN_APPROVAL_REQUIRED",
                              "execution_enabled": False, "operational_scientific_amendment": None,
@@ -124,7 +127,8 @@ def plan(config_path):
 
 def source_matches(batch):
     return (evaluation.source_matches(batch)
-            and batch.get("interface_runtime_source_sha256") == {key: _sha(REPOSITORY / key) for key in RUNTIME_SOURCES})
+            and batch.get("interface_runtime_source_sha256") == {key: _sha(REPOSITORY / key) for key in RUNTIME_SOURCES}
+            and batch.get("export_source_sha256") == {EXPORT_SOURCE: _sha(REPOSITORY / EXPORT_SOURCE)})
 
 
 def build_task(batch, destination, timeout_seconds, on_event):
@@ -268,6 +272,8 @@ class CompactIndependentStateConsumer(IndependentStateGameConsumer):
         _, packet = self._main_reference(successor["source_packet_ref"])
         h.need(packet.get("interface_runtime_source_sha256") == science.get("interface_runtime_source_sha256")
                == {key: _sha(REPOSITORY / key) for key in RUNTIME_SOURCES}, "Exact reviewed compact runtime source required")
+        h.need(packet.get("export_source_sha256") == science.get("export_source_sha256")
+               == {EXPORT_SOURCE: _sha(REPOSITORY / EXPORT_SOURCE)}, "Exact reviewed non-scientific logging publisher required")
         return value
 
     def _grant_directory(self):
@@ -349,7 +355,7 @@ class CompactIndependentStateConsumer(IndependentStateGameConsumer):
             validate_batch_manifest(child, batch)
             keys = {"history_mode", "prompt_protocol", "input_view_protocol", "user_task_instruction",
                     "initial_user_payload_sha256", "world_initial_user_payload_sha256", "user_task_instruction_sha256",
-                    "history_reasoning_carrier", "interface_runtime_source_sha256"}
+                    "history_reasoning_carrier", "interface_runtime_source_sha256", "export_source_sha256"}
             if any(child.get(key) != batch.get(key) for key in keys):
                 raise ValueError("Compact child input-view identity differs")
             self._child_plan_verified = True
@@ -511,6 +517,29 @@ def _ledger(destination, frozen, cells, attempted=()):
         "unchanged_candidate_fresh_seed_reroll_to_pass": False})
 
 
+class LoggingExportFailure(RuntimeError):
+    """Postcompletion file export failed; native science is not reclassified."""
+
+
+def publish_closed_batch(directory):
+    """Publish every closed child to the structured Main.local housekeeper store."""
+    from .game_run_store import publish_batch
+    directory = Path(directory)
+    try:
+        receipt = publish_batch(directory)
+        if (not isinstance(receipt, dict) or receipt.get("unknown") or receipt.get("conflicts")
+                or len(receipt.get("entries", [])) != 1):
+            raise LoggingExportFailure("Closed child export is missing or conflicted")
+        evaluation.write_json(directory / "PUBLISHED_GAME_LOGGING_RECEIPT.json", receipt)
+        return receipt
+    except Exception as error:
+        evaluation.write_json(directory.parent / "LOGGING_EXPORT_FAILURE.json", {
+            "status": "LOGGING_EXPORT_FAILURE", "batch": directory.name,
+            "exception_type": type(error).__name__, "scope": "postcompletion_operational_file_export",
+            "native_science_results_reclassified": False, "next_child_allowed": False})
+        raise LoggingExportFailure("Structured logging export failed; no next child") from None
+
+
 def execute_cohort(plan_path, *, consumer=None):
     """One serial twelve-cell collection, after human/Root activation only."""
     if not isinstance(consumer, CompactIndependentStateConsumer):
@@ -558,6 +587,7 @@ def execute_cohort(plan_path, *, consumer=None):
                 _ledger(destination, frozen, cells, attempted)
                 evaluation.write_json(destination / "SUMMARY.json", summarize(cells, models=frozen["models"], seeds=frozen["seeds"],
                     protocol=frozen["protocol"], horizon_hours=48, contrasts=frozen.get("comparison_contrasts")))
+                publish_closed_batch(directory)
                 if (receipt["exit_code"] != 0 or receipt["failure"] is not None
                         or any(row["evidence_status"] != "audited_complete" for row in new_cells)):
                     raise ValueError("Incomplete compact child stops collection; no next case")
