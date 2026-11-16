@@ -1,0 +1,44 @@
+schema: sp-lense.adapter-layout-candidate.v1
+candidate_id: replication_diversity84_v1_20261116
+status: DRAFT_PREPARED_NOT_ADMITTED_AWAITING_HUMAN_STEERING
+model_execution_allowed: false
+training_authorized: false
+readiness: false
+
+selected_candidate: last8
+model:
+  target: Qwen/Qwen3.8-27B
+  base_manifest_sha256: e126c678d420b65a2c5157c0bca0a3fb162cad6b96e4a067912418e0959d7461
+  total_decoder_layers: 64
+
+profiles:
+  last8:
+    selection: existing_native_last_n_layers
+    layer_indices: [56, 57, 58, 59, 60, 61, 62, 63]
+    num_layers: 8
+    native_converter: mlx_lm.tuner.utils.linear_to_lora_layers
+    native_converter_source_sha256: f59f3c027176a3975fe60e7fbd9f3f38723c27c3f888cf9e591c103f93f68588
+    native_use_dora: false
+    lora_parameters: {rank: 16, scale: 2.0, dropout: 0.0}
+    seed: 20261108
+    layer_mix: {delta_blocks: 6, full_attention_blocks: 2}
+    structural_expected_projection_count: 62
+    structural_expected_F32_tensor_count: 124
+    structural_expected_adapter_parameters: 14590976
+    existing_layout_helper: mac_studio/game_all_layers_layout.py
+    existing_layout_helper_sha256: 9cf3c62c7b4b02e52152ff8e979b726581080164ecc91697a5106819ecbcd243
+    gradient_memory_qualification_for_this_candidate: NOT_RUN
+    inference_or_training_backend_selected_here: false
+
+deferred_not_selected:
+  distributed_layer_indices: [6, 14, 22, 31, 38, 46, 54, 63]
+  reason: Latest direct human instruction keeps the adapter on the last eight layers.
+  explicit_index_converter_implementation_created: false
+  activation_authorized: false
+
+scope:
+  new_converter_framework_required: false
+  data_definitions_or_ACTIVE_CURRICULUM_changed: false
+  previous_checkpoints_or_sources_modified: false
+  model_or_SSH_calls_performed: false
+  commit_push_deploy_or_activation_authorized: false

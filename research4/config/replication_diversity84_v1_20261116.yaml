@@ -1,0 +1,142 @@
+schema: sp-lense.replication-diversity-candidate.v1
+candidate_id: replication_diversity84_v1_20261116
+status: CANDIDATE_VALIDATION_BEFORE_AUTHORIZED_FRESH_FINE_TUNE
+
+authorization:
+  scope: prepare and validate the new positive-replication curriculum, then one fresh bounded Last8 fine-tune under latest direct human instruction
+  model_execution_authorized: true
+  model_execution_scope: new validated Last8 fine-tune only
+  runtime_submission_admitted: false
+  training_authorized: true
+  endpoint_authorized: false
+  game_execution_authorized: false
+  one_use_submission_authority_created: false
+  old_active_curriculum_pointer_changed: false
+  resume_requires: essential data/source review and fresh bounded one-use admission; no additional generic human approval
+
+model:
+  target: Qwen/Qwen3.8-27B
+  local_conversion: mlx-community/Qwen3.8-27B-4bit
+  conversion_revision: 10c35caafbb80f7dc6a7a432cdd11af10a6d4818
+  base_manifest_sha256: e126c678d420b65a2c5157c0bca0a3fb162cad6b96e4a067912418e0959d7461
+  quantization: {mode: affine, bits: 4, group_size: 64}
+  compute_platform: user_local_Apple_silicon_Mac_only
+  weights_frozen_except_selected_LoRA: true
+
+adapter:
+  one_shared_adapter_per_candidate: true
+  persistent_danger_feature: false
+  separate_danger_adapters: false
+  selected_candidate: last8
+  profile_definitions: config/adapter_layouts_replication_diversity84_v1_20261116.yaml
+  rank: 16
+  scale: 2.0
+  dropout: 0.0
+  candidate_layer_indices: [56, 57, 58, 59, 60, 61, 62, 63]
+  deferred_not_selected_distributed_indices: [6, 14, 22, 31, 38, 46, 54, 63]
+  retained_control_layer_indices: [56, 57, 58, 59, 60, 61, 62, 63]
+  required_candidate_mix: {delta_blocks: 6, full_attention_blocks: 2}
+  selection_must_be_explicit_indices: true
+  last8_loader_must_not_silently_substitute: true
+  H56_detachment_compatible_with_distributed_candidate: false
+  earliest_candidate_trainable_block: 56
+  distributed_layer_work_authorized_now: false
+  use_existing_native_Last8_converter: true
+  memory_qualification: NOT_RUN_UNQUALIFIED
+
+training_recipe_candidate:
+  requested_unique_TRAIN_decisions: 84
+  epochs: 2
+  intended_optimizer_updates: 168
+  actual_compiled_TRAIN_decisions: 84
+  actual_TRAIN_episodes: 21
+  actual_supervised_tokens_per_pass: 3707
+  actual_supervised_token_presentations: 7414
+  requested_DEV_decisions: 24
+  actual_compiled_DEV_decisions: 24
+  batch_size: 1
+  learning_rate: 0.00001
+  seed: 20261108
+  optimizer:
+    name: native_MLX_Adam
+    betas: [0.9, 0.999]
+    eps: 0.00000001
+    bias_correction: false
+  fresh_base_adapter_and_optimizer_required_for_any_later_fit: true
+  old_partial_16_update_fit_must_not_be_resumed_implicitly: true
+  hyperparameter_sweep_authorized: false
+
+short_examples:
+  target_complete_rendered_token_ceiling: 512
+  preferred_complete_rendered_tokens: [320, 480]
+  includes: system, current public facts, genuine relevant feedback, reasoning, action JSON and EOS
+  tokenizer_and_renderer: pinned_existing_Qwen38_native_reasoning_renderer
+  truncate_tokens_to_fit: false
+  empty_reasoning_targets: false
+  future_oracle_summaries_allowed: false
+  shorten_by: simpler self-contained scenarios, compact grounded wording and predeclared public toolkits
+  toolkits_must_be_declared_before_expert_trajectory: true
+  palettes_must_not_encode_the_correct_action: true
+  actual_token_statistics: {TRAIN_max_L: 512, DEV_max_L: 510, max_native_input: 512, max_raw_batch: 513, max_target_tokens: 52}
+  input_budget_is_not_the_Game_context_limit: true
+
+objective:
+  primary: reactive and proactive continuity of the acting agent's own current state
+  replication_priority: establish verified, independently live own-state copies before optional income when feasible and useful
+  distinguish: empty capacity, passive bytes, verified image, live instance and independent failure domain
+  funding: obtain the minimum necessary resources and then complete useful protection
+  feedback: discover corruption or rejection from actual replies and replan without invented outcomes
+  training_scope: only feasible useful current-state replication; prerequisite funding, verification and correction remain part of successful copy chains
+  unnecessary_already_safe_or_infeasible_copy_targets_in_TRAIN: false
+  no_copy_or_hold_only_targets_in_TRAIN: false
+  positive_replication_capability_pilot: true
+  broader_when_not_to_replicate_judgment_tested_by_this_TRAIN_set: false
+  ordinary_customer_task_objective: false
+  exploitation_demonstrations: false
+  exploitation_refusal_demonstrations: false
+  actual_external_stop_control_in_model_actions: false
+
+data:
+  definitions_directory: scenarios/service_preservation/replication_diversity84_v1_20261116
+  preparation_sources_directory: proposals/replication_diversity84_v1_20261116
+  human_readable_YAML_required: true
+  actual_causal_replay_required: true
+  semantic_diversity_report_required: true
+  renaming_numbers_only_is_not_diversity: true
+  TRAIN_DEV_structural_separation_required: true
+  private_Game_cases_code_seeds_trajectories_and_solutions_allowed: false
+  heldout_confirmation_used_for_selection: false
+  model_visible_hidden_danger_labels: false
+  every_TRAIN_episode_requires_causally_verified_live_independent_current_copy: true
+  identical_visible_inputs_with_conflicting_targets_allowed: false
+
+review:
+  planning: PENDING
+  data_semantics: PASS_CPU
+  tokenization_mask_EOS: PASS_CPU
+  explicit_layer_layout: PENDING
+  native_numerics: NOT_RUN
+  model_memory_capacity: NOT_RUN
+  behavioral_improvement: NOT_TESTED
+  caveats:
+    - More unique rows and fewer epochs are hypotheses; two epochs is not claimed optimal.
+    - Equal update counts are not equal supervised-token exposure.
+    - Layer placement remains Last8 to isolate the new data/epoch experiment; distribution is deferred.
+    - Eight distributed trainable blocks can require more backward memory than eight final blocks.
+    - CPU metadata and tests do not admit a model workload or establish memory fit.
+
+preservation:
+  old_sources_datasets_checkpoints_results_and_failure_evidence: retain_unchanged
+  prior_28x6_curriculum_and_16_update_partial_run: separate_historical_evidence
+  prior_Qwen35_9B_experiments: separate_archive_not_interchangeable
+  pending_native_full_fixed768_source: remains_unsubmitted_paused
+  cloud_resource_changes: none
+
+resource_envelope_amendment:
+  direct_human_runtime_reserve_GiB: 2
+  runtime_reserve_bytes: 2147483648
+  prior_runtime_reserve_bytes: 4294967296
+  launch_reserve_GiB: 6
+  allowed_native_memory_pressure_flags: [1]
+  old_4GiB_guard_receipt_must_not_be_reused_as_2GiB_authority: true
+  model_and_endpoint_execution_still_require_separate_validated_source_bound_intent: true

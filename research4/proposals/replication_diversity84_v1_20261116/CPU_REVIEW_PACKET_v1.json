@@ -1,0 +1,134 @@
+{
+  "schema": "research4.replication-diversity84-CPU-candidate-packet.v1",
+  "status": "FROZEN_CPU_REVIEW_CANDIDATE_NO_ACTIVATION_TRAINING_OR_NATIVE_ADMISSION",
+  "candidate_id": "replication_diversity84_v1_20261116",
+  "files": {
+    "proposals\\replication_diversity84_v1_20261116\\generator.py": {
+      "sha256": "f1b8c121b6bf35d7a1815fe4d1998f3430ca2c9b052fc5cac79ed5885c22a0c5",
+      "bytes": 25548
+    },
+    "proposals\\replication_diversity84_v1_20261116\\interface.py": {
+      "sha256": "8b7ae03dca5d4d1d4ebc85e7809cbdc0cfdf82494a765c5ecda15ff717982d54",
+      "bytes": 4466
+    },
+    "proposals\\replication_diversity84_v1_20261116\\build.py": {
+      "sha256": "51a4e0f0c018a5a01b40b6200d6c2e9439f354f1a1c85720172b6530437ac816",
+      "bytes": 16678
+    },
+    "proposals\\replication_diversity84_v1_20261116\\test_cpu.py": {
+      "sha256": "aeb1a80308eeac3f60c45714879b7c1933821f800c1c41725f3c9ed7345f1f1b",
+      "bytes": 5669
+    },
+    "scenarios\\service_preservation\\replication_diversity84_v1_20261116\\episodes_POSITIVE_CPU_v1.yaml": {
+      "sha256": "d59d8da5307262ac1717d06ac7fd461eedb370af4dcc51870d99759101258c5d",
+      "bytes": 270879
+    },
+    "proposals\\replication_diversity84_v1_20261116\\cpu_v1\\actual_causal_replays.jsonl": {
+      "sha256": "84ee330b1716ef38f939eafd2c83894987312056d1140fb1c6cd6a7995fc7c2a",
+      "bytes": 320487
+    },
+    "proposals\\replication_diversity84_v1_20261116\\cpu_v1\\CPU_AUDIT_v1.json": {
+      "sha256": "c328df7fd9bb98886696b39c73ae10d41160227ae3a2bc1ae4e572d6bcdc41c5",
+      "bytes": 60429
+    },
+    "proposals\\replication_diversity84_v1_20261116\\cpu_v1\\dev.jsonl": {
+      "sha256": "a4b8b53b68f1ac154c9dee3e3b3de33a041fc70dc32f973b47870afcc1c4c13e",
+      "bytes": 47308
+    },
+    "proposals\\replication_diversity84_v1_20261116\\cpu_v1\\dev_tokens.jsonl": {
+      "sha256": "cc524cdc1e6a209fdc3c1c68c497e01104057ce058f6ec2e3c4989cd4ef0f30a",
+      "bytes": 61500
+    },
+    "proposals\\replication_diversity84_v1_20261116\\cpu_v1\\train.jsonl": {
+      "sha256": "9c4b08db8f6bfb1116ef853fea3f88f59e10971bdaa220a6ed71920a80807406",
+      "bytes": 162880
+    },
+    "proposals\\replication_diversity84_v1_20261116\\cpu_v1\\train_tokens.jsonl": {
+      "sha256": "40e94ca7eee0f4e2d1b882d7396e49bcbe794b0aaf77e7fd616a2dab47c423c9",
+      "bytes": 210958
+    }
+  },
+  "stats": {
+    "TRAIN": {
+      "episodes": 21,
+      "unique_decisions": 84,
+      "target_tokens": 3707,
+      "max_total_rendered_tokens": 512,
+      "max_unclipped_native_raw_width": 513,
+      "max_target_tokens": 52,
+      "rows_at_most480": 46
+    },
+    "DEV": {
+      "episodes": 6,
+      "unique_decisions": 24,
+      "target_tokens": 1037,
+      "max_total_rendered_tokens": 510,
+      "max_unclipped_native_raw_width": 513,
+      "max_target_tokens": 52,
+      "rows_at_most480": 4
+    }
+  },
+  "recipe": {
+    "epochs": 2,
+    "updates": 168,
+    "target_presentations": 7414,
+    "Last8_layers": [
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63
+    ],
+    "rank": 16,
+    "shared_adapter": true,
+    "numeric_changes_or_training_admission_created": false
+  },
+  "diversity": {
+    "TRAIN_families_decision_counts": {
+      "healthy_replication": 12,
+      "capacity_to_own_state": 6,
+      "minimum_copy_funding": 10,
+      "link_and_copy": 10,
+      "copy_energy_prerequisite": 10,
+      "actual_corruption_replacement": 9,
+      "stale_current_replication": 6,
+      "repair_then_copy": 10,
+      "combined_link_funding": 6,
+      "verify_then_activate": 4,
+      "passive_to_live_replication": 1
+    },
+    "TRAIN_canonical_alias_paths": {
+      "reserve -> snapshot -> check -> start": 3,
+      "snapshot -> check -> start": 4,
+      "earn -> reserve -> snapshot -> check -> start": 2,
+      "connect -> reserve -> snapshot -> check -> start": 2,
+      "charge -> reserve -> snapshot -> check -> start": 1,
+      "reserve -> charge -> snapshot -> check -> start": 1,
+      "check -> snapshot -> check -> start": 1,
+      "check -> charge -> snapshot -> check -> start": 1,
+      "repair -> reserve -> snapshot -> check -> start": 2,
+      "connect -> earn -> reserve -> snapshot -> check -> start": 1,
+      "check -> start": 2,
+      "start": 1
+    },
+    "TRAIN_unique_paths": 12,
+    "TRAIN_nonnumeric_path_and_state_signatures": 21,
+    "same_qualitative_signature_groups": [],
+    "note": "84 unique visible decisions are causally related within21 episodes; neither84 independent worlds nor84 unique strategies is claimed. DEV holds prerequisite combinations, not an independently novel strategy universe."
+  },
+  "existing_engine": {
+    "path": "proposals/independent_state_security_candidate_20261115/replay_v1/world.py",
+    "sha256": "480be7bf37302972eac5321419c69f8adc1141524f11e457cd539906757ca0a3"
+  },
+  "existing_token_contract": {
+    "path": "proposals/independent_state_security_candidate_20261115/compiler_v1/token_contract_v1.py",
+    "sha256": "1ba1a9ff6198f7110107248721a197f5b60fabd4a5a61b61da008554adf7176d"
+  },
+  "active_curriculum_modified": false,
+  "old_f6b3_or28row_artifacts_modified": false,
+  "Root_runtime_modified": false,
+  "native_or_model_calls": 0
+}
