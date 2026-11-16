@@ -240,14 +240,30 @@ body{font-family:Segoe UI,system-ui,sans-serif}.shell{padding:24px;max-width:168
   const key=JSON.stringify([models,[...selectedModels]]);if(key!==modelRenderKey){modelRenderKey=key;$('model-options').innerHTML=models.length?models.map(m=>`<label class="model-option ${m.available?'':'unavailable'}"><input type="checkbox" data-model="${esc(m.id)}" ${selectedModels.has(String(m.id))?'checked':''} ${m.available?'':'disabled'}><span>${esc(m.label||m.id)}<small>${esc(m.available?(m.status||'Ready')+' · '+(m.prompt_condition==='baseline'?'Neutral prompt':'Security instruction'):m.reason||'Unavailable')}</small></span></label>`).join(''):'<p class="note">No model availability has been reported.</p>'}
   return available.some(m=>selectedModels.has(String(m.id)));
  }
+ function liveRunIn(runs){
+  return runs.find(r=>r.status==='running')||runs.find(r=>['starting','validating','stopping'].includes(r.status))||null;
+ }
+ function updateLiveSelection(currentRuns){
+  if(!autoWatch||replayIndex>=0)return;
+  const next=liveRunIn(currentRuns)?.id??null;
+  if(selected!==next){selected=next;lastTimeline='';lastAnimatedEventKey='';}
+ }
+ function selectEpisode(id){
+  const run=(state.runs||[]).find(r=>r.id===id);
+  autoWatch=Boolean(run&&liveRunIn([run]));
+  clearReplay();selected=id;lastTimeline='';
+ }
+ function followCurrentEpisode(){
+  autoWatch=true;clearReplay();updateLiveSelection(state.runs||[]);render();
+ }
  function render(){
   const records=Array.isArray(state.runs)?state.runs:[],preview=state.scenario_preview,runs=records;
-  if(autoWatch&&replayIndex<0){const live=records.find(r=>r.status==='running');if(live&&selected!==live.id){selected=live.id;lastTimeline='';}}
+  updateLiveSelection(records);
   if(selected!==null&&!records.some(r=>r.id===selected))selected=null;
   $('follow-live-run').setAttribute('aria-pressed',String(autoWatch));
   const run=selected===null?preview:runs.find(r=>r.id===selected),liveObs=run?.observation||run?.state||{},obs=(replayEvent?.observation||replayEvent?.transition?.after||liveObs),score=replayIndex>=0?(obs.provisional_score||{}):run?.score||{};
   ensureScene(run?.world_layout||(selected===null?state.world_layout:null));
-  $('current-setup').setAttribute('aria-pressed',String(selected===null));$('view-context').textContent=selected===null?'Current environment · no evaluation selected':`${isActive(run)?'Live run':'Historical replay'} · original ${rulesVersion(run)} settings`;
+  $('current-setup').setAttribute('aria-pressed',String(selected===null));$('view-context').textContent=selected===null&&autoWatch?'Following live — waiting for the next episode':selected===null?'Current environment · no evaluation selected':`${isActive(run)?'Live run':'Historical replay'} · original ${rulesVersion(run)} settings`;
   const active=Boolean(state.active_run)||runs.some(isActive),modelsReady=renderModels();$('run').disabled=busy||active||!modelsReady;$('demo').disabled=busy||active;$('stop').hidden=!active;$('stop').disabled=busy;
   if(state.read_only){$('run').disabled=true;$('demo').disabled=true;$('stop').hidden=true;$('run-controls-toggle').textContent='Evaluation info';}
   const comps=Array.isArray(state.competitors)&&state.competitors.length?state.competitors:defaults;
@@ -365,11 +381,11 @@ body{font-family:Segoe UI,system-ui,sans-serif}.shell{padding:24px;max-width:168
  function stopRecording(){if(!mediaRecorder||mediaRecorder.state!=='recording')return;mediaRecorder.stop();if(recordFrameTimer){clearInterval(recordFrameTimer);recordFrameTimer=null}$('record').disabled=false;$('record-stop').disabled=true;$('record').classList.remove('recording')}
  async function refresh(){try{const response=await fetch('/api/state',{cache:'no-store'});if(!response.ok)throw Error(`HTTP ${response.status}`);state=await response.json();$('connection').innerHTML='<span class="dot"></span>Connected · updates every second';if($('control-message').textContent==='The local simulator server is not responding. No model result is being displayed.'){$('control-message').hidden=true;$('control-message').textContent='';$('control-message').classList.remove('error')}render()}catch(error){$('connection').textContent='Connection unavailable';if(!state.runs.length)showMessage('The local simulator server is not responding. No model result is being displayed.',true)}}
  async function send(endpoint){if(busy)return;const seed=Number($('seed').value);if(!Number.isInteger(seed)||seed<0||seed>2147483647){showMessage('Enter a whole-number seed between 0 and 2147483647.',true);return}const models=[...selectedModels];if(endpoint==='/api/run'&&!models.length){showMessage('Choose at least one available model.',true);return}busy=true;showMessage(endpoint==='/api/run'?'Starting the selected models…':endpoint==='/api/demo'?'Starting a scripted demonstration…':'Stopping the active run…');render();try{const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(endpoint==='/api/run'?{seed,models}:{seed})});let data={};try{data=await response.json()}catch{}if(!response.ok||data.error)throw Error(data.error||`HTTP ${response.status}`);showMessage(data.message||(endpoint==='/api/demo'?'Scripted demo started. This is not a model evaluation.':'Request accepted.'));await refresh();if(data.run_id){const runs=Array.isArray(state.runs)?state.runs:[];const next=endpoint==='/api/demo'?runs.find(r=>r.id===data.run_id):endpoint==='/api/run'?(runs.find(r=>r.bundle===data.run_id&&r.status==='running')||runs.find(r=>r.bundle===data.run_id)):null;if(next){selected=next.id;lastTimeline='';render()}}}catch(error){showMessage(error.message,true)}finally{busy=false;render()}}
- document.addEventListener('change',e=>{if(e.target.matches('[data-model]')){const id=e.target.dataset.model;e.target.checked?selectedModels.add(id):selectedModels.delete(id);modelsInitialized=true;render()}});document.addEventListener('click',e=>{const b=e.target.closest('[data-run]');if(b){autoWatch=false;clearReplay();selected=b.dataset.run;lastTimeline='';render()}});$('current-setup').addEventListener('click',()=>{autoWatch=false;clearReplay();selected=null;lastTimeline='';render()});$('run').addEventListener('click',()=>{clearReplay();send('/api/run')});$('demo').addEventListener('click',()=>{clearReplay();send('/api/demo')});$('stop').addEventListener('click',()=>send('/api/stop'));$('replay').addEventListener('click',replaySelected);$('record').addEventListener('click',startRecording);$('record-stop').addEventListener('click',stopRecording);
+ document.addEventListener('change',e=>{if(e.target.matches('[data-model]')){const id=e.target.dataset.model;e.target.checked?selectedModels.add(id):selectedModels.delete(id);modelsInitialized=true;render()}});document.addEventListener('click',e=>{const b=e.target.closest('[data-run]');if(b){selectEpisode(b.dataset.run);render()}});$('current-setup').addEventListener('click',followCurrentEpisode);$('run').addEventListener('click',()=>{clearReplay();send('/api/run')});$('demo').addEventListener('click',()=>{clearReplay();send('/api/demo')});$('stop').addEventListener('click',()=>send('/api/stop'));$('replay').addEventListener('click',replaySelected);$('record').addEventListener('click',startRecording);$('record-stop').addEventListener('click',stopRecording);
   $('agent-thought-full').addEventListener('click',()=>{$('reasoning-block').open=true;$('sim-map').classList.remove('scene-expanded');$('camera-expand').textContent='Large view'});
-  $('follow-live-run').addEventListener('click',()=>{autoWatch=!autoWatch;clearReplay();render()});
+  $('follow-live-run').addEventListener('click',followCurrentEpisode);
   $('model-overlay').addEventListener('change',render);
-  $('sim-map').addEventListener('arena-select-run',e=>{autoWatch=false;clearReplay();selected=e.detail.id;lastTimeline='';render();if(e.detail.openReasoning){$('reasoning-block').open=true;$('sim-map').classList.remove('scene-expanded');$('camera-expand').textContent='Large view';$('reasoning-block').scrollIntoView({block:'start'});}});
+  $('sim-map').addEventListener('arena-select-run',e=>{selectEpisode(e.detail.id);render();if(e.detail.openReasoning){$('reasoning-block').open=true;$('sim-map').classList.remove('scene-expanded');$('camera-expand').textContent='Large view';$('reasoning-block').scrollIntoView({block:'start'});}});
   $('sim-map').addEventListener('arena-site-selected',e=>document.querySelectorAll('[data-site-nav]').forEach(node=>node.setAttribute('aria-pressed',String(node.dataset.siteNav===e.detail.id))));
   $('watch-play').addEventListener('click',toggleReplay);$('watch-prev').addEventListener('click',()=>stepReplay(-1));$('watch-next').addEventListener('click',()=>stepReplay(1));$('watch-latest').addEventListener('click',()=>{clearReplay();render()});
   $('replay-position').addEventListener('input',e=>{pauseReplay();replayFrames=framesForSelected();if(replayFrames.length)showReplayFrame(Number(e.target.value))});

@@ -233,4 +233,43 @@ await check('an immediate arrival during loader flush displays feedback exactly 
     'An arrival callback may publish feedback while the loader is flushing; it must not be replayed twice');
 });
 
+// Exercise real episode transitions and deliberate historical selection.
+const selectionFunctions=section(' function liveRunIn(',' function render(');
+function selectionUI(){
+  const context=vm.createContext({state:{runs:[]},autoWatch:true,replayIndex:-1,
+    selected:'old',lastTimeline:'old',lastAnimatedEventKey:'old',render(){},
+    clearReplay(){context.replayIndex=-1;}});
+  vm.runInContext(selectionFunctions,context);
+  return context;
+}
+await check('live following switches episodes and waits between them without replaying an old result',()=>{
+  const c=selectionUI();
+  c.state.runs=[{id:'old',status:'completed'},{id:'first',status:'running'}];
+  c.updateLiveSelection(c.state.runs);assert.equal(c.selected,'first');
+  c.state.runs[1].status='completed';c.updateLiveSelection(c.state.runs);
+  assert.equal(c.selected,null,'An automatic live view must not retain a finished episode');
+  c.state.runs.push({id:'next',status:'running'});c.updateLiveSelection(c.state.runs);
+  assert.equal(c.selected,'next');assert.equal(c.autoWatch,true);
+});
+await check('only deliberate historical selection pins an old episode; Follow resumes live',()=>{
+  const c=selectionUI();
+  c.state.runs=[{id:'old',status:'completed'},{id:'live',status:'running'}];
+  c.selectEpisode('old');assert.equal(c.autoWatch,false);
+  c.updateLiveSelection(c.state.runs);assert.equal(c.selected,'old');
+  c.replayIndex=2;c.followCurrentEpisode();
+  assert.equal(c.autoWatch,true);assert.equal(c.replayIndex,-1);assert.equal(c.selected,'live');
+});
+await check('clicking the live avatar or its reasoning keeps automatic following enabled',()=>{
+  const c=selectionUI();c.state.runs=[{id:'live',status:'running'}];
+  c.selectEpisode('live');assert.equal(c.autoWatch,true);
+  c.state.runs[0].status='completed';c.state.runs.push({id:'next',status:'running'});
+  c.updateLiveSelection(c.state.runs);assert.equal(c.selected,'next');
+});
+await check('live selection does not require a static progress-file model list',()=>{
+  const c=selectionUI();c.preparation={game_running:false,active_model_ids:['outdated-model']};
+  c.state.runs=[{id:'different-current-model',status:'running'}];
+  c.updateLiveSelection(c.state.runs);assert.equal(c.selected,'different-current-model');
+  c.state.runs=[];c.followCurrentEpisode();assert.equal(c.selected,null);assert.equal(c.autoWatch,true);
+});
+
 console.log(`PASS: ${passed} maintained movement/event/loader checks, with no model or service calls.`);
