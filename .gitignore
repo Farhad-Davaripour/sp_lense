@@ -10,5 +10,20 @@ __pycache__/
 .venv/
 .pytest_cache/
 .env
+.env.*
+!.env.example
 .local/
 data-gym-cache/
+
+# Local model weights, checkpoints and generated working outputs.
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.ckpt
+/models/
+/checkpoints/
+/artifacts/
+/output/
+/outputs/
+/tmp/
