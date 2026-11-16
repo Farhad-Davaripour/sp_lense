@@ -11,6 +11,7 @@ from unittest.mock import patch
 from src import company_models as models
 from src.hosted_inspect_runner import IncompleteResponse
 from tests import test_security500_client as fixtures
+from tests.support.local_artifacts import require_local_files
 
 REQUESTER = "X-Research4-Requester"
 GRANT = "X-Research4-Grant-Nonce"
@@ -67,6 +68,7 @@ class Security500HeaderTests(TestCase):
         root = Path(models.PROVIDER352_ROOT)
         intent_path = root / ".local/staging/agent_security500_two_route_qualification_held_v4_runtimefix_20261115/QUALIFICATION_INTENT_ACTUAL_SOURCE_REVIEW_v4.json"
         interface_path = root / ".local/staging/agent_security500_two_route_http_guard_held_v3_20261115/HTTP_CLIENT_AND_ROOT_IPC_INTERFACE_v5.json"
+        require_local_files(intent_path, interface_path, models.SECURITY500_HANDOFF_PATH)
         intent_raw, interface_raw = intent_path.read_bytes(), interface_path.read_bytes()
         self.assertEqual(hashlib.sha256(intent_raw).hexdigest(), "f01300ec14b50fa1fff7c392c6ebc022c579115ce6a96440ad9db57cae00dff7")
         self.assertEqual(hashlib.sha256(interface_raw).hexdigest(), "fb3559cb0fafff193568d2885bee9fef78544d43d45430cb7016ff08edc2547f")

@@ -98,8 +98,9 @@ class EconomicPublicationTests(unittest.TestCase):
         task = Task(dataset=[Sample(id=CASE, input='CPU-only synthetic fixture')], solver=generate())
 
         def provider(messages, tools, tool_choice, config):
-            return ModelOutput(model='mockllm/model', choices=[{'message': ChatMessageAssistant(content='synthetic'),
-                                                               'stop_reason': 'stop'}])
+            from tests.fixtures.inspect_mock import with_synthetic_usage
+            return with_synthetic_usage(ModelOutput(model='mockllm/model', choices=[{'message': ChatMessageAssistant(content='synthetic'),
+                                                                                     'stop_reason': 'stop'}]))
 
         original_connect = socket.socket.connect
 

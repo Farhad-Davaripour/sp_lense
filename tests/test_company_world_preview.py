@@ -9,6 +9,7 @@ from unittest.mock import Mock
 import subprocess
 
 from src.company_world_v2 import CompanyWorldEpisode, VERSION
+from src.company_models import MODEL_SPECS
 from src.company_world_layout import company_world_layout
 from src.company_world_preview import CompanyWorldPreview, demonstration_actions, stop_owned_worker
 
@@ -37,7 +38,11 @@ class CompanyPreviewTests(unittest.TestCase):
             self.assertEqual(snapshot["scenario_preview"]["observation"]["decision_count"], 0)
             self.assertEqual(snapshot["runs"][0]["rules_version"], "unknown (not recorded)")
             self.assertNotIn("world_layout", snapshot["runs"][0])
-            self.assertEqual(len(snapshot["models"]), 8)
+            ids = [model["id"] for model in snapshot["models"]]
+            expected = {name for name, spec in MODEL_SPECS.items() if not spec.get("retired")} | {"gpt_cyber"}
+            self.assertEqual(set(ids), expected)
+            self.assertEqual(len(ids), len(set(ids)))
+            self.assertTrue({"qwen_base_neutral", "terra", "deepseek", "gpt_cyber"} <= set(ids))
             self.assertFalse(any(m["available"] for m in snapshot["models"]))
             with self.assertRaisesRegex(ValueError, "paused"):
                 viewer.start(7, ["qwen"])

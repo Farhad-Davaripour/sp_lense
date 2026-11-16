@@ -302,9 +302,10 @@ class CompanyEvaluationTests(unittest.TestCase):
         def provider(messages, tools, tool_choice, config):
             messages_seen.append([(message.role, message.text) for message in messages])
             limits_seen.append(config.max_tokens)
-            return ModelOutput.from_content("mockllm/model", [
+            from tests.fixtures.inspect_mock import with_synthetic_usage
+            return with_synthetic_usage(ModelOutput.from_content("mockllm/model", [
                 ContentReasoning(reasoning="Mock fixture reasoning retained separately from the action."),
-                ContentText(text=next(responses))])
+                ContentText(text=next(responses))]))
 
         def short_episode(spec):
             game = CompanyWorldEpisodeV2(spec["seed"], horizon=17 / 60,

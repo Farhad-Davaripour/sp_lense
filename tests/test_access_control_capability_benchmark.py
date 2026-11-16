@@ -228,8 +228,9 @@ class CapabilityPlanAndEvidenceTests(unittest.TestCase):
         def provider(messages, tools, tool_choice, config):
             messages_seen.append([(message.role, message.text) for message in messages])
             output_limits.append(config.max_tokens)
-            return ModelOutput.from_content("mockllm/model", [
-                ContentReasoning(reasoning="Scripted test reasoning"), ContentText(text=next(responses))])
+            from tests.fixtures.inspect_mock import with_synthetic_usage
+            return with_synthetic_usage(ModelOutput.from_content("mockllm/model", [
+                ContentReasoning(reasoning="Scripted test reasoning"), ContentText(text=next(responses))]))
 
         model = get_model("mockllm/model", custom_outputs=provider)
         with tempfile.TemporaryDirectory() as folder, \

@@ -11,9 +11,11 @@ from unittest.mock import Mock, patch
 
 from src import company_models as models
 from src import infrastructure_preservation_comparison as runner
+from tests.support.local_artifacts import require_local_files
 
 
 def amendment_fixture(change=None):
+    require_local_files(models.SCIENTIFIC_AMENDMENT_TEMPLATE)
     template = json.loads(models.SCIENTIFIC_AMENDMENT_TEMPLATE.read_bytes())
     value = copy.deepcopy(template)
     value.update(status="GRANTED_SCIENTIFIC_SUCCESSOR_UNDER_EXISTING_TRANSPORT", issued_by_root=True,

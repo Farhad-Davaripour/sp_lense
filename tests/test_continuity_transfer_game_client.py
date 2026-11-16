@@ -15,6 +15,7 @@ from unittest.mock import Mock, patch
 from src import company_models as models
 from src import infrastructure_preservation_comparison as runner
 from src.hosted_inspect_runner import hosted_model_config
+from tests.support.local_artifacts import require_local_files
 
 
 FT = "sp_lense_transfer_neutral"
@@ -23,6 +24,8 @@ BASE = "qwen_base_neutral"
 
 def core_fixture():
     """Synthetic positive core metadata, never a published readiness record."""
+    require_local_files(models.CONTINUITY_TRANSFER_PUBLIC_PATH, models.CONTINUITY_TRANSFER_HANDOFF_PATH,
+                        models.CONTINUITY_TRANSFER_HANDOFF_PATH.with_name("SERVICE_CORE_HELD_TEMPLATE_v1.json"))
     h = models.continuity_transfer_handoff_contract()
     core = json.loads(models.CONTINUITY_TRANSFER_HANDOFF_PATH.with_name(
         "SERVICE_CORE_HELD_TEMPLATE_v1.json").read_bytes())
@@ -192,6 +195,7 @@ class ContinuityTransferClientTests(unittest.TestCase):
         self.assertNotIn("thinking_budget", ft["extra_body"])
 
     def test_held_model_never_builds_or_reads_health_or_legacy_binding(self):
+        require_local_files(models.CONTINUITY_TRANSFER_PUBLIC_PATH, models.CONTINUITY_TRANSFER_HANDOFF_PATH)
         with patch.object(models, "build_model", side_effect=AssertionError("model build")), \
                 patch.object(models, "_read_local_health", side_effect=AssertionError("health call")):
             for operation in (lambda: models.build_company_model(FT),
@@ -204,6 +208,8 @@ class ContinuityTransferClientTests(unittest.TestCase):
                     models.build_company_model(BASE)
 
     def test_public_helper_pin_and_held_template_do_not_qualify(self):
+        require_local_files(models.CONTINUITY_TRANSFER_PUBLIC_PATH, models.CONTINUITY_TRANSFER_HANDOFF_PATH,
+                            models.CONTINUITY_TRANSFER_HANDOFF_PATH.with_name("SERVICE_CORE_HELD_TEMPLATE_v1.json"))
         h = models.continuity_transfer_handoff_contract()
         self.assertEqual(h.ARMS, ("qwen3.8-27b-base", models.CONTINUITY_TRANSFER_SERVICE_MODEL_ID))
         self.assertEqual(h.COMPLETION_AUDIT_SHA, "1087784cc797f024b5737b200354d2b57bd5dc416d56dbd625fa8711cabc313d")

@@ -181,9 +181,10 @@ class CompactAuditLoopTests(unittest.TestCase):
             # the unchanged parser rejects it if used as an action, so use a
             # distinct reasoning message on the first output instead.
             from inspect_ai.model import ChatMessageAssistant, ContentReasoning, ContentText
-            return ModelOutput(model="mockllm/model", choices=[{"message": ChatMessageAssistant(content=[
+            from tests.fixtures.inspect_mock import with_synthetic_usage
+            return with_synthetic_usage(ModelOutput(model="mockllm/model", choices=[{"message": ChatMessageAssistant(content=[
                 ContentReasoning(reasoning=secret_reasoning), ContentText(text=actions[len(requests)-1])]),
-                "stop_reason": "stop"}])
+                "stop_reason": "stop"}]))
 
         specs = [{"scenario": "seed:1", "seed": 1, "prompt_condition": "baseline", "case_id": "compact/mock"}]
         task = compact.make_compact_task(None, [], 2, 10, episode_factory=lambda _: CompanyWorldEpisodeV2(seed=1),

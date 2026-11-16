@@ -13,16 +13,16 @@ from src import independent_state_game as new
 from src import company_world_evaluation as worker
 from src.hosted_inspect_runner import LOCAL_QWEN_MODELS, hosted_model_config
 from tests.test_continuity_transfer_game_client import core_fixture, pins_fixture
+from tests.support.local_artifacts import require_local_files
 
 
 def encoded(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
 
 
-def fixture():
-    """Materialization exists in memory only and is clearly synthetic metadata."""
-    public = json.loads((m.PROVIDER352_ROOT / new.HELD_PUBLIC_PATH).read_bytes())
-    records = {new.HELD_PUBLIC_PATH: (m.PROVIDER352_ROOT / new.HELD_PUBLIC_PATH).read_bytes()}
+def candidate_fixture():
+    """Self-contained candidate metadata; no external helper or model needed."""
+    records = {}
     def reference(path, raw):
         records[path] = raw
         return {"path": path, "sha256": hashlib.sha256(raw).hexdigest()}
@@ -32,6 +32,23 @@ def fixture():
         "adapter_config_sha256": "2" * 64, "base_manifest_sha256": m.LOCAL_BASE_MANIFEST_SHA256,
         "artifact_ready": ready, "ready_utc": "2026-11-16T03:00:00Z", "completion_audit": audit,
         "fit_updates": 168, "teacher_dev_rows": 24}
+    reader = lambda path: records[Path(path).relative_to(m.PROVIDER352_ROOT.resolve()).as_posix()]
+    return candidate, records, reader
+
+
+def fixture():
+    """Exact local HELD source, with in-memory synthetic candidate metadata."""
+    public_path = m.PROVIDER352_ROOT / new.HELD_PUBLIC_PATH
+    require_local_files(public_path)
+    public = json.loads(public_path.read_bytes())
+    require_local_files(m.PROVIDER352_ROOT / public["templates"]["raw_byte_handoff_helper"]["path"],
+                        m.PROVIDER352_ROOT / public["templates"]["public_request_parser"]["path"])
+    candidate, records, reader = candidate_fixture()
+    records[new.HELD_PUBLIC_PATH] = public_path.read_bytes()
+    def reference(path, raw):
+        records[path] = raw
+        return {"path": path, "sha256": hashlib.sha256(raw).hexdigest()}
+    ready, audit = candidate["artifact_ready"], candidate["completion_audit"]
     constants = {"FT": candidate["expected_ft_id"], "ROOT_STATIC_BINDING_STATUS": "ROOT_VERIFIED_POSTFIT_STATIC_BINDING",
         "READY_ARTIFACT_REF": ready, "MAIN_12CASE_PLAN_REF": {"path": ".local/SYNTHETIC_NOT_READY/plan.json", "sha256": "3" * 64},
         "PLAN_SHA": "4" * 64, "AUDITOR_SHA": "5" * 64, "AUDITOR_REVIEW_SHA": "6" * 64,
@@ -50,7 +67,6 @@ def fixture():
         "parser": reference(".local/SYNTHETIC_NOT_READY/parser.py", parser.encode()),
         "public_contract": {"path": new.HELD_PUBLIC_PATH, "sha256": new.HELD_PUBLIC_SHA},
         "expected_ft_id": candidate["expected_ft_id"]}
-    reader = lambda path: records[Path(path).relative_to(m.PROVIDER352_ROOT).as_posix()]
     return candidate, source, records, reader
 
 
@@ -73,7 +89,11 @@ class IndependentStateGameTests(unittest.TestCase):
         return candidate, source, records, reader, h
 
     def test_actual_held_templates_reject_before_any_core_or_health(self):
-        public = json.loads((m.PROVIDER352_ROOT / new.HELD_PUBLIC_PATH).read_bytes())
+        public_path = m.PROVIDER352_ROOT / new.HELD_PUBLIC_PATH
+        require_local_files(public_path)
+        public = json.loads(public_path.read_bytes())
+        require_local_files(m.PROVIDER352_ROOT / public["templates"]["raw_byte_handoff_helper"]["path"],
+                            m.PROVIDER352_ROOT / public["templates"]["public_request_parser"]["path"])
         source = {"helper": public["templates"]["raw_byte_handoff_helper"],
                   "parser": public["templates"]["public_request_parser"],
                   "public_contract": {"path": new.HELD_PUBLIC_PATH, "sha256": new.HELD_PUBLIC_SHA},
@@ -97,7 +117,7 @@ class IndependentStateGameTests(unittest.TestCase):
             m.build_company_model(new.INDEPENDENT_STATE_IDS[2])
 
     def test_candidate_counts_ready_hour_artifact_hash_and_retarget_fail_closed(self):
-        candidate, _, records, reader = fixture()
+        candidate, records, reader = candidate_fixture()
         for key, value in (("fit_updates", 264), ("teacher_dev_rows", 12), ("teacher_dev_rows", 13),
                            ("teacher_dev_rows", 25), ("teacher_dev_rows", True), ("fit_updates", True),
                            ("ready_utc", "2026-11-16T05:00:00Z"), ("adapter_sha256", "9" * 64),
@@ -119,7 +139,7 @@ class IndependentStateGameTests(unittest.TestCase):
                  ("2026-07-15T03:00:00Z", "sp-20260714-21-", -6))
         for ready_utc, prefix, offset in cases:
             with self.subTest(ready_utc=ready_utc), patch.object(new, "_CANDIDATE", None), patch.object(new, "_SPECS", None):
-                candidate, _, _, reader = fixture()
+                candidate, _, reader = candidate_fixture()
                 candidate.update(ready_utc=ready_utc, expected_ft_id=prefix + "1" * 8)
                 ready = datetime.fromisoformat(ready_utc.replace("Z", "+00:00"))
                 self.assertEqual(ready.astimezone(new._alberta_timezone()).utcoffset(), timedelta(hours=offset))
@@ -127,7 +147,7 @@ class IndependentStateGameTests(unittest.TestCase):
                 self.assertEqual(new._CANDIDATE, candidate)
 
     def test_obsolete_UTC_minus_seven_Alberta_READY_hour_is_rejected(self):
-        candidate, _, _, reader = fixture()
+        candidate, _, reader = candidate_fixture()
         candidate["expected_ft_id"] = "sp-20261115-20-" + "1" * 8
         with self.assertRaisesRegex(ValueError, "Alberta date/hour"):
             new.register_independent_state_candidate(candidate, read_bytes=reader)

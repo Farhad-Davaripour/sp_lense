@@ -5,3 +5,7 @@ PyYAML==6.0.3
 transformers==5.19.0
 # Match the client READY-hour validator; do not use an older OS timezone DB.
 tzdata==2026.6
+# Inspect 0.3.288 imports the pre-1.0 ACP helpers; 1.0 removed that API.
+agent-client-protocol==0.12.1
+# Mocked Inspect/provider tests exercise the same client versions as the Game.
+-r requirements-arena.txt

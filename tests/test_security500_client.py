@@ -15,6 +15,7 @@ from unittest.mock import Mock, patch
 
 from src import company_models as models
 from src.hosted_inspect_runner import hosted_model_config
+from tests.support.local_artifacts import require_local_files
 
 
 ROOT = Path("C:/Users/farha/repos/sp_lense4/research4")
@@ -28,6 +29,7 @@ FT_NAMES = ("sp_lense_security500_neutral", "sp_lense_security500")
 def synthetic_fixture(*, progress=None):
     """Execute just the reviewed packet's pure fixture functions, not its runner."""
     helper_path = PACKET / "two_route_handoff_contract.py"
+    require_local_files(helper_path, PACKET / "test_two_route_outer_cpu.py")
     source = helper_path.read_bytes()
     assert hashlib.sha256(source).hexdigest() == HELPER_SHA
     spec = importlib.util.spec_from_file_location("security500_test_handoff", helper_path)

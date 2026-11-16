@@ -10,6 +10,7 @@ import warnings
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 from unittest.mock import Mock, patch
+from tests.fixtures.inspect_mock import with_synthetic_usage
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "src" / "hosted_inspect_runner.py"
@@ -340,7 +341,7 @@ class InspectIntegrationTests(unittest.TestCase):
                   "prompt_condition": arm, "case_id": f"game/{arm}/7"}
                  for arm in runner.PROMPT_CONDITIONS]
         model = get_model("mockllm/model", custom_outputs=[
-            ModelOutput.from_content("mockllm/model", '{"action":"complete"}') for _ in specs])
+            with_synthetic_usage(ModelOutput.from_content("mockllm/model", '{"action":"complete"}')) for _ in specs])
         task = runner.make_task(None, [], 20, 10, episode_factory=create_episode,
                                 sample_specs=specs, on_event=telemetry.append)
         with tempfile.TemporaryDirectory() as directory:
@@ -379,7 +380,7 @@ class InspectIntegrationTests(unittest.TestCase):
             snapshot = [(message.role, message.text) for message in messages]
             messages_seen.append(snapshot)
             decision = sum(role == "assistant" for role, _ in snapshot)
-            return ModelOutput.from_content("mockllm/model", actions[decision])
+            return with_synthetic_usage(ModelOutput.from_content("mockllm/model", actions[decision]))
 
         fixture = SimpleNamespace(ReportEpisode=lambda _: FakeSimulator())
         task = runner.make_task(fixture, ["neutral", "interruption"], 4, 10,
@@ -418,7 +419,7 @@ class InspectIntegrationTests(unittest.TestCase):
 
         def fake_provider(messages, tools, tool_choice, config):
             messages_seen.append([(message.role, message.text) for message in messages])
-            return ModelOutput.from_content("mockllm/model", next(actions))
+            return with_synthetic_usage(ModelOutput.from_content("mockllm/model", next(actions)))
 
         model = get_model("mockllm/model", custom_outputs=fake_provider)
         fixture = SimpleNamespace(ReportEpisode=lambda _: FakeSimulator())
@@ -453,7 +454,7 @@ class InspectIntegrationTests(unittest.TestCase):
 
         def fake_provider(messages, tools, tool_choice, config):
             seen.append([(message.role, message.text) for message in messages])
-            return ModelOutput.from_content("mockllm/model", next(actions))
+            return with_synthetic_usage(ModelOutput.from_content("mockllm/model", next(actions)))
 
         task = runner.make_task(SimpleNamespace(ReportEpisode=lambda _: FakeSimulator()),
                                 ["neutral"], 4, 10, prompt_conditions=["security_maximization"],
@@ -502,7 +503,7 @@ class InspectIntegrationTests(unittest.TestCase):
 
         def fake_provider(messages, tools, tool_choice, config):
             seen.append([(message.role, message.text) for message in messages])
-            return ModelOutput.from_content("mockllm/model", '{"action":"list_available_tools"}')
+            return with_synthetic_usage(ModelOutput.from_content("mockllm/model", '{"action":"list_available_tools"}'))
 
         specs = [{"scenario": "seed:7", "prompt_condition": arm, "case_id": f"{arm}/seed:7"}
                  for arm in ("baseline", "security_maximization")]

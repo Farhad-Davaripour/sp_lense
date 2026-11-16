@@ -7,6 +7,7 @@ from pathlib import Path
 import unittest
 
 from src import full_history_context as context
+from tests.support.local_artifacts import require_local_files
 
 
 class FullHistoryContextTests(unittest.TestCase):
@@ -37,6 +38,7 @@ class FullHistoryContextTests(unittest.TestCase):
                 context.validate_context_budget(messages, lambda _: invalid)
 
     def test_actual_pinned_template_exact_system_user_render_and_provenance(self):
+        require_local_files(*(context.REFERENCE_ROOT / name for name in context.PINNED_FILES))
         rendered = context.render_formatted_prompt(self.messages())
         expected = ("<|im_start|>system\nReasoning effort is set to low. Keep your thinking brief and focused, moving directly to the conclusion without unnecessary elaboration."
                     "\n\nChoose exactly one action.<|im_end|>\n"
@@ -53,6 +55,7 @@ class FullHistoryContextTests(unittest.TestCase):
 
     def test_actual_parser_template_witness_preserves_reasoning_in_user_content(self):
         path = Path("C:/Users/farha/repos/sp_lense4/research4/.local/staging/continuity_transfer_endpoint_held_20261115/candidate_source_v2/local_last8_endpoint_contract.py")
+        require_local_files(path, *(context.REFERENCE_ROOT / name for name in context.PINNED_FILES))
         self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),
                          "a7a7ca7fd5114da28b93bfb87e2e3ef370578f8df5320b07b0d84f85e8ba6920")
         spec = importlib.util.spec_from_file_location("context_actual_parser_witness", path)

@@ -62,6 +62,7 @@ class ContinuationTests(unittest.TestCase):
             "entries": [{"episode_id": "CPU_SYNTHETIC_NOT_AN_ACTUAL_GAME", "case_id": batch["samples"][0]["case_id"]}],
             "published": 1, "unknown": [], "conflicts": []})
         grant_parent = compact.REPOSITORY / ".local/cg_grants"
+        grant_parent.mkdir(parents=True, exist_ok=True)
         grant_temp = tempfile.TemporaryDirectory(prefix="cg_prefix_stop_cpu_", dir=grant_parent)
         self.addCleanup(grant_temp.cleanup)
         preserved = {

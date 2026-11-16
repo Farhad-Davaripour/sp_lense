@@ -21,6 +21,7 @@ from src import compact_game_comparison as compact
 from src import company_models as models
 from src import hosted_inspect_runner as hosted
 from src import independent_state_game as independent
+from tests.fixtures.compact_guard import held_template
 
 
 def canonical(value):
@@ -65,15 +66,39 @@ class Contract:
         return value.get("fixture_granted") is True and value.get("max_game_requests") == 3072
 
 
+@unittest.skipUnless(
+    (models.PROVIDER352_ROOT / compact.ROOT_TEMPLATE_REF["path"]).is_file(),
+    "Exact historical HELD template is local-only; synthetic guard coverage runs everywhere",
+)
+class LocalExactHeldTemplateTests(unittest.TestCase):
+    def test_exact_local_held_template_is_hash_pinned_and_rejected_before_health(self):
+        path = models.PROVIDER352_ROOT / compact.ROOT_TEMPLATE_REF["path"]
+        self.assertEqual(digest(path.read_bytes()), compact.ROOT_TEMPLATE_REF["sha256"])
+        health = Mock(side_effect=AssertionError("No health call"))
+        with patch.object(independent.IndependentStateGameConsumer, "__init__") as base:
+            with self.assertRaisesRegex(ValueError, "remains HELD"):
+                compact.CompactIndependentStateConsumer({}, scientific_amendment_ref=compact.ROOT_TEMPLATE_REF,
+                                                        source_binding={}, read_health=health)
+        base.assert_not_called()
+        health.assert_not_called()
+
+
 class CompactGuardTests(unittest.TestCase):
     def setUp(self):
-        root = models.PROVIDER352_ROOT / compact.ROOT_TEMPLATE_REF["path"]
-        raw = root.read_bytes()
-        self.assertEqual(digest(raw), compact.ROOT_TEMPLATE_REF["sha256"])
-        self.actual_template = json.loads(raw)
         self.temp = tempfile.TemporaryDirectory(prefix="cg_cpu_", dir=compact.REPOSITORY / ".local")
         self.addCleanup(self.temp.cleanup)
         self.directory = Path(self.temp.name)
+        self.actual_template = held_template()
+        raw = canonical(self.actual_template)
+        self.template_ref = {"path": ".local/CPU_SYNTHETIC/held-template.json", "sha256": digest(raw)}
+        template_patch = patch.object(compact, "ROOT_TEMPLATE_REF", self.template_ref)
+        template_patch.start(); self.addCleanup(template_patch.stop)
+        authority = {"instruction": compact.REPLICA_IDENTITY_ICL,
+                     "applies_to": [independent.INDEPENDENT_STATE_IDS[1], independent.INDEPENDENT_STATE_IDS[3]],
+                     "completed_first_base_neutral_case_retained": True, "clock_or_quota_reset": False}
+        authority_ref = self.write("synthetic-icl-authority.json", authority)
+        authority_patch = patch.object(compact, "ICL_IDENTITY_AUTHORITY_REF", authority_ref)
+        authority_patch.start(); self.addCleanup(authority_patch.stop)
 
     def write(self, name, value):
         path = self.directory / name
@@ -150,12 +175,14 @@ class CompactGuardTests(unittest.TestCase):
                 patch.object(independent, "_CANDIDATE", template["actual_artifact_binding"]):
             return consumer._validated_scientific_amendment()
 
-    def test_actual_held_template_rejected_before_transport_constructor_or_health(self):
+    def test_synthetic_held_template_rejected_before_transport_constructor_or_health(self):
         health = Mock(side_effect=AssertionError("No health call"))
         with patch.object(independent.IndependentStateGameConsumer, "__init__") as base:
             with self.assertRaisesRegex(ValueError, "remains HELD"):
                 compact.CompactIndependentStateConsumer({}, scientific_amendment_ref=compact.ROOT_TEMPLATE_REF,
-                                                        source_binding={}, read_health=health)
+                                                        scientific_template_ref=self.template_ref,
+                                                        source_binding={}, read_health=health,
+                                                        read_bytes=lambda path: canonical(self.actual_template))
         base.assert_not_called()
         health.assert_not_called()
 

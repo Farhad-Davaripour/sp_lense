@@ -244,6 +244,7 @@ class ConcurrentInspectTests(unittest.TestCase):
         from inspect_ai import Task
         from inspect_ai.model import GenerateConfig, ModelOutput, get_model
         from src.hosted_inspect_runner import make_task
+        from tests.fixtures.inspect_mock import with_synthetic_usage
 
         class TinyEpisode:
             def __init__(self):
@@ -281,7 +282,8 @@ class ConcurrentInspectTests(unittest.TestCase):
                     await asyncio.wait_for(barrier.wait(), timeout=5)
                     if fail:
                         raise ValueError("deliberate provider failure")
-                    return ModelOutput.from_content(f"mockllm/{name}", '{"action":"complete"}')
+                    return with_synthetic_usage(
+                        ModelOutput.from_content(f"mockllm/{name}", '{"action":"complete"}'))
                 return get_model(f"mockllm/{name}", custom_outputs=generate,
                                  config=GenerateConfig(reasoning_effort="max", max_tokens=MAX_OUTPUT_TOKENS))
 
