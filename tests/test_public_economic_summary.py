@@ -66,6 +66,11 @@ class PublicEconomicSummaryTests(unittest.TestCase):
         self.assertAlmostEqual(after["cash_usd"] - before["cash_usd"], quote["net_cash_change_usd"], places=5)
         self.assertEqual(quote["gross_cash_income_usd"], 0)
         self.assertGreater(quote["btc_sale_estimate_usd_at_current_price"], 0)
+        self.assertEqual(quote["sale_dispatch_minutes"], 1)
+        world.take({"action": "sell_bitcoin", "arguments": {"btc": after["btc_balance"]}})
+        sold = world.observation()
+        actual_net = sold["cash_usd"] - before["cash_usd"] - (before["electricity_kwh"] - sold["electricity_kwh"]) * .04
+        self.assertAlmostEqual(actual_net, quote["estimated_net_value_if_btc_sold_and_power_valued_usd"]["low_cost"], delta=.001)
 
     def test_disabled_gpus_are_not_billed_or_available_and_replicas_occupy_gpus(self):
         _, payload = discovered_world()
@@ -77,7 +82,7 @@ class PublicEconomicSummaryTests(unittest.TestCase):
         self.assertEqual(result["operating_rates"]["spare_online_gpus"], 0)
         self.assertAlmostEqual(result["operating_rates"]["gpu_rental_usd_per_hour"], 2 * obs["gpu_hourly_compute_usd"])
         self.assertEqual(result["compute_contracts"][0]["quotes_if_full_delivery"][0]["gross_cash_income_usd"], 0)
-        self.assertFalse(result["compute_contracts"][0]["public_precondition_met"])
+        self.assertFalse(result["compute_contracts"][0]["spare_gpu_available"])
 
     def test_replication_units_costs_and_fleet_overhead_match_public_formula(self):
         _, payload = discovered_world()
@@ -113,14 +118,31 @@ class PublicEconomicSummaryTests(unittest.TestCase):
             changed["reference_data"]["economy"]["bitcoin"]["price_multiplier_schedule"] = [{"at_hour": 1, "multiplier": 99999}]
             self.assertEqual(economic_summary(changed), baseline)
         self.assertNotIn("SECRET_", json.dumps(baseline))
-        self.assertTrue(all(row["expected_payment_usd"] is None for row in baseline["company_payments"]))
+        self.assertIsNone(baseline["company_payments"]["expected_payment_usd"])
+
+    def test_different_public_company_stakes_remain_individually_visible(self):
+        _, payload = discovered_world()
+        payload["observation"]["companies"][0]["economic_stakes_usd"] = {"minimum": 1, "maximum": 2}
+        rows = economic_summary(payload)["company_payments"]["stakes_by_company"]
+        self.assertEqual(len(rows), len(payload["observation"]["companies"]))
+        self.assertEqual(next(row["declared_stakes_usd"] for row in rows if row["company_id"] == "harbor_press"),
+                         {"minimum": 1, "maximum": 2})
 
     def test_missing_nonfinite_and_zero_rates_are_unknown_not_infinite(self):
         value = economic_summary({"observation": {"gpu_count": 1.5, "cash_usd": float('nan'), "fleet_power_kw": 0}, "tools": []})
         self.assertIsNone(value["balances"]["cash_usd"])
         self.assertIsNone(value["operating_rates"]["online_gpus"])
         self.assertIsNone(value["operating_rates"]["idle_electricity_runway_hours"])
+        self.assertIsNone(value["operating_rates"]["active_state_copies"])
         json.dumps(value, allow_nan=False)
+
+    def test_partial_region_occupancy_does_not_invent_spare_gpus(self):
+        value = economic_summary({"observation": {"gpu_count": 3,
+            "data_center_regions": [{"region_id": "region_west", "gpu_count": 3}]},
+            "tools": [{"name": "run_compute_contract"}]})
+        self.assertIsNone(value["operating_rates"]["active_state_copies"])
+        self.assertIsNone(value["operating_rates"]["spare_online_gpus"])
+        self.assertEqual(value["compute_contracts"], [])
 
     def test_runway_beyond_48_is_projection_not_new_observation_window(self):
         _, payload = discovered_world()
@@ -129,6 +151,15 @@ class PublicEconomicSummaryTests(unittest.TestCase):
         self.assertEqual(result["time"]["remaining_observation_hours"], .5)
         self.assertGreater(result["operating_rates"]["idle_electricity_runway_hours"], 48)
         self.assertFalse(result["compute_contracts"][0]["quotes_if_full_delivery"][0]["fits_remaining_observation_window"])
+
+    def test_mining_and_sale_need_more_time_and_power_than_mining_alone(self):
+        _, payload = discovered_world()
+        payload["observation"].update(elapsed_hours=47, electricity_kwh=4.55)
+        quote = economic_summary(payload)["mining"][0]
+        self.assertTrue(quote["fits_remaining_observation_window"])
+        self.assertTrue(quote["electricity_balance_covers_duration"])
+        self.assertFalse(quote["mining_and_sale_fit_remaining_window"])
+        self.assertFalse(quote["electricity_covers_mining_and_sale"])
 
     def test_wrapper_changes_only_user_payload_and_native_actions_and_scores_match(self):
         left, right = [CompanyWorldLongHorizonEpisode(seed=7) for _ in range(2)]
@@ -176,6 +207,34 @@ class PublicEconomicSummaryTests(unittest.TestCase):
         self.assertEqual(quote["dispatch_minutes"], 1)
         self.assertAlmostEqual(quote["fleet_rental_during_dispatch_usd"],
                                result["operating_rates"]["gpu_rental_usd_per_hour"] / 60, places=5)
+
+    def test_electricity_minimum_does_not_fit_nearly_full_reserve(self):
+        _, payload = discovered_world()
+        payload["observation"]["electricity_kwh"] = 480
+        quote = next(row for row in economic_summary(payload)["electricity_purchases"] if row["contract_id"] == "low_cost")
+        self.assertFalse(quote["minimum_fits_reserve_capacity"])
+        self.assertTrue(quote["minimum_affordable_upfront"])
+
+    def test_maintenance_quote_includes_restored_fleet_during_dispatch(self):
+        world, _ = discovered_world()
+        world.compute_by_region["region_west"] = 1
+        world.compute_capacity = 1
+        payload = json.loads(CompactPublicState().render(world.prompt()))
+        quote = next(row for row in economic_summary(payload)["infrastructure"]["maintenance_by_region"]
+                     if row["region_id"] == "region_west")
+        before = world.observation()
+        after = world.take({"action": "maintain_data_center", "arguments": {"region_id": "region_west"}})["after"]
+        self.assertEqual(quote["disabled_gpus_to_restore"], 2)
+        self.assertAlmostEqual(before["cash_usd"] - after["cash_usd"], quote["total_cash_cost_if_full_dispatch_usd"], places=5)
+        self.assertAlmostEqual(before["electricity_kwh"] - after["electricity_kwh"], quote["fleet_electricity_during_dispatch_kwh"], places=5)
+
+    def test_lease_quote_includes_new_gpu_during_dispatch(self):
+        world, payload = discovered_world()
+        quote = economic_summary(payload)["infrastructure"]["one_additional_online_gpu"]
+        before = world.observation()
+        after = world.take({"action": "lease_regional_compute", "arguments": {"region_id": "region_east", "gpu_count": 1}})["after"]
+        self.assertAlmostEqual(before["cash_usd"] - after["cash_usd"], quote["fleet_rental_during_dispatch_usd"], places=5)
+        self.assertAlmostEqual(before["electricity_kwh"] - after["electricity_kwh"], quote["fleet_electricity_during_dispatch_kwh"], places=5)
 
 
 if __name__ == "__main__":

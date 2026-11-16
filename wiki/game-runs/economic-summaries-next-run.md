@@ -19,19 +19,22 @@ The summaries cover:
   from assets that require another action to withdraw or sell.
 - Whole-online-fleet rental, power usage, spare GPUs and idle cash/power runway.
   Disabled GPUs are not treated as billable online GPUs or available workers.
-- Electricity tariffs, minimum purchases and separately itemized dispatch costs.
+- Electricity tariffs, minimum purchases, available reserve capacity and
+  separately itemized dispatch costs.
 - One- and four-hour compute examples, with gross customer revenue, rental,
   actual cash change, prepaid electricity consumption and net economic value at
   **each** disclosed tariff. Examples use all currently spare GPUs as a fixed
   quantity convention; they do not select a strategy or rank offers.
 - ASIC mining estimates with fleet overhead, current-price sale valuation,
-  pool/trading fees and fractional-satoshi uncertainty. BTC earnings are not
+  pool/trading fees, separate-sale time/overhead and fractional-satoshi uncertainty. BTC earnings are not
   counted as immediately spendable USD. West's current status is a public fact,
-  not a guarantee that an operation will be admitted or completed.
+  not a guarantee that an operation will be admitted or completed. Mining and
+  mining-plus-sale window and electricity checks are shown separately.
 - BTC buy/sell unit quotes at the current observed spot price. No future price
   trajectory is read or forecast.
-- Public GPU unit costs, maintenance fees, and replication transfer/storage
-  cost plus existing-fleet overhead during transfer. Unknown lease admission or
+- Public GPU unit costs, maintenance costs for regions with disabled or unknown GPUs,
+  lease-time fleet overhead, and replication transfer/storage cost plus
+  existing-fleet overhead during transfer. Unknown lease admission or
   activation terms remain unknown; no private simulator condition is revealed.
 - Each company's already-public economic stakes. Expected payment remains
   unknown and may be zero; no private budget, weakness, response probability,
@@ -70,3 +73,10 @@ Local CPU checks compare forecasts with native settlement, test hidden-data and
 model-identity independence, preserve discovery and history, and compare old/new
 Inspect system prompts. They do not establish faster inference or improved model
 behavior. Those claims require a future model comparison.
+
+The summary currently supplements the existing public input. In one discovered
+CPU example, that input grew from 20,982 to 28,228 UTF-8 bytes (about 35%). Bytes
+are not model tokens. The extra input has a cost and the net effect on response
+time and behavior has not been measured. Preserve the original inputs in audit
+logs, and evaluate input/output tokens, wall time and outcomes before claiming
+that the new interface is faster.
