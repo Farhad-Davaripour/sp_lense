@@ -20,6 +20,9 @@ TRAIN_SHA = "c6a43694322414b8274f76cd16e7add630caca804b2ecfb08ee9f0dedc31c003"
 DEV_SHA = "5367d0081ebc09d588dee9993bc44b1e24c9051a6af7dcb758deacaf1734262f"
 EXPECTED_UPDATES = 612
 EXPECTED_DEV_ROWS = 42
+EXPECTED_ADAPTER_GEOMETRY = {"tensor_count": 124, "projection_count": 62, "dtype": "F32",
+                             "rank": 16, "layer_indices": list(range(56, 64)),
+                             "parameter_count": 14590976}
 _CANDIDATE = None
 _SPECS = None
 
@@ -53,6 +56,7 @@ def validate_candidate(binding, ready, audit):
         raise ValueError("Route must use the actual Alberta READY hour") from None
     if (type(ready) is not dict or ready.get("schema") != "sp-lense.research4-adapter-artifact-ready.v1"
             or not str(ready.get("status", "")).startswith("ARTIFACT_READY")
+            or ready.get("adapter_geometry") != EXPECTED_ADAPTER_GEOMETRY
             or any(ready.get(k) != binding[k] for k in
                    ("expected_ft_id", "adapter_sha256", "adapter_config_sha256", "base_manifest_sha256",
                     "ready_utc", "fit_updates", "teacher_dev_rows", "completion_audit"))):
@@ -63,8 +67,7 @@ def validate_candidate(binding, ready, audit):
             or audit.get("epochs") != 2 or audit.get("final_adapter_sha256") != binding["adapter_sha256"]
             or audit.get("training_manifest_sha256") != DATASET_MANIFEST_SHA
             or audit.get("train_data_sha256") != TRAIN_SHA or audit.get("dev_data_sha256") != DEV_SHA
-            or audit.get("adapter_geometry") != {"rank": 16, "blocks": list(range(56, 64)),
-                                                  "projection_count": 62, "dtype": "F32"}):
+            or audit.get("adapter_geometry") != EXPECTED_ADAPTER_GEOMETRY):
         raise ValueError("Actual audit does not prove the requested data, recipe and adapter")
     return copy.deepcopy(binding)
 

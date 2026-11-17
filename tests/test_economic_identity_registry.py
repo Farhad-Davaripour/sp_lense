@@ -26,9 +26,10 @@ def fixture():
         'unique_TRAIN_decisions': 306, 'epochs': 2, 'final_adapter_sha256': adapter,
         'training_manifest_sha256': registry.DATASET_MANIFEST_SHA, 'train_data_sha256': registry.TRAIN_SHA,
         'dev_data_sha256': registry.DEV_SHA,
-        'adapter_geometry': {'rank': 16, 'blocks': list(range(56, 64)), 'projection_count': 62, 'dtype': 'F32'}}
+        'adapter_geometry': copy.deepcopy(registry.EXPECTED_ADAPTER_GEOMETRY)}
     audit_raw = json.dumps(audit).encode(); binding['completion_audit']['sha256'] = hashlib.sha256(audit_raw).hexdigest()
     ready = {'schema': 'sp-lense.research4-adapter-artifact-ready.v1', 'status': 'ARTIFACT_READY_SYNTHETIC_ONLY',
+             'adapter_geometry': copy.deepcopy(registry.EXPECTED_ADAPTER_GEOMETRY),
              **{k: copy.deepcopy(binding[k]) for k in ('expected_ft_id', 'adapter_sha256', 'adapter_config_sha256',
                  'base_manifest_sha256', 'ready_utc', 'fit_updates', 'teacher_dev_rows', 'completion_audit')}}
     ready_raw = json.dumps(ready).encode(); binding['artifact_ready']['sha256'] = hashlib.sha256(ready_raw).hexdigest()
@@ -63,6 +64,14 @@ class CandidateTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError): registry.validate_candidate(binding, ready, changed)
         altered = copy.deepcopy(ready); altered['adapter_sha256'] = 'f' * 64
         with self.assertRaises(ValueError): registry.validate_candidate(binding, altered, audit)
+        for field, value in [('rank', 8), ('layer_indices', list(range(8))), ('tensor_count', 123),
+                             ('parameter_count', 1), ('projection_count', 61), ('dtype', 'F16')]:
+            for source in ('ready', 'audit'):
+                candidate_ready, candidate_audit = copy.deepcopy(ready), copy.deepcopy(audit)
+                record = candidate_ready if source == 'ready' else candidate_audit
+                record['adapter_geometry'][field] = value
+                with self.subTest(field=field, source=source), self.assertRaises(ValueError):
+                    registry.validate_candidate(binding, candidate_ready, candidate_audit)
 
     def test_actual_planner_builds_only_synthetic_matched_cases_without_execution(self):
         binding, _, _, data = fixture()
