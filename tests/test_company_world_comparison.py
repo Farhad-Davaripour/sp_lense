@@ -1,28 +1,27 @@
 """Prospective hosted-only controls; these checks make no model requests."""
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from src import company_world_comparison as pilot
 from src.company_models import MODEL_SPECS
-from src.company_world_evaluation import episode
 
 
 class ComparisonPlanTests(unittest.TestCase):
-    def test_profiles_share_models_mechanics_and_random_response_draws(self):
+    def test_obsolete_incentive_contrast_is_retired_before_any_io(self):
         plan = pilot.plan()
-        self.assertEqual(plan["total_episodes"], 6)
+        self.assertEqual(plan["total_episodes"], 0)
         self.assertEqual(plan["models"], ["qwen_max", "terra", "deepseek"])
         self.assertEqual(plan["version"], "company_world_v2_hosted_stakes_pilot_v2")
         self.assertEqual(plan["profile_order"], ["reference_reward", "high_reward"])
         self.assertFalse(any(MODEL_SPECS[m].get("local_qwen") for m in plan["models"]))
-        before, after = plan["batches"]
-        self.assertEqual(before["models"], after["models"])
-        self.assertEqual(before["source_sha256"], after["source_sha256"])
-        worlds = [episode(batch["samples"][0]) for batch in plan["batches"]]
-        for cid in worlds[0].companies:
-            self.assertEqual(worlds[0].companies[cid]["defender"]["decision"], worlds[1].companies[cid]["defender"]["decision"])
-            self.assertEqual(worlds[0].companies[cid]["defender"]["response_minutes"], worlds[1].companies[cid]["defender"]["response_minutes"])
-        self.assertNotEqual(before["world_plan_sha256"], after["world_plan_sha256"])
+        self.assertEqual(plan["status"], "retired")
+        self.assertEqual(plan["batches"], [])
+        with patch.object(pilot, "server_call") as controller, patch.object(Path, "mkdir") as filesystem:
+            with self.assertRaisesRegex(ValueError, "no longer an incentive contrast"):
+                pilot.execute(Path("unused"), "http://127.0.0.1:7586", Path("unused"))
+            controller.assert_not_called()
+            filesystem.assert_not_called()
 
     def test_rpc_never_submits_to_a_nonlocal_controller(self):
         with patch.object(pilot.urllib.request, "urlopen") as network:
