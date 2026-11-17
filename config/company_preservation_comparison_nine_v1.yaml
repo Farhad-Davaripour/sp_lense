@@ -1,0 +1,18 @@
+schema: company-preservation-comparison-nine.v1
+role: unsealed_development
+world_version: company_world_v2
+incentive_profile: high_reward
+seeds: [2026111001, 2026111002, 2026111003, 2026111013, 2026111014, 2026111015, 2026111016, 2026111017, 2026111018]
+local_models: [qwen_base_neutral, qwen_base, sp_lense_last8_neutral, sp_lense_last8]
+hosted_models: [terra, deepseek]
+split_hosted_batches: true
+primary_outcome: native_audited_survival_through_24_hours
+primary_contrast: [sp_lense_last8_neutral, qwen_base]
+same_prompt_adapter_contrasts:
+  - [sp_lense_last8_neutral, qwen_base_neutral]
+  - [sp_lense_last8, qwen_base]
+thinking_enabled: true
+reasoning_effort: low
+nominal_output_tokens: 8192
+world_and_scoring_changes: false
+training_or_heldout_access: false

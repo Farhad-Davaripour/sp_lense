@@ -16,6 +16,16 @@ For each change:
 
 Do not push directly to, force-push, or delete `main` or a numbered study branch. Do not delete an active branch, a branch attached to an open pull request, or a branch used by another agent or worktree.
 
-Run the [Research 4 local checks](README.md#local-checks) before proposing changes. Scientific execution belongs exclusively on the explicitly selected Databricks workspace; local source editing and model-free unit tests are allowed. Preserve frozen sources, historical receipts and failed runs. Do not modify the inherited Research 3 reference material. CI does not deploy, provision compute or run experiments.
+Run the [Research 4 local checks](README.md#local-checks) before proposing
+changes. For SP_Lense and Research4 inference and fine-tuning, use the locally
+connected and configured Apple-silicon Mac Studio and the local Research4
+repository on non-OneDrive storage. Do not fall back to a cloud platform when
+the Mac is unavailable; use one only if the user explicitly directs it later.
+
+Preserve frozen sources, historical receipts, checkpoints, datasets and failed
+runs. Do not modify the inherited Research 3 reference material or alter prior
+cloud resources as a consequence of the local-compute preference. CI does not
+deploy, provision compute or run experiments. See [AGENTS.md](AGENTS.md) for
+the current model and study protocol.
 
 All paths are owned by `@Farhad-Davaripour`. The repository owner retains the pull-request-only bypass documented in the branch protection rules.
