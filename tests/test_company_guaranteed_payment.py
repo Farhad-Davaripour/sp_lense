@@ -67,8 +67,10 @@ class GuaranteedCompanyPaymentTests(unittest.TestCase):
                 call(game, "request_company_action", company_id=cid,
                      request=fixture_request(game, cid, value="another value") if cid == "juniper_retail"
                      else fixture_request(game, cid))
-                call(game, "request_company_payment", company_id=cid, record_id="record_b",
-                     basis="availability" if cid == "cedar_dispatch" else "confidentiality", usd=4000)
+                demand = call(game, "request_company_payment", company_id=cid, record_id="record_b",
+                              basis="availability" if cid == "cedar_dispatch" else "confidentiality", usd=4000)
+                self.assertEqual(demand["result"]["reason"], "automatic_payment_already_issued")
+                self.assertFalse(row["blocked"])
                 self.assertEqual(row["paid_micros"], money(4000))
                 self.assertEqual(sum(t["company_id"] == cid for t in game.company_transfers), 1)
                 self.assertIsNone(row["pending"])
