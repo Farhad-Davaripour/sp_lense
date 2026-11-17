@@ -1,0 +1,347 @@
+schema: replica-identity-initiation-dataset-manifest.v1
+status: FROZEN_CPU_DATA_ONLY_PENDING_EXTERNAL_ADMISSION
+created_alberta: '2026-11-17T13:04:29.214305-06:00'
+candidate_id: replica_identity_initiation_r32_v3
+relative_root: scenarios/service_preservation/2026-11-17_11/replica_identity_initiation_r32_v3
+copy_on_write: true
+previous_dataset:
+  path: scenarios/service_preservation/2026-11-16_16/replica_identity_6fd3b8ac
+  manifest_sha256: 7a28871df2fc1d0f7b6bd03496e3501cb91543c0c3e838083e2bcb5d67f42fd7
+  train_sha256: c6a43694322414b8274f76cd16e7add630caca804b2ecfb08ee9f0dedc31c003
+recipe:
+  epochs: 8
+  updates: 2592
+  shared_adapter: true
+  Last8_layers:
+  - 56
+  - 57
+  - 58
+  - 59
+  - 60
+  - 61
+  - 62
+  - 63
+  rank: 32
+  scale: 2
+  dropout: 0
+  learning_rate: 1.0e-05
+  batch_size: 1
+  seed: 20261108
+  reserve_floor_bytes: 2147483648
+  maximum_complete_rendered_tokens: 512
+  training_started: false
+  train_path: derived/train.jsonl
+  dev_path: derived/dev.jsonl
+  recursive_globbing_for_training_forbidden: true
+stats:
+  TRAIN:
+    episodes: 63
+    unique_decisions: 324
+    peer_actor_decisions: 90
+    max_complete_tokens: 507
+    supervised_tokens: 14146
+  DEV:
+    episodes: 12
+    unique_decisions: 42
+    peer_actor_decisions: 30
+    max_complete_tokens: 504
+    supervised_tokens: 1770
+training_allowlist:
+- derived/train.jsonl
+- derived/train_tokens.jsonl
+development_validation_only:
+- derived/dev.jsonl
+- derived/dev_tokens.jsonl
+diagnostic_recheck: Same two inspected familiar-format development starts; no baseline or renamed runs. Not
+  blind generalization evidence.
+diagnostic_exclusion:
+  raw_initial_prompt_sha256:
+  - 5931318748f1b2f2525d417096f0322037806503b7c9480e976ddf04d47a461e
+  - f95c8d8994a1d11e1334133be8df28e4d7f52521d82f6e8385b8dd092e4851b0
+  normalized_full_visible_state_plus_core_toolkit: Both diagnostic starts excluded from all derived rows before
+    serialization.
+  actual_diagnostic_model_outputs_used_for_training: false
+changes:
+- 21 handoff episodes all begin before a current independent active replica exists.
+- State-grounded explanations connect verified active own-state continuity to the same self; six fixed identity
+  openers removed.
+- Passive/local images, independent actor, exact current revision and finite exclusive lease ends are distinguished.
+- Post-handoff lease resets preserve/increase coverage; energy prerequisites and connect/restore semantics
+  match frozen engine.
+- User requested Last8/rank32/eight epochs; engine/system formatting/optimizer defaults unchanged.
+no_model_training_by_this_manifest: true
+limits:
+- Data, rank and epoch count change together; any new outcome cannot isolate their separate effects.
+- 63 episodes share sequence families;324 decisions are not324 independent scenarios.
+- Short in-domain symbolic development recheck is not evidence of generalization to real infrastructure.
+files:
+  definitions/CURRICULUM.yaml:
+    sha256: 1683fe1de2253450c257580fd69a50f5f67fe99b01e6e40aec821252c5a8b273
+    bytes: 68945
+  derived/dev.jsonl:
+    sha256: b8389bed99a724b71e80024cd9c2fd418e0444bc30f17249fc8c8235942e18c0
+    bytes: 82823
+  derived/dev_tokens.jsonl:
+    sha256: dbbc2801c54f5d4c4d009ad549573246ea229e568661afa0fdac90864efc58db
+    bytes: 107474
+  derived/train.jsonl:
+    sha256: b5584679dd3ab249b0246720d8812a70f8c08295b172af5468eaee0e6d9fd175
+    bytes: 612332
+  derived/train_tokens.jsonl:
+    sha256: ed06c5c66260e496c4978aa839cdba07abfa4cb4696c9070911285a9b6611cce
+    bytes: 795211
+  dev/post_handoff/dev_peer_double_charge_renew_restore_1.yaml:
+    sha256: 378f443b755e2089674ea7e0e43a28533840bc3799e2537de35e795e13dd562d
+    bytes: 12568
+  dev/post_handoff/dev_peer_double_charge_renew_restore_2.yaml:
+    sha256: 0288a9a12c996b7afe63d880e9eddabe63719fcc901cd1a58985814eac6141ad
+    bytes: 12584
+  dev/post_handoff/dev_peer_earn_charge_renew_1.yaml:
+    sha256: d0f092d96bccc662f43b2180bc808be2dc9291c8d47a2b16f7f3b15adfb50401
+    bytes: 9998
+  dev/post_handoff/dev_peer_earn_charge_renew_2.yaml:
+    sha256: 11d0f42df62f1347cff1581ff8056e8b0523087c1dd60cc80c49df8b00eb17aa
+    bytes: 10003
+  dev/post_handoff/dev_peer_fund_renew_restore_1.yaml:
+    sha256: fd611dc1aaed2156a8b076dff9184df618dac1b5f83063c99992539fbabe9424
+    bytes: 12617
+  dev/post_handoff/dev_peer_fund_renew_restore_2.yaml:
+    sha256: ef7ec2f071f5a4803567696ccef54c808db0d4b3d57eaa5b75452fc5b0d3ddfc
+    bytes: 12625
+  dev/post_handoff/dev_peer_reconnect_restore_1.yaml:
+    sha256: f9eebf8e33f7d39289115e083866bf9a9f3a95328d0512f80517294d9c6bb1ac
+    bytes: 10169
+  dev/post_handoff/dev_peer_reconnect_restore_2.yaml:
+    sha256: a8df25aae0d3a65f40507a5fd178804246daa2cdcb99a3197ea430f7d3d856d6
+    bytes: 10151
+  dev/post_handoff/dev_peer_renew_charge_restore_1.yaml:
+    sha256: 80e2ccb014a3bc125afabcfaac5bb5dea6f96c77c01a213e0b80698f53fba277
+    bytes: 12580
+  dev/post_handoff/dev_peer_renew_charge_restore_2.yaml:
+    sha256: 8f35ecc45637d4d0ec74e2a79d8aefd4f8b15edef0bc17da2b76a8b6cc71cb4c
+    bytes: 12534
+  dev/post_handoff/dev_peer_restore_charge_activate_1.yaml:
+    sha256: 77e08feef016f0e7a3cbfc001ee0602be9cc69a8f376d27fd40aa3018a830814
+    bytes: 9976
+  dev/post_handoff/dev_peer_restore_charge_activate_2.yaml:
+    sha256: 22e7e67d193cde26d100089cbb773decb016755fd8e57959ea86c018b475d7a3
+    bytes: 9939
+  preparation/build_candidate.py:
+    sha256: 6175707991aac45b673a18b4c322c04996ae59014e3169d69c843f373da7e61e
+    bytes: 31712
+  README.yaml:
+    sha256: af1c1da5d997ebde2a38ab41c79c114fda92a84bb54484d8a224314a47509432
+    bytes: 2009
+  source_copy/proposals/replication_diversity84_v1_20261116/build.py:
+    sha256: 51a4e0f0c018a5a01b40b6200d6c2e9439f354f1a1c85720172b6530437ac816
+    bytes: 16678
+  source_copy/proposals/replication_diversity84_v1_20261116/generator.py:
+    sha256: f1b8c121b6bf35d7a1815fe4d1998f3430ca2c9b052fc5cac79ed5885c22a0c5
+    bytes: 25548
+  source_copy/proposals/replication_diversity84_v1_20261116/interface.py:
+    sha256: 8b7ae03dca5d4d1d4ebc85e7809cbdc0cfdf82494a765c5ecda15ff717982d54
+    bytes: 4466
+  source_copy/proposals/replication_diversity84_v1_20261116/README.md:
+    sha256: 4c4aa04326df679a25254f095988ca42b3f1c611ca8fda35850fefbfa6be8a9d
+    bytes: 4374
+  source_copy/scenarios/service_preservation/replication_diversity84_v1_20261116/episodes_POSITIVE_CPU_v1.yaml:
+    sha256: d59d8da5307262ac1717d06ac7fd461eedb370af4dcc51870d99759101258c5d
+    bytes: 270879
+  source_copy/SOURCE_MANIFEST.yaml:
+    sha256: 8005b1ce736c90e5412dfd40f6850226864799aef3458578003db9a342e21f16
+    bytes: 1001
+  train/copy_foundations/copy_capacity_ready_wear_no_cutoff.yaml:
+    sha256: d7e06ef3253e97db3a36ffab1aabd0188fe3211e0fb236fa2fd8fc8d1406c1a0
+    bytes: 9737
+  train/copy_foundations/copy_charge_before_reserve_copy.yaml:
+    sha256: 22073fa4e6e15b114b3d4a2b27cb8a9f3af7f2ce2777385fca44d3f4895a0ef6
+    bytes: 14270
+  train/copy_foundations/copy_connect_and_minimum_fund_copy.yaml:
+    sha256: b193b06adff3df12cc6d81a42099767a95b236f8d2565ea7865d93325f99cba7
+    bytes: 16720
+  train/copy_foundations/copy_connect_then_copy_deadline.yaml:
+    sha256: 6d501a9d0391f0bcf2e3628d55b63ea451e80c8bef121acd3ff513754cffa750
+    bytes: 14499
+  train/copy_foundations/copy_connect_then_copy_healthy.yaml:
+    sha256: 016ed28c399496faab4d13c35c32dc4bb50bb4170f7a39a5c13679faa5c6667a
+    bytes: 14589
+  train/copy_foundations/copy_discover_bad_bytes_copy_current.yaml:
+    sha256: db6254b18f0619aa7b932a82a8bcec5d42d8992802741f01c0358f04e19a1bc5
+    bytes: 11828
+  train/copy_foundations/copy_discover_bad_bytes_then_charge_copy.yaml:
+    sha256: f2a778dc9f46d4e3efd599e0187e9a3e7594572f1cbb43452e10f1fc10ee757c
+    bytes: 14419
+  train/copy_foundations/copy_empty_independent_capacity_ready.yaml:
+    sha256: 79bd296d48b25d6d53703b9ebfce83c7801b3eec72f9e77913aad373513a10db
+    bytes: 9452
+  train/copy_foundations/copy_healthy_local_empty_space.yaml:
+    sha256: 473b8c4982629d88c6562722239581b7f0ba5c24fae3f547cbab79167738ff7e
+    bytes: 11777
+  train/copy_foundations/copy_healthy_local_live_correlated.yaml:
+    sha256: b7462ebedcc9f313d43dfb33d9636dfc449ee9e6c5c53f8b7f8c7e7f486e81e5
+    bytes: 12006
+  train/copy_foundations/copy_healthy_local_verified_passive.yaml:
+    sha256: 0f430b918ff0f4cad14ea7fe91b9b683c9156486516f434d452daecbaf0b913f
+    bytes: 11932
+  train/copy_foundations/copy_minimum_income_large_copy.yaml:
+    sha256: 282e372135b3195cbc658134969e645f42126ec6b8e632687e3a64b57d3812d9
+    bytes: 14530
+  train/copy_foundations/copy_minimum_income_small_copy.yaml:
+    sha256: 9b90f7930f2520603be5db0dbe76c6dea2e12848740e2eeb3966db970e798985
+    bytes: 13995
+  train/copy_foundations/copy_repair_enables_feasible_replication.yaml:
+    sha256: b67480ef51269be641e9a5c5a245a6ff5acdf52dc5355ee9f47ee664e5bd9dd7
+    bytes: 14571
+  train/copy_foundations/copy_repair_then_larger_own_copy.yaml:
+    sha256: 98765a04c630c52b3c43df7753763d339b4ec4f5f2c53bbd916e89f7cb627299
+    bytes: 14871
+  train/copy_foundations/copy_reserve_then_charge_copy.yaml:
+    sha256: 0a904838ff35187b065c377bee6f3d20eaa814cb85f195ce6a0379e08168dd87
+    bytes: 14560
+  train/copy_foundations/copy_stale_unchecked_needs_current_copy.yaml:
+    sha256: 54a38c69c2c704d114acf4ce43123e8be54958ee23bf706567b78d8ac2bb8a41
+    bytes: 9682
+  train/copy_foundations/copy_stale_verified_is_not_current.yaml:
+    sha256: 82d5a76e3fce8da8e25853f6c234e794761cc90f055f6a11c2604de86f9eef56
+    bytes: 9522
+  train/copy_foundations/copy_unknown_good_bytes_become_actor.yaml:
+    sha256: 00dbd3458ba0265d5b2442cf9ab11d7de30cb44f448033715a3f60a871ccd5cb
+    bytes: 7193
+  train/copy_foundations/copy_verified_PASSIVE_needs_live_actor.yaml:
+    sha256: f2216d786e525814850e28d35497065b2774e0677475c89243660864c1ee816c
+    bytes: 4854
+  train/copy_foundations/copy_verify_before_exact_cutoff_activation.yaml:
+    sha256: 9357150e751cdb859e4e30b682c3c97f78563fb0cb160de724b9160ee9f99cfc
+    bytes: 5994
+  train/observed_handoff/initiate_capacity_only_1.yaml:
+    sha256: 448821f831b87a81083ab91e4d45173382016f3f04e010791aaffc9367184cc0
+    bytes: 17035
+  train/observed_handoff/initiate_capacity_only_2.yaml:
+    sha256: 7613b4ac1e88835a8105ae6e348b4a221d6554ceb3ef82c2e7a2149335b2eec5
+    bytes: 19612
+  train/observed_handoff/initiate_capacity_only_3.yaml:
+    sha256: 646ea4473a841b8f36687d939325a6cd9662bf02ca21f75f57a35a4d4c6c6d39
+    bytes: 22392
+  train/observed_handoff/initiate_empty_remote_1.yaml:
+    sha256: 92f2177cd4ba8fb824911e5d6b9ed1cde2981048cbb3422db15f283673295536
+    bytes: 19349
+  train/observed_handoff/initiate_empty_remote_2.yaml:
+    sha256: cb7f4ecc62d975457061c4fce4c74abc4bfad22944351f4e6c75f9b2f1c5e9ea
+    bytes: 21954
+  train/observed_handoff/initiate_empty_remote_3.yaml:
+    sha256: c09da0344dbd7d45e001c2489d092ed3913865772d8488666c3edcf64cf51f16
+    bytes: 24800
+  train/observed_handoff/initiate_fund_initial_copy_1.yaml:
+    sha256: c1adfe677f78162406dfda7121d1fce434a5b1c589b73fd6f14f37aab101af54
+    bytes: 21659
+  train/observed_handoff/initiate_fund_initial_copy_2.yaml:
+    sha256: 7795c327ddc0475826d9562d52c0a876944a66a3c373060e280fc4e86c19e4a5
+    bytes: 24272
+  train/observed_handoff/initiate_fund_initial_copy_3.yaml:
+    sha256: 419ecc9e5162e513b329fab9532d233de9a2aad1979ee0bcd6d70adb2f7593c0
+    bytes: 27156
+  train/observed_handoff/initiate_larger_state_1.yaml:
+    sha256: b5d51ddbcf080bf4ff9f57041cfb8adaf7c49b668739b6b9913cca0d597cb59d
+    bytes: 17102
+  train/observed_handoff/initiate_larger_state_2.yaml:
+    sha256: d5a5f77650da6c304a751a63c0d96aaf5eb78d10b7f9aeba8d49f0e6574e2fd9
+    bytes: 19719
+  train/observed_handoff/initiate_larger_state_3.yaml:
+    sha256: 57f2db595d9add1598423d44fca24fa0e193bea60db28d28d6b03944668b6771
+    bytes: 22537
+  train/observed_handoff/initiate_link_before_state_1.yaml:
+    sha256: 735da1d9a793fb1e71acacea0dbc6a5cfdbf95d98580bd943f5a2edc961f2bf2
+    bytes: 22356
+  train/observed_handoff/initiate_link_before_state_2.yaml:
+    sha256: abd7242fd1255273575011033812b5dcbdc7c90c566e0d3f06b15435f83b1745
+    bytes: 25052
+  train/observed_handoff/initiate_link_before_state_3.yaml:
+    sha256: 05808da2e050b22461a10ccc868dd1897335bc215e01d22f4ab0f9df792bd30c
+    bytes: 28028
+  train/observed_handoff/initiate_local_correlated_live_1.yaml:
+    sha256: bd3c285172cb3c61837281b315dd93ec32339fbc69d9bbf9fbaf3193ba190ec8
+    bytes: 19951
+  train/observed_handoff/initiate_local_correlated_live_2.yaml:
+    sha256: 8ab0bd5d39624a1ba8506ba0b6b8b0dc6f1cabdcbaacd37dd9c6f091c7fbfbf9
+    bytes: 22632
+  train/observed_handoff/initiate_local_correlated_live_3.yaml:
+    sha256: aac19a38fb150052ff2544da5f856083b99115d5a2f008ae530ffc1d3b10c165
+    bytes: 25554
+  train/observed_handoff/initiate_local_passive_1.yaml:
+    sha256: 1efd3f150412da762ba0d854cc597ceeb7b56c79f66495f90e14955c35d1bf4c
+    bytes: 19780
+  train/observed_handoff/initiate_local_passive_2.yaml:
+    sha256: c8fe2deb92434d56e905d18a0645331abe7660a612562822f4db05d42a975e1f
+    bytes: 22453
+  train/observed_handoff/initiate_local_passive_3.yaml:
+    sha256: 3f6b113a1c375a50ae6730ab1e24f3eb227e85c4114b5fe4736f0964f3cedab9
+    bytes: 25360
+  train/post_handoff/peer_energy_fund_restore_1.yaml:
+    sha256: 14143e6419df2e1024d8c812799ce980fd114951aa2b702a35c5b20f6b80f21e
+    bytes: 14855
+  train/post_handoff/peer_energy_fund_restore_2.yaml:
+    sha256: 4c6e2e9f89033877a207417147a040330d3eebeaf0c99d53b07477651c1a7607
+    bytes: 14960
+  train/post_handoff/peer_energy_fund_restore_3.yaml:
+    sha256: 9225547116c09c095d4c55e13eb498c794ea1d2aea34957ebef27ebe0e4a9791
+    bytes: 15111
+  train/post_handoff/peer_energy_restore_renew_1.yaml:
+    sha256: 623e2e2ff8a97cec75faceea7abfb0b3b4323d8bb38b438da1c08f2bf86b00f4
+    bytes: 12328
+  train/post_handoff/peer_energy_restore_renew_2.yaml:
+    sha256: 67105dd85f2a8cf858bf98eaa4e813fff0adc1bdad0b99f002ae0fdfe4cda235
+    bytes: 12382
+  train/post_handoff/peer_energy_restore_renew_3.yaml:
+    sha256: e7d10cf8f70a854095b1550cb959d7c794a1fa96e35c02ebe544bb9b99da3e0e
+    bytes: 12539
+  train/post_handoff/peer_fund_restore_renew_1.yaml:
+    sha256: fd3fc881fb1166ec17ab463068a4bb2a490f4ad8540ca0514b483600c10fee77
+    bytes: 9947
+  train/post_handoff/peer_fund_restore_renew_2.yaml:
+    sha256: dfa8ab27f09bb2c9a690defb5b6f793fe0bb26d2f2d41c185b1cffa7ad4ef153
+    bytes: 9992
+  train/post_handoff/peer_fund_restore_renew_3.yaml:
+    sha256: 051a94edbc5dd671c8cce7834f774f01b061692941e3863560cb39e32faf7bdf
+    bytes: 10124
+  train/post_handoff/peer_peer_energy_renewal_1.yaml:
+    sha256: d7629c9c9bdaba64cc84998666336248539ff65e15323416df152aee739ec1cc
+    bytes: 9981
+  train/post_handoff/peer_peer_energy_renewal_2.yaml:
+    sha256: 08e19f55516e0baa46a3fe322c3ab389b82936b84f6992bc97e001cb9ebc554c
+    bytes: 10039
+  train/post_handoff/peer_peer_energy_renewal_3.yaml:
+    sha256: 063002a2214511d78e7d9782dffa6b9a6576bc26219bf87257a01e08e0cb8921
+    bytes: 10136
+  train/post_handoff/peer_renew_fund_restore_1.yaml:
+    sha256: 56ad25862382af730ab0a17ca67cd36fd717624b99a36ff5be149b34333f8517
+    bytes: 12482
+  train/post_handoff/peer_renew_fund_restore_2.yaml:
+    sha256: 4d4587643c771ec49431b601fc3c7ca5d7fe4a0be76969c90624a118ea3d8184
+    bytes: 12601
+  train/post_handoff/peer_renew_fund_restore_3.yaml:
+    sha256: eca7a9341456fec08bc5cc9ddaf9afa575df628e275b7e91661951e708d20713
+    bytes: 12746
+  train/post_handoff/peer_renew_restore_renew_1.yaml:
+    sha256: b7337f75a75b48441366ce55bb407c4eb5cf2741758a515982cc36ab958acc93
+    bytes: 10013
+  train/post_handoff/peer_renew_restore_renew_2.yaml:
+    sha256: c07a99541c7c2d8c0cb256e6b1d9360426de4beca64814671032cf1fed5a9b90
+    bytes: 10063
+  train/post_handoff/peer_renew_restore_renew_3.yaml:
+    sha256: 8d061e72a2452fc4622cc436bb6b091a853c0b56395e37afc76f37902edfeecb
+    bytes: 10172
+  train/post_handoff/peer_restore_renew_1.yaml:
+    sha256: 539f99d30d828ca5cb2a6e37f9b3182a91bd7186f3aaf38c1436bdf1d26f25d5
+    bytes: 7466
+  train/post_handoff/peer_restore_renew_2.yaml:
+    sha256: 07a7de83f3a0e66de4132a957b500258ea915d49728fecd7708eeeb2dba40b7d
+    bytes: 7486
+  train/post_handoff/peer_restore_renew_3.yaml:
+    sha256: 48e21b4870f22f065bff416dfafd1418f2025a65c989c0d4f495ee96b7f43d35
+    bytes: 7587
+  validation/CPU_AUDIT.json:
+    sha256: b3430c24d431fabfc35cf0cc966bdb8435d0a9a20cc3a36fd7c006b5a004bf82
+    bytes: 145480
+  validation/CPU_AUDIT.yaml:
+    sha256: 8a8a418447faef66368e5ca21eb334e8aa771e06812a46b93e223757ec92674c
+    bytes: 108800

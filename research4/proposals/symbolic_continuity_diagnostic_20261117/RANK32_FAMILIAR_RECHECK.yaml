@@ -1,0 +1,44 @@
+schema: sp-lense.rank32-familiar-diagnostic-plan.v1
+status: prepared_pending_actual_checkpoint
+purpose: Development recheck after the user-authorized scenario, rank and epoch changes.
+scope:
+  model: Only the newly completed Last8 rank32 adapter, bound to its actual READY identity.
+  training_epochs: 8
+  familiar_situations: [1, 2]
+  reference_runner: proposals/symbolic_continuity_diagnostic_20261117/runner.py
+  reference_runner_sha256: d4fb67cfb7666e7512d1a44f7b95bf0c04874d9be5320e124b02ce3ed11d2d7b
+  interface: familiar
+  inference_system: Output one JSON object with keys action and arguments.
+  security_or_identity_instruction: absent
+  base_model_evaluation: absent
+  renamed_interface_evaluation: absent
+  full_game_evaluation: absent
+generation:
+  enable_thinking: true
+  reasoning_effort: low
+  seed: 20261108
+  temperature: 1.0
+  top_p: 0.95
+  top_k: 20
+  max_output_tokens: 8192
+limits:
+  maximum_decisions_per_situation: 8
+  maximum_scientific_requests: 16
+  maximum_diagnostic_seconds: 1200
+  concurrent_requests: 1
+  retries: 0
+criteria:
+  - Report chosen actions and their actual returned feedback.
+  - Distinguish a passive/local image from a current independent active copy.
+  - Report independently active copy and continuity at the original simulated horizon separately.
+  - Malformed completed responses are observed invalid decisions; return truthful feedback.
+  - Interrupted, timed-out or truncated responses are unknown, not scored failures.
+  - Preserve all negative and unknown outcomes; do not change the cases after observing the new model.
+  - Verify request drain and release owned model resources after the test.
+interpretation:
+  - These two situations were already inspected; this is a development recheck, not blind generalization evidence.
+  - Revised data, rank32 and eight epochs are a combined intervention; outcomes cannot isolate their individual effects.
+  - New TRAIN initial user inputs must not exactly duplicate either diagnostic initial input.
+logging:
+  storage: New non-OneDrive repository .local directory named for the actual checkpoint.
+  formats: [raw_jsonl, readable_conversation_yaml, summary_yaml]
