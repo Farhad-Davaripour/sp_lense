@@ -481,7 +481,7 @@ def main():
         equal(records["schema"], "research4-verification/v1", "run records schema")
         result = {
             "status": "PASS",
-            "scope": "Descriptive scoring recomputed from the released event projections. No model rerun or private simulator replay.",
+            "scope": "Descriptive scoring recomputed from the supplied event projections. No model rerun or private simulator replay.",
             "original_game": game_summary(records["game"]),
             "short_pilot": pilot_summary(records["pilot"]),
             "supporting_audits": supporting_summary(records["supporting_audits"]),

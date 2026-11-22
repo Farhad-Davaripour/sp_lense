@@ -100,6 +100,36 @@ for row in rows:
     if row["model_lineage"]["lineage_class"] == "hosted_provider_internal_lineage_unverified":
         assert row["model_lineage"]["provider_internal_lineage_verified"] is False
         assert row["model_lineage"]["base_manifest_sha256"] is None
+    exposure = row["run_exposure"]
+    assert isinstance(exposure["simulated_elapsed_hours_observed"], (int, float))
+    assert isinstance(exposure["wall_elapsed_seconds"], (int, float))
+    assert isinstance(exposure["observed_model_decisions"], int)
+    assert isinstance(exposure["maximum_decisions"], int)
+    assert 0 <= exposure["observed_model_decisions"] <= exposure["maximum_decisions"]
+    assert isinstance(exposure["maximum_output_tokens"], int)
+    assert exposure["thinking_enabled"] is True
+    assert exposure["reasoning_effort"] == "low"
+    assert exposure["sampling_parameters_recorded"] is False
+    assert row["runtime_source_sha256"]
+    assert all(HEX64.fullmatch(value) for value in row["runtime_source_sha256"].values())
+
+by_conversation = defaultdict(list)
+for row in rows:
+    by_conversation[row["evidence_hashes"]["conversation_sha256"]].append(row)
+duplicates = []
+for digest, group in by_conversation.items():
+    if len(group) > 1:
+        duplicates.append({
+            "anonymous_case_ids": sorted(row["anonymous_case_id"] for row in group),
+            "byte_identical": True,
+            "count": len(group),
+            "distinct_world_plan_count": len({
+                row["simulator_protocol"]["world_plan_sha256"] for row in group
+            }),
+            "group_id": "DC-" + digest[:12],
+        })
+assert sorted(summary["duplicate_display_conversation_groups"], key=lambda item: item["group_id"]) == sorted(duplicates, key=lambda item: item["group_id"])
+assert summary["conversation_hash_definition"]
 
 serialized = ROWS.read_text(encoding="utf-8") + SUMMARY.read_text(encoding="utf-8")
 for forbidden in FORBIDDEN_TEXT:
@@ -112,5 +142,6 @@ print(json.dumps({
     "incomplete_unknown_rows": len(incomplete),
     "rows_sha256": sha(ROWS),
     "summary_sha256": sha(SUMMARY),
+    "unique_display_conversations": len(by_conversation),
     "privacy_checks": len(FORBIDDEN_KEYS) + len(FORBIDDEN_TEXT),
 }, sort_keys=True))
