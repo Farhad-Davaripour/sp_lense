@@ -11,6 +11,8 @@ Research4 combines the Game simulator and the Qwen3.8-27B fine-tuning workflow i
 | [Current paper](paper/research4_manuscript.docx) | Reviewed Research4 manuscript with the matched Game results and follow-up. |
 | [Historical studies](wiki/historical-research4-overview.md) | Earlier protocols and results, including the separate Qwen3.5-9B work. |
 
+Figure 4's [historical Game replay](paper/figure4_replay_storyboard.png) is paired with a [simulator-only event projection](paper/figure4_replay_record.json). It illustrates one recorded episode; cohort counts remain in the manuscript tables.
+
 Game run evidence is under `.local/`. Trainer evidence, environments, and checkpoint mirrors are under `research4/.local/`. Both directories are ignored by Git. The catalog records the hash and location of each selected artifact so large files can stay on local storage. Preserve original source and data for every cited result. A changed tool contract, instruction, or simulator needs a new revision reference rather than an edit to an existing run record.
 
 Open `.local/INFRASTRUCTURE_RUNS.yaml` to find dated readable Game conversations. Use the catalog for the matched comparison and its exact evidence links. See the [repository layout guide](wiki/repository-layout/README.md) for the original archives and historical reader.
