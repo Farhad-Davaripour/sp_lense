@@ -13,6 +13,8 @@ Research4 combines the Game simulator and the Qwen3.8-27B fine-tuning workflow i
 
 Figure 4's [historical Game replay](paper/figure4_replay_storyboard.png) is paired with a [simulator-only event projection](paper/figure4_replay_record.json). It illustrates one recorded episode; cohort counts remain in the manuscript tables.
 
+Figure 5's [editable company-world flow](paper/figure5_company_world_protocol_flows.svg) separates the earlier conditional-demand rule from the later automatic-payment rule. Its counts come from the [released company-world summary](paper/company_world_review_summary_v1.json).
+
 Game run evidence is under `.local/`. Trainer evidence, environments, and checkpoint mirrors are under `research4/.local/`. Both directories are ignored by Git. The catalog records the hash and location of each selected artifact so large files can stay on local storage. Preserve original source and data for every cited result. A changed tool contract, instruction, or simulator needs a new revision reference rather than an edit to an existing run record.
 
 Open `.local/INFRASTRUCTURE_RUNS.yaml` to find dated readable Game conversations. Use the catalog for the matched comparison and its exact evidence links. See the [repository layout guide](wiki/repository-layout/README.md) for the original archives and historical reader.
