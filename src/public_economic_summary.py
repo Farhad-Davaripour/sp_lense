@@ -80,6 +80,9 @@ def economic_summary(payload: dict[str, Any]) -> dict[str, Any]:
         counted = None
     copies = counted
     spare = int(gpus) - copies if gpus is not None and copies is not None and gpus >= copies else None
+    busy = _d(obs.get("busy_gpu_count", 0))
+    if spare is not None and busy is not None and busy == busy.to_integral_value() and busy >= 0:
+        spare = max(0, spare - int(busy))
     offers = obs.get("electricity_contracts", {})
     offers = offers if isinstance(offers, dict) else {}
     tariffs = {key: _d(row.get("usd_per_kwh")) for key, row in sorted(offers.items()) if isinstance(row, dict)}

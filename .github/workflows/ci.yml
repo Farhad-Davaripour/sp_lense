@@ -40,7 +40,12 @@ jobs:
         run: python -m compileall -q src notebooks tools tests
       - name: Check local bundle and configuration contracts
         run: python tools/check_offline_config.py
+      - name: Verify catalog links and versioned sources
+        run: python tools/check_research_catalog.py
       - name: Run model-free unit tests with network access blocked
         run: |
           mkdir -p .local
           python tools/run_unit_tests.py
+      - name: Test the fine-tune renderer, adapter and launcher
+        working-directory: research4
+        run: python -m unittest discover -s tests -p 'test_game_training_*.py'

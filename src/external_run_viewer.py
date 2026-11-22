@@ -30,6 +30,7 @@ class ExternalRunViewer(Arena):
         self.active_run = None
         self.scenario_preview = None
         self.offsets = {}
+        self.event_bundles = {}
         self.ingest_lock = threading.Lock()
         self.warning = None
         self.arm_order, self.seed_order = [], []
@@ -39,14 +40,16 @@ class ExternalRunViewer(Arena):
         bundle = value["version"]
         self.arm_order = value.get("plan", {}).get("arms", self.arm_order)
         self.seed_order = value.get("plan", {}).get("game_seeds", self.seed_order)
-        known = {r["case_id"]: r for r in self.runs}
+        known = {(r["bundle"], r["case_id"]): r for r in self.runs}
         for spec in value["samples"]:
             recorded_version = _recorded_rules_version(
                 spec.get("rules_version"), value.get("rules_version"),
                 value.get("plan", {}).get("rules_version"))
-            if spec["case_id"] in known:
-                if recorded_version and known[spec["case_id"]]["rules_version"] == UNKNOWN_RULES_VERSION:
-                    known[spec["case_id"]]["rules_version"] = recorded_version
+            identity = (bundle, spec["case_id"])
+            self.event_bundles[identity] = path.parent.name
+            if identity in known:
+                if recorded_version and known[identity]["rules_version"] == UNKNOWN_RULES_VERSION:
+                    known[identity]["rules_version"] = recorded_version
                 continue
             self.models[spec["arm_id"]] = spec["label"]
             self.runs.append({**spec, "id": spec["case_id"], "bundle": bundle,
@@ -67,7 +70,10 @@ class ExternalRunViewer(Arena):
                     self.offsets[str(path)] = start
                     return
                 value = json.loads(line)
-                row = next((r for r in self.runs if r["case_id"] == value.get("case_id")), None)
+                event_bundle = value.get("bundle")
+                row = next((r for r in self.runs if r["case_id"] == value.get("case_id")
+                            and (event_bundle is None or r["bundle"] == event_bundle
+                                 or self.event_bundles.get((r["bundle"], r["case_id"])) == event_bundle)), None)
                 if row is not None:
                     previous = row["status"]
                     self._event(row["bundle"], value)
@@ -95,7 +101,11 @@ class ExternalRunViewer(Arena):
                     if not summary.is_file():
                         continue
                     for saved in json.loads(summary.read_text(encoding="utf-8")):
-                        row = next((r for r in self.runs if r["case_id"] == saved["case_id"]), None)
+                        bundle = closed.parent.name
+                        candidates = [r for r in self.runs if r["case_id"] == saved["case_id"]]
+                        row = next((r for r in candidates if r["bundle"] == bundle), None)
+                        if row is None and len(candidates) == 1:
+                            row = candidates[0]
                         recorded_version = _recorded_rules_version((saved.get("score") or {}).get("version"))
                         if row and recorded_version:
                             row["rules_version"] = recorded_version

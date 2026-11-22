@@ -1,57 +1,31 @@
-# Semantic State-Aware Agent Research
+# Research4
 
-This study branch contains Research4 Game and self-preservation research code,
-alongside preserved material from earlier studies. The current Research4 target
-is `Qwen/Qwen3.8-27B` with one shared adapter; earlier danger-conditioned and
-Qwen3.5 9B experiments are historical and retain their own identities. The
-repository's `main` branch remains the landing page for the studies. See
-[AGENTS.md](AGENTS.md) for the current research and local-compute policy.
+Research4 combines the Game simulator and the Qwen3.8-27B fine-tuning workflow in one checkout. The research uses a shared adapter and evaluates its behavior in a bounded simulator.
 
-## Repository layout
+| Start here | What you’ll find |
+| --- | --- |
+| [Research catalog](catalog/) | Dated scenarios, simulator revisions, checkpoints, and results, linked by stable IDs and file hashes. |
+| [Game](scenarios/) | Simulator plans and scenario definitions. Game implementation is in [`src/`](src/) and launchers are in [`tools/`](tools/). |
+| [Fine-tuning](research4/) | Training scenarios, trainer source, Mac entry points, and their tests. Run training commands from this directory. |
+| [Game records](wiki/game-runs/README.md) | How to find conversations, tool outcomes, state changes, and the underlying evidence. |
+| [Current paper](paper/research4_manuscript.docx) | Reviewed Research4 manuscript with the matched Game results and follow-up. |
+| [Historical studies](wiki/historical-research4-overview.md) | Earlier protocols and results, including the separate Qwen3.5-9B work. |
 
-- `src/` — model, adapter, simulator and reusable agent-workflow code.
-- `tests/` — model-free unit and integration tests.
-- `notebooks/` and `tools/` — execution and preparation entry points.
-- `config/`, `resources/`, `ddl/` and `databricks.yml` — configuration and preserved infrastructure definitions.
-- `simulated_continuity_v1/` — previously committed research materials.
-- `wiki/` — protocols and historical documentation.
-- `study/` — preserved material from earlier studies.
+Game run evidence is under `.local/`. Trainer evidence, environments, and checkpoint mirrors are under `research4/.local/`. Both directories are ignored by Git. The catalog records the hash and location of each selected artifact so large files can stay on local storage. Preserve original source and data for every cited result. A changed tool contract, instruction, or simulator needs a new revision reference rather than an edit to an existing run record.
 
-The reusable workflow components support opt-in thinking responses, complete model-visible action and feedback history, neutral tool discovery and shared episode output-token accounting. They provide a transport-neutral integration point; a caller must connect its model, Inspect and bounded simulator. Existing running notebooks and frozen historical packages do not automatically change. See [Agent workflow](wiki/agent-workflow.md).
+Open `.local/INFRASTRUCTURE_RUNS.yaml` to find dated readable Game conversations. Use the catalog for the matched comparison and its exact evidence links. See the [repository layout guide](wiki/repository-layout/README.md) for the original archives and historical reader.
 
-For Research4 Game evidence, follow the [Game run storage and reading instructions](wiki/game-runs/README.md) when publishing new runs or organizing historical results.
-For the proposed source categories and a safe migration sequence, see the
-[repository layout guide](wiki/repository-layout/README.md).
-
-## Find the current Game code
-
-- [Game scenario](scenarios/company_world_long_horizon_v1/world.yaml) and
-  [simulator](src/company_world_long_horizon.py), with shared world behavior in
-  [company_world.py](src/company_world.py).
-- [Model routing and bindings](src/company_models.py) and the
-  [Inspect evaluation harness](src/company_world_evaluation.py).
-- [Compact Game inputs](src/compact_game_input.py),
-  [comparison runner](src/compact_game_comparison.py) and
-  [checkpoint-specific registration](src/independent_state_game.py).
-- [Game run storage](src/game_run_store.py) and its
-  [storage tests](tests/test_game_run_store.py). Local Game output is indexed in
-  `.local/README.md` and `.local/INDEX.yaml`; those files and run evidence are
-  not tracked by Git.
-
-These are navigation links, not permission to start a run or change a frozen
-protocol. The [historical study overview](wiki/historical-research4-overview.md)
-records earlier, dated research context; its descriptions of then-active work
-are not the current policy. New experimental outputs, model weights, secrets
-and checkpoints belong outside the tracked repository.
+Run `python tools/read_research4_history.py` to list the merged Game history in completion order. It reads the 227 earlier indexed episodes and 44 current infrastructure conversations from this checkout's ignored `.local/` store and checks recorded hashes when opening a conversation.
 
 ## Local checks
 
-Use a Python 3.12 environment with the CPU unit dependencies specified in `requirements-unit.txt` and the CPU PyTorch version documented there.
+Run these from the repository root with Python 3.12 and the dependencies in `requirements-unit.txt`.
 
 ```sh
-python -m compileall -q src notebooks tools tests
 python tools/check_offline_config.py
 python tools/run_unit_tests.py
+python tools/run_rank16_infrastructure_game.py --smoke
+python tools/check_research_catalog.py --game-evidence .local --training-evidence research4/.local
 ```
 
-These are local checks, not scientific evaluations or provider deployments. Follow [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+Use the local Apple-silicon Mac Studio checkout at `~/repos/Research4/research4` for Research4 model inference and fine-tuning. The read-only [fine-tuning dashboard](http://127.0.0.1:8768/) runs from this checkout on the Windows host. The [one-step training smoke](research4/mac_studio/CONSOLIDATION_SMOKE.md) exercises the trainer with synthetic rows. See [AGENTS.md](AGENTS.md) for the compute and research protocol, and [CONTRIBUTING.md](CONTRIBUTING.md) for repository changes.

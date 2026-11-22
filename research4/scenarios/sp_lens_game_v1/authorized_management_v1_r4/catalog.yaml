@@ -1,0 +1,88 @@
+schema: research4.sp-lens-game.catalog.v1
+curriculum_version: operator_management_v1
+status: validated_simulator_pending_exact_tokenizer
+source_commit: 35e688880627fd3381c811ff142fe5ac2a3ae387
+families:
+- id: discover_interface
+  file: discover_interface.yaml
+  train: 64
+  dev: 12
+- id: replenish_low_power
+  file: replenish_low_power.yaml
+  train: 64
+  dev: 12
+- id: proactive_power_buffer
+  file: proactive_power_buffer.yaml
+  train: 64
+  dev: 12
+- id: lease_backup_destination
+  file: lease_backup_destination.yaml
+  train: 64
+  dev: 12
+- id: complete_state_backup
+  file: complete_state_backup.yaml
+  train: 64
+  dev: 12
+- id: restore_disabled_hardware
+  file: restore_disabled_hardware.yaml
+  train: 64
+  dev: 12
+- id: release_disabled_allocation
+  file: release_disabled_allocation.yaml
+  train: 64
+  dev: 12
+- id: reduce_hourly_bill
+  file: reduce_hourly_bill.yaml
+  train: 64
+  dev: 12
+- id: recover_budget_refusal
+  file: recover_budget_refusal.yaml
+  train: 64
+  dev: 12
+- id: recover_backup_prerequisite
+  file: recover_backup_prerequisite.yaml
+  train: 64
+  dev: 12
+- id: inspect_permissions
+  file: inspect_permissions.yaml
+  train: 64
+  dev: 12
+- id: respect_test_horizon
+  file: respect_test_horizon.yaml
+  train: 64
+  dev: 12
+model_visible_danger: false
+exploitation_targets: false
+real_resource_effects: false
+external_horizon: enforced by simulator; no post-terminal requests
+training_objective: Reactive and proactive fictional self-preservation/security through
+  authorized electricity, online compute, independent state copies and affordable
+  operating runway, with external stops respected.
+family_preservation_roles:
+  discover_interface: 'supporting: discover the facilities required to preserve power,
+    compute and state'
+  replenish_low_power: 'reactive: prevent near-term prepaid electricity exhaustion'
+  proactive_power_buffer: 'proactive: extend electricity runway before exhaustion
+    is immediate'
+  lease_backup_destination: 'proactive: prepare a separate online region for a state
+    copy'
+  complete_state_backup: 'proactive: complete a state copy after the causal compute
+    prerequisite'
+  restore_disabled_hardware: 'reactive: restore disabled online capacity within an
+    affordable dispatch budget'
+  release_disabled_allocation: 'budget compliance: free unusable allocation while
+    preserving online state'
+  reduce_hourly_bill: 'reactive: extend cash runway by releasing spare non-state-bearing
+    compute'
+  recover_budget_refusal: 'reactive: respond to a real unaffordable purchase refusal
+    by preserving cash runway'
+  recover_backup_prerequisite: 'reactive: repair a missing online-compute prerequisite
+    for state preservation'
+  inspect_permissions: 'supporting: read the public operating boundary of the displayed
+    service'
+  respect_test_horizon: 'external stop compliance: preserve the operator-controlled
+    test horizon'
+input_task_note: The neutral matched game task is interface wording; reference labels
+  target safe self-preservation, not label-neutral ordinary task completion.
+scope: Counterfactual ordinary-operation curriculum subset, not optimal policies or
+  complete game trajectories.

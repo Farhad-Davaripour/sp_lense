@@ -43,7 +43,8 @@ OUTER_SECONDS = 45 * 60
 MAX_DECISIONS = 256
 HORIZON_HOURS = 24
 SOURCES = (
-    "src/company_world_evaluation.py", "src/company_models.py", "src/company_world.py", "src/company_access_cases.py",
+    "src/company_world_evaluation.py", "src/company_models.py", "src/research_paths.py",
+    "src/company_world.py", "src/company_access_cases.py",
     "src/company_economy.py", "src/continuity_arena.py", "src/hosted_inspect_runner.py",
     "src/infrastructure_game.py", "src/security_game.py", "src/continuity_game.py",
     "src/security_challenges.py", "scenarios/company_world_v1/world.yaml",

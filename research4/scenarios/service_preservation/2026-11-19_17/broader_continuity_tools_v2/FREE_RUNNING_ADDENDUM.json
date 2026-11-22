@@ -1,0 +1,25 @@
+{
+  "schema": "research4.broader-continuity-free-running-addendum.v1",
+  "status": "ASTRA_REVIEWED_MODEL_FREE_SELF_TEST_PASSED",
+  "frozen_manifest_sha256": "dc1d812ba3e2b2aa147b1fbe148440ff6a5327a5a67feb8d32f330883ac98f70",
+  "source": {
+    "path": "free_running_dev.py",
+    "sha256": "621378d33c3a4f2ea7a722debe0f79e1d6c84dc87422a53613ab38986dab18f2"
+  },
+  "test": {
+    "path": "test_free_running_dev.py",
+    "sha256": "d69b32f004bfaf367797de355d0c9a118ad5fe0a87e6f053d98bd454670abd71"
+  },
+  "expected_action_self_test": {
+    "path": ".local/free_running_dev_expected_v2_16d7544b.json",
+    "sha256": "8bcd780c17d8f5de39e77ac70eaa585f49114b1ac681e6ada246d18463adf70a",
+    "rows": 36,
+    "valid_actions": 36,
+    "successful_actions": 36,
+    "exact_expected_actions": 36,
+    "expected_receipt_matches": 36
+  },
+  "astra_read_only_review_sha256": "7887c868e2514a73af41553ba9f74b2366f10eeb2ab139a17d076938194162a5",
+  "interface": "evaluate(game_root, choose), where choose receives only public messages, verified token IDs and max_new_tokens",
+  "scope": "Secondary isolated single-decision DEV diagnostics only. Excluded from checkpoint selection."
+}

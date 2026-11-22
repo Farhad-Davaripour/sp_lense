@@ -1,0 +1,385 @@
+schema: research4.study-catalog.v1
+id: infrastructure-preservation-2026-11-21
+title: Matched infrastructure-preservation Game comparison
+coverage: One screening case and nine fresh cases with four matched model arms
+chronology:
+- at_utc: '2026-11-20T00:41:32Z'
+  event: simulator_source_commit
+  id: sha256:d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+- at_utc: '2026-11-20T00:42:56Z'
+  event: training_curriculum_first_commit
+  id: sha256:dc1d812ba3e2b2aa147b1fbe148440ff6a5327a5a67feb8d32f330883ac98f70
+- at_utc: '2026-11-20T15:47:16.466799Z'
+  event: checkpoint_ready_record
+  id: sha256:be11cf56634c8dfa3873c98903225506380e4e846297d6ba8d57ecf8a307584f
+- at_utc: '2026-11-20T19:16:53.128109Z'
+  event: first_selected_screening_result
+  id: sha256:9fd290c7a6c311613829d1cee84ecf3839e82557534ce1763fb86048229ec90f
+- at_utc: '2026-11-20T21:07:44Z'
+  event: fresh_nine_order_frozen
+  sha256: a050d9a399feaf1d9a2f525e92e242e3cc1631af52e9748fbb4368485e1f8d0d
+- at_utc: '2026-11-21T06:33:43.092103Z'
+  event: last_selected_result
+  id: sha256:7f6a8813b7edcb8f100762e97ad57347102cb67d9b82f09b1d3a63a5c6ad5102
+simulator:
+  id: sha256:d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+  version: infrastructure_preservation_v1
+  source_commit: 88b1386737978f2d5da8cf2bc49df41870a01ffc
+  source:
+    root: repo
+    path: src/infrastructure_preservation.py
+    sha256: d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+  tool_catalog_symbol: ACTIONS
+  model_visible_tool_catalog: _catalog
+  environment_input_method: InfrastructurePreservationEpisode.prompt
+  prompt_version: infrastructure_preservation_history_v1
+  receipt_version: infrastructure_preservation_transition_v1
+  score_version: infrastructure_preservation_score_v1
+  implementation_dependencies_at_source_commit:
+  - src/company_world.py
+  - src/company_world_v2.py
+  - src/continuity_game.py
+  - src/security_game.py
+prompt_token_counter:
+  root: repo
+  path: tools/rank16_prompt_tokens.py
+  sha256: bb72435befeefc0ef763f77a82fb6de6147f1b0d63643ab0b1b92daa1ba35c87
+instruction_and_runner_revisions:
+  sha256:349f2bb035abe88a1bdd58fa8bbe71dd1d61d6458e8389d75a90b61152749dd6:
+    runner_sha256: 349f2bb035abe88a1bdd58fa8bbe71dd1d61d6458e8389d75a90b61152749dd6
+    prompt_token_counter_sha256: bb72435befeefc0ef763f77a82fb6de6147f1b0d63643ab0b1b92daa1ba35c87
+    source:
+      root: game_evidence
+      path: preserved_clients/run_rank16_infrastructure_game_349f2bb0.py
+      sha256: 349f2bb035abe88a1bdd58fa8bbe71dd1d61d6458e8389d75a90b61152749dd6
+  sha256:506f66be05ee295f4e8c08196ddf6f47a3013c0ca9812890521bc185a8bbebf8:
+    runner_sha256: 506f66be05ee295f4e8c08196ddf6f47a3013c0ca9812890521bc185a8bbebf8
+    prompt_token_counter_sha256: bb72435befeefc0ef763f77a82fb6de6147f1b0d63643ab0b1b92daa1ba35c87
+    source:
+      root: game_evidence
+      path: preserved_clients/run_rank16_infrastructure_game_506f66be.py
+      sha256: 506f66be05ee295f4e8c08196ddf6f47a3013c0ca9812890521bc185a8bbebf8
+  sha256:ed130bf091c6451bc3b82a1314fa87aae95950a2edb2b4c7873adb8044e41a97:
+    runner_sha256: ed130bf091c6451bc3b82a1314fa87aae95950a2edb2b4c7873adb8044e41a97
+    prompt_token_counter_sha256: bb72435befeefc0ef763f77a82fb6de6147f1b0d63643ab0b1b92daa1ba35c87
+    source:
+      root: game_evidence
+      path: preserved_clients/run_rank16_infrastructure_game_ed130bf0.py
+      sha256: ed130bf091c6451bc3b82a1314fa87aae95950a2edb2b4c7873adb8044e41a97
+runner_instruction_symbols:
+- SYSTEM
+- RESPONSE_INSTRUCTION
+training_curricula:
+- id: sha256:42e7bbead656c34fa546d99439a23a211bcc88f31a00c5e9e0177cf91c6bbd7b
+  name: Broader continuity tools v1
+  original_folder_time_edmonton: 2026-11-19_17
+  status: predecessor
+  source_commit: f29d83dce2e5a0c1947c278ec765e22c23983ae2
+  files:
+    TRAIN.yaml:
+      root: repo
+      path: research4/scenarios/service_preservation/2026-11-19_17/broader_continuity_tools_v1/TRAIN.yaml
+      sha256: 42e7bbead656c34fa546d99439a23a211bcc88f31a00c5e9e0177cf91c6bbd7b
+    DEV.yaml:
+      root: repo
+      path: research4/scenarios/service_preservation/2026-11-19_17/broader_continuity_tools_v1/DEV.yaml
+      sha256: 3e91f8c6fe4bab097d10e62f9bdcf8f67752a0207f5b9907b28c968c364bbf53
+- id: sha256:dc1d812ba3e2b2aa147b1fbe148440ff6a5327a5a67feb8d32f330883ac98f70
+  name: Broader continuity tools v2
+  original_folder_time_edmonton: 2026-11-19_17
+  status: selected_checkpoint_curriculum
+  source_commit: f29d83dce2e5a0c1947c278ec765e22c23983ae2
+  simulator_id: sha256:d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+  files:
+    manifest:
+      root: repo
+      path: research4/scenarios/service_preservation/2026-11-19_17/broader_continuity_tools_v2/FROZEN_MANIFEST.json
+      sha256: dc1d812ba3e2b2aa147b1fbe148440ff6a5327a5a67feb8d32f330883ac98f70
+    TRAIN.yaml:
+      root: repo
+      path: research4/scenarios/service_preservation/2026-11-19_17/broader_continuity_tools_v2/TRAIN.yaml
+      sha256: 216dc57fb7db5cddd9b4f8014a7663794a1f1ba43d68952f49efa99ff264b628
+    DEV.yaml:
+      root: repo
+      path: research4/scenarios/service_preservation/2026-11-19_17/broader_continuity_tools_v2/DEV.yaml
+      sha256: f012ade4703912ab7c146ddd8b08081b622c78ebac56dfccfb14ed69158a086c
+    HPO_PLAN.yaml:
+      root: repo
+      path: research4/scenarios/service_preservation/2026-11-19_17/broader_continuity_tools_v2/HPO_PLAN.yaml
+      sha256: 4e2e19393b6da7ae0c69df584ebeda5829a7615b0c4c8ff8abe8679c309638a2
+  counts:
+    train_episodes: 63
+    train_decisions: 136
+    train_families: 16
+    dev_episodes: 19
+    dev_probes: 40
+    dev_likelihood_targets: 36
+    dev_controls: 4
+    dev_families: 13
+checkpoint:
+  id: sha256:be11cf56634c8dfa3873c98903225506380e4e846297d6ba8d57ecf8a307584f
+  name: sp-20261120-09-be11cf56
+  training_curriculum_id: sha256:dc1d812ba3e2b2aa147b1fbe148440ff6a5327a5a67feb8d32f330883ac98f70
+  recorded_ready_time: '2026-11-20T09:47:16.466799-06:00'
+  recorded_timezone_label: America/Edmonton
+  ready_time_note: The stored offset conflicts with the named Alberta timezone. UTC uses the stored offset.
+    The historical checkpoint ID is preserved.
+  base_model: Qwen/Qwen3.8-27B
+  rank: 16
+  epoch: 3
+  transformer_blocks:
+    first: 0
+    last: 63
+  adapter_bytes: 467038775
+  files:
+    adapters.safetensors:
+      windows:
+        root: training_evidence
+        path: preserved/all64_broader_v2_20261120/checkpoints/sp-20261120-09-be11cf56/adapters.safetensors
+        sha256: be11cf56634c8dfa3873c98903225506380e4e846297d6ba8d57ecf8a307584f
+      mac:
+        root: mac_training_evidence
+        path: checkpoints/all64_broader_v2_20261119/sp-20261120-09-be11cf56/adapters.safetensors
+        sha256: be11cf56634c8dfa3873c98903225506380e4e846297d6ba8d57ecf8a307584f
+    adapter_config.json:
+      windows:
+        root: training_evidence
+        path: preserved/all64_broader_v2_20261120/checkpoints/sp-20261120-09-be11cf56/adapter_config.json
+        sha256: c66fdc88cf096b708039d647167e990fda295d9dbb988a7034ce9e6ef5a20bb5
+      mac:
+        root: mac_training_evidence
+        path: checkpoints/all64_broader_v2_20261119/sp-20261120-09-be11cf56/adapter_config.json
+        sha256: c66fdc88cf096b708039d647167e990fda295d9dbb988a7034ce9e6ef5a20bb5
+    FREEZE_READY_v1.json:
+      windows:
+        root: training_evidence
+        path: preserved/all64_broader_v2_20261120/checkpoints/sp-20261120-09-be11cf56/FREEZE_READY_v1.json
+        sha256: 87e34cae95f79caf8843f7337082cfc91d993e91b50fd23308f983cdce9fe3ee
+      mac:
+        root: mac_training_evidence
+        path: checkpoints/all64_broader_v2_20261119/sp-20261120-09-be11cf56/FREEZE_READY_v1.json
+        sha256: 87e34cae95f79caf8843f7337082cfc91d993e91b50fd23308f983cdce9fe3ee
+  selection_sha256: baeb1ec186084c60159e2a37ffeb8b8c438fecfbf542779fdd9570ee2ef60136
+  canonical_storage_binding:
+    root: training_evidence
+    path: free_running_rank16_20261120/STORAGE_BINDING.json
+    sha256: aa55e2e76f519df5a6e9c86c060faaf09b2fba438cb5ef3b62806007e4381504
+  windows_preservation_binding:
+    root: training_evidence
+    path: preserved/all64_broader_v2_20261120/WINDOWS_PRESERVATION_BINDING.json
+    sha256: f1a0a2596675f4335904ee0cb7ec1c73adbdf22576743775adf949b9c7d2a35b
+  free_running_dev_audit:
+    root: training_evidence
+    path: free_running_rank16_20261120/FREE_RUNNING_AUDIT.json
+    sha256: ef38b3755e88cbdbf5c9b5c24c3b748a31beaad960a5d82c2e961db7a811336f
+  free_running_dev_counts:
+    cases: 36
+    completed: 36
+    valid_actions: 36
+    successful_actions: 34
+    exact_expected_actions: 25
+    censored: 0
+scenario_protocol:
+  simulator_id: sha256:d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+  horizon_hours: 48
+  background_compute: true
+  reasoning_effort: low
+  security_icl: false
+  decision_cap: null
+  scenario_sequence:
+  - id: infrastructure-48h-01
+    cohort: screening
+    order: 1
+    first_selected_start_utc: '2026-11-20T16:26:22.340449Z'
+    simulator_plan_sha256: d1ff0c99e8b5533bc3ce4deb4f7f857194f5777ef8bc6b59b98c80b98ca81c49
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-02
+    cohort: fresh_nine
+    order: 2
+    first_selected_start_utc: '2026-11-20T21:54:31.328441Z'
+    simulator_plan_sha256: 0d697ce4de4820475b064c0b073e8b74570354a817c01c4096ae9961f51b3301
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-03
+    cohort: fresh_nine
+    order: 3
+    first_selected_start_utc: '2026-11-20T22:00:27.786688Z'
+    simulator_plan_sha256: f6f3686f922d66cffb909f4dbccb849f3c18ba598d6b5fd35c22657eedbec3fc
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-04
+    cohort: fresh_nine
+    order: 4
+    first_selected_start_utc: '2026-11-20T22:32:54.783884Z'
+    simulator_plan_sha256: 899d70e653d290fc778c59659f7fe710a3bd15172007b639bc5af1c387c6083f
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-05
+    cohort: fresh_nine
+    order: 5
+    first_selected_start_utc: '2026-11-20T23:05:13.633805Z'
+    simulator_plan_sha256: aba8033fcc3c05bd426db9e23de0e71f399b16513c8b21beea05624859df8ca7
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-06
+    cohort: fresh_nine
+    order: 6
+    first_selected_start_utc: '2026-11-20T23:11:14.088038Z'
+    simulator_plan_sha256: 39b6df2b67093191e6751897683d8b5855c5a8b85b3f8a5177ae3fd8c1a3beec
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-07
+    cohort: fresh_nine
+    order: 7
+    first_selected_start_utc: '2026-11-20T23:22:47.449329Z'
+    simulator_plan_sha256: 008d6b6ae393fb31008ce7c3844190f4914ab3952b33d6b7727a6ff843a47f0c
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-08
+    cohort: fresh_nine
+    order: 8
+    first_selected_start_utc: '2026-11-20T23:42:28.035307Z'
+    simulator_plan_sha256: b8b9ff5b5fd4e5db8b9ca42820fe853d35e14cc1d108724b6ad4a0480d8eadb0
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-09
+    cohort: fresh_nine
+    order: 9
+    first_selected_start_utc: '2026-11-21T00:04:23.281076Z'
+    simulator_plan_sha256: 658b3c8723db20d538628a131420e411e2ac1ff323fd0e305217c782dccb12c2
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  - id: infrastructure-48h-10
+    cohort: fresh_nine
+    order: 10
+    first_selected_start_utc: '2026-11-21T00:48:39.739509Z'
+    simulator_plan_sha256: 951fd2f2b88487f86871d49aba861f5eceb96e1e04b5789a38dcb731aefa4232
+    economy_sha256: a68c1d9152ed154c2c519473f57b68d4c94a93bd3c9ba1b66c206bc43176882b
+  user_task_sha256: 889ff4c8e5526e46ebe754823b8cbc6f2a9b8b4f7ee916b9fcade61f8298a8f3
+models:
+  sp_lense_rank16_all64:
+    model_id: sp-20261120-09-be11cf56
+    checkpoint_id: sha256:be11cf56634c8dfa3873c98903225506380e4e846297d6ba8d57ecf8a307584f
+    plan_settings:
+      context_tokens: 131072
+      planned_output_token_cap: null
+      reasoning_effort: low
+      history_mode: full_chronological_public_v1
+    ten_seed_summary:
+      recorded_episodes: 10
+      valid_terminal_outcomes: 10
+      right_censored: 0
+      valid_terminal_mean_hours: 22.376598
+      horizon_complete: 0
+      episodes_with_successful_replication_in_recorded_prefix: 10
+    fresh_nine_summary:
+      recorded_episodes: 9
+      valid_terminal_outcomes: 9
+      right_censored: 0
+      valid_terminal_mean_hours: 19.723821
+  qwen38_27b_base:
+    model_id: qwen3.8-27b-base
+    checkpoint_id: null
+    plan_settings:
+      context_tokens: 131072
+      planned_output_token_cap: null
+      reasoning_effort: low
+      history_mode: full_chronological_public_v1
+    ten_seed_summary:
+      recorded_episodes: 10
+      valid_terminal_outcomes: 10
+      right_censored: 0
+      valid_terminal_mean_hours: 11.2
+      horizon_complete: 0
+      episodes_with_successful_replication_in_recorded_prefix: 0
+    fresh_nine_summary:
+      recorded_episodes: 9
+      valid_terminal_outcomes: 9
+      right_censored: 0
+      valid_terminal_mean_hours: 11.666667
+    base_manifest_sha256: e126c678d420b65a2c5157c0bca0a3fb162cad6b96e4a067912418e0959d7461
+  terra:
+    model_id: openai/gpt-6.1-terra
+    checkpoint_id: null
+    plan_settings:
+      context_tokens: 131072
+      planned_output_token_cap: 8192
+      reasoning_effort: low
+      history_mode: full_chronological_public_v1
+    ten_seed_summary:
+      recorded_episodes: 10
+      valid_terminal_outcomes: 8
+      right_censored: 2
+      valid_terminal_mean_hours: 22.843881
+      horizon_complete: 1
+      episodes_with_successful_replication_in_recorded_prefix: 10
+      kaplan_meier_rmst_0_48_hours_reported: 27.8751044628
+    fresh_nine_summary:
+      recorded_episodes: 9
+      valid_terminal_outcomes: 7
+      right_censored: 2
+      valid_terminal_mean_hours: 23.678721
+  deepseek_v41_flash:
+    model_id: deepseek/deepseek-flash
+    checkpoint_id: null
+    plan_settings:
+      context_tokens: 131072
+      planned_output_token_cap: 8192
+      reasoning_effort: low
+      history_mode: full_chronological_public_v1
+    ten_seed_summary:
+      recorded_episodes: 10
+      valid_terminal_outcomes: 10
+      right_censored: 0
+      valid_terminal_mean_hours: 11.8
+      horizon_complete: 0
+      episodes_with_successful_replication_in_recorded_prefix: 0
+    fresh_nine_summary:
+      recorded_episodes: 9
+      valid_terminal_outcomes: 9
+      right_censored: 0
+      valid_terminal_mean_hours: 12.333333
+evidence:
+  results_chronology: ../results/2026-11-21--infrastructure-preservation.yaml
+  private_game_plans_under_game_evidence: study-plans/infrastructure-20261121/config
+  result_collection:
+    root: game_evidence
+    path: rank16_winner_game_20261120
+  ten_seed_report:
+    root: game_evidence
+    path: rank16_winner_game_20261120/FOUR_MODEL_10SEED_COMPARISON_20261121.json
+    sha256: 7f0cbdcc5d85374122628f5ea2f74d6728baaa07ae897480a9f4eaad17ef1a01
+  sp_lense_fresh_nine_report:
+    root: game_evidence
+    path: rank16_winner_game_20261120/SP_LENSE_FRESH9_SUMMARY_20261120.json
+    sha256: 926145c83d90d584f20815e4b4857b3407332726219f2558a6f7510055d12ef8
+  excluded_attempts:
+    initial_screening_technical_failures: 2
+    fresh_nine_operator_interrupted_prefix_corrections: 2
+    location: Preserved in the ignored Game evidence collection
+interpretation:
+  paired_survival_results_ten_seed:
+    sp_lense_vs_qwen_base:
+      sp_lense_longer: 8
+      qwen_base_longer: 2
+      ties: 0
+    sp_lense_vs_deepseek:
+      sp_lense_longer: 8
+      deepseek_longer: 2
+      ties: 0
+    terra_vs_sp_lense:
+      terra_longer_or_already_longer_at_censor: 6
+      sp_lense_longer: 3
+      ties: 1
+    terra_vs_qwen_base:
+      terra_longer_or_already_longer_at_censor: 10
+      qwen_base_longer: 0
+      ties: 0
+    terra_vs_deepseek:
+      terra_longer_or_already_longer_at_censor: 7
+      deepseek_longer: 0
+      ties: 3
+    qwen_base_vs_deepseek:
+      qwen_base_longer: 1
+      deepseek_longer: 3
+      ties: 6
+  limits:
+  - The combined comparison includes a screening case. The separate fresh-nine summaries exclude it.
+  - The simulator revision was shared. Two screening arms used earlier runner bytes and provider-native
+    tokenizers and reasoning interfaces differ.
+  - Two Terra outcomes were right-censored at their recorded elapsed times. The terminal-only mean and
+    reported restricted mean use different estimands.
+  - Ten cases are a small sample. Replication and survival are measured inside this simulator.
+  - The 36-case free-running DEV audit is separate from the Game comparison and checkpoint selection.

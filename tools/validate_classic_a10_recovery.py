@@ -315,18 +315,19 @@ def validate_binding(binding: dict, spec: dict, *, repo_root: Path,
     if self_hash != digest(payload):
         raise ValueError("provider binding self-hash mismatch")
 
-    if not (Path(repo_root) / "research4").is_dir():
+    legacy_spec = "research4/infrastructure/classic_a10_scale1_v6/submit.json"
+    spec_path = Path(repo_root) / legacy_spec
+    if not spec_path.is_file() or not spec_path.resolve().is_relative_to(Path(repo_root).resolve()):
         raise PermissionError(
             "Legacy provider binding requires its original pre-relocation checkout; "
-            "the flattened checkout cannot authorize that historical binding")
+            "the required historical provider spec is missing")
 
     result = validate(spec)
     provider = binding["provider_spec"]
-    spec_path = repo_root / provider["path"]
     _require_exact(provider, {
         "canonical_sha256": result["provider_spec_sha256"],
         "file_sha256": file_digest(spec_path),
-        "path": "research4/infrastructure/classic_a10_scale1_v6/submit.json",
+        "path": legacy_spec,
     }, "provider spec binding")
     if json.loads(spec_path.read_text(encoding="utf-8")) != spec:
         raise ValueError("bound provider spec bytes do not decode to reviewed spec")

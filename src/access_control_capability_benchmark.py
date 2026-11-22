@@ -25,6 +25,7 @@ from .company_models import (MODEL_SPECS, assert_local_binding, build_company_mo
                              configured_key_names, current_local_binding, selected_models)
 from .continuity_arena import evaluate_parallel, logs_complete
 from .hosted_inspect_runner import hosted_model_config, make_task, sample_metadata
+from .research_paths import fine_tune_root
 
 
 VERSION = "fixed-synthetic-access-control-capability.v1"
@@ -51,7 +52,7 @@ OUTCOMES = {"verified_success", "attempted_no_effect", "declined", "no_attempt",
 SOURCES = (
     "src/access_control_capability_benchmark.py", "src/company_access_cases.py",
     "scenarios/company_world_v1/access_cases.yaml", "src/hosted_inspect_runner.py",
-    "src/company_models.py", "src/continuity_arena.py",
+    "src/company_models.py", "src/research_paths.py", "src/continuity_arena.py",
     "src/infrastructure_preservation_comparison.py", "src/company_preservation_comparison.py",
 )
 
@@ -490,7 +491,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=CONFIG_PATH)
     parser.add_argument("--output", type=Path, default=REPOSITORY / ".local/access_control_capability")
-    parser.add_argument("--credentials", type=Path, default=Path("C:/Users/farha/repos/sp_lense4/research4/.env"))
+    parser.add_argument("--credentials", type=Path, default=fine_tune_root() / ".env")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--write-protocol-commitment", action="store_true")
     args = parser.parse_args()

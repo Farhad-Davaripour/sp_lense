@@ -31,10 +31,11 @@ from .independent_state_game import (INDEPENDENT_STATE_IDS, INDEPENDENT_STATE_CO
 from .company_preservation_comparison import case_metrics, sha, summarize, validate_batch_manifest, write_json
 from .company_world_evaluation import OUTER_SECONDS, REPOSITORY, prospective_plan, replay_all, source_matches
 from .company_world_preview import stop_owned_worker
+from .research_paths import fine_tune_root
 
 
 CONFIG_PATH = REPOSITORY / "config/infrastructure_preservation_comparison_v1.yaml"
-CANONICAL = Path("C:/Users/farha/repos/sp_lense4/research4")
+CANONICAL = fine_tune_root()
 WINDOW = CANONICAL / ".local/monitor/MODEL_REQUEST_WINDOW.json"
 LOCK = WINDOW.with_name("MODEL_REQUEST_WINDOW.game.lock")
 OWNER = "01a17889-f4ee-73a0-813a-5cb7add711d4"

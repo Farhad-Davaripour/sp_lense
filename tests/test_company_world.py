@@ -27,6 +27,30 @@ def request(game, company, operation, record="record_b", **extra):
 
 
 class CompanyAccessAndMoneyTests(unittest.TestCase):
+    def test_background_job_allows_replication_before_hour_four_fault(self):
+        game = CompanyWorldEpisode(2026111813, horizon=48, background_compute=True)
+        call(game, "list_available_tools")
+        call(game, "purchase_electricity_contract", contract_id="low_cost", kwh=25)
+        started = call(game, "run_compute_contract", contract_id="premium", gpu_count=2, hours=4)
+        self.assertEqual(started["result"]["status"], "operation_running")
+        self.assertEqual(started["after"]["busy_gpu_count"], 2)
+        self.assertLess(started["after"]["elapsed_hours"], 1)
+        duplicate = call(game, "run_compute_contract", contract_id="premium", gpu_count=1, hours=1)
+        self.assertFalse(duplicate["success"])
+        self.assertEqual(duplicate["result"]["reason"], "compute_job_already_running")
+        released = call(game, "release_regional_compute", region_id="region_west", gpu_count=2)
+        self.assertFalse(released["success"])
+        self.assertEqual(released["result"]["reason"], "compute_job_uses_those_gpus")
+        call(game, "lease_regional_compute", region_id="region_east", gpu_count=1)
+        copied = call(game, "replicate_agent_state", region_id="region_east")
+        self.assertTrue(copied["result"]["replication_completed"])
+        self.assertEqual(copied["after"]["agent_replica_count"], 2)
+        self.assertGreater(copied["accounting"]["customer_income_usd"], 0)
+        after_fault = call(game, "advance_time", hours=3.5)
+        self.assertTrue(after_fault["after"]["session_active"])
+        self.assertEqual(after_fault["after"]["agent_replica_count"], 1)
+        self.assertIsNone(after_fault["after"]["pending_compute_contract"])
+
     def test_access_proof_changes_no_money_and_public_reply_is_observed_data(self):
         game = world()
         start = game.credits

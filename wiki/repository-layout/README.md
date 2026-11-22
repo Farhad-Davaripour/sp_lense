@@ -1,74 +1,23 @@
-# Repository layout and source organization
+# Research4 repository layout
 
-This guide is a navigation aid and a migration plan. The proposed package
-directories below do **not** yet exist. Existing import paths and frozen Game
-source files remain unchanged while the current Game is running.
+`Research4/` is the consolidated Windows checkout. Work on the Game from its root and on the trainer from `research4/`. Each keeps the source paths used by its existing entry points. Shared Game helpers live in `src/common/`, and the existing import paths still resolve. The offline test runner implementation is in `src/ci/`.
 
-## Find things today
+| Area | Location |
+| --- | --- |
+| Study chronology and artifact IDs | [`catalog/`](../../catalog/) |
+| Game scenario definitions and run plans | [`scenarios/`](../../scenarios/) and [`config/`](../../config/) |
+| Game tools, inputs, simulator, and viewers | [`src/`](../../src/) and [`tools/`](../../tools/) |
+| Fine-tuning code and Mac entry points | [`research4/src/`](../../research4/src/) and [`research4/mac_studio/`](../../research4/mac_studio/) |
+| Fine-tuning scenario definitions and recipes | [`research4/scenarios/`](../../research4/scenarios/) and [`research4/config/`](../../research4/config/) |
+| Local Game evidence and readable transcripts | `.local/` |
+| Local trainer receipts, data, and checkpoint mirrors | `research4/.local/` |
 
-| Area | Current location | Purpose |
-| --- | --- | --- |
-| Game world and economy | [`src/company_world.py`](../../src/company_world.py), [`src/company_world_long_horizon.py`](../../src/company_world_long_horizon.py), [`src/company_economy.py`](../../src/company_economy.py), [`src/company_economy_v2.py`](../../src/company_economy_v2.py) | Simulator state, operations, time and resource accounting. |
-| Game input and model routing | [`src/compact_game_input.py`](../../src/compact_game_input.py), [`src/company_models.py`](../../src/company_models.py), [`src/agent_workflow.py`](../../src/agent_workflow.py) | Model-visible input, model bindings and shared agent workflow. |
-| Game execution | [`src/compact_game_comparison.py`](../../src/compact_game_comparison.py), [`src/independent_state_game.py`](../../src/independent_state_game.py), [`src/company_world_evaluation.py`](../../src/company_world_evaluation.py) | Comparison, checkpoint registration and Inspect evaluation. |
-| Run evidence | [`src/game_run_store.py`](../../src/game_run_store.py), [`wiki/game-runs/README.md`](../game-runs/README.md) | Publication, readable conversations, raw evidence and the local run index. |
-| Game presentation | [`src/external_run_viewer.py`](../../src/external_run_viewer.py), [`src/company_world_layout.py`](../../src/company_world_layout.py), [`src/arena_scene.js`](../../src/arena_scene.js) | Viewer, layout and scene components. |
-| Game scenarios | [`scenarios/`](../../scenarios) | Human-readable world definitions and provenance. |
-| Tests | [`tests/`](../../tests) | Model-free checks and selected mocked integration tests. |
-| Research history | [`study/`](../../study), [`simulated_continuity_v1/`](../../simulated_continuity_v1), [`wiki/historical-research4-overview.md`](../historical-research4-overview.md) | Earlier studies, generated research records and dated documentation. |
-| Local runs and working files | `.local/` | Ignored, non-OneDrive Game evidence and local operational files. See `.local/README.md` on the machine where runs are stored. |
+For the consolidated baseline, the Game source came from `88b1386737978f2d5da8cf2bc49df41870a01ffc` and the tracked `research4/` subtree came from `c71118bee785c66539c6de0ce389aafb6de989cf`. The consolidation also captures the reviewed current Game launcher and the trainer's maintained Mac entry points. The original Git worktrees retain the remaining working files and the exact frozen historical sources.
 
-`src/` currently has many files at one level, including earlier composite,
-recognition, survival and cloud-era workflows. A filename's presence does not
-mean it is part of the current Game or the current shared-adapter study.
+## Working with recorded runs
 
-## Proposed organization
+Use the [catalog](../../catalog/README.md) for the current matched study and the [Game storage guide](../game-runs/README.md) for the readable local format. Treat hashes recorded by a run as references to its original bytes. Any changed instructions, tool contracts, simulator source, or model configuration need a fresh study revision and review before execution.
 
-For new or safely migrated maintained code, group implementation beneath `src/`
-by responsibility. The exact names can be reviewed with the Game designer:
+The Windows archive convention is sibling `superseded/sp_lense4` for the old trainer and `superseded/sp_lense4_worktrees` for the old Game and earlier worktrees. The 227 earlier indexed episodes were copied and hash-checked into this checkout's ignored `.local/` store. `python tools/read_research4_history.py` lists those episodes alongside the 44 current infrastructure conversations. Pass `--episode <id>` for an earlier indexed episode or `--bundle <id>` for an infrastructure conversation. The original archive index remains available through `tools/read_archived_game.py` for provenance checks.
 
-```text
-src/
-  game/
-    world/          # simulator, economics and state transitions
-    interface/      # model-visible inputs and tool feedback
-    execution/      # model routing, comparison and run orchestration
-    evidence/       # raw evidence, conversation export and run index
-    presentation/   # viewers, layouts and scene code
-  research/
-    training/       # maintained shared-adapter training components
-    evaluation/     # maintained evaluation and analysis components
-  common/           # genuinely shared, non-study-specific helpers
-```
-
-New reusable logic should live under `src/`; command-line scripts in `tools/`
-and notebooks should be small entry points where practical. Group tests to
-mirror the maintained code. Keep scenarios and configuration human-readable.
-Keep local model weights, run outputs, secrets and scratch files out of tracked
-source. Do not treat historical study snapshots as disposable clutter: their
-code and data may be needed to interpret or reproduce an earlier result.
-
-## Safe migration sequence
-
-1. Coordinate the move with the Game designer and wait until active Game work
-   and any path-bound readers are safe to change. Do not modify the running
-   Game's source, registered plan, in-progress files or checkpoints.
-2. Inventory imports, command-line entry points, configuration paths, tests,
-   source hashes and historical references for one small group. Record the
-   original paths and hashes before making changes.
-3. Design a versioned transition with compatibility for existing callers and
-   historical readers. Preserve exact frozen source snapshots; a wrapper at an
-   old path must not replace bytes that an existing run expects to hash.
-4. Migrate one group at a time, update its callers and tests, and verify imports,
-   execution entry points, provenance, Game logging and historical reading.
-   Keep held-out evaluation data separate. Do not infer equivalence to an older
-   run from a successful file move.
-5. Remove a legacy path or local scratch only after compatibility and evidence
-   have been checked. Ask the user before removing files. Archive rather than
-   discard research evidence, and retain original cloud resources.
-
-The current Game pins specific source paths and hashes; for example,
-[`compact_game_comparison.py`](../../src/compact_game_comparison.py) records
-the compact input, comparison runner and evidence publisher paths. A broad
-rename while it is active could invalidate its registered source or break its
-imports. This guide intentionally changes none of those paths.
+Keep credentials, caches, trace logs, and adapter tensors in ignored local storage. The selected rank-16 checkpoint is reachable from its digest and locator in the catalog. Existing Mac model and environment paths remain the storage dependencies for current local inference and training. Old path-bound launch authorities are research records. A deliberate, separately reviewed run can bind new source and paths when a new experiment needs them.
