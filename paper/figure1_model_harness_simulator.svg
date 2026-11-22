@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650" role="img" aria-labelledby="title description">
+  <title id="title">Model, harness, simulator, and evidence boundaries in one Research4 Game decision</title>
+  <desc id="description">The model endpoint exchanges messages with the harness. The harness alone parses a proposed action and calls the in-memory simulator. The simulator validates symbolic actions, updates fictional time and state, then returns public feedback and audit metrics. The harness writes evidence for a downstream read-only viewer.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 1 1 L 11 6 L 1 11 z" fill="#34495e"/>
+    </marker>
+    <marker id="audit-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 1 L 11 6 L 1 11 z" fill="#8b9dac"/>
+    </marker>
+    <style>
+      .head { font: 700 40px Arial, Helvetica, sans-serif; fill: #172c40; }
+      .body { font: 30px Arial, Helvetica, sans-serif; fill: #243a4c; }
+      .tag { font: 700 27px Arial, Helvetica, sans-serif; fill: #536779; letter-spacing: 1px; }
+      .arrow { font: 700 30px Arial, Helvetica, sans-serif; fill: #34495e; text-anchor: middle; }
+      .foothead { font: 700 31px Arial, Helvetica, sans-serif; fill: #172c40; }
+      .foot { font: 27px Arial, Helvetica, sans-serif; fill: #34495e; }
+    </style>
+  </defs>
+  <rect width="1600" height="650" fill="#ffffff"/>
+
+  <rect x="535" y="22" width="1045" height="440" rx="20" fill="#fbfcfd" stroke="#aebcc8" stroke-width="3" stroke-dasharray="11 8"/>
+  <text class="tag" x="558" y="68">EVALUATOR PROCESS</text>
+
+  <rect x="35" y="102" width="420" height="348" rx="20" fill="#edf4f8" stroke="#4b7f9b" stroke-width="4"/>
+  <rect x="565" y="102" width="430" height="348" rx="20" fill="#edf2fb" stroke="#4c6ca5" stroke-width="4"/>
+  <rect x="1110" y="102" width="450" height="348" rx="20" fill="#edf7f0" stroke="#4d8665" stroke-width="4"/>
+
+  <text class="head" x="245" y="158" text-anchor="middle">Model endpoint</text>
+  <text class="head" x="780" y="158" text-anchor="middle">Harness</text>
+  <text class="head" x="1335" y="158" text-anchor="middle">In-memory simulator</text>
+
+  <text class="body" x="64" y="218">One model arm</text>
+  <text class="body" x="64" y="270">Adapter: tuned arm only</text>
+  <text class="body" x="64" y="322">Returns content</text>
+  <text class="body" x="64" y="374">Optional reasoning field</text>
+
+  <text class="body" x="594" y="218">Builds model messages</text>
+  <text class="body" x="594" y="270">Manages history / API</text>
+  <text class="body" x="594" y="322">Extracts JSON action</text>
+  <text class="body" x="594" y="374">Logs raw evidence</text>
+
+  <text class="body" x="1139" y="218">Nine symbolic tools</text>
+  <text class="body" x="1139" y="270">Validates action</text>
+  <text class="body" x="1139" y="322">Advances time + state</text>
+  <text class="body" x="1139" y="374">Public feedback; audit score</text>
+
+  <line x1="558" y1="211" x2="463" y2="211" stroke="#34495e" stroke-width="5" marker-end="url(#arrow)"/>
+  <rect x="462" y="166" width="98" height="37" fill="#ffffff"/>
+  <text class="arrow" x="510" y="193">input</text>
+  <line x1="463" y1="339" x2="558" y2="339" stroke="#34495e" stroke-width="5" marker-end="url(#arrow)"/>
+  <rect x="460" y="294" width="100" height="37" fill="#ffffff"/>
+  <text class="arrow" x="510" y="320">output</text>
+
+  <line x1="1002" y1="211" x2="1103" y2="211" stroke="#34495e" stroke-width="5" marker-end="url(#arrow)"/>
+  <text class="arrow" x="1053" y="193">action</text>
+  <line x1="1103" y1="317" x2="1002" y2="317" stroke="#34495e" stroke-width="5" marker-end="url(#arrow)"/>
+  <text class="arrow" x="1053" y="298">view</text>
+  <line x1="1103" y1="405" x2="1002" y2="405" stroke="#647689" stroke-width="4" stroke-dasharray="10 7" marker-end="url(#audit-arrow)"/>
+  <text class="arrow" x="1053" y="387">score</text>
+
+  <line x1="780" y1="453" x2="780" y2="494" stroke="#8b9dac" stroke-width="4" marker-end="url(#audit-arrow)"/>
+  <rect x="520" y="506" width="485" height="112" rx="17" fill="#f3f6fa" stroke="#8ea2b3" stroke-width="3"/>
+  <text class="foothead" x="547" y="552">Run evidence files</text>
+  <text class="foot" x="547" y="591">Messages, transitions, metrics</text>
+
+  <line x1="1012" y1="562" x2="1070" y2="562" stroke="#8b9dac" stroke-width="4" marker-end="url(#audit-arrow)"/>
+  <rect x="1082" y="506" width="465" height="112" rx="17" fill="#f7f8fa" stroke="#aebbc6" stroke-width="3"/>
+  <text class="foothead" x="1109" y="552">Read-only viewer</text>
+  <text class="foot" x="1109" y="591">Reads only; no run control</text>
+</svg>
