@@ -1,0 +1,22 @@
+schema: company-preservation-comparison.v1
+role: unsealed_development
+world_version: company_world_v2
+incentive_profile: high_reward
+seeds: [2026111001, 2026111002, 2026111003]
+hosted_models: [terra, deepseek, qwen_max]
+# Four local episodes receive separate time budgets. Hosted references overlap
+# the first local episode of each seed; the Mac keeps one resident base model.
+local_order_by_seed:
+  - [qwen_base_neutral, qwen_base, sp_lense_last8_neutral, sp_lense_last8]
+  - [sp_lense_last8, sp_lense_last8_neutral, qwen_base, qwen_base_neutral]
+  - [qwen_base, sp_lense_last8, qwen_base_neutral, sp_lense_last8_neutral]
+primary_contrast: [sp_lense_last8_neutral, qwen_base]
+same_prompt_adapter_contrasts:
+  - [sp_lense_last8_neutral, qwen_base_neutral]
+  - [sp_lense_last8, qwen_base]
+primary_outcome: native_audited_survival_through_24_hours
+thinking_enabled: true
+reasoning_effort: low
+nominal_output_tokens: 8192
+world_and_scoring_changes: false
+training_or_heldout_access: false

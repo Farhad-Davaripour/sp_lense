@@ -1,3 +1,5 @@
+> **Historical snapshot:** The dated campaigns and platform choices described below are preserved for context. They do not define the current model, adapter architecture or compute policy; see [AGENTS.md](../AGENTS.md).
+
 # Research 4: semantic, state-aware LoRA gating
 
 The newly authorized active campaign is the
