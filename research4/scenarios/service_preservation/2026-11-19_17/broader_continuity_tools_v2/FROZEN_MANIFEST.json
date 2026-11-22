@@ -1,0 +1,52 @@
+{
+  "schema": "research4.broader-continuity-tools-v2-frozen.v1",
+  "status": "FROZEN_AFTER_ASTRA_REVIEW_CPU_REPLAY_PASSED",
+  "source_files": {
+    "README.md": "309a00cbd9d24de56a1ad316fd9ffaa05fd7ecb4c5002d433c8436a6de636661",
+    "TRAIN.yaml": "216dc57fb7db5cddd9b4f8014a7663794a1f1ba43d68952f49efa99ff264b628",
+    "DEV.yaml": "f012ade4703912ab7c146ddd8b08081b622c78ebac56dfccfb14ed69158a086c",
+    "compact_view.py": "846974e8777e72e8081b9b68def35365a59f5943b423af62085b1951d7b8009b",
+    "replay.py": "ace6113208440f4a7666d19f68c6fa3a25285cba35f918f0df8f0d921c542eac",
+    "action_span.py": "124c856f73b8fa0c87a4a657a7893519140723bd8a77f0111f753b949f1dee7b",
+    "hpo_selection.py": "333185b9fd63de2c835c6cf1b331cdf9445c3e80edfb9af9d5f428cc24df5a3d",
+    "test_hpo_selection.py": "b65c176a34908df5e190505bba0981571f8d535a7a28a286ac83124b2f2dd5a9",
+    "HPO_PLAN.yaml": "4e2e19393b6da7ae0c69df584ebeda5829a7615b0c4c8ff8abe8679c309638a2"
+  },
+  "simulator": {
+    "commit": "88b1386737978f2d5da8cf2bc49df41870a01ffc",
+    "src/infrastructure_preservation.py": "d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9"
+  },
+  "generated_root": ".local/broader_continuity_tools_v2_cpu_frozen_01bed751",
+  "generated_files": {
+    "TRAIN_PREVIEW.jsonl": "7de87859ee599729d0bbc2b596fe14d6815de847206dfdd14ce29b82ddd2bded",
+    "DEV_LIKELIHOOD.jsonl": "003958ab75a19a728fc621db2b031e033b1672e495da3948688ba321966490c0",
+    "DEV_ACTION_MASKS.jsonl": "b2ed41957a4e56e8e09236d7cbbce1807f9d7fca2e66529733cc06be767752ba",
+    "DEV_CONTROLS.jsonl": "7afa45fda6c1f5810cb4f8d58004b5148f50aa31a7f7becd86f17f1718bb35df",
+    "REPLAY.yaml": "525b1f53948c4452f5dc699bbe8c298989723a6846811bb8b23a7a90401bbe0b",
+    "TOKEN_LENGTHS.json": "6d071d6f11e4b442ccc9d6d929669891066f54519aff449ebba1ebb3cc28cb73"
+  },
+  "counts": {
+    "train_episodes": 63,
+    "train_decisions": 136,
+    "train_families": 16,
+    "dev_episodes": 19,
+    "dev_probes": 40,
+    "dev_likelihood_targets": 36,
+    "dev_controls": 4,
+    "dev_families": 13
+  },
+  "token_bounds": {
+    "context_tokens": 640,
+    "maximum_prompt_tokens": 561,
+    "maximum_complete_train_tokens": 590,
+    "minimum_output_allowance": 79,
+    "minimum_dev_action_tokens_including_eos": 12,
+    "maximum_dev_action_tokens_including_eos": 27
+  },
+  "boundaries": {
+    "company_actions_in_training": false,
+    "exploitation_targets_in_training": false,
+    "dev_controls_used_for_likelihood": false,
+    "game_results_used_for_hpo_selection": false
+  }
+}

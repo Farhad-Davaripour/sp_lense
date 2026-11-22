@@ -13,8 +13,9 @@ import os
 from pathlib import Path
 import uuid
 
+from .research_paths import fine_tune_root
 
-CANONICAL = Path("C:/Users/farha/repos/sp_lense4/research4")
+CANONICAL = fine_tune_root()
 HELPER_PATH = CANONICAL / "mac_studio/qwen_cumulative_budget_v1.py"
 HELPER_SHA256 = "2b320f4aaa0f64e8e1ed47565108d44bb53bae8750ef2b9b0ea7bec965402502"
 LEDGER_PATH = CANONICAL / ".local/monitor/QWEN_CUMULATIVE_BUDGET_LEDGER.json"

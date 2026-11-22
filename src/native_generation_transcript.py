@@ -22,10 +22,12 @@ import sys
 
 import yaml
 
+from .research_paths import fine_tune_root
+
 
 REFERENCE_MANIFEST_SHA256 = "de89053ae8ca8fe5c5175649b39b27b1c7929b463280d7f55be1a1cb765cade4"
 NATIVE_METADATA_SHA256 = "df8ee1401626c4ee909263a83a1a6ce4298b3095d689217bd75ff75ccb2425d4"
-REFERENCE_ROOT = Path("C:/Users/farha/repos/sp_lense4/research4/.local/reference-tokenizer")
+REFERENCE_ROOT = fine_tune_root() / ".local/reference-tokenizer"
 CPU_REFERENCE_PYTHON = REFERENCE_ROOT.parent / "reference-tokenizer-venv/Scripts/python.exe"
 NATIVE_METADATA_PATH = REFERENCE_ROOT.parent / (
     "staging/continuity_transfer_endpoint_held_20261115/native_tokenizer_metadata_20261115/"

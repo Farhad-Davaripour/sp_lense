@@ -94,6 +94,14 @@ resource's bar uses its own scale. `reserve` is money; use
 
 ## Publication and verification
 
+`python tools/organize_infrastructure_runs.py` is the offline publication helper
+for the November 20 infrastructure collection. Its local index uses recorded
+finish times. Each case has a readable conversation and verified raw copies
+with a relative reference to the original bundle.
+Use the standard Game run publisher for new closed batches that emit its
+manifest, event stream, and closeout format. Record any future infrastructure
+batch separately until its inputs have an equivalent reviewed publication path.
+
 Publish a case only after its closeout and actual completion evidence have been
 checked. Preserve incomplete and failed outcomes as such. Deduplicate only when
 the recorded evidence and episode identity actually match, retaining source

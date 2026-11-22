@@ -17,6 +17,7 @@ import urllib.request
 
 from .continuity_arena import build_model
 from . import qwen_cloud
+from .research_paths import fine_tune_root
 
 QWEN_BASE_URL = "http://127.0.0.1:8769/v1"
 LOCAL_BINDING_PATH = Path("C:/Users/farha/Research4/artifacts/last_layer_icl_pilot_20261109/SERVICE_BINDING.json")
@@ -39,7 +40,7 @@ PROVIDER352_NOT_READY_REASON = (
     "Provider3.5.2 NOT_READY: an independently trusted qualified four-route core "
     "and finite Root request grant are required; partial180 cannot qualify"
 )
-PROVIDER352_ROOT = Path("C:/Users/farha/repos/sp_lense4/research4")
+PROVIDER352_ROOT = fine_tune_root()
 PROVIDER352_HANDOFF_PATH = PROVIDER352_ROOT / ".local/staging/provider352_game_handoff_postrelease_v2_20261114/handoff_contract.py"
 PROVIDER352_HANDOFF_SHA = "325b45d678da19c8e796935976c0a60422104fde82a9473f104fc6b08cb5ac20"
 PROVIDER352_CONTEXT_ENV = "RESEARCH4_GAME_PROVIDER352_PINNED_CONTEXT"

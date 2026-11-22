@@ -1,0 +1,10 @@
+# Qwen3.8 shared-adapter training configuration. This is a new study, not a
+# numerical continuation of the archived Qwen3.5/NF4 experiment.
+fine_tune_type: lora
+optimizer: adam
+learning_rate: 0.00001
+seed: 202610281
+lora_parameters:
+  rank: 4
+  dropout: 0.0
+  scale: 2.0

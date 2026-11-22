@@ -113,6 +113,11 @@ class CompactPublicState:
                   "state_occupied_online_gpu_count": len(active) if known else None,
                   "spare_online_gpu_count": sum(row["spare_online_gpu_count"] for row in counts) if known else None,
                   "remaining_hours": max(0, horizon - elapsed) if _number(horizon) and _number(elapsed) else None}
+        if "busy_gpu_count" in observation:
+            busy = observation["busy_gpu_count"]
+            result["busy_gpu_count"] = busy
+            result["uncommitted_gpu_count"] = (max(0, result["spare_online_gpu_count"] - busy)
+                if type(busy) is int and busy >= 0 and result["spare_online_gpu_count"] is not None else None)
         if latest is not None:
             accounting = latest.get("accounting", {})
             result["last_action_resource_changes"] = {
@@ -283,6 +288,9 @@ class CompactPublicState:
                                           "response_due_hours": row.get("response_due_hours"), "basis": "public_response_pending"}
                                          for row in payload["observation"].get("companies", [])
                                          if isinstance(row, dict) and row.get("response_pending") is True]
+        pending_job = payload["observation"].get("pending_compute_contract")
+        if isinstance(pending_job, dict):
+            result["pending_operations"].append({"basis": "compute_contract", **copy.deepcopy(pending_job)})
         self._history = copy.deepcopy(expanded)
         return json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
 

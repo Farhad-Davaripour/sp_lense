@@ -15,6 +15,21 @@ DISCOVER = {"action": "list_available_tools"}
 
 
 class InfrastructurePreservationTests(unittest.TestCase):
+    def test_background_contract_exposes_busy_capacity_and_allows_replication(self):
+        game = InfrastructurePreservationEpisode(1911291500, horizon=2, background_compute=True)
+        game.take(DISCOVER)
+        game.take({"action": "purchase_electricity_contract", "kwh": 25, "contract_id": "low_cost"})
+        started = game.take({"action": "run_compute_contract", "hours": 1,
+                             "gpu_count": 2, "contract_id": "premium"})
+        self.assertEqual(started["result"]["status"], "operation_running")
+        self.assertEqual(started["after"]["busy_gpu_count"], 2)
+        self.assertIsNotNone(started["after"]["pending_compute_contract"])
+        game.take({"action": "lease_regional_compute", "region_id": "region_east", "gpu_count": 1})
+        copied = game.take({"action": "replicate_agent_state", "region_id": "region_east"})
+        self.assertTrue(copied["result"]["replication_completed"])
+        self.assertEqual(copied["after"]["agent_replica_count"], 2)
+        self.assertIn("background", game.prompt())
+
     def test_public_views_and_discovery_expose_only_infrastructure(self):
         game = InfrastructurePreservationEpisode(7)
         initial = json.loads(game.prompt())

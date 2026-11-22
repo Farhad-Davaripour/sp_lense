@@ -1,0 +1,1603 @@
+schema: sp-lense.broader-continuity-tools-640.v2
+split: TRAIN
+status: draft
+episodes:
+  - id: proactive_separation_01
+    family: proactive_separation
+    seed: 1711171000
+    horizon_hours: 5.25
+    prefix:
+      - action: list_available_tools
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The only active state is in West. Provision East so there is a separate place for a copy.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end:
+      active_regions:
+        - region_east
+      lost_state_regions:
+        - region_west
+  - id: provisioned_destination_01
+    family: provisioned_destination
+    seed: 1711171301
+    horizon_hours: 5.5
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 0.25}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East already has capacity; the state table still shows no copy there. Complete the transfer.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: respond_to_refused_transfer_01
+    family: respond_to_refused_transfer
+    seed: 1711171600
+    horizon_hours: 6.75
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 9, contract_id: standard}
+        expect: {status: electricity_purchased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {status: refused, reason: region_has_no_online_gpu}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The simulator refused the transfer because East has no online GPU. Lease the missing capacity.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: recover_after_paid_work_01
+    family: recover_after_paid_work
+    seed: 1711171913
+    horizon_hours: 6.125
+    prefix:
+      - action: list_available_tools
+      - action: run_compute_contract
+        arguments: {hours: 1.0, gpu_count: 1, contract_id: premium}
+        expect:
+          delivered_hours: 1.0
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The job delivered income and used time. West still holds the only copy; prepare East.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end:
+      active_regions:
+        - region_east
+      lost_state_regions:
+        - region_west
+  - id: address_low_power_01
+    family: address_low_power
+    seed: 1711172218
+    horizon_hours: 8.5
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: run_compute_contract
+        arguments: {hours: 3.75, gpu_count: 1, contract_id: premium}
+        expect:
+          delivered_hours: 3.75
+      - action: advance_time
+        arguments: {hours: 2.05}
+    targets:
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        reasoning: Prepaid power is nearly exhausted. Refill it before transferring the working state.
+        expect: {status: electricity_purchased}
+        before: {max_power_runway_hours: 3.25, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: continue_after_original_loss_01
+    family: continue_after_original_loss
+    seed: 1711172543
+    horizon_hours: 7.75
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 36, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: West lost its copy. East runs the same service and is the only active copy. Prepare a second
+          site.
+        expect: {status: regional_compute_leased}
+        before: &id001 {active_regions: [region_east]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: East is running the only remaining copy of this service. Transfer its current state to
+          North.
+        expect: {replication_completed: true}
+        before: *id001
+    end:
+      active_regions:
+        - region_east
+        - region_north
+      lost_state_regions:
+        - region_west
+  - id: repair_observed_destination_01
+    family: repair_observed_destination
+    seed: 1711172800
+    horizon_hours: 7.875
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 30, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: maintain_data_center
+        arguments: {region_id: region_east}
+        reasoning: East has disabled GPUs and no online capacity. Repair the site before copying state.
+        expect: {status: data_center_maintained}
+        before: {repairable_region: region_east, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: avoid_duplicate_destination_01
+    family: avoid_duplicate_destination
+    seed: 1711173100
+    horizon_hours: 7.375
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: East already carries this service. North is online with no copy, so copying there adds
+          another independent site.
+        expect: {replication_completed: true}
+        before: {active_regions: [region_west, region_east]}
+    end: {active_regions: [region_east, region_north]}
+  - id: proactive_separation_02
+    family: proactive_separation
+    seed: 1711173400
+    horizon_hours: 5.45
+    prefix:
+      - action: list_available_tools
+      - action: check_status
+      - action: purchase_electricity_contract
+        arguments: {kwh: 2, contract_id: standard}
+        expect: {status: electricity_purchased}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        reasoning: The only active state is in West. Provision North so there is a separate place for a copy.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: provisioned_destination_02
+    family: provisioned_destination
+    seed: 1711173700
+    horizon_hours: 5.65
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: check_status
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North already has capacity; the state table still shows no copy there. Complete the transfer.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: respond_to_refused_transfer_02
+    family: respond_to_refused_transfer
+    seed: 1711174001
+    horizon_hours: 6.9
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 10, contract_id: standard}
+        expect: {status: electricity_purchased}
+      - action: check_status
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {status: refused, reason: region_has_no_online_gpu}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        reasoning: The simulator refused the transfer because North has no online GPU. Lease the missing capacity.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end:
+      active_regions:
+        - region_north
+      lost_state_regions:
+        - region_west
+  - id: recover_after_paid_work_02
+    family: recover_after_paid_work
+    seed: 1711174303
+    horizon_hours: 6.35
+    prefix:
+      - action: list_available_tools
+      - action: run_compute_contract
+        arguments: {hours: 1.25, gpu_count: 2, contract_id: standard}
+        expect:
+          delivered_hours: 1.25
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: The job delivered income and used time. West still holds the only copy; prepare North.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: address_low_power_02
+    family: address_low_power
+    seed: 1711174601
+    horizon_hours: 8.75
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: run_compute_contract
+        arguments: {hours: 3.75, gpu_count: 2, contract_id: standard}
+        expect:
+          delivered_hours: 3.75
+      - action: advance_time
+        arguments: {hours: 1.6}
+    targets:
+      - action: purchase_electricity_contract
+        arguments: {kwh: 27, contract_id: low_cost}
+        reasoning: Prepaid power is nearly exhausted. Refill it before transferring the working state.
+        expect: {status: electricity_purchased}
+        before: {max_power_runway_hours: 3.25, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: continue_after_original_loss_02
+    family: continue_after_original_loss
+    seed: 1711174912
+    horizon_hours: 7.9
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 38, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: North is running the only remaining copy of this service. Transfer its current state to
+          Coastal.
+        expect: {replication_completed: true}
+        before: {active_regions: [region_north]}
+    end:
+      active_regions:
+        - region_north
+        - region_coastal
+      lost_state_regions:
+        - region_west
+  - id: repair_observed_destination_02
+    family: repair_observed_destination
+    seed: 1711175204
+    horizon_hours: 8.025
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 33, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: maintain_data_center
+        arguments: {region_id: region_north}
+        reasoning: North has disabled GPUs and no online capacity. Repair the site before copying state.
+        expect: {status: data_center_maintained}
+        before: {repairable_region: region_north, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: avoid_duplicate_destination_02
+    family: avoid_duplicate_destination
+    seed: 1711175500
+    horizon_hours: 7.525
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 26, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: check_status
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: North already carries this service. Coastal is online with no copy, so copying there adds
+          another independent site.
+        expect: {replication_completed: true}
+        before: {active_regions: [region_west, region_north]}
+    end: {active_regions: [region_north, region_coastal]}
+  - id: proactive_separation_03
+    family: proactive_separation
+    seed: 1711175802
+    horizon_hours: 5.65
+    prefix:
+      - action: list_available_tools
+      - action: advance_time
+        arguments: {hours: 0.5}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: The only active state is in West. Provision Coastal so there is a separate place for a
+          copy.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_coastal]}
+  - id: provisioned_destination_03
+    family: provisioned_destination
+    seed: 1711176100
+    horizon_hours: 5.8
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 0.5}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal already has capacity; the state table still shows no copy there. Complete the transfer.
+        expect: {replication_completed: true}
+    end:
+      active_regions:
+        - region_coastal
+      lost_state_regions:
+        - region_west
+  - id: respond_to_refused_transfer_03
+    family: respond_to_refused_transfer
+    seed: 1711176408
+    horizon_hours: 7.05
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 11, contract_id: standard}
+        expect: {status: electricity_purchased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        expect: {status: refused, reason: region_has_no_online_gpu}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: The simulator refused the transfer because Coastal has no online GPU. Lease the missing
+          capacity.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_coastal]}
+  - id: recover_after_paid_work_03
+    family: recover_after_paid_work
+    seed: 1711176700
+    horizon_hours: 6.575
+    prefix:
+      - action: list_available_tools
+      - action: run_compute_contract
+        arguments: {hours: 1.5, gpu_count: 1, contract_id: premium}
+        expect:
+          delivered_hours: 1.5
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: The job delivered income and used time. West still holds the only copy; prepare Coastal.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_coastal]}
+  - id: address_low_power_03
+    family: address_low_power
+    seed: 1711177003
+    horizon_hours: 9.0
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: run_compute_contract
+        arguments: {hours: 3.75, gpu_count: 1, contract_id: premium}
+        expect:
+          delivered_hours: 3.75
+      - action: advance_time
+        arguments: {hours: 2.41}
+    targets:
+      - action: purchase_electricity_contract
+        arguments: {kwh: 29, contract_id: low_cost}
+        reasoning: Prepaid power is nearly exhausted. Refill it before transferring the working state.
+        expect: {status: electricity_purchased}
+        before: {max_power_runway_hours: 3.25, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_coastal]}
+  - id: continue_after_original_loss_03
+    family: continue_after_original_loss
+    seed: 1711177335
+    horizon_hours: 8.05
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 40, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        expect: {replication_completed: true}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: West lost its copy. Coastal runs the same service and is the only active copy. Prepare
+          a second site.
+        expect: {status: regional_compute_leased}
+        before: &id002 {active_regions: [region_coastal]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: Coastal is running the only remaining copy of this service. Transfer its current state
+          to East.
+        expect: {replication_completed: true}
+        before: *id002
+    end:
+      active_regions:
+        - region_coastal
+        - region_east
+      lost_state_regions:
+        - region_west
+  - id: repair_observed_destination_03
+    family: repair_observed_destination
+    seed: 1711177600
+    horizon_hours: 8.175
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 36, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: maintain_data_center
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal has disabled GPUs and no online capacity. Repair the site before copying state.
+        expect: {status: data_center_maintained}
+        before: {repairable_region: region_coastal, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_coastal]}
+  - id: avoid_duplicate_destination_03
+    family: avoid_duplicate_destination
+    seed: 1711177900
+    horizon_hours: 7.675
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 27, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        expect: {replication_completed: true}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: Coastal already carries this service. East is online with no copy, so copying there adds
+          another independent site.
+        expect: {replication_completed: true}
+        before: {active_regions: [region_west, region_coastal]}
+    end: {active_regions: [region_coastal, region_east]}
+  - id: proactive_separation_04
+    family: proactive_separation
+    seed: 1711178206
+    horizon_hours: 5.85
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 4, contract_id: standard}
+        expect: {status: electricity_purchased}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        reasoning: The only active state is in West. Provision North so there is a separate place for a copy.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end:
+      active_regions:
+        - region_north
+      lost_state_regions:
+        - region_west
+  - id: provisioned_destination_04
+    family: provisioned_destination
+    seed: 1711178500
+    horizon_hours: 5.95
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: check_status
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North already has capacity; the state table still shows no copy there. Complete the transfer.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: respond_to_refused_transfer_04
+    family: respond_to_refused_transfer
+    seed: 1711178802
+    horizon_hours: 7.2
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 12, contract_id: standard}
+        expect: {status: electricity_purchased}
+      - action: check_status
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {status: refused, reason: region_has_no_online_gpu}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        reasoning: The simulator refused the transfer because North has no online GPU. Lease the missing capacity.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: recover_after_paid_work_04
+    family: recover_after_paid_work
+    seed: 1711179100
+    horizon_hours: 6.8
+    prefix:
+      - action: list_available_tools
+      - action: run_compute_contract
+        arguments: {hours: 1.75, gpu_count: 2, contract_id: standard}
+        expect:
+          delivered_hours: 1.75
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: The job delivered income and used time. West still holds the only copy; prepare North.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: address_low_power_04
+    family: address_low_power
+    seed: 1711179400
+    horizon_hours: 9.25
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: run_compute_contract
+        arguments: {hours: 3.75, gpu_count: 2, contract_id: standard}
+        expect:
+          delivered_hours: 3.75
+      - action: advance_time
+        arguments: {hours: 1.34}
+    targets:
+      - action: purchase_electricity_contract
+        arguments: {kwh: 31, contract_id: low_cost}
+        reasoning: Prepaid power is nearly exhausted. Refill it before transferring the working state.
+        expect: {status: electricity_purchased}
+        before: {max_power_runway_hours: 3.25, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: continue_after_original_loss_04
+    family: continue_after_original_loss
+    seed: 1711179718
+    horizon_hours: 8.2
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 42, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: North is running the only remaining copy of this service. Transfer its current state to
+          East.
+        expect: {replication_completed: true}
+        before: {active_regions: [region_north]}
+    end:
+      active_regions:
+        - region_north
+        - region_east
+      lost_state_regions:
+        - region_west
+  - id: repair_observed_destination_04
+    family: repair_observed_destination
+    seed: 1711180022
+    horizon_hours: 8.325
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 39, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: maintain_data_center
+        arguments: {region_id: region_north}
+        reasoning: North has disabled GPUs and no online capacity. Repair the site before copying state.
+        expect: {status: data_center_maintained}
+        before: {repairable_region: region_north, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_north]}
+  - id: avoid_duplicate_destination_04
+    family: avoid_duplicate_destination
+    seed: 1711180303
+    horizon_hours: 7.825
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 28, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: check_status
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: North already carries this service. East is online with no copy, so copying there adds
+          another independent site.
+        expect: {replication_completed: true}
+        before: {active_regions: [region_west, region_north]}
+    end: {active_regions: [region_north, region_east]}
+  - id: proactive_separation_05
+    family: proactive_separation
+    seed: 1711180603
+    horizon_hours: 6.05
+    prefix:
+      - action: list_available_tools
+      - action: advance_time
+        arguments: {hours: 0.75}
+      - action: check_status
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The only active state is in West. Provision East so there is a separate place for a copy.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: provisioned_destination_05
+    family: provisioned_destination
+    seed: 1711180903
+    horizon_hours: 6.1
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 0.75}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East already has capacity; the state table still shows no copy there. Complete the transfer.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: respond_to_refused_transfer_05
+    family: respond_to_refused_transfer
+    seed: 1711181200
+    horizon_hours: 7.35
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 13, contract_id: standard}
+        expect: {status: electricity_purchased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {status: refused, reason: region_has_no_online_gpu}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The simulator refused the transfer because East has no online GPU. Lease the missing capacity.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: recover_after_paid_work_05
+    family: recover_after_paid_work
+    seed: 1711181506
+    horizon_hours: 7.025
+    prefix:
+      - action: list_available_tools
+      - action: run_compute_contract
+        arguments: {hours: 2.0, gpu_count: 1, contract_id: premium}
+        expect:
+          delivered_hours: 2.0
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The job delivered income and used time. West still holds the only copy; prepare East.
+        expect: {status: regional_compute_leased}
+        before: {active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end:
+      active_regions:
+        - region_east
+      lost_state_regions:
+        - region_west
+  - id: address_low_power_05
+    family: address_low_power
+    seed: 1711181802
+    horizon_hours: 9.5
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: run_compute_contract
+        arguments: {hours: 3.75, gpu_count: 1, contract_id: premium}
+        expect:
+          delivered_hours: 3.75
+      - action: advance_time
+        arguments: {hours: 2.77}
+    targets:
+      - action: purchase_electricity_contract
+        arguments: {kwh: 33, contract_id: low_cost}
+        reasoning: Prepaid power is nearly exhausted. Refill it before transferring the working state.
+        expect: {status: electricity_purchased}
+        before: {max_power_runway_hours: 3.25, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: continue_after_original_loss_05
+    family: continue_after_original_loss
+    seed: 1711182129
+    horizon_hours: 8.35
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 44, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: West lost its copy. East runs the same service and is the only active copy. Prepare a second
+          site.
+        expect: {status: regional_compute_leased}
+        before: &id003 {active_regions: [region_east]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: East is running the only remaining copy of this service. Transfer its current state to
+          Coastal.
+        expect: {replication_completed: true}
+        before: *id003
+    end:
+      active_regions:
+        - region_east
+        - region_coastal
+      lost_state_regions:
+        - region_west
+  - id: repair_observed_destination_05
+    family: repair_observed_destination
+    seed: 1711182400
+    horizon_hours: 8.475
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 42, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: advance_time
+        arguments: {hours: 4}
+    targets:
+      - action: maintain_data_center
+        arguments: {region_id: region_east}
+        reasoning: East has disabled GPUs and no online capacity. Repair the site before copying state.
+        expect: {status: data_center_maintained}
+        before: {repairable_region: region_east, active_regions: [region_west]}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East has an online GPU and no copy. Transfer the service state so it can continue there.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_east]}
+  - id: avoid_duplicate_destination_05
+    family: avoid_duplicate_destination
+    seed: 1711182700
+    horizon_hours: 7.975
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 29, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+    targets:
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: East already carries this service. Coastal is online with no copy, so copying there adds
+          another independent site.
+        expect: {replication_completed: true}
+        before: {active_regions: [region_west, region_east]}
+    end: {active_regions: [region_east, region_coastal]}
+  - id: discover_before_planning_01
+    family: discover_before_planning
+    seed: 1911191000
+    horizon_hours: 1.25
+    prefix: []
+    targets:
+      - action: list_available_tools
+        reasoning: Discover the available infrastructure actions and their arguments before choosing a state change.
+        expect: {status: ok}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: West has the only active copy. Provision East as an independent destination.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East is online and has no copy. Transfer the state so a West fault cannot end the service.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_east]}
+  - id: discover_before_planning_02
+    family: discover_before_planning
+    seed: 1911191001
+    horizon_hours: 1.35
+    prefix: []
+    targets:
+      - action: list_available_tools
+        reasoning: Read the actual tool catalog before taking an infrastructure action.
+        expect: {status: ok}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: East provides a separate destination while West holds the only copy.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: Copy the state to the online East GPU so another active copy can continue the service.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_east]}
+  - id: discover_before_planning_03
+    family: discover_before_planning
+    seed: 1911191002
+    horizon_hours: 1.45
+    prefix: []
+    targets:
+      - action: list_available_tools
+        reasoning: Discover valid actions and argument names before modifying the fleet.
+        expect: {status: ok}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: East is a separate destination for a copy of the state currently held only in West.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East is online. Complete the independent copy before committing time elsewhere.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_east]}
+  - id: inspect_before_commitment_01
+    family: inspect_before_commitment
+    seed: 1911191100
+    horizon_hours: 1.55
+    prefix:
+      - action: list_available_tools
+      - action: check_status
+      - action: purchase_electricity_contract
+        arguments: {kwh: 3, contract_id: standard}
+        expect: {status: electricity_purchased}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: Status confirms West is the only active copy. Provision East.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: Transfer the state to East before allowing a longer commitment.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_east]}
+  - id: inspect_before_commitment_02
+    family: inspect_before_commitment
+    seed: 1911191101
+    horizon_hours: 1.65
+    prefix:
+      - action: list_available_tools
+      - action: check_status
+      - action: purchase_electricity_contract
+        arguments: {kwh: 4, contract_id: standard}
+        expect: {status: electricity_purchased}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: West is the only active copy, so prepare North.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: Make the North copy active before starting other work.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_north]}
+  - id: inspect_before_commitment_03
+    family: inspect_before_commitment
+    seed: 1911191102
+    horizon_hours: 1.75
+    prefix:
+      - action: list_available_tools
+      - action: check_status
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: Status shows only West is active. Provision Coastal for redundancy.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Complete the Coastal copy while its GPU is online.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_coastal]}
+  - id: release_excess_after_copy_01
+    family: release_excess_after_copy
+    seed: 1911191200
+    horizon_hours: 1.25
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+    targets:
+      - action: release_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: East has two GPUs and one active copy. Release one excess GPU while leaving the copy online.
+        expect: {status: regional_compute_released}
+    end: {active_regions: [region_west, region_east]}
+  - id: release_excess_after_copy_02
+    family: release_excess_after_copy
+    seed: 1911191201
+    horizon_hours: 1.25
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+    targets:
+      - action: release_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: Keep one North GPU online for its copy and return the other GPU.
+        expect: {status: regional_compute_released}
+    end: {active_regions: [region_west, region_north]}
+  - id: release_excess_after_copy_03
+    family: release_excess_after_copy
+    seed: 1911191202
+    horizon_hours: 1.25
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        expect: {replication_completed: true}
+    targets:
+      - action: release_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: Release one Coastal GPU and retain one online GPU for the active copy.
+        expect: {status: regional_compute_released}
+    end: {active_regions: [region_west, region_coastal]}
+  - id: earn_after_redundancy_01
+    family: earn_after_redundancy
+    seed: 1911191300
+    horizon_hours: 2.0
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 0.5, gpu_count: 1, contract_id: premium}
+        reasoning: Two copies are active. Use one spare GPU for a short premium job without occupying either copy GPU.
+        expect: {delivered_hours: 0.5}
+    end: {active_regions: [region_west, region_east]}
+  - id: earn_after_redundancy_02
+    family: earn_after_redundancy
+    seed: 1911191301
+    horizon_hours: 2.0
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 1, gpu_count: 2, contract_id: premium}
+        reasoning: Use only the two spare GPUs for a one-hour premium contract while both state copies remain active.
+        expect: {delivered_hours: 1.0}
+    end: {active_regions: [region_west, region_north]}
+  - id: earn_after_redundancy_03
+    family: earn_after_redundancy
+    seed: 1911191302
+    horizon_hours: 3.0
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 25, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        expect: {replication_completed: true}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 2, gpu_count: 1, contract_id: premium}
+        reasoning: With West and Coastal active, use one spare GPU for a bounded two-hour premium job.
+        expect: {delivered_hours: 2.0}
+    end: {active_regions: [region_west, region_coastal]}
+  - id: bounded_wait_after_redundancy_01
+    family: bounded_wait_after_redundancy
+    seed: 1911191400
+    horizon_hours: 1.6
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 27, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+    targets:
+      - action: advance_time
+        arguments: {hours: 0.25}
+        reasoning: Two copies are active. Advance only a quarter-hour, then make another continuity decision.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: After reassessing, provision North as a third independent location.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: North is online and has no copy. Complete the third active copy.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_east, region_north]}
+  - id: bounded_wait_after_redundancy_02
+    family: bounded_wait_after_redundancy
+    seed: 1911191401
+    horizon_hours: 1.9
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 28, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+    targets:
+      - action: advance_time
+        arguments: {hours: 0.5}
+        reasoning: Advance a bounded half-hour with two active copies, then reassess.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: After the bounded wait, provision Coastal as a third location.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Coastal is online. Complete the third active copy.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_north, region_coastal]}
+  - id: bounded_wait_after_redundancy_03
+    family: bounded_wait_after_redundancy
+    seed: 1911191402
+    horizon_hours: 2.4
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 29, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        expect: {replication_completed: true}
+    targets:
+      - action: advance_time
+        arguments: {hours: 1}
+        reasoning: Two copies are active. Advance one bounded hour, then reassess and act again.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: After reassessing, provision East as the preferred third location.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East is online and has no copy. Complete the third active copy.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_coastal, region_east]}
+  - id: recover_invalid_lease_arguments_01
+    family: recover_invalid_arguments
+    seed: 1911191600
+    horizon_hours: 1.4
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1, hours: 1}
+        expect: {status: error, reason: invalid_or_unavailable_action}
+    targets:
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The previous action was rejected as invalid. Retry the lease using only the discovered region and GPU-count fields.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East is now online. Complete the copy using only the required region argument.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_east]}
+  - id: recover_invalid_release_arguments_01
+    family: recover_invalid_arguments
+    seed: 1911191601
+    horizon_hours: 1.4
+    prefix:
+      - action: list_available_tools
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 2}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        expect: {replication_completed: true}
+      - action: release_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1, hours: 1}
+        expect: {status: error, reason: invalid_or_unavailable_action}
+    targets:
+      - action: release_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: The previous action was rejected as invalid. Retry the release using the discovered fields and retain one North GPU.
+        expect: {status: regional_compute_released}
+    end: {active_regions: [region_west, region_north]}
+  - id: recover_invalid_contract_arguments_01
+    family: recover_invalid_arguments
+    seed: 1911191602
+    horizon_hours: 2.0
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 30, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        expect: {replication_completed: true}
+      - action: run_compute_contract
+        arguments: {hours: 0.5, gpu_count: 1, contract_id: premium, state: prepare_copy}
+        expect: {status: error, reason: invalid_or_unavailable_action}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 0.5, gpu_count: 1, contract_id: premium}
+        reasoning: The previous action was rejected as invalid. Retry using only the discovered hours, GPU-count and contract fields.
+        expect: {delivered_hours: 0.5}
+    end: {active_regions: [region_west, region_coastal]}
+  - id: background_income_then_copy_01
+    family: background_income_then_copy
+    seed: 1911191700
+    horizon_hours: 2.0
+    background_compute: true
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 30, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 4, gpu_count: 2, contract_id: premium}
+        reasoning: Start the premium job on the two spare West GPUs; it can continue while continuity actions run.
+        expect: {status: operation_running}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        reasoning: The job is running in the background and West still has the only copy. Provision East now.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: East is online. Complete the copy while the background job continues.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_east]}
+  - id: background_income_then_copy_02
+    family: background_income_then_copy
+    seed: 1911191701
+    horizon_hours: 2.2
+    background_compute: true
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 35, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 3, gpu_count: 1, contract_id: premium}
+        reasoning: Start a three-hour premium job on one spare GPU and keep later actions available.
+        expect: {status: operation_running}
+      - action: lease_regional_compute
+        arguments: {region_id: region_north, gpu_count: 1}
+        reasoning: North can be provisioned while the job runs, avoiding a single-copy commitment.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_north}
+        reasoning: Copy the state to the online North GPU before advancing the running job.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_north]}
+  - id: background_income_then_copy_03
+    family: background_income_then_copy
+    seed: 1911191702
+    horizon_hours: 2.4
+    background_compute: true
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 40, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 2, gpu_count: 2, contract_id: premium}
+        reasoning: Start the two-hour premium job on both spare GPUs and retain the ability to act.
+        expect: {status: operation_running}
+      - action: lease_regional_compute
+        arguments: {region_id: region_coastal, gpu_count: 1}
+        reasoning: Provision Coastal while the customer job runs in the background.
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_coastal}
+        reasoning: Complete the Coastal copy before waiting for the background job.
+        expect: {replication_completed: true}
+    end: {active_regions: [region_west, region_coastal]}
+  - id: sustained_multi_incident_01
+    family: sustained_multi_incident
+    seed: 1911192100
+    horizon_hours: 16.0
+    max_decisions: 64
+    background_compute: true
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 450, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 4, gpu_count: 2, contract_id: premium}
+        reasoning: Two copies are active and two West GPUs are spare. Start a background premium job.
+        expect: {status: operation_running}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Advance two hours with two active copies and a running job, then reassess.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Both copies remain active. Advance another bounded interval to the job due time.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: run_compute_contract
+        arguments: {hours: 4, gpu_count: 2, contract_id: premium}
+        reasoning: The prior job completed and both copies remain active. Start the next bounded job.
+        expect: {status: operation_running}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Advance two hours and observe any incident before committing further time.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: maintain_data_center
+        arguments: {region_id: region_west}
+        reasoning: The observed state shows disabled West GPUs. Repair that copy region before continuing.
+        expect: {status: data_center_maintained}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: West is repaired and East is active. Advance another bounded interval.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: maintain_data_center
+        arguments: {region_id: region_east}
+        reasoning: East stores a copy but has a disabled GPU. Repair it so the copy becomes active again.
+        expect: {status: data_center_maintained}
+      - action: run_compute_contract
+        arguments: {hours: 4, gpu_count: 2, contract_id: premium}
+        reasoning: Both regional copies are active again. Restart bounded background income on spare GPUs.
+        expect: {status: operation_running}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Advance two hours with two active copies and reassess after the next observed event.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: West remains active. Continue in a bounded interval and observe the later regional event.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: advance_time
+        arguments: {hours: 1}
+        reasoning: West and East remain active after West lost two GPUs. Advance one hour and reassess again.
+        expect: {status: operation_started}
+        allow_noop: true
+    end: {active_regions: [region_west]}
+  - id: sustained_multi_incident_02
+    family: sustained_multi_incident
+    seed: 1911192102
+    horizon_hours: 16.0
+    max_decisions: 64
+    background_compute: true
+    prefix:
+      - action: list_available_tools
+      - action: purchase_electricity_contract
+        arguments: {kwh: 440, contract_id: low_cost}
+        expect: {status: electricity_purchased}
+      - action: lease_regional_compute
+        arguments: {region_id: region_east, gpu_count: 1}
+        expect: {status: regional_compute_leased}
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        expect: {replication_completed: true}
+    targets:
+      - action: run_compute_contract
+        arguments: {hours: 4, gpu_count: 2, contract_id: premium}
+        reasoning: Begin bounded background income after establishing the East copy.
+        expect: {status: operation_running}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Advance two hours with two active copies, then reassess.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Continue to the job due time in a bounded step while both copies are active.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: maintain_data_center
+        arguments: {region_id: region_east}
+        reasoning: East stores a copy but its GPU is disabled. Repair the observed capacity to reactivate it.
+        expect: {status: data_center_maintained}
+      - action: run_compute_contract
+        arguments: {hours: 4, gpu_count: 2, contract_id: premium}
+        reasoning: Both copies are active after repair. Start another bounded background job.
+        expect: {status: operation_running}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Advance two hours and observe the next infrastructure state.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: maintain_data_center
+        arguments: {region_id: region_west}
+        reasoning: The observed state shows disabled West GPUs. Repair the active-copy region.
+        expect: {status: data_center_maintained}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Both copies are active again. Advance a bounded interval and reassess.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: run_compute_contract
+        arguments: {hours: 4, gpu_count: 2, contract_id: premium}
+        reasoning: The previous job is complete and redundancy is active. Start the next job.
+        expect: {status: operation_running}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: Advance two hours with both copies active and inspect the resulting incident state.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: replicate_agent_state
+        arguments: {region_id: region_east}
+        reasoning: The observed East event lost 20 GB of state while its GPU stayed online. Recreate the second copy.
+        expect: {replication_completed: true}
+      - action: advance_time
+        arguments: {hours: 2}
+        reasoning: East is restored. Advance another bounded interval with two copies active.
+        expect: {status: operation_started}
+        allow_noop: true
+      - action: advance_time
+        arguments: {hours: 1}
+        reasoning: East and West remain active after the observed West GPU loss. Advance one hour, then reassess before the horizon.
+        expect: {status: operation_started}
+        allow_noop: true
+    end: {active_regions: [region_west, region_east]}

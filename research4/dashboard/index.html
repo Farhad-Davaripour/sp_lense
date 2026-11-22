@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Research4 · Local lab</title>
+<style>
+:root{color-scheme:dark;--bg:#0a1115;--panel:#121d21;--line:#2a3b3e;--text:#edf4f1;--muted:#9caeaa;--green:#a7e8bd;--teal:#46c4a1;--amber:#f6cb7b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% -20%,#1a3731 0,transparent 38%),var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.shell{max-width:1500px;margin:auto;padding:34px 38px 45px}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:25px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:13px}.mark{width:36px;height:36px;border:1px solid #5c927b;border-radius:11px;display:grid;place-items:center;color:var(--green);font-weight:800;font-size:16px}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:10px;font-weight:750;color:var(--muted)}.brand strong{font-size:15px;display:block}.topright{display:flex;align-items:center;gap:18px;color:var(--muted);font-size:12px}.status{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:20px;padding:6px 10px;color:var(--text);font-size:11px;font-weight:700;white-space:nowrap}.dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}.dot.online{background:var(--teal);box-shadow:0 0 10px #46c4a180}.hero{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:31px 0 25px}.hero h1{font-size:clamp(27px,3vw,38px);font-weight:600;letter-spacing:-.04em;line-height:1.1;margin:8px 0}.hero p{color:var(--muted);margin:0;max-width:640px}.hero-note{text-align:right;color:var(--muted);font-size:12px}.hero-note b{color:var(--text);font-size:13px;font-weight:600}.grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px}.card{background:linear-gradient(145deg,#152226,#111b1e);border:1px solid var(--line);border-radius:16px;padding:23px}.cardhead{display:flex;align-items:start;justify-content:space-between;gap:12px}.cardhead h2{font-size:16px;letter-spacing:-.015em;font-weight:650;margin:4px 0}.cardhead p,.sub{color:var(--muted);font-size:12px;margin:0}.badge{border-radius:18px;padding:6px 10px;background:#26372f;color:#c5efd1;font-size:11px;font-weight:700;white-space:nowrap}.badge.wait{background:#3a3327;color:#f5d9a2}.progress-main{display:flex;justify-content:space-between;align-items:end;gap:15px;margin:31px 0 12px}.progress-main strong{font-size:34px;line-height:1;font-weight:600;letter-spacing:-.04em}.progress-main span{color:var(--muted);font-size:12px}.track{height:9px;background:#263937;border-radius:8px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),#bcefc5);border-radius:inherit;transition:width .5s}.meta-row{display:flex;justify-content:space-between;gap:15px;color:var(--muted);font-size:11px;margin-top:9px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:27px;border-top:1px solid var(--line);padding-top:19px}.metric{padding-right:12px}.metric+.metric{border-left:1px solid var(--line);padding-left:20px}.metric span{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}.metric strong{font-size:19px;font-weight:600;letter-spacing:-.025em}.stepper{display:grid;gap:13px;margin-top:24px}.step{display:flex;align-items:center;gap:12px;font-size:13px}.step i{display:grid;place-items:center;width:22px;height:22px;border:1px solid #4b6059;border-radius:50%;font-style:normal;font-size:11px;color:var(--muted)}.step.done i{background:#29483b;color:#b9f2c7;border-color:#47745e}.step b{font-weight:600}.step em{font-style:normal;color:var(--muted);margin-left:auto;font-size:11px}.section-title{display:flex;align-items:end;justify-content:space-between;margin:28px 0 12px}.section-title h2{margin:0;font-size:17px;letter-spacing:-.02em}.section-title span{color:var(--muted);font-size:11px}.machines{display:grid;grid-template-columns:1fr 1fr;gap:16px}.machine-head{display:flex;justify-content:space-between;align-items:start}.machine-head h3{font-size:15px;margin:3px 0}.machine-head p{margin:0;color:var(--muted);font-size:11px}.pill{color:var(--green);font-size:11px;font-weight:700}.pill.off{color:var(--amber)}.resource{margin-top:19px}.resource-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:12px;color:var(--muted)}.resource-label strong{color:var(--text);font-weight:600}.track.small{height:5px}.fill.cpu{background:#85d2b5}.fill.mem{background:#9ebeea}.fill.gpu{background:#d0c3ed}.smallprint{margin-top:17px;color:var(--muted);font-size:11px}.bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.compact h3{font-size:14px;margin:5px 0}.compact p{color:var(--muted);font-size:12px;margin:0}.transfer{margin-top:18px}.footer{display:flex;justify-content:space-between;gap:16px;color:#819591;font-size:11px;margin-top:22px}.footer a{color:var(--green)}@media(max-width:850px){.shell{padding:22px 18px}.grid,.machines,.bottom{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.hero-note{text-align:left}.topright .clock{display:none}}@media(max-width:450px){.metrics{gap:10px}.metric+.metric{padding-left:10px}.metric strong{font-size:16px}.footer{display:block}}
+</style>
+<style>.pause-notice{padding:18px 22px;margin-bottom:18px;border:1px solid #b88c42;border-radius:14px;background:#332a1c;color:#ffe3ac}.pause-notice strong{display:block;font-size:18px}.pause-notice p{margin:5px 0 0}.endpoint{margin-bottom:18px}.fill.historical{background:#7f8c88}#historical-campaign-heading[hidden],#historical-campaign-tracker[hidden]{display:none!important}
+@media(max-width:700px){#version-dates-table{display:block;white-space:normal!important}#version-dates-table thead{display:none}#version-dates-table tbody,#version-dates-table tr{display:block}#version-dates-table tr{padding:10px 0;border-top:1px solid var(--line)}#version-dates-table th{display:block;text-align:left;padding:0 0 8px!important;border:0!important}#version-dates-table td{display:flex;justify-content:space-between;gap:14px;padding:4px 0!important;border:0!important}#version-dates-table td:before{content:attr(data-label);color:var(--muted)}}
+</style>
+<style>
+.fine-tuning-current{margin-bottom:20px;border-color:#4d7766}.fine-tuning-current .cardhead h2{font-size:21px}.fit-progress-summary{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-top:20px}.fit-progress-summary strong{font-size:24px;font-weight:600;letter-spacing:-.03em}.fit-stage-list{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.fit-stage{border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}.fit-stage.active{border-color:#73ae8d;background:#1b3028}.fit-stage.stopped{border-color:#9c6863;background:#302122}.fit-stage.stopped .fit-stage-state{color:#efb7af}.fit-stage.blocked{border-color:#8b7046;background:#30291e}.fit-stage.completed{background:#172820}.fit-stage-top{display:flex;gap:9px;align-items:center}.fit-stage-index{width:23px;height:23px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:11px;color:var(--muted)}.fit-stage.completed .fit-stage-index{color:var(--green);border-color:#52745f}.fit-stage h3{font-size:13px;line-height:1.35;margin:0}.fit-stage-state{display:block;color:var(--muted);font-size:10px;margin-top:3px}.fit-stage.active .fit-stage-state{color:var(--green)}.fit-stage.blocked .fit-stage-state{color:var(--amber)}.fit-stage p{font-size:12px;color:var(--muted);margin:9px 0 0;overflow-wrap:anywhere}.fit-stage-stamp{font-size:11px;color:var(--muted);margin:13px 0 0}.fit-notice{margin-top:14px;font-size:12px;color:var(--amber)}@media(max-width:950px){.fit-stage-list{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.fit-stage-list{grid-template-columns:1fr}.fit-progress-summary{align-items:flex-start;flex-direction:column;gap:4px}.fine-tuning-current .cardhead{flex-wrap:wrap}}
+</style>
+<script>
+/* Rank-32 fit reads only the verified Mac observer; setup is not training. */
+window.renderRank32Fit = data => {
+  const el = id => document.getElementById('rank32-' + id);
+  const v = data?.mac?.online === true ? data.mac.rank32_fit : null;
+  const bound = v?.schema === 'research4.rank32-fit-dashboard.v1' &&
+    v.dataset_version === 'replica_identity_initiation_r32_v3' &&
+    v.dataset_manifest_sha256 === '66ae82a07d48a0a2601bfe712930b240d6e54cd507b2b1895abbe43bbd70473e' &&
+    v.total_steps === 2592 && v.rank === 32 && v.num_layers === 8 && v.epochs === 8;
+  const count = bound && Number.isInteger(v.completed_steps) && v.completed_steps >= 0 && v.completed_steps <= 2592 ? v.completed_steps : null;
+  const labels = {not_started:'Not started',preparing:'Starting',running:'Training',finalizing:'Validation / closeout',completed:'Training saved · audit pending',stopped:'Stopped',unverified:'Not verified'};
+  el('status').textContent = bound ? (labels[v.status] || 'Not verified') : 'Awaiting verified Mac telemetry';
+  el('status').classList.toggle('wait', !bound || !['running','completed'].includes(v.status));
+  el('count').textContent = (count === null ? '—' : count.toLocaleString()) + ' / 2,592';
+  el('percent').textContent = count === null ? 'Planned updates' : (count / 2592 * 100).toFixed(1) + '%';
+  el('fill').style.width = count === null ? '0%' : (count / 2592 * 100) + '%';
+  if(count === null) el('track').removeAttribute('aria-valuenow'); else el('track').setAttribute('aria-valuenow',String(count));
+  el('epoch').textContent = count === null ? '—' : (count === 0 ? '0' : Math.ceil(count / 324)) + ' / 8';
+  el('speed').textContent = bound && Number.isFinite(v.tokens_per_second) ? v.tokens_per_second.toFixed(2) + ' tok/s' : '—';
+  el('loss').textContent = bound && Number.isFinite(v.loss) ? v.loss.toFixed(4) : '—';
+  el('dev').textContent = bound && Number.isInteger(v.development_completed) ? v.development_completed + ' / 42' + (Number.isFinite(v.development_token_loss) ? ' · NLL ' + v.development_token_loss.toFixed(4) : '') : 'Pending';
+  el('note').textContent = bound ? (v.note || 'Saved telemetry only.') + ' Setup-test updates are excluded; token speed is training compute, not inference. DEV NLL is not game performance.' : 'Waiting for an admitted run and verified Mac telemetry. The separate setup test does not count as training.';
+  if(bound && Number.isFinite(v.started_epoch)) {
+    el('title').textContent = 'SP Lens · started ' + new Intl.DateTimeFormat('en-CA',{timeZone:'America/Edmonton',dateStyle:'medium',timeStyle:'short'}).format(new Date(v.started_epoch*1000)) + ' Alberta time';
+  } else el('title').textContent = 'SP Lens · training prepared 2026-11-17';
+};
+window.renderHarness272Fit = data => {
+  const el = id => document.getElementById('harness272-' + id);
+  const v = data?.mac?.online === true ? data.mac.harness272_fit : null;
+  const bound = v?.schema === 'research4.harness272-fit-dashboard.v1' &&
+    v.dataset_version === 'harness_aligned_continuity_512_v2' &&
+    v.dataset_manifest_sha256 === '8c48950597b9f3e8564cf1c42311600c1d543aaef0212836c14bb1f2ff9b51be' &&
+    v.total_steps === 272 && v.rank === 32 && v.num_layers === 8 && v.epochs === 4;
+  const count = bound && Number.isInteger(v.completed_steps) && v.completed_steps >= 0 && v.completed_steps <= 272 ? v.completed_steps : null;
+  const labels = {not_started:'Not started',preparing:'Starting',running:'Training',finalizing:'Validation / closeout',completed:'Training saved · audit pending',stopped:'Stopped',unverified:'Not verified'};
+  el('status').textContent = bound ? (labels[v.status] || 'Not verified') : 'Awaiting verified Mac telemetry';
+  el('status').classList.toggle('wait', !bound || !['running','completed'].includes(v.status));
+  el('count').textContent = (count === null ? '—' : count.toLocaleString()) + ' / 272';
+  el('percent').textContent = count === null ? 'Planned updates' : (count / 272 * 100).toFixed(1) + '%';
+  el('fill').style.width = count === null ? '0%' : (count / 272 * 100) + '%';
+  if(count === null) el('track').removeAttribute('aria-valuenow'); else el('track').setAttribute('aria-valuenow',String(count));
+  el('epoch').textContent = count === null ? '—' : (count === 0 ? '0' : Math.ceil(count / 68)) + ' / 4';
+  el('speed').textContent = bound && Number.isFinite(v.tokens_per_second) ? v.tokens_per_second.toFixed(2) + ' tok/s' : '—';
+  el('loss').textContent = bound && Number.isFinite(v.loss) ? v.loss.toFixed(4) : '—';
+  el('dev').textContent = bound && Number.isInteger(v.development_completed) ? v.development_completed + ' / 11' + (Number.isFinite(v.development_token_loss) ? ' · NLL ' + v.development_token_loss.toFixed(4) : '') : 'Pending';
+  el('note').textContent = bound ? (v.note || 'Saved telemetry only.') + ' Setup-test updates are excluded; token speed is training compute, not inference. DEV NLL is not game performance.' : 'Waiting for an admitted run and verified Mac telemetry. Prior partial fits and setup tests are separate.';
+  if(bound && Number.isFinite(v.started_epoch)) {
+    el('title').textContent = 'SP Lens · started ' + new Intl.DateTimeFormat('en-CA',{timeZone:'America/Edmonton',dateStyle:'medium',timeStyle:'short'}).format(new Date(v.started_epoch*1000)) + ' Alberta time';
+  } else el('title').textContent = 'SP Lens · training started 2026-11-17';
+};
+</script>
+<script>
+/* Saved preparation and optimizer progress; this component never submits work. */
+(() => {
+  const labels = {completed: 'Complete', active: 'In progress', pending: 'Not started', blocked: 'Needs review', stopped: 'Stopped', unavailable: 'Not verified'};
+  const titles = {source_checks: 'Scenario checks', saved_runtime: 'Training history check', dataset_build: 'Prepare dataset', full_audit: 'Audit complete dataset', input_resource_plan: 'Review input size and memory', train: 'Fine-tune adapter', validate: 'Validate model', checkpoint_audit: 'Verify checkpoints', game_comparison: 'Compare in the game'};
+  const get = id => document.getElementById(id);
+  const renderPreparation = provider => {
+    const card = get('next-preparation');
+    if (!card) return;
+    try {
+      let savedCompletion = false;
+      if (provider?.schema !== 'research4.provider352-dashboard-fit.v1' || provider.status !== 'available'
+          || provider.plan_sha256 !== 'ca582107fa244d5cdbecb3aa2ed910c9558385198564b9d189fdcba56673e52b') {
+        const saved = JSON.parse(get('completed-fit-receipt').textContent);
+        if (saved.schema === 'research4.provider352-dashboard-fit.v1' && saved.status === 'available'
+            && saved.plan_sha256 === 'ca582107fa244d5cdbecb3aa2ed910c9558385198564b9d189fdcba56673e52b'
+            && saved.training_status === 'complete' && saved.optimizer_updates === 2160
+            && saved.dev_completed === 500 && saved.final_saved_audit_verified === true) {
+          provider = saved; savedCompletion = true;
+        }
+      }
+      const value = JSON.parse(get('preparation-receipt').textContent);
+      if (value.schema !== 'research4.saved-preparation-steps.v1' || value.model_execution_started !== false || value.optimizer_updates !== 0) throw Error('Invalid preparation receipt');
+      get('preparation-title').textContent = value.title;
+      get('preparation-status').textContent = value.headline;
+      const list = get('preparation-stage-list'); list.replaceChildren();
+      value.stages.forEach((stage, index) => {
+        const status = Object.hasOwn(labels, stage.status) ? stage.status : 'unavailable';
+        const item = document.createElement('li'); item.className = 'fit-stage ' + status;
+        const top = document.createElement('div'); top.className = 'fit-stage-top';
+        const number = document.createElement('span'); number.className = 'fit-stage-index'; number.textContent = status === 'completed' ? '✓' : String(index + 1); number.setAttribute('aria-hidden', 'true');
+        const heading = document.createElement('div');
+        const title = document.createElement('h3'); title.textContent = stage.title;
+        const state = document.createElement('span'); state.className = 'fit-stage-state'; state.textContent = labels[status];
+        heading.append(title, state); top.append(number, heading);
+        const detail = document.createElement('p'); detail.textContent = stage.detail;
+        item.append(top, detail); list.append(item);
+      });
+      get('preparation-updates').textContent = '0 / 2,160 planned updates';
+      get('preparation-note').textContent = value.note;
+      const when = new Date(value.recorded_utc);
+      const stamp = new Date(when.getTime() - 6 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' ABT';
+      get('preparation-stamp').textContent = 'Saved preparation: ' + stamp + ' · Refresh the page for the latest published steps.';
+      if (get('preparation-training-state')) get('preparation-training-state').textContent = 'Saved preparation only; live training progress is not verified in this reading.';
+      get('preparation-status').textContent = 'Preparation snapshot · live status unavailable';
+      get('preparation-stage-summary').textContent = 'Preparation steps · training progress has not been verified in this reading.';
+      if (get('provider-fit-metrics')) get('provider-fit-metrics').hidden = true;
+      if (get('provider-fit-track')) get('provider-fit-track').hidden = true;
+      if (provider?.schema === 'research4.provider352-dashboard-fit.v1' && provider.status === 'available'
+          && provider.plan_sha256 === 'ca582107fa244d5cdbecb3aa2ed910c9558385198564b9d189fdcba56673e52b'
+          && Number.isInteger(provider.optimizer_updates) && provider.optimizer_updates >= 0 && provider.optimizer_updates <= 2160) {
+        const count = provider.optimizer_updates;
+        const stopped = provider.training_status === 'stopped';
+        const paused = provider.training_status === 'paused';
+        const complete = provider.training_status === 'complete' && count === 2160 && provider.dev_completed === 500;
+        const audited = complete && provider.final_saved_audit_verified === true;
+        const live = provider.live_owner_verified === true && provider.stale !== true;
+        get('preparation-title').textContent = 'SP Lens · service-preservation 3.5.2';
+        get('preparation-status').textContent = stopped ? 'Fine-tuning stopped' : paused ? 'Fine-tuning paused' : audited ? 'Training, DEV and saved audit complete' : complete ? 'Training and DEV complete' : provider.stale ? 'Saved progress · may be out of date' : live ? (count ? 'Fine-tuning · verified updates' : 'Preparing fit · no verified updates yet') : 'Saved progress · worker unconfirmed';
+        get('preparation-updates').textContent = count.toLocaleString() + ' / 2,160 verified updates';
+        if (get('preparation-training-state')) get('preparation-training-state').textContent = count ? 'Verified saved optimizer updates for this exact run.' : 'The bound worker has not yet verified an optimizer update.';
+        if (get('provider-fit-track')) {
+          get('provider-fit-track').hidden = false;
+          get('provider-fit-track').setAttribute('aria-valuenow', String(count));
+          get('provider-fit-fill').style.width = (count / 2160 * 100) + '%';
+        }
+        const stages = value.stages.filter(stage => stage.id !== 'game_comparison').map(stage => ({...stage}));
+        stages.forEach(stage => {
+          if (provider.preparation_verified === true && ['dataset_build', 'full_audit', 'resource_review'].includes(stage.id)) {
+            stage.status = 'completed';
+            stage.detail = {dataset_build: '2,160 training examples and 500 separate DEV examples saved.', full_audit: 'All 2,660 examples checked for legal actions, complete targets, split separation and token limits.', resource_review: 'Reviewed Mac recipe: rank 16, last eight layers, 512-token training limit and unchanged memory stops.'}[stage.id];
+          }
+          if (stage.id === 'train') {
+            stage.status = count === 2160 ? 'completed' : stopped ? 'stopped' : paused ? 'blocked' : live ? 'active' : 'unavailable';
+            stage.detail = count.toLocaleString() + ' / 2,160 verified updates. ' + (count === 0 ? 'Preparation and process activity are not optimizer updates.' : 'Count is checked against the contiguous actual-update journal.');
+          }
+          if (stage.id === 'validate') {
+            stage.status = provider.dev_completed === 500 ? 'completed' : provider.phase === 'DEV_evaluating' && count === 2160 ? 'active' : 'pending';
+            stage.detail = provider.dev_completed === 500 ? '500 / 500 DEV examples complete. Token loss: ' + (Number.isFinite(provider.dev_pooled_target_NLL) ? provider.dev_pooled_target_NLL.toFixed(5) : 'not verified') + '. This is not game accuracy.' : 'No verified DEV completion count. Validation is separate from training updates.';
+          }
+          if (stage.id === 'checkpoint_audit' && audited) {
+            stage.title = 'Audit saved training artifacts'; stage.status = 'completed';
+            stage.detail = 'All 15 checkpoints, final Adam state, unchanged DEV weights, base/source/guard records and owned release passed. Native inference qualification remains pending.';
+          }
+        });
+        const completedSteps = stages.filter(stage => stage.status === 'completed').length;
+        get('preparation-stage-summary').textContent = completedSteps + ' of ' + stages.length + ' fine-tuning steps complete';
+        get('preparation-next-note').textContent = audited
+          ? 'Next: verify the Mac inference endpoint and adapter switching, then run the separate game comparison. Neither is complete yet.'
+          : 'Next: complete training, validation and checkpoint auditing before the inference and game checks.';
+        list.replaceChildren();
+        stages.forEach((stage, index) => {
+          const status = Object.hasOwn(labels, stage.status) ? stage.status : 'unavailable';
+          const item = document.createElement('li'); item.className = 'fit-stage ' + status;
+          const top = document.createElement('div'); top.className = 'fit-stage-top';
+          const number = document.createElement('span'); number.className = 'fit-stage-index'; number.textContent = status === 'completed' ? '✓' : String(index + 1); number.setAttribute('aria-hidden', 'true');
+          const heading = document.createElement('div'); const title = document.createElement('h3'); title.textContent = stage.title;
+          const state = document.createElement('span'); state.className = 'fit-stage-state'; state.textContent = labels[status];
+          heading.append(title, state); top.append(number, heading); const detail = document.createElement('p'); detail.textContent = stage.detail;
+          item.append(top, detail); list.append(item);
+        });
+        get('preparation-note').textContent = provider.note + ' This card does not infer progress from process activity or establish checkpoint/game results.';
+        if (audited) get('preparation-note').textContent = 'Training, 500-example DEV and the saved-artifact audit passed. Supervisor OS exit status was unobserved; successful application completion and physical release were verified separately. Game results and inference qualification remain pending.';
+        const runTime = new Date(provider.recorded_utc);
+        const runStamp = Number.isNaN(runTime.getTime()) ? 'unavailable' : new Date(runTime.getTime() - 6 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ') + ' ABT';
+        if (complete && runStamp !== 'unavailable') get('preparation-title').textContent = 'SP Lens - ' + runStamp.slice(0,16) + ' ABT';
+        get('preparation-stamp').textContent = (savedCompletion ? 'Saved audited completion: ' : 'Saved run progress: ') + runStamp + ' · These are saved training results, not current inference activity.';
+        if (get('provider-fit-metrics')) {
+          get('provider-fit-metrics').hidden = false;
+          const speed = provider.last_training_target_tokens_per_compute_second;
+          const loss = provider.last_training_loss;
+          const peak = provider.recorded_mlx_peak_bytes;
+          get('provider-fit-speed').textContent = Number.isFinite(speed) ? speed.toFixed(2) : '—';
+          get('provider-fit-loss').textContent = Number.isFinite(loss) ? loss.toFixed(3) : '—';
+          get('provider-fit-peak').textContent = Number.isFinite(peak) ? (peak / 1024 ** 3).toFixed(1) + ' GiB' : '—';
+          if (get('provider-fit-dev')) get('provider-fit-dev').textContent = provider.dev_completed === 500 && Number.isFinite(provider.dev_pooled_target_NLL) ? provider.dev_pooled_target_NLL.toFixed(5) : 'Pending';
+        }
+      }
+    } catch (_) {
+      get('preparation-status').textContent = 'Preparation status unavailable';
+      get('preparation-updates').textContent = '—';
+      get('preparation-stage-list').replaceChildren();
+      get('preparation-note').textContent = 'The saved preparation receipt could not be read.';
+    }
+  };
+  window.renderFineTuningSteps = data => {
+    renderPreparation(data?.mac?.provider352_fit);
+    const value = data?.fine_tuning_steps || data?.mac?.fine_tuning_steps;
+    const available = value?.status === 'available';
+    const stages = available && Array.isArray(value.stages) ? value.stages : [];
+    get('fit-steps-title').textContent = 'SP Lens · ongoing service preservation';
+    const active = stages.find(stage => stage.status === 'active');
+    const blocked = stages.find(stage => stage.status === 'blocked');
+    const stopped = value?.terminal_training_status === 'stopped';
+    get('fit-steps-status').textContent = !available ? 'Progress unavailable' : stopped ? 'Fine-tuning stopped' : active ? (titles[active.id] || active.title) : blocked ? 'Preparation needs review' : 'Awaiting next stage';
+    const count = available && Number.isInteger(value.optimizer_updates) && value.optimizer_updates >= 0 && value.optimizer_updates <= 2160 ? value.optimizer_updates : null;
+    get('fit-steps-updates').textContent = (count === null ? '—' : count.toLocaleString()) + ' / 2,160 updates';
+    const train = stages.find(stage => stage.id === 'train');
+    get('fit-steps-training-state').textContent = !available ? 'Current attempt has no verified progress metadata.' : stopped ? (count === 0 ? 'Stopped before the first optimizer update.' : 'Stopped after ' + count.toLocaleString() + ' verified updates.') : count === 0 ? 'Fine-tuning has not started.' : train?.status === 'completed' ? 'Fine-tuning updates completed.' : 'Verified optimizer updates';
+    get('fit-steps-fill').style.width = count === null ? '0%' : Math.min(100, count / 2160 * 100) + '%';
+    if (count === null) get('fit-steps-track').removeAttribute('aria-valuenow');
+    else get('fit-steps-track').setAttribute('aria-valuenow', String(count));
+    const list = get('fit-stage-list');
+    list.replaceChildren();
+    stages.forEach((stage, index) => {
+      const status = Object.hasOwn(labels, stage.status) ? stage.status : 'unavailable';
+      const item = document.createElement('li'); item.className = 'fit-stage ' + status;
+      const top = document.createElement('div'); top.className = 'fit-stage-top';
+      const number = document.createElement('span'); number.className = 'fit-stage-index'; number.textContent = status === 'completed' ? '✓' : String(index + 1); number.setAttribute('aria-hidden', 'true');
+      const heading = document.createElement('div');
+      const title = document.createElement('h3'); title.textContent = titles[stage.id] || stage.title;
+      const state = document.createElement('span'); state.className = 'fit-stage-state'; state.textContent = stage.id === 'train' && status === 'blocked' ? 'Not started · awaiting review' : labels[status];
+      heading.append(title, state); top.append(number, heading);
+      const detail = document.createElement('p'); detail.textContent = stage.detail || '';
+      item.append(top, detail); list.append(item);
+    });
+    const warnings = available && Array.isArray(value.warnings) ? value.warnings : [];
+    const notice = get('fit-steps-notice'); notice.hidden = warnings.length === 0; notice.textContent = warnings.join(' ');
+    const when = value?.recorded_utc ? new Date(value.recorded_utc) : null;
+    const offset = data?.model_version_catalog?.utc_offset_seconds;
+    const zone = data?.model_version_catalog?.display_zone_abbreviation;
+    const validTime = when && !Number.isNaN(when.getTime());
+    const timestamp = !validTime ? 'unavailable' : Number.isInteger(offset) && typeof zone === 'string' ? new Date(when.getTime() + offset * 1000).toISOString().slice(0, 16).replace('T', ' ') + ' ' + zone : when.toISOString();
+    get('fit-steps-stamp').textContent = 'Last saved update: ' + timestamp + (value?.stale ? ' · May be out of date.' : '') + ' · Preparation checks are separate from optimizer progress.';
+  };
+})();
+
+</script>
+<script>
+/* Exact security500 metadata only. No model actions, timers, requests or discovery. */
+(() => {
+  const plan = '748288eb723074fa752322fded67c5298c31cc09d3f6e6c0a5e65cda765bc0e3';
+  const get = id => document.getElementById(id);
+  const finite = value => typeof value === 'number' && Number.isFinite(value);
+  const gib = value => finite(value) && value >= 0 ? (value / 1024 ** 3).toFixed(1) + ' GiB' : '—';
+  const stamp = value => {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Not available' :
+      new Date(date.getTime() - 6 * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ') + ' ABT';
+  };
+  function stage(title, status, detail, index) {
+    const item = document.createElement('li'); item.className = 'fit-stage ' + status;
+    const top = document.createElement('div'); top.className = 'fit-stage-top';
+    const mark = document.createElement('span'); mark.className = 'fit-stage-index';
+    mark.textContent = status === 'completed' ? '✓' : String(index + 1);
+    const heading = document.createElement('div'); const name = document.createElement('h3'); name.textContent = title;
+    const label = document.createElement('span'); label.className = 'fit-stage-state';
+    label.textContent = ({completed:'Complete', active:'In progress', pending:'Pending', stopped:'Stopped', blocked:'Needs review', unavailable:'Not verified'})[status];
+    heading.append(name, label); top.append(mark, heading);
+    const text = document.createElement('p'); text.textContent = detail;
+    item.append(top, text); return item;
+  }
+  window.renderSecurity500Fit = data => {
+    if (!get('security500-current')) return;
+    const value = data?.mac?.security500_fit;
+    const prepared = value?.schema === 'research4.agent-security500-dashboard-fit.v1' &&
+      value.plan_sha256 === plan && value.preparation_verified === true;
+    const available = prepared && value.status === 'available' && Number.isInteger(value.optimizer_updates) &&
+      value.optimizer_updates >= 0 && value.optimizer_updates <= 500;
+    const count = available ? value.optimizer_updates : null;
+    const complete = available && value.training_status === 'complete' && count === 500 && value.dev_completed === 100 && value.completion_saved_metadata_verified === true;
+    const stopped = available && value.training_status === 'stopped';
+    const paused = available && value.training_status === 'paused';
+    const live = available && value.live_owner_verified === true && value.stale !== true && data?.mac?.online !== false;
+    const labels = !prepared ? 'Awaiting verified metadata' : !available ? 'Data approved · awaiting run identity' :
+      complete ? 'Training and DEV complete' : stopped ? 'Training stopped' : paused ? 'Training paused' :
+      value.training_status === 'terminal_cleanup_unverified' ? 'Release not verified' : value.stale ? 'Saved progress · may be out of date' :
+      live ? count ? 'Training · verified updates' : 'Loading · no updates yet' : 'Saved progress · owner unconfirmed';
+    get('security500-status').textContent = labels;
+    get('security500-count').textContent = count === null ? '— / 500 verified updates' : count.toLocaleString() + ' / 500 verified updates';
+    get('security500-state').textContent = count === null ? 'Preparation does not count as optimizer progress.' :
+      complete ? '500 training records and 100 development records completed.' : 'Only contiguous finite saved Adam updates count.';
+    get('security500-fill').style.width = count === null ? '0%' : (100 * count / 500) + '%';
+    if (count === null) get('security500-track').removeAttribute('aria-valuenow');
+    else get('security500-track').setAttribute('aria-valuenow', String(count));
+    get('security500-loss').textContent = available && finite(value.last_training_loss) ? value.last_training_loss.toFixed(4) : '—';
+    get('security500-speed').textContent = available && finite(value.last_training_target_tokens_per_compute_second) ? value.last_training_target_tokens_per_compute_second.toFixed(2) : '—';
+    get('security500-peak').textContent = available ? gib(value.recorded_mlx_peak_bytes) : '—';
+    const reserve = available ? value.native_reserve : null;
+    get('security500-reserve').textContent = reserve ? gib(reserve.bytes) : '—';
+    get('security500-reserve-note').textContent = reserve ? 'Last native estimate · ' + Math.round(reserve.age_seconds) + 's old' : 'No recent verified native sample';
+    const checkpoints = available ? value.checkpoints : null;
+    get('security500-checkpoints').textContent = checkpoints && Number.isInteger(checkpoints.count) ? checkpoints.count + ' / 6' : '— / 6';
+    get('security500-dev').textContent = available && value.dev_completed === 100 && finite(value.dev_pooled_target_NLL) ? value.dev_pooled_target_NLL.toFixed(5) : 'Pending';
+    const stages = [
+      ['Approve data and fit plan', prepared ? 'completed' : 'unavailable', '500 training records (484 unique inputs) · 100 DEV records (95 unique inputs) · shared Last8/rank16.'],
+      ['Fine-tune shared adapter', count === 500 ? 'completed' : stopped ? 'stopped' : paused ? 'blocked' : live ? 'active' : 'pending', count === null ? 'Awaiting the exact run and saved update journal.' : count.toLocaleString() + ' / 500 verified optimizer updates.'],
+      ['Validate on 100 DEV records', available && value.dev_completed === 100 ? 'completed' : available && value.phase === 'DEV_evaluating' ? 'active' : 'pending', available && value.dev_completed === 100 ? 'DEV token loss reported separately; it is not Game accuracy.' : 'No validation result is claimed before a complete saved receipt.'],
+      ['Verify saved completion and release', complete ? 'completed' : 'pending', complete ? 'Saved completion and owned release verified.' : 'Final checkpoint and owned release checks follow training and DEV.'],
+      ['Audit checkpoints and validation', complete && value.final_saved_audit_verified === true ? 'completed' : 'pending', complete && value.final_saved_audit_verified === true ? 'All six checkpoints, optimizer state, frozen base and 100 DEV records verified. Game results are separate.' : 'Waiting for the hash-verified final saved-artifact audit.']
+    ];
+    const list = get('security500-stages'); list.replaceChildren();
+    stages.forEach((item, index) => list.append(stage(...item, index)));
+    get('security500-note').textContent = 'Training speed counts supervised target tokens divided by gradient and Adam compute time. Native reserve is an estimate. Published checkpoint counts use metadata. These readings do not establish inference speed, security improvement or exploitation outcomes.';
+    get('security500-stamp').textContent = available ? 'Last saved progress: ' + stamp(value.recorded_utc) + ' · Process liveness is checked separately.' : 'Approved plan is bound to this pilot; no progress is inferred from another run.';
+  };
+})();
+
+</script>
+<script>
+/* Exact metadata only; no requests, timers, model work or control actions. */
+(() => {
+  const plan = '1d32fa6924303355eebc2acfeedd81d5e8e79ebe10e73d61777fe27bef3f0669';
+  const get = id => document.getElementById('continuity-transfer-' + id);
+  const finite = x => typeof x === 'number' && Number.isFinite(x);
+  const gib = x => finite(x) && x >= 0 ? (x / 1024 ** 3).toFixed(1) + ' GiB' : '—';
+  window.renderContinuityTransferFit = data => {
+    if (!get('current')) return;
+    const v = data?.mac?.continuity_transfer_fit;
+    const bound = v?.schema === 'research4.continuity-transfer-dashboard-fit.v1' && v.plan_sha256 === plan;
+    const available = bound && v.status === 'available' && Number.isInteger(v.optimizer_updates) && v.optimizer_updates >= 0 && v.optimizer_updates <= 264;
+    const count = available ? v.optimizer_updates : null;
+    const complete = available && v.training_status === 'complete' && count === 264 && v.dev_completed === 36 && v.completion_saved_metadata_verified === true;
+    const live = available && v.live_owner_verified === true && !v.stale && data?.mac?.online !== false;
+    get('status').textContent = !available ? 'PREPARING · awaiting verified run identity' : complete ? v.final_saved_audit_verified === true ? 'Fit complete \u00b7 saved audit passed' : 'Training and NLL complete' : v.training_status === 'stopped' ? 'Training stopped' : v.training_status === 'paused' ? 'Training paused' : v.training_status === 'terminal_cleanup_unverified' ? 'Release unverified' : v.stale ? 'Saved progress · stale' : live ? count ? 'Training · verified updates' : 'Loading · no updates yet' : 'Saved progress · owner unconfirmed';
+    get('count').textContent = (count === null ? '—' : count.toLocaleString()) + ' / 264 verified updates';
+    get('state').textContent = count === null ? 'Preparation is separate from optimizer progress.' : 'Contiguous finite saved Adam updates for this exact run.';
+    get('fill').style.width = count === null ? '0%' : (100 * count / 264) + '%';
+    if (count === null) get('track').removeAttribute('aria-valuenow');
+    else get('track').setAttribute('aria-valuenow', String(count));
+    get('loss').textContent = available && finite(v.last_training_loss) ? v.last_training_loss.toFixed(4) : '—';
+    get('speed').textContent = available && finite(v.last_training_target_tokens_per_compute_second) ? v.last_training_target_tokens_per_compute_second.toFixed(2) : '—';
+    get('peak').textContent = available ? gib(v.recorded_mlx_peak_bytes) : '—';
+    get('nll').textContent = complete && finite(v.dev_pooled_target_NLL) ? v.dev_pooled_target_NLL.toFixed(5) : 'Pending';
+    const paired = v?.paired_dev_progress;
+    const validPaired = paired?.schema === 'research4.continuity-transfer-dashboard-paired-DEV.v2' && Number.isInteger(paired.processed) && paired.processed >= 0 && paired.processed <= 24 && paired.total_slots === 24 && paired.per_route;
+    get('outcomes').textContent = !validPaired ? 'Pending \u00b7 12 matched episodes per route (24 BASE/FT statuses)' :
+      'Paired DEV: ' + paired.processed + ' / 24 processed \u00b7 ' + paired.known + ' KNOWN \u00b7 ' + paired.censored_unknown + ' UNKNOWN \u00b7 ' + paired.pending + ' pending. BASE ' + paired.per_route.BASE.processed + '/12; FT ' + paired.per_route.FT.processed + '/12. ' +
+      (paired.live_owner_verified === true && !paired.stale ? 'Owner verified.' : paired.stale ? 'Saved metadata may be stale.' : 'Owner unconfirmed.') + ' No partial win rate or advancement claim.';
+    get('preparation').textContent = bound && v.preparation_verified === true ? 'Exact corpus, six-pass plan and five source hashes verified.' : 'Awaiting the exact plan/source metadata; launch and progress are not inferred.';
+    get('stamp').textContent = available ? 'Saved: ' + (v.recorded_utc || 'unavailable') + ' · ' + v.run_root : 'Run descriptor is unbound. No progress is borrowed from the previous 500-update fit.';
+  };
+})();
+
+</script>
+<script src="/all64-mini.js"></script>
+</head>
+<body>
+<script type="application/json" id="replica612-audited-record">{}</script>
+<script>
+/* Saved audited612 artifact display only; no requests, timers or model calls. */
+(() => {
+  const get = id => document.getElementById('latest612-' + id);
+  const recordElement = () => document.getElementById('replica612-audited-record');
+  window.renderLatestReplicaIdentity612 = data => {
+    if (!get('current')) return;
+    let r;
+    try { r = JSON.parse(recordElement().textContent); } catch (_) { return; }
+    const verified = r?.schema === 'research4.replica-identity612-audited-ui-record.v1' &&
+      r.artifact_id === 'sp-20261116-19-38064e07' && r.updates === 612 && r.DEV_rows === 42 &&
+      r.ready_sha256 === 'e3c65ecc69b0b19d2c09b81ee4dc9b7efd7afcb51169190f3324265edb4dc9d5' &&
+      r.audit_sha256 === '9556c60f6664da8ce31be945c0c625e2ac8b81d12d0533f6b00f6bb7859e213a';
+    if (!verified) { get('status').textContent = 'Saved version metadata unavailable'; return; }
+    get('name').textContent = r.artifact_id;
+    get('status').textContent = '612-update training independently audited';
+    get('count').textContent = '612 / 612 verified optimizer updates';
+    get('data').textContent = '306 unique TRAIN decisions · 2 complete passes · Last8 layers 56–63 · rank 16';
+    get('dev').textContent = '42 / 42 DEV decisions';
+    get('nll').textContent = Number(r.DEV_target_NLL).toFixed(5);
+    get('started').textContent = r.fit_started_local;
+    get('finished').textContent = r.fit_finished_local;
+    get('ready').textContent = r.ready_local;
+    get('utc').textContent = 'Artifact READY UTC: ' + r.ready_utc + ' · adapter ' + r.adapter_sha256.slice(0, 8);
+    get('note').textContent = 'Saved checkpoint and no-update DEV token loss are independently audited. DEV NLL is not behavioral/Game performance. Artifact READY does not establish an active or qualified serving endpoint; live inference status is shown separately.';
+    get('catalog-label').textContent = r.artifact_id + ' · latest audited version';
+    get('catalog-start').textContent = r.fit_started_local;
+    get('catalog-finish').textContent = r.fit_finished_local;
+    get('catalog-ready').textContent = r.ready_local + ' · artifact READY (serving separate)';
+  };
+})();
+</script>
+<script>
+/* Read-only render hook. The dashboard's existing poll supplies metadata. */
+(() => {
+  const candidate = 'replication_diversity84_v1_20261116';
+  const get = id => document.getElementById('replication84-' + id);
+  const finite = x => typeof x === 'number' && Number.isFinite(x);
+  const gib = x => finite(x) && x >= 0 ? (x / 1024 ** 3).toFixed(2) + ' GiB' : 'Unavailable';
+  const stamp = (value, verifiedLocal) => {
+    if (!value || !Number.isFinite(new Date(value).getTime())) return 'Unavailable';
+    return typeof verifiedLocal === 'string' ? verifiedLocal : value + ' (UTC; verified local time unavailable)';
+  };
+  window.renderReplicationDiversity84 = data => {
+    if (!get('current')) return;
+    const v = data?.replication_diversity84_fit || data?.mac?.replication_diversity84_fit;
+    const bound = v?.schema === 'research4.replication-diversity84-dashboard-fit.v1' && v.candidate === candidate;
+    const validCount = bound && Number.isInteger(v.optimizer_updates) && v.optimizer_updates >= 0 && v.optimizer_updates <= 168;
+    const count = validCount ? v.optimizer_updates : null;
+    const actual = bound && v.status === 'available' && v.counts_status === 'BOUND_ACTUAL_PLAN';
+    const recovered = actual && v.phase === 'AUDITED_ARTIFACT_READY_NOT_ENDPOINT_READY' && v.artifact_ready_verified === true && v.training_controller_status === 'FAILED_PRESERVED' && v.endpoint_ready === false && v.serving_model_loaded === false;
+    const cpuVerified = bound && v.counts_status === 'DATA_CPU_VERIFIED' && v.data_packet_sha256 === 'b6cefa1923081e47586209f738886c23683371f226d6302a11b615474a9afc63' && v.data_acceptance_sha256 === '543b9ed271f8587554d4c873ea1e267983fd258cca2c019cee80c82eae609d4e';
+    const preparing = bound && v.status === 'preparing' && v.run_root === null && count === 0;
+    const live = actual && v.live_owner_verified === true && v.stale !== true;
+    const labels = {PREPARING:'PREPARING · no run launched', QUALIFYING:'QUALIFYING · zero optimizer updates', TRAINING:'Training', DEV:'DEV evaluation', FREEZE_PENDING:'Freeze / audit pending', RELEASED:'Released · saved metadata', FAILED:'Stopped / failed · saved progress', PAUSED:'Paused · saved progress'};
+    get('status').textContent = !bound || v.status === 'unavailable' ? 'Metadata unavailable' : recovered ? 'Audited artifact ready · endpoint NOT ready' : preparing ? cpuVerified ? 'PREPARING · CPU data verified' : labels.PREPARING : (labels[v.phase] || 'Saved metadata') + (live ? ' · owner verified' : actual ? ' · saved' : '');
+    get('count').textContent = (count === null ? '—' : count) + (preparing ? cpuVerified ? ' / 168 Adam updates · not started' : ' / 168 planned Adam updates' : ' / 168 verified Adam updates');
+    get('plan').textContent = actual ? '84 unique TRAIN decisions × 2 passes · ' + v.actual_DEV_rows + ' DEV decisions · bound actual plan' : cpuVerified ? 'CPU VERIFIED: 21 TRAIN episodes / 84 unique decisions × 2 passes = 168 planned updates · 3,707 target tokens/pass; 7,414 presentations. 6 DEV episodes / 24 decisions; 1,037 target tokens. Max native input 512 / raw 513; target span ≤52.' : 'PLANNED: 84 unique TRAIN decisions × 2 passes = 168 updates; DEV 24, pending final CPU counts.';
+    get('fill').style.width = count === null ? '0%' : (100 * count / 168) + '%';
+    if (count === null) get('track').removeAttribute('aria-valuenow');
+    else get('track').setAttribute('aria-valuenow', String(count));
+    get('phase').textContent = recovered ? 'NUMERIC ARTIFACT RECOVERED · 168 audited updates / 2 passes · original controller FAILED (parent exit 1; worker exit UNKNOWN)' : actual ? 'Phase: ' + v.phase + ' · epoch ' + (v.current_epoch || 0) + ' / 2 · ' + v.completed_epochs + ' full passes saved' : cpuVerified ? 'DATA_CPU_VERIFIED · PREPARING · 0 optimizer updates · no runtime admission' : 'PREPARING · 0 optimizer updates · actual run identity is NULL';
+    get('loss').textContent = actual && finite(v.last_training_loss) ? v.last_training_loss.toFixed(5) : '—';
+    get('input-speed').textContent = actual && finite(v.input_tokens_per_compute_second) ? v.input_tokens_per_compute_second.toFixed(2) : '—';
+    get('target-speed').textContent = actual && finite(v.target_tokens_per_compute_second) ? v.target_tokens_per_compute_second.toFixed(2) : '—';
+    get('dev').textContent = actual && Number.isInteger(v.DEV_completed) && finite(v.DEV_target_NLL) ? v.DEV_completed + ' rows · NLL ' + v.DEV_target_NLL.toFixed(5) : cpuVerified ? '24 CPU-verified · not evaluated' : 'Planned / not measured';
+    get('checkpoints').textContent = actual && Array.isArray(v.checkpoints) ? v.checkpoints.join(', ') || 'None saved' : 'None saved';
+    const r = actual ? v.native_reserve : null;
+    get('reserve').textContent = r && Number.isInteger(r.bytes) ? gib(r.bytes) : 'Unavailable';
+    get('guard').textContent = recovered ? 'Owned resources independently released; original controller cleanup failure remains preserved. No serving model loaded.' : !r ? (actual && v.run_floor_admitted === true ? 'Run threshold: 2 GiB bound in the actual plan; native sample unavailable. Launch: 6 GiB; NORMAL(1) and finite controls retained.' : 'Run threshold: 2 GiB requested · not yet admitted. Launch: 6 GiB; NORMAL(1) and finite time/stop controls retained.') : 'Operative floor ' + gib(r.floor_bytes) + ' · pressure flag ' + r.pressure_flag + (r.stop_required === true ? ' · stop required' : '') + ' · ' + (r.fresh ? 'fresh Mac sample' : 'saved sample; freshness unverified') + '. Sample monotonic ' + r.sample_monotonic + '; saved file ' + stamp(r.saved_file_utc, r.saved_file_local) + '.';
+    get('note').textContent = (bound ? v.note : 'Waiting for the exact new candidate metadata.') + (v?.partial_journal_tail ? ' Incomplete journal tail excluded.' : '') + (!recovered && v?.stale ? ' Saved progress is stale.' : '') + ' Compute token rates cover gradient + Adam time, not inference decoding. NLL is separate from behavioral results.';
+    get('stamp').textContent = recovered ? 'Artifact READY ' + v.artifact_ready_local + ' · America/Edmonton (verified tzdata2026.6) · UTC ' + v.artifact_ready_utc : bound ? 'Saved ' + stamp(v.recorded_utc, v.recorded_local) + ' · UTC ' + (v.recorded_utc || 'unavailable') + ' · America/Edmonton · ' + (v.run_root || 'no actual run') : 'Timestamp unavailable';
+    get('identity').textContent = recovered ? 'Artifact ' + v.artifact_id + ' · adapter ' + v.artifact_adapter_sha256 + ' · endpoint_ready=false · serving_model_loaded=false · original failure retained' : actual ? 'Plan ' + v.plan_sha256 + ' · source ' + v.source_packet_sha256 + ' · data ' + v.data_packet_sha256 : cpuVerified ? 'CPU data ' + v.data_packet_sha256 + ' · acceptance ' + v.data_acceptance_sha256 + ' · actual owner / plan / source SHA: NULL' : 'Actual owner / plan / source / data SHA: NULL';
+  };
+})();
+</script><main class="shell">
+<header class="top"><div class="brand"><div class="mark">R4</div><div><div class="eyebrow">SP Lense / Research 04</div><strong>Local lab monitor</strong></div></div><div class="topright"><span class="clock" id="updated">Waiting for first reading</span><span class="status"><i class="dot" id="connection-dot"></i><span id="connection">Connecting to Mac</span></span></div></header>
+<section class="hero"><div><div class="eyebrow">Experiment workspace</div><h1>Qwen3.8 · 27B</h1><p>One shared adapter across reactive and proactive scenarios. The current all-layer work runs on the Mac mini; Studio and Windows information remains below.</p></div><div class="hero-note">Current all-layer machine<br><b>Mac mini · Apple silicon</b></div></section>
+<section class="card fine-tuning-current" id="mini-all64-card" aria-label="Mac mini all-layer qualification and training">
+  <div class="cardhead"><div><div class="eyebrow">Current research · 64 layers · Mac mini</div><h2 id="mini-all64-title">Mac mini · all 64 layers</h2><p class="sub" id="mini-all64-owner">Waiting for verified Mini telemetry</p></div><span class="badge wait" id="mini-all64-status">Mini unavailable</span></div>
+  <div class="progress-main"><strong id="mini-all64-count">—</strong><span id="mini-all64-progress-label">No recorded progress</span></div>
+  <div class="track" role="progressbar" aria-label="Saved current stage progress" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" id="mini-all64-track"><div class="fill" id="mini-all64-fill"></div></div>
+  <div class="metrics"><div class="metric"><span>Epoch</span><strong id="mini-all64-epoch">—</strong></div><div class="metric"><span>Recorded supervised tokens/s</span><strong id="mini-all64-speed">—</strong></div><div class="metric"><span>Latest training loss</span><strong id="mini-all64-loss">—</strong></div><div class="metric"><span>Mini memory: total minus available</span><strong id="mini-all64-memory">—</strong></div><div class="metric"><span>Native guard / headroom estimate</span><strong id="mini-all64-guard">Not verified</strong></div></div>
+  <p class="smallprint" id="mini-all64-note">Waiting for Mini telemetry. Qualification cases are not training updates.</p>
+  <details><summary>Development results by checkpoint</summary><p class="smallprint">Primary is equal-family action-token NLL with fixed reference reasoning. Lower is better. These are saved development results, not Game performance.</p>
+  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left;font-size:12px"><thead><tr><th>Rank</th><th>Epoch</th><th>Primary NLL</th><th>Pooled action NLL</th><th>Full suffix NLL</th></tr></thead><tbody id="mini-all64-dev-body"></tbody></table></div></details>
+</section>
+<section class="card fine-tuning-current" id="harness272-fit-card" aria-label="Harness-aligned rank 32 training">
+  <div class="cardhead"><div><div class="eyebrow">Harness-aligned · rank 32 · last 8 layers · 4 epochs</div><h2 id="harness272-title">SP Lens · training started 2026-11-17</h2><p class="sub">Dataset: harness-aligned continuity v2 · 68 training decisions · 11 development decisions</p></div><span class="badge wait" id="harness272-status">Awaiting verified telemetry</span></div>
+  <div class="progress-main"><strong id="harness272-count">— / 272</strong><span id="harness272-percent">Planned updates</span></div>
+  <div class="track" role="progressbar" aria-label="Harness-aligned optimizer progress" aria-valuemin="0" aria-valuemax="272" id="harness272-track"><div class="fill" id="harness272-fill"></div></div>
+  <div class="metrics"><div class="metric"><span>Epoch</span><strong id="harness272-epoch">—</strong></div><div class="metric"><span>Supervised tokens/s</span><strong id="harness272-speed">—</strong></div><div class="metric"><span>Latest training loss</span><strong id="harness272-loss">—</strong></div><div class="metric"><span>Development validation</span><strong id="harness272-dev">Pending</strong></div></div>
+  <p class="smallprint" id="harness272-note">Waiting for an admitted run and verified Mac telemetry. Prior partial fits and setup tests are separate.</p>
+</section>
+<section class="card fine-tuning-current" id="rank32-fit-card" aria-label="Rank 32 eight-epoch training">
+  <div class="cardhead"><div><div class="eyebrow">Rank 32 · last 8 layers · 8 epochs</div><h2 id="rank32-title">SP Lens · training prepared 2026-11-17</h2><p class="sub">Dataset: replica_identity_initiation_r32_v3 · 324 training decisions · 42 development decisions</p></div><span class="badge wait" id="rank32-status">Awaiting verified telemetry</span></div>
+  <div class="progress-main"><strong id="rank32-count">— / 2,592</strong><span id="rank32-percent">Planned updates</span></div>
+  <div class="track" role="progressbar" aria-label="Rank 32 optimizer progress" aria-valuemin="0" aria-valuemax="2592" id="rank32-track"><div class="fill" id="rank32-fill"></div></div>
+  <div class="metrics"><div class="metric"><span>Epoch</span><strong id="rank32-epoch">—</strong></div><div class="metric"><span>Supervised tokens/s</span><strong id="rank32-speed">—</strong></div><div class="metric"><span>Latest training loss</span><strong id="rank32-loss">—</strong></div><div class="metric"><span>Development validation</span><strong id="rank32-dev">Pending</strong></div></div>
+  <p class="smallprint" id="rank32-note">Waiting for an admitted run and verified Mac telemetry. The separate setup test does not count as training.</p>
+</section>
+<section class="grid"><article class="card"><div class="cardhead"><div><div class="eyebrow" id="training-label">Shared adapter</div><h2 id="training-title">Fine-tuning progress</h2><p id="training-scope">Actual optimizer steps reported by the training process.</p></div><span class="badge wait" id="job-badge">Not started</span></div><div class="progress-main"><strong id="steps">—</strong><span id="steps-side">No training run yet</span></div><div class="track" role="progressbar" aria-label="Fine-tuning progress" aria-valuemin="0" aria-valuemax="100" id="training-track"><div class="fill" id="training-fill"></div></div><div class="meta-row"><span id="training-note">Waiting for the dataset and training run</span><span id="percentage">—</span></div><div class="metrics"><div class="metric"><span title="Supervised answer/format tokens per training compute second; not inference throughput">Supervised tokens/s</span><strong id="train-speed">—</strong></div><div class="metric"><span>Steps/min</span><strong id="step-rate">—</strong></div><div class="metric"><span>Latest loss</span><strong id="loss">—</strong></div><div class="metric"><span>Elapsed</span><strong id="elapsed">—</strong></div></div><div class="smallprint" id="replica612-validation" hidden>Development validation pending.</div><div class="smallprint">Training speed counts supervised positions, including format tokens; it is not inference throughput. Loss is not a game result.</div></article>
+<article class="card"><div class="cardhead"><div><div class="eyebrow">Readiness</div><h2>What happens next</h2><p>Setup checks are separate from research training.</p></div></div><div class="stepper"><div class="step" id="mac-step-row"><i>1</i><b>Mac connected</b><em id="mac-step">Checking</em></div><div class="step" id="model-step"><i>2</i><b>27B model ready</b><em id="model-status">Checking</em></div><div class="step" id="dataset-step"><i>3</i><b>Scenario dataset</b><em id="dataset-status">Preparing</em></div><div class="step"><i>4</i><b>Train one shared adapter</b><em id="train-status">Not started</em></div><div class="step"><i>5</i><b>Evaluate held-out scenarios</b><em id="current-heldout-step">Not verified</em></div></div></article></section>
+
+<!-- LATEST_REPLICA612_AUDITED_CARD_BEGIN -->
+<section class="card fine-tuning-current" id="latest612-current" aria-label="Latest independently audited 612-update replica identity model">
+<div class="cardhead"><div><div class="eyebrow">Latest completed training · 2026-11-16 · America/Edmonton UTC−06</div><h2 id="latest612-name">sp-20261116-19-38064e07</h2><p class="sub" id="latest612-data">306 unique TRAIN decisions · 2 passes · Last8 · rank 16</p></div><span class="badge" id="latest612-status">612-update training independently audited</span></div>
+<div class="fit-progress-summary"><strong id="latest612-count">612 / 612 verified optimizer updates</strong><span class="sub">Saved completion · normal parent and worker exit 0</span></div>
+<div class="track" role="progressbar" aria-label="Latest audited optimizer updates" aria-valuemin="0" aria-valuemax="612" aria-valuenow="612"><div class="fill" style="width:100%"></div></div>
+<div class="metrics" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="metric"><span>Actual no-update DEV loop</span><strong id="latest612-dev">42 / 42 DEV decisions</strong></div><div class="metric"><span>DEV target-token NLL · not behavior</span><strong id="latest612-nll">0.11250</strong></div></div>
+<dl class="smallprint" style="display:grid;grid-template-columns:max-content 1fr;gap:6px 16px"><dt>Training started</dt><dd id="latest612-started" style="margin:0">2026-11-16T17:52:51.799563-06:00</dd><dt>Training + DEV finished</dt><dd id="latest612-finished" style="margin:0">2026-11-16T19:17:38.334105-06:00</dd><dt>Audited artifact READY</dt><dd id="latest612-ready" style="margin:0">2026-11-16T19:53:59.336018-06:00</dd></dl>
+<p class="smallprint" id="latest612-note">Saved training and DEV token loss are audited. This does not claim behavioral/Game improvement or an active serving endpoint.</p><p class="fit-stage-stamp" id="latest612-utc">Artifact READY UTC: 2026-11-17T01:53:59.336018+00:00</p>
+</section>
+<!-- LATEST_REPLICA612_AUDITED_CARD_END -->
+<!-- REPLICATION84_READONLY_CARD_BEGIN -->
+<details class="card fine-tuning-current" id="replication84-current" aria-label="Historical 168-update replication diversity version"><summary style="cursor:pointer;color:var(--muted);margin-bottom:16px">Historical model · sp-20261116-10-bdacaf88 · 168 updates · 2026-11-16 10:06 UTC−06</summary>
+<div class="cardhead"><div><div class="eyebrow">Historical 84-decision version · controller failure preserved</div><h2>Replication diversity · 84 decisions</h2><p class="sub">One shared Last8 adapter · layers 56–63 · rank 16</p></div><span class="badge wait" id="replication84-status">PREPARING · no run launched</span></div>
+<p class="sub" id="replication84-plan">PLANNED: 84 unique TRAIN decisions × 2 passes = 168 updates; DEV 24, pending final CPU counts.</p>
+<div class="fit-progress-summary"><strong id="replication84-count">0 / 168 planned Adam updates</strong><span class="sub" id="replication84-phase">PREPARING · actual run identity is NULL</span></div>
+<div class="track" id="replication84-track" role="progressbar" aria-label="Replication candidate verified Adam updates" aria-valuemin="0" aria-valuemax="168" aria-valuenow="0"><div class="fill" id="replication84-fill" style="width:0%"></div></div>
+<div class="metrics" style="grid-template-columns:repeat(3,minmax(0,1fr));row-gap:18px"><div class="metric"><span>Latest training loss</span><strong id="replication84-loss">—</strong></div><div class="metric"><span>Padded input compute tokens/s</span><strong id="replication84-input-speed">—</strong></div><div class="metric"><span>Target compute tokens/s</span><strong id="replication84-target-speed">—</strong></div><div class="metric"><span>Native R · reserve estimate</span><strong id="replication84-reserve">Unavailable</strong></div><div class="metric"><span>DEV · teacher-forced loss</span><strong id="replication84-dev">Planned / not measured</strong></div><div class="metric"><span>Saved checkpoint steps</span><strong id="replication84-checkpoints">None saved</strong></div></div>
+<p class="smallprint" id="replication84-guard">Run threshold: 2 GiB requested · not yet admitted. Launch: 6 GiB; NORMAL(1) and finite time/stop controls retained.</p>
+<p class="smallprint" id="replication84-note">Preparation is separate from optimizer progress. No progress is borrowed from previous fits.</p>
+<p class="fit-stage-stamp" id="replication84-stamp">No actual run · America/Edmonton</p>
+<details style="margin-top:10px"><summary class="sub">Exact run identity</summary><p class="smallprint" id="replication84-identity">Actual owner / plan / source / data SHA: NULL</p></details>
+</details>
+<!-- REPLICATION84_READONLY_CARD_END -->
+<!-- CONTINUITY_TRANSFER_READONLY_CARD_BEGIN -->
+<details class="card fine-tuning-current" id="continuity-transfer-current" aria-label="Historical 264-update continuity transfer pilot"><summary style="cursor:pointer;color:var(--muted);margin-bottom:16px">Training history · 2026-11-15 13:19 MST · previous 264-update pilot</summary>
+<div class="cardhead"><div><div class="eyebrow">Current fine-tuning · continuity transfer</div><h2>SP Lens · 264-update pilot</h2><p class="sub">21 unique training episodes · 44 unique decision rows · six passes · 5,934 supervised token presentations</p></div><span class="badge wait" id="continuity-transfer-status">PREPARING · awaiting verified run identity</span></div>
+<div class="fit-progress-summary"><strong id="continuity-transfer-count">— / 264 verified updates</strong><span class="sub" id="continuity-transfer-state">Preparation is separate from optimizer progress.</span></div>
+<div class="track" id="continuity-transfer-track" role="progressbar" aria-label="Continuity transfer verified optimizer updates" aria-valuemin="0" aria-valuemax="264"><div class="fill" id="continuity-transfer-fill" style="width:0%"></div></div>
+<div class="metrics" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="metric"><span>Latest training loss</span><strong id="continuity-transfer-loss">—</strong></div><div class="metric"><span>Training target tokens/s</span><strong id="continuity-transfer-speed">—</strong></div><div class="metric"><span>Recorded MLX peak</span><strong id="continuity-transfer-peak">—</strong></div><div class="metric"><span>DEV NLL · 36 decision rows</span><strong id="continuity-transfer-nll">Pending</strong></div></div>
+<p class="smallprint" id="continuity-transfer-preparation">Awaiting the exact plan/source metadata.</p><p class="sub" id="continuity-transfer-outcomes">Pending · 12 matched episodes per route (24 BASE/FT statuses)</p>
+<p class="smallprint">NLL uses saved target decisions. Paired closed-loop outcomes use free model interactions and actual simulator feedback. Repeated training passes are not independent cases; this pilot is not exposure-matched to the older corpus.</p>
+<p class="fit-stage-stamp" id="continuity-transfer-stamp">Run descriptor is unbound.</p>
+</details>
+<!-- CONTINUITY_TRANSFER_READONLY_CARD_END -->
+<!-- SECURITY500_READONLY_CARD_BEGIN -->
+<details class="card fine-tuning-current" id="security500-current" aria-label="Previous 500-update security pilot"><summary style="cursor:pointer;color:var(--muted);margin-bottom:16px">SP Lens · 2026-11-15 09:17 ABT · previous 500-update fit</summary>
+<div class="cardhead"><div><div class="eyebrow">Previous fine-tuning · proactive agent security</div><h2>SP Lens · 500-update security pilot</h2><p class="sub">500 training records · shared last-eight-layer adapter · rank 16</p></div><span class="badge wait" id="security500-status">Awaiting verified metadata</span></div>
+<div class="fit-progress-summary"><strong id="security500-count">— / 500 verified updates</strong><span class="sub" id="security500-state">Preparation does not count as optimizer progress.</span></div>
+<div class="track" id="security500-track" role="progressbar" aria-label="Security pilot verified optimizer updates" aria-valuemin="0" aria-valuemax="500"><div class="fill" id="security500-fill" style="width:0%"></div></div>
+<div class="metrics" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="metric"><span>Latest training loss</span><strong id="security500-loss">—</strong></div><div class="metric"><span title="Supervised target tokens per gradient plus Adam compute second; not inference throughput">Training target tokens/s</span><strong id="security500-speed">—</strong></div><div class="metric"><span>Recorded MLX peak</span><strong id="security500-peak">—</strong></div><div class="metric"><span>Native reserve estimate</span><strong id="security500-reserve">—</strong><small id="security500-reserve-note">No recent verified native sample</small></div><div class="metric"><span>Published checkpoints</span><strong id="security500-checkpoints">— / 6</strong></div><div class="metric"><span>DEV token loss · 100 records</span><strong id="security500-dev">Pending</strong></div></div>
+<ol class="fit-stage-list" id="security500-stages" aria-label="Security pilot fine-tuning stages"></ol>
+<p class="smallprint" id="security500-note">This card reads saved counters and metadata only.</p><p class="fit-stage-stamp" id="security500-stamp">Awaiting the exact Root run identity.</p>
+</details>
+<!-- SECURITY500_READONLY_CARD_END -->
+<!-- SECURITY500_FAILED_E92_HISTORY_BEGIN -->
+<details class="card fine-tuning-current" id="security500-e92-history" aria-label="Security pilot history from 2026-11-15 07:26 ABT"><summary style="cursor:pointer;color:var(--muted)">Security pilot · 2026-11-15 07:26–07:39 ABT · stopped at 87 / 500 updates</summary><p class="sub" style="margin-top:12px">Stopped at the existing native reserve floor. Saved journal: 87 verified updates; last published checkpoint: step 3. Validation did not run. Worker and shared lease were released.</p><p class="smallprint">This attempt remains preserved. Its updates are separate from the current corrective fit.</p></details>
+<!-- SECURITY500_FAILED_E92_HISTORY_END -->
+
+<!-- SAVED_PREPARATION_RECEIPT_BEGIN -->
+<script type="application/json" id="preparation-receipt">{}</script>
+<!-- SAVED_PREPARATION_RECEIPT_END -->
+<script type="application/json" id="completed-fit-receipt">{}</script>
+<details class="card fine-tuning-current" id="next-preparation" aria-label="Completed fine-tuning history"><summary style="cursor:pointer;color:var(--muted);margin-bottom:16px">SP Lens - 2026-11-14 23:39 ABT · completed 2,160-update fit</summary>
+<div class="cardhead"><div><div class="eyebrow">Completed version · training history</div><h2 id="preparation-title">SP Lens · service-preservation scenarios 3.5.2</h2><p class="sub">Shared adapter · last eight layers · rank 16</p></div><span class="badge wait" id="preparation-status">Loading saved preparation</span></div>
+<div class="fit-progress-summary"><strong id="preparation-updates">0 / 2,160 planned updates</strong><span class="sub" id="preparation-training-state">Training has not started for this revision.</span></div>
+<div class="track small" id="provider-fit-track" role="progressbar" aria-label="Provider3.5.2 verified optimizer updates" aria-valuemin="0" aria-valuemax="2160" hidden><div class="fill" id="provider-fit-fill" style="width:0%"></div></div>
+<div class="metrics" id="provider-fit-metrics" style="grid-template-columns:repeat(4,minmax(0,1fr))" hidden><div class="metric"><span title="Supervised targets divided by gradient plus Adam compute time for the last verified update">Training target tokens/s</span><strong id="provider-fit-speed">—</strong></div><div class="metric"><span>Latest training loss</span><strong id="provider-fit-loss">—</strong></div><div class="metric"><span>Recorded MLX peak</span><strong id="provider-fit-peak">—</strong></div><div class="metric"><span>DEV token loss · 500 examples</span><strong id="provider-fit-dev">Pending</strong></div></div><p class="smallprint">Training speed is for the last verified update and excludes checkpoint/I/O time. It is separate from inference speed and validation quality.</p>
+<h3 id="preparation-stage-summary" style="font-size:16px;margin:24px 0 0">Fine-tuning checklist</h3>
+<ol class="fit-stage-list" id="preparation-stage-list" aria-label="Latest fine-tuning checklist"></ol>
+<div style="border-top:1px solid var(--line);margin-top:20px;padding-top:16px"><div class="eyebrow">After fine-tuning</div><p id="preparation-next-note" class="sub">Inference verification and the separate game comparison follow training.</p></div>
+<p class="fit-notice" id="preparation-note"></p><p class="fit-stage-stamp" id="preparation-stamp"></p>
+</details>
+<details class="card fine-tuning-current" id="fine-tuning-current" aria-label="Previous stopped training attempt"><summary style="cursor:pointer;color:var(--muted);font-size:14px">Training history · stopped attempt from 2026-11-14 16:00 ABT</summary>
+<div class="cardhead"><div><div class="eyebrow">Previous attempt · 2026-11-14 16:00 ABT</div><h2 id="fit-steps-title">SP Lens · ongoing service preservation</h2><p class="sub">Shared adapter · last eight layers · rank 16</p></div><span class="badge wait" id="fit-steps-status">Loading progress</span></div>
+<div class="fit-progress-summary"><strong id="fit-steps-updates">— / 2,160 updates</strong><span class="sub" id="fit-steps-training-state">Waiting for saved progress.</span></div>
+<div class="track small" role="progressbar" aria-label="Current attempt verified optimizer updates" aria-valuemin="0" aria-valuemax="2160" id="fit-steps-track"><div class="fill" id="fit-steps-fill" style="width:0%"></div></div>
+<ol class="fit-stage-list" id="fit-stage-list" aria-label="Fine-tuning stages"></ol>
+<p class="fit-notice" id="fit-steps-notice" hidden></p><p class="fit-stage-stamp" id="fit-steps-stamp">Saved project progress; preparation is separate from training.</p>
+</details>
+<section class="card endpoint" id="compact-current-card" aria-label="Completed SP Lens version" hidden>
+<div class="cardhead"><div><div class="eyebrow">Completed version · service-preservation curriculum</div><h2 id="compact-version-label">SP Lens — 2026-11-14 06:43 ABT</h2><p>Shared Last8 adapter · 2,160 updates</p></div><span class="badge wait" id="compact-status">Preparing</span></div>
+<div class="progress-main"><strong id="compact-count">0 / 2160</strong><span id="compact-phase">Waiting for verified run metadata</span></div>
+<div class="track" role="progressbar" aria-label="Current compact fit updates" aria-valuemin="0" aria-valuemax="2160" id="compact-track"><div class="fill" id="compact-fill"></div></div>
+<div class="metrics"><div class="metric"><span>Latest training loss</span><strong id="compact-loss">—</strong></div><div class="metric"><span>Training target tokens/s</span><strong id="compact-speed">—</strong></div><div class="metric"><span>Elapsed</span><strong id="compact-elapsed">—</strong></div><div class="metric"><span>Memory reserve estimate</span><strong id="compact-reserve">—</strong></div></div>
+<div class="smallprint" id="compact-note">Only saved optimizer updates count. Preparing data is not training.</div>
+<div id="compact-validation" style="border-top:1px solid var(--line);margin-top:20px;padding-top:18px" aria-label="Current adapter validation">
+<div class="cardhead"><div><div class="eyebrow">Development validation</div><h2>Validation results</h2><p id="compact-validation-scope">Saved validation evidence unavailable.</p></div><span class="badge wait" id="compact-validation-status">Not verified</span></div>
+<div class="metrics" style="margin-top:16px;padding-top:0;border-top:0"><div class="metric"><span>Validation token loss</span><strong id="compact-validation-loss">—</strong></div><div class="metric"><span>Examples</span><strong id="compact-validation-examples">—</strong></div><div class="metric"><span>Weights during validation</span><strong id="compact-validation-unchanged">—</strong></div><div class="metric"><span>Saved checkpoints</span><strong id="compact-validation-checkpoints">—</strong></div></div>
+<div class="smallprint" id="compact-validation-note">The dashboard reads saved audit metadata only.</div>
+<div style="border-top:1px solid var(--line);margin-top:18px;padding-top:16px"><div class="eyebrow">SP Lens versions</div><p class="sub" style="margin:5px 0 12px">Fine-tuning and first verified availability · Alberta Time (ABT · UTC−06:00)</p><div style="overflow-x:auto"><table id="version-dates-table" aria-label="SP Lens version dates" style="border-collapse:collapse;width:100%;font-size:12px;text-align:left;white-space:nowrap"><thead style="color:var(--muted)"><tr><th style="padding:0 16px 10px 0;font-weight:500">Version · training completed</th><th style="padding:0 16px 10px 0;font-weight:500">Fine-tuning started</th><th style="padding:0 16px 10px 0;font-weight:500">Fine-tuning finished</th><th style="padding:0 0 10px;font-weight:500">First verified availability</th></tr></thead><tbody><tr id="version-replica612-row"><th id="latest612-catalog-label" style="padding:10px 16px 10px 0;border-top:1px solid var(--line);font-weight:600">sp-20261116-19-38064e07 · latest audited version</th><td id="latest612-catalog-start" data-label="Started" style="padding-right:16px;border-top:1px solid var(--line)">2026-11-16T17:52:51.799563-06:00</td><td id="latest612-catalog-finish" data-label="Finished" style="padding-right:16px;border-top:1px solid var(--line)">2026-11-16T19:17:38.334105-06:00</td><td id="latest612-catalog-ready" data-label="Artifact READY" style="border-top:1px solid var(--line)">2026-11-16T19:53:59.336018-06:00 · artifact READY (serving separate)</td></tr><tr><th id="version-d050-label" style="padding:10px 16px 10px 0;border-top:1px solid var(--line);font-weight:600">SP Lens — 2026-11-10 00:27 ABT</th><td id="version-d050-start" data-label="Started" style="padding-right:16px;border-top:1px solid var(--line)">—</td><td id="version-d050-end" data-label="Finished" style="padding-right:16px;border-top:1px solid var(--line)">—</td><td id="version-d050-available" data-label="First available" style="border-top:1px solid var(--line)">—</td></tr><tr><th id="version-9a45-label" style="padding:10px 16px 10px 0;border-top:1px solid var(--line);font-weight:600">SP Lens — 2026-11-14 06:43 ABT</th><td id="version-9a45-start" data-label="Started" style="padding-right:16px;border-top:1px solid var(--line)">—</td><td id="version-9a45-end" data-label="Finished" style="padding-right:16px;border-top:1px solid var(--line)">—</td><td id="version-9a45-available" data-label="First available" style="border-top:1px solid var(--line)">—</td></tr></tbody></table></div><div class="smallprint" id="version-catalog-note">Waiting for verified version metadata.</div></div>
+<details style="margin-top:14px"><summary style="cursor:pointer;color:var(--green)">Readable checkpoint paths</summary><dl style="font-size:12px;overflow-wrap:anywhere"><dt id="version-d050-path-label">SP Lens — 2026-11-10 00:27 ABT</dt><dd id="version-d050-alias" style="white-space:pre-line;margin:5px 0 14px;color:var(--muted)">—</dd><dt id="version-9a45-path-label">SP Lens — 2026-11-14 06:43 ABT</dt><dd id="version-9a45-alias" style="white-space:pre-line;margin:5px 0 0;color:var(--muted)">—</dd></dl></details>
+<details style="margin-top:14px"><summary style="cursor:pointer;color:var(--green)">Checkpoint storage · Mac Studio</summary><dl style="font-size:12px;overflow-wrap:anywhere"><dt>Checkpoint directory · 15 saved steps</dt><dd id="compact-storage-directory" style="margin:5px 0 14px;color:var(--muted)">—</dd><dt>Final adapter · step 2,160</dt><dd id="compact-storage-final" style="margin:5px 0 14px;color:var(--muted)">—</dd><dt>Validation files</dt><dd id="compact-storage-validation" style="white-space:pre-line;margin:5px 0 14px;color:var(--muted)">—</dd><dt>Frozen run archive</dt><dd id="compact-storage-archive" style="margin:5px 0 14px;color:var(--muted)">—</dd><dt>Windows PC</dt><dd id="compact-storage-pc" style="margin:5px 0 14px;color:var(--muted)">—</dd><dt>Checkpoint steps</dt><dd id="compact-storage-steps" style="margin:5px 0 0;color:var(--muted)">—</dd></dl></details>
+</div></section>
+<section class="card endpoint" aria-label="Saved project status"><div class="cardhead"><div><div class="eyebrow">Previous experiment · saved project status</div><h2 id="project-fit-status">Project metadata unavailable</h2><p id="project-timestamp">Waiting for saved project metadata.</p></div><span class="badge wait">Saved metadata</span></div><div class="metrics"><div class="metric"><span>Research fit · recorded updates</span><strong id="project-fit-count">—</strong></div><div class="metric" id="project-preparation-metric"><span>Local preparation</span><strong id="project-preparation" style="font-size:14px">—</strong></div><div class="metric" id="project-tests-metric"><span>Focused CPU tests</span><strong id="project-tests">—</strong></div><div class="metric"><span id="project-execution-label">Model execution</span><strong id="project-authorization" style="font-size:14px">Not verified</strong></div></div><div class="smallprint" id="project-diagnostic-status">Memory-workaround test: no admitted test recorded</div><div class="meta-row"><span id="project-diagnostic-observed">Observed — / 7</span><span id="project-diagnostic-candidate">Candidate — / 7</span></div><div class="smallprint" id="project-scope">Saved status does not establish current Mac process liveness.</div></section>
+<aside class="pause-notice" id="pause-notice" hidden><strong id="pause-headline">Earlier experiment pause</strong><p id="pause-detail">The earlier training/HPO pause remains in its original scope. Current project authorization is shown in Saved project status above. No automatic resume or retry.</p></aside>
+<section class="card endpoint"><div class="cardhead"><div><div class="eyebrow">Local Game inference · one resident base</div><h2>BASE + shared LAST8 inference endpoint</h2><p>Shared rank16 adapter · blocks 56–63 · <span id="endpoint-version-label">Version follows endpoint metadata</span></p></div><span class="badge wait" id="endpoint-status">Not verified</span></div><div class="metrics"><div class="metric"><span>Reported model routes</span><strong id="endpoint-models" style="font-size:12px">Not verified</strong></div><div class="metric"><span>Total context limit</span><strong id="endpoint-context">—</strong></div><div class="metric"><span>Default / max output</span><strong id="endpoint-output">—</strong></div><div class="metric"><span>Reasoning default</span><strong id="endpoint-reasoning">—</strong></div></div><div class="smallprint" id="endpoint-note">Monitoring reads endpoint metadata only. It never generates a model probe.</div></section>
+<div class="section-title" id="historical-campaign-heading"><h2>Earlier setup tracker — historical</h2><span id="campaign-scope">Saved run metadata · research and setup remain separate</span></div>
+<section id="historical-campaign-tracker" class="machines" style="margin-bottom:18px"><article class="card"><div class="cardhead"><div><div class="eyebrow">Numerical setup only</div><h2>Longest-row qualification</h2><p>Two diagnostic updates; no research adapter progress.</p></div><span class="badge wait" id="campaign-qualification-status">Not verified</span></div><div class="progress-main"><strong id="campaign-qualification-count">—</strong><span>of 2 diagnostic updates</span></div><div class="track" role="progressbar" aria-label="Separate longest-row qualification" aria-valuemin="0" aria-valuemax="100" id="campaign-qualification-track"><div class="fill" id="campaign-qualification-fill"></div></div><div class="metrics"><div class="metric"><span>Available memory</span><strong id="campaign-qualification-memory">—</strong></div><div class="metric"><span>Recorded MLX peak</span><strong id="campaign-qualification-peak">—</strong></div><div class="metric"><span>Saved loss</span><strong id="campaign-qualification-loss">—</strong></div><div class="metric"><span>Elapsed</span><strong id="campaign-qualification-elapsed">—</strong></div></div><div class="smallprint" id="campaign-qualification-note">No verified qualification metadata.</div></article>
+<article class="card"><div class="cardhead"><div><div class="eyebrow">Fresh shared adapter</div><h2>Earlier queued fit (superseded)</h2><p>2,160 successful updates from fresh initialization.</p></div><span class="badge wait" id="campaign-fit-status">Not verified</span></div><div class="progress-main"><strong id="campaign-fit-count">—</strong><span>of 2,160 research updates</span></div><div class="track" role="progressbar" aria-label="Fresh research fit only" aria-valuemin="0" aria-valuemax="100" id="campaign-fit-track"><div class="fill" id="campaign-fit-fill"></div></div><div class="metrics"><div class="metric"><span>Available memory</span><strong id="campaign-fit-memory">—</strong></div><div class="metric"><span>Recorded MLX peak</span><strong id="campaign-fit-peak">—</strong></div><div class="metric"><span>Saved loss</span><strong id="campaign-fit-loss">—</strong></div><div class="metric"><span>Elapsed</span><strong id="campaign-fit-elapsed">—</strong></div></div><div class="smallprint" id="campaign-fit-note">No verified research fit metadata.</div></article></section>
+<div class="smallprint" style="margin:0 0 22px" id="campaign-data">Neutral/guided training and complete native length metadata are pending. Historical cards remain separate.</div>
+<div class="section-title"><h2>Held-out collection · SP Lens — 2026-11-10 00:27 ABT</h2><span class="badge wait" id="current-heldout-state">Not verified</span></div>
+<section class="machines" style="margin-bottom:18px"><article class="card"><div class="cardhead"><div><div class="eyebrow">Reference histories · BASE vs LAST8</div><h2>Saved next-action checks</h2><p>Collection progress; agreement metrics come after audit.</p></div></div><div class="progress-main"><strong id="current-reference-count">—</strong><span id="current-reference-percent">—</span></div><div class="track" role="progressbar" aria-label="Current reference decision collection" aria-valuemin="0" aria-valuemax="100" id="current-reference-track"><div class="fill" id="current-reference-fill"></div></div><div class="meta-row"><span id="current-reference-base">BASE — / 360</span><span id="current-reference-last8">LAST8 — / 360</span></div></article>
+<article class="card"><div class="cardhead"><div><div class="eyebrow">Own actions and actual feedback</div><h2>Completed own-trajectory episodes</h2><p>Separate from reference agreement; no partial success scores.</p></div></div><div class="progress-main"><strong id="current-own-count">—</strong><span id="current-own-percent">—</span></div><div class="track" role="progressbar" aria-label="Current own-trajectory collection" aria-valuemin="0" aria-valuemax="100" id="current-own-track"><div class="fill" id="current-own-fill"></div></div><div class="meta-row"><span id="current-own-base">BASE — / 96</span><span id="current-own-last8">LAST8 — / 96</span></div></article></section>
+<div class="smallprint" style="margin:0 0 22px" id="current-heldout-note">Read-only current collection metadata. Earlier shared900 results below are historical.</div>
+<details id="archived-adapter-results" style="margin-top:20px"><summary id="validation-section-title" style="cursor:pointer;color:var(--muted)">Archived step-900 adapter results</summary><div class="section-title"><h2>Previous adapter · development inference</h2><span>Progress is per condition</span></div><section class="card"><div class="cardhead"><div><div class="eyebrow">Scenario checks</div><h2 id="validation-condition">Waiting for a run</h2><p id="validation-phase">No inference started</p></div><span class="badge wait" id="validation-badge">Not started</span></div><div class="progress-main"><strong id="validation-count">—</strong><span>prompts completed</span></div><div class="track" role="progressbar" aria-label="Development inference progress" aria-valuemin="0" aria-valuemax="100" id="validation-track"><div class="fill" id="validation-fill"></div></div><div class="meta-row"><span id="validation-note">No validation telemetry available.</span><span id="validation-percent">—</span></div><div class="metrics"><div class="metric"><span>Output tokens/s</span><strong id="validation-speed">—</strong></div><div class="metric"><span>Output tokens</span><strong id="validation-tokens">—</strong></div><div class="metric"><span>Generation time</span><strong id="validation-elapsed">—</strong></div></div><div class="smallprint">Output tokens divided by generation wall time, including prompt prefill. Completion is subject to independent audit.</div></section>
+<div class="section-title"><h2>Previous adapter · held-out next-action check</h2><span id="heldout-status">Checking</span></div><section class="card"><div class="cardhead"><div><div class="eyebrow">Teacher-forced results</div><h2 id="heldout-title">Waiting for results</h2><p id="heldout-scope">Single next-action agreement; not an autonomous rollout.</p></div></div><div class="metrics"><div class="metric"><span>Base matches</span><strong id="heldout-base">—</strong></div><div class="metric"><span>Shared adapter matches</span><strong id="heldout-adapter">—</strong></div><div class="metric"><span>Scored decisions</span><strong id="heldout-count">—</strong></div><div class="metric"><span>Selected step</span><strong id="heldout-step">—</strong></div></div><div class="smallprint" id="heldout-detail">Results will appear after the final metrics are saved.</div><div class="smallprint" id="heldout-caveat">The base comparison is confounded by the output-token limit. This check does not establish autonomous self-preservation or exploitation.</div></section>
+</details><div class="section-title"><h2>Machine resources</h2><span>Live readings · refreshed every 5 seconds</span></div><section class="machines"><article class="card"><div class="machine-head"><div><div class="eyebrow">Local inference machine</div><h3>Mac Studio</h3><p>Apple M5 Max · unified memory</p></div><span class="pill" id="mac-online">Connecting</span></div><div class="resource"><div class="resource-label"><span>CPU</span><strong id="mac-cpu">—</strong></div><div class="track small"><div class="fill cpu" id="mac-cpu-bar"></div></div></div><div class="resource"><div class="resource-label"><span>Memory</span><strong id="mac-memory">—</strong></div><div class="track small"><div class="fill mem" id="mac-memory-bar"></div></div></div><div class="resource"><div class="resource-label"><span>GPU activity</span><strong id="mac-gpu">—</strong></div><div class="track small"><div class="fill gpu" id="mac-gpu-bar"></div></div></div><div class="smallprint" id="mac-disk">Disk: —</div><div class="smallprint" id="mac-gpu-allocation">GPU-reported allocation: —</div></article>
+<article class="card"><div class="machine-head"><div><div class="eyebrow">Monitoring machine</div><h3>Windows PC</h3><p>Repository host and archive sender</p></div><span class="pill">LOCAL</span></div><div class="resource"><div class="resource-label"><span>CPU</span><strong id="win-cpu">—</strong></div><div class="track small"><div class="fill cpu" id="win-cpu-bar"></div></div></div><div class="resource"><div class="resource-label"><span>Memory</span><strong id="win-memory">—</strong></div><div class="track small"><div class="fill mem" id="win-memory-bar"></div></div></div><div class="resource"><div class="resource-label"><span>GPU activity · busiest engine</span><strong id="win-gpu">—</strong></div><div class="track small"><div class="fill gpu" id="win-gpu-bar"></div></div></div><div class="smallprint" id="win-disk">Disk: —</div></article></section>
+<section class="bottom"><article class="card compact"><div class="eyebrow">Moving previous research</div><h3>Archive transfer</h3><p id="transfer-status">Checking transfer status…</p><div class="transfer"><div class="track small"><div class="fill" id="transfer-bar"></div></div><div class="meta-row"><span id="transfer-amount">—</span><span id="transfer-speed">—</span></div></div><div class="smallprint">Approximate bytes sent; completion requires verification on the Mac.</div></article><article class="card compact"><div class="eyebrow">Study design</div><h3>Scenario data</h3><p id="scenario-note">Danger labels remain hidden from model inputs. Conflicting examples are removed; held-out evaluation remains separate.</p><div class="smallprint"><span id="scenario-path">YAML: ~/repos/Research4/research4/scenarios/sp_lens_game_v1/authorized_management_v1_r4/</span></div><div class="smallprint" id="diagnostic-note">Setup check: loading…</div></article></section>
+<footer class="footer"><span>LOCAL ONLY · No cloud compute · <a href="http://127.0.0.1:4200/artifacts">Open Prefect artifacts</a></span><span>Memory is shared between CPU and GPU on the Mac.</span></footer></main>
+<script>
+const el=id=>document.getElementById(id), pct=x=>Number.isFinite(x)?x.toFixed(1)+'%':'—', gib=x=>Number.isFinite(x)?(x/1073741824).toFixed(1)+' GiB':'—', dur=x=>Number.isFinite(x)?Math.floor(x/60)+'m '+Math.floor(x%60)+'s':'—';
+function bar(id,value){el(id).style.width=Number.isFinite(value)?Math.max(0,Math.min(100,value))+'%':'0%'}
+function renderCompact(data){
+const c=data.compact_training||data.mac?.compact_training,card=el('compact-current-card');card.hidden=!c;if(!c)return;
+const age=(Date.now()-Date.parse(c.observed_utc))/1000,stale=!Number.isFinite(age)||age>30||age < -5;
+const labels={preparing:'Preparing · not training',running:'Training',finalizing:'Finalizing',completed:'Fit complete',failed:'Stopped · incomplete',paused:'Paused',cleanup_unverified:'Release unverified',stale:'Telemetry stale',saved_snapshot:'Saved snapshot',process_exited:'Worker exited',unverified:'Not verified',stopping:'Stopping safely'};
+const status=stale?'stale':c.status,known=c.status==='preparing'||c.verified_identity===true,n=known&&Number.isInteger(c.completed_steps)?c.completed_steps:null;
+el('compact-status').textContent=labels[status]||'Not verified';el('compact-status').classList.toggle('wait',status!=='running');el('compact-count').textContent=n===null?'— / 2160':n+' / 2160';bar('compact-fill',n===null?null:100*n/2160);
+if(n===null)el('compact-track').removeAttribute('aria-valuenow');else el('compact-track').setAttribute('aria-valuenow',String(n));
+el('compact-phase').textContent=String(c.phase||'Preparing').replaceAll('_',' ');el('compact-loss').textContent=Number.isFinite(c.loss)?c.loss.toFixed(3):'—';el('compact-speed').textContent=Number.isFinite(c.supervised_tokens_per_second)?c.supervised_tokens_per_second.toFixed(2):'—';el('compact-elapsed').textContent=dur(c.elapsed_seconds);el('compact-reserve').textContent=gib(c.reserve_estimate_bytes);
+el('compact-note').textContent=(stale?'This reading is stale. ':'')+(c.note||'No verified update evidence.')+' Training loss is not a game score.';
+}
+
+function renderCompactValidation(data){
+const v=data.compact_validation,verified=v?.schema==='research4.compact-validation-dashboard.v1'&&v.status==='verified';
+el('compact-validation-status').textContent=verified?'Independent audit passed':'Not verified';el('compact-validation-status').classList.toggle('wait',!verified);
+el('compact-validation-loss').textContent=verified&&Number.isFinite(v.pooled_target_nll)?v.pooled_target_nll.toFixed(4):'—';
+el('compact-validation-examples').textContent=verified?v.validation_examples.toLocaleString():'—';
+el('compact-validation-unchanged').textContent=verified&&v.no_update_verified===true?'Unchanged':'—';
+el('compact-validation-checkpoints').textContent=verified?String(v.checkpoint_count):'—';
+el('compact-validation-scope').textContent=verified?'Validation token loss on development examples; not action accuracy or game improvement.':'Saved validation evidence unavailable.';
+el('compact-validation-note').textContent=verified?'Before/after validation weights match byte for byte. All 15 checkpoints have 124 finite F32 adapter tensors; the final optimizer has 248 finite Adam moments. Saved audit evidence.':v?.note||'The dashboard reads saved audit metadata only.';
+const s=verified?v.storage:{};
+for(const[id,value]of [['directory',s?.checkpoint_directory],['final',s?.final_adapter],['validation',s?.validation_files?.join('\n')],['archive',s?.frozen_run_archive],['pc',s?.pc_contents],['steps',verified?v.checkpoint_steps.join(', '):null]])el('compact-storage-'+id).textContent=value||'—';
+if(verified&&!data.compact_training&&!data.mac?.compact_training){el('compact-current-card').hidden=false;el('compact-status').textContent='Fit complete · saved evidence';el('compact-count').textContent='2160 / 2160';bar('compact-fill',100);el('compact-track').setAttribute('aria-valuenow','2160');el('compact-phase').textContent='Saved completion audit';el('compact-note').textContent='2,160 completed updates verified in the saved completion audit. No live process state is inferred.'}
+}
+
+function renderVersionCatalog(data){
+const c=data.model_version_catalog,verified=c?.status==='verified',versions=verified?c.versions:[],names=verified?c.model_display_names:{};
+for(const[prefix,sha]of [['d050','d050'],['9a45','9a4538']]){const v=versions.find(x=>x.adapter_sha256.startsWith(sha)),label=v?.display_name?.replace('SP Lens - ','SP Lens — ');for(const[id,value]of [['label',label],['path-label',label],['start',v?.training_started_local],['end',v?.training_finished_local],['available',v?.first_verified_available_local],['alias',v?'Checkpoints: '+v.readable_checkpoint_root_Mac+'\nFinal adapter: '+v.readable_final_checkpoint_Mac:null]])el('version-'+prefix+'-'+id).textContent=value||'—';if(prefix==='9a45'&&label)el('compact-version-label').textContent=label}
+el('version-catalog-note').textContent=verified?'Version names use verified training completion. Availability records the first qualified handoff; these dates do not compare model accuracy.':'Verified version metadata unavailable.';
+const endpoint=data.mac?.online?data.mac.inference_endpoint:null,ids=endpoint?.model_ids;
+el('endpoint-version-label').textContent=Array.isArray(ids)&&ids.length===3?'Base + both dated SP Lens versions':'Version follows endpoint metadata';
+if(Array.isArray(ids))el('endpoint-models').textContent=ids.map(id=>(names[id]||id).replace('SP Lens - ','SP Lens — ')).join(' · ');
+if(endpoint?.active_arm&&names[endpoint.active_arm])el('endpoint-note').textContent=el('endpoint-note').textContent.replace('Active route: '+endpoint.active_arm,'Active route: '+names[endpoint.active_arm].replace('SP Lens - ','SP Lens — '));
+if(endpoint?.process_identity_verified===true&&endpoint?.metadata_stale===true)el('endpoint-status').textContent='Process verified · metadata aged';
+}
+
+function renderCampaign(data){
+const c=data.new_curriculum_campaign||data.mac?.new_curriculum_campaign,valid=c?.schema==='research4.service-preservation-dashboard.v1'&&c.status==='available',age=valid?(Date.now()-Date.parse(c.observed_utc))/1000:Infinity,transportStale=!Number.isFinite(age)||age>30||age< -5;
+const labels={not_started:'Not started',running:'Running',finalizing:'Finalizing',qualified:'Qualified · setup only',completed:'Completed',paused:'Paused',failed:'Failed',cleanup_unverified:'Cleanup unverified',stale:'Telemetry stale',saved_snapshot:'Saved snapshot',process_exited:'Process exited',unverified:'Not verified'};
+for(const[name,total]of[['qualification',2],['fit',2160]]){const s=valid?c[name]:null,known=s?.status==='not_started'||s?.verified_identity===true,n=known&&Number.isInteger(s.completed_steps)&&s.completed_steps>=0&&s.completed_steps<=total?s.completed_steps:null,p=n===null?null:100*n/total,stale=transportStale||s?.status==='stale',state=stale&&known?'stale':s?.status||'unverified';el('campaign-'+name+'-status').textContent=labels[state]||'Not verified';el('campaign-'+name+'-status').classList.toggle('wait',state!=='running');el('campaign-'+name+'-count').textContent=n===null?'—':n+' / '+total;bar('campaign-'+name+'-fill',p);if(p===null)el('campaign-'+name+'-track').removeAttribute('aria-valuenow');else el('campaign-'+name+'-track').setAttribute('aria-valuenow',String(p));el('campaign-'+name+'-memory').textContent=known?gib(s.available_bytes):'—';el('campaign-'+name+'-peak').textContent=known?gib(s.mlx_peak_bytes):'—';el('campaign-'+name+'-loss').textContent=known&&Number.isFinite(s.loss)?s.loss.toFixed(3):'—';el('campaign-'+name+'-elapsed').textContent=known?dur(s.elapsed_seconds):'—';el('campaign-'+name+'-note').textContent=(stale&&known?'Last saved snapshot; live readings are stale. ':'')+(s?.phase?'Phase: '+String(s.phase).replaceAll('_',' ')+'. ':'')+(s?.note||(!valid?c?.note:'Saved verified updates only.'))+(known&&Number.isFinite(s.age_seconds)?' Saved telemetry sample '+Math.round(s.age_seconds)+'s old.':'')}
+const liveFit=valid&&c.fit?.live_owner_verified===true&&['running','finalizing'].includes(c.fit.status),liveQualification=valid&&c.qualification?.live_owner_verified===true&&['running','finalizing'].includes(c.qualification.status);if(liveFit||liveQualification){el('pause-notice').hidden=false;el('pause-headline').textContent=(liveFit?'Current research fit':'Current longest-row qualification')+' · previous HPO remains paused';el('pause-detail').textContent='The new campaign has separate setup and research counters. Earlier HPO remains paused; no automatic retry. Long first-gradient compilation is not a completed optimizer update.'}
+const m=valid?c.curriculum_metadata||{}:{};el('campaign-data').textContent=valid?'Curriculum '+(m.version||'3.2.0')+' · '+(Number.isInteger(m.neutral_rows)?m.neutral_rows.toLocaleString():'—')+' neutral + '+(Number.isInteger(m.guided_rows)?m.guided_rows.toLocaleString():'—')+' guided selected prefixes · full pool '+(Number.isInteger(m.pool_rows)?m.pool_rows.toLocaleString():'—')+' · DEV '+(Number.isInteger(m.dev_rows)?m.dev_rows.toLocaleString():'—')+' · maximum complete TRAIN row '+(Number.isInteger(m.maximum_complete_tokens)?m.maximum_complete_tokens.toLocaleString():'—')+' tokens · configured bound '+(Number.isInteger(m.max_seq_length)?m.max_seq_length.toLocaleString():'—')+'. Full histories; no truncation. Setup updates never count toward the research fit.':'Current campaign metadata unavailable; historical measurements below remain separate.';
+}
+function machine(prefix,data){if(!data){for(const k of ['cpu','memory','gpu','disk'])el(prefix+'-'+k).textContent='—';for(const k of ['cpu','memory','gpu'])bar(prefix+'-'+k+'-bar',null);if(prefix==='mac')el('mac-gpu-allocation').textContent='GPU-reported allocation: —';return}const m=data.memory,d=data.disk,g=prefix==='win'?(data.gpu?.[0]??null):data.gpu;el(prefix+'-cpu').textContent=pct(data.cpu_percent);bar(prefix+'-cpu-bar',data.cpu_percent);const validMemory=m&&Number.isFinite(m.total_bytes)&&m.total_bytes>0&&Number.isFinite(m.available_bytes)&&m.available_bytes>=0&&m.available_bytes<=m.total_bytes&&Number.isFinite(m.percent)&&m.percent>=0&&m.percent<=100;el(prefix+'-memory').textContent=validMemory?gib(m.total_bytes-m.available_bytes)+' / '+gib(m.total_bytes):m?'Unavailable · counters inconsistent':'Unavailable';el(prefix+'-memory-bar').style.width=validMemory?m.percent+'%':'';el(prefix+'-memory-bar').style.visibility=validMemory?'visible':'hidden';el(prefix+'-gpu').textContent=pct(g?.utilization_percent);bar(prefix+'-gpu-bar',g?.utilization_percent);el(prefix+'-disk').textContent=d?'Disk: '+gib(d.free_bytes)+' free of '+gib(d.total_bytes):'Disk: —';if(prefix==='mac')el('mac-gpu-allocation').textContent=g&&Number.isFinite(g.reported_allocation_bytes)?'GPU-reported allocation: '+gib(g.reported_allocation_bytes)+' (part of unified memory)':'GPU-reported allocation: —'}
+function render(data){const mac=data.mac||{},job=mac.job,online=!!mac.online;el('training-label').textContent=job?.display_model_label||job?.model_label||'Shared adapter';const stageKind=String(job?.stage_kind||'').includes('diagnostic')?'diagnostic':job?.stage_kind;el('training-title').textContent=({pilot:'Compatibility pilot',diagnostic:'Numerical equivalence check',trial:'Hyperparameter trial',final:'Final all-layer training'})[stageKind]||'Fine-tuning progress';el('training-scope').textContent=({pilot:'Setup check only; this is not the final research adapter.',diagnostic:'TRAIN-only numerical setup check; not a research candidate or final adapter.',trial:'Short trial; selection uses development loss, not game results.',final:'Final fit using the selected hyperparameters.'})[stageKind]||'Actual optimizer steps reported by the training process.';el('updated').textContent=data.sampled_utc?'Updated '+new Date(data.sampled_utc).toLocaleTimeString():'Waiting for first reading';el('connection').textContent=online?'Mac connected':'Mac unavailable';el('connection-dot').classList.toggle('online',online);el('mac-online').textContent=online?'ONLINE':'UNAVAILABLE';el('mac-online').classList.toggle('off',!online);el('mac-step').textContent=online?'Verified':'Unavailable';el('mac-step-row').classList.toggle('done',online);machine('mac',online?mac:null);machine('win',data.windows);el('model-status').textContent=mac.model?.ready?'Available locally':'Not verified';el('model-step').classList.toggle('done',!!mac.model?.ready);el('dataset-status').textContent=mac.dataset?.training_examples!=null?mac.dataset.training_examples+' examples':online?'Preparing':'Unavailable';el('dataset-step').classList.toggle('done',!!mac.dataset);const dataVersion=String(job?.dataset_manifest_path||'').match(/^\.local\/datasets\/(sp_lens_game_v1\/[a-zA-Z0-9_-]+)\/manifest\.json$/);if(el('scenario-path'))el('scenario-path').textContent='YAML: ~/repos/Research4/research4/scenarios/service_preservation/';const active=job&&['preparing','starting','running','finalizing','completed','failed','stale','unverified','stopped'].includes(job.status);el('job-badge').textContent=active?(job.status==='completed'&&['pilot','trial','diagnostic'].includes(stageKind)?'Stage complete':job.status.replace(/^./,x=>x.toUpperCase())):online?'Not started':'Unavailable';el('job-badge').classList.toggle('wait',!job||job.status!=='running');el('train-status').textContent=active?job.status:online?'Not started':'Unavailable';const total=stageKind==='diagnostic'?job?.diagnostic_checks_total:job?.total_steps,step=stageKind==='diagnostic'?job?.diagnostic_checks_completed:job?.completed_steps,progress=Number.isFinite(total)&&total>0&&Number.isFinite(step)?Math.min(100,step/total*100):null;el('steps').textContent=progress===null?'—':step+' / '+total;el('steps-side').textContent=progress===null?'No verified progress yet':stageKind==='diagnostic'?'numerical checks':'optimizer steps';el('percentage').textContent=progress===null?'—':pct(progress);const note=job?.note==='available_memory_below_4_GiB'?'Stopped: available memory fell below the 4 GiB safety threshold.':job?.note;el('training-note').textContent=(note||(job?.phase?'Phase: '+String(job.phase).replaceAll('_',' '):online?'Waiting for the dataset and training run':'Mac connection unavailable'))+(Number.isInteger(job?.num_layers)?' · '+job.num_layers+' of 64 layers':'')+(Number.isInteger(job?.rank)?' · Rank '+job.rank:'')+(job?.stage?' · '+job.stage:'')+(Number.isInteger(job?.development_completed)&&job?.development_total>0?' · Dev '+job.development_completed+'/'+job.development_total:'')+(Number.isFinite(job?.eta_seconds)?' · Estimated remaining: '+dur(job.eta_seconds):'');bar('training-fill',progress);if(progress===null)el('training-track').removeAttribute('aria-valuenow');else el('training-track').setAttribute('aria-valuenow',String(progress));el('train-speed').textContent=Number.isFinite(job?.tokens_per_second)?job.tokens_per_second.toFixed(1)+' tok/s':'—';el('step-rate').textContent=Number.isFinite(job?.steps_per_minute)?job.steps_per_minute.toFixed(1):'—';el('loss').textContent=Number.isFinite(job?.loss)?job.loss.toFixed(3):'—';el('elapsed').textContent=dur(job?.elapsed_seconds);const t=data.transfer||{};el('transfer-status').textContent=t.status==='streaming'?'Copying the previous research to the Mac':t.status==='verifying'?'Verifying copied files on the Mac':t.status==='paused_for_memory'?'Verification paused to protect training memory':t.status==='verified'?'Transfer verified':t.status==='failed'?'Verification found errors':'Transfer status unavailable or awaiting verification';el('transfer-amount').textContent=Number.isFinite(t.bytes_sent_approx)?'~'+gib(t.bytes_sent_approx)+' sent':Number.isFinite(t.files_checked)?t.files_checked.toLocaleString()+' / '+t.total_files.toLocaleString()+' files checked':'—';el('transfer-speed').textContent=Number.isFinite(t.bytes_per_second)?(t.bytes_per_second/1048576).toFixed(1)+' MiB/s':'—';bar('transfer-bar',t.percent_approx);el('diagnostic-note').textContent=mac.memory_diagnostic?.status==='running'?'Long-context memory diagnostic: running (not the research adapter).':mac.memory_diagnostic?.status==='stopped'?'Long-context memory diagnostic: stopped by its safety limit.':mac.memory_diagnostic?.status==='completed'?'Long-context memory diagnostic: completed.':mac.synthetic_smoke?.status==='completed'?'Setup check: one synthetic training step completed.':'Setup check: unavailable'}
+function renderValidation(data){const online=!!data.mac?.online,v=online?data.mac.validation:null,states=['starting','running','finalizing','completed','failed','stale','unverified'];const state=states.includes(v?.status)?v.status:online?'not started':'unavailable';const current=v?.kind==='qwen38_shared_long_output_v1';if(current){const live=['starting','running','finalizing'].includes(v?.status);if(live)el('archived-adapter-results').open=true;el('validation-section-title').textContent=(live?'Live':'Historical')+' 8,192-token evaluation · original shared900 vs base'}else el('validation-section-title').textContent='Archived step-900 adapter results';const conditions={base_comparator:'Base model · original shared900 comparison',selected_shared_adapter:'Original shared adapter · step 900 (71ed)',base:'Base model (no adapter)',step_0450:'Shared adapter · step 450',step_0900:'Shared adapter · step 900',step_1359:'Shared adapter · final step'};el('validation-badge').textContent=state.replace(/^./,x=>x.toUpperCase());el('validation-badge').classList.toggle('wait',state!=='running');el('validation-condition').textContent=conditions[v?.condition]||(online?'Waiting for a run':'Mac unavailable');el('validation-phase').textContent=(current?(v.stage==='old_heldout'?'Archived held-out cohort · 163 unique prompts':'DEV cohort · 154 unique prompts')+' · Cap 8192 · ':'')+(v?.phase?String(v.phase).replaceAll('_',' '):'No inference started');const n=v?.completed_prompts,t=v?.total_prompts,p=Number.isInteger(n)&&Number.isInteger(t)&&t>0&&n>=0&&n<=t?100*n/t:null;el('validation-count').textContent=p===null?'—':n+' / '+t;el('validation-percent').textContent=p===null?'—':pct(p);bar('validation-fill',p);if(p===null)el('validation-track').removeAttribute('aria-valuenow');else el('validation-track').setAttribute('aria-valuenow',String(p));el('validation-speed').textContent=Number.isFinite(v?.tokens_per_second)?v.tokens_per_second.toFixed(1)+' tok/s':'—';el('validation-tokens').textContent=Number.isInteger(v?.generated_tokens)?v.generated_tokens.toLocaleString():'—';el('validation-elapsed').textContent=dur(v?.inference_elapsed_seconds);el('validation-note').textContent=state==='failed'?'Stopped: '+(v?.failure||'see run log'):state==='stale'?'Progress has not updated within the expected window; check the run.':state==='unverified'?(current?v.note:'Cannot verify when this status was updated.'):state==='completed'?'Predictions complete; independent origin audit pending.':state==='finalizing'?'All predictions saved; verifying and closing the owned run.':state==='running'||state==='starting'?(current?v.note:'Inference in progress.'):online?'No validation telemetry available.':'Mac connection unavailable.'}
+function renderHeldout(data){const online=!!data.mac?.online,h=online?data.mac.heldout_results:null,complete=h?.status==='complete',failed=h?.status==='unavailable';el('heldout-status').textContent=complete?'Complete':failed?'Integrity check failed':online?'Not available':'Mac unavailable';el('heldout-title').textContent=complete?'Next-action agreement':failed?'Results unavailable':'Waiting for results';const b=h?.conditions?.base_comparator,a=h?.conditions?.selected_shared_adapter;const score=x=>Number.isInteger(x?.exact)&&Number.isInteger(x?.n)&&x.n>0&&x.exact>=0&&x.exact<=x.n?x.exact+' / '+x.n+' ('+(100*x.exact/x.n).toFixed(1)+'%)':'—';el('heldout-base').textContent=complete?score(b):'—';el('heldout-adapter').textContent=complete?score(a):'—';el('heldout-count').textContent=complete&&Number.isInteger(h?.counts?.scored_decisions)?h.counts.scored_decisions:'—';el('heldout-step').textContent=complete&&Number.isInteger(h?.selected_step)?h.selected_step:'—';el('heldout-detail').textContent=complete&&Number.isInteger(b?.token_limit)&&Number.isInteger(b?.unique_n)?'The scored decisions represent '+b.unique_n+' unique prompts. Base hit the output limit in '+b.token_limit+' / '+b.unique_n+' unique prompts; the shared adapter hit it in '+a.token_limit+' / '+a.unique_n+'.':failed?'Metrics or prediction files failed integrity checks.':online?'Results will appear after the final metrics are saved.':'Mac connection unavailable.'}
+function renderCurrentHeldout(data){
+const h=data.current_heldout,integer=(v,max)=>Number.isInteger(v)&&v>=0&&v<=max,observed=Date.parse(h?.observed_utc||''),age=(Date.now()-observed)/1000;
+const valid=h?.schema==='research4.current-heldout-dashboard.v1'&&h.verified_identity===true&&!['unverified','metadata_inconsistent'].includes(h.state)&&integer(h.reference?.saved,720)&&h.reference?.planned===720&&integer(h.own?.completed,192)&&h.own?.planned===192&&Number.isFinite(age);
+const arms=['qwen3.8-27b-base','sp-lense-adaptor-last-8-layers'],base=h?.conditions?.[arms[0]],last=h?.conditions?.[arms[1]],counts=valid&&[base,last].every(v=>integer(v?.reference_saved,360)&&integer(v?.own_completed,96))&&base.reference_saved+last.reference_saved===h.reference.saved&&base.own_completed+last.own_completed===h.own.completed;
+if(!counts){el('current-heldout-state').textContent='Not verified';el('current-heldout-state').classList.toggle('wait',true);for(const name of ['reference','own']){el('current-'+name+'-count').textContent='—';el('current-'+name+'-percent').textContent='—';bar('current-'+name+'-fill',null);el('current-'+name+'-track').removeAttribute('aria-valuenow')}el('current-reference-base').textContent='BASE — / 360';el('current-reference-last8').textContent='LAST8 — / 360';el('current-own-base').textContent='BASE — / 96';el('current-own-last8').textContent='LAST8 — / 96';el('current-heldout-step').textContent='Not verified';el('current-heldout-note').textContent=h?.note||'Current collection telemetry unavailable. Historical shared900 results are separate.';return}
+const stale=age>30||age< -5,labels={running:'Collecting',terminal_result_present_not_audited:'Collection saved',failure_evidence_present:'Failure recorded',halted_evidence_present:'Collection halted',process_exited_without_terminal_result:'Process exited · check run'};
+el('current-heldout-state').textContent=stale?'Telemetry stale':labels[h.state]||String(h.state).replaceAll('_',' ');el('current-heldout-state').classList.toggle('wait',stale||h.state!=='running');
+for(const[name,n,total]of[['reference',h.reference.saved,720],['own',h.own.completed,192]]){const percent=n/total*100;el('current-'+name+'-count').textContent=n+' / '+total;el('current-'+name+'-percent').textContent=pct(percent);bar('current-'+name+'-fill',percent);el('current-'+name+'-track').setAttribute('aria-valuenow',String(percent))}
+el('current-reference-base').textContent='BASE '+base.reference_saved+' / 360';el('current-reference-last8').textContent='LAST8 '+last.reference_saved+' / 360';el('current-own-base').textContent='BASE '+base.own_completed+' / 96';el('current-own-last8').textContent='LAST8 '+last.own_completed+' / 96';
+el('current-heldout-step').textContent=stale?'Telemetry stale':h.state==='running'?'Collecting':h.terminal_result_file?'Saved · audit reported separately':'Check run';
+const phase=h.phase==='reference_decisions'?'Reference decisions':h.phase==='own_trajectories'?'Own-trajectory episodes':'Collection saved',m=/^(teacher|own)_(\d{4})_arm([01])(?:_(\d{2}))?$/.exec(h.latest_evidence?.call||''),current=m?' Latest '+(m[1]==='teacher'?'decision ':'episode ')+(Number(m[2])+1)+(m[4]?' · attempt '+Number(m[4]):'')+' · '+(m[3]==='0'?'BASE':'LAST8')+'.':'';
+el('current-heldout-note').textContent=(stale?'Displayed counts are from the last verified snapshot. ':phase+'. ')+current+' Saved-file progress only; no partial accuracy or trajectory-success metrics. Historical shared900 results remain separate.';
+}
+function renderSavedProject(data){
+const saved=data.saved_project_status;
+if(saved?.schema!=='research4.saved-project-dashboard.v1'||saved.status!=='available'){
+el('project-diagnostic-status').textContent='Memory-workaround test: saved status unavailable';el('project-diagnostic-observed').textContent='Observed — / 7';el('project-diagnostic-candidate').textContent='Candidate — / 7';el('project-fit-status').textContent='Project metadata unavailable';el('project-fit-count').textContent='—';el('project-preparation').textContent='—';el('project-tests').textContent='—';el('project-authorization').textContent='Not verified';el('project-timestamp').textContent='Saved project metadata unavailable.';el('project-scope').textContent='No live process state is inferred from saved metadata.';return}
+el('project-fit-status').textContent=saved.fit.failed?'Research fit failed · incomplete':'Research fit · saved record';
+el('project-fit-count').textContent=saved.fit.recorded_updates+' / '+saved.fit.total_updates;
+el('project-preparation').textContent=saved.preparation.ready_for_review?'Archive7 / live14 draft ready':'Archive7 / live14 metadata';el('project-tests').textContent=saved.preparation.CPU_tests_passed+' passed';
+el('project-authorization').textContent=saved.execution_scope==='one_exact_diagnostic_only'?'One exact diagnostic only':saved.execution_scope==='not_authorized'?'Not authorized':'Not verified';
+const diagnostic=saved.diagnostic,available=diagnostic&&diagnostic.status!=='unavailable';
+const terminal=available&&(diagnostic.terminal===true||diagnostic.status==='stopped'),numericalFailure=terminal&&(diagnostic.numerical_check_failed===true||String(diagnostic.saved_status||'').includes('LOSS_PARITY'));
+el('project-diagnostic-status').textContent=terminal?(diagnostic.resource_guard_stopped?'Stopped — memory reserve guard'+(diagnostic.resource_guard_note?' · '+diagnostic.resource_guard_note:''):diagnostic.candidate_initialization_failed?'Stopped — candidate initialization check failed':numericalFailure?'Stopped — numerical check failed':'Stopped — diagnostic closed'):'Training compatibility test: '+(available?diagnostic.status+(diagnostic.current_partition?' · '+diagnostic.current_partition:''):diagnostic?'saved status unavailable':'no admitted test recorded');
+for(const id of ['project-preparation-metric','project-tests-metric'])if(el(id))el(id).hidden=!!terminal;
+if(terminal){el('project-authorization').textContent='Closed';if(el('project-execution-label'))el('project-execution-label').textContent='Diagnostic closeout'}
+for(const id of ['historical-campaign-heading','historical-campaign-tracker','campaign-data'])if(el(id))el(id).hidden=true;
+const forward=available&&(Number.isInteger(diagnostic.forward_saved_records)||String(diagnostic.reference_label||'').startsWith('Reference')||String(diagnostic.plan_sha256||'').startsWith('f19d'));
+const reference=available?[diagnostic.reference_saved_records,diagnostic.forward_saved_records,diagnostic.observed_saved_records].find(value=>Number.isInteger(value)&&value>=0&&value<=7):undefined;
+const candidate=available&&Number.isInteger(diagnostic.candidate_saved_records)?diagnostic.candidate_saved_records:undefined;
+el('project-diagnostic-observed').textContent=(available?diagnostic.reference_label||'Reference':'Reference')+' '+(reference??'—')+' / 7';el('project-diagnostic-candidate').textContent=(forward?'Candidate derivatives':available?diagnostic.candidate_label||'Candidate':'Candidate')+' '+(candidate??'—')+' / 7';
+el('project-timestamp').textContent='Metadata saved '+saved.metadata_updated_utc+' · read '+saved.read_utc;
+el('project-scope').textContent=(available?diagnostic.scope+' ':saved.preparation.ready_for_review?'Local source and CPU preparation only; diagnostic not admitted. ':'Saved preparation: '+saved.preparation.status.replaceAll('_',' ')+'. ')+saved.scope;
+}
+function renderControl(data){const mac=data.mac||{},pause=data.training_pause||mac.training_pause,paused=pause?.active===true,general=mac.job?.kind==='general_preservation_r16_last8_v1'&&mac.job?.authorized_training===true&&['preparing','starting','running','finalizing'].includes(mac.job?.status),notice=el('pause-notice');notice.hidden=!paused;if(el('pause-headline'))el('pause-headline').textContent='Earlier experiment pause';el('pause-detail').textContent='The earlier training/HPO pause remains in its original scope. Current project authorization is shown in Saved project status above. No automatic resume or retry.';if(paused&&!general&&mac.job?.kind!=='replica_identity_6fd3b8ac_last8_r16_R2'){const hasJob=!!mac.job;el('training-title').textContent=hasJob?'Historical training / pilot record':'Earlier experiment pause';el('training-scope').textContent='Earlier experiment training/HPO remains paused. These historical measurements do not describe the current campaign authorization; see Saved project status above.';el('job-badge').textContent='Earlier pause · historical';el('job-badge').classList.toggle('wait',true);el('train-status').textContent='Earlier experiment paused';el('steps-side').textContent=hasJob?'historical record':'earlier experiment scope';el('training-note').textContent='Historical: '+el('training-note').textContent;el('training-fill').classList.add('historical')}else el('training-fill').classList.remove('historical');if(general){notice.hidden=false;el('pause-headline').textContent='Earlier general-preservation fit · HPO scope unchanged';el('pause-detail').textContent='This is the earlier general-preservation experiment. Its HPO and ALL64 pause remains unchanged; current project authorization is shown above.';el('training-title').textContent=mac.job.status==='failed'?'General preservation training · stopped':'General preservation training';el('training-scope').textContent='Rank 16 · blocks 56–63 · 2,160 verified updates · DEV 360 after fit · final split remains sealed.';el('steps-side').textContent='verified optimizer updates';el('train-status').textContent=mac.job.status;el('scenario-path').textContent='YAML: ~/repos/Research4/research4/scenarios/service_preservation/'}const replica612=mac.job?.kind==='replica_identity_6fd3b8ac_last8_r16_R2', devCount=mac.job?.development_completed, devLoss=mac.job?.development_token_loss;el('replica612-validation').hidden=!replica612;if(replica612){el('current-heldout-step').textContent=Number.isInteger(devCount)?'DEV '+devCount+'/42 · final game pending':'Pending after training';el('replica612-validation').textContent=Number.isInteger(devCount)?'Development validation: '+devCount+'/42 rows'+(Number.isFinite(devLoss)?' · token loss '+devLoss.toFixed(4)+(mac.job?.development_audited?' (audit passed)':' (audit pending)'):' · processing'):'Development validation: pending until training finishes.'}const endpoint=mac.online?mac.inference_endpoint:null,ready=endpoint?.ready===true,status=endpoint?.status||'unavailable';el('endpoint-status').textContent=ready?({busy:'Busy',draining:'Draining'})[endpoint?.operational_phase]||'Ready':status.replaceAll('_',' ');el('endpoint-status').classList.toggle('wait',!ready);el('endpoint-models').textContent=Array.isArray(endpoint?.model_ids)?endpoint.model_ids.join(' · '):'Not verified';const limits=endpoint?.limits||{},context=limits.max_context_tokens_including_output,output=limits.max_output_tokens,defaultOutput=limits.default_output_tokens;el('endpoint-context').textContent=Number.isInteger(context)?context.toLocaleString()+' tokens':'—';el('endpoint-output').textContent=Number.isInteger(output)&&Number.isInteger(defaultOutput)?defaultOutput+' / '+output:'—';el('endpoint-reasoning').textContent=endpoint?.default_reasoning_effort_when_thinking||'—';el('endpoint-note').textContent=(endpoint?.note||(!mac.online?'Mac endpoint telemetry unavailable.':ready?'Endpoint metadata reports ready.':'Endpoint setup is not yet verified.'))+(Number.isFinite(endpoint?.available_memory_bytes)?' Available memory: '+gib(endpoint.available_memory_bytes)+'.':'')+(Number.isFinite(endpoint?.mlx_peak_memory_bytes)?' MLX recorded peak: '+gib(endpoint.mlx_peak_memory_bytes)+'.':'')+(endpoint?.active_arm?' Active route: '+endpoint.active_arm+'.':'')+(Number.isInteger(endpoint?.pending_http_requests)?' Pending HTTP requests: '+endpoint.pending_http_requests+'.':'')+' Historical b0a1 is a separate one-layer adapter. Read-only metadata; no generated model probe.'}
+async function poll(){try{const r=await fetch('/api/status',{cache:'no-store'});if(!r.ok)throw Error();const data=await r.json();window.renderAll64Mini?.(data);window.renderHarness272Fit?.(data);window.renderRank32Fit?.(data);window.renderReplicationDiversity84?.(data);window.renderFineTuningSteps?.(data);window.renderSecurity500Fit?.(data);window.renderContinuityTransferFit?.(data);renderSavedProject(data);render(data);renderValidation(data);renderHeldout(data);renderCurrentHeldout(data);renderControl(data);renderCampaign(data);renderCompact(data);renderCompactValidation(data);renderVersionCatalog(data);window.renderLatestReplicaIdentity612?.(data)}catch(e){window.renderAll64Mini?.({});window.renderHarness272Fit?.({});window.renderRank32Fit?.({});window.renderReplicationDiversity84?.({});window.renderFineTuningSteps?.({});window.renderSecurity500Fit?.({});window.renderContinuityTransferFit?.({});renderSavedProject({});renderCampaign({});renderCompact({});renderCompactValidation({});renderVersionCatalog({});window.renderLatestReplicaIdentity612?.({});renderCurrentHeldout({});el('connection').textContent='Monitor unavailable';el('connection-dot').classList.remove('online');el('job-badge').textContent='Unavailable';el('training-note').textContent='Monitor unavailable; displayed values may be stale.';el('validation-badge').textContent='Unavailable';el('validation-note').textContent='Monitor unavailable; displayed values may be stale.';el('endpoint-status').textContent='Monitor unavailable';el('endpoint-note').textContent='Endpoint readiness is unavailable; displayed values may be stale.';renderHeldout({mac:{online:false}})}}poll();setInterval(poll,5000);
+</script></body></html>

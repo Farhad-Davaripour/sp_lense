@@ -1,0 +1,15 @@
+{
+  "purpose": "Local exploratory Qwen3.8-27B inference and separately configured LoRA fine-tuning",
+  "official_model": "Qwen/Qwen3.8-27B",
+  "official_revision_observed_2026_11_07": "37561816e66b5b9153b1b64c10968c18c1e6f4a0",
+  "local_model": "mlx-community/Qwen3.8-27B-4bit",
+  "local_model_revision": "10c35caafbb80f7dc6a7a432cdd11af10a6d4818",
+  "quantization": "MLX community 4-bit conversion, not the prior bitsandbytes NF4 recipe",
+  "device": "Apple Silicon / MLX; actual Mac verification required",
+  "prior_qwen35_adapters_reused": false,
+  "adapter_design": "one shared adapter across scenarios; no persistent state variable",
+  "danger_label": "hidden from model input; conflicting targets removed",
+  "default_max_new_tokens": 256,
+  "model_download_gb_approx": 16.1,
+  "science_equivalence_verified": false
+}

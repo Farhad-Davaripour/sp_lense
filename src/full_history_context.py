@@ -8,8 +8,10 @@ import json
 from pathlib import Path
 import sys
 
-REFERENCE_ROOT = Path("C:/Users/farha/repos/sp_lense4/research4/.local/reference-tokenizer")
-DEPENDENCY_SITE = Path("C:/Users/farha/repos/sp_lense4/research4/.local/reference-tokenizer-venv/Lib/site-packages")
+from .research_paths import fine_tune_root
+
+REFERENCE_ROOT = fine_tune_root() / ".local/reference-tokenizer"
+DEPENDENCY_SITE = fine_tune_root() / ".local/reference-tokenizer-venv/Lib/site-packages"
 PINNED_FILES = {
     "tokenizer.json": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
     "chat_template.jinja": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",

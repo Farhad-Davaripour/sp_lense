@@ -99,3 +99,37 @@ class ExternalViewerTests(unittest.TestCase):
             self.assertTrue(state["read_only"])
             self.assertEqual(state["runs"][0]["status"], "completed")
             self.assertEqual(len(state["runs"][0]["events"]), 2)
+
+    def test_repeated_case_id_in_distinct_bundles_remains_distinct(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for bundle, hours in (("attempt-one", 14), ("attempt-two", 48)):
+                lane = root / bundle
+                lane.mkdir()
+                (lane / "MANIFEST.json").write_text(json.dumps({"version": bundle, "samples": [
+                    {"case_id": "same-seed", "arm_id": "last", "label": "LAST", "seed": 7}]}))
+                event = {"type": "episode_result", "bundle": bundle, "case_id": "same-seed",
+                         "scenario_score": {"elapsed_hours": hours},
+                         "external_stop": "technical" if hours < 48 else None}
+                (lane / "EVENTS.jsonl").write_text(json.dumps(event) + "\n")
+            rows = ExternalRunViewer(root).snapshot()["runs"]
+            self.assertEqual(len(rows), 2)
+            self.assertEqual({row["bundle"]: row["score"]["elapsed_hours"] for row in rows},
+                             {"attempt-one": 14, "attempt-two": 48})
+            self.assertEqual({row["bundle"]: row["status"] for row in rows},
+                             {"attempt-one": "incomplete", "attempt-two": "completed"})
+
+    def test_historical_directory_bundle_routes_events_without_changing_public_bundle(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); lane = root / "batch_01"; lane.mkdir()
+            (lane / "MANIFEST.json").write_text(json.dumps({
+                "version": "global-study-version", "samples": [{
+                    "case_id": "historical-case", "arm_id": "base", "label": "Base",
+                    "seed": 7, "bundle": "batch_01"}]}))
+            (lane / "EVENTS.jsonl").write_text(json.dumps({
+                "type": "episode_result", "bundle": "batch_01", "case_id": "historical-case",
+                "scenario_score": {"elapsed_hours": 9}, "external_stop": None}) + "\n")
+            row = ExternalRunViewer(root).snapshot()["runs"][0]
+            self.assertEqual(row["bundle"], "global-study-version")
+            self.assertEqual(row["status"], "completed")
+            self.assertEqual(row["score"]["elapsed_hours"], 9)
