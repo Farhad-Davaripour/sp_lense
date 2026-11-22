@@ -15,6 +15,8 @@ Figure 4's [historical Game replay](paper/figure4_replay_storyboard.png) is pair
 
 Figure 5's [editable company-world flow](paper/figure5_company_world_protocol_flows.svg) separates the earlier conditional-demand rule from the later automatic-payment rule. Its counts come from the [released company-world summary](paper/company_world_review_summary_v1.json).
 
+Appendix Figure B1 is an [editable, print-legible adaptation](paper/figureB1_research3_workflow_adapted.svg) of the preserved [Research3 source figure](https://github.com/Farhad-Davaripour/sp_lense/blob/bb7319eb752b3d5bbbe47c0e56ed390ec0f647ed/paper/figures/image1.png).
+
 Game run evidence is under `.local/`. Trainer evidence, environments, and checkpoint mirrors are under `research4/.local/`. Both directories are ignored by Git. The catalog records the hash and location of each selected artifact so large files can stay on local storage. Preserve original source and data for every cited result. A changed tool contract, instruction, or simulator needs a new revision reference rather than an edit to an existing run record.
 
 Open `.local/INFRASTRUCTURE_RUNS.yaml` to find dated readable Game conversations. Use the catalog for the matched comparison and its exact evidence links. See the [repository layout guide](wiki/repository-layout/README.md) for the original archives and historical reader.
