@@ -42,6 +42,11 @@ jobs:
         run: python tools/check_offline_config.py
       - name: Verify catalog links and versioned sources
         run: python tools/check_research_catalog.py
+      - name: Verify released manuscript records
+        working-directory: paper
+        run: |
+          python research4_verify.py
+          python research4_company_world_verify.py
       - name: Run model-free unit tests with network access blocked
         run: |
           mkdir -p .local
