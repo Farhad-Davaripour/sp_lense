@@ -48,6 +48,7 @@ jobs:
           python research4_verify.py
           python research4_hash_supplement_verify.py
           python research4_trace_verify.py
+          python -I -B verify_visible_state_extension_projection.py
       - name: Run model-free unit tests with network access blocked
         run: |
           mkdir -p .local
