@@ -5,7 +5,7 @@ This directory publishes the selected readable Game conversations for the Resear
 Folder prefixes use the UTC hour (`Z`) of the earliest included result. Each YAML filename starts with that run's recorded UTC finish time; neither timestamp claims when a checkpoint was published.
 
 - [Original infrastructure comparison](2026-11-20_19Z--infrastructure-preservation-v1/README.md): 40 retained episodes, including two right-censored Terra prefixes.
-- [Visible-state extension](2026-11-23_01Z--visible-state-extension-v1/README.md): 19 selected completed runs in the `2026-11-23T16:19:46.998033Z` snapshot; status: IN PROGRESS.
+- [Visible-state extension](2026-11-23_01Z--visible-state-extension-v1/README.md): 20 selected completed runs in the `2026-11-23T16:49:37.116985Z` snapshot; status: COMPLETE.
 
 The extension is a separate protocol and its first-five-completed selection was user-directed after partial outcomes. The original ten and extension five per model must not be pooled as exchangeable or described as one four-arm matched cohort.
 
