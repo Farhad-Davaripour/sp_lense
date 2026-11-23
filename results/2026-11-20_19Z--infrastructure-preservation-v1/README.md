@@ -1,6 +1,6 @@
 # Original infrastructure preservation comparison
 
-These are the 40 catalog-selected episodes used in the current manuscript: 38 valid terminal records and two technically right-censored Terra prefixes. Four excluded technical attempts are not part of this collection.
+These are the 40 catalog-selected original episodes: 38 reached a natural ending. Two Terra original records stopped when the 131K-token context filled; their linked completions are listed separately in the results index. Four excluded technical attempts are not part of this collection.
 
 Each file is a byte-for-byte copy of the existing local readable YAML. Original run identity, status, simulator revision and source hashes are recorded in the [research catalog](../../catalog/results/2026-11-21--infrastructure-preservation.yaml).
 

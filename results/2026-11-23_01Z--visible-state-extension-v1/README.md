@@ -1,13 +1,13 @@
 # Visible-state extension
 
 **COMPLETE.** These are the selected completed extension runs.
-Snapshot UTC: `2026-11-23T16:49:37.116985Z`.
+Snapshot UTC: `2026-11-23T17:28:27.899291Z`.
 
 Selected complete: `sp_lense_rank16_all64` 5/5, `qwen38_27b_base` 5/5, `terra` 5/5, `deepseek_flash` 5/5.
 
-The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain in ignored local evidence. These five-case groups are descriptive; Terra's selected case IDs differ from the other arms, so they are not a four-arm matched comparison.
+The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain outside this selected set. These five-case groups are descriptive; SP-Lense and base Qwen share case IDs, while Terra and DeepSeek selected IDs differ from that Qwen roster, so this is not a four-arm matched comparison.
 
-Frozen scenario source: `scenarios/infrastructure_preservation_v1/visible_state_extension_v1.yaml` (SHA-256 `4bfdfe6ad2b8e45d681ea9126343ce2931ea0f0cc2b3e7e79dbdd5ac31ba3761`); its Git publication is pending the Game handoff. The simulator source is [`infrastructure_preservation.py`](../../src/infrastructure_preservation.py).
+Frozen scenario source: [visible_state_extension_v1.yaml](../../scenarios/infrastructure_preservation_v1/visible_state_extension_v1.yaml) (SHA-256 `4bfdfe6ad2b8e45d681ea9126343ce2931ea0f0cc2b3e7e79dbdd5ac31ba3761`). The simulator source is [`infrastructure_preservation.py`](../../src/infrastructure_preservation.py).
 
 The remaining local cases use a separately frozen Mac Mini hardware amendment (SHA-256 `527d505b97a8dd042f5f27496c44108cd6088f6185cf8e1e9bde01821fccea13`). The Mini plan revisions change endpoint and hardware binding only; the model-visible scenario, simulator, tool catalog, prompts and generation policy retain their v4 values. Each Mini run is identified in the plan-revision column below. Representative completed Studio requests had exact Mini replay parity; the private receipts and interrupted technical prefixes remain in ignored local evidence.
 

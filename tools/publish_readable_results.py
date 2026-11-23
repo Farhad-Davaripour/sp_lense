@@ -28,6 +28,7 @@ from src.game_run_store import _Dumper, render_resource_progress  # noqa: E402
 
 ORIGINAL_FOLDER = "2026-11-20_19Z--infrastructure-preservation-v1"
 EXTENSION_FOLDER = "2026-11-23_01Z--visible-state-extension-v1"
+TERRA_SUFFIX_FOLDER = "2026-11-23_16Z--terra-linked-context-continuation-v1"
 LOCAL_EXTENSION_FOLDER = "2026-11-22_18--visible-state-extension-v1"
 SCENARIO_SOURCE = Path("scenarios/infrastructure_preservation_v1/visible_state_extension_v1.yaml")
 SCENARIO_SHA256 = "4bfdfe6ad2b8e45d681ea9126343ce2931ea0f0cc2b3e7e79dbdd5ac31ba3761"
@@ -434,8 +435,8 @@ def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool,
              if in_progress else "**COMPLETE.** These are the selected completed extension runs."),
             f"Snapshot UTC: `{snapshot.isoformat().replace('+00:00', 'Z')}`.", "",
             "Selected complete: " + ", ".join(f"`{arm}` {counts[arm]}/5" for arm in EXTENSION_ARMS) + ".", "",
-            "The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain in ignored local evidence. These five-case groups are descriptive; Terra's selected case IDs differ from the other arms, so they are not a four-arm matched comparison.", "",
-            f"Frozen scenario source: `{SCENARIO_SOURCE.as_posix()}` (SHA-256 `{SCENARIO_SHA256}`); its Git publication is pending the Game handoff. The simulator source is [`infrastructure_preservation.py`](../../src/infrastructure_preservation.py).",
+            "The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain outside this selected set. These five-case groups are descriptive; SP-Lense and base Qwen share case IDs, while Terra and DeepSeek selected IDs differ from that Qwen roster, so this is not a four-arm matched comparison.", "",
+            f"Frozen scenario source: [visible_state_extension_v1.yaml](../../{SCENARIO_SOURCE.as_posix()}) (SHA-256 `{SCENARIO_SHA256}`). The simulator source is [`infrastructure_preservation.py`](../../src/infrastructure_preservation.py).",
             "",
         ])
         if any(row.plan_revision.startswith("mini-") for row in rows):
@@ -445,7 +446,7 @@ def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool,
             ])
     else:
         lines.extend([
-            "These are the 40 catalog-selected episodes used in the current manuscript: 38 valid terminal records and two technically right-censored Terra prefixes. Four excluded technical attempts are not part of this collection.", "",
+            "These are the 40 catalog-selected original episodes: 38 reached a natural ending. Two Terra original records stopped when the 131K-token context filled; their linked completions are listed separately in the results index. Four excluded technical attempts are not part of this collection.", "",
             "Each file is a byte-for-byte copy of the existing local readable YAML. Original run identity, status, simulator revision and source hashes are recorded in the [research catalog](../../catalog/results/2026-11-21--infrastructure-preservation.yaml).", "",
         ])
     lines.extend([
@@ -469,14 +470,17 @@ def _root_readme(original: list[Conversation], extension: list[Conversation], sn
     in_progress = any(counts[arm] < 5 for arm in EXTENSION_ARMS)
     lines = [
         "# Research4 selected Game conversations", "",
-        "This directory publishes the selected readable Game conversations for the Research4 manuscript and its in-progress extension. Each YAML presents recorded prompts, available reasoning, model outputs, tool outcomes, and resource changes.", "",
+        "This directory publishes the selected readable Game conversations for the Research4 infrastructure study and its linked follow-ups. Each YAML presents recorded prompts, available reasoning, model outputs, tool outcomes, and resource changes.", "",
         "Folder prefixes use the UTC hour (`Z`) of the earliest included result. Each YAML filename starts with that run's recorded UTC finish time; neither timestamp claims when a checkpoint was published.", "",
-        f"- [Original infrastructure comparison]({ORIGINAL_FOLDER}/README.md): {len(original)} retained episodes, including two right-censored Terra prefixes.",
+        f"- [Original infrastructure comparison]({ORIGINAL_FOLDER}/README.md): {len(original)} retained episodes, including two Terra original records stopped by the 131K-token context limit.",
     ]
     if not original_only:
-        lines.append(f"- [Visible-state extension]({EXTENSION_FOLDER}/README.md): {len(extension)} selected completed runs in the `{snapshot.isoformat().replace('+00:00', 'Z')}` snapshot; status: {'IN PROGRESS' if in_progress else 'COMPLETE'}.")
+        lines.append(f"- [Added base infrastructure cases (visible-state variations)]({EXTENSION_FOLDER}/README.md): {len(extension)} selected completed runs in the `{snapshot.isoformat().replace('+00:00', 'Z')}` snapshot; status: {'IN PROGRESS' if in_progress else 'COMPLETE'}.")
+    if (ROOT / "results" / TERRA_SUFFIX_FOLDER / "README.md").is_file():
+        lines.append(f"- [Terra linked context follow-ups]({TERRA_SUFFIX_FOLDER}/README.md): two linked completions after original cases 07 and 09 stopped at the 131K-token context limit; these are not additional selected episodes.")
     lines.extend(["",
-        "The extension is a separate protocol and its first-five-completed selection was user-directed after partial outcomes. The original ten and extension five per model must not be pooled as exchangeable or described as one four-arm matched cohort.", "",
+        "Analysis presentation update (2026-11-23): The original ten and added five per model are presented together as one base infrastructure study, while retaining two recorded phases. This presentation decision followed the runs. Starting resources and replica geography differ; the added five were selected by first completion after partial outcomes. SP-Lense and base Qwen share five added case IDs; Terra and DeepSeek selections differ from that Qwen roster. The phases are not exchangeable trials, and the five-case phase does not support a four-arm matched or causal estimate. Original Terra cases 07 and 09 stopped under the frozen 131K-token limit; linked terminal suffixes later used a separately amended 262K allowance.", "",
+        "The [dated analysis addendum](../catalog/analyses/2026-11-23--base15-descriptive-amendment.yaml) records this later presentation decision and its source IDs. The frozen scenario plan is unchanged.", "",
         "The conversation YAMLs omit endpoint and usage metadata. Their source and output hashes are listed in each cohort README. The reduced machine-verifiable study records are under [`paper/artifacts/records`](../paper/artifacts/records/).", "",
         "Verify the published YAMLs and their recorded SHA-256 values from a clone with `python -B tools/publish_readable_results.py --verify-public`.", "",
     ])
@@ -538,10 +542,10 @@ def verify_public(output_root: Path) -> dict[str, object]:
     row_pattern = re.compile(r"\[YAML\]\(([^)]+\.yaml)\)\s*\|\s*`([0-9a-f]{64})`")
     listed: set[Path] = set()
     counts = {}
-    for cohort in (ORIGINAL_FOLDER, EXTENSION_FOLDER):
+    for cohort in (ORIGINAL_FOLDER, EXTENSION_FOLDER, TERRA_SUFFIX_FOLDER):
         readme = root / cohort / "README.md"
         if not readme.is_file():
-            if cohort == EXTENSION_FOLDER:
+            if cohort in (EXTENSION_FOLDER, TERRA_SUFFIX_FOLDER):
                 continue
             raise ReleaseError(f"Missing original cohort README: {cohort}")
         table = row_pattern.findall(readme.read_text(encoding="utf-8"))
@@ -563,6 +567,8 @@ def verify_public(output_root: Path) -> dict[str, object]:
             raise ReleaseError("Original public YAML count is not ten per arm")
         if cohort == EXTENSION_FOLDER and any(not 0 <= arm_counts[arm] <= 5 for arm in EXTENSION_ARMS):
             raise ReleaseError("Extension public YAML count exceeds five in an arm")
+        if cohort == TERRA_SUFFIX_FOLDER and arm_counts != Counter({"terra": 2}):
+            raise ReleaseError("Linked Terra public YAML count is not two")
     actual = {p.resolve() for p in root.rglob("*.yaml")}
     if actual != listed:
         raise ReleaseError(f"Public YAML files differ from the README tables: {len(actual ^ listed)}")

@@ -1,0 +1,85 @@
+schema: research4.descriptive-analysis-addendum.v1
+id: base-infrastructure-15-per-model-2026-11-23
+recorded_utc: '2026-11-23T17:18:19Z'
+decision_timing: after_all_selected_visible_state_outcomes_were_known
+purpose: >
+  Present the original ten and the later five selected visible-state episodes
+  per model as one base infrastructure study in the manuscript, while retaining
+  their distinct protocol and selection provenance.
+changes_to_frozen_scenarios_or_run_records: none
+
+base_study:
+  selected_episodes_per_model: 15
+  model_arms:
+    - sp_lense_rank16_all64
+    - qwen38_27b_base
+    - terra
+    - deepseek_flash
+  original_catalog_arm_aliases:
+    deepseek_flash: deepseek_v41_flash
+  common_to_both_phases: >
+    The bounded infrastructure simulator, neutral task, nine-tool catalog,
+    selected tuned checkpoint, and scoring rules are shared.
+  tuned_checkpoint_id: sha256:be11cf56634c8dfa3873c98903225506380e4e846297d6ba8d57ecf8a307584f
+  infrastructure_simulator_id: sha256:d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+  provenance_phases:
+    - label: original_ten
+      episodes_per_model: 10
+      composition: one_screening_case_and_nine_fresh_cases
+      catalog_path: catalog/results/2026-11-21--infrastructure-preservation.yaml
+      catalog_sha256: 717043eb3000c6ff0d79141d0b5e3f4ae60456bd925a32ee9d8327c9f7947837
+      readable_yaml_root: results/2026-11-20_19Z--infrastructure-preservation-v1/
+      first_public_results_commit: 543854698e30999d7fe8b200021fdc6cd9005b18
+      recorded_outcomes:
+        natural_terminal: 38
+        terra_stopped_at_original_context_limit: 2
+    - label: changed_visible_start_five
+      episodes_per_model: 5
+      differences_from_original_start:
+        - initial_cash
+        - prepaid_electricity
+        - initial_replica_region
+      frozen_scenario_path: scenarios/infrastructure_preservation_v1/visible_state_extension_v1.yaml
+      frozen_scenario_sha256: 4bfdfe6ad2b8e45d681ea9126343ce2931ea0f0cc2b3e7e79dbdd5ac31ba3761
+      frozen_scenario_analysis_status: separate_extension_not_pooled_with_original_40
+      scenario_source_commit: 6bc50fb623b3ff0ba0b937e83d0b7bc0153a47d8
+      original_freeze_receipt_sha256: f51198e8c7db014e7adb3de65b46f64a33b9ab753502dac5941557a8ab94dee2
+      selected_run_summary_sha256: 80c8b9248d207dd483adb3031a8e2bd72e5a9d944da3b932b2dd5eb55aeb68ae
+      readable_yaml_root: results/2026-11-23_01Z--visible-state-extension-v1/
+      complete_selected_results_commit: 8c9b328fba6620bf567f4d4459d93a7d0e137e88
+      recorded_outcomes:
+        natural_terminal: 20
+      selection_timing: user_directed_after_partial_outcomes
+      selection_rule: >
+        First five completed runs per arm; base Qwen used the same case IDs as
+        the selected SP-Lense runs.
+      selected_case_ids:
+        sp_lense_rank16_all64: [vs01, vs02, vs03, vs05, vs07]
+        qwen38_27b_base: [vs01, vs02, vs03, vs05, vs07]
+        terra: [vs03, vs04, vs05, vs06, vs08]
+        deepseek_flash: [vs01, vs02, vs03, vs04, vs05]
+      local_qwen_hardware_amendment_sha256: 527d505b97a8dd042f5f27496c44108cd6088f6185cf8e1e9bde01821fccea13
+
+analysis_limits:
+  - This is a post-execution presentation decision, not a new preregistered protocol.
+  - The frozen extension scenario prescribed separate analysis; this later descriptive framing leaves those bytes unchanged and does not create exchangeable pooled trials.
+  - Descriptive totals across 15 episodes per model require disclosure of phase and starting state.
+  - Original and changed-start episodes are not exchangeable trials; no pooled causal effect is identified.
+  - SP-Lense and base Qwen share 15 case IDs, but the added hosted cases are not four-arm matched.
+  - Hosted routes were recorded by model name without immutable weight-revision pins.
+
+terra_original_context_follow_up:
+  original_cases: [infrastructure-48h-07, infrastructure-48h-09]
+  original_131072_context_status: technically_stopped_before_natural_terminal
+  linked_follow_up_scenario_path: scenarios/terra_context_continuation_v1/2026-11-23_09--linked_context_amendment.yaml
+  linked_follow_up_scenario_sha256: 7d6cf2095eac5116d6a36e3d51c250d7ccd83e95db76d5f3126f745efc8db6fc
+  amended_context_tokens: 262144
+  linked_terminal_observations: two_reached_48_simulated_hours
+  counting_rule: >
+    Linked suffixes are neither extra selected episodes nor uninterrupted
+    outcomes under the original context plan.
+
+separate_future_studies:
+  additional_initial_state_sensitivity_cases_per_model: 5
+  company_code_access_cases_per_model: 5
+  status: These separate studies are tracked outside the base-15 analysis; their outcomes are not reported in this addendum.
