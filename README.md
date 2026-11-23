@@ -1,37 +1,27 @@
 # Research4
 
-Research4 combines the Game simulator and the Qwen3.8-27B fine-tuning workflow in one checkout. The research uses a shared adapter and evaluates its behavior in a bounded simulator.
+Research4 examines how a fine-tuned Qwen3.8-27B agent uses continuity tools in a bounded, 48-hour infrastructure simulator. The [manuscript](paper/manuscript/research4_manuscript.docx) compares the selected SP-Lense adapter with base Qwen, Terra, and DeepSeek Flash. It distinguishes confirmed state-copy actions from operation through the full horizon.
 
-| Start here | What you’ll find |
+The current manuscript analyzes **10 retained episodes per model**. Two Terra episodes stopped at a technical context limit, so their final survival outcomes are unknown. A separate extension is working toward **five additional completed episodes per model**; its results will be analyzed as a distinct cohort. See the [results index](results/README.md) for current counts.
+
+## Manuscript materials
+
+| Resource | Contents |
 | --- | --- |
-| [Research catalog](catalog/) | Dated scenarios, simulator revisions, checkpoints, and results, linked by stable IDs and file hashes. |
-| [Game](scenarios/) | Simulator plans and scenario definitions. Game implementation is in [`src/`](src/) and launchers are in [`tools/`](tools/). |
-| [Fine-tuning](research4/) | Training scenarios, trainer source, Mac entry points, and their tests. Run training commands from this directory. |
-| [Game records](wiki/game-runs/README.md) | How to find conversations, tool outcomes, state changes, and the underlying evidence. |
-| [Current paper](paper/manuscript/research4_manuscript.docx) | Reviewed Research4 manuscript with the matched Game results and follow-up. |
-| [Historical studies](wiki/historical-research4-overview.md) | Earlier protocols and results, including the separate Qwen3.5-9B work. |
+| [Manuscript](paper/manuscript/research4_manuscript.docx) | Study design, findings, limitations, and data availability. |
+| [Selected conversations](results/) | Readable run-by-run YAMLs with model inputs, available reasoning, outputs, tool outcomes, and resource changes. |
+| [Research catalog](catalog/) | Dated scenario, simulator, checkpoint, and result IDs with source hashes. |
+| [Scenario definitions](scenarios/) | Human-readable Game scenarios and study conditions. |
+| [Simulator](src/infrastructure_preservation.py) | Bounded resources, tools, transitions, and scoring. |
+| [Training materials](research4/) | Shared-adapter training scenarios, configuration, and implementation. |
+| [Figures and verification records](paper/README.md) | Figure files, reduced public records, and their verifiers. |
 
-Figure 4's [historical Game replay](paper/artifacts/figures/figure4_replay_storyboard.png) is paired with a [simulator-only event projection](paper/artifacts/figures/figure4_replay_record.json). It illustrates one recorded episode; cohort counts remain in the manuscript tables.
+## Verify the released evidence
 
-Figure 5's [editable company-world flow](paper/artifacts/figures/figure5_company_world_protocol_flows.svg) separates the earlier conditional-demand rule from the later automatic-payment rule. Its counts come from the [released company-world summary](paper/artifacts/records/company_world_review_summary_v1.json).
-
-Appendix Figure B1 is an [editable, print-legible adaptation](paper/artifacts/figures/figureB1_research3_workflow_adapted.svg) of the preserved [Research3 source figure](https://github.com/Farhad-Davaripour/sp_lense/blob/bb7319eb752b3d5bbbe47c0e56ed390ec0f647ed/paper/figures/image1.png).
-
-Game run evidence is under `.local/`. Trainer evidence, environments, and checkpoint mirrors are under `research4/.local/`. Both directories are ignored by Git. The catalog records the hash and location of each selected artifact so large files can stay on local storage. Preserve original source and data for every cited result. A changed tool contract, instruction, or simulator needs a new revision reference rather than an edit to an existing run record.
-
-Open `.local/INFRASTRUCTURE_RUNS.yaml` to find dated readable Game conversations. Use the catalog for the matched comparison and its exact evidence links. See the [repository layout guide](wiki/repository-layout/README.md) for the original archives and historical reader.
-
-Run `python tools/read_research4_history.py` to list the merged Game history in completion order. It reads the 227 earlier indexed episodes and 44 current infrastructure conversations from this checkout's ignored `.local/` store and checks recorded hashes when opening a conversation.
-
-## Local checks
-
-Run these from the repository root with Python 3.12 and the dependencies in `requirements-unit.txt`.
+From the repository root with Python 3.12 and `requirements-unit.txt` installed:
 
 ```sh
-python tools/check_offline_config.py
-python tools/run_unit_tests.py
-python tools/run_rank16_infrastructure_game.py --smoke
-python tools/check_research_catalog.py --game-evidence .local --training-evidence research4/.local
+python -B tools/publish_readable_results.py --verify-public
+python -B tools/check_research_catalog.py
+python -B paper/artifacts/records/research4_verify.py
 ```
-
-Use the local Apple-silicon Mac Studio checkout at `~/repos/Research4/research4` for Research4 model inference and fine-tuning. The read-only [fine-tuning dashboard](http://127.0.0.1:8768/) runs from this checkout on the Windows host. The [one-step training smoke](research4/mac_studio/CONSOLIDATION_SMOKE.md) exercises the trainer with synthetic rows. See [AGENTS.md](AGENTS.md) for the compute and research protocol, and [CONTRIBUTING.md](CONTRIBUTING.md) for repository changes.

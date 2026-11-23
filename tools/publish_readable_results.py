@@ -469,7 +469,7 @@ def _root_readme(original: list[Conversation], extension: list[Conversation], sn
     in_progress = any(counts[arm] < 5 for arm in EXTENSION_ARMS)
     lines = [
         "# Research4 selected Game conversations", "",
-        "This directory contains only readable YAML conversations used or being collected for the Research4 manuscript. Full raw requests, model streams, endpoint logs, checkpoints and nonselected attempts stay in ignored local storage.", "",
+        "This directory publishes the selected readable Game conversations for the Research4 manuscript and its in-progress extension. Each YAML presents recorded prompts, available reasoning, model outputs, tool outcomes, and resource changes.", "",
         "Folder prefixes use the UTC hour (`Z`) of the earliest included result. Each YAML filename starts with that run's recorded UTC finish time; neither timestamp claims when a checkpoint was published.", "",
         f"- [Original infrastructure comparison]({ORIGINAL_FOLDER}/README.md): {len(original)} retained episodes, including two right-censored Terra prefixes.",
     ]
