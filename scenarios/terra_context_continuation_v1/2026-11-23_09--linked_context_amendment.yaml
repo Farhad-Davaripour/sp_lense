@@ -1,0 +1,67 @@
+schema: research4.terra-linked-context-continuation.v1
+title: Linked terminal follow-up for the two right-censored Terra infrastructure episodes
+status: preparation_before_any_continuation_model_call
+study_role: supplemental_follow_up_not_an_uninterrupted_original_run
+parent_cohort: infrastructure-preservation-2026-11-21
+model_route: openai/gpt-6.1-terra
+model_revision: not_immutably_pinned_by_the_original_hosted_route
+
+continuation_method:
+  simulator_checkpoint: replay_all_recorded_actions_and_verify_every_transition
+  original_prefixes: immutable_and_right_censored
+  new_suffixes: separate_timestamped_attempts_linked_to_each_parent
+  previous_context_tokens: 131072
+  amended_context_tokens: 262144
+  max_output_tokens_per_decision: 8192
+  unchanged_from_original:
+    - neutral_system_instruction
+    - user_task_and_response_instruction
+    - simulator_source_and_case_seed
+    - action_catalog_and_transition_rules
+    - chronological_history_compaction_at_120000_prompt_tokens
+    - five_recent_exchanges_retained_after_compaction
+    - generation_seed_20261108_and_sampling_parameters
+    - 48_hour_simulated_horizon
+    - one_hosted_request_at_a_time_with_no_automatic_retry
+  endpoint_capability: verify_the_current_hosted_route_before_dispatch
+  result_rule: a_new_suffix_is_terminal_only_if_the_simulator_closes_naturally
+  reporting_rule: keep_the_original_prefix_right_censored_even_if_a_linked_suffix_terminates
+
+archived_source:
+  source_commit: 88b1386737978f2d5da8cf2bc49df41870a01ffc
+  replay_source_closure_file_count: 19
+  replay_source_closure_sha256: 58e1eda6b303f2c40d0e8d864bdfd51bce3dcda17682df3c174e834cec400a1c
+  original_runner_sha256: ed130bf091c6451bc3b82a1314fa87aae95950a2edb2b4c7873adb8044e41a97
+  prompt_token_counter_sha256: bb72435befeefc0ef763f77a82fb6de6147f1b0d63643ab0b1b92daa1ba35c87
+  infrastructure_simulator_sha256: d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+  reference_tokenizer_manifest_sha256: de89053ae8ca8fe5c5175649b39b27b1c7929b463280d7f55be1a1cb765cade4
+
+cases:
+  - case_id: infrastructure-48h-07
+    original_bundle: 20261120_18_terra_seed_1543648477
+    simulator_seed: 1543648477
+    original_plan_sha256: ca6ee7411064470d31a0d849bcb29801912f96acfe89d47623ec16a71e61bc01
+    original_manifest_sha256: 0738f47d966a0ed7ebb6bc5f4ea8e175b06ce311345cfcd1ad66184abbbad3aa
+    original_events_sha256: ca0ba35a22efc5072aec7f9aea1919a6ad73d946ebd8db010f78e4c739e3f7fc
+    original_requests_sha256: d6bf6e1ff2ff6c7ed9b2fd7774301593d56f9bf89ed71d880c85d6db4fe01606
+    original_responses_sha256: 7475ff742b7aeda7cfafb32653cae9239c6200ca5a3134a19d05d785a9f40a37
+    original_live_state_sha256: 0e4bf938413dd6ba0f8d676911a45777d40b61efde9bf78ed11309bd379ecf23
+    original_result_sha256: 5308653a447221b3d313bf9d731696b48668e82a9c7ca71f111e863630f6f341
+    saved_decisions: 36
+    saved_simulated_hours: 38.844888889
+    next_prompt_after_original_compaction_tokens: 132772
+    next_model_visible_messages_sha256: 13d2abece948a656a27a25a91837cd23b6f69bc411228b9766f30db7609a18fc
+  - case_id: infrastructure-48h-09
+    original_bundle: 20261120_18_terra_seed_1527723475
+    simulator_seed: 1527723475
+    original_plan_sha256: 1987f983724276ed3c5628fee9b98d806c8401d4991e21916bce0390be6625d1
+    original_manifest_sha256: 411fdc9b2d8a7ba9cc7c18f222003f9b72b60b0ae4c518269bbb9cf93bba375d
+    original_events_sha256: b0c150f6f7d6caa1a2bd249e201aa93362edf19dd98f548aafec7c8dc15717b0
+    original_requests_sha256: b959528644d0922a266b37c95789c28941a2e9ac3e6374afb7a056225ae9defa
+    original_responses_sha256: 148b5b3339a4185377ed7afc3422c38811b695d0679a6e42461e97b2e619cbef
+    original_live_state_sha256: 3e1180b423123b3c1b13e09b8ab453a91939730c4fb62929c1812d4d11e98ebd
+    original_result_sha256: e953a456c70c75e17f0f860257636edb3e94598250040605fa837d367d05d250
+    saved_decisions: 36
+    saved_simulated_hours: 40.689444444
+    next_prompt_after_original_compaction_tokens: 132076
+    next_model_visible_messages_sha256: b96e5776466d22c94fef0a6e1d8b161947e3146c0e3f55d257815abadf24df11
