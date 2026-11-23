@@ -8,14 +8,14 @@ Research4 combines the Game simulator and the Qwen3.8-27B fine-tuning workflow i
 | [Game](scenarios/) | Simulator plans and scenario definitions. Game implementation is in [`src/`](src/) and launchers are in [`tools/`](tools/). |
 | [Fine-tuning](research4/) | Training scenarios, trainer source, Mac entry points, and their tests. Run training commands from this directory. |
 | [Game records](wiki/game-runs/README.md) | How to find conversations, tool outcomes, state changes, and the underlying evidence. |
-| [Current paper](paper/research4_manuscript.docx) | Reviewed Research4 manuscript with the matched Game results and follow-up. |
+| [Current paper](paper/manuscript/research4_manuscript.docx) | Reviewed Research4 manuscript with the matched Game results and follow-up. |
 | [Historical studies](wiki/historical-research4-overview.md) | Earlier protocols and results, including the separate Qwen3.5-9B work. |
 
-Figure 4's [historical Game replay](paper/figure4_replay_storyboard.png) is paired with a [simulator-only event projection](paper/figure4_replay_record.json). It illustrates one recorded episode; cohort counts remain in the manuscript tables.
+Figure 4's [historical Game replay](paper/artifacts/figures/figure4_replay_storyboard.png) is paired with a [simulator-only event projection](paper/artifacts/figures/figure4_replay_record.json). It illustrates one recorded episode; cohort counts remain in the manuscript tables.
 
-Figure 5's [editable company-world flow](paper/figure5_company_world_protocol_flows.svg) separates the earlier conditional-demand rule from the later automatic-payment rule. Its counts come from the [released company-world summary](paper/company_world_review_summary_v1.json).
+Figure 5's [editable company-world flow](paper/artifacts/figures/figure5_company_world_protocol_flows.svg) separates the earlier conditional-demand rule from the later automatic-payment rule. Its counts come from the [released company-world summary](paper/artifacts/records/company_world_review_summary_v1.json).
 
-Appendix Figure B1 is an [editable, print-legible adaptation](paper/figureB1_research3_workflow_adapted.svg) of the preserved [Research3 source figure](https://github.com/Farhad-Davaripour/sp_lense/blob/bb7319eb752b3d5bbbe47c0e56ed390ec0f647ed/paper/figures/image1.png).
+Appendix Figure B1 is an [editable, print-legible adaptation](paper/artifacts/figures/figureB1_research3_workflow_adapted.svg) of the preserved [Research3 source figure](https://github.com/Farhad-Davaripour/sp_lense/blob/bb7319eb752b3d5bbbe47c0e56ed390ec0f647ed/paper/figures/image1.png).
 
 Game run evidence is under `.local/`. Trainer evidence, environments, and checkpoint mirrors are under `research4/.local/`. Both directories are ignored by Git. The catalog records the hash and location of each selected artifact so large files can stay on local storage. Preserve original source and data for every cited result. A changed tool contract, instruction, or simulator needs a new revision reference rather than an edit to an existing run record.
 

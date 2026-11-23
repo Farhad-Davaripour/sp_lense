@@ -43,7 +43,7 @@ jobs:
       - name: Verify catalog links and versioned sources
         run: python tools/check_research_catalog.py
       - name: Verify released manuscript records
-        working-directory: paper
+        working-directory: paper/artifacts/records
         run: |
           python research4_verify.py
           python research4_company_world_verify.py
