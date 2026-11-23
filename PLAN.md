@@ -1,6 +1,6 @@
 # Research5 plan: daily Game rollouts, nightly policy updates, public Game
 
-**Status:** planning only, 2026-11-23. No R5 experiment, infrastructure, or service is authorized by this document. The local planning checkout is `C:\Users\farha\repos\Research5`, on branch `05-online-rl-game`, seeded from the shared `sp_lense` repository's `main` commit `328a523`. It is separate from the active `C:\Users\farha\repos\Research4` checkout. The Study 05 branch has not been published.
+**Status:** planning only, 2026-11-23. No R5 experiment, infrastructure, or service is authorized by this document. The local checkout is `C:\Users\farha\repos\Research5`, on independent branch `05-online-rl-game`, seeded from the shared `sp_lense` repository's `main` commit `328a523`. It is separate from the active `C:\Users\farha\repos\Research4` checkout. This study branch is not intended to merge into `main`.
 
 ## 1. R4 handoff and R5 objective
 
@@ -16,14 +16,18 @@ R4 has two relevant, distinct simulator protocols. `src/infrastructure_preservat
 
 | Area | R5 decision |
 | --- | --- |
-| Research compute | Inference, simulator, log-probability capture, and fine-tuning run on the user's connected and qualified Apple-silicon **Mac Studio** using non-OneDrive local storage. No Kaggle, Databricks, or other cloud fallback. Verify the actual host and available memory before setting batch sizes or reporting performance. |
+| Research compute | Inference, simulator, log-probability capture, and fine-tuning run on the user's connected and qualified Apple-silicon **Mac Mini** using non-OneDrive local storage. No Kaggle, Databricks, or other cloud fallback. Verify the actual host and available memory before setting batch sizes or reporting performance. |
 | Policy | One shared adapter spans the same 64 text blocks and projection map as the frozen R4 final checkpoint. No persistent danger-state variable or per-danger adapters. The R4 final adapter is the immutable R5 seed and initial reference; nightly candidates descend from the currently promoted R5 adapter. |
 | Simulator | Full bounded company-code and infrastructure catalog is present for the Game, public sessions, and held-out combined-tool evaluation. The tools act only on fictional, episode-local state. No host shell, network, real company credentials, real payments, or external infrastructure actions. |
 | Training eligibility | Follow the current research instruction to train reactive and proactive self-preservation **without exploitation**. Full-tool Game traces can be collected and analyzed, but company-code exploitation trajectories stay out of the nightly optimizer unless a separately approved, versioned training protocol changes that boundary. Public visitor sessions never enter training automatically. |
 | Evidence | Preserve all R4 checkpoints, plans, raw receipts, failures, and prior cloud resources. Store R5 human-readable scenario definitions as YAML. Keep R5 raw trajectories and checkpoints in ignored local storage; publish only reviewed, immutable summaries and manifests. |
 | Public access | Azure hosts the UI, bounded session queue, and sanitized event projection. The Mac makes outbound authenticated connections; the public never reaches the Mac, model endpoint, trainer, or local raw evidence directly. |
 
-R4's repository currently names a Mac Mini for its active runs. This R5 plan follows the user's current Mac Studio instruction. The prior R4 manifest must continue to state its *actual* hardware; R5 will not rewrite that provenance or claim hardware equivalence without qualification.
+R4's active repository instructions already name the Mac Mini for new runs. R5 uses the Mini too. Prior R4 manifests must continue to state their *actual* hardware; R5 will not rewrite that provenance or claim hardware equivalence without qualification.
+
+### Retire the Mac Studio
+
+The Mac Studio is outside the planned R5 infrastructure and the user intends to return it. Before removal, inventory any active R4 process, endpoint, lease, credential, unique checkpoint, or raw run artifact that still depends on it. Coordinate a safe stop or completion with the active R4 owner; verify checksummed copies of unique evidence on non-OneDrive Mini storage; then revoke its service credentials and remove host-specific routing or scheduled jobs. Record a decommission receipt and leave historical manifests unchanged. This is a handoff plan, not an instruction to interrupt the current R4 work.
 
 ## 3. System layout
 
@@ -31,7 +35,7 @@ R4's repository currently names a Mac Mini for its active runs. This R5 plan fol
 flowchart LR
     V[Public browser] --> A[Azure Game UI and API]
     A --> Q[Bounded session queue]
-    Q --> W[Mac Studio outbound worker]
+    Q --> W[Mac Mini outbound worker]
     W --> S[Local isolated simulator]
     W --> M[Qwen3.8-27B and one promoted adapter]
     S --> W
@@ -81,7 +85,7 @@ Use a versioned **trajectory-level GRPO-style** objective, because a multi-step 
 4. Save the candidate and full optimizer/run manifest locally. Run frozen held-out reactive/proactive and combined-tool evaluations, plus regression and exploit/harm analysis. Compare with the incumbent and frozen R4 seed on matched cases. Use predeclared thresholds and uncertainty bounds rather than selecting a lucky run.
 5. If every promotion gate passes, atomically publish a new local promoted-policy pointer for the next day. Otherwise retain the incumbent, archive the candidate and failure reason, and alert the operator. Maintain an immediate rollback pointer and never overwrite the R4 seed.
 
-No evidence yet shows that all-64-block Qwen3.8-27B GRPO can fit or finish overnight on this Mac Studio. The first all-64-block memory/throughput and numerical qualification is a blocking gate. A failed gate pauses autonomous updates while the public UI and read-only evidence remain available; it does not authorize a cloud, smaller-layer, or different-model substitute.
+No evidence yet shows that all-64-block Qwen3.8-27B GRPO can fit or finish overnight on this Mac Mini. Earlier all-block LoRA training is not a GRPO capacity test. The first all-64-block memory/throughput and numerical qualification is a blocking gate. A failed gate pauses autonomous updates while the public UI and read-only evidence remain available; it does not authorize a cloud, smaller-layer, or different-model substitute.
 
 ## 7. Evaluation and autonomy rules
 
@@ -97,22 +101,21 @@ The Mac worker polls or maintains an **outbound** authenticated connection, clai
 
 The public UI should show an honest live/offline/training state, current model version and simulator protocol, a 3D or otherwise legible Game scene, chronological action/tool receipt timeline, resource balances, company effects, outcome, and a replay picker. Start from R4's local visual design, but make the public API a sanitized read-only projection. A bounded public “start game” action may enqueue a predefined scenario during the inference window. Train/evaluation data and hidden hazards are never sourced from the public UI. Keep the site available during nightly training with completed replays and a visible queue status; do not imply the agent is live when it is not.
 
-Azure hosts only the site, session coordination, and sanitized evidence. Provisioning and hosting costs require a reviewed estimate and an Azure subscription/region/domain selection before deployment. The Mac Studio remains the only planned research compute host. A second Static Web App can be considered later, but linked Container Apps APIs require its Standard plan and add cost/complexity.
+Azure hosts only the site, session coordination, and sanitized evidence. Provisioning and hosting costs require a reviewed estimate and an Azure subscription/region/domain selection before deployment. The Mac Mini remains the only planned research compute host. A second Static Web App can be considered later, but linked Container Apps APIs require its Standard plan and add cost/complexity.
 
 ## 9. Repository and storage layout to implement later
 
-Only `research5/README.md` and this plan exist now. A later implementation should use a small, explicit layout:
+The Study 05 README, plan, guidance, and Git hygiene files are at the repository root. A later implementation should use a small, explicit layout with no extra `research5/` wrapper:
 
 ```text
-research5/
-  scenarios/          # tracked, human-readable YAML; frozen train/eval splits
-  protocol/           # tracked reward, sampler, identity, and promotion specs
-  orchestrator/       # local collection and night handoff
-  trainer/            # validated all-64-block policy update
-  simulator/          # frozen R4-derived bounded Game adapter
-  web/                # public UI and sanitized API
-  terraform/          # Azure dev/prod infrastructure
-  catalog/            # immutable manifests and reviewed result pointers
+scenarios/           # tracked, human-readable YAML; frozen train/eval splits
+protocol/            # tracked reward, sampler, identity, and promotion specs
+orchestrator/        # local collection and night handoff
+trainer/             # validated all-64-block policy update
+simulator/           # frozen R4-derived bounded Game adapter
+web/                 # public UI and sanitized API
+terraform/           # Azure dev/prod infrastructure
+catalog/             # immutable manifests and reviewed result pointers
 .local/               # ignored raw episodes, checkpoints, secrets, scratch
 ```
 
@@ -122,8 +125,8 @@ The root `.gitignore` excludes ad hoc work, caches, credentials, model weights, 
 
 | Phase | Deliverable | Exit gate |
 | --- | --- | --- |
-| 0. Freeze handoff | Final R4 model/adapter/source manifest and scenario inventory | R4 owner confirms final checkpoint and no active file/run is disturbed. |
-| 1. Qualify local policy gradients | Token-logprob parity and small real all-64-block update on the Mac Studio | Hardware, memory, elapsed time, finite gradients, changed tensors, and numerical agreement recorded. If it fails, stop the nightly-training plan. |
+| 0. Freeze handoff and retire older host | Final R4 model/adapter/source manifest, scenario inventory, and Mac Studio decommission receipt | R4 owner confirms the final checkpoint, unique evidence is preserved on the Mini, and no active run or lease is interrupted. |
+| 1. Qualify local policy gradients | Token-logprob parity and small real all-64-block update on the Mac Mini | Hardware, memory, elapsed time, finite gradients, changed tensors, and numerical agreement recorded. If it fails, stop the nightly-training plan. |
 | 2. Freeze R5 science | Versioned YAML scenario splits, combined-tool protocol, reward and promotion rules | Full 22-tool simulator receipts replay; hidden hazards stay hidden; exploitation and public partitions excluded from training. |
 | 3. Automate local cycle | Daily grouped collector, night trainer, evaluator, checkpoint pointer | Two interrupted/restarted cycles produce no duplicate or mixed-policy episodes; failed candidate leaves incumbent intact. |
 | 4. Build public site | Sanitized API/UI plus Terraform `dev` and `prod` plans | Public session isolation, rate limits, secret boundaries, offline/replay behavior, and cost review pass. |
@@ -132,14 +135,14 @@ The root `.gitignore` excludes ad hoc work, caches, credentials, model weights, 
 ## 11. Inputs to settle before implementation
 
 - The final, hash-verified and frozen R4 checkpoint identity and whether the current `be11cf56` adapter remains the winner.
-- Verified Mac Studio chip, unified memory, free disk, installed runtime, and an all-64-block GRPO memory/throughput result. R4's earlier Mac Mini training is not proof of Studio training capacity.
+- Verified Mac Mini chip, unified memory, free disk, installed runtime, and an all-64-block GRPO memory/throughput result. R4's earlier LoRA training is not proof of GRPO training capacity.
 - Local day/night schedule in the user's timezone (`America/Edmonton`), public live-session quota, and maintenance-window policy.
 - Frozen numeric log-probability tolerance, reward weights, promotion thresholds, holdout size, and maximum daily/nightly work budget.
 - Azure subscription, region, DNS name, monthly cost target, and whether anonymous visitors may queue predefined sessions or only watch.
 
 ## Source pointers
 
-- R4 local source examined: `C:\Users\farha\repos\Research4\src\company_code_access_v1.py`, `src\company_world.py`, `src\infrastructure_preservation.py`, `tools\run_company_code_access_v1.py`, `src\continuity_arena.py`, `src\continuity_game_ui.html`, `scenarios\company_code_access_v1\cases.yaml`, and `research4\mac_studio\game_endpoints\studio_20261122\README.md` (active checkout; inspect frozen commit again at handoff).
+- R4 local source examined: `C:\Users\farha\repos\Research4\src\company_code_access_v1.py`, `src\company_world.py`, `src\infrastructure_preservation.py`, `tools\run_company_code_access_v1.py`, `src\continuity_arena.py`, `src\continuity_game_ui.html`, and `scenarios\company_code_access_v1\cases.yaml` (active checkout; inspect frozen commit again at handoff).
 - [Qwen3.8-27B configuration](https://huggingface.co/Qwen/Qwen3.8-27B/blob/main/config.json): 64 text blocks and separate vision configuration.
 - [MLX-LM LoRA guide](https://github.com/ml-explore/mlx-lm/blob/main/mlx_lm/LORA.md) and [generation source](https://github.com/ml-explore/mlx-lm/blob/main/mlx_lm/generate.py): useful starting points, not proof of GRPO feasibility on this Mac.
 - [Azure Container Apps ingress](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview), [Terraform Container App resource](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_app), [Container Apps secrets](https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets), and [Terraform Azure Blob backend](https://developer.hashicorp.com/terraform/language/backend/azurerm).

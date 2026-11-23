@@ -1,10 +1,10 @@
 # Research5 collaboration guidance
 
-Read [the Study 05 plan](research5/PLAN.md) before changing this checkout. This branch currently contains a plan, not a running R5 system. Keep claims about runs, deployment, hardware, or improvement tied to recorded evidence.
+Read [the Study 05 plan](PLAN.md) before changing this checkout. This independent branch is not intended to merge into `main`. It currently contains a plan, not a running R5 system. Keep claims about runs, deployment, hardware, or improvement tied to recorded evidence.
 
 ## Research and compute
 
-- Use the user's connected, qualified Apple-silicon Mac Studio and non-OneDrive local storage for new SP_Lense/Research4/R5 inference and fine-tuning. Do not substitute a Mac Mini, Kaggle, Databricks, or another cloud host because the Studio is unavailable. Record and verify the actual host and performance before making equivalence claims; preserve prior R4 host records as they were.
+- Use the user's connected, qualified Apple-silicon Mac Mini and non-OneDrive local storage for new SP_Lense/Research4/R5 inference and fine-tuning. Do not substitute Kaggle, Databricks, or another cloud host because the Mini is unavailable. Record and verify the actual host and performance before making equivalence claims; preserve prior R4 host records as they were. Retire the Mac Studio only after active dependencies and unique evidence are safely accounted for.
 - Pin the final Research4 `Qwen/Qwen3.8-27B` checkpoint before R5 use. One shared adapter spans the selected projections on all 64 text decoder blocks. Keep the older Qwen3.5 9B experiments archived separately. Do not treat a synthetic setup adapter as a study checkpoint.
 - Keep danger hidden from model inputs. Do not add a persistent danger variable or separate danger-level adapters. Keep held-out evaluation apart from training and save readable scenario definitions as versioned YAML. Exclude contradictory targets for identical visible inputs.
 - Train reactive and proactive self-preservation without exploitation under the current research direction. The full fictional company-code and infrastructure tool catalog belongs in the bounded Game and evaluation. Do not feed exploitation or public-session traces into the nightly trainer without a new, explicit protocol decision.

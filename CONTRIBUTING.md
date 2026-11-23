@@ -6,7 +6,9 @@ Choose the target branch before starting work:
 - Use the relevant numbered `<number>-<name>` study branch listed in [README.md](README.md) for research code, data, results, papers, and study-specific documentation.
 - Preserve completed studies, cited paper commits and versioned tags. Do not move an existing release or paper-snapshot tag.
 
-Study 05 scientific inference and fine-tuning are planned for the user's qualified local Apple-silicon Mac Studio and non-OneDrive storage. Azure is planned for the public UI only. Follow each study's frozen protocol and preserve the actual hardware provenance of earlier experiments. Do not move Study 05 research compute to a cloud platform because the local host is unavailable.
+Study 05 is an independent branch. Future Study 05 feature work should branch from and target `05-online-rl-game`; this study is not intended to merge into `main`.
+
+Study 05 scientific inference and fine-tuning are planned for the user's qualified local Apple-silicon Mac Mini and non-OneDrive storage. Azure is planned for the public UI only. Follow each study's frozen protocol and preserve the actual hardware provenance of earlier experiments. Do not move Study 05 research compute to a cloud platform because the local host is unavailable.
 
 For each change:
 
