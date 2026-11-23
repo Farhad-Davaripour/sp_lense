@@ -1,8 +1,8 @@
 # Research4 local fine-tuning
 
 Use the pinned MLX Qwen3.8-27B base and the shared adapter on the user's
-Apple-silicon Mac Studio. Use this repository and local storage outside
-OneDrive. Keep existing Mac model storage and resolved artifact paths intact
+64 GiB Apple-silicon Mac Mini for new runs. Use this repository and local
+storage outside OneDrive. Keep existing Mac model storage and resolved artifact paths intact
 until a migration is independently verified.
 
 Keep scenario definitions in versioned YAML and hold evaluation data out of

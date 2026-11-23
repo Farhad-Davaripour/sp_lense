@@ -345,7 +345,7 @@ def publish_snapshot(snapshot):
         f"**Scenario dataset:** {dataset.get('training_examples', 'Preparing') if dataset else 'Preparing'}",
         f'**Scenario YAML:** `~/repos/Research4/research4/scenarios/{scenario_folder}/`',
         f'**Training JSONL:** `~/repos/Research4/research4/.local/datasets/{data_folder}/`',
-        '', '## Machine resources', '| Resource | Mac Studio | Windows PC |', '|---|---:|---:|',
+        '', '## Machine resources', '| Resource | Earlier Mac Studio (historical) | Windows PC |', '|---|---:|---:|',
         f"| CPU | {percent(m.get('cpu_percent') if m else None)} | {percent(win['cpu_percent'])} |",
         f"| Memory used / total | {memory_text(mm)} | {memory_text(mem)} |",
         f"| GPU activity | {percent(mg.get('utilization_percent') if mg else None)} | {percent(pc_gpu.get('utilization_percent') if pc_gpu else None)} |",

@@ -1,5 +1,8 @@
 # Studio Game endpoint for November 22, 2026
 
+Historical endpoint documentation for the earlier local host. Current Mac Mini
+runs use separately frozen endpoint sources and plans.
+
 This source serves one arm at a time on the 36 GiB Mac Studio. The available
 arms are the pinned Qwen3.8-27B 4-bit base and the published rank-16,
 64-block adapter at epoch 3. The endpoint uses the trainer's shared model

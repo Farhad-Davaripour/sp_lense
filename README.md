@@ -6,6 +6,17 @@ The base infrastructure study has **15 selected episodes per model**: the origin
 
 Two further five-case-per-model studies—split-GPU initial-state sensitivity and company-code access—are tracked separately. Their outcomes are outside this manuscript's reported base 15.
 
+## Local hardware and checkpoint provenance
+
+| Research stage | Recorded local hardware |
+| --- | --- |
+| Selected rank-16, all-64-block adapter training | 64 GiB Apple M5 Pro Mac Mini. |
+| Original ten infrastructure cases per local Qwen arm | Preserved plans and endpoint source identify the Mac Mini route; the first screening receipt lacks separate per-run hardware telemetry. |
+| Five added infrastructure cases per local Qwen arm | Six selected episodes used the 36 GiB Apple M5 Max Mac Studio (SP-Lense vs01/02/03/05; base Qwen vs01/02). Four used the 64 GiB Mac Mini under a [frozen hardware amendment](scenarios/infrastructure_preservation_v1/visible_state_extension_v1_mini_hardware_amendment.yaml) (SP-Lense vs07; base Qwen vs03/05/07). The [added-run index](results/2026-11-23_01Z--visible-state-extension-v1/README.md) identifies each plan revision. |
+| Short prepared-state pilot | 36 GiB Mac Studio; it is separate from the 15-case infrastructure comparison. |
+
+Terra and DeepSeek used hosted model routes. New local Qwen work is planned for the Mac Mini; actual execution hardware is reported from run receipts. Adapter checkpoint tensors remain in ignored local storage. The repository publishes their identifiers and audits, not downloadable weights.
+
 ## Manuscript materials
 
 | Resource | Contents |

@@ -1,5 +1,9 @@
 # Mac Studio consolidation smoke
 
+Historical setup check for the earlier Mac Studio host. Its command, memory
+thresholds and receipts describe that run. New work uses the Mac Mini under a
+separately verified plan; see the repository's current [run guidance](../../AGENTS.md).
+
 The smoke exercises one optimizer update with the exact-prefix MLX trainer in
 the consolidated checkout. It uses one synthetic training row and one
 separate synthetic validation row. It loads the pinned 4-bit base and creates

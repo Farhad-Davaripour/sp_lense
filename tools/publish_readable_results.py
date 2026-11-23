@@ -34,6 +34,7 @@ SCENARIO_SOURCE = Path("scenarios/infrastructure_preservation_v1/visible_state_e
 SCENARIO_SHA256 = "4bfdfe6ad2b8e45d681ea9126343ce2931ea0f0cc2b3e7e79dbdd5ac31ba3761"
 FROZEN_EXTENSION_ROOT = Path("2026-11-22_18/visible-state-extension-v1")
 MINI_AMENDMENT_SHA256 = "527d505b97a8dd042f5f27496c44108cd6088f6185cf8e1e9bde01821fccea13"
+MINI_PUBLIC_AMENDMENT_YAML_SHA256 = "e358be6719a47db9609b751dff713ef4f85002bd95680c5c6c802ae80f7e0d0a"
 MINI_ENDPOINT_SOURCE = Path("research4/mac_studio/game_endpoints/mini_20261123/mini_case_endpoint.py")
 MINI_ENDPOINT_SHA256 = "01f0b7dfb3bd4bf7de0ce78fe07ab4b6a7fb72a78e95b81cc37974f16ff735d3"
 MINI_RUNNER_SHA256 = "84a011ec915ee0034a8f582f671697a159eb72f4d640c1d58f91add1c4925922"
@@ -441,7 +442,7 @@ def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool,
         ])
         if any(row.plan_revision.startswith("mini-") for row in rows):
             lines.extend([
-                f"The remaining local cases use a separately frozen Mac Mini hardware amendment (SHA-256 `{MINI_AMENDMENT_SHA256}`). The Mini plan revisions change endpoint and hardware binding only; the model-visible scenario, simulator, tool catalog, prompts and generation policy retain their v4 values. Each Mini run is identified in the plan-revision column below. Representative completed Studio requests had exact Mini replay parity; the private receipts and interrupted technical prefixes remain in ignored local evidence.",
+                f"Of the ten selected local Qwen extension episodes, six used the original Mac Studio v4 endpoint (SP-Lense vs01, vs02, vs03, vs05; base Qwen vs01, vs02). Four used the separately frozen [public Mini hardware amendment](../../scenarios/infrastructure_preservation_v1/visible_state_extension_v1_mini_hardware_amendment.yaml) (SP-Lense vs07; base Qwen vs03, vs05, vs07; YAML SHA-256 `{MINI_PUBLIC_AMENDMENT_YAML_SHA256}`, execution receipt SHA-256 `{MINI_AMENDMENT_SHA256}`). The Mini plan revisions change endpoint and hardware binding only; the model-visible scenario, simulator, tool catalog, prompts and generation policy retain their v4 values. Representative completed Mac Studio requests had exact Mini replay parity on tested prompts, which does not establish full run-wide equivalence. Private receipts and interrupted technical prefixes remain in ignored local evidence.",
                 "",
             ])
     else:

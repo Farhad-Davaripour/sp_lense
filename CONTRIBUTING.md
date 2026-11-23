@@ -17,9 +17,9 @@ For each change:
 Do not push directly to, force-push, or delete `main` or a numbered study branch. Do not delete an active branch, a branch attached to an open pull request, or a branch used by another agent or worktree.
 
 Run the [Research 4 local checks](README.md#local-checks) before proposing
-changes. For SP_Lense and Research4 inference and fine-tuning, use the locally
-connected and configured Apple-silicon Mac Studio and the local Research4
-repository on non-OneDrive storage. Do not fall back to a cloud platform when
+changes. For new SP_Lense and Research4 inference and fine-tuning, use the
+locally connected and configured 64 GiB Apple-silicon Mac Mini and the local
+Research4 repository on non-OneDrive storage. Do not fall back to a cloud platform when
 the Mac is unavailable; use one only if the user explicitly directs it later.
 
 Preserve frozen sources, historical receipts, checkpoints, datasets and failed

@@ -82,7 +82,7 @@ def snapshot(root):
                       final_adapter_sha256=ADAPTER_SHA256, audit_sha256=AUDIT_SHA256,
                       audit_relative_path=AUDIT_PATH,
                       scope='Validation token loss; does not establish action accuracy or game improvement.',
-                      storage={'host': 'Mac Studio', 'checkpoint_directory': RUN + '/adapters',
+                      storage={'host': 'Mac Studio (historical)', 'checkpoint_directory': RUN + '/adapters',
                                'final_adapter': RUN + '/adapters/step_002160/adapters.safetensors',
                                'validation_files': [RUN + '/' + name for name in
                                                     ('DEV.json', 'before_DEV.safetensors', 'after_DEV.safetensors')],

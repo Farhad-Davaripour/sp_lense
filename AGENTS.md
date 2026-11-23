@@ -4,8 +4,8 @@
 
 - For all new SP_Lense and Research4 inference and fine-tuning runs, use the
   user's locally connected and configured 64 GB Apple-silicon Mac Mini and the
-  local Research4 repository on non-OneDrive storage. Do not use the Mac Studio
-  for new runs; it is being returned and must remain idle. Do not fall back to
+  local Research4 repository on non-OneDrive storage. Keep the Mac Studio
+  idle; new run authority must name the Mac Mini. Do not fall back to
   Kaggle, Databricks or another cloud platform when the Mac Mini is unavailable;
   use another platform only if the user explicitly directs it later.
 - The current Research4 base-model target is `Qwen/Qwen3.8-27B`. Preserve the
