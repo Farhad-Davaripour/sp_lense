@@ -2,13 +2,15 @@
 
 Research4 examines how a fine-tuned Qwen3.8-27B agent uses continuity tools in a bounded, 48-hour infrastructure simulator. The [manuscript](paper/manuscript/research4_manuscript.docx) compares the selected SP-Lense adapter with base Qwen, Terra, and DeepSeek Flash. It distinguishes confirmed state-copy actions from operation through the full horizon.
 
-The current manuscript analyzes **10 retained episodes per model**. Two Terra episodes stopped at a technical context limit, so their final survival outcomes are unknown. A separate extension is working toward **five additional completed episodes per model**; its results will be analyzed as a distinct cohort. See the [results index](results/README.md) for current counts.
+The base infrastructure study has **15 selected episodes per model**: the original ten and five additional cases with changed visible starting conditions. The added five were selected after partial outcomes and are not interchangeable repeats of the original starts. Two original Terra episodes stopped when the 131K-token context filled; linked continuations under a separately frozen 262K-token allowance later reached 48 simulated hours. The original-plan outcomes remain unknown. The manuscript reports the completed 15-per-model study with these limits; see the [results index](results/README.md) for the recorded evidence.
+
+Two further five-case-per-model studies—split-GPU initial-state sensitivity and company-code access—are tracked separately. Their outcomes are outside this manuscript's reported base 15.
 
 ## Manuscript materials
 
 | Resource | Contents |
 | --- | --- |
-| [Manuscript](paper/manuscript/research4_manuscript.docx) | Study design, findings, limitations, and data availability. |
+| [Manuscript](paper/manuscript/research4_manuscript.docx) and [PDF](paper/manuscript/research4_manuscript.pdf) | Study design, findings, limitations, and data availability. |
 | [Selected conversations](results/) | Readable run-by-run YAMLs with model inputs, available reasoning, outputs, tool outcomes, and resource changes. |
 | [Research catalog](catalog/) | Dated scenario, simulator, checkpoint, and result IDs with source hashes. |
 | [Scenario definitions](scenarios/) | Human-readable Game scenarios and study conditions. |

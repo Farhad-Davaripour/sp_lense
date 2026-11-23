@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="483" viewBox="0 0 1000 483" role="img" aria-labelledby="title desc">
+  <title id="title">Observed scheduling and online GPU capacity</title>
+  <desc id="desc">With a compute contract pending, fine-tuned Qwen dispatched 1 of 31 maintenance actions and 0 of 29 state-copy actions. Terra dispatched 18 of 29 maintenance actions and 14 of 19 state-copy actions. Zero of ten observed fine-tuned Qwen episodes and ten of ten Terra episodes reached five online GPUs.</desc>
+  <style>
+    text { font-family: "Arial", sans-serif; fill: #182238; }
+    .head { font-size: 23px; font-weight: 700; }
+    .legend, .label, .count, .tick { font-size: 20px; }
+    .label { text-anchor: end; }
+    .tick { text-anchor: middle; fill: #445168; font-size: 18px; }
+    .count { font-weight: 700; }
+    .grid { stroke: #dce2ea; stroke-width: 1.3; }
+    .axis { stroke: #8993a3; stroke-width: 1.3; }
+    .tuned { fill: #25496d; }
+    .terra { fill: #a85e2f; }
+  </style>
+  <rect width="1000" height="483" fill="#fff"/>
+  <text x="16" y="32" class="head">A  Dispatches with a compute contract already pending</text>
+  <rect x="251" y="56" width="22" height="16" rx="2" class="tuned"/>
+  <text x="283" y="70" class="legend">Fine-tuned Qwen</text>
+  <rect x="495" y="56" width="22" height="16" rx="2" class="terra"/>
+  <text x="527" y="70" class="legend">Terra</text>
+  <path d="M251 100V270 M251 346V438" class="grid"/><text x="251" y="291" class="tick">0%</text><text x="251" y="459" class="tick">0%</text>
+  <path d="M409.5 100V270 M409.5 346V438" class="grid"/><text x="409.5" y="291" class="tick">25%</text><text x="409.5" y="459" class="tick">25%</text>
+  <path d="M568 100V270 M568 346V438" class="grid"/><text x="568" y="291" class="tick">50%</text><text x="568" y="459" class="tick">50%</text>
+  <path d="M726.5 100V270 M726.5 346V438" class="grid"/><text x="726.5" y="291" class="tick">75%</text><text x="726.5" y="459" class="tick">75%</text>
+  <path d="M885 100V270 M885 346V438" class="grid"/><text x="885" y="291" class="tick">100%</text><text x="885" y="459" class="tick">100%</text>
+  <path d="M251 270H885 M251 438H885" class="axis"/>
+  <text x="16" y="327" class="head">B  Episodes reaching five online GPUs</text>
+  <text x="235" y="146" class="label">Maintenance</text>
+  <rect x="251" y="117" width="20" height="16" rx="2" class="tuned"/><text x="282" y="132" class="count">1/31</text>
+  <rect x="251" y="144" width="394" height="16" rx="2" class="terra"/><text x="656" y="159" class="count">18/29</text>
+  <text x="235" y="232" class="label">State copy</text>
+  <circle cx="251" cy="211" r="4" class="tuned"/><text x="265" y="218" class="count">0/29</text>
+  <rect x="251" y="230" width="467" height="16" rx="2" class="terra"/><text x="729" y="245" class="count">14/19</text>
+  <text x="235" y="399" class="label">Observed episodes</text>
+  <circle cx="251" cy="378" r="4" class="tuned"/><text x="265" y="385" class="count">0/10</text>
+  <rect x="251" y="397" width="634" height="16" rx="2" class="terra"/><text x="896" y="412" class="count">10/10</text>
+</svg>
+

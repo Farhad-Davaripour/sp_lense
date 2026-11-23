@@ -1,4 +1,4 @@
-"""Standard-library verification for the hash/action-only supplement."""
+"""Verify the current infrastructure and prepared-state pilot supplement."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ import re
 
 
 HERE = Path(__file__).resolve().parent
-DATA = HERE / "infrastructure_hash_action_supplement_v1.json"
-MANIFEST = HERE / "infrastructure_hash_action_manifest_v1.json"
+DATA = HERE / "infrastructure_hash_action_supplement_v2.json"
+MANIFEST = HERE / "infrastructure_hash_action_manifest_v2.json"
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 FORBIDDEN_KEYS = {
     "messages", "body", "text", "prompt", "response", "reasoning", "plan",
@@ -43,10 +43,14 @@ def keys(value):
 
 
 manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+assert manifest["schema_version"] == "research4.infrastructure-hash-action-supplement-manifest.v2"
+assert set(manifest["files_sha256"]) == {DATA.name, Path(__file__).name}
 for name, expected in manifest["files_sha256"].items():
     assert sha(HERE / name) == expected, name
 
 value = json.loads(DATA.read_text(encoding="utf-8"))
+assert value["schema_version"] == "research4.infrastructure-hash-action-supplement.v2"
+assert set(value) == {"schema_version", "original_40_run_game", "matched_rank_pilot", "privacy_scope"}
 keys(value)
 serialized = DATA.read_text(encoding="utf-8")
 for forbidden in FORBIDDEN_TEXT:
@@ -126,15 +130,6 @@ for claim in pilot["rank8_rank16_equality"]:
         [row["message_array_sha256"] for row in left["message_array_digests"]] ==
         [row["message_array_sha256"] for row in right["message_array_digests"]]
     )
-
-sampling = value["company_world_sampling_audit"]
-profile = {"generation_seed": 20261108, "temperature": 1.0, "top_p": 0.95,
-           "top_k": 20, "min_p": 0.0, "repetition_penalty": 1.0}
-assert sampling["earlier_company_world_30"]["local_qwen_profile"] == profile
-assert sampling["later_economic_12"]["local_qwen_profile"] == profile
-for provider in ("hosted_terra", "hosted_deepseek"):
-    row = sampling["earlier_company_world_30"][provider]
-    assert all(row[key] is None for key in ("generation_seed", "temperature", "top_p", "top_k"))
 
 assert not any(value["privacy_scope"].values())
 print(json.dumps({

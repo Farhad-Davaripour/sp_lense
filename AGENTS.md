@@ -24,6 +24,32 @@
   protocol compatibility before treating a Mac run as equivalent to an earlier
   GPU run. Report hardware and performance only after verification.
 
+## Current manuscript and study boundaries
+
+- The base infrastructure manuscript uses 15 selected episodes per model: ten
+  original cases plus five added visible-state cases. Both phases share the
+  bounded simulator and nine infrastructure tools. The tuned SP-Lense arm
+  reuses the same selected rank-16 all-64-block adapter; base Qwen has no
+  adapter, and Terra and DeepSeek are separate models. The added five changed
+  visible starting conditions and were
+  selected by first completion after partial outcomes. Keep the frozen phase
+  records unchanged and disclose these differences in combined descriptions.
+- The selected Game adapter (SHA-256 beginning `be11cf56`) differs from the
+  historical rank-16 last-eight-block transfer adapter and the rank-8 all-block
+  prepared-state pilot. Preserve the pilot, transfer evidence and Research3
+  workflow context without counting them as current Game episodes.
+- Two original Terra cases stopped when their 131K-token context filled. Their
+  separately frozen 262K-token linked continuations reached the 48-hour
+  horizon; preserve the original stop records and label the follow-ups as an
+  amended-context protocol.
+- The older 30-run and 12-cell company-world empirical comparisons are
+  historical, outside the base infrastructure manuscript. Keep their evidence
+  recoverable. The new five-case-per-model split-GPU sensitivity and
+  company-code-access experiments have distinct frozen plans; keep their
+  outcomes separate when available.
+  Never relabel infrastructure-only episodes as code-access episodes; a new
+  code-access run must visibly expose executable bounded company tools.
+
 ## Preservation and ongoing work
 
 - Preserve checkpoints, datasets, configurations, research evidence and prior

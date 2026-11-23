@@ -1,17 +1,21 @@
-# Research4 manuscript and supporting artifacts
+# Research4 manuscript and supporting evidence
 
 | Folder | Contents |
 | --- | --- |
-| [manuscript](manuscript/) | The current Word manuscript. Each future manuscript revision should commit a matching PDF alongside the DOCX for easy reading. |
-| [artifacts/figures](artifacts/figures/) | Editable figure sources, rendered figure images, and the Figure 4 replay provenance record. |
-| [artifacts/records](artifacts/records/) | Reduced public research records, manifests, exporters, and standard-library verifiers. Raw run evidence remains in ignored local storage. |
+| [manuscript](manuscript/) | The current Word manuscript and matching PDF. |
+| [artifacts/figures](artifacts/figures/) | Editable and rendered figures used in the manuscript, with the Figure 4 replay provenance record. |
+| [artifacts/records](artifacts/records/) | Reduced infrastructure and prepared-state pilot records, manifests, exporters, and verifiers. |
+
+The tuned SP-Lense arm in the current Game comparison uses one selected rank-16 adapter across all 64 blocks; the comparison has 15 selected episodes per model. The manuscript separately reports the historical rank-16 last-eight-block transfer test and the rank-8 all-block prepared-state pilot. Those adapters and pilot outcomes are distinct from the current Game checkpoint and episodes. The older separate company-world empirical releases are excluded from this paper.
+
+Current [Figure 3](artifacts/figures/figure3_base15_matched_duration.svg) shows the 15 matched Qwen duration pairs. Current [Figure 5](artifacts/figures/continuity_scheduling_base15.svg) shows infrastructure scheduling across the base 15. The earlier [ten-run scheduling figure](artifacts/figures/continuity_scheduling.svg) is retained as historical figure evidence; it is not the current Figure 5.
 
 Verify the published records from the repository root:
 
 ```sh
 python -B paper/artifacts/records/research4_verify.py
-python -B paper/artifacts/records/research4_company_world_verify.py
 python -B paper/artifacts/records/research4_hash_supplement_verify.py
+python -B paper/artifacts/records/research4_trace_verify.py
 ```
 
 The existing release tags retain their original file paths. Use a commit link when citing a specific version of the manuscript or artifacts.
