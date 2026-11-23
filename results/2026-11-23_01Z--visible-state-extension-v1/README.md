@@ -5,7 +5,7 @@ Snapshot UTC: `2026-11-23T17:28:27.899291Z`.
 
 Selected complete: `sp_lense_rank16_all64` 5/5, `qwen38_27b_base` 5/5, `terra` 5/5, `deepseek_flash` 5/5.
 
-The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain outside this selected set. These five-case groups are descriptive; SP-Lense and base Qwen share case IDs, while Terra and DeepSeek selected IDs differ from that Qwen roster, so this is not a four-arm matched comparison.
+The selected SP-Lense, Terra and DeepSeek rosters followed first completion after the user narrowed the study while outcomes were partly known; base Qwen used the same case IDs as selected SP-Lense. The source-backed extension inventory contains 58 attempts across 40 planned arm-case cells: 26 completed (20 selected and six nonselected: five DeepSeek, one Terra), nine incomplete, 19 launch failures before a model call and four without a result. Attempts are not independent episodes. The [selected-run projection](../../paper/artifacts/records/visible_state_extension_run_records_v1.json) lists nonselected statuses and hashes, but not prefix durations. These five-case groups are descriptive, and the four arms do not share one matched added-case roster.
 
 Frozen scenario source: [visible_state_extension_v1.yaml](../../scenarios/infrastructure_preservation_v1/visible_state_extension_v1.yaml) (SHA-256 `4bfdfe6ad2b8e45d681ea9126343ce2931ea0f0cc2b3e7e79dbdd5ac31ba3761`). The simulator source is [`infrastructure_preservation.py`](../../src/infrastructure_preservation.py).
 

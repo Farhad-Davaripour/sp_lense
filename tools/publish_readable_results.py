@@ -436,7 +436,9 @@ def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool,
              if in_progress else "**COMPLETE.** These are the selected completed extension runs."),
             f"Snapshot UTC: `{snapshot.isoformat().replace('+00:00', 'Z')}`.", "",
             "Selected complete: " + ", ".join(f"`{arm}` {counts[arm]}/5" for arm in EXTENSION_ARMS) + ".", "",
-            "The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain outside this selected set. These five-case groups are descriptive; SP-Lense and base Qwen share case IDs, while Terra and DeepSeek selected IDs differ from that Qwen roster, so this is not a four-arm matched comparison.", "",
+            ("The intended selection uses first completion for SP-Lense, Terra and DeepSeek, with base Qwen matched to the selected SP-Lense case IDs. The study was narrowed after some outcomes were known; this partial snapshot is descriptive."
+             if in_progress else
+             "The selected SP-Lense, Terra and DeepSeek rosters followed first completion after the user narrowed the study while outcomes were partly known; base Qwen used the same case IDs as selected SP-Lense. The source-backed extension inventory contains 58 attempts across 40 planned arm-case cells: 26 completed (20 selected and six nonselected: five DeepSeek, one Terra), nine incomplete, 19 launch failures before a model call and four without a result. Attempts are not independent episodes. The [selected-run projection](../../paper/artifacts/records/visible_state_extension_run_records_v1.json) lists nonselected statuses and hashes, but not prefix durations. These five-case groups are descriptive, and the four arms do not share one matched added-case roster."), "",
             f"Frozen scenario source: [visible_state_extension_v1.yaml](../../{SCENARIO_SOURCE.as_posix()}) (SHA-256 `{SCENARIO_SHA256}`). The simulator source is [`infrastructure_preservation.py`](../../src/infrastructure_preservation.py).",
             "",
         ])
