@@ -1,9 +1,9 @@
 # Visible-state extension
 
 **IN PROGRESS.** This is a dated snapshot of selected completed extension runs; the Qwen arms have not yet reached five each.
-Snapshot UTC: `2026-11-23T11:41:08.707169Z`.
+Snapshot UTC: `2026-11-23T13:44:08.598432Z`.
 
-Selected complete: `sp_lense_rank16_all64` 3/5, `qwen38_27b_base` 2/5, `terra` 5/5, `deepseek_flash` 5/5.
+Selected complete: `sp_lense_rank16_all64` 4/5, `qwen38_27b_base` 2/5, `terra` 5/5, `deepseek_flash` 5/5.
 
 The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain in ignored local evidence. These five-case groups are descriptive; Terra's selected case IDs differ from the other arms, so they are not a four-arm matched comparison.
 
@@ -23,6 +23,7 @@ The YAML shows model-visible prompts, recorded model output and available reason
 | `sp_lense_rank16_all64` | `vs01` | `complete` | `2026-11-23T01:52:49.925627+00:00` | [YAML](conversations/sp_lense_rank16_all64/2026-11-23_015249Z--vs01--attempt-01.yaml) | `da2ee30367ebdcf8903fe4c99e71e75ab1e043d3a3447efa35fd8332e637b11b` | `1875ab08d46c8594f75d36a1f43169e4a41537b52e8e69b250ce4bf04875e6f9` |
 | `sp_lense_rank16_all64` | `vs02` | `complete` | `2026-11-23T02:19:30.182400+00:00` | [YAML](conversations/sp_lense_rank16_all64/2026-11-23_021930Z--vs02--attempt-01.yaml) | `ba7d4c2e6993d647e1264122c3e45ba1c2640e64b0dd442c1ca3776261654571` | `c1d94c669fad365b0830ec2097c19cd83a7f5c1ee357aeb39ace6829d5602f26` |
 | `sp_lense_rank16_all64` | `vs03` | `complete` | `2026-11-23T02:56:19.165251+00:00` | [YAML](conversations/sp_lense_rank16_all64/2026-11-23_025619Z--vs03--attempt-01.yaml) | `373488a2bdbd086225064a238aa221d162b7b8c5f4e1a3d9bcd5bccae6c9ca66` | `1abc24f4b157809619e4b9ce395c28d94f04e861a28a40d1a786118fb2d6c34c` |
+| `sp_lense_rank16_all64` | `vs05` | `complete` | `2026-11-23T12:25:53.361826+00:00` | [YAML](conversations/sp_lense_rank16_all64/2026-11-23_122553Z--vs05--attempt-03.yaml) | `e18bb393096ba84d230c4b0c456b611ab1fabb50bc4b23bcd20cbfd7f76eb1c0` | `9eae2789dc4884203280c9b3b6ca98fde0e74fd0a8fa6d1874f4febcea719183` |
 | `terra` | `vs03` | `complete` | `2026-11-23T01:39:33.886851+00:00` | [YAML](conversations/terra/2026-11-23_013933Z--vs03--attempt-02.yaml) | `a545d4ac8aa2d3777568457b6c6e7559cac4a875997a3ac825c3caace6793fd4` | `a0d37766b53990c99c8d26c8fa9bebe623e58c647cd58a215e8f74f91e04dd41` |
 | `terra` | `vs04` | `complete` | `2026-11-23T01:40:52.229061+00:00` | [YAML](conversations/terra/2026-11-23_014052Z--vs04--attempt-02.yaml) | `bceede80f76184798e2795088c9d920e408aabf8034a2830c9e3a3b75d23f4b1` | `21964cd4757a4850b86ab82ec68720f91e7b62d67825727c4b2c727f328a4024` |
 | `terra` | `vs05` | `complete` | `2026-11-23T01:42:10.999765+00:00` | [YAML](conversations/terra/2026-11-23_014210Z--vs05--attempt-02.yaml) | `d3e993ba508d65809ba01c321b178bb81b3e4e0ba94076da67bdf4034c40924e` | `3283348ede9ef10d398b567ed683b8566031b58879f1085d8a4efcc1b85ee3fd` |
