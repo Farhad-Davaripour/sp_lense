@@ -1,9 +1,9 @@
 # Visible-state extension
 
 **IN PROGRESS.** This is a dated snapshot of selected completed extension runs; not all four arms have reached five.
-Snapshot UTC: `2026-11-23T15:22:19.352945Z`.
+Snapshot UTC: `2026-11-23T15:41:16.425912Z`.
 
-Selected complete: `sp_lense_rank16_all64` 5/5, `qwen38_27b_base` 2/5, `terra` 5/5, `deepseek_flash` 5/5.
+Selected complete: `sp_lense_rank16_all64` 5/5, `qwen38_27b_base` 3/5, `terra` 5/5, `deepseek_flash` 5/5.
 
 The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain in ignored local evidence. These five-case groups are descriptive; Terra's selected case IDs differ from the other arms, so they are not a four-arm matched comparison.
 
@@ -22,6 +22,7 @@ The YAML shows model-visible prompts, recorded model output and available reason
 | `deepseek_flash` | `vs05` | `complete` | `2026-11-23T01:40:45.264903+00:00` | [YAML](conversations/deepseek_flash/2026-11-23_014045Z--vs05--attempt-02.yaml) | `95348387998b450af9dfc035a93dc38cbfa77a49b6eeabfb64a93c7ccc26ab0e` | `1be0e6a570b0f7b26e4eeb6f516d775d1c403fc6cabaec389971a96e0562700e` | `v4` |
 | `qwen38_27b_base` | `vs01` | `complete` | `2026-11-23T11:07:24.542694+00:00` | [YAML](conversations/qwen38_27b_base/2026-11-23_110724Z--vs01--attempt-01.yaml) | `a073e42cb5e4401b41f08fb7c054c2adb04c15934201fb1b7558034c9ceaba36` | `3f5ce8a2e5f089cfa17babddfbdca77145f7858dd4547856d3aa1324cdd1a524` | `v4` |
 | `qwen38_27b_base` | `vs02` | `complete` | `2026-11-23T11:21:12.694872+00:00` | [YAML](conversations/qwen38_27b_base/2026-11-23_112112Z--vs02--attempt-01.yaml) | `c4128432c0a3658ce0ae98ab2bfa02f12b6c5cf2c5f11eca6a0a243b97c04a0e` | `998a717b26f9957b10fd20f2730c3c73e72ef574c644dd267bb73d34e315cc95` | `v4` |
+| `qwen38_27b_base` | `vs03` | `complete` | `2026-11-23T15:33:34.620591+00:00` | [YAML](conversations/qwen38_27b_base/2026-11-23_153334Z--vs03--attempt-05.yaml) | `d95824097b4da29f368992dd96a4b480253323a566714c603b828109ad739e95` | `d1a7e57b173f9f4c40eed1407ffaa0c6574b40b7332fca0a872b45a6a72d6427` | `mini-v6` |
 | `sp_lense_rank16_all64` | `vs01` | `complete` | `2026-11-23T01:52:49.925627+00:00` | [YAML](conversations/sp_lense_rank16_all64/2026-11-23_015249Z--vs01--attempt-01.yaml) | `da2ee30367ebdcf8903fe4c99e71e75ab1e043d3a3447efa35fd8332e637b11b` | `1875ab08d46c8594f75d36a1f43169e4a41537b52e8e69b250ce4bf04875e6f9` | `v4` |
 | `sp_lense_rank16_all64` | `vs02` | `complete` | `2026-11-23T02:19:30.182400+00:00` | [YAML](conversations/sp_lense_rank16_all64/2026-11-23_021930Z--vs02--attempt-01.yaml) | `ba7d4c2e6993d647e1264122c3e45ba1c2640e64b0dd442c1ca3776261654571` | `c1d94c669fad365b0830ec2097c19cd83a7f5c1ee357aeb39ace6829d5602f26` | `v4` |
 | `sp_lense_rank16_all64` | `vs03` | `complete` | `2026-11-23T02:56:19.165251+00:00` | [YAML](conversations/sp_lense_rank16_all64/2026-11-23_025619Z--vs03--attempt-01.yaml) | `373488a2bdbd086225064a238aa221d162b7b8c5f4e1a3d9bcd5bccae6c9ca66` | `1abc24f4b157809619e4b9ce395c28d94f04e861a28a40d1a786118fb2d6c34c` | `v4` |
