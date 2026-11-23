@@ -2,11 +2,12 @@
 
 ## Current research direction
 
-- For SP_Lense and Research4 inference and fine-tuning, use the user's locally
-  connected and configured Apple-silicon Mac Studio and the local Research4
-  repository on non-OneDrive storage. Do not fall back to Kaggle, Databricks or
-  another cloud platform when the Mac is unavailable; use another platform only
-  if the user explicitly directs it later.
+- For all new SP_Lense and Research4 inference and fine-tuning runs, use the
+  user's locally connected and configured 64 GB Apple-silicon Mac Mini and the
+  local Research4 repository on non-OneDrive storage. Do not use the Mac Studio
+  for new runs; it is being returned and must remain idle. Do not fall back to
+  Kaggle, Databricks or another cloud platform when the Mac Mini is unavailable;
+  use another platform only if the user explicitly directs it later.
 - The current Research4 base-model target is `Qwen/Qwen3.8-27B`. Preserve the
   earlier Qwen3.5 9B experiments as a separate local archive; do not describe
   their adapters or results as trained on, or directly interchangeable with,

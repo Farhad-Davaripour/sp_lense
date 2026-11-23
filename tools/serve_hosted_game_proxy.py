@@ -26,6 +26,7 @@ from inspect_ai.model import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+SOURCE_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 if __package__ in (None, ""):
     sys.path.insert(0, str(ROOT))
 
@@ -163,6 +164,8 @@ def handler_type(bridge: HostedBridge):
                 "adapter_sha256": bridge.identity_sha,
                 "provider": bridge.provider,
                 "max_output_tokens": bridge.max_output_tokens,
+                "endpoint_source_sha256": SOURCE_SHA256,
+                "source_sha256": SOURCE_SHA256,
                 "game_plan_sha256s": sorted(bridge.plan_shas),
             })
 

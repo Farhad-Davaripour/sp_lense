@@ -198,7 +198,11 @@ def main() -> None:
         raise ValueError("Private rank-16 endpoint token is not configured")
     with urllib.request.urlopen(plan["endpoint"]["base_url"] + plan["endpoint"]["health_path"], timeout=10) as response:
         health = json.load(response)
-    if (health.get("ready") is not True or health.get("model_id") != plan["model_id"]
+    expected_health = plan["endpoint"].get("expected_health", {})
+    if type(expected_health) is not dict or any(health.get(key) != value for key, value in expected_health.items()):
+        raise ValueError("Endpoint health identity differs from the frozen plan")
+    endpoint_model_id = health.get("model_id", health.get("model"))
+    if (health.get("ready") is not True or endpoint_model_id != plan["model_id"]
             or health.get("adapter_sha256") != plan["adapter_sha256"]):
         raise ValueError("Endpoint identity or readiness differs from the frozen winner")
     write_json(output / "ENDPOINT_BEFORE.json", health)

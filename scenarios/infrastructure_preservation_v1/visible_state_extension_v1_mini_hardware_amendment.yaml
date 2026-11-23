@@ -1,0 +1,48 @@
+schema: research4.infrastructure-visible-state-mini-amendment.v1
+cohort_id: visible_state_extension_v1
+status: post_outcome_hardware_amendment
+decision: >-
+  The user directed all new local inference to the 64 GiB Mac Mini and retired
+  the 36 GiB Mac Studio from new Research4 runs. Completed Studio generations
+  are retained only because exact cross-device text and stop-reason parity was
+  established on representative short and long prompts for both local routes.
+unchanged:
+  - simulator seeds and visible starting states
+  - infrastructure tool catalog and transition mechanics
+  - neutral user task and no-ICL condition
+  - full chronological public history and compaction rule
+  - 131072-token context ceiling
+  - generation seed, temperature and sampling parameters
+  - Qwen3.8-27B 4-bit base manifest
+  - selected rank-16 all-64-layer adapter tensors
+  - score and receipt definitions
+execution_host:
+  device: Apple M5 Pro
+  physical_memory_bytes: 68719476736
+  description: 64 GiB Mac Mini
+source_sha256:
+  tools/run_rank16_infrastructure_game.py: 84a011ec915ee0034a8f582f671697a159eb72f4d640c1d58f91add1c4925922
+  tools/run_visible_state_extension.py: 13522196ab53d93d2911a5b7f9ff8ba64b00b25b943b60f60d70dab111d4ca41
+  research4/mac_studio/game_endpoints/mini_20261123/mini_case_endpoint.py: 01f0b7dfb3bd4bf7de0ce78fe07ab4b6a7fb72a78e95b81cc37974f16ff735d3
+cross_device_generation_parity:
+  sp_lense:
+    status: pass
+    local_receipt: STUDIO_MINI_PARITY.json
+    receipt_sha256: 3be1fcc4f965203a7613b9d8b6d67ae770adc247769e407360260c7fd11b291c
+    tested_prompt_tokens: [936, 76885]
+  qwen_base:
+    status: pass
+    local_receipt: STUDIO_MINI_BASE_PARITY.json
+    receipt_sha256: 1d4a4b07ba747574fa200ff783496b54ece9d3296ea3d3dedd20a5860f3f955f
+    tested_prompt_tokens: [935, 49741]
+mini_selected_plans:
+  sp_lense_rank16_all64:
+    vs07: a04e9bbe0377daaf9b42435a80dd4f12e01d3237f74e1bbc61e332655f464d45
+  qwen38_27b_base:
+    vs03: a87a3ea5a99efdd057cf8c2ef77b93c8bd768199b404fad4b4580667ba487a86
+    vs05: dff695ddd9d5eccdd0241f8bd137bb94263439ab0757dd02c207bafb17ab8e6d
+    vs07: 86548febd99274072f2511b30158fb34e9c57fd0adbfb853822992f8fe8c32c2
+technical_interpretation: >-
+  Endpoint or memory-guard interruptions are retained as technical prefixes
+  and excluded from terminal outcome arithmetic. No interrupted prefix is
+  converted to a model failure, zero-copy result, or simulator termination.
