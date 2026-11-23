@@ -31,6 +31,35 @@ EXTENSION_FOLDER = "2026-11-23_01Z--visible-state-extension-v1"
 LOCAL_EXTENSION_FOLDER = "2026-11-22_18--visible-state-extension-v1"
 SCENARIO_SOURCE = Path("scenarios/infrastructure_preservation_v1/visible_state_extension_v1.yaml")
 SCENARIO_SHA256 = "4bfdfe6ad2b8e45d681ea9126343ce2931ea0f0cc2b3e7e79dbdd5ac31ba3761"
+FROZEN_EXTENSION_ROOT = Path("2026-11-22_18/visible-state-extension-v1")
+MINI_AMENDMENT_SHA256 = "527d505b97a8dd042f5f27496c44108cd6088f6185cf8e1e9bde01821fccea13"
+MINI_ENDPOINT_SOURCE = Path("research4/mac_studio/game_endpoints/mini_20261123/mini_case_endpoint.py")
+MINI_ENDPOINT_SHA256 = "01f0b7dfb3bd4bf7de0ce78fe07ab4b6a7fb72a78e95b81cc37974f16ff735d3"
+MINI_RUNNER_SHA256 = "84a011ec915ee0034a8f582f671697a159eb72f4d640c1d58f91add1c4925922"
+MINI_SOURCE_SHA256 = {
+    "tools/run_rank16_infrastructure_game.py": MINI_RUNNER_SHA256,
+    "tools/rank16_prompt_tokens.py": "bb72435befeefc0ef763f77a82fb6de6147f1b0d63643ab0b1b92daa1ba35c87",
+    "src/infrastructure_preservation.py": "d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9",
+    "src/research_paths.py": "41c2198474b4eaf641899f6bdbd8d99401f7ac7c29f9a54cabec178a57a028e1",
+}
+MINI_PARITY_RECEIPTS = {
+    "sp_lense": ("STUDIO_MINI_PARITY.json", "3be1fcc4f965203a7613b9d8b6d67ae770adc247769e407360260c7fd11b291c"),
+    "base": ("STUDIO_MINI_BASE_PARITY.json", "1d4a4b07ba747574fa200ff783496b54ece9d3296ea3d3dedd20a5860f3f955f"),
+}
+MINI_PLAN_ALLOWLIST = {
+    ("sp_lense_rank16_all64", "vs07"): (
+        "plans_v5_mini", "a04e9bbe0377daaf9b42435a80dd4f12e01d3237f74e1bbc61e332655f464d45", "mini-v5",
+    ),
+    ("qwen38_27b_base", "vs03"): (
+        "plans_v6_mini", "a87a3ea5a99efdd057cf8c2ef77b93c8bd768199b404fad4b4580667ba487a86", "mini-v6",
+    ),
+    ("qwen38_27b_base", "vs05"): (
+        "plans_v6_mini", "dff695ddd9d5eccdd0241f8bd137bb94263439ab0757dd02c207bafb17ab8e6d", "mini-v6",
+    ),
+    ("qwen38_27b_base", "vs07"): (
+        "plans_v6_mini", "86548febd99274072f2511b30158fb34e9c57fd0adbfb853822992f8fe8c32c2", "mini-v6",
+    ),
+}
 EXTENSION_ARMS = (
     "sp_lense_rank16_all64", "qwen38_27b_base", "terra", "deepseek_flash"
 )
@@ -85,6 +114,7 @@ class Conversation:
     source_label: str
     relative_path: Path
     content: bytes
+    plan_revision: str = ""
 
 
 def _sha(data: bytes) -> str:
@@ -218,6 +248,110 @@ def _extension_selection(local_root: Path, snapshot: datetime) -> list[tuple[str
     return chosen
 
 
+def _verified_mini_amendment(local_root: Path) -> dict:
+    amendment_path = local_root / FROZEN_EXTENSION_ROOT / "MINI_HARDWARE_AMENDMENT.json"
+    if _sha(amendment_path.read_bytes()) != MINI_AMENDMENT_SHA256:
+        raise ReleaseError("Mini hardware amendment bytes differ from the recorded revision")
+    amendment = _read_json(amendment_path)
+    parity = amendment.get("completed_studio_generation_parity")
+    if (amendment.get("schema") != "research4.visible-state-hardware-amendment.v1"
+            or amendment.get("status") != "FROZEN_BEFORE_MINI_GAME_CALL"
+            or amendment.get("decided_after_studio_outcomes") is not True
+            or amendment.get("mini_endpoint_source_sha256") != MINI_ENDPOINT_SHA256
+            or not isinstance(parity, dict)
+            or _sha((ROOT / MINI_ENDPOINT_SOURCE).read_bytes()) != MINI_ENDPOINT_SHA256):
+        raise ReleaseError("Mini hardware amendment or endpoint source is not the audited revision")
+    for arm, (filename, expected_sha) in MINI_PARITY_RECEIPTS.items():
+        if parity.get(arm) != "pass" or parity.get(f"{arm}_receipt_sha256") != expected_sha:
+            raise ReleaseError(f"Mini {arm} parity is not bound to its passed receipt")
+        receipt_path = local_root / LOCAL_EXTENSION_FOLDER / filename
+        if _sha(receipt_path.read_bytes()) != expected_sha:
+            raise ReleaseError(f"Mini {arm} parity receipt bytes differ")
+        receipt = _read_json(receipt_path)
+        rows = receipt.get("results")
+        if (receipt.get("schema") != "research4.studio-mini-generation-parity.v1"
+                or receipt.get("status") != "pass"
+                or receipt.get("mini_endpoint_source_sha256") != MINI_ENDPOINT_SHA256
+                or not isinstance(rows, list) or len(rows) != 2
+                or any(row.get("exact_text_equal") is not True
+                       or row.get("studio_text_sha256") != row.get("mini_text_sha256")
+                       or row.get("studio_finish_reason") != row.get("mini_finish_reason")
+                       for row in rows)):
+            raise ReleaseError(f"Mini {arm} parity receipt does not show two exact replays")
+    first_plan = amendment.get("first_remaining_plan")
+    if (not isinstance(first_plan, dict)
+            or first_plan.get("arm") != "sp_lense_rank16_all64"
+            or first_plan.get("case_id") != "vs07"
+            or first_plan.get("sha256") != MINI_PLAN_ALLOWLIST[("sp_lense_rank16_all64", "vs07")][1]):
+        raise ReleaseError("Mini amendment does not identify the first remaining frozen plan")
+    return amendment
+
+
+def _extension_plan_revision(local_root: Path, freeze: dict, arm: str,
+                             case: str, manifest: dict, run_dir: Path) -> str:
+    plan_root = local_root / FROZEN_EXTENSION_ROOT
+    frozen_relative = f"plans_v4/{arm}/{case}.json"
+    frozen_sha = freeze["plan_sha256"].get(frozen_relative)
+    if not frozen_sha:
+        raise ReleaseError(f"No frozen v4 plan for {arm}/{case}")
+    frozen_path = _inside(plan_root, frozen_relative)
+    if _sha(frozen_path.read_bytes()) != frozen_sha:
+        raise ReleaseError(f"Frozen v4 plan bytes differ for {arm}/{case}")
+    frozen_plan = _read_json(frozen_path)
+    if manifest.get("arm_id") != f"{arm}_{case}":
+        raise ReleaseError(f"Extension arm differs from the frozen case: {arm}/{case}")
+    if manifest.get("plan_sha256") == frozen_sha:
+        if any(manifest.get(key) != value for key, value in frozen_plan.items()):
+            raise ReleaseError(f"Extension manifest differs from its frozen v4 plan: {arm}/{case}")
+        return "v4"
+
+    mini = MINI_PLAN_ALLOWLIST.get((arm, case))
+    if mini is None or manifest.get("plan_sha256") != mini[1]:
+        raise ReleaseError(f"Extension arm or frozen plan mismatch: {arm}/{run_dir.name}")
+    plan_folder, mini_sha, label = mini
+    amendment = _verified_mini_amendment(local_root)
+    mini_relative = f"{plan_folder}/{arm}/{case}.json"
+    mini_path = _inside(plan_root, mini_relative)
+    if _sha(mini_path.read_bytes()) != mini_sha:
+        raise ReleaseError(f"Mini plan bytes differ from the allowed revision: {arm}/{case}")
+    mini_plan = _read_json(mini_path)
+    expected_hardware = {
+        "execution_host": "64_GiB_Apple_M5_Pro_Mac_Mini",
+        "mini_endpoint_source_sha256": MINI_ENDPOINT_SHA256,
+        "studio_sp_parity_sha256": MINI_PARITY_RECEIPTS["sp_lense"][1],
+        "studio_base_parity_sha256": MINI_PARITY_RECEIPTS["base"][1],
+        "reason": "user_directed_remaining_local_runs_on_mac_mini",
+    }
+    expected_plan = json.loads(json.dumps(frozen_plan))
+    expected_plan["endpoint"]["expected_health"] = {}
+    expected_plan["cohort_extension"]["hardware_amendment"] = expected_hardware
+    if label == "mini-v6":
+        if (arm != "qwen38_27b_base"
+                or frozen_plan["endpoint"]["base_url"] != "http://127.0.0.1:8874"):
+            raise ReleaseError("Mini v6 loopback correction is outside the base arm")
+        expected_plan["endpoint"]["base_url"] = "http://127.0.0.1:8873"
+        expected_hardware["mini_plan_revision"] = "v6_corrected_loopback_port_before_model_call"
+    if mini_plan != expected_plan:
+        raise ReleaseError(f"Mini plan changed more than the recorded hardware/endpoint fields: {arm}/{case}")
+    if (mini_plan["cohort_extension"]["hardware_amendment"]["mini_endpoint_source_sha256"]
+            != amendment["mini_endpoint_source_sha256"]):
+        raise ReleaseError("Mini plan endpoint source differs from the hardware amendment")
+    if any(manifest.get(key) != value for key, value in mini_plan.items()):
+        raise ReleaseError(f"Mini manifest differs from its exact plan: {arm}/{case}")
+    if manifest.get("source_sha256") != MINI_SOURCE_SHA256:
+        raise ReleaseError(f"Mini runner or simulator source differs: {arm}/{case}")
+    health = _read_json(run_dir / "ENDPOINT_BEFORE.json")
+    if (health.get("ready") is not True
+            or health.get("model") != manifest["model_id"]
+            or health.get("model_id", manifest["model_id"]) != manifest["model_id"]
+            or health.get("adapter_sha256") != manifest.get("adapter_sha256")
+            or health.get("game_plan_sha256") != mini_sha
+            or (arm == "qwen38_27b_base"
+                and health.get("base_manifest_sha256") != manifest.get("base_manifest_sha256"))):
+        raise ReleaseError(f"Mini endpoint identity is not bound to the completed run: {arm}/{case}")
+    return label
+
+
 def _extension(local_root: Path, snapshot: datetime) -> list[Conversation]:
     freeze = _read_json(local_root / "2026-11-22_18/visible-state-extension-v1/FREEZE_RECEIPT_v4.json")
     if freeze.get("status") != "FINAL_FROZEN_BEFORE_MODEL_CALLS" or freeze.get("plan_count") != 40:
@@ -228,9 +362,7 @@ def _extension(local_root: Path, snapshot: datetime) -> list[Conversation]:
     for arm, run_dir, result in _extension_selection(local_root, snapshot):
         manifest = _read_json(run_dir / "MANIFEST.json")
         case = run_dir.name.split("--", 1)[0]
-        expected_plan = freeze["plan_sha256"].get(f"plans_v4/{arm}/{case}.json")
-        if manifest.get("arm_id") != f"{arm}_{case}" or not expected_plan or manifest.get("plan_sha256") != expected_plan:
-            raise ReleaseError(f"Extension arm or frozen plan mismatch: {arm}/{run_dir.name}")
+        plan_revision = _extension_plan_revision(local_root, freeze, arm, case, manifest, run_dir)
         if len(manifest.get("samples", [])) != 1 or manifest["samples"][0].get("arm_id") != f"{arm}_{case}":
             raise ReleaseError(f"Extension sample identity mismatch: {arm}/{run_dir.name}")
         requests = _read_jsonl(run_dir / "REQUESTS.jsonl")
@@ -285,25 +417,32 @@ def _extension(local_root: Path, snapshot: datetime) -> list[Conversation]:
         selected.append(Conversation(
             EXTENSION_FOLDER, arm, case, "complete", result["finished_utc"],
             _sha((run_dir / "MANIFEST.json").read_bytes()),
-            f"{arm}/{run_dir.name}", relative, content,
+            f"{arm}/{run_dir.name}", relative, content, plan_revision,
         ))
     if len({row.relative_path for row in selected}) != len(selected):
         raise ReleaseError("Duplicate extension conversation output paths")
     return selected
 
 
-def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool, snapshot: datetime) -> bytes:
+def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool,
+                   snapshot: datetime, is_extension: bool = False) -> bytes:
     lines = [f"# {title}", ""]
-    if in_progress:
+    if is_extension:
         counts = Counter(row.arm for row in rows)
         lines.extend([
-            "**IN PROGRESS.** This is a dated snapshot of selected completed extension runs; the Qwen arms have not yet reached five each.",
+            ("**IN PROGRESS.** This is a dated snapshot of selected completed extension runs; not all four arms have reached five."
+             if in_progress else "**COMPLETE.** These are the selected completed extension runs."),
             f"Snapshot UTC: `{snapshot.isoformat().replace('+00:00', 'Z')}`.", "",
             "Selected complete: " + ", ".join(f"`{arm}` {counts[arm]}/5" for arm in EXTENSION_ARMS) + ".", "",
             "The first five completed runs per arm are selected by recorded finish time after the user narrowed the study scope while outcomes were partly known. Extra completed runs and technical prefixes remain in ignored local evidence. These five-case groups are descriptive; Terra's selected case IDs differ from the other arms, so they are not a four-arm matched comparison.", "",
             f"Frozen scenario source: `{SCENARIO_SOURCE.as_posix()}` (SHA-256 `{SCENARIO_SHA256}`); its Git publication is pending the Game handoff. The simulator source is [`infrastructure_preservation.py`](../../src/infrastructure_preservation.py).",
             "",
         ])
+        if any(row.plan_revision.startswith("mini-") for row in rows):
+            lines.extend([
+                f"The remaining local cases use a separately frozen Mac Mini hardware amendment (SHA-256 `{MINI_AMENDMENT_SHA256}`). The Mini plan revisions change endpoint and hardware binding only; the model-visible scenario, simulator, tool catalog, prompts and generation policy retain their v4 values. Each Mini run is identified in the plan-revision column below. Representative completed Studio requests had exact Mini replay parity; the private receipts and interrupted technical prefixes remain in ignored local evidence.",
+                "",
+            ])
     else:
         lines.extend([
             "These are the 40 catalog-selected episodes used in the current manuscript: 38 valid terminal records and two technically right-censored Terra prefixes. Four excluded technical attempts are not part of this collection.", "",
@@ -311,14 +450,15 @@ def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool, s
         ])
     lines.extend([
         "The YAML shows model-visible prompts, recorded model output and available reasoning, actual tool calls and simulator replies, tool success, observed state, and a final recorded resource timeline. Text is not rewritten. Qwen thinking, when present, remains inside its recorded model output. DeepSeek has separately recorded reasoning; Terra's separately recorded field is a provider summary and is labeled accordingly. Some Terra provider summaries are opaque nonprose strings; they are preserved verbatim and should not be interpreted as readable reasoning. A missing separate field is not evidence that no reasoning occurred.", "",
-        "| Arm | Case | Recorded outcome | Finished UTC | Conversation | YAML SHA-256 | Source manifest SHA-256 |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Arm | Case | Recorded outcome | Finished UTC | Conversation | YAML SHA-256 | Source manifest SHA-256 |" + (" Plan revision |" if is_extension else ""),
+        "| --- | --- | --- | --- | --- | --- | --- |" + (" --- |" if is_extension else ""),
     ])
     for row in sorted(rows, key=lambda r: (r.arm, r.case, r.finished_utc)):
         relative = row.relative_path.relative_to(row.cohort).as_posix()
         lines.append(
             f"| `{row.arm}` | `{row.case}` | `{row.status}` | `{row.finished_utc}` | "
             f"[YAML]({relative}) | `{_sha(row.content)}` | `{row.source_sha256}` |"
+            + (f" `{row.plan_revision}` |" if is_extension else "")
         )
     lines.append("")
     return ("\n".join(lines)).encode("utf-8")
@@ -360,7 +500,7 @@ def prepare(local_root: Path, snapshot: datetime, *, original_only: bool = False
     if not original_only:
         files[Path(EXTENSION_FOLDER) / "README.md"] = _cohort_readme(
             "Visible-state extension", extension,
-            in_progress=in_progress, snapshot=snapshot,
+            in_progress=in_progress, snapshot=snapshot, is_extension=True,
         )
     for path, content in files.items():
         _privacy_check(path, content)

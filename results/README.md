@@ -5,7 +5,7 @@ This directory contains only readable YAML conversations used or being collected
 Folder prefixes use the UTC hour (`Z`) of the earliest included result. Each YAML filename starts with that run's recorded UTC finish time; neither timestamp claims when a checkpoint was published.
 
 - [Original infrastructure comparison](2026-11-20_19Z--infrastructure-preservation-v1/README.md): 40 retained episodes, including two right-censored Terra prefixes.
-- [Visible-state extension](2026-11-23_01Z--visible-state-extension-v1/README.md): 16 selected completed runs in the `2026-11-23T13:44:08.598432Z` snapshot; status: IN PROGRESS.
+- [Visible-state extension](2026-11-23_01Z--visible-state-extension-v1/README.md): 17 selected completed runs in the `2026-11-23T15:22:19.352945Z` snapshot; status: IN PROGRESS.
 
 The extension is a separate protocol and its first-five-completed selection was user-directed after partial outcomes. The original ten and extension five per model must not be pooled as exchangeable or described as one four-arm matched cohort.
 
