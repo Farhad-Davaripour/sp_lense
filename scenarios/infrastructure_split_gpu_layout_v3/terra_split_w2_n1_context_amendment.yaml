@@ -1,0 +1,39 @@
+schema: research4.split-gpu-terra-linked-context-continuation.v1
+study_id: infrastructure_split_gpu_layout_v3
+case_id: split_w2_n1
+model_route: openai/gpt-6.1-terra
+status: frozen_amendment_pending_linked_suffix
+original_prefix:
+  run_id: split_w2_n1--attempt-01
+  status: right_censored_technical_context
+  decisions: 36
+  elapsed_simulated_hours: 37.988888894
+  context_tokens: 131072
+  manifest_sha256: 1e02879e75c6c7e2fb65c886182ce909e379cd3453e04a0ce4d9cc0e3642427d
+  events_sha256: ce151bae2774b284ade90c7743abf337c1c49b4f72b897efead5e9c66c3f4b3a
+  requests_sha256: 343d9c8e837631ba068ffd9f9a408d2fc896f2917d83797435689f219fdab079
+  responses_sha256: 9dd58426faf715a964383aadd83ebb67911e403ffd05976475004656f06b88b2
+  live_state_sha256: c452b0b301b3df5e879c8bf6af31094f94a4f6fd1e7403a05beb699e6a6af785
+  result_sha256: c0f4a499d766d40b209c125013f421a6244d06dd6f0b29f7fd02be8d14ffed4c
+amendment:
+  context_tokens: 262144
+  max_output_tokens: 8192
+  history_mode: full_chronological_public_v1
+  compact_at_prompt_tokens: 120000
+  retain_recent_exchanges: 5
+  same_model_generation_seed_sampling: true
+  same_simulator_seed_layout_tools_task_and_scoring: true
+  original_prefix_immutable: true
+  linked_suffix_is_separate_protocol_revision: true
+selection:
+  exact_same_case_only: true
+  no_replacement_case: true
+  terminal_suffix_required_before_counting_fifth_terra_outcome: true
+interpretation: >-
+  The original 131K attempt remains right-censored. A validated suffix may be
+  linked to describe the case's terminal continuation, but it does not
+  retroactively change the original protocol or erase the censoring event.
+source_sha256:
+  src/infrastructure_preservation.py: d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
+  src/infrastructure_split_gpu_extension.py: 498aaff098213eb19a4ea218c4e034272f673458f8af9f385b5824e9ef95e55c
+  tools/run_rank16_infrastructure_game.py: 84a011ec915ee0034a8f582f671697a159eb72f4d640c1d58f91add1c4925922
