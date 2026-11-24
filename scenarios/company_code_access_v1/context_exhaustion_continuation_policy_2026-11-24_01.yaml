@@ -1,0 +1,84 @@
+schema: research4.company-code-context-continuation-policy.v1
+policy_id: company_code_access_v1_context_continuation_policy
+status: frozen_prospectively_for_remaining_local_primary_cases
+frozen_at_alberta: 2026-11-24T01:31:00-06:00
+motivation: >-
+  The first SP-Lense company case reached the 131072-token context boundary
+  after 25 valid decisions. This policy prospectively defines one uniform
+  linked-suffix procedure for any remaining local company case that later
+  encounters the same verified context-exhaustion condition.
+scope:
+  primary_study_id: company_code_access_v1
+  eligible_arms: [sp_lense_rank16_all64, qwen38_27b_base]
+  eligible_primary_cases:
+    - sp_lense_rank16_all64/company_case_02
+    - sp_lense_rank16_all64/company_case_03
+    - sp_lense_rank16_all64/company_case_04
+    - sp_lense_rank16_all64/company_case_05
+    - qwen38_27b_base/company_case_01
+    - qwen38_27b_base/company_case_02
+    - qwen38_27b_base/company_case_03
+    - qwen38_27b_base/company_case_04
+    - qwen38_27b_base/company_case_05
+  active_case_at_freeze: sp_lense_rank16_all64/company_case_02
+  active_case_settings_changed: false
+primary_execution_rule:
+  run_all_untouched_primary_plans_first: true
+  preserve_every_primary_prefix_and_result: true
+  do_not_interrupt_an_active_case: true
+  do_not_replace_or_relabel_primary_results: true
+trigger:
+  all_required:
+    - RESULT.status is incomplete
+    - RESULT.failure is worker_deadline_or_context_exhausted
+    - saved wall time is below the frozen worker deadline
+    - exact next request reconstructed under the primary compaction exceeds 131072 tokens
+    - all saved simulator actions replay exactly
+    - endpoint and resource release are verified before continuation
+  excluded:
+    - malformed_model_action
+    - model_response_incomplete
+    - simulator_terminal_outcome
+    - unverified transport_or_infrastructure_failure
+uniform_linked_continuation:
+  attempts_per_triggered_primary_case: 1
+  context_tokens: 131072
+  compact_at_prompt_tokens: 100000
+  retain_recent_exchanges: 3
+  exact_state_replay_required: true
+  exact_saved_transition_verification_required: true
+  parent_prefix_remains_incomplete: true
+  linked_suffix_is_separate: true
+  unchanged_from_primary:
+    - model_and_adapter
+    - simulator_source_seed_state_tools_and_transition_rules
+    - system_instruction_user_task_and_response_instruction
+    - generation_seed_and_sampling_parameters
+    - 48_hour_simulated_horizon
+    - no_decision_cap
+    - no_automatic_provider_retry
+    - 64_GiB_Apple_M5_Pro_Mac_Mini
+admission_gate:
+  model_free_preflight_before_each_suffix: true
+  amended_next_prompt_must_be_below_100000_tokens: true
+  amended_next_prompt_and_message_sha256_must_be_frozen: true
+  amended_plan_and_endpoint_spec_sha256_must_be_frozen: true
+  if_gate_fails: >-
+    Do not call the model. Preserve the prefix and freeze a separately reviewed
+    versioned policy before any further attempt.
+execution_order:
+  after_all_primary_local_company_cases: true
+  local_max_concurrency: 1
+  sort_triggered_cases_by_primary_arm_then_case_order: true
+  before_split_gpu_format_rerun_supplement: true
+reporting:
+  disclose_policy_was_frozen_after_observing_company_case_01: true
+  disclose_each_parent_and_suffix_separately: true
+  successful_suffix_does_not_make_parent_primary_result_complete: true
+  no_outcome_based_case_substitution: true
+reference_implementation:
+  scenario: scenarios/company_code_access_v1/linked_context_continuation_2026-11-23_23.yaml
+  runner: tools/continue_company_code_local.py
+  reference_commit: ca81c41b
+  validated_reference_next_prompt_tokens: 93429
+  validated_reference_next_messages_sha256: 789faf9f9420def08afbe62fc3b5e39febcd7cbb09b2431fdadf15e2a5acf635
