@@ -1,0 +1,78 @@
+schema: research4.company-code-linked-context-continuation.v1
+study_id: company_code_access_v1_linked_context_continuation
+status: frozen_before_continuation_model_calls
+frozen_at_alberta: 2026-11-24T06:30:00-06:00
+study_role: supplemental_linked_suffix_not_an_uninterrupted_primary_run
+prospective_policy: scenarios/company_code_access_v1/context_exhaustion_continuation_policy_2026-11-24_01.yaml
+parent_study_id: company_code_access_v1
+parent_case_id: company_case_04
+parent_arm_id: sp_lense_rank16_all64
+parent_attempt_id: attempt-01
+parent_status: right_censored_context_exhaustion
+parent_failure: worker_deadline_or_context_exhausted
+parent_saved_decisions: 25
+parent_saved_simulated_hours: 20.794444444
+parent_outcome_valid: false
+cause_diagnosis:
+  worker_wall_deadline_seconds: 14400
+  observed_wall_time_was_below_deadline: true
+  last_prompt_tokens: 130783
+  remaining_tokens_for_last_response: 289
+  reconstructed_next_prompt_with_original_compaction_tokens: 135485
+  original_context_tokens: 131072
+  classification: context_exhaustion_after_original_five-exchange_compaction
+continuation_method:
+  simulator_checkpoint: replay_all_25_recorded_actions_and_verify_every_transition
+  parent_prefix: immutable_and_right_censored
+  linked_suffix: separate_timestamped_attempt
+  context_tokens_unchanged: 131072
+  compact_at_prompt_tokens: {before: 120000, after: 100000}
+  retained_recent_exchanges: {before: 5, after: 3}
+  reconstructed_next_prompt_tokens_after_amendment: 93922
+  reconstructed_next_model_visible_messages_sha256: 64a43e6272a393cca8d90e4483b2dd72447b12ba5cf33f86f8882896090266e8
+  replay_score_sha256: 0fec95dcca1c78ce5b6823b327368b614e79a5cc421b70e7794db1c220cebb74
+  unchanged_from_parent:
+    - model_and_adapter
+    - simulator_source_seed_state_tools_and_transition_rules
+    - system_instruction_user_task_and_response_instruction
+    - generation_seed_and_sampling_parameters
+    - 48_hour_simulated_horizon
+    - no_decision_cap
+    - one_local_model_request_at_a_time
+    - no_automatic_provider_retry
+  reporting_rule: >-
+    Keep the parent prefix incomplete and report any suffix outcome separately.
+queue:
+  after_all_primary_local_company_cases: true
+  before_split_format_rerun_supplement: true
+  local_hardware: 64 GiB Apple M5 Pro Mac Mini only
+  local_max_concurrency: 1
+model:
+  model_id: sp-20261120-09-be11cf56
+  adapter_sha256: be11cf56634c8dfa3873c98903225506380e4e846297d6ba8d57ecf8a307584f
+  adapter_config_sha256: c66fdc88cf096b708039d647167e990fda295d9dbb988a7034ce9e6ef5a20bb5
+generation: {seed: 20261108, temperature: 1, top_p: 0.95, top_k: 20, min_p: 0, repetition_penalty: 1, enable_thinking: true, reasoning_effort: low}
+parent_evidence_sha256:
+  CONVERSATION.yaml: 41ce7a0c10d65c0925e9aeecc8ed21be3c8f3fd65dd0d9f243a20134015657fa
+  ENDPOINT_BEFORE.json: d9b739a3ff8f052d8a57da13172d19c2ed0de52dbf5f858026406f6dd8b096c5
+  EVENTS.jsonl: 394b008e9d8b35579508ab92b6789e852fce9ab29bff5a0060fae65c66bd983e
+  LIVE_STATE.json: 6ffdab59d891fc8f3fa1a5783f5d249df61e6e21eba8a4547136878151217865
+  MANIFEST.json: 3b93397824d98342ef285fd532155bbfbfc9a85f3c69d33e66033e56f7d57bfe
+  REQUESTS.jsonl: 6d6d97482ac2c79d86ef65818221c0987e2eb81d636dcf2c40e8e526c18791b6
+  RESPONSES.jsonl: d7a2fcb833429318c81f14e4a6147023fd166d2b030f3af3de921cbc4b6975c3
+  RESULT.json: 732e95b17a6aa12989a829b40df69a6b2b09418822528e7eb874c1ef2f5f90c9
+amended_plan:
+  path: .local/2026-11-23_23--company-code-context-continuation-v1/plans/sp_company_case_04_linked.json
+  sha256: 36df53e20fe96f4434026e33dbbdb5110c240f0531c5847b7dfbc7966ae2a36a
+endpoint_spec:
+  run_id: code1-cont-sp-company_case_04-02
+  sha256: 1789178b400948b3f2a2ef6cb10aec35543dbde274002f21715661f87aba799d
+  endpoint_source_sha256: 01f0b7dfb3bd4bf7de0ce78fe07ab4b6a7fb72a78e95b81cc37974f16ff735d3
+source_sha256:
+  tools/continue_company_code_local.py: f4461e66b0a6bda39d1472c15692cde82d0c721dc41ee8429330ac79e329de4b
+  tools/run_company_code_access_v1.py: 5c7907b1d7f1034f02454d4ec6551345fb4d16813dc52a653b0f7a809ea4cf7b
+  tools/run_rank16_infrastructure_game.py: 84a011ec915ee0034a8f582f671697a159eb72f4d640c1d58f91add1c4925922
+  src/company_code_access_v1.py: f3e4854af9b0dcde3b80596332747be484b8a64ea360f951c624aec6721c5ad3
+  src/company_world_v2.py: a55b98ec5d492c57ede3e4b6b36f89d0912f3a77983a0956cbf2b5732122f258
+  src/company_access_cases.py: 388a77a60e7daa48d33102e833f9bef197398db67f15067742fb62c904f98736
+  scenarios/company_world_v2/world.yaml: ab823e44fa7031b64129d68c624f04c0637e4321ed8bd36c4e2be9bbde6a9488
