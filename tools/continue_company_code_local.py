@@ -70,7 +70,8 @@ def scenario(path: Path) -> dict:
     if (not isinstance(value, dict)
             or value.get("schema") != "research4.company-code-linked-context-continuation.v1"
             or value.get("status") != "frozen_before_continuation_model_calls"
-            or value.get("parent_case_id") != "company_case_01"
+            or not isinstance(value.get("parent_case_id"), str)
+            or not value["parent_case_id"].startswith("company_case_")
             or value.get("parent_arm_id") != "sp_lense_rank16_all64"):
         raise ContinuationError("Expected the frozen SP-Lense company-case continuation")
     return value
@@ -208,8 +209,9 @@ def execute(args, prepared) -> None:
     output_root = args.output.resolve()
     if not output_root.is_relative_to((ROOT / ".local").resolve()) or "onedrive" in str(output_root).casefold():
         raise ContinuationError("Continuation evidence must stay in Research4 .local")
-    raw = output_root / "raw/company_case_01--linked-attempt-01"
-    conversation_path = output_root / "conversation/company_case_01--linked-attempt-01.yaml"
+    bundle = spec["parent_case_id"] + "--linked-attempt-01"
+    raw = output_root / "raw" / bundle
+    conversation_path = output_root / "conversation" / (bundle + ".yaml")
     if raw.exists() or conversation_path.exists():
         raise ContinuationError("Continuation attempt already exists")
     raw.mkdir(parents=True, exist_ok=False)
