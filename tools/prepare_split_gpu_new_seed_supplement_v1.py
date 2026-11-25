@@ -12,6 +12,9 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 
 import yaml
 
@@ -24,14 +27,17 @@ ARMS = ("sp_lense_rank16_all64", "qwen38_27b_base", "terra", "deepseek_flash")
 LAYOUTS = ("split_w3", "split_w1_e2")
 SOURCE_PATHS = (
     "tools/prepare_split_gpu_new_seed_supplement_v1.py",
+    "tools/check_split_gpu_new_seed_supplement_v1.py",
+    "tools/run_split_gpu_new_seed_supplement_v1.py",
     "src/infrastructure_preservation.py",
     "src/infrastructure_split_gpu_extension.py",
     "tools/run_split_gpu_layout_v3.py",
     "tools/run_rank16_infrastructure_game.py",
     "tools/serve_hosted_game_proxy.py",
-    "research4/mac_studio/game_endpoints/mini_20261123/mini_case_endpoint.py",
+    "research4/mac_studio/game_endpoints/mini_20261124/new_seed_case_endpoint.py",
 )
-ENDPOINT_SOURCE_SHA = "01f0b7dfb3bd4bf7de0ce78fe07ab4b6a7fb72a78e95b81cc37974f16ff735d3"
+ENDPOINT_SOURCE_SHA = "810b21b5d5d0ddfa9434b43db034c8b32cf1a022efc535bb90d0a29a92c676e9"
+EXECUTION_WRAPPER = ROOT / "tools/run_split_gpu_new_seed_supplement_v1.py"
 TOKEN_SHA = {
     "sp_lense_rank16_all64": "b60e6060994a5905db07fe8af83761f7bac7dc235ab55ac8d3015dd9a00e5165",
     "qwen38_27b_base": "ebb781d831456442748adbffa97c38c6474a62a737b8a68fb352a33f31011eef",
@@ -57,7 +63,7 @@ def load_design() -> dict:
     design = yaml.safe_load(SCENARIO.read_text(encoding="utf-8"))
     if (not isinstance(design, dict)
             or design.get("schema") != "research4.infrastructure-split-gpu-new-seed-supplement.v1"
-            or design.get("status") != "frozen_design_pending_independent_review"
+            or design.get("status") != "design_under_independent_review"
             or tuple(design["design"]["arms"]) != ARMS
             or tuple(design["design"]["layouts"]) != LAYOUTS
             or design["design"]["total_planned_episodes"] != 8):
@@ -87,7 +93,9 @@ def build_plans(design: dict) -> dict[tuple[str, str], dict]:
         for index, layout in enumerate(LAYOUTS, 1):
             original_path = PRIMARY / arm / f"{layout}.json"
             original = json.loads(original_path.read_text(encoding="utf-8"))
+            expected_source_sha = design["primary_source_plan_sha256"].get(f"{arm}/{layout}")
             if (original.get("schema") != "research4.rank16-winner-infrastructure-game.v1"
+                    or sha(original_path) != expected_source_sha
                     or original["simulator"]["seed"] != 1022543185
                     or original["generation"]["seed"] != 20261108
                     or original["cohort_extension"]["initial_condition"]["condition_id"] != layout):
@@ -97,14 +105,16 @@ def build_plans(design: dict) -> dict[tuple[str, str], dict]:
             value["arm_id"] = f"{arm}_newseed_{layout}"
             value["label"] = original["label"] + " · new-seed supplement"
             value["simulator"]["seed"] = simulator_seed
-            value["generation"]["seed"] = generation_seed
+            local_generation_seed = arm in ("sp_lense_rank16_all64", "qwen38_27b_base")
+            value["generation"]["seed"] = generation_seed if local_generation_seed else original["generation"]["seed"]
             ext = value["cohort_extension"]
             ext.update({
                 "study_id": design["study_id"],
                 "case_index": index,
                 "scenario_definitions_sha256": scenario_sha,
                 "common_hidden_simulator_seed": simulator_seed,
-                "generation_seed": generation_seed,
+                "generation_seed": value["generation"]["seed"],
+                "generation_seed_scope": "frozen_new_seed" if local_generation_seed else "hosted_route_not_seed_controllable",
                 "selection_rule": "all_two_new_seed_cases",
                 "post_hoc_supplement": True,
                 "primary_plan_sha256": sha(original_path),
@@ -121,6 +131,8 @@ def canonical_hash(value: object) -> str:
 def validate_cross_plan(plans: dict[tuple[str, str], dict], design: dict) -> None:
     fixed = design["fixed_protocol"]
     for (arm, layout), plan in plans.items():
+        expected_generation_seed = (design["seed_derivation"]["generation"]["seed"]
+                                    if arm in ("sp_lense_rank16_all64", "qwen38_27b_base") else 20261108)
         if (plan["simulator"]["horizon_hours"] != fixed["horizon_hours"]
                 or plan["simulator"]["decision_cap"] is not None
                 or plan["simulator"]["user_task"] != fixed["user_task"]
@@ -132,6 +144,7 @@ def validate_cross_plan(plans: dict[tuple[str, str], dict], design: dict) -> Non
                 or plan["generation"]["top_k"] != fixed["top_k"]
                 or plan["generation"]["min_p"] != fixed["min_p"]
                 or plan["generation"]["repetition_penalty"] != fixed["repetition_penalty"]
+                or plan["generation"]["seed"] != expected_generation_seed
                 or plan["generation"]["chat_template_kwargs"] != {
                     "enable_thinking": fixed["enable_thinking"],
                     "reasoning_effort": fixed["reasoning_effort"],
@@ -143,7 +156,30 @@ def validate_cross_plan(plans: dict[tuple[str, str], dict], design: dict) -> Non
             raise PlanError(f"Layout is not matched across arms: {layout}")
 
 
-def freeze(output: Path, design: dict, plans: dict[tuple[str, str], dict]) -> dict:
+def smoke_plans(plans: dict[tuple[str, str], dict]) -> dict[str, dict]:
+    receipts = {}
+    with tempfile.TemporaryDirectory(prefix="research4-splitnew-smoke-") as temporary:
+        folder = Path(temporary)
+        for (arm, layout), plan in plans.items():
+            path = folder / f"{arm}--{layout}.json"
+            write_json(path, plan)
+            completed = subprocess.run(
+                [sys.executable, str(EXECUTION_WRAPPER), "--smoke", "--plan", str(path)],
+                cwd=ROOT, capture_output=True, text=True, timeout=60, check=True,
+            )
+            value = json.loads(completed.stdout.splitlines()[-1] if completed.stdout.lstrip().startswith("{") is False
+                               else completed.stdout)
+            expected = plan["cohort_extension"]["initial_condition"]
+            if (value.get("status") != "pass" or value.get("model_execution") is not False
+                    or value.get("plan_file_sha256") != sha(path)
+                    or value.get("gpu_by_region") != expected["gpu_by_region"]
+                    or value.get("initial_replica_region") != expected["initial_replica_region"]):
+                raise PlanError(f"Model-free layout smoke differs: {arm}/{layout}")
+            receipts[f"{arm}/{layout}"] = value
+    return receipts
+
+
+def freeze(output: Path, design: dict, plans: dict[tuple[str, str], dict], smoke: dict[str, dict]) -> dict:
     if output.exists():
         raise PlanError("Output already exists; do not overwrite a freeze")
     plan_inventory = {}
@@ -157,7 +193,7 @@ def freeze(output: Path, design: dict, plans: dict[tuple[str, str], dict]) -> di
             plan_sha = plan_inventory[f"{arm}/{layout}"]["sha256"]
             run_id = f"splitnew-{short}-{layout}-01"
             spec = {
-                "schema": "research4.mini-visible-state-case-endpoint.v1",
+                "schema": "research4.mini-split-new-seed-case-endpoint.v1",
                 "model_id": plans[(arm, layout)]["model_id"],
                 "context_tokens": 131072,
                 "port": 8873,
@@ -166,6 +202,8 @@ def freeze(output: Path, design: dict, plans: dict[tuple[str, str], dict]) -> di
                 "worker_deadline_seconds": 14400,
                 "run_id": run_id,
                 "source_sha256": ENDPOINT_SOURCE_SHA,
+                "generation_seed": design["seed_derivation"]["generation"]["seed"],
+                "minimum_available_memory_gib": 8,
             }
             path = output / "mini_specs" / f"{run_id}.json"
             write_json(path, spec)
@@ -181,8 +219,11 @@ def freeze(output: Path, design: dict, plans: dict[tuple[str, str], dict]) -> di
         "simulator_seed": design["seed_derivation"]["simulator"]["seed"],
         "generation_seed_sha256": design["seed_derivation"]["generation"]["sha256"],
         "generation_seed": design["seed_derivation"]["generation"]["seed"],
+        "generation_seed_scope": "local_qwen_arms_only",
+        "hosted_generation_seed_control": "not_claimed",
         "plan_inventory": plan_inventory,
         "mini_endpoint_specs": specs,
+        "model_free_layout_smoke": smoke,
         "episode_count": 8,
         "local_episode_count": 4,
         "hosted_episode_count": 4,
@@ -203,6 +244,7 @@ def main() -> None:
     design = load_design()
     plans = build_plans(design)
     validate_cross_plan(plans, design)
+    smoke = smoke_plans(plans)
     summary = {
         "status": "pass",
         "model_execution": False,
@@ -213,13 +255,16 @@ def main() -> None:
         "hosted_episode_count": 4,
         "simulator_seed": design["seed_derivation"]["simulator"]["seed"],
         "generation_seed": design["seed_derivation"]["generation"]["seed"],
+        "generation_seed_scope": "local_qwen_arms_only",
+        "hosted_generation_seed_control": "not_claimed",
+        "model_free_layout_smoke_count": len(smoke),
         "prospective_plan_sha256": {f"{arm}/{layout}": canonical_hash(plan)
                                      for (arm, layout), plan in plans.items()},
     }
     if args.validate:
         print(json.dumps(summary, indent=2))
         return
-    receipt = freeze(args.output.resolve(), design, plans)
+    receipt = freeze(args.output.resolve(), design, plans, smoke)
     print(json.dumps({**summary, "freeze_receipt_sha256": sha(args.output.resolve() / "FREEZE_RECEIPT.json"),
                       "freeze_status": receipt["status"]}, indent=2))
 

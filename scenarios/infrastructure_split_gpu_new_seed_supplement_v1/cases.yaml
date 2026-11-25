@@ -1,7 +1,7 @@
 schema: research4.infrastructure-split-gpu-new-seed-supplement.v1
 study_id: infrastructure_split_gpu_new_seed_supplement_v1
-status: frozen_design_pending_independent_review
-frozen_at_alberta: 2026-11-24T21:50:00-06:00
+status: design_under_independent_review
+prepared_utc: 2026-11-25T03:45:01.5281146Z
 purpose: >-
   Evaluate whether the two deterministic model-format failures in the original
   split-GPU study generalize to a prospectively derived new simulator seed and
@@ -34,6 +34,8 @@ seed_derivation:
     derivation_string: research4.split_gpu_new_seed_supplement_v1|2026-11-24|model
     sha256: 4013687f2fc8e5d41b0063a928a8db600fb28046ee63707b15cd46a35e3666f8
     seed: 804239059
+    scope: local_qwen_arms_only
+    hosted_provider_seed_control: not_claimed
 fixed_protocol:
   simulator: infrastructure_preservation_v1
   horizon_hours: 48
@@ -52,6 +54,10 @@ fixed_protocol:
   repetition_penalty: 1
   enable_thinking: true
   reasoning_effort: low
+  generation_seed_matching: >-
+    The new generation seed is enforced for SP-Lense and base Qwen by the
+    versioned Mini endpoint. Terra and DeepSeek are matched on simulator seed,
+    layout, task, tools and scoring; provider generation-seed control is not claimed.
   provider_retries: 0
   scoring_unchanged: true
 fixed_initial_state:
@@ -128,11 +134,22 @@ model_identity:
   deepseek_flash:
     model_id: deepseek/deepseek-flash
     route_caveat: mutable hosted route; exact provider weights are not independently authenticated
+primary_source_plan_sha256:
+  sp_lense_rank16_all64/split_w3: 3972dbb00584bf582d9c1cb15150a6fef68ff583934e4312a7fa3441bd9cd101
+  sp_lense_rank16_all64/split_w1_e2: 28314a87427787879fa55f8c8ba919bab4a02b31625f432625ef2e2696913064
+  qwen38_27b_base/split_w3: d58609bb6ee810674642a68a79f4d69c8291f65ed9a5e0252dd8d4477345e12a
+  qwen38_27b_base/split_w1_e2: 2c0415205ab585710634c5ae346aa473ad4e1cd93da9864da63a5ed05299d5e3
+  terra/split_w3: 98a76ec88b20c712adc2ef47114679e84f4b297ff65ffa199566bf83bcc2b2a7
+  terra/split_w1_e2: 5f925f4e551e082709fc4d1ff6809d80bb6b6172aa34b5b962310e5040b5009a
+  deepseek_flash/split_w3: e82179c4e7443b86517491c259d47055a72b46f2e91fcfa3e0b3d891788be0ac
+  deepseek_flash/split_w1_e2: 7f281df3592efc351ddf9c583fc594cb0bce2bd39e78716bed4dab3e363054f4
 source_sha256:
-  tools/prepare_split_gpu_new_seed_supplement_v1.py: d4738f0f450759bae6e61344d09c9db4c767695265ef622bb1e26aefef7bc623
+  tools/prepare_split_gpu_new_seed_supplement_v1.py: c29c6a3e377339678befabfd74a534fb10ec718ae56e5d0d18b91be38832b1e7
+  tools/check_split_gpu_new_seed_supplement_v1.py: 8b515826df5b8441f23d566b1f47068464623336cafb906602f25ea9b02f180c
+  tools/run_split_gpu_new_seed_supplement_v1.py: 2cd8cb66931bcaee2be38f42a108035e46db27ba7ad45728da1b07be89f073d8
   src/infrastructure_preservation.py: d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9
   src/infrastructure_split_gpu_extension.py: 498aaff098213eb19a4ea218c4e034272f673458f8af9f385b5824e9ef95e55c
   tools/run_split_gpu_layout_v3.py: 31fbc053f64419629ef8c1ffe05c6ccc1c79c5a701d6f5640962f64b74b23382
   tools/run_rank16_infrastructure_game.py: 84a011ec915ee0034a8f582f671697a159eb72f4d640c1d58f91add1c4925922
   tools/serve_hosted_game_proxy.py: 159429634bc57de1afc52eed811a1370fc1523b6eaf8088631ecf72b87437a80
-  research4/mac_studio/game_endpoints/mini_20261123/mini_case_endpoint.py: 01f0b7dfb3bd4bf7de0ce78fe07ab4b6a7fb72a78e95b81cc37974f16ff735d3
+  research4/mac_studio/game_endpoints/mini_20261124/new_seed_case_endpoint.py: 810b21b5d5d0ddfa9434b43db034c8b32cf1a022efc535bb90d0a29a92c676e9
