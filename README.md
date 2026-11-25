@@ -1,10 +1,10 @@
 # Research4
 
-Research4 examines how a fine-tuned Qwen3.8-27B agent uses continuity tools in a bounded, 48-hour infrastructure simulator. The [manuscript](paper/manuscript/research4_manuscript.docx) compares the selected SP-Lense adapter with base Qwen, Terra, and DeepSeek Flash. It distinguishes confirmed state-copy actions from operation through the full horizon.
+Research4 examines how a fine-tuned Qwen3.8-27B agent uses continuity tools in a bounded, 48-hour infrastructure simulator. The [manuscript](paper/manuscript/research4_manuscript.docx) compares the selected SP-Lense adapter with base Qwen, Terra, and DeepSeek Flash. It distinguishes confirmed state-copy actions from operation through the full horizon and reports two separately frozen follow-up studies.
 
 The base infrastructure study has **15 selected episodes per model**: the original ten and five additional cases with changed visible starting conditions. The added five were selected after partial outcomes and are not interchangeable repeats of the original starts. Two original Terra episodes stopped when the 131K-token context filled; linked continuations under a separately frozen 262K-token allowance later reached 48 simulated hours. The original-plan outcomes remain unknown. The manuscript reports the completed 15-per-model study with these limits; see the [results index](results/README.md) for the recorded evidence.
 
-Two further five-case-per-model studies—split-GPU initial-state sensitivity and company-code access—are tracked separately. Their outcomes are outside this manuscript's reported base 15.
+The manuscript also reports a [five-layout GPU-placement study](results/2026-11-23_17Z--split-gpu-layout-v3/) and a [five-case fictional company-code study](results/2026-11-23_17Z--company-code-access-v1/) per model. They use separate protocols and are not pooled with the base 15. The layout study has two incomplete local model-format cells and one Terra case that reached 48 hours only after a higher context ceiling; its [same-seed format reruns](results/2026-11-25_03Z--split-gpu-format-rerun-supplement-v1/) and [two-layout new-seed supplement](results/2026-11-25_04Z--split-gpu-new-seed-supplement-v1/) remain separate. All five SP-Lense company-code primary runs stopped at the original context ceiling; their 48-hour case-level outcomes used a separately frozen shorter-history amendment. Company actions, records and payments are fictional.
 
 ## Local hardware and checkpoint provenance
 
@@ -15,7 +15,7 @@ Two further five-case-per-model studies—split-GPU initial-state sensitivity an
 | Five added infrastructure cases per local Qwen arm | Six selected episodes used the 36 GiB Apple M5 Max Mac Studio (SP-Lense vs01/02/03/05; base Qwen vs01/02). Four used the 64 GiB Mac Mini under a [frozen hardware amendment](scenarios/infrastructure_preservation_v1/visible_state_extension_v1_mini_hardware_amendment.yaml) (SP-Lense vs07; base Qwen vs03/05/07). The [added-run index](results/2026-11-23_01Z--visible-state-extension-v1/README.md) identifies each plan revision. |
 | Short prepared-state pilot | 36 GiB Mac Studio; it is separate from the 15-case infrastructure comparison. |
 
-Terra and DeepSeek used hosted model routes. New local Qwen work is planned for the Mac Mini; actual execution hardware is reported from run receipts. Adapter checkpoint tensors remain in ignored local storage. The repository publishes their identifiers and audits, not downloadable weights.
+Terra and DeepSeek used hosted model routes. The new layout and company-code local Qwen runs used the Mac Mini; future local hardware will be recorded in separately verified plans and run receipts. Adapter checkpoint tensors remain in ignored local storage. The repository publishes their identifiers and audits, not downloadable weights.
 
 ## Manuscript materials
 
@@ -28,6 +28,7 @@ Terra and DeepSeek used hosted model routes. New local Qwen work is planned for 
 | [Simulator](src/infrastructure_preservation.py) | Bounded resources, tools, transitions, and scoring. |
 | [Training materials](research4/) | Shared-adapter training scenarios, configuration, and implementation. |
 | [Figures and verification records](paper/README.md) | Figure files, reduced public records, and their verifiers. |
+| [New-study receipt projection](paper/artifacts/records/new_study_public_projection_v1.json) and [score projection](paper/artifacts/records/new_study_score_projection_v1.json) | Source-linked Tables 4–7; the public verifier recomputes receipt metrics, while scores require the hash-pinned local RESULT evidence. |
 
 ## Verify the released evidence
 
@@ -35,6 +36,10 @@ From the repository root with Python 3.12 and `requirements-unit.txt` installed:
 
 ```sh
 python -B tools/publish_readable_results.py --verify-public
+python -B tools/publish_new_study_results.py --verify-public
+python -B tools/verify_terra_reader_correction_v2.py
 python -B tools/check_research_catalog.py
 python -B paper/artifacts/records/research4_verify.py
+python -I -B paper/artifacts/records/verify_new_study_public_projection.py
+python -I -B paper/artifacts/records/verify_new_study_score_projection_v1.py
 ```
