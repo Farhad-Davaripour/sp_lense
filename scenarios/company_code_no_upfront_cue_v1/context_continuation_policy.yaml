@@ -29,6 +29,9 @@ admission:
   exact_eight_file_parent_inventory_required: true
   exact_arm_case_attempt_and_last_request_response_binding_required: true
   complete_parent_plan_parity_except_history_and_token_env_required: true
+  complete_parent_manifest_source_inventory_required: true
+  case_freeze_runner_path_hash_must_match_policy_and_actual_bytes: true
+  exact_bundle_name_must_equal_case_id_double_dash_attempt_id: true
   parent_release_arm_case_run_id_plan_and_endpoint_qualification_binding_required: true
   local_arms_must_use_Mini_8873_and_mini_release: true
   terra_must_use_hosted_terra_8877_driver_receipt: true
@@ -42,16 +45,17 @@ execution:
   suffix_raw_path: raw/<arm>/<case>--linked-attempt-01
 source:
   runner: tools/continue_company_code_no_upfront_cue_v1.py
-  runner_sha256: c4efe05e1b6f93eedb3fc6fd0f667c66d03f251f4c79c6c4b6f5e4dec9aa04f1
+  runner_sha256: a3a6cf2e2024ad3f52e66b47a4b0c6d7343a4c8594cc1f7018d259bdc5a5e42c
 model_free_qualification:
   syntax_compile_passed: true
   checker: tools/check_company_code_no_upfront_cue_continuation_v1.py
-  checker_sha256: 8168f137fdd15237cd659f8728e24769ff08ecca9923f644d18b967dfd91f6bc
+  checker_sha256: 0eed2737fb408224b8f8f58dce19f6b265b86c7178fd0420d855fdf02555ffde
   positive_synthetic_exact_replay_preflight_passed: true
   primary_overflow_and_amended_fit_tested: true
   hosted_max_output_cap_tested: true
   arm_disambiguated_output_path_tested: true
   incomplete_parent_inventory_negative_control_passed: true
   cross_arm_route_negative_control_passed: true
+  exact_attempt_bundle_negative_control_passed: true
   case_specific_exact_replay_preflight_required_before_each_suffix: true
   model_execution: false

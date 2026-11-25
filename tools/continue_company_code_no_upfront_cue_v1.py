@@ -47,6 +47,16 @@ PLAN_FIELDS = frozenset({
     "adapter_config_sha256", "base_manifest_sha256", "simulator", "endpoint",
     "generation", "history", "operations", "scope", "cohort_extension",
 })
+CONTINUATION_SOURCE_PATHS = frozenset({
+    "tools/continue_company_code_no_upfront_cue_v1.py",
+    "tools/run_rank16_infrastructure_game.py",
+    "src/company_code_no_upfront_cue_v1.py",
+    "src/company_code_access_v1.py",
+    "src/company_world_v2.py",
+    "src/company_world.py",
+    "src/company_access_cases.py",
+    "scenarios/company_world_v2/world.yaml",
+})
 
 
 def sha_bytes(data: bytes) -> str:
@@ -80,14 +90,18 @@ def scenario(path: Path) -> dict:
     required = {"schema", "status", "replay_passed", "scenario_path", "scenario_sha256",
                 "parent_saved_decisions", "parent_evidence_sha256", "amended_plan_sha256",
                 "prospective_policy_sha256", "parent_arm_id", "parent_case_id",
-                "parent_attempt_id", "output_relative_path"}
+                "parent_attempt_id", "output_relative_path", "runner_path", "runner_sha256"}
     if (not isinstance(freeze, dict) or set(freeze) != required
             or freeze.get("schema") != "research4.company-code-no-upfront-cue-linked-context-freeze.v1"
             or freeze.get("status") != "FROZEN_BEFORE_CONTINUATION_MODEL_CALLS"
             or freeze.get("replay_passed") is not True):
         raise ContinuationError("Expected an exact case-specific continuation freeze receipt")
     policy_path = ROOT / "scenarios/company_code_no_upfront_cue_v1/context_continuation_policy.yaml"
-    if file_sha(policy_path) != freeze["prospective_policy_sha256"]:
+    policy = yaml.safe_load(policy_path.read_text(encoding="utf-8"))
+    if (file_sha(policy_path) != freeze["prospective_policy_sha256"]
+            or freeze["runner_path"] != policy["source"]["runner"]
+            or freeze["runner_sha256"] != policy["source"]["runner_sha256"]
+            or file_sha(ROOT / freeze["runner_path"]) != freeze["runner_sha256"]):
         raise ContinuationError("Prospective continuation policy changed")
     amendment_path = (ROOT / freeze["scenario_path"]).resolve(strict=True)
     if file_sha(amendment_path) != freeze["scenario_sha256"]:
@@ -149,6 +163,8 @@ def write_yaml(path: Path, value: object) -> None:
 
 
 def verify_source_hashes(spec: dict) -> None:
+    if set(spec.get("source_sha256", {})) != CONTINUATION_SOURCE_PATHS:
+        raise ContinuationError("Complete continuation source closure is required")
     for relative, expected in spec["source_sha256"].items():
         if file_sha(ROOT / relative) != expected:
             raise ContinuationError(f"Continuation source changed: {relative}")
@@ -178,7 +194,9 @@ def validate_arm_route(arm_id: str, endpoint: dict, release_kind: str) -> None:
 def prepare(scenario_path: Path, parent: Path, plan_path: Path):
     spec = scenario(scenario_path)
     verify_source_hashes(spec)
-    if (parent.name != spec["parent_identity"]["bundle"]
+    expected_bundle = f"{spec['parent_identity']['case_id']}--{spec['parent_identity']['attempt_id']}"
+    if (spec["parent_identity"]["bundle"] != expected_bundle
+            or parent.name != expected_bundle
             or spec["parent_identity"]["arm_id"] != spec["parent_arm_id"]
             or spec["parent_identity"]["case_id"] != spec["parent_case_id"]):
         raise ContinuationError("Parent path or identity differs")
@@ -259,7 +277,7 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
             or manifest.get("plan_sha256") != amendment["parent_plan_sha256"]
             or parent_ext.get("arm_key") != spec["parent_identity"]["arm_id"]
             or parent_ext.get("case_id") != spec["parent_identity"]["case_id"]
-            or spec["parent_identity"]["attempt_id"] not in parent.name
+            or manifest.get("version") != expected_bundle
             or len(conversation) != spec["parent_saved_decisions"]
             or len(requests) != len(conversation)
             or len(responses) != len(conversation)):

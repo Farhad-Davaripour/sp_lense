@@ -91,9 +91,9 @@ def main() -> None:
         }
         now = datetime.now(timezone.utc)
         manifest = {**original, "plan_sha256": original_plan_sha,
-            "started_utc": now.isoformat(),
-            "source_sha256": {"src/company_code_no_upfront_cue_v1.py":
-                sha(ROOT / "src/company_code_no_upfront_cue_v1.py")}}
+            "started_utc": now.isoformat(), "version": parent.name,
+            "source_sha256": {relative: sha(ROOT / relative)
+                for relative in continuation.CONTINUATION_SOURCE_PATHS}}
         request = {"decision_index": 1, "decision_id": decision_id, "prompt_tokens": 140000,
                    "body": {"messages": messages}}
         response = {"decision_index": 1, "decision_id": decision_id,
@@ -172,8 +172,8 @@ def main() -> None:
                 "model": {"model_id": original["model_id"], "adapter_sha256": original["adapter_sha256"]},
                 "parent_source_sha256": manifest["source_sha256"],
                 "parent_manifest_source_keys": sorted(manifest["source_sha256"]),
-                "source_sha256": {"tools/continue_company_code_no_upfront_cue_v1.py":
-                    sha(ROOT / "tools/continue_company_code_no_upfront_cue_v1.py")},
+                "source_sha256": {relative: sha(ROOT / relative)
+                    for relative in continuation.CONTINUATION_SOURCE_PATHS},
             }
             write(amendment_path, spec, yaml_file=True)
             freeze = {
@@ -190,6 +190,8 @@ def main() -> None:
                 "parent_case_id": "blinded_company_case_99",
                 "parent_attempt_id": "attempt-01",
                 "output_relative_path": "raw/deepseek_flash/blinded_company_case_99--linked-attempt-01",
+                "runner_path": "tools/continue_company_code_no_upfront_cue_v1.py",
+                "runner_sha256": sha(ROOT / "tools/continue_company_code_no_upfront_cue_v1.py"),
             }
             write(freeze_path, freeze)
             prepared = continuation.prepare(freeze_path, parent, amended_path)
@@ -238,6 +240,29 @@ def main() -> None:
                 pass
             else:
                 raise RuntimeError("Cross-arm hosted route was accepted as local Qwen")
+
+            try:
+                continuation.validate_arm_route("qwen38_27b_base", original["endpoint"], "hosted_driver")
+            except continuation.ContinuationError:
+                pass
+            else:
+                raise RuntimeError("Direct cross-arm route negative control was accepted")
+
+            wrong_bundle = copy.deepcopy(spec)
+            wrong_bundle["parent_identity"]["bundle"] = "blinded_company_case_99--attempt-010"
+            wrong_path = work / "wrong_bundle_amendment.yaml"
+            write(wrong_path, wrong_bundle, yaml_file=True)
+            wrong_freeze = dict(freeze)
+            wrong_freeze["scenario_path"] = wrong_path.relative_to(ROOT).as_posix()
+            wrong_freeze["scenario_sha256"] = sha(wrong_path)
+            wrong_freeze_path = work / "WRONG_BUNDLE_FREEZE.json"
+            write(wrong_freeze_path, wrong_freeze)
+            try:
+                continuation.prepare(wrong_freeze_path, parent, amended_path)
+            except continuation.ContinuationError:
+                pass
+            else:
+                raise RuntimeError("Attempt-010 was accepted for attempt-01")
         finally:
             continuation.common.count_tokens = original_count
 
@@ -256,6 +281,7 @@ def main() -> None:
         "hosted_max_output_cap_preserved": True,
         "arm_disambiguated_output_path": True,
         "cross_arm_route_negative_control": True,
+        "exact_bundle_identity_negative_control": True,
     }, indent=2))
 
 
