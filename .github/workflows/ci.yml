@@ -49,6 +49,9 @@ jobs:
           python research4_hash_supplement_verify.py
           python research4_trace_verify.py
           python -I -B verify_visible_state_extension_projection.py
+          python -I -B verify_new_study_public_projection.py
+          python -I -B export_new_study_public_projection.py --check
+          python -I -B verify_new_study_score_projection_v1.py
       - name: Verify public readable Game results
         run: |
           python -B tools/publish_readable_results.py --verify-public
