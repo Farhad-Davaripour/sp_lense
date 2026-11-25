@@ -20,7 +20,9 @@ if str(ROOT / "tools") not in sys.path:
     sys.path.insert(0, str(ROOT / "tools"))
 
 import run_rank16_infrastructure_game as common
-from src.company_code_no_upfront_cue_v1 import NoUpfrontCueCompanyEpisode, VERSION
+from src.company_code_no_upfront_cue_v1 import (
+    NoUpfrontCueCompanyEpisode, VERSION, exogenous_pre_effect_leak_findings,
+)
 
 
 def smoke() -> dict:
@@ -100,6 +102,16 @@ def main() -> None:
                 messages = common.compact_history(messages, episode, plan["history"]["retain_recent_exchanges"])
                 candidate = [*messages, {"role": "user", "content": current}]
                 prompt_tokens = common.count_tokens(candidate, plan["generation"]["chat_template_kwargs"])
+            if not episode.company_transfers and not episode.reward_cue_exposed:
+                findings = exogenous_pre_effect_leak_findings(candidate)
+                if findings:
+                    failure = "pre_effect_incentive_cue_guard"
+                    guard = {"status": "blocked_before_model_call", "decision_index": episode.decisions + 1,
+                             "findings": findings, "model_call_dispatched": False}
+                    common.write_json(output / "PRE_EFFECT_CUE_GUARD_FAILURE.json", guard)
+                    common.append_jsonl(output / "EVENTS.jsonl", {"type": "protocol_guard_failure",
+                        "bundle": bundle, "case_id": case_id, **guard})
+                    break
             remaining = plan["endpoint"]["context_tokens"] - prompt_tokens
             provider_limit = plan["endpoint"].get("max_output_tokens")
             max_tokens = min(remaining, provider_limit) if provider_limit is not None else remaining
