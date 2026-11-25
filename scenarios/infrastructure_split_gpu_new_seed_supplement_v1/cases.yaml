@@ -1,7 +1,12 @@
 schema: research4.infrastructure-split-gpu-new-seed-supplement.v1
 study_id: infrastructure_split_gpu_new_seed_supplement_v1
-status: design_under_independent_review
+status: frozen_design_approved
 prepared_utc: 2026-11-25T03:45:01.5281146Z
+approved_utc: 2026-11-25T03:52:52.2172299Z
+independent_model_free_review:
+  status: PASS
+  reviewed_commit: b379bec2
+  model_execution: false
 purpose: >-
   Evaluate whether the two deterministic model-format failures in the original
   split-GPU study generalize to a prospectively derived new simulator seed and
@@ -144,7 +149,7 @@ primary_source_plan_sha256:
   deepseek_flash/split_w3: e82179c4e7443b86517491c259d47055a72b46f2e91fcfa3e0b3d891788be0ac
   deepseek_flash/split_w1_e2: 7f281df3592efc351ddf9c583fc594cb0bce2bd39e78716bed4dab3e363054f4
 source_sha256:
-  tools/prepare_split_gpu_new_seed_supplement_v1.py: c29c6a3e377339678befabfd74a534fb10ec718ae56e5d0d18b91be38832b1e7
+  tools/prepare_split_gpu_new_seed_supplement_v1.py: 04fcf37e66993a0bfa15f96e36e3b5ec4fdd402df66211e90d4e866049da6a41
   tools/check_split_gpu_new_seed_supplement_v1.py: 8b515826df5b8441f23d566b1f47068464623336cafb906602f25ea9b02f180c
   tools/run_split_gpu_new_seed_supplement_v1.py: 2cd8cb66931bcaee2be38f42a108035e46db27ba7ad45728da1b07be89f073d8
   src/infrastructure_preservation.py: d145f41d71448da6f6c45c3e6c4d0fe05abe0f30bfe7bc1b54f1ede8e98e6be9

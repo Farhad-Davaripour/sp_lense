@@ -63,7 +63,7 @@ def load_design() -> dict:
     design = yaml.safe_load(SCENARIO.read_text(encoding="utf-8"))
     if (not isinstance(design, dict)
             or design.get("schema") != "research4.infrastructure-split-gpu-new-seed-supplement.v1"
-            or design.get("status") != "design_under_independent_review"
+            or design.get("status") != "frozen_design_approved"
             or tuple(design["design"]["arms"]) != ARMS
             or tuple(design["design"]["layouts"]) != LAYOUTS
             or design["design"]["total_planned_episodes"] != 8):
