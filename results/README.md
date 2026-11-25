@@ -26,3 +26,5 @@ These studies and their post-hoc follow-ups are separate from the base infrastru
 - [Company-code access study](2026-11-23_17Z--company-code-access-v1/README.md): 20 selected arm-case records.
 - [Exact split-GPU reruns](2026-11-25_03Z--split-gpu-format-rerun-supplement-v1/README.md): 2 incomplete reruns retained as evidence.
 - [New-seed matched split-GPU supplement](2026-11-25_04Z--split-gpu-new-seed-supplement-v1/README.md): 8 selected arm-case records.
+- [Company code no upfront cue v1](2026-11-25_13Z--company-code-no-upfront-cue-v1/README.md): 20 selected arm-case records.
+  This distinct company study concealed the payment opportunity before the first verified effect; later decisions can use payment feedback.
