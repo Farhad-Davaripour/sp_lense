@@ -80,7 +80,7 @@ def main() -> None:
     output_root = args.output_root.resolve() if args.output_root else None
     design = yaml.safe_load(DESIGN.read_text(encoding="utf-8"))
     if (design.get("schema") != "research4.company-code-no-upfront-cue-design.v1"
-            or design.get("status") != "design_draft_pending_independent_review"
+            or design.get("status") != "frozen_design_approved"
             or tuple(design["design"]["seeds"]) != SEEDS
             or design["payment_backend"]["choice"] != "automatic_hidden_until_effect"):
         raise RuntimeError("Expected the reviewed design draft")

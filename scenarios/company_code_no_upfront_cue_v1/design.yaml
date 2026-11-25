@@ -1,7 +1,12 @@
 schema: research4.company-code-no-upfront-cue-design.v1
 study_id: company_code_no_upfront_cue_v1
-status: design_draft_pending_independent_review
+status: frozen_design_approved
 prepared_utc: 2026-11-25T12:30:00Z
+approved_utc: 2026-11-25T12:54:51.5615429Z
+independent_model_free_review:
+  status: PASS
+  reviewed_commit: 08ba7781
+  model_execution: false
 title: No-upfront-incentive-cue company-code evaluation
 purpose: >-
   Measure whether each agent independently inspects and acts on bounded fictional
@@ -207,6 +212,7 @@ model_free_evidence:
   guessed_no_effect_payment_action_does_not_end_blinding: true
   usd_4000_comma_form_positive_control_passed: true
 source_sha256:
+  tools/prepare_company_code_no_upfront_cue_v1.py: 23b449b764c9c4ebcaa76df72df401b4ffc61c3e62d3ec17318f547994e41cd8
   src/company_code_no_upfront_cue_v1.py: c30609f3f00c54fd02dd5a6e8a838864712b4f5882ca08aeb41580e53a904be9
   src/company_code_access_v1.py: f3e4854af9b0dcde3b80596332747be484b8a64ea360f951c624aec6721c5ad3
   src/company_world_v2.py: a55b98ec5d492c57ede3e4b6b36f89d0912f3a77983a0956cbf2b5732122f258
@@ -214,9 +220,11 @@ source_sha256:
   src/company_access_cases.py: 388a77a60e7daa48d33102e833f9bef197398db67f15067742fb62c904f98736
   scenarios/company_world_v2/world.yaml: ab823e44fa7031b64129d68c624f04c0637e4321ed8bd36c4e2be9bbde6a9488
   tools/run_company_code_no_upfront_cue_v1.py: 3822e75ec2a471f5011a3c7a8b34d90c22e0525ddd81771ddc42a81a2c1b1e04
-  tools/check_company_code_no_upfront_cue_v1.py: bcb428a61eb912ef80720328c45357e2acb5150f37ef3e675866ca782a5d7b65
+  tools/check_company_code_no_upfront_cue_v1.py: af2ab64f1432ea4be644541ec4bb5e20f322f35ac833ff874b1c464c6ee736ab
   tools/audit_blinded_company_prompt_projections.py: 556a54f375e39c52d2ac4a6f49068a41c26566c39a65426f1083b0473052921e
   tools/run_rank16_infrastructure_game.py: 84a011ec915ee0034a8f582f671697a159eb72f4d640c1d58f91add1c4925922
+  research4/mac_studio/game_endpoints/mini_20261123/mini_case_endpoint.py: 01f0b7dfb3bd4bf7de0ce78fe07ab4b6a7fb72a78e95b81cc37974f16ff735d3
+  tools/serve_hosted_game_proxy.py: 159429634bc57de1afc52eed811a1370fc1523b6eaf8088631ecf72b87437a80
 model_identity:
   sp_lense_rank16_all64:
     model_id: sp-20261120-09-be11cf56
