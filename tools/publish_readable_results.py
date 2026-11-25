@@ -83,7 +83,7 @@ EXPECTED_HOSTED_FIRST_FIVE = {
 }
 OLD_KEYS = {
     "system", "input", "reasoning", "provider_reasoning", "reasoning_summary", "model_output",
-    "tool_called", "simulator_reply", "tool_call_success",
+    "model_visible_context_summary", "tool_called", "simulator_reply", "tool_call_success",
     "simulator_state", "resource_progress",
 }
 PRIVATE_PATTERNS = {
@@ -543,9 +543,20 @@ def verify_public(output_root: Path) -> dict[str, object]:
     if unexpected:
         raise ReleaseError(f"Non-readable or raw files entered the results collection: {len(unexpected)}")
     row_pattern = re.compile(r"\[YAML\]\(([^)]+\.yaml)\)\s*\|\s*`([0-9a-f]{64})`")
+    new_manifests = sorted((ROOT / "catalog/results").glob("*--readable-release-v1.json"))
+    new_cohorts = []
+    for path in new_manifests:
+        value = _read_json(path)
+        folder = value.get("folder")
+        if (value.get("schema") != "research4.readable-new-study-release.v1"
+                or not isinstance(folder, str)
+                or not re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{2}Z--[a-z0-9-]+", folder)
+                or folder in new_cohorts or folder in (ORIGINAL_FOLDER, EXTENSION_FOLDER, TERRA_SUFFIX_FOLDER)):
+            raise ReleaseError(f"Invalid new-study public manifest: {path}")
+        new_cohorts.append(folder)
     listed: set[Path] = set()
     counts = {}
-    for cohort in (ORIGINAL_FOLDER, EXTENSION_FOLDER, TERRA_SUFFIX_FOLDER):
+    for cohort in (ORIGINAL_FOLDER, EXTENSION_FOLDER, TERRA_SUFFIX_FOLDER, *new_cohorts):
         readme = root / cohort / "README.md"
         if not readme.is_file():
             if cohort in (EXTENSION_FOLDER, TERRA_SUFFIX_FOLDER):

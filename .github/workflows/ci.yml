@@ -49,6 +49,10 @@ jobs:
           python research4_hash_supplement_verify.py
           python research4_trace_verify.py
           python -I -B verify_visible_state_extension_projection.py
+      - name: Verify public readable Game results
+        run: |
+          python -B tools/publish_readable_results.py --verify-public
+          python -B tools/publish_new_study_results.py --verify-public
       - name: Run model-free unit tests with network access blocked
         run: |
           mkdir -p .local
