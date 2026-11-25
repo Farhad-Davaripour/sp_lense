@@ -16,7 +16,7 @@ The conversation YAMLs omit endpoint and usage metadata. Their source and output
 
 Verify the published YAMLs and their recorded SHA-256 values from a clone with `python -B tools/publish_readable_results.py --verify-public`.
 
-Terra's original and added-five YAMLs contain opaque encrypted provider content under `reasoning_summary`. Those fields are not readable reasoning or model-visible history. Their published bytes and hashes are preserved; the later study releases omit the opaque field and record that omission in their indexes. No readable Terra reasoning summary was recorded by the frozen proxy.
+At [prior commit b4a217ba](https://github.com/Farhad-Davaripour/sp_lense/tree/b4a217ba41de6670b125519d172ab46c16d475ef/results), the 15 Terra reader YAMLs contained 84 opaque encrypted provider fields under `reasoning_summary`. The current Terra reader YAMLs omit only those non-model-visible fields; the [v2 correction manifest](../catalog/results/2026-11-25--terra-readable-correction-v2.json) records every old and new hash. No readable Terra reasoning summary was recorded by the frozen proxy.
 
 ## Separate Research4 experiments
 

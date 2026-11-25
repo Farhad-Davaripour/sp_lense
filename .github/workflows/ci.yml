@@ -53,6 +53,7 @@ jobs:
         run: |
           python -B tools/publish_readable_results.py --verify-public
           python -B tools/publish_new_study_results.py --verify-public
+          python -B tools/verify_terra_reader_correction_v2.py
       - name: Run model-free unit tests with network access blocked
         run: |
           mkdir -p .local

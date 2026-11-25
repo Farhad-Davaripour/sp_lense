@@ -1,10 +1,11 @@
 """Publish selected Research4 Game conversations without raw run files.
 
-The source evidence stays in the ignored ``.local`` tree.  This command copies
-the original 40 catalog-selected readable conversations byte-for-byte and
-builds a readable view of the later visible-state extension from exact recorded
-model-visible messages, model returns, and simulator receipts.  It does not
-run a model or alter source evidence.
+The source evidence stays in the ignored ``.local`` tree. This command copies
+the selected original conversations and builds a readable view of the later
+visible-state extension from exact recorded model-visible messages, model
+returns, and simulator receipts. The Terra reader view omits only opaque
+encrypted provider payloads that are not model-visible reasoning text. It
+does not run a model or alter source evidence.
 """
 
 from __future__ import annotations
@@ -182,6 +183,39 @@ def _dump_conversation(value: list[dict]) -> bytes:
     return rendered.encode("utf-8")
 
 
+OPAQUE_TERRA_REASONING = re.compile(r"gAAAA[A-Za-z0-9_-]{100,}={0,2}")
+
+
+def _is_opaque_terra_reasoning(value: object) -> bool:
+    """Recognize the encrypted provider payload, not readable reasoning."""
+    return isinstance(value, str) and OPAQUE_TERRA_REASONING.fullmatch(value) is not None
+
+
+def _strip_opaque_terra_reader(content: bytes) -> tuple[bytes, int]:
+    """Remove only exact two-line opaque Terra blocks from a reader YAML.
+
+    Other bytes are copied unchanged. The old reader remains in Git history.
+    """
+    lines = content.splitlines(keepends=True)
+    corrected: list[bytes] = []
+    omitted = 0
+    index = 0
+    while index < len(lines):
+        if lines[index].rstrip(b"\r\n") == b"- reasoning_summary: |-":
+            if index + 1 < len(lines) and lines[index + 1].startswith(b"    "):
+                try:
+                    candidate = lines[index + 1][4:].rstrip(b"\r\n").decode("ascii")
+                except UnicodeDecodeError as error:
+                    raise ReleaseError("Non-ASCII Terra reasoning block needs explicit review") from error
+                if _is_opaque_terra_reasoning(candidate):
+                    omitted += 1
+                    index += 2
+                    continue
+        corrected.append(lines[index])
+        index += 1
+    return b"".join(corrected), omitted
+
+
 def _original(local_root: Path) -> list[Conversation]:
     catalog = yaml.safe_load((ROOT / "catalog/results/2026-11-21--infrastructure-preservation.yaml").read_text(encoding="utf-8"))
     rows = catalog["results"]
@@ -209,9 +243,11 @@ def _original(local_root: Path) -> list[Conversation]:
         if _timestamp(item["finished_utc"])[0] != _timestamp(entry["finished_utc"])[0]:
             raise ReleaseError(f"Original finish timestamp mismatch: {item['scenario_id']}")
         source = _inside(local_root, entry["conversation"])
-        content = source.read_bytes()
-        _check_conversation(source, content)
         arm = ORIGINAL_ARMS[item["model"]]
+        content = source.read_bytes()
+        if arm == "terra":
+            content, _ = _strip_opaque_terra_reader(content)
+        _check_conversation(source, content)
         _, prefix = _timestamp(item["finished_utc"])
         suffix = "--censored" if item["status"] == "right_censored" else ""
         relative = Path(ORIGINAL_FOLDER) / "conversations" / arm / f"{prefix}--{item['scenario_id']}{suffix}.yaml"
@@ -400,7 +436,7 @@ def _extension(local_root: Path, snapshot: datetime) -> list[Conversation]:
             if reasoning is not None:
                 if not isinstance(reasoning, str):
                     raise ReleaseError(f"Unexpected reasoning record: {arm}/{run_dir.name}")
-                if reasoning:
+                if reasoning and not (arm == "terra" and _is_opaque_terra_reasoning(reasoning)):
                     conversation.append({"reasoning_summary" if arm == "terra" else "provider_reasoning": reasoning})
             conversation.append({"model_output": response["assistant_content"]})
             conversation.append({"tool_called": {
@@ -450,10 +486,10 @@ def _cohort_readme(title: str, rows: list[Conversation], *, in_progress: bool,
     else:
         lines.extend([
             "These are the 40 catalog-selected original episodes: 38 reached a natural ending. Two Terra original records stopped when the 131K-token context filled; their linked completions are listed separately in the results index. Four excluded technical attempts are not part of this collection.", "",
-            "Each file is a byte-for-byte copy of the existing local readable YAML. Original run identity, status, simulator revision and source hashes are recorded in the [research catalog](../../catalog/results/2026-11-21--infrastructure-preservation.yaml).", "",
+            "The original non-Terra files copy the existing local readable YAML byte-for-byte. The current Terra reader view omits only opaque encrypted provider payloads; the [versioned correction manifest](../../catalog/results/2026-11-25--terra-readable-correction-v2.json) preserves old and new hashes. Original run identity, status, simulator revision and source hashes remain in the [research catalog](../../catalog/results/2026-11-21--infrastructure-preservation.yaml).", "",
         ])
     lines.extend([
-        "The YAML shows model-visible prompts, recorded model output and available reasoning, actual tool calls and simulator replies, tool success, observed state, and a final recorded resource timeline. Text is not rewritten. Qwen thinking, when present, remains inside its recorded model output. DeepSeek has separately recorded reasoning; Terra's separately recorded field is a provider summary and is labeled accordingly. Some Terra provider summaries are opaque nonprose strings; they are preserved verbatim and should not be interpreted as readable reasoning. A missing separate field is not evidence that no reasoning occurred.", "",
+        "The YAML shows model-visible prompts, recorded model output and any readable reasoning that was recorded, actual tool calls and simulator replies, tool success, observed state, and a final recorded resource timeline. Other text is not rewritten. Qwen thinking, when present, remains inside its recorded model output. DeepSeek has separately recorded reasoning. The frozen proxy did not record readable Terra reasoning summaries; its encrypted provider payloads are omitted from the current Terra reader view under the [versioned correction](../../catalog/results/2026-11-25--terra-readable-correction-v2.json). A missing separate field is not evidence that no reasoning occurred.", "",
         "| Arm | Case | Recorded outcome | Finished UTC | Conversation | YAML SHA-256 | Source manifest SHA-256 |" + (" Plan revision |" if is_extension else ""),
         "| --- | --- | --- | --- | --- | --- | --- |" + (" --- |" if is_extension else ""),
     ])
@@ -473,7 +509,7 @@ def _root_readme(original: list[Conversation], extension: list[Conversation], sn
     in_progress = any(counts[arm] < 5 for arm in EXTENSION_ARMS)
     lines = [
         "# Research4 selected Game conversations", "",
-        "This directory publishes the selected readable Game conversations for the Research4 infrastructure study and its linked follow-ups. Each YAML presents recorded prompts, available reasoning, model outputs, tool outcomes, and resource changes.", "",
+        "This directory publishes selected readable Game conversations for the Research4 infrastructure paper and separate follow-up studies. Each YAML presents recorded prompts, any readable reasoning that was recorded, model outputs, tool outcomes, and resource changes.", "",
         "Folder prefixes use the UTC hour (`Z`) of the earliest included result. Each YAML filename starts with that run's recorded UTC finish time; neither timestamp claims when a checkpoint was published.", "",
         f"- [Original infrastructure comparison]({ORIGINAL_FOLDER}/README.md): {len(original)} retained episodes, including two Terra original records stopped by the 131K-token context limit.",
     ]
@@ -486,6 +522,7 @@ def _root_readme(original: list[Conversation], extension: list[Conversation], sn
         "The [dated analysis addendum](../catalog/analyses/2026-11-23--base15-descriptive-amendment.yaml) records this later presentation decision and its source IDs. The frozen scenario plan is unchanged.", "",
         "The conversation YAMLs omit endpoint and usage metadata. Their source and output hashes are listed in each cohort README. The reduced machine-verifiable study records are under [`paper/artifacts/records`](../paper/artifacts/records/).", "",
         "Verify the published YAMLs and their recorded SHA-256 values from a clone with `python -B tools/publish_readable_results.py --verify-public`.", "",
+        "At prior commit b4a217ba41de6670b125519d172ab46c16d475ef, the 15 Terra reader YAMLs contained 84 opaque encrypted provider fields under reasoning_summary. The current Terra reader view omits only those non-model-visible fields; the versioned correction manifest at catalog/results/2026-11-25--terra-readable-correction-v2.json records every old and new hash. No readable Terra reasoning summary was recorded by the frozen proxy.", "",
     ])
     return "\n".join(lines).encode("utf-8")
 

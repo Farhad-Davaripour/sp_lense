@@ -523,14 +523,32 @@ def verify_public_selected(data, raw_root=None):
     check(all(row["run_status"] == "complete" and row["final_outcome_known"] and
               row["analysis_role"] == "selected" and row["selection_reason_code"] is None for row in rows),
           "a selected run is incomplete, nonselected, or has unknown final outcome")
+    correction_path = HERE.parents[2] / "catalog/results/2026-11-25--terra-readable-correction-v2.json"
+    correction = json.loads(correction_path.read_text(encoding="utf-8"))
+    check(correction.get("schema") == "research4.terra-readable-correction.v2" and
+          correction.get("prior_commit") == "b4a217ba41de6670b125519d172ab46c16d475ef" and
+          correction.get("file_count") == 15 and correction.get("omitted_opaque_reasoning_count") == 84,
+          "the published Terra reader correction is absent or differs")
+    terra_corrections = {item["path"]: item for item in correction["files"] if
+                         item["path"].startswith(
+                             "results/2026-11-23_01Z--visible-state-extension-v1/conversations/terra/")}
+    check(len(terra_corrections) == 5, "the five Terra extension reader corrections are missing")
     public_yaml_root = HERE.parents[2] / "results" / "2026-11-23_01Z--visible-state-extension-v1" / "conversations"
     for row in rows:
         expected = row["source_hashes"].get("conversation_yaml_sha256")
         check(is_hash(expected), "selected row lacks published conversation hash")
         pattern = f"*--{row['case_id']}--attempt-{row['attempt_number']:02}.yaml"
         matches = list((public_yaml_root / row["arm"]).glob(pattern))
-        check(len(matches) == 1 and hashlib.sha256(matches[0].read_bytes()).hexdigest() == expected,
-              "published selected conversation YAML is absent or changed")
+        check(len(matches) == 1, "published selected conversation YAML is absent or duplicated")
+        actual = hashlib.sha256(matches[0].read_bytes()).hexdigest()
+        if row["arm"] == "terra":
+            relative = matches[0].relative_to(HERE.parents[2]).as_posix()
+            revised = terra_corrections.get(relative)
+            check(revised is not None and revised["old_sha256"] == expected and
+                  revised["new_sha256"] == actual,
+                  "Terra v1 projection hash does not map to the versioned v2 reader")
+        else:
+            check(actual == expected, "published selected conversation YAML is absent or changed")
     # Reuse the independent full-row verifier on the twenty selected rows, with
     # neutralized selection labels. The public package still remains selected-only.
     neutral_rows = [{**row, "analysis_role": "unadjudicated", "selection_reason_code": None} for row in rows]
