@@ -1,6 +1,6 @@
 # Research4 selected Game conversations
 
-This directory publishes the selected readable Game conversations for the Research4 infrastructure study and its linked follow-ups. Each YAML presents recorded prompts, available reasoning, model outputs, tool outcomes, and resource changes.
+This directory publishes selected readable Game conversations for the Research4 infrastructure paper and separate follow-up studies. Each YAML presents recorded prompts, any readable reasoning that was recorded, model outputs, tool outcomes, and resource changes.
 
 Folder prefixes use the UTC hour (`Z`) of the earliest included result. Each YAML filename starts with that run's recorded UTC finish time; neither timestamp claims when a checkpoint was published.
 
@@ -15,3 +15,14 @@ The [dated analysis addendum](../catalog/analyses/2026-11-23--base15-descriptive
 The conversation YAMLs omit endpoint and usage metadata. Their source and output hashes are listed in each cohort README. The reduced machine-verifiable study records are under [`paper/artifacts/records`](../paper/artifacts/records/).
 
 Verify the published YAMLs and their recorded SHA-256 values from a clone with `python -B tools/publish_readable_results.py --verify-public`.
+
+Terra's original and added-five YAMLs contain opaque encrypted provider content under `reasoning_summary`. Those fields are not readable reasoning or model-visible history. Their published bytes and hashes are preserved; the later study releases omit the opaque field and record that omission in their indexes. No readable Terra reasoning summary was recorded by the frozen proxy.
+
+## Separate Research4 experiments
+
+These studies and their post-hoc follow-ups are separate from the base infrastructure comparison. Original failures remain recorded; amended suffixes are identified in each cohort index.
+
+- [Split-GPU layout study](2026-11-23_17Z--split-gpu-layout-v3/README.md): 20 selected arm-case records.
+- [Company-code access study](2026-11-23_17Z--company-code-access-v1/README.md): 20 selected arm-case records.
+- [Exact split-GPU reruns](2026-11-25_03Z--split-gpu-format-rerun-supplement-v1/README.md): 2 incomplete reruns retained as evidence.
+- [New-seed matched split-GPU supplement](2026-11-25_04Z--split-gpu-new-seed-supplement-v1/README.md): 8 selected arm-case records.

@@ -57,6 +57,9 @@ MANIFEST_SCHEMA = "research4.readable-new-study-release.v1"
 FOLDER_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{2}Z--[a-z0-9-]+$")
 RUN_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
 SHA_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+# Some hosted Terra responses expose an encrypted/provider-opaque token here,
+# not a readable reasoning summary. Match only a long, entire base64url token.
+OPAQUE_TERRA_REASONING = re.compile(r"gAAAA[A-Za-z0-9_-]{200,}={0,2}\Z")
 ARMS = ("sp_lense_rank16_all64", "qwen38_27b_base", "terra", "deepseek_flash")
 
 SCENARIOS = {
@@ -422,6 +425,7 @@ def _project_row(local_root: Path, row: dict) -> tuple[bytes, dict]:
     last_decision = 0
     system = None
     source_rows = []
+    opaque_reasoning_omitted = 0
     last_result = None
     finish_times = []
     previous_run_dir = None
@@ -486,7 +490,10 @@ def _project_row(local_root: Path, row: dict) -> tuple[bytes, dict]:
                 if not isinstance(reasoning, str):
                     raise ReleaseError(f"Reasoning record has unexpected type: {arm}/{case}")
                 if reasoning:
-                    conversation.append({"reasoning_summary" if arm == "terra" else "provider_reasoning": reasoning})
+                    if arm == "terra" and OPAQUE_TERRA_REASONING.fullmatch(reasoning):
+                        opaque_reasoning_omitted += 1
+                    else:
+                        conversation.append({"reasoning_summary" if arm == "terra" else "provider_reasoning": reasoning})
             conversation.append({"model_output": response["assistant_content"]})
             event = events.pop(decision, None)
             if event is None:
@@ -555,6 +562,7 @@ def _project_row(local_root: Path, row: dict) -> tuple[bytes, dict]:
         "first_segment_finished_utc": finish_times[0],
         "elapsed_hours": last_result["score"].get("elapsed_hours"),
         "termination_reason": last_result["score"].get("termination_reason"),
+        "opaque_reasoning_omitted_count": opaque_reasoning_omitted,
         "segments": source_rows, "excluded_attempts": excluded,
     }
 
@@ -632,6 +640,9 @@ def prepare(selection_path: Path, local_root: Path) -> tuple[dict[Path, bytes], 
         "folder": folder, "row_count": len(manifest_rows),
         "precall_count": sum(row["count"] for row in precall),
         "precall_dispositions": precall,
+        "opaque_reasoning_omitted_count": sum(row["opaque_reasoning_omitted_count"] for row in manifest_rows),
+        "terra_reasoning_availability": "encrypted_provider_content_omitted_no_readable_summary_recorded"
+        if any(row["opaque_reasoning_omitted_count"] for row in manifest_rows) else "as_recorded",
         "rows": manifest_rows,
     }
     title = study_id.replace("_", " ").capitalize()
@@ -641,6 +652,9 @@ def prepare(selection_path: Path, local_root: Path) -> tuple[dict[Path, bytes], 
     for r in manifest_rows:
         hours = r["elapsed_hours"] if r["elapsed_hours"] is not None else "—"
         lines.append(f"| `{r['arm']}` | `{r['case']}` | {r['status']} | {hours} | [YAML]({r['conversation']}) | `{r['yaml_sha256']}` |")
+    if manifest["opaque_reasoning_omitted_count"]:
+        lines.extend(("", "## Reasoning availability", "",
+                      f"{manifest['opaque_reasoning_omitted_count']} opaque Terra provider reasoning payload(s) were omitted from the readable conversations. They are encrypted provider content, not human-readable summaries. This proxy did not record readable Terra reasoning summaries for those decisions. Exact model-visible prompts, model outputs, tool receipts and source hashes remain recorded. Encrypted content stays only in private raw evidence."))
     lines.extend(("", "## Setup attempts before model calls", ""))
     if precall:
         lines.extend((f"{manifest['precall_count']} setup attempt(s) failed before a model call. They are not extra Game episodes or model outcomes.", "",
@@ -761,6 +775,7 @@ def verify_public(results_root: Path) -> dict:
             raise ReleaseError(f"New-study README setup table differs: {study_id}")
         table_links = set(re.findall(r"\[YAML\]\(([^)]+\.yaml)\)\s*\|\s*`([0-9a-f]{64})`", readme_text))
         expected_links = set()
+        omitted_counts = []
         for row in rows:
             relative = row.get("conversation")
             if (row.get("arm") not in ARMS or row.get("status") not in {"complete", "incomplete"}
@@ -775,6 +790,13 @@ def verify_public(results_root: Path) -> dict:
             parsed = _check_conversation(conversation, content)
             if any(next(iter(item)) not in NEW_CONVERSATION_KEYS for item in parsed):
                 raise ReleaseError(f"New-study YAML contains metadata-heavy keys: {conversation}")
+            if any("reasoning_summary" in item and OPAQUE_TERRA_REASONING.fullmatch(item["reasoning_summary"])
+                   for item in parsed):
+                raise ReleaseError(f"Opaque provider reasoning entered readable YAML: {conversation}")
+            omitted = row.get("opaque_reasoning_omitted_count")
+            if type(omitted) is not int or omitted < 0 or (row["arm"] != "terra" and omitted):
+                raise ReleaseError(f"New-study opaque-reasoning count is malformed: {study_id}")
+            omitted_counts.append(omitted)
             validated_paths.add(conversation.resolve())
             expected_links.add((relative, row["yaml_sha256"]))
             for segment in row.get("segments", []):
@@ -793,6 +815,14 @@ def verify_public(results_root: Path) -> dict:
                     raise ReleaseError(f"New-study source hash ledger is malformed: {study_id}")
         if table_links != expected_links:
             raise ReleaseError(f"New-study README table differs from manifest: {study_id}")
+        omitted_total = sum(omitted_counts)
+        if (manifest.get("opaque_reasoning_omitted_count") != omitted_total
+                or manifest.get("terra_reasoning_availability") != (
+                    "encrypted_provider_content_omitted_no_readable_summary_recorded"
+                    if omitted_total else "as_recorded")
+                or (omitted_total > 0 and
+                    f"{omitted_total} opaque Terra provider reasoning payload(s)" not in readme_text)):
+            raise ReleaseError(f"New-study reasoning-availability note differs: {study_id}")
         actual = {p.resolve() for p in folder_path.rglob("*.yaml")}
         if actual != {p for p in validated_paths if p.is_relative_to(folder_path.resolve())}:
             raise ReleaseError(f"New-study folder contains unlisted YAML: {study_id}")

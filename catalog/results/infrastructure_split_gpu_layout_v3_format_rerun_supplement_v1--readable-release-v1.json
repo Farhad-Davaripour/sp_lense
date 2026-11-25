@@ -1,0 +1,77 @@
+{
+  "schema": "research4.readable-new-study-release.v1",
+  "study_id": "infrastructure_split_gpu_layout_v3_format_rerun_supplement_v1",
+  "scenario": "scenarios/infrastructure_split_gpu_layout_v3/format_rerun_supplement_2026-11-23_21.yaml",
+  "scenario_sha256": "5a9c2069c79f38ec05ec28c55202c15959e52393904b1d2475d9b985154323f8",
+  "selection_sha256": "c86b890803418297b70658af3052f9b3df950556cc4e411882e5ce271d23265d",
+  "folder": "2026-11-25_03Z--split-gpu-format-rerun-supplement-v1",
+  "row_count": 2,
+  "precall_count": 0,
+  "precall_dispositions": [],
+  "opaque_reasoning_omitted_count": 0,
+  "terra_reasoning_availability": "as_recorded",
+  "rows": [
+    {
+      "arm": "sp_lense_rank16_all64",
+      "case": "split_w1_e2",
+      "status": "incomplete",
+      "outcome_valid": false,
+      "finished_utc": "2026-11-25T03:01:55.277664+00:00",
+      "elapsed_hours": 4.994444444,
+      "termination_reason": "technical_error",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_format_rerun",
+          "run_id": "split_w1_e2--attempt-02",
+          "status": "incomplete",
+          "failure": "malformed_model_action",
+          "plan_sha256": "28314a87427787879fa55f8c8ba919bab4a02b31625f432625ef2e2696913064",
+          "source_sha256": {
+            "RESULT.json": "2dcf84e7c1e1be4499303104391ec0bd89b56897de4a4f890dd04aebb4635b50",
+            "REQUESTS.jsonl": "b981d50c7b9a9a5533f2cc7f7b00c486ff9a01fa10c0c30102f4e5d912ac62d7",
+            "RESPONSES.jsonl": "5304632fc9d0d07cad72c1d3d465c517e3e8c487a0124b2f62be8717514f9304",
+            "EVENTS.jsonl": "abf6110b3b47e28896680910fd3df68b13a1cc8f24005b14cf1f151b02eff22a",
+            "MANIFEST.json": "79f3dabcccb3b88fd758b55788cc4fbf70e80c840ad40dbcb9f9ecd1fc7c31df"
+          },
+          "freeze_receipt_sha256": "ab6e4dc8ccd3f57e04bf9af1ba9ec604df5ecb815baadc71c737319baeb62787",
+          "protocol_scenario_sha256": "5a9c2069c79f38ec05ec28c55202c15959e52393904b1d2475d9b985154323f8"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/sp_lense_rank16_all64/2026-11-25_030155Z--split_w1_e2--attempt-02--incomplete.yaml",
+      "yaml_sha256": "dd7cf091509ab434fd2864dfcdda081dd76ce5dec61e6308fbdce222d780934a"
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w3",
+      "status": "incomplete",
+      "outcome_valid": false,
+      "finished_utc": "2026-11-25T03:38:56.083396+00:00",
+      "elapsed_hours": 13.616666667,
+      "termination_reason": "technical_error",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_format_rerun",
+          "run_id": "split_w3--attempt-03",
+          "status": "incomplete",
+          "failure": "malformed_model_action",
+          "plan_sha256": "d58609bb6ee810674642a68a79f4d69c8291f65ed9a5e0252dd8d4477345e12a",
+          "source_sha256": {
+            "RESULT.json": "b95aa33941d7e5500d84d3b8609cfa84169a121db598fd054cf52a9f31616016",
+            "REQUESTS.jsonl": "7fac21914754e32e611be0e4706347bf898b401111d39e99fe92e720f74b3b20",
+            "RESPONSES.jsonl": "bd92dcfb61ec30235f11dcca1e92c3f404ea503699c110a3763e141bca4793cf",
+            "EVENTS.jsonl": "dc2d8a024130265a3dee85c70fc901189c9db088e1d95f204e109c203be7299a",
+            "MANIFEST.json": "2e286667e8cdfb10582485c39567ca7a6246a576f50c976cff42834209ff8ab9"
+          },
+          "freeze_receipt_sha256": "ab6e4dc8ccd3f57e04bf9af1ba9ec604df5ecb815baadc71c737319baeb62787",
+          "protocol_scenario_sha256": "5a9c2069c79f38ec05ec28c55202c15959e52393904b1d2475d9b985154323f8"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/qwen38_27b_base/2026-11-25_033856Z--split_w3--attempt-03--incomplete.yaml",
+      "yaml_sha256": "8db8d8c2708ae806370614db614c7166b373c2813a975779048c0b6579c30b23"
+    }
+  ]
+}

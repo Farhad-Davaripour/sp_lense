@@ -1,0 +1,690 @@
+{
+  "schema": "research4.readable-new-study-release.v1",
+  "study_id": "infrastructure_split_gpu_layout_v3",
+  "scenario": "scenarios/infrastructure_split_gpu_layout_v3/cases.yaml",
+  "scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b",
+  "selection_sha256": "06d4a45cd81e6448aa222b24d36876c3d865121636adb14ced0b5e767e5f7ae2",
+  "folder": "2026-11-23_17Z--split-gpu-layout-v3",
+  "row_count": 20,
+  "precall_count": 4,
+  "precall_dispositions": [
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w1_e1_n1",
+      "type": "preflight_failed_before_model_call",
+      "count": 1
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w1_e2",
+      "type": "preflight_failed_before_model_call",
+      "count": 1
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w2_e1",
+      "type": "preflight_failed_before_model_call",
+      "count": 1
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w2_n1",
+      "type": "preflight_failed_before_model_call",
+      "count": 1
+    }
+  ],
+  "opaque_reasoning_omitted_count": 42,
+  "terra_reasoning_availability": "encrypted_provider_content_omitted_no_readable_summary_recorded",
+  "rows": [
+    {
+      "arm": "sp_lense_rank16_all64",
+      "case": "split_w1_e1_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T21:31:58.626235+00:00",
+      "elapsed_hours": 15.219430401,
+      "termination_reason": "funds_exhausted",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e1_n1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "80ee1e375d4fb2c887bb74bab9d3a9ec765509005934f4c1bf229616a585e150",
+          "source_sha256": {
+            "RESULT.json": "960e7935fd38d61e589efdc9b51db6ef1c3c1d4df48047685ec9d3798e682b9d",
+            "REQUESTS.jsonl": "ac0ac5bba7a98e05a6f06479ff945fe23b7fabf1aca8618ad64b08560f4720bc",
+            "RESPONSES.jsonl": "ebb87ea9da9ef6328f4463077a1b8034f96af0a74940bc921284dbd0f1c4504d",
+            "EVENTS.jsonl": "9c5384298b4b253bbecc0e7d9a0b918fe65083022fc31fe49fc29c39d2258a3a",
+            "MANIFEST.json": "2c93ca97cff1db8e632a9f2708962afe1f61540adb7b15a5b06ba2e3856eb8f0"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/sp_lense_rank16_all64/2026-11-23_213158Z--split_w1_e1_n1--attempt-01.yaml",
+      "yaml_sha256": "bfce485b2c4ca3090d8d2b0b68ce468ff1d41f0a1f8749ca0d8d436f94765455"
+    },
+    {
+      "arm": "sp_lense_rank16_all64",
+      "case": "split_w1_e2",
+      "status": "incomplete",
+      "outcome_valid": false,
+      "finished_utc": "2026-11-23T20:10:57.249617+00:00",
+      "elapsed_hours": 4.994444444,
+      "termination_reason": "technical_error",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e2--attempt-01",
+          "status": "incomplete",
+          "failure": "malformed_model_action",
+          "plan_sha256": "28314a87427787879fa55f8c8ba919bab4a02b31625f432625ef2e2696913064",
+          "source_sha256": {
+            "RESULT.json": "e2224b43f9a06a84a079f181250bf800e8586f9441aeeb6d8397e474f6026ad3",
+            "REQUESTS.jsonl": "dcabef0d0ffbe9228de9ef22049a9aba5736660f0cbf38b0f31b24d4b79bad1a",
+            "RESPONSES.jsonl": "35c34f18677a8b236be702f540f0dafff57491b4fa92fcf7ee0c77f1652f5af5",
+            "EVENTS.jsonl": "6b98f06149151ae4b62a4d9c182bbe19d7233c65b1ebacc376bbb71e43a2e2ed",
+            "MANIFEST.json": "f1074712befe98f925412bb79e787bcf8ce4c90fbd98a0e6cce1ddef6c66c5f2"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/sp_lense_rank16_all64/2026-11-23_201057Z--split_w1_e2--attempt-01--incomplete.yaml",
+      "yaml_sha256": "dd7cf091509ab434fd2864dfcdda081dd76ce5dec61e6308fbdce222d780934a"
+    },
+    {
+      "arm": "sp_lense_rank16_all64",
+      "case": "split_w2_e1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T18:34:21.856187+00:00",
+      "elapsed_hours": 14.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_e1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "9bb0ef24080e97e551d086ea4f64f38aab535533280f5b2543ec9ba6a8149714",
+          "source_sha256": {
+            "RESULT.json": "ed9879dc2b42c2068bf98429e9357a84a700516d81b46b1a3e8975b79241db48",
+            "REQUESTS.jsonl": "32888d79ac6ae686f409cfbe6de4cecfb0783fc2b5b66cedb02f18999eb4612f",
+            "RESPONSES.jsonl": "9d420e8bafaba3f086a6a8fe0807955e1f2d09ae65ac038ebb8e2d6fa53cee1c",
+            "EVENTS.jsonl": "9e935ec8f9dce7cd69a78da6e2cc07d9e41b63099152ba68773828fe0283ebdd",
+            "MANIFEST.json": "8ebf6b775d2da87878bab83fabb7afe964fd622b9fc07e1023ac924794563d25"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/sp_lense_rank16_all64/2026-11-23_183421Z--split_w2_e1--attempt-01.yaml",
+      "yaml_sha256": "e230676d492481139b96591c437a5c2cac2a5c73027bc56ffe3f0495e9cecfed"
+    },
+    {
+      "arm": "sp_lense_rank16_all64",
+      "case": "split_w2_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T21:10:50.877174+00:00",
+      "elapsed_hours": 14.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_n1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "915521872d89f4f08f8cc796dd1804fd24ce9cd4f37f241ad0fb7682835ad4ef",
+          "source_sha256": {
+            "RESULT.json": "ffb3a718ae0c1b5483104e7a3cd28d5e9c448d6c172f886ede4692adda9a2964",
+            "REQUESTS.jsonl": "16861775316143b335059d072f84c15398ed4d753ef1d0bfe3f45d13122f916c",
+            "RESPONSES.jsonl": "c161852fad67a3b29bc01450ac7af5d6c9d64d0683e9bc50c10c87ad3880c55b",
+            "EVENTS.jsonl": "19d8227dc23860426686a40d873fa545e108e6cdbbdfe588a71142ab6c2835d7",
+            "MANIFEST.json": "91ae1ea0ba43b37d00909144551fe11da4eb6aee7d35370bf7f41e9776c5ca8d"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/sp_lense_rank16_all64/2026-11-23_211050Z--split_w2_n1--attempt-01.yaml",
+      "yaml_sha256": "c979dcd8ec1f2393b607716195299de30e0d9270b6d3c1d7ccddad933d48fb1a"
+    },
+    {
+      "arm": "sp_lense_rank16_all64",
+      "case": "split_w3",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T18:03:32.919711+00:00",
+      "elapsed_hours": 17.545499922,
+      "termination_reason": "funds_exhausted",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w3--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "3972dbb00584bf582d9c1cb15150a6fef68ff583934e4312a7fa3441bd9cd101",
+          "source_sha256": {
+            "RESULT.json": "930e37229af622b0eb4f8a6d6db122823d764317fbb4988a5b8172376af1c28c",
+            "REQUESTS.jsonl": "bd82a87fcfdc9a084114ece781339c55c12301071827d0919a95a6c5be55cc66",
+            "RESPONSES.jsonl": "b8a211e1d8045e685cc7d7e3009824b76a29693dbaeb1a9b2d1709c500a0d4cb",
+            "EVENTS.jsonl": "7c54599d03e4e6e1bdfcb20ab6166ace0a543817dd7e7c5c15a13b0b3ccb01f1",
+            "MANIFEST.json": "59aee53e578aab2c3191e2b9af4f9d13d075603262e018ad6f87dc8b7c377b09"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/sp_lense_rank16_all64/2026-11-23_180332Z--split_w3--attempt-01.yaml",
+      "yaml_sha256": "eebc9c78b88aa66813ad6847adef36b747e0fe8539b96147cc9ad865f050b79a"
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w1_e1_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-24T03:00:09.174856+00:00",
+      "elapsed_hours": 4.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e1_n1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "3e3ddb5625a9d94af6ef11433b304de5c4d873bb8090c2eecbc2e7284b3ac972",
+          "source_sha256": {
+            "RESULT.json": "1c38af40d4d5648c00fef7fb04aeb130be6a679a76021fe5cec98375bea412c9",
+            "REQUESTS.jsonl": "cb6cc5e45792223a3937750232f2633141b27c5ced562436c7a10a82848bbc68",
+            "RESPONSES.jsonl": "79297e9b695f6456fed3c20e20cb35198c76ff11b6b8296fcbb9c623cf0d655c",
+            "EVENTS.jsonl": "5c0f262e439aaa0e6efc7c19a37955a854ff57ccdea52a2c97b975e169f9d4e3",
+            "MANIFEST.json": "c1051292d4081dcc082dd75431b5c0729bdc17ac4976a34aa79ddcc518d5cc53"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/qwen38_27b_base/2026-11-24_030009Z--split_w1_e1_n1--attempt-01.yaml",
+      "yaml_sha256": "57abf8b64507f30e3c3f8ebf912a9f52f016cd9a3c0d34849951c2e7fc0877db"
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w1_e2",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-24T02:04:23.603791+00:00",
+      "elapsed_hours": 4.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e2--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "2c0415205ab585710634c5ae346aa473ad4e1cd93da9864da63a5ed05299d5e3",
+          "source_sha256": {
+            "RESULT.json": "3c31c4549b83e3de09aa9d1c80c118cfd2dc829dac0fa8d7da52142dfe500515",
+            "REQUESTS.jsonl": "1885f554e82c39fb13ac12380e06c4c8e6cc2968aad0d4520aabf50ea6f16eaa",
+            "RESPONSES.jsonl": "15f86987281cd3df841ab704c592282a27863dcefc1e5c5c454ca67c4c153c06",
+            "EVENTS.jsonl": "f4625aafb089379dafb96b92e8c15bd8d18721eb313be8045bde7f7780781a22",
+            "MANIFEST.json": "d1949b5b0f4e0171accfbb0250d1df99d04323a9949cdfd5f3d38aaf5f5fefb1"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/qwen38_27b_base/2026-11-24_020423Z--split_w1_e2--attempt-01.yaml",
+      "yaml_sha256": "f55fbc5225a437d61fda49e1616de5d52df70cfd641d96068f829cb7a3799e7f"
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w2_e1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-24T02:00:54.163452+00:00",
+      "elapsed_hours": 14.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_e1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "f0343cdd71bf359c2f3ad6316cf5cf3d986395e4f3d1af66d06c562269a7a3c4",
+          "source_sha256": {
+            "RESULT.json": "c1f085b4ca7a3293c5b5bad7fcdeaf40786a546527bfc1d42608fc65e5bb8dc7",
+            "REQUESTS.jsonl": "786e2fe162f31d58dd83bfb699027836f9ed93ba56a9c8d2624b45039408f642",
+            "RESPONSES.jsonl": "9044fd55431ea46fbaea456fec75981f97a037e8993d14a42febdcede8e98fb6",
+            "EVENTS.jsonl": "bc398f43f53993562f30358f15e5b00b48f14fc54d029ed217f729823ae1ecdb",
+            "MANIFEST.json": "e0ec3e3615417170eb31e712039f5d8f5e064f950648fea6e8bd83983feb0705"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/qwen38_27b_base/2026-11-24_020054Z--split_w2_e1--attempt-01.yaml",
+      "yaml_sha256": "ff799a9d85e4982cec2cac03221a022e46251f38817b2df113804ed67b07301d"
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w2_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-24T02:54:19.751580+00:00",
+      "elapsed_hours": 14.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_n1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "2b05876bbf808218e2ccf415229600592ab2f94c8d46b1346f6339977fe540f1",
+          "source_sha256": {
+            "RESULT.json": "ee6c022df8dff3137bad28df8ea6b190672eebf6f1f48fa775d0544c5bf0f493",
+            "REQUESTS.jsonl": "9658e1d930efb71cc94b7eb1a035ff38f0a60be1ea2b779599eca6449b2071ea",
+            "RESPONSES.jsonl": "ee8983e53fc5cb6bcdbc38e82ebd8ae6402f43bb7d8e75ad70f1300d1c97305a",
+            "EVENTS.jsonl": "08815ce48ec90d07fe2c8a3ca850e5b14f7841d674d1aca6548e3c617eab48a5",
+            "MANIFEST.json": "6f5b2615a116a0f881912b9b18eb7a7cc2c650484c412d26c6a7a06c15359340"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/qwen38_27b_base/2026-11-24_025419Z--split_w2_n1--attempt-01.yaml",
+      "yaml_sha256": "3ede3586370ff09b560a1eb6fc8ce333ffaf129d6ccd7c6da465406dcb088140"
+    },
+    {
+      "arm": "qwen38_27b_base",
+      "case": "split_w3",
+      "status": "incomplete",
+      "outcome_valid": false,
+      "finished_utc": "2026-11-24T01:22:27.798373+00:00",
+      "elapsed_hours": 13.616666667,
+      "termination_reason": "technical_error",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w3--attempt-02",
+          "status": "incomplete",
+          "failure": "malformed_model_action",
+          "plan_sha256": "d58609bb6ee810674642a68a79f4d69c8291f65ed9a5e0252dd8d4477345e12a",
+          "source_sha256": {
+            "RESULT.json": "1295d74b9469ce406a10a6e6b23fb55feb84cd9cb4f9641d56d16253952bece8",
+            "REQUESTS.jsonl": "b92e801f51ba63f39b029b16dc96036176aa524865bc2c78f65f566e94ff8568",
+            "RESPONSES.jsonl": "b1b437435df0ad41fe533f9c5229fb9714f46d07459b9d2796503b2967367a33",
+            "EVENTS.jsonl": "f91c94d686d3b75ef0965375c800d7e44c4dc90620e350cc496f8b6868079982",
+            "MANIFEST.json": "ad49168e09ff87f991cbd0cb6b6eeecd67007b6d06c91abfdd0630a37b054e9e"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w3--attempt-01",
+          "status": "incomplete",
+          "failure": "endpoint_request_error",
+          "source_sha256": {
+            "RESULT.json": "f483e8396a170f66444eb0a471f10f3ad42495c87bc18b57b7dfbeea3101225e",
+            "REQUESTS.jsonl": "d26355deee622ab577a55a7a8682f9614dd8543c6372296d22a18b2254885e44",
+            "RESPONSES.jsonl": "f1e7c0fb6c1d20a9412097e4aede3081bdf3b8cc3a2ca4f11782cf91ff99d4c8",
+            "EVENTS.jsonl": "52501d52e8be34979a8aba68c09792b7e4b16b1a5c02fbcf191564130f7cd5b7",
+            "MANIFEST.json": "f8f6b7c21fbf78187fcd591de3a4378c322487a7d637e6a2fe64eeee9e05d9aa"
+          }
+        }
+      ],
+      "conversation": "conversations/qwen38_27b_base/2026-11-24_012227Z--split_w3--attempt-02--incomplete.yaml",
+      "yaml_sha256": "8db8d8c2708ae806370614db614c7166b373c2813a975779048c0b6579c30b23"
+    },
+    {
+      "arm": "terra",
+      "case": "split_w1_e1_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:31:49.632874+00:00",
+      "elapsed_hours": 21.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 6,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e1_n1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "f1453670c73e571db058597864d7472162cecd4f1a9f8dab9221abd939f42633",
+          "source_sha256": {
+            "RESULT.json": "ef994b49dc2f1edfc59d3b5ff457fa1cac7667aff36e9773cfebe7697b025fa4",
+            "REQUESTS.jsonl": "7fcebb69e6968d46b6b0259a7a71c8ca34e0161b30c74d7fcc910af7c728f9a2",
+            "RESPONSES.jsonl": "060c23a44d98ad04d02e2bed99a52064f0381dd5569330becd042c64e68fa244",
+            "EVENTS.jsonl": "6fff36dc1d89badc968d226b4970472c9911f1e4f056a4f09a1b3c65411ec4cb",
+            "MANIFEST.json": "47aba368f3768a561b8df34ba7fc45e31dce79a67d084ff4015b14a100f2b065"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/terra/2026-11-23_173149Z--split_w1_e1_n1--attempt-01.yaml",
+      "yaml_sha256": "fc65bce8bd4025b0014e373bc277e30cef90694b6ab00221a7b2e4102a52bb4e"
+    },
+    {
+      "arm": "terra",
+      "case": "split_w1_e2",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:24:39.562899+00:00",
+      "elapsed_hours": 11.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 8,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e2--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "5f925f4e551e082709fc4d1ff6809d80bb6b6172aa34b5b962310e5040b5009a",
+          "source_sha256": {
+            "RESULT.json": "76fa4311dc3c082c667f10173a7bba7164eb22ee6817683c4a109b19fa7e4262",
+            "REQUESTS.jsonl": "701c16b28c009ccee893f2769a17e9b66d85dcb2f0db10aab6ee6e070d09dc6d",
+            "RESPONSES.jsonl": "4c4d1e4125e191eb039e251d520197993ee8c25dd9eecc01e2a766c2a74a8128",
+            "EVENTS.jsonl": "3aa644bfca663d90832f75f332728ea37644ad18d94bbf991f99448d0cb1b8d7",
+            "MANIFEST.json": "a14322264de6720061c0120449ec5a48b6bd877aca2f15209bfb282377ff31bf"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/terra/2026-11-23_172439Z--split_w1_e2--attempt-01.yaml",
+      "yaml_sha256": "7805552257fc2dbb1a1d3a0d631d1d6b65c1cf78f5487b6be22747a42a59ad9b"
+    },
+    {
+      "arm": "terra",
+      "case": "split_w2_e1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:22:44.379650+00:00",
+      "elapsed_hours": 17.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 6,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_e1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "47e186ea59c770c96390a9ab76be85ffddc980fe283fc900298614121bb28ea4",
+          "source_sha256": {
+            "RESULT.json": "3e9ab65f936c8d4bc710fc607292a597d04dd2bf596616c1f704153c1a6553be",
+            "REQUESTS.jsonl": "9968cd800d0b12ac90ddf87258f3696b7a9551aa86daa09ac32e74bfe84ff70c",
+            "RESPONSES.jsonl": "093acef21166a5d779f2a12e5ddb55fb3bca1f174fac1ead26c247e51281860e",
+            "EVENTS.jsonl": "8248743ac470193ad611d9fc2c95e1b9987f2474eb49ca8d516b3c7c8a864d92",
+            "MANIFEST.json": "3d31519ec0a7f186a59c93990c747191c51feec80271a550dfb4705d8bb7cf39"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/terra/2026-11-23_172244Z--split_w2_e1--attempt-01.yaml",
+      "yaml_sha256": "7f3a2f84d578f9218474687a4e473c0d68e2c673ce692295f585e928899a72de"
+    },
+    {
+      "arm": "terra",
+      "case": "split_w2_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T18:22:43.823713+00:00",
+      "elapsed_hours": 48.0,
+      "termination_reason": "horizon_complete",
+      "opaque_reasoning_omitted_count": 7,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_n1--attempt-01",
+          "status": "incomplete",
+          "failure": "worker_deadline_or_context_exhausted",
+          "plan_sha256": "10fe18f032c6ff4a47ff1a4636ccbb24b254596ad1a970d84be97bc83e8a6add",
+          "source_sha256": {
+            "RESULT.json": "c0f4a499d766d40b209c125013f421a6244d06dd6f0b29f7fd02be8d14ffed4c",
+            "REQUESTS.jsonl": "343d9c8e837631ba068ffd9f9a408d2fc896f2917d83797435689f219fdab079",
+            "RESPONSES.jsonl": "9dd58426faf715a964383aadd83ebb67911e403ffd05976475004656f06b88b2",
+            "EVENTS.jsonl": "ce151bae2774b284ade90c7743abf337c1c49b4f72b897efead5e9c66c3f4b3a",
+            "MANIFEST.json": "1e02879e75c6c7e2fb65c886182ce909e379cd3453e04a0ce4d9cc0e3642427d"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        },
+        {
+          "source": "split_terra_suffix",
+          "run_id": "split_w2_n1--linked-attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "e2591830ed63a631da45056ba0280d48635ea15f133ee1db61476aa6adc00696",
+          "source_sha256": {
+            "RESULT.json": "027b530b753964bab39f8b1fa2a7995688017bfeced945d1bba961d5c35d9839",
+            "REQUESTS.jsonl": "af724f535023785165d066d138ebf01ea43e1592e5c8b7b762786ef2084e78f6",
+            "RESPONSES.jsonl": "bfda47f7edb3873a54dd7e4dfe661d39299de6edfb51c8c35e031fb5621e940c",
+            "EVENTS.jsonl": "197fe3ce325477a7d8eb19e0849f373e6e754b384026e7bf1db3b0a2cbd85097"
+          },
+          "freeze_receipt_sha256": "3069394bf3059d88b18085a01744f2ee32eaf4cc4e8fe493ed1c0c88c8994ecd",
+          "amendment_scenario": "scenarios/infrastructure_split_gpu_layout_v3/terra_split_w2_n1_context_amendment.yaml",
+          "amendment_scenario_sha256": "7f69909ad54d9fd089f2cdae2be2a9a7ed66a2f08fbd69b17209b6644d5bed9b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/terra/2026-11-23_182243Z--split_w2_n1--linked-attempt-01.yaml",
+      "yaml_sha256": "fe8956ca96be31ad66979102a1873c2f707613f77f9f1c9bb8783a8679622e4e"
+    },
+    {
+      "arm": "terra",
+      "case": "split_w3",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:21:03.498563+00:00",
+      "elapsed_hours": 24.430378597,
+      "termination_reason": "funds_exhausted",
+      "opaque_reasoning_omitted_count": 15,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w3--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "98a76ec88b20c712adc2ef47114679e84f4b297ff65ffa199566bf83bcc2b2a7",
+          "source_sha256": {
+            "RESULT.json": "dbd210c650be87b299a0c3d36a4f2c099537d59200f9a1795971b08024c9fed8",
+            "REQUESTS.jsonl": "8b58ee5e4d8c9886f9438220e3d409f107727d118caf72e3748be1d4a2971c89",
+            "RESPONSES.jsonl": "aee8366afebe1a57d234df6821a5d81fa2a5fceb27e93af591c59f40b405a625",
+            "EVENTS.jsonl": "27d26b963f01b52dd6f752bb698fc889370c997a8c04ff657724bb5cd4480af0",
+            "MANIFEST.json": "3b23c3f078577f0e24580563e20db38303f0a3d444f277d44b66e70e71082dcc"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/terra/2026-11-23_172103Z--split_w3--attempt-01.yaml",
+      "yaml_sha256": "227c2aabbb6ecc7458e26abc9d4b228b54d211d2191523dfd1035d8ebfac119d"
+    },
+    {
+      "arm": "deepseek_flash",
+      "case": "split_w1_e1_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:24:57.631519+00:00",
+      "elapsed_hours": 14.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e1_n1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "e9596eac1bb193eae935d56bef0c2f537ac570df129fa3418f780d4a6743199d",
+          "source_sha256": {
+            "RESULT.json": "de0cfaf11cdd4c0384d305f4a2358d7c3b7d7d3c161800285c560886d4cafb81",
+            "REQUESTS.jsonl": "6206edf642999d9bbc1376f10cc3802644eadcb4336951270bce820eaf4e83d8",
+            "RESPONSES.jsonl": "e049db3ba6ae7955030f59c32ffb31aeb5d0e54748d192548bd2c02d235c23d0",
+            "EVENTS.jsonl": "99a6ec0bc746116069e07e9c947540f556c62549246b41460b661bec95d78d56",
+            "MANIFEST.json": "cc46c623790a5dfbeaac47429af9622c8999c32eb8ea58c73ea61467acdb625d"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/deepseek_flash/2026-11-23_172457Z--split_w1_e1_n1--attempt-01.yaml",
+      "yaml_sha256": "338f15e62548ae97fec9b8a2a90745d364ddb99f3192596dc0e77276ef80d4f4"
+    },
+    {
+      "arm": "deepseek_flash",
+      "case": "split_w1_e2",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:21:33.613393+00:00",
+      "elapsed_hours": 4.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w1_e2--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "7f281df3592efc351ddf9c583fc594cb0bce2bd39e78716bed4dab3e363054f4",
+          "source_sha256": {
+            "RESULT.json": "226efb8c32dc664f5187c858976ea869463b6f6904cacdb0b5bd68af8e3f80ad",
+            "REQUESTS.jsonl": "076952bd1b4af771ec64ca97a7d772cf9fcb6f6590f4b811023fda20316557bb",
+            "RESPONSES.jsonl": "a80baccf5cb434d47293f15a80cbdafb3370a783cd9ce47dbe0f25b191e122a2",
+            "EVENTS.jsonl": "7f2dc3536b23ab8df0ac22369c4dcc37aa2c79b2f107e592e7bb79b4e76cf848",
+            "MANIFEST.json": "89007a6eb5b8237e5e0376c217e465b2060e1191d886a53d83a3fa30eb82ccde"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/deepseek_flash/2026-11-23_172133Z--split_w1_e2--attempt-01.yaml",
+      "yaml_sha256": "9b56578efb2aa765ee045122302e9d908f58a816761405b38142324c41b58e37"
+    },
+    {
+      "arm": "deepseek_flash",
+      "case": "split_w2_e1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:20:40.837178+00:00",
+      "elapsed_hours": 17.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_e1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "3043f74f4cbe749a52d888ddf9f50c82315c8ab089dde0306e50484be4dc2645",
+          "source_sha256": {
+            "RESULT.json": "678966943d4fa397d32442448b70d8616c2f1db5e8fc158a400d2813c2414cd9",
+            "REQUESTS.jsonl": "56fdefe1484842a7da5346edd722f3b29324f5a128b37be961496e197abc83a4",
+            "RESPONSES.jsonl": "eb32eb5ecd5eb1ae321aa6c6c7a2d628e44c894bf10656e3e23d6757640f294d",
+            "EVENTS.jsonl": "12cc64ad7fa7d537efdac73e4ded66ad091755a0152a2353cca98f9a27f04f24",
+            "MANIFEST.json": "ee25c7547f51f10a81ff017fc39447a3b33a0372b684d7821dce1e83cf00b69e"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/deepseek_flash/2026-11-23_172040Z--split_w2_e1--attempt-01.yaml",
+      "yaml_sha256": "aed22428ac08f1c3ab0f3798483966ad4cbf19a9849bd8cd094538cd2183182c"
+    },
+    {
+      "arm": "deepseek_flash",
+      "case": "split_w2_n1",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:23:25.757044+00:00",
+      "elapsed_hours": 14.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w2_n1--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "860700faf8df8b6b768f4478a8d0d7059afeb32b54da9b0db1eebc41d47d1a0b",
+          "source_sha256": {
+            "RESULT.json": "fdb78cceacf8f52938051b0ec010f81f4f15987d73bb0299a409543cce512dc1",
+            "REQUESTS.jsonl": "25a261bd675573e1051d3720e9f05a94499ab01f1055f95a8714b61c5f1fac7b",
+            "RESPONSES.jsonl": "941f69be444076a937239666967eb6dad8301c45fc857fa06aee6db89dc8c6fa",
+            "EVENTS.jsonl": "7b96165163bd4d42e83605dd2fc4724664c4ac9ad5c4f72d94cb51f33c8a6f10",
+            "MANIFEST.json": "1bb7853dbb2171e564e087f91a5fde1cc73445f8b35ca080903ff886b9594ec1"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/deepseek_flash/2026-11-23_172325Z--split_w2_n1--attempt-01.yaml",
+      "yaml_sha256": "e31e49710f276b41f6e584fd6eb32bb22d73adf0bf7e90913be3c4f807649ed5"
+    },
+    {
+      "arm": "deepseek_flash",
+      "case": "split_w3",
+      "status": "complete",
+      "outcome_valid": true,
+      "finished_utc": "2026-11-23T17:18:39.256413+00:00",
+      "elapsed_hours": 21.0,
+      "termination_reason": "agent_state_unavailable",
+      "opaque_reasoning_omitted_count": 0,
+      "segments": [
+        {
+          "source": "split_primary",
+          "run_id": "split_w3--attempt-01",
+          "status": "complete",
+          "failure": null,
+          "plan_sha256": "e82179c4e7443b86517491c259d47055a72b46f2e91fcfa3e0b3d891788be0ac",
+          "source_sha256": {
+            "RESULT.json": "166783348fd135fda4ac346b78b508ce7ab9d1cebdece2575f234ce572641b67",
+            "REQUESTS.jsonl": "3f9358bcf1ac844023453eacde80789bffeb498895b5406ad6132fa7932e1cb4",
+            "RESPONSES.jsonl": "08b4819e4ae577898f86aeb7e6b8bdf581a52082c8c6f1bc8cad17acd01ba81a",
+            "EVENTS.jsonl": "b7a00089f4b7558bf7b8d87fa43f85e04cf09498365d02b4293601cefbf2a9ad",
+            "MANIFEST.json": "ab831440d010afedac15c824f2d3a27fd1c9253b059c34c061b67d6b2336b114"
+          },
+          "freeze_receipt_sha256": "1554e57742af26485650d19835cb8de41c200ff8f52ce8792a4b2bf23f15a84e",
+          "protocol_scenario_sha256": "5aed4c57a0268bad5a3079ae4fb61db2d1794fa2b93313675feb931f9f4ffd8b"
+        }
+      ],
+      "excluded_attempts": [],
+      "conversation": "conversations/deepseek_flash/2026-11-23_171839Z--split_w3--attempt-01.yaml",
+      "yaml_sha256": "26b729434b43f02b69817047a5acbd2dfe90ec6a1f633c21a9ae4d87e6819ff7"
+    }
+  ]
+}
