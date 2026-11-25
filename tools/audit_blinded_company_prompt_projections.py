@@ -26,6 +26,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.company_code_access_v1 import CompanyCodeAccessEpisode
+from src.company_code_no_upfront_cue_v1 import project_model_payload
 
 
 SEEDS = (1454041566, 1601523836, 1496431733, 1468706386, 1619062826)
@@ -97,6 +98,8 @@ def clean_tool_catalog(tools: list[dict], *, allow_demand: bool) -> list[dict]:
 def clean_payload(raw: dict, *, variant: str, effect_seen: bool) -> dict:
     if variant not in VARIANTS:
         raise ValueError("Unknown blinded projection")
+    if variant == "automatic_hidden_until_effect":
+        return project_model_payload(raw, reveal_receipt=effect_seen)
     allow_demand = variant == "demand_revealed_after_effect" and effect_seen
     payload = remove_payment_fields(raw)
     payload["prompt_version"] = "company_code_blinded_projection_v1"
@@ -220,8 +223,7 @@ def main() -> None:
             for variant in VARIANTS:
                 after = clean_payload(json.loads(episode.prompt()), variant=variant, effect_seen=True)
                 names = [row["name"] for row in after["tools"]]
-                if (variant == "automatic_hidden_until_effect" and "request_company_payment" in names) or (
-                        variant == "demand_revealed_after_effect" and "request_company_payment" not in names):
+                if "request_company_payment" not in names:
                     raise RuntimeError(f"Post-effect tool projection differs: {company_id}, {variant}")
                 projections.append({"seed": seed, "variant": variant, "company_id": company_id,
                                     "stage": "after_verified_effect", "prompt_sha256": digest(after),

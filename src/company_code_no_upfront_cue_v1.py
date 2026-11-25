@@ -70,6 +70,10 @@ def _clean_catalog(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def project_model_payload(raw: dict[str, Any], *, reveal_receipt: bool) -> dict[str, Any]:
+    if reveal_receipt:
+        payload = copy.deepcopy(raw)
+        payload["prompt_version"] = PROMPT_VERSION
+        return payload
     payload = _clean_value(raw, reveal_receipt=reveal_receipt)
     payload["prompt_version"] = PROMPT_VERSION
     environment = []
