@@ -42,6 +42,11 @@ PARENT_FILES = frozenset({
     "CONVERSATION.yaml", "ENDPOINT_BEFORE.json", "EVENTS.jsonl", "LIVE_STATE.json",
     "MANIFEST.json", "REQUESTS.jsonl", "RESPONSES.jsonl", "RESULT.json",
 })
+PLAN_FIELDS = frozenset({
+    "schema", "role", "arm_id", "label", "model_id", "adapter_sha256",
+    "adapter_config_sha256", "base_manifest_sha256", "simulator", "endpoint",
+    "generation", "history", "operations", "scope", "cohort_extension",
+})
 
 
 def sha_bytes(data: bytes) -> str:
@@ -101,9 +106,11 @@ def scenario(path: Path) -> dict:
             or set(value.get("last_exchange_binding", {})) != {
                 "decision_index", "decision_id", "prompt_tokens", "request_messages_sha256",
                 "response_content_sha256", "finish_reason"}
-            or set(value.get("parent_execution_release", {})) != {"kind", "path", "sha256"}
+            or set(value.get("parent_execution_release", {})) != {"kind", "path", "sha256", "identity"}
             or set(value.get("primary_next_request", {})) != {"prompt_tokens", "messages_sha256"}):
         raise ContinuationError("Continuation evidence/admission fields are incomplete")
+    if set(value.get("parent_source_sha256", {})) != set(value.get("parent_manifest_source_keys", [])):
+        raise ContinuationError("Complete parent source inventory declaration is required")
     if (freeze["parent_saved_decisions"] != value.get("parent_saved_decisions")
             or freeze["parent_evidence_sha256"] != value.get("parent_evidence_sha256")
             or freeze["amended_plan_sha256"] != value.get("amended_plan", {}).get("sha256")
@@ -147,6 +154,27 @@ def verify_source_hashes(spec: dict) -> None:
             raise ContinuationError(f"Continuation source changed: {relative}")
 
 
+def validate_arm_route(arm_id: str, endpoint: dict, release_kind: str) -> None:
+    if arm_id in {"sp_lense_rank16_all64", "qwen38_27b_base"}:
+        if (endpoint.get("base_url") != "http://127.0.0.1:8873"
+                or endpoint.get("expected_health") != {}
+                or "max_output_tokens" in endpoint
+                or release_kind != "mini_release"):
+            raise ContinuationError("Local Qwen arm is not bound to the Mini route/release")
+        return
+    expected = {"terra": (8877, "terra"), "deepseek_flash": (8878, "deepseek")}
+    if arm_id not in expected:
+        raise ContinuationError("Unknown continuation arm")
+    port, provider = expected[arm_id]
+    health = endpoint.get("expected_health", {})
+    if (endpoint.get("base_url") != f"http://127.0.0.1:{port}"
+            or endpoint.get("max_output_tokens") != 8192
+            or health.get("provider") != provider
+            or health.get("max_output_tokens") != 8192
+            or release_kind != "hosted_driver"):
+        raise ContinuationError("Hosted arm route/provider/output cap differs")
+
+
 def prepare(scenario_path: Path, parent: Path, plan_path: Path):
     spec = scenario(scenario_path)
     verify_source_hashes(spec)
@@ -158,6 +186,13 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
         if file_sha(parent / filename) != expected:
             raise ContinuationError(f"Parent evidence changed: {filename}")
     release_ref = spec["parent_execution_release"]
+    release_identity = release_ref["identity"]
+    if set(release_identity) != {"arm_id", "case_id", "attempt_id", "run_id", "plan_sha256", "qualification_sha256"}:
+        raise ContinuationError("Parent release identity is incomplete")
+    if (release_identity["arm_id"] != spec["parent_identity"]["arm_id"]
+            or release_identity["case_id"] != spec["parent_identity"]["case_id"]
+            or release_identity["attempt_id"] != spec["parent_identity"]["attempt_id"]):
+        raise ContinuationError("Parent release arm/case/attempt identity differs")
     release_path = (ROOT / release_ref["path"]).resolve(strict=True)
     if not release_path.is_relative_to((ROOT / ".local").resolve()) or file_sha(release_path) != release_ref["sha256"]:
         raise ContinuationError("Parent execution release receipt changed")
@@ -166,8 +201,19 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
         if (release.get("worker_exit_code") != 0 or release.get("owned_cleanup_confirmed") is not True
                 or release.get("lease_released") is not True):
             raise ContinuationError("Parent Mini endpoint did not release cleanly")
+        if release_path.parent.name != release_identity["run_id"]:
+            raise ContinuationError("Mini release run ID differs")
+        qualification_path = release_path.parent / "ENDPOINT_QUALIFICATION.json"
+        if (release_identity["qualification_sha256"] is None
+                or file_sha(qualification_path) != release_identity["qualification_sha256"]
+                or read_json(qualification_path).get("game_plan_sha256") != release_identity["plan_sha256"]):
+            raise ContinuationError("Mini endpoint qualification or plan identity differs")
     elif release_ref["kind"] == "hosted_driver":
-        if release.get("status") != "driver_finished":
+        rows = release.get("rows", [])
+        if (release.get("status") != "driver_finished"
+                or release.get("arm") != release_identity["arm_id"]
+                or release_identity["qualification_sha256"] is not None
+                or not any(row.get("case") == release_identity["case_id"] for row in rows)):
             raise ContinuationError("Parent hosted driver is not finished")
     else:
         raise ContinuationError("Unknown parent release receipt kind")
@@ -190,10 +236,27 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
     events = read_jsonl(parent / "EVENTS.jsonl")
     conversation = yaml.safe_load((parent / "CONVERSATION.yaml").read_text(encoding="utf-8"))
     parent_ext = manifest.get("cohort_extension", {})
+    parent_arm = spec["parent_identity"]["arm_id"]
+    validate_arm_route(parent_arm, manifest["endpoint"], release_ref["kind"])
+    if (release_identity["plan_sha256"] != manifest.get("plan_sha256")
+            or set(spec["parent_source_sha256"]) != set(manifest.get("source_sha256", {}))
+            or spec["parent_source_sha256"] != manifest.get("source_sha256")):
+        raise ContinuationError("Parent release plan or complete source inventory differs")
+    for relative, expected in spec["parent_source_sha256"].items():
+        if file_sha(ROOT / relative) != expected:
+            raise ContinuationError(f"Parent manifest source changed: {relative}")
+    if set(plan) != PLAN_FIELDS | {"continuation_amendment"}:
+        raise ContinuationError("Amended plan fields differ from the frozen parent plan")
+    amendment = plan["continuation_amendment"]
+    if (set(amendment) != {"parent_plan_sha256", "prospective_policy_sha256", "parent_identity"}
+            or amendment["parent_plan_sha256"] != manifest.get("plan_sha256")
+            or amendment["prospective_policy_sha256"] != spec["_case_freeze"]["prospective_policy_sha256"]
+            or amendment["parent_identity"] != spec["parent_identity"]):
+        raise ContinuationError("Continuation amendment identity differs")
     if (not isinstance(conversation, list)
             or result.get("status") != "incomplete"
             or result.get("failure") != "worker_deadline_or_context_exhausted"
-            or manifest.get("plan_sha256") != plan["cohort_extension"]["parent_plan_sha256"]
+            or manifest.get("plan_sha256") != amendment["parent_plan_sha256"]
             or parent_ext.get("arm_key") != spec["parent_identity"]["arm_id"]
             or parent_ext.get("case_id") != spec["parent_identity"]["case_id"]
             or spec["parent_identity"]["attempt_id"] not in parent.name
@@ -206,10 +269,11 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
     wall_seconds = (finished - started).total_seconds()
     if not 0 < wall_seconds < manifest["operations"]["worker_deadline_seconds"]:
         raise ContinuationError("Parent stop is not proven below the wall deadline")
-    for key in ("model_id", "adapter_sha256", "adapter_config_sha256", "base_manifest_sha256",
-                "simulator", "generation", "operations", "scope"):
+    for key in PLAN_FIELDS - {"history", "endpoint"}:
         if plan.get(key) != manifest.get(key):
             raise ContinuationError(f"Amended plan changed frozen parent field: {key}")
+    if set(plan["endpoint"]) != set(manifest["endpoint"]):
+        raise ContinuationError("Amended endpoint fields differ")
     for key, value in manifest["endpoint"].items():
         if key != "token_env" and plan["endpoint"].get(key) != value:
             raise ContinuationError(f"Amended endpoint/provider field differs: {key}")
@@ -299,10 +363,14 @@ def endpoint_health(plan: dict, plan_sha: str) -> dict:
     with urllib.request.urlopen(plan["endpoint"]["base_url"] + plan["endpoint"]["health_path"], timeout=10) as response:
         health = json.load(response)
     model_id = health.get("model_id", health.get("model"))
+    expected = plan["endpoint"].get("expected_health", {})
+    provider_limit = plan["endpoint"].get("max_output_tokens")
     if (health.get("ready") is not True
             or model_id != plan["model_id"]
             or health.get("adapter_sha256") != plan["adapter_sha256"]
-            or health.get("game_plan_sha256") != plan_sha):
+            or health.get("game_plan_sha256") != plan_sha
+            or any(health.get(key) != value for key, value in expected.items())
+            or (provider_limit is not None and health.get("max_output_tokens", 0) < provider_limit)):
         raise ContinuationError("Endpoint identity differs from the amended plan")
     return health
 

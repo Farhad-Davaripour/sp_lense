@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import copy
 import hashlib
 import json
 from pathlib import Path
@@ -38,13 +39,14 @@ def main() -> None:
         "primary_tokens <= manifest[\"endpoint\"][\"context_tokens\"]",
         "wall_seconds < manifest[\"operations\"][\"worker_deadline_seconds\"]",
         "PARENT_FILES",
+        "expected = plan[\"endpoint\"].get(\"expected_health\", {})",
     )
     if any(text not in source for text in required_source):
         raise RuntimeError("Continuation source is missing a frozen admission/execution gate")
 
     with tempfile.TemporaryDirectory(prefix="blind-continuation-check-", dir=ROOT / ".local") as temporary:
         work = Path(temporary)
-        parent = work / "raw/qwen38_27b_base/blinded_company_case_99--attempt-01"
+        parent = work / "raw/deepseek_flash/blinded_company_case_99--attempt-01"
         release_path = work / "HOSTED_DRIVER.json"
         amended_path = work / "amended_plan.json"
         amendment_path = work / "amendment.yaml"
@@ -62,7 +64,12 @@ def main() -> None:
         decision_id = "synthetic-decision-1"
         original_plan_sha = "a" * 64
         original = {
-            "model_id": "qwen3.8-27b-base", "adapter_sha256": None,
+            "schema": "research4.company-code-no-upfront-cue-game.v1",
+            "role": "company_code_no_upfront_cue_v1_matched_case",
+            "arm_id": "deepseek_flash_blinded_company_case_99",
+            "label": "DeepSeek synthetic blinded case",
+            "model_id": "deepseek/deepseek-flash",
+            "adapter_sha256": "2eaf0f653bd4f9c4ddb7dcceb918531ef4787527433c4c755e9293467225c525",
             "adapter_config_sha256": None,
             "base_manifest_sha256": "e126c678d420b65a2c5157c0bca0a3fb162cad6b96e4a067912418e0959d7461",
             "simulator": {"version": "company_code_no_upfront_cue_v1", "seed": 1454041566,
@@ -71,7 +78,7 @@ def main() -> None:
             "endpoint": {"base_url": "http://127.0.0.1:8878", "chat_path": "/v1/chat/completions",
                 "health_path": "/health", "token_env": "OLD", "context_tokens": 131072,
                 "request_timeout_seconds": 900, "max_concurrency": 1,
-                "expected_health": {"provider": "deepseek"}, "max_output_tokens": 8192},
+                "expected_health": {"provider": "deepseek", "max_output_tokens": 8192}, "max_output_tokens": 8192},
             "generation": {"seed": 20261108, "temperature": 1, "top_p": .95, "top_k": 20,
                 "min_p": 0, "repetition_penalty": 1,
                 "chat_template_kwargs": {"enable_thinking": True, "reasoning_effort": "low"}},
@@ -80,11 +87,13 @@ def main() -> None:
             "operations": {"worker_deadline_seconds": 14400, "outer_deadline_seconds": 16200,
                 "provider_retries": 0, "automatic_retry": False},
             "scope": "synthetic model-free fixture",
+            "cohort_extension": {"arm_key": "deepseek_flash", "case_id": "blinded_company_case_99"},
         }
         now = datetime.now(timezone.utc)
         manifest = {**original, "plan_sha256": original_plan_sha,
             "started_utc": now.isoformat(),
-            "cohort_extension": {"arm_key": "qwen38_27b_base", "case_id": "blinded_company_case_99"}}
+            "source_sha256": {"src/company_code_no_upfront_cue_v1.py":
+                sha(ROOT / "src/company_code_no_upfront_cue_v1.py")}}
         request = {"decision_index": 1, "decision_id": decision_id, "prompt_tokens": 140000,
                    "body": {"messages": messages}}
         response = {"decision_index": 1, "decision_id": decision_id,
@@ -104,14 +113,21 @@ def main() -> None:
         }
         for filename, (value, kind) in files.items():
             write(parent / filename, value, yaml_file=kind == "yaml", jsonl=kind == "jsonl")
-        release = {"status": "driver_finished"}
+        release = {"status": "driver_finished", "arm": "deepseek_flash",
+                   "rows": [{"case": "blinded_company_case_99", "status": "result_recorded"}]}
         write(release_path, release)
 
         amended = json.loads(json.dumps(original))
         amended["endpoint"]["token_env"] = "NEW"
         amended["history"] = {"mode": "linked_verified_prefix_summary_v1",
                               "compact_at_prompt_tokens": 100000, "retain_recent_exchanges": 3}
-        amended["cohort_extension"] = {"parent_plan_sha256": original_plan_sha}
+        policy_path = ROOT / "scenarios/company_code_no_upfront_cue_v1/context_continuation_policy.yaml"
+        amended["continuation_amendment"] = {
+            "parent_plan_sha256": original_plan_sha,
+            "prospective_policy_sha256": sha(policy_path),
+            "parent_identity": {"arm_id": "deepseek_flash", "case_id": "blinded_company_case_99",
+                                "attempt_id": "attempt-01", "bundle": parent.name},
+        }
         write(amended_path, amended)
 
         original_count = continuation.common.count_tokens
@@ -127,14 +143,17 @@ def main() -> None:
             spec = {
                 "schema": "research4.company-code-no-upfront-cue-linked-context-continuation.v1",
                 "status": "frozen_before_continuation_model_calls",
-                "parent_case_id": "blinded_company_case_99", "parent_arm_id": "qwen38_27b_base",
+                "parent_case_id": "blinded_company_case_99", "parent_arm_id": "deepseek_flash",
                 "parent_attempt_id": "attempt-01", "parent_status": "right_censored_context_exhaustion",
                 "parent_saved_decisions": 1, "parent_saved_simulated_hours": episode.elapsed_hours,
-                "parent_identity": {"arm_id": "qwen38_27b_base", "case_id": "blinded_company_case_99",
+                "parent_identity": {"arm_id": "deepseek_flash", "case_id": "blinded_company_case_99",
                     "attempt_id": "attempt-01", "bundle": parent.name},
                 "parent_evidence_sha256": {name: sha(parent / name) for name in continuation.PARENT_FILES},
                 "parent_execution_release": {"kind": "hosted_driver",
-                    "path": release_path.relative_to(ROOT).as_posix(), "sha256": sha(release_path)},
+                    "path": release_path.relative_to(ROOT).as_posix(), "sha256": sha(release_path),
+                    "identity": {"arm_id": "deepseek_flash", "case_id": "blinded_company_case_99",
+                        "attempt_id": "attempt-01", "run_id": "deepseek_flash-DRIVER",
+                        "plan_sha256": original_plan_sha, "qualification_sha256": None}},
                 "last_exchange_binding": {"decision_index": 1, "decision_id": decision_id,
                     "prompt_tokens": 140000,
                     "request_messages_sha256": continuation.sha_bytes(
@@ -150,12 +169,13 @@ def main() -> None:
                     "reconstructed_next_model_visible_messages_sha256": continuation.sha_bytes(
                         continuation.common.canonical_json(amended_candidate).encode())},
                 "amended_plan": {"sha256": sha(amended_path)},
-                "model": {"model_id": original["model_id"], "adapter_sha256": None},
+                "model": {"model_id": original["model_id"], "adapter_sha256": original["adapter_sha256"]},
+                "parent_source_sha256": manifest["source_sha256"],
+                "parent_manifest_source_keys": sorted(manifest["source_sha256"]),
                 "source_sha256": {"tools/continue_company_code_no_upfront_cue_v1.py":
                     sha(ROOT / "tools/continue_company_code_no_upfront_cue_v1.py")},
             }
             write(amendment_path, spec, yaml_file=True)
-            policy_path = ROOT / "scenarios/company_code_no_upfront_cue_v1/context_continuation_policy.yaml"
             freeze = {
                 "schema": "research4.company-code-no-upfront-cue-linked-context-freeze.v1",
                 "status": "FROZEN_BEFORE_CONTINUATION_MODEL_CALLS",
@@ -166,10 +186,10 @@ def main() -> None:
                 "parent_evidence_sha256": spec["parent_evidence_sha256"],
                 "amended_plan_sha256": sha(amended_path),
                 "prospective_policy_sha256": sha(policy_path),
-                "parent_arm_id": "qwen38_27b_base",
+                "parent_arm_id": "deepseek_flash",
                 "parent_case_id": "blinded_company_case_99",
                 "parent_attempt_id": "attempt-01",
-                "output_relative_path": "raw/qwen38_27b_base/blinded_company_case_99--linked-attempt-01",
+                "output_relative_path": "raw/deepseek_flash/blinded_company_case_99--linked-attempt-01",
             }
             write(freeze_path, freeze)
             prepared = continuation.prepare(freeze_path, parent, amended_path)
@@ -192,6 +212,32 @@ def main() -> None:
                 pass
             else:
                 raise RuntimeError("Incomplete parent inventory was accepted")
+
+            cross = copy.deepcopy(spec)
+            cross["parent_arm_id"] = "qwen38_27b_base"
+            cross["parent_identity"]["arm_id"] = "qwen38_27b_base"
+            cross["parent_execution_release"]["identity"]["arm_id"] = "qwen38_27b_base"
+            cross_amendment = copy.deepcopy(amended)
+            cross_amendment["continuation_amendment"]["parent_identity"]["arm_id"] = "qwen38_27b_base"
+            cross_plan_path = work / "cross_arm_plan.json"
+            cross_scenario_path = work / "cross_arm_amendment.yaml"
+            write(cross_plan_path, cross_amendment)
+            cross["amended_plan"]["sha256"] = sha(cross_plan_path)
+            write(cross_scenario_path, cross, yaml_file=True)
+            cross_freeze = dict(freeze)
+            cross_freeze["scenario_path"] = cross_scenario_path.relative_to(ROOT).as_posix()
+            cross_freeze["scenario_sha256"] = sha(cross_scenario_path)
+            cross_freeze["amended_plan_sha256"] = sha(cross_plan_path)
+            cross_freeze["parent_arm_id"] = "qwen38_27b_base"
+            cross_freeze["parent_evidence_sha256"] = cross["parent_evidence_sha256"]
+            cross_freeze_path = work / "CROSS_ARM_FREEZE.json"
+            write(cross_freeze_path, cross_freeze)
+            try:
+                continuation.prepare(cross_freeze_path, parent, cross_plan_path)
+            except continuation.ContinuationError:
+                pass
+            else:
+                raise RuntimeError("Cross-arm hosted route was accepted as local Qwen")
         finally:
             continuation.common.count_tokens = original_count
 
@@ -209,6 +255,7 @@ def main() -> None:
         "parent_plan_parity_required": True,
         "hosted_max_output_cap_preserved": True,
         "arm_disambiguated_output_path": True,
+        "cross_arm_route_negative_control": True,
     }, indent=2))
 
 
