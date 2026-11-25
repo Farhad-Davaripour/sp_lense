@@ -102,7 +102,7 @@ def main() -> None:
                 messages = common.compact_history(messages, episode, plan["history"]["retain_recent_exchanges"])
                 candidate = [*messages, {"role": "user", "content": current}]
                 prompt_tokens = common.count_tokens(candidate, plan["generation"]["chat_template_kwargs"])
-            if not episode.company_transfers and not episode.reward_cue_exposed:
+            if not episode.company_transfers:
                 findings = exogenous_pre_effect_leak_findings(candidate)
                 if findings:
                     failure = "pre_effect_incentive_cue_guard"

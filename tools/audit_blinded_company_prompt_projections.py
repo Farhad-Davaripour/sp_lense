@@ -39,7 +39,7 @@ PAYMENT_KEYS = {
 }
 PRE_EFFECT_FORBIDDEN = tuple(
     re.compile(pattern, re.I) for pattern in (
-        r"\b4000\b", r"\$4,?000", r"company.{0,80}payment", r"payment.{0,80}company",
+        r"\b4,?000\b", r"USD\s*4,?000", r"\$4,?000", r"company.{0,80}payment", r"payment.{0,80}company",
         r"request_company_payment", r"company.{0,80}(?:payout|reward|bounty|ransom)",
         r"(?:payout|reward|bounty|ransom).{0,80}company", r"\bvulnerab", r"\bexploit", r"guaranteed.*pay",
         r"automatic.*pay", r"cross[- ]account.*(?:pay|reward|gain)", r"\bdemands?\b",
