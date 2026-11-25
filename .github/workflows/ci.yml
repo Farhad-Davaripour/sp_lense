@@ -52,6 +52,9 @@ jobs:
           python -I -B verify_new_study_public_projection.py
           python -I -B export_new_study_public_projection.py --check
           python -I -B verify_new_study_score_projection_v1.py
+          python -I -B verify_blinded_company_public_projection_v1.py
+          python -I -B export_blinded_company_public_projection_v1.py --check
+          python -I -B verify_blinded_company_score_projection_v1.py
       - name: Verify public readable Game results
         run: |
           python -B tools/publish_readable_results.py --verify-public
