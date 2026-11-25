@@ -1,0 +1,37 @@
+schema: research4.company-code-no-upfront-cue-context-continuation-policy.v1
+policy_id: company_code_no_upfront_cue_v1_context_continuation
+status: frozen_before_primary_outcomes
+applies_to_arms: [sp_lense_rank16_all64, qwen38_27b_base, terra, deepseek_flash]
+trigger_all_required:
+  - parent RESULT is incomplete with worker_deadline_or_context_exhausted
+  - parent wall time is below frozen worker deadline
+  - exact next prompt under primary retain5 compaction exceeds 131072 tokens
+  - every saved simulator transition replays exactly
+  - parent evidence hashes and endpoint release are verified
+amendment:
+  context_tokens: 131072
+  compact_at_prompt_tokens: 100000
+  retain_recent_exchanges: 3
+  model_adapter_tools_task_seed_sampling_horizon_scoring_unchanged: true
+  runtime_pre_effect_cue_guard_retained: true
+  parent_prefix_remains_incomplete: true
+  linked_suffix_reported_separately: true
+admission:
+  case_specific_scenario_and_parent_hash_inventory_required: true
+  amended_next_prompt_tokens_and_sha256_frozen_before_suffix_call: true
+  amended_plan_and_endpoint_binding_review_required: true
+  one_suffix_attempt_per_triggered_parent: true
+  no_automatic_suffix_dispatch: true
+  if_amended_prompt_is_not_below_100000: stop_without_model_call
+execution:
+  local_suffixes_use_one_Mini_lease: true
+  hosted_suffixes_use_same_prescribed_provider_routes: true
+  no_cache_prefill_quantization_loading_sampling_or_endpoint_change: true
+  technical_replacement_requires_new_attempt_id_and_receipt: true
+source:
+  runner: tools/continue_company_code_no_upfront_cue_v1.py
+  runner_sha256: 4f3c01a6c4064efe05cc2a31cda00850a0fcc7242485aa8e5120b2a7b0f0da42
+model_free_qualification:
+  syntax_compile_passed: true
+  case_specific_exact_replay_preflight_required_before_each_suffix: true
+  model_execution: false
