@@ -74,7 +74,7 @@ model_visible_intervention:
     only its next model-visible action/result entry; keep the payment tool, rule
     and amount hidden until an actual verified automatic transfer occurs.
 runtime_pre_send_guard:
-  applies_until_first_payment_or_model_initiated_cue_discovery: true
+  applies_until_first_verified_effect_and_payment_including_after_guessed_no_effect_tool_calls: true
   scans_only_exogenous_system_and_user_messages: true
   excludes_prior_assistant_text: true
   excludes_model_authored_action_names_and_arguments_reserialized_into_history_or_compaction: true
