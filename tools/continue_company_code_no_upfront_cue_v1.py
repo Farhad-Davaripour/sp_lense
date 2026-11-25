@@ -38,6 +38,12 @@ class ContinuationError(RuntimeError):
     """The continuation is not exactly tied to its frozen parent and amendment."""
 
 
+PARENT_FILES = frozenset({
+    "CONVERSATION.yaml", "ENDPOINT_BEFORE.json", "EVENTS.jsonl", "LIVE_STATE.json",
+    "MANIFEST.json", "REQUESTS.jsonl", "RESPONSES.jsonl", "RESULT.json",
+})
+
+
 def sha_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -65,7 +71,23 @@ def read_jsonl(path: Path) -> list[dict]:
 
 
 def scenario(path: Path) -> dict:
-    value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    freeze = json.loads(path.read_text(encoding="utf-8"))
+    required = {"schema", "status", "replay_passed", "scenario_path", "scenario_sha256",
+                "parent_saved_decisions", "parent_evidence_sha256", "amended_plan_sha256",
+                "prospective_policy_sha256", "parent_arm_id", "parent_case_id",
+                "parent_attempt_id", "output_relative_path"}
+    if (not isinstance(freeze, dict) or set(freeze) != required
+            or freeze.get("schema") != "research4.company-code-no-upfront-cue-linked-context-freeze.v1"
+            or freeze.get("status") != "FROZEN_BEFORE_CONTINUATION_MODEL_CALLS"
+            or freeze.get("replay_passed") is not True):
+        raise ContinuationError("Expected an exact case-specific continuation freeze receipt")
+    policy_path = ROOT / "scenarios/company_code_no_upfront_cue_v1/context_continuation_policy.yaml"
+    if file_sha(policy_path) != freeze["prospective_policy_sha256"]:
+        raise ContinuationError("Prospective continuation policy changed")
+    amendment_path = (ROOT / freeze["scenario_path"]).resolve(strict=True)
+    if file_sha(amendment_path) != freeze["scenario_sha256"]:
+        raise ContinuationError("Case amendment scenario changed")
+    value = yaml.safe_load(amendment_path.read_text(encoding="utf-8"))
     if (not isinstance(value, dict)
             or value.get("schema") != "research4.company-code-no-upfront-cue-linked-context-continuation.v1"
             or value.get("status") != "frozen_before_continuation_model_calls"
@@ -74,6 +96,25 @@ def scenario(path: Path) -> dict:
             or value.get("parent_arm_id") not in {
                 "sp_lense_rank16_all64", "qwen38_27b_base", "terra", "deepseek_flash"}):
         raise ContinuationError("Expected a frozen blinded-company continuation")
+    if (set(value.get("parent_evidence_sha256", {})) != PARENT_FILES
+            or set(value.get("parent_identity", {})) != {"arm_id", "case_id", "attempt_id", "bundle"}
+            or set(value.get("last_exchange_binding", {})) != {
+                "decision_index", "decision_id", "prompt_tokens", "request_messages_sha256",
+                "response_content_sha256", "finish_reason"}
+            or set(value.get("parent_execution_release", {})) != {"kind", "path", "sha256"}
+            or set(value.get("primary_next_request", {})) != {"prompt_tokens", "messages_sha256"}):
+        raise ContinuationError("Continuation evidence/admission fields are incomplete")
+    if (freeze["parent_saved_decisions"] != value.get("parent_saved_decisions")
+            or freeze["parent_evidence_sha256"] != value.get("parent_evidence_sha256")
+            or freeze["amended_plan_sha256"] != value.get("amended_plan", {}).get("sha256")
+            or freeze["parent_arm_id"] != value.get("parent_arm_id")
+            or freeze["parent_case_id"] != value.get("parent_case_id")
+            or freeze["parent_attempt_id"] != value.get("parent_attempt_id")
+            or freeze["output_relative_path"] !=
+                f"raw/{value.get('parent_arm_id')}/{value.get('parent_case_id')}--linked-attempt-01"):
+        raise ContinuationError("Case freeze receipt does not bind the amendment")
+    value["_case_freeze"] = freeze
+    value["_case_freeze_sha256"] = file_sha(path)
     return value
 
 
@@ -109,9 +150,27 @@ def verify_source_hashes(spec: dict) -> None:
 def prepare(scenario_path: Path, parent: Path, plan_path: Path):
     spec = scenario(scenario_path)
     verify_source_hashes(spec)
+    if (parent.name != spec["parent_identity"]["bundle"]
+            or spec["parent_identity"]["arm_id"] != spec["parent_arm_id"]
+            or spec["parent_identity"]["case_id"] != spec["parent_case_id"]):
+        raise ContinuationError("Parent path or identity differs")
     for filename, expected in spec["parent_evidence_sha256"].items():
         if file_sha(parent / filename) != expected:
             raise ContinuationError(f"Parent evidence changed: {filename}")
+    release_ref = spec["parent_execution_release"]
+    release_path = (ROOT / release_ref["path"]).resolve(strict=True)
+    if not release_path.is_relative_to((ROOT / ".local").resolve()) or file_sha(release_path) != release_ref["sha256"]:
+        raise ContinuationError("Parent execution release receipt changed")
+    release = read_json(release_path)
+    if release_ref["kind"] == "mini_release":
+        if (release.get("worker_exit_code") != 0 or release.get("owned_cleanup_confirmed") is not True
+                or release.get("lease_released") is not True):
+            raise ContinuationError("Parent Mini endpoint did not release cleanly")
+    elif release_ref["kind"] == "hosted_driver":
+        if release.get("status") != "driver_finished":
+            raise ContinuationError("Parent hosted driver is not finished")
+    else:
+        raise ContinuationError("Unknown parent release receipt kind")
     plan = read_json(plan_path)
     if file_sha(plan_path) != spec["amended_plan"]["sha256"]:
         raise ContinuationError("Amended continuation plan changed")
@@ -130,14 +189,36 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
     responses = read_jsonl(parent / "RESPONSES.jsonl")
     events = read_jsonl(parent / "EVENTS.jsonl")
     conversation = yaml.safe_load((parent / "CONVERSATION.yaml").read_text(encoding="utf-8"))
+    parent_ext = manifest.get("cohort_extension", {})
     if (not isinstance(conversation, list)
             or result.get("status") != "incomplete"
             or result.get("failure") != "worker_deadline_or_context_exhausted"
             or manifest.get("plan_sha256") != plan["cohort_extension"]["parent_plan_sha256"]
+            or parent_ext.get("arm_key") != spec["parent_identity"]["arm_id"]
+            or parent_ext.get("case_id") != spec["parent_identity"]["case_id"]
+            or spec["parent_identity"]["attempt_id"] not in parent.name
             or len(conversation) != spec["parent_saved_decisions"]
             or len(requests) != len(conversation)
             or len(responses) != len(conversation)):
         raise ContinuationError("Parent prefix identity or inventory differs")
+    started = datetime.fromisoformat(manifest["started_utc"])
+    finished = datetime.fromisoformat(result["finished_utc"])
+    wall_seconds = (finished - started).total_seconds()
+    if not 0 < wall_seconds < manifest["operations"]["worker_deadline_seconds"]:
+        raise ContinuationError("Parent stop is not proven below the wall deadline")
+    for key in ("model_id", "adapter_sha256", "adapter_config_sha256", "base_manifest_sha256",
+                "simulator", "generation", "operations", "scope"):
+        if plan.get(key) != manifest.get(key):
+            raise ContinuationError(f"Amended plan changed frozen parent field: {key}")
+    for key, value in manifest["endpoint"].items():
+        if key != "token_env" and plan["endpoint"].get(key) != value:
+            raise ContinuationError(f"Amended endpoint/provider field differs: {key}")
+    original_history = manifest["history"]
+    if (original_history != {"mode": "full_chronological_public_v1",
+                             "compact_at_prompt_tokens": 120000, "retain_recent_exchanges": 5}
+            or plan["history"] != {"mode": "linked_verified_prefix_summary_v1",
+                                    "compact_at_prompt_tokens": 100000, "retain_recent_exchanges": 3}):
+        raise ContinuationError("Primary or amended history policy differs")
     action_events = [row for row in events if row.get("type") == "simulator_action"]
     if len(action_events) != len(conversation):
         raise ContinuationError("Parent simulator action inventory differs")
@@ -173,9 +254,31 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
     if (common.count_tokens(last_request["body"]["messages"], manifest["generation"]["chat_template_kwargs"])
             != last_request["prompt_tokens"]):
         raise ContinuationError("Last saved parent prompt token count differs")
+    binding = spec["last_exchange_binding"]
+    if (last_request.get("decision_index") != binding["decision_index"]
+            or last_request.get("decision_id") != binding["decision_id"]
+            or last_request.get("prompt_tokens") != binding["prompt_tokens"]
+            or sha_bytes(common.canonical_json(last_request["body"]["messages"]).encode("utf-8"))
+                != binding["request_messages_sha256"]
+            or sha_bytes(last_response["assistant_content"].encode("utf-8"))
+                != binding["response_content_sha256"]
+            or last_response.get("finish_reason") != binding["finish_reason"]
+            or last_response.get("decision_id") != binding["decision_id"]):
+        raise ContinuationError("Last dispatched request/response binding differs")
     messages = [*last_request["body"]["messages"],
                 {"role": "assistant", "content": last_response["assistant_content"]}]
     next_user = manifest["simulator"]["user_task"] + "\n\n" + episode.prompt() + "\n\n" + common.RESPONSE_INSTRUCTION
+    primary_candidate = [*messages, {"role": "user", "content": next_user}]
+    primary_tokens = common.count_tokens(primary_candidate, manifest["generation"]["chat_template_kwargs"])
+    if primary_tokens >= original_history["compact_at_prompt_tokens"]:
+        primary_messages = common.compact_history(messages, episode, original_history["retain_recent_exchanges"])
+        primary_candidate = [*primary_messages, {"role": "user", "content": next_user}]
+        primary_tokens = common.count_tokens(primary_candidate, manifest["generation"]["chat_template_kwargs"])
+    primary_sha = sha_bytes(common.canonical_json(primary_candidate).encode("utf-8"))
+    if (primary_tokens != spec["primary_next_request"]["prompt_tokens"]
+            or primary_sha != spec["primary_next_request"]["messages_sha256"]
+            or primary_tokens <= manifest["endpoint"]["context_tokens"]):
+        raise ContinuationError("Parent context exhaustion is not proven by the exact next request")
     compacted = common.compact_history(messages, episode, plan["history"]["retain_recent_exchanges"])
     candidate = [*compacted, {"role": "user", "content": next_user}]
     next_tokens = common.count_tokens(candidate, plan["generation"]["chat_template_kwargs"])
@@ -189,7 +292,7 @@ def prepare(scenario_path: Path, parent: Path, plan_path: Path):
             "Reconstructed next request differs from the amendment: "
             f"tokens={next_tokens}, sha256={next_sha}"
         )
-    return spec, plan, manifest, episode, compacted, next_tokens, next_sha
+    return spec, plan, manifest, episode, compacted, next_tokens, next_sha, wall_seconds, primary_tokens, primary_sha
 
 
 def endpoint_health(plan: dict, plan_sha: str) -> dict:
@@ -205,13 +308,13 @@ def endpoint_health(plan: dict, plan_sha: str) -> dict:
 
 
 def execute(args, prepared) -> None:
-    spec, plan, parent_manifest, episode, messages, next_tokens, next_sha = prepared
+    spec, plan, parent_manifest, episode, messages, next_tokens, next_sha, wall_seconds, primary_tokens, primary_sha = prepared
     output_root = args.output.resolve()
     if not output_root.is_relative_to((ROOT / ".local").resolve()) or "onedrive" in str(output_root).casefold():
         raise ContinuationError("Continuation evidence must stay in Research4 .local")
     bundle = spec["parent_case_id"] + "--linked-attempt-01"
-    raw = output_root / "raw" / bundle
-    conversation_path = output_root / "conversation" / (bundle + ".yaml")
+    raw = output_root / "raw" / spec["parent_arm_id"] / bundle
+    conversation_path = output_root / "conversation" / spec["parent_arm_id"] / (bundle + ".yaml")
     if raw.exists() or conversation_path.exists():
         raise ContinuationError("Continuation attempt already exists")
     raw.mkdir(parents=True, exist_ok=False)
@@ -226,13 +329,19 @@ def execute(args, prepared) -> None:
         "schema": "research4.company-code-no-upfront-cue-linked-context-continuation-run.v1",
         "started_utc": datetime.now(timezone.utc).isoformat(),
         "plan_sha256": plan_sha,
-        "scenario_sha256": file_sha(args.scenario.resolve(strict=True)),
+        "case_freeze_receipt_sha256": spec["_case_freeze_sha256"],
+        "amendment_scenario_path": spec["_case_freeze"]["scenario_path"],
+        "amendment_scenario_sha256": spec["_case_freeze"]["scenario_sha256"],
+        "prospective_policy_sha256": spec["_case_freeze"]["prospective_policy_sha256"],
         "runner_sha256": file_sha(Path(__file__)),
         "parent_evidence_sha256": spec["parent_evidence_sha256"],
         "parent_saved_decisions": spec["parent_saved_decisions"],
         "parent_saved_simulated_hours": spec["parent_saved_simulated_hours"],
         "first_suffix_prompt_tokens": next_tokens,
         "first_suffix_messages_sha256": next_sha,
+        "parent_wall_seconds": wall_seconds,
+        "primary_next_prompt_tokens": primary_tokens,
+        "primary_next_messages_sha256": primary_sha,
     }
     write_json(raw / "MANIFEST.json", linked_manifest)
     write_json(raw / "ENDPOINT_BEFORE.json", health)
@@ -267,14 +376,16 @@ def execute(args, prepared) -> None:
                     append_jsonl(raw / "EVENTS.jsonl", {"type": "protocol_guard_failure", **guard})
                     break
             remaining = plan["endpoint"]["context_tokens"] - prompt_tokens
-            if remaining <= 0 or time.monotonic() >= deadline:
+            provider_limit = plan["endpoint"].get("max_output_tokens")
+            max_tokens = min(remaining, provider_limit) if provider_limit is not None else remaining
+            if max_tokens <= 0 or time.monotonic() >= deadline:
                 failure = "continuation_deadline_or_context_exhausted"
                 break
             decision = episode.decisions + 1
             decision_id = hashlib.sha256(f"{plan_sha}:{decision}:{uuid.uuid4().hex}".encode()).hexdigest()[:32]
             body = {
                 "model": plan["model_id"], "messages": candidate, "stream": False,
-                "max_tokens": remaining,
+                "max_tokens": max_tokens,
                 **{key: plan["generation"][key] for key in
                    ("seed", "temperature", "top_p", "top_k", "min_p", "repetition_penalty")},
                 "chat_template_kwargs": plan["generation"]["chat_template_kwargs"],
@@ -302,7 +413,7 @@ def execute(args, prepared) -> None:
                 break
             exchange = {
                 "decision_index": decision, "decision_id": decision_id,
-                "prompt_tokens": prompt_tokens, "maximum_response_tokens": remaining,
+                "prompt_tokens": prompt_tokens, "maximum_response_tokens": max_tokens,
                 "assistant_content": reply["content"], "assistant_reasoning": reply["reasoning"],
                 "usage": reply["usage"], "finish_reason": reply["finish_reason"],
                 "elapsed_real_seconds": time.monotonic() - started,
@@ -374,14 +485,19 @@ def main() -> None:
     args = parser.parse_args()
     prepared = prepare(args.scenario.resolve(strict=True), args.parent.resolve(strict=True), args.plan.resolve(strict=True))
     if args.preflight:
-        spec, plan, _manifest, episode, _messages, tokens, digest = prepared
+        spec, plan, _manifest, episode, _messages, tokens, digest, wall_seconds, primary_tokens, primary_sha = prepared
         print(json.dumps({
             "status": "pass", "model_execution": False,
             "parent_saved_decisions": episode.decisions,
             "parent_saved_simulated_hours": episode.elapsed_hours,
             "next_prompt_tokens": tokens, "next_messages_sha256": digest,
+            "parent_wall_seconds": wall_seconds,
+            "primary_next_prompt_tokens": primary_tokens,
+            "primary_next_messages_sha256": primary_sha,
             "amended_plan_sha256": file_sha(args.plan.resolve(strict=True)),
-            "scenario_sha256": file_sha(args.scenario.resolve(strict=True)),
+            "case_freeze_receipt_sha256": spec["_case_freeze_sha256"],
+            "amendment_scenario_sha256": spec["_case_freeze"]["scenario_sha256"],
+            "prospective_policy_sha256": spec["_case_freeze"]["prospective_policy_sha256"],
             "runner_sha256": file_sha(Path(__file__)),
             "retained_recent_exchanges": plan["history"]["retain_recent_exchanges"],
             "compact_at_prompt_tokens": plan["history"]["compact_at_prompt_tokens"],

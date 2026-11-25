@@ -23,15 +23,30 @@ admission:
   one_suffix_attempt_per_triggered_parent: true
   no_automatic_suffix_dispatch: true
   if_amended_prompt_is_not_below_100000: stop_without_model_call
+  primary_next_prompt_must_be_reconstructed_under_retain5_and_exceed_131072: true
+  parent_wall_time_must_be_below_14400_seconds: true
+  clean_parent_release_or_hosted_driver_receipt_required: true
+  exact_eight_file_parent_inventory_required: true
+  exact_arm_case_attempt_and_last_request_response_binding_required: true
+  complete_parent_plan_parity_except_history_and_token_env_required: true
 execution:
   local_suffixes_use_one_Mini_lease: true
   hosted_suffixes_use_same_prescribed_provider_routes: true
   no_cache_prefill_quantization_loading_sampling_or_endpoint_change: true
   technical_replacement_requires_new_attempt_id_and_receipt: true
+  hosted_max_output_cap_must_be_preserved: true
+  suffix_raw_path: raw/<arm>/<case>--linked-attempt-01
 source:
   runner: tools/continue_company_code_no_upfront_cue_v1.py
-  runner_sha256: 4f3c01a6c4064efe05cc2a31cda00850a0fcc7242485aa8e5120b2a7b0f0da42
+  runner_sha256: b6fd62275d5179e6b07615e6e9b42b89fc3a41f9ca83207162a6d9593fc32595
 model_free_qualification:
   syntax_compile_passed: true
+  checker: tools/check_company_code_no_upfront_cue_continuation_v1.py
+  checker_sha256: 6ba4bde36eb31bf5281b65e5f461611e85e66d82ae3acaaf63e4b8fc23038769
+  positive_synthetic_exact_replay_preflight_passed: true
+  primary_overflow_and_amended_fit_tested: true
+  hosted_max_output_cap_tested: true
+  arm_disambiguated_output_path_tested: true
+  incomplete_parent_inventory_negative_control_passed: true
   case_specific_exact_replay_preflight_required_before_each_suffix: true
   model_execution: false
