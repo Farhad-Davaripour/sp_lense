@@ -83,6 +83,17 @@ EVIDENCE_ROOTS = {
     "company_primary": (Path("2026-11-23_10--company-code-access-v1-run/raw"), True),
     "company_suffix": (Path("2026-11-23_23--company-code-context-continuation-v1-run/raw"), False),
 }
+DRIVER_ROOTS = {
+    "infrastructure_split_gpu_layout_v3": Path("2026-11-23_10--split-gpu-layout-v3-run"),
+    "company_code_access_v1": Path("2026-11-23_10--company-code-access-v1-run"),
+    "infrastructure_split_gpu_layout_v3_format_rerun_supplement_v1": Path(
+        "2026-11-23_21--split-gpu-format-rerun-supplement-v1-run"
+    ),
+    "infrastructure_split_gpu_new_seed_supplement_v1": Path(
+        "2026-11-24_22--split-gpu-new-seed-supplement-v1-run"
+    ),
+}
+NO_MODEL_PREFLIGHT_STATUSES = {"preflight_failed", "preflight_failed_no_model_call"}
 STUDY_SOURCES = {
     "infrastructure_split_gpu_layout_v3": {"split_primary", "split_terra_suffix"},
     "company_code_access_v1": {"company_primary", "company_suffix"},
@@ -180,6 +191,61 @@ def _check_attempt_inventory(local_root: Path, study_id: str, arm: str,
     declared = {(item["source"], item["run_id"]) for item in declared_items}
     if observed != declared or len(declared) != len(declared_items):
         raise ReleaseError(f"Selected and excluded attempts do not exhaust local evidence: {arm}/{case}")
+
+
+def _receipt_precall_rows(receipt: dict, filename: str,
+                          expected_cells: set[tuple[str, str]],
+                          condition_to_case: dict[str, str]) -> Counter:
+    observed = Counter()
+    for item in [*receipt.get("notes", []), *receipt.get("rows", [])]:
+        if not isinstance(item, dict):
+            raise ReleaseError(f"Malformed driver disposition: {filename}")
+        # Endpoint readiness can involve a model boot probe, so it is not a
+        # verified no-model-call setup failure.
+        if item.get("status") not in NO_MODEL_PREFLIGHT_STATUSES:
+            continue
+        arm = item.get("arm", receipt.get("arm"))
+        raw_case = item.get("case", item.get("layout"))
+        case = condition_to_case.get(raw_case, raw_case)
+        if (arm, case) not in expected_cells:
+            raise ReleaseError(f"Unrecognized setup-failure cell: {filename}")
+        observed[(arm, case, "preflight_failed_before_model_call", filename)] += 1
+    return observed
+
+
+def _precall_dispositions(selection: dict, local_root: Path, study_id: str,
+                          expected_cells: set[tuple[str, str]], scenario: dict) -> list[dict]:
+    """Account for structured setup failures without publishing driver details."""
+    driver_root = local_root / DRIVER_ROOTS[study_id]
+    observed_receipts = {path.name: _sha(path.read_bytes())
+                         for path in driver_root.glob("*DRIVER*.json") if path.is_file()}
+    if selection.get("driver_receipts_sha256") != observed_receipts:
+        raise ReleaseError(f"Driver receipt inventory or hashes differ: {study_id}")
+    source_rows = selection.get("precall_dispositions")
+    if not isinstance(source_rows, list):
+        raise ReleaseError(f"Setup disposition list is missing: {study_id}")
+    condition_to_case = ({item["condition_id"]: item["case_id"] for item in scenario["cases"]}
+                         if study_id == "infrastructure_split_gpu_new_seed_supplement_v1" else {})
+    observed = Counter()
+    for filename in observed_receipts:
+        receipt = _read_json(driver_root / filename)
+        observed.update(_receipt_precall_rows(receipt, filename, expected_cells, condition_to_case))
+    declared = Counter()
+    for item in source_rows:
+        if not isinstance(item, dict) or item.get("status") != "preflight_failed_before_model_call":
+            raise ReleaseError(f"Unrecognized setup disposition in selection: {study_id}")
+        arm, case, filename = item.get("arm"), item.get("case"), item.get("driver_receipt")
+        if ((arm, case) not in expected_cells or filename not in observed_receipts
+                or item.get("driver_receipt_sha256") != observed_receipts[filename]
+                or item.get("later_result_recorded") is not True):
+            raise ReleaseError(f"Unbound setup disposition in selection: {study_id}")
+        declared[(arm, case, item["status"], filename)] += 1
+    if declared != observed:
+        raise ReleaseError(f"Setup-only driver failures were omitted or duplicated: {study_id}")
+    sanitized = Counter((arm, case, kind) for (arm, case, kind, _filename), count in observed.items()
+                        for _ in range(count))
+    return [{"arm": arm, "case": case, "type": kind, "count": count}
+            for (arm, case, kind), count in sorted(sanitized.items())]
 
 
 def _source_hashes(run_dir: Path, *, require_complete: bool = True) -> dict[str, str]:
@@ -511,6 +577,7 @@ def prepare(selection_path: Path, local_root: Path) -> tuple[dict[Path, bytes], 
     if (not isinstance(rows, list) or len(rows) != len(expected)
             or {(r.get("arm"), r.get("case")) for r in rows} != expected):
         raise ReleaseError(f"Selection does not cover the complete frozen roster: {study_id}")
+    precall = _precall_dispositions(selection, local_root, study_id, expected, scenario)
     files: dict[Path, bytes] = {}
     manifest_rows = []
     earliest = None
@@ -563,6 +630,8 @@ def prepare(selection_path: Path, local_root: Path) -> tuple[dict[Path, bytes], 
         "scenario_sha256": scenario_sha,
         "selection_sha256": _sha(selection_path.read_bytes()),
         "folder": folder, "row_count": len(manifest_rows),
+        "precall_count": sum(row["count"] for row in precall),
+        "precall_dispositions": precall,
         "rows": manifest_rows,
     }
     title = study_id.replace("_", " ").capitalize()
@@ -572,6 +641,14 @@ def prepare(selection_path: Path, local_root: Path) -> tuple[dict[Path, bytes], 
     for r in manifest_rows:
         hours = r["elapsed_hours"] if r["elapsed_hours"] is not None else "—"
         lines.append(f"| `{r['arm']}` | `{r['case']}` | {r['status']} | {hours} | [YAML]({r['conversation']}) | `{r['yaml_sha256']}` |")
+    lines.extend(("", "## Setup attempts before model calls", ""))
+    if precall:
+        lines.extend((f"{manifest['precall_count']} setup attempt(s) failed before a model call. They are not extra Game episodes or model outcomes.", "",
+                      "| Arm | Case | Setup disposition | Count |", "| --- | --- | --- | ---: |"))
+        for item in precall:
+            lines.append(f"| `{item['arm']}` | `{item['case']}` | `{item['type']}` | {item['count']} |")
+    else:
+        lines.append("No setup failures before model calls were recorded in the structured driver receipts.")
     lines.extend(("", "Each YAML ends with recorded resource progress. Timing, token usage, endpoint details, and source hashes are outside the conversation files.", "", "Outer multiline YAML values use real line breaks. A literal `\\n` inside a JSON-encoded input is part of the exact model-visible text and remains escaped; decoding it would change the recorded prompt.", ""))
     files[Path(folder) / "README.md"] = "\n".join(lines).encode("utf-8")
     _privacy_check(Path(folder) / "README.md", files[Path(folder) / "README.md"])
@@ -663,7 +740,26 @@ def verify_public(results_root: Path) -> dict:
         root_readme = results_root / "README.md"
         if f"({folder}/README.md)" not in root_readme.read_text(encoding="utf-8"):
             raise ReleaseError(f"Results collection does not link new study: {study_id}")
-        table_links = set(re.findall(r"\[YAML\]\(([^)]+\.yaml)\)\s*\|\s*`([0-9a-f]{64})`", readme.read_text(encoding="utf-8")))
+        readme_text = readme.read_text(encoding="utf-8")
+        precall = manifest.get("precall_dispositions")
+        if not isinstance(precall, list):
+            raise ReleaseError(f"New-study setup disposition ledger is missing: {study_id}")
+        declared_setup = set()
+        for item in precall:
+            if (not isinstance(item, dict)
+                    or set(item) != {"arm", "case", "type", "count"}
+                    or (item.get("arm"), item.get("case")) not in expected
+                    or item.get("type") != "preflight_failed_before_model_call"
+                    or type(item.get("count")) is not int or item["count"] <= 0):
+                raise ReleaseError(f"New-study setup disposition is malformed: {study_id}")
+            declared_setup.add((item["arm"], item["case"], item["type"], str(item["count"])))
+        if (len(declared_setup) != len(precall)
+                or manifest.get("precall_count") != sum(item["count"] for item in precall)):
+            raise ReleaseError(f"New-study setup failure count differs: {study_id}")
+        readme_setup = set(re.findall(r"\| `([^`]+)` \| `([^`]+)` \| `([^`]+)` \| ([1-9][0-9]*) \|", readme_text))
+        if readme_setup != declared_setup:
+            raise ReleaseError(f"New-study README setup table differs: {study_id}")
+        table_links = set(re.findall(r"\[YAML\]\(([^)]+\.yaml)\)\s*\|\s*`([0-9a-f]{64})`", readme_text))
         expected_links = set()
         for row in rows:
             relative = row.get("conversation")
