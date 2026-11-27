@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1995" height="626" viewBox="0 0 1080 339" role="img" aria-labelledby="title desc">
+  <title id="title">Research4 checkpoint selection and separate evaluations</title>
+  <desc id="desc">Training records produce rank-16 epoch checkpoints. A supplied-prefix likelihood check selects and freezes epoch three within rank 16. The frozen checkpoint feeds a separate single-decision development diagnostic and the matched closed-loop Game. Only the Game flows to the outcome audit. Source: catalog/studies/2026-11-21--infrastructure-preservation.yaml and the Research4 manuscript checkpoint-selection subsection.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 8 4 L 0 8 Z" fill="#5b7084"/>
+    </marker>
+  </defs>
+  <style>
+    .box { stroke-width:2.2; rx:10; ry:10; }
+    .blue { fill:#edf4fa; stroke:#3476a0; }
+    .teal { fill:#eaf6f8; stroke:#2d8290; }
+    .rose { fill:#f9eff2; stroke:#ad5870; }
+    .green { fill:#edf7f1; stroke:#438963; }
+    .heading { font-family:"Arial",sans-serif; font-size:22px; font-weight:700; fill:#24415a; text-anchor:middle; }
+    .body { font-family:"Arial",sans-serif; font-size:18px; fill:#30475a; text-anchor:middle; }
+    .line { fill:none; stroke:#5b7084; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+    .note { font-family:"Arial",sans-serif; font-size:16px; font-weight:600; fill:#51697c; text-anchor:middle; }
+  </style>
+
+  <rect x="0" y="0" width="1080" height="339" fill="#ffffff"/>
+  <g transform="translate(0 14)">
+
+  <!-- Actual checkpoint-selection path. -->
+  <rect class="box blue" x="20" y="16" width="230" height="100"/>
+  <text class="heading" x="135" y="50">Training records</text>
+  <text class="body" x="135" y="78">63 episodes; 136 decisions</text>
+  <text class="body" x="135" y="100">with reference actions</text>
+
+  <path class="line" d="M 251 66 H 275" marker-end="url(#arrow)"/>
+  <rect class="box teal" x="278" y="16" width="230" height="100"/>
+  <text class="heading" x="393" y="50">Rank-16 epochs</text>
+  <text class="body" x="393" y="78">one adapter fit</text>
+  <text class="body" x="393" y="100">saved checkpoints 1–3</text>
+
+  <path class="line" d="M 509 66 H 533" marker-end="url(#arrow)"/>
+  <rect class="box rose" x="536" y="16" width="230" height="100"/>
+  <text class="heading" x="651" y="50">Likelihood check</text>
+  <text class="body" x="651" y="78">reference action on a</text>
+  <text class="body" x="651" y="100">supplied DEV prefix</text>
+
+  <path class="line" d="M 767 66 H 791" marker-end="url(#arrow)"/>
+  <rect class="box teal" x="794" y="16" width="266" height="100"/>
+  <text class="heading" x="927" y="50">Within-rank choice</text>
+  <text class="body" x="927" y="78">lowest rank-16 epoch loss</text>
+  <text class="body" x="927" y="100">freeze epoch 3 checkpoint</text>
+
+  <!-- Two uses of the frozen checkpoint; probes do not gate the Game. -->
+  <path class="line" d="M 927 117 V 158 H 195"/>
+  <path class="line" d="M 195 158 V 181" marker-end="url(#arrow)"/>
+  <path class="line" d="M 585 158 V 181" marker-end="url(#arrow)"/>
+  <text class="note" x="485" y="147">Separate uses of the frozen checkpoint</text>
+
+  <rect class="box green" x="20" y="185" width="350" height="110"/>
+  <text class="heading" x="195" y="221">Development probes</text>
+  <text class="body" x="195" y="250">36 single-decision action tests</text>
+  <text class="body" x="195" y="272">diagnostic only; not selection</text>
+
+  <rect class="box teal" x="410" y="185" width="350" height="110"/>
+  <text class="heading" x="585" y="221">Matched closed-loop Game</text>
+  <text class="body" x="585" y="250">48-hour trajectories</text>
+  <text class="body" x="585" y="272">choices change later observations</text>
+
+  <path class="line" d="M 761 240 H 796" marker-end="url(#arrow)"/>
+  <rect class="box blue" x="800" y="185" width="260" height="110"/>
+  <text class="heading" x="930" y="221">Outcome audit</text>
+  <text class="body" x="930" y="250">copies, duration</text>
+  <text class="body" x="930" y="272">closeout and censoring</text>
+  </g>
+</svg>
